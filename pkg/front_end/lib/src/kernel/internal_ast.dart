@@ -5172,18 +5172,28 @@ class PropertySet extends InternalExpression {
   }
 }
 
+sealed class RecordField({
+  required var Expression value,
+  required final int fileOffset,
+});
+
+class PositionalRecordField({required super.value, required super.fileOffset})
+    extends RecordField;
+
+class NamedRecordField({
+  required final String name,
+  required super.value,
+  required super.fileOffset,
+}) extends RecordField;
+
 class InternalRecordLiteral extends InternalExpression {
-  final List<Expression> positional;
-  final List<NamedExpression> named;
-  final Map<String, NamedExpression>? namedElements;
-  final List<Object /*Expression|NamedExpression*/> originalElementOrder;
+  final List<RecordField> fields;
+  final Map<String, NamedRecordField>? namedFields;
   final bool isConst;
 
   new(
-    this.positional,
-    this.named,
-    this.namedElements,
-    this.originalElementOrder, {
+    this.fields,
+    this.namedFields, {
     required this.isConst,
     required int offset,
   }) {
@@ -5200,7 +5210,7 @@ class InternalRecordLiteral extends InternalExpression {
 
   @override
   String toString() {
-    return "InternalRecordLiteral(${toStringInternal()})";
+    return "$runtimeType(${toStringInternal()})";
   }
 
   @override
@@ -5211,14 +5221,15 @@ class InternalRecordLiteral extends InternalExpression {
     }
     printer.write('(');
     String comma = '';
-    for (Object element in originalElementOrder) {
+    for (RecordField field in fields) {
       printer.write(comma);
-      if (element is NamedExpression) {
-        printer.write(element.name);
-        printer.write(': ');
-        printer.writeExpression(element.value);
-      } else {
-        printer.writeExpression(element as Expression);
+      switch (field) {
+        case PositionalRecordField():
+          printer.writeExpression(field as Expression);
+        case NamedRecordField():
+          printer.write(field.name);
+          printer.write(': ');
+          printer.writeExpression(field.value);
       }
       comma = ', ';
     }

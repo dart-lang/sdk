@@ -817,6 +817,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.undefinedEnumConstant: [
     AddEnumConstant.new,
     CreateField.new,
+    CreateGetter.new,
     ChangeTo.getterOrSetter,
     CreateMethodOrFunction.new,
   ],

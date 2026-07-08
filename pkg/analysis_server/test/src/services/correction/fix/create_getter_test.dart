@@ -63,6 +63,27 @@ enum E {
 int f(E e) => e.a;
 ''');
   }
+
+  Future<void> test_undefinedEnumConstant() async {
+    await resolveTestCode('''
+enum E { a }
+
+void f(E e) {
+  f(E.b);
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+
+  static E get b => null;
+}
+
+void f(E e) {
+  f(E.b);
+}
+''');
+  }
 }
 
 @reflectiveTest

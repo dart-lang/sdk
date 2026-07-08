@@ -5428,15 +5428,14 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     // Pop all elements. This will put them in evaluation order.
-    List<Object?>? elements = const FixedNullableList<Object>().pop(
+    List<Object?>? elements = const FixedNullableList<Object?>().pop(
       stack,
       count,
     );
 
-    List<Object> originalElementOrder = [];
-    List<Expression> positional = [];
-    List<NamedExpression> named = [];
-    Map<String, NamedExpression>? namedElements;
+    List<RecordField> fields = [];
+    int positionalCount = 0;
+    Map<String, NamedRecordField>? namedFields;
     const List<String> forbiddenObjectMemberNames = [
       "noSuchMethod",
       "toString",
@@ -5462,8 +5461,8 @@ class BodyBuilderImpl extends StackListenerImpl
               uri,
             );
           }
-          namedElements ??= {};
-          NamedExpression? existingExpression = namedElements[element.name];
+          namedFields ??= {};
+          NamedRecordField? existingExpression = namedFields[element.name];
           if (existingExpression != null) {
             existingExpression.value = buildProblem(
               message: diag.duplicatedRecordLiteralFieldName.withArguments(
@@ -5481,23 +5480,32 @@ class BodyBuilderImpl extends StackListenerImpl
                       element.name.length,
                     ),
               ],
-            )..parent = existingExpression;
+            );
           } else {
-            originalElementOrder.add(element);
-            namedElements[element.name] = element;
-            named.add(element);
+            NamedRecordField field = new NamedRecordField(
+              name: element.name,
+              value: element.value,
+              fileOffset: element.fileOffset,
+            );
+            namedFields[element.name] = field;
+            fields.add(field);
           }
         } else {
           Expression expression = toValue(element);
-          positional.add(expression);
-          originalElementOrder.add(expression);
+          fields.add(
+            new PositionalRecordField(
+              value: expression,
+              fileOffset: expression.fileOffset,
+            ),
+          );
+          positionalCount++;
         }
       }
-      if (namedElements != null) {
-        for (NamedExpression element in namedElements.values) {
+      if (namedFields != null) {
+        for (NamedRecordField element in namedFields.values) {
           if (tryParseRecordPositionalGetterName(
                 element.name,
-                positional.length,
+                positionalCount,
               ) !=
               null) {
             libraryBuilder.addProblem(
@@ -5513,10 +5521,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     push(
       new InternalRecordLiteral(
-        positional,
-        named,
-        namedElements,
-        originalElementOrder,
+        fields,
+        namedFields,
         isConst:
             constKeyword != null || constantContext == ConstantContext.inferred,
         offset: token.offset,

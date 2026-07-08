@@ -14618,27 +14618,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalRecordLiteral node,
     DartType typeContext,
   ) {
-    List<Expression> positional = node.positional;
-    List<NamedExpression> namedUnsorted = node.named;
-    List<NamedExpression> named = namedUnsorted;
-    Map<String, NamedExpression>? namedElements = node.namedElements;
-    List<Object> originalElementOrder = node.originalElementOrder;
-    List<SyntheticVariable>? hoistedExpressions;
+    List<RecordField> fields = node.fields;
+    Map<String, NamedRecordField>? namedFields = node.namedFields;
+    int namedFieldCount = namedFields?.length ?? 0;
+    int positionalFieldCount = fields.length - namedFieldCount;
 
     List<DartType>? positionalTypeContexts;
     Map<String, DartType>? namedTypeContexts;
     if (typeContext is RecordType &&
-        typeContext.positional.length == positional.length &&
-        typeContext.named.length == namedUnsorted.length) {
+        typeContext.positional.length == positionalFieldCount &&
+        typeContext.named.length == namedFieldCount) {
       namedTypeContexts = <String, DartType>{};
       for (NamedType namedType in typeContext.named) {
         namedTypeContexts[namedType.name] = namedType.type;
       }
 
       bool sameNames = true;
-      for (int i = 0; sameNames && i < namedUnsorted.length; i++) {
-        if (!namedTypeContexts.containsKey(namedUnsorted[i].name)) {
-          sameNames = false;
+      if (namedFields != null) {
+        for (String name in namedFields.keys) {
+          if (!namedTypeContexts.containsKey(name)) {
+            sameNames = false;
+          }
         }
       }
 
@@ -14649,75 +14649,47 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    List<DartType> positionalTypes;
-    List<NamedType> namedTypes;
+    int positionalIndex = 0;
+    List<Expression> positional = [];
+    List<NamedExpression>? named;
 
-    if (namedElements == null) {
-      positionalTypes = [];
-      namedTypes = [];
-      for (int index = 0; index < positional.length; index++) {
-        Expression expression = positional[index];
+    List<SyntheticVariable>? hoistedExpressions;
 
-        DartType contextType =
-            positionalTypeContexts?[index] ?? const UnknownType();
-        ExpressionInferenceResult expressionResult = inferExpression(
-          expression,
-          contextType,
-        );
-        if (contextType is! UnknownType) {
-          expressionResult =
-              coerceExpressionForAssignment(
-                contextType,
-                expressionResult,
-                treeNodeForTesting: node,
-              ) ??
-              expressionResult;
-        }
+    Map<String, NamedRecordResult> namedResults = {};
 
-        positionalTypes.add(
-          expressionResult.postCoercionType ?? expressionResult.inferredType,
-        );
-        positional[index] = expressionResult.expression;
-      }
-    } else {
-      positionalTypes = new List<DartType>.filled(
-        positional.length,
-        const UnknownType(),
-      );
-      Map<String, DartType> namedElementTypes = {};
+    List<DartType> positionalTypes = [];
+    List<NamedType> namedTypes = [];
 
-      // Index into [positional] of the positional element we find next.
-      int positionalIndex = 0;
-
-      for (int index = 0; index < originalElementOrder.length; index++) {
-        Object element = originalElementOrder[index];
-        if (element is NamedExpression) {
-          DartType contextType =
-              namedTypeContexts?[element.name] ?? const UnknownType();
-          ExpressionInferenceResult expressionResult = inferExpression(
-            element.value,
-            contextType,
-          );
-          if (contextType is! UnknownType) {
-            expressionResult =
-                coerceExpressionForAssignment(
-                  contextType,
-                  expressionResult,
-                  treeNodeForTesting: node,
-                ) ??
-                expressionResult;
-          }
-          Expression expression = expressionResult.expression;
-          DartType type =
-              expressionResult.postCoercionType ??
-              expressionResult.inferredType;
-          element.value = expression..parent = element;
-          namedElementTypes[element.name] = type;
-        } else {
+    for (RecordField field in fields) {
+      switch (field) {
+        case PositionalRecordField():
+          Expression expression = field.value;
           DartType contextType =
               positionalTypeContexts?[positionalIndex] ?? const UnknownType();
           ExpressionInferenceResult expressionResult = inferExpression(
-            element as Expression,
+            expression,
+            contextType,
+          );
+          if (contextType is! UnknownType) {
+            expressionResult =
+                coerceExpressionForAssignment(
+                  contextType,
+                  expressionResult,
+                  treeNodeForTesting: node,
+                ) ??
+                expressionResult;
+          }
+
+          positionalTypes.add(
+            expressionResult.postCoercionType ?? expressionResult.inferredType,
+          );
+          positional.add(expressionResult.expression);
+          positionalIndex++;
+        case NamedRecordField():
+          DartType contextType =
+              namedTypeContexts?[field.name] ?? const UnknownType();
+          ExpressionInferenceResult expressionResult = inferExpression(
+            field.value,
             contextType,
           );
           if (contextType is! UnknownType) {
@@ -14733,13 +14705,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DartType type =
               expressionResult.postCoercionType ??
               expressionResult.inferredType;
-          positional[positionalIndex] = expression;
-          positionalTypes[positionalIndex] = type;
-          positionalIndex++;
-        }
+          namedResults[field.name] = new NamedRecordResult(
+            expression: extern.createNamedExpression(
+              field.name,
+              expression,
+              fileOffset: field.fileOffset,
+            ),
+            type: type,
+          );
       }
+    }
 
-      List<String> sortedNames = namedElements.keys.toList()..sort();
+    if (namedFields != null) {
+      List<String> sortedNames = namedFields.keys.toList()..sort();
 
       // Index into [sortedNames] of the named element we expected to find
       // next, for the named elements to be sorted. This also used to detect
@@ -14764,60 +14742,65 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // either positional after named or unsorted named, all preceding
       // elements must be hoisted to retain the original evaluation order.
       positionalIndex--;
-      for (int index = originalElementOrder.length - 1; index >= 0; index--) {
-        Object element = originalElementOrder[index];
-        if (element is NamedExpression) {
-          Expression expression = element.value;
-          DartType type = namedElementTypes[element.name]!;
-          // TODO(johnniwinther): Should we use [isPureExpression] as is, make
-          // it include (simple) literals, or add a new predicate?
-          if (needsHoisting && !isPureExpression(expression)) {
-            // We hoist the value of the [NamedExpression] into a synthesized
-            // variable, and replace the value with a read of the variable.
-            SyntheticVariable variable = createVariable(expression, type);
-            hoistedExpressions ??= [];
-            hoistedExpressions.add(variable);
-            element.value = createVariableGet(variable)..parent = element;
-          }
-          if (!namedNeedsSorting && element.name != sortedNames[nameIndex]) {
-            // Named elements are not sorted, so we need to hoist and sort them.
-            namedNeedsSorting = true;
-            needsHoisting = enableHoisting;
-          }
-          nameIndex--;
-        } else {
-          Expression expression = positional[positionalIndex];
-          DartType type = positionalTypes[positionalIndex];
-          // TODO(johnniwinther): Should we use [isPureExpression] as is, make
-          // it include (simple) literals, or add a new predicate?
-          if (needsHoisting && !isPureExpression(expression)) {
-            // We hoist the positional element into a synthesized variable, and
-            // replace the element in [positional] with a read of the variable.
-            SyntheticVariable variable = createVariable(expression, type);
-            hoistedExpressions ??= [];
-            hoistedExpressions.add(variable);
-            positional[positionalIndex] = createVariableGet(variable);
-          } else if (nameIndex >= 0) {
-            // We have not seen all named elements yet, so we must hoist the
-            // remaining named elements and the preceding positional elements.
-            needsHoisting = enableHoisting;
-          }
-          positionalIndex--;
+      for (int index = fields.length - 1; index >= 0; index--) {
+        RecordField element = fields[index];
+        switch (element) {
+          case NamedRecordField():
+            NamedRecordResult namedResult = namedResults[element.name]!;
+            NamedExpression namedExpression = namedResult.expression;
+            Expression expression = namedExpression.value;
+            DartType type = namedResult.type;
+            // TODO(johnniwinther): Should we use [isPureExpression] as is, make
+            // it include (simple) literals, or add a new predicate?
+            if (needsHoisting && !isPureExpression(expression)) {
+              // We hoist the value of the [NamedExpression] into a synthesized
+              // variable, and replace the value with a read of the variable.
+              SyntheticVariable variable = createVariable(expression, type);
+              hoistedExpressions ??= [];
+              hoistedExpressions.add(variable);
+              namedExpression.value = createVariableGet(variable)
+                ..parent = namedExpression;
+            }
+            if (!namedNeedsSorting && element.name != sortedNames[nameIndex]) {
+              // Named elements are not sorted, so we need to hoist and sort
+              // them.
+              namedNeedsSorting = true;
+              needsHoisting = enableHoisting;
+            }
+            nameIndex--;
+          case PositionalRecordField():
+            Expression expression = positional[positionalIndex];
+            DartType type = positionalTypes[positionalIndex];
+            // TODO(johnniwinther): Should we use [isPureExpression] as is, make
+            // it include (simple) literals, or add a new predicate?
+            if (needsHoisting && !isPureExpression(expression)) {
+              // We hoist the positional element into a synthesized variable,
+              // and replace the element in [positional] with a read of the
+              // variable.
+              SyntheticVariable variable = createVariable(expression, type);
+              hoistedExpressions ??= [];
+              hoistedExpressions.add(variable);
+              positional[positionalIndex] = createVariableGet(variable);
+            } else if (nameIndex >= 0) {
+              // We have not seen all named elements yet, so we must hoist the
+              // remaining named elements and the preceding positional elements.
+              needsHoisting = enableHoisting;
+            }
+            positionalIndex--;
         }
       }
       namedTypes = new List<NamedType>.generate(sortedNames.length, (
         int index,
       ) {
         String name = sortedNames[index];
-        return new NamedType(name, namedElementTypes[name]!);
+        return new NamedType(name, namedResults[name]!.type);
       });
-      if (namedNeedsSorting) {
-        // The [named] elements need to be sorted.
-        named = [];
-        for (String name in sortedNames) {
-          named.add(namedElements[name]!);
-        }
-      }
+      named = new List<NamedExpression>.generate(sortedNames.length, (
+        int index,
+      ) {
+        String name = sortedNames[index];
+        return namedResults[name]!.expression;
+      });
     }
 
     DartType type;
@@ -14835,7 +14818,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       result = new RecordLiteral(
         positional,
-        named,
+        named ?? [],
         type = new RecordType(
           positionalTypes,
           namedTypes,
@@ -18265,3 +18248,8 @@ class _RedirectionTarget {
 
   new(this.target, this.typeArguments);
 }
+
+class NamedRecordResult({
+  required final NamedExpression expression,
+  required final DartType type,
+});
