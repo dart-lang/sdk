@@ -110,7 +110,7 @@ base class Client<BE extends DartRuntimeServiceBackend> {
   Future<void> cleanup() async {
     logger.info('Client connection closed.');
     // Cleanup stream subscription state when the client disconnects.
-    _internalRpcs.eventStreamMethods.onClientDisconnect(this);
+    await _internalRpcs.eventStreamMethods.onClientDisconnect(this);
   }
 
   @mustCallSuper

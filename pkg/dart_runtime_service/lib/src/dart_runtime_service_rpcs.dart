@@ -236,7 +236,7 @@ final class DartRuntimeServiceRpcs {
   /// response may be returned.
   Future<RpcResponse> streamListen(json_rpc.Parameters parameters) async {
     final stream = parameters[_kStreamId].asString;
-    eventStreamMethods.streamListen(
+    await eventStreamMethods.streamListen(
       client: client,
       streamId: stream,
       params: parameters.asMap.cast<String, Object?>(),
@@ -253,7 +253,7 @@ final class DartRuntimeServiceRpcs {
   /// response may be returned.
   Future<RpcResponse> streamCancel(json_rpc.Parameters parameters) async {
     final streamId = parameters[_kStreamId].asString;
-    eventStreamMethods.streamCancel(client: client, streamId: streamId);
+    await eventStreamMethods.streamCancel(client: client, streamId: streamId);
     return Success().toJson();
   }
 }

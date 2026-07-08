@@ -125,6 +125,7 @@ void main() {
             expect(parameters[kParameter], kValue2);
             return {kResult: parameters};
           },
+          ignoreMethods: [serviceName1],
         );
 
         var result = await client3.callServiceExtension(
