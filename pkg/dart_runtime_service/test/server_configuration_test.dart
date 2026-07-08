@@ -35,6 +35,23 @@ void main() {
       );
     });
 
+    test('successfully falls back to random port when port is in use and '
+        'enableServicePortFallback is true', () async {
+      final tmpServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(tmpServer.close);
+
+      final service = await createDartRuntimeServiceForTest(
+        config: DartRuntimeServiceOptions(
+          enableLogging: true,
+          port: tmpServer.port,
+          enableServicePortFallback: true,
+        ),
+      );
+      expect(service.uri.port, isNot(equals(tmpServer.port)));
+      expect(service.uri.port, isNot(equals(0)));
+      expect(service.isServerRunning, true);
+    });
+
     test('successfully binds to loopback IPv6 when configured', () async {
       final service = await createDartRuntimeServiceForTest(
         config: const DartRuntimeServiceOptions(
