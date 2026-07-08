@@ -1391,10 +1391,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         staticResultType = emptyType;
       } else if (target is Procedure) {
         final returnType = target.function.returnType;
-        // TODO(dartbug.com/54200): static type cannot be trusted when
-        // function type is returned.
-        if (returnType is TypeParameterType ||
-            (returnType != staticDartType && returnType is! FunctionType)) {
+        if (returnType is TypeParameterType || returnType != staticDartType) {
           staticResultType = _typesBuilder.fromStaticType(staticDartType, true);
         }
       }
