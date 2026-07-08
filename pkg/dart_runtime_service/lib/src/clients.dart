@@ -30,6 +30,7 @@ base class Client<BE extends DartRuntimeServiceBackend> {
     required EventStreamMethods eventStreamMethods,
     required this.backend,
     required this.artificial,
+    required this.clientManager,
     String? name,
   }) {
     _name = name ?? defaultClientName;
@@ -217,13 +218,18 @@ base class Client<BE extends DartRuntimeServiceBackend> {
   /// The current name associated with this client.
   String get name => _name;
 
+  final ClientManager clientManager;
+
   /// Sets the name associated with this client.
   ///
   /// If [n] is null, the client name is reset to [defaultClientName].
   void setName(String? n) {
+    final oldName = _name;
     final updated = n ?? defaultClientName;
+    if (oldName == updated) return;
     logger.info('Changing client name to $updated.');
     _name = updated;
+    clientManager.onClientNameChanged(this, oldName: oldName, newName: updated);
   }
 
   late String _name;
@@ -316,10 +322,19 @@ base class ClientManager<BE extends DartRuntimeServiceBackend>
       clients: clients,
       eventStreamMethods: eventStreamMethods,
       backend: backend,
+      clientManager: this,
       name: name,
       artificial: artificial,
     );
   }
+
+  /// Called when [client]'s name changes from [oldName] to [newName].
+  @visibleForOverriding
+  void onClientNameChanged(
+    Client client, {
+    required String oldName,
+    required String newName,
+  }) {}
 
   /// Creates a [Client] from [connection] and adds it to the list of connected
   /// clients.
@@ -357,6 +372,16 @@ base class ClientManager<BE extends DartRuntimeServiceBackend>
     if (_clients.contains(client)) {
       _clients.remove(client);
     }
+  }
+
+  /// Finds the first client that has registered the specified [service].
+  Client? findFirstClientThatHandlesService(String service) {
+    for (final client in clients) {
+      if (client.hasService(service)) {
+        return client;
+      }
+    }
+    return null;
   }
 
   /// Cleans up clients that are still connected by calling [Client.close] on
