@@ -979,7 +979,6 @@ Expression createLogicalExpression({
   return new LogicalExpression(left, operator, right)..fileOffset = fileOffset;
 }
 
-// Coverage-ignore(suite): Not run.
 MapLiteralEntry createMapLiteralEntry(
   Expression key,
   Expression value, {

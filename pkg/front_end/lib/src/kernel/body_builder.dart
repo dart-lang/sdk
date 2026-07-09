@@ -1590,7 +1590,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<TypeBuilder>? typeArguments,
     Token? constKeyword,
     Token leftBrace,
-    List<MapLiteralEntry> entries,
+    List<InternalMapLiteralEntry> entries,
   ) {
     DartType? keyType;
     DartType? valueType;
@@ -1646,7 +1646,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<Expression> expressions = <Expression>[];
     if (setOrMapEntries != null) {
       for (dynamic entry in setOrMapEntries) {
-        if (entry is MapLiteralEntry) {
+        if (entry is InternalMapLiteralEntry) {
           // TODO(danrubel): report the error on the colon
           addProblem(
             diag.expectedButGot.withArguments(expected: ','),
@@ -3684,7 +3684,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       assert(conditionStatement is InternalEmptyStatement);
     }
-    if (entry is MapLiteralEntry) {
+    if (entry is InternalMapLiteralEntry) {
       TreeNode result;
       if (variableOrExpression is InternalPatternVariableDeclaration) {
         result = intern.createPatternForMapEntry(
@@ -3860,7 +3860,7 @@ class BodyBuilderImpl extends StackListenerImpl
       lvalue: lvalue,
     );
     assignedVariables.pushNode(assignedVariablesNodeInfo);
-    if (entry is MapLiteralEntry) {
+    if (entry is InternalMapLiteralEntry) {
       ForInMapEntry result = intern.createForInMapEntry(
         element,
         iterable,
@@ -4553,7 +4553,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     InternalPatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
-    if (entry is MapLiteralEntry) {
+    if (entry is InternalMapLiteralEntry) {
       if (patternGuard == null) {
         node = intern.createIfMapEntry(
           offsetForToken(ifToken),
@@ -4622,8 +4622,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     InternalPatternGuard? patternGuard = condition.patternGuard;
     TreeNode node;
-    if (thenEntry is MapLiteralEntry) {
-      if (elseEntry is MapLiteralEntry) {
+    if (thenEntry is InternalMapLiteralEntry) {
+      if (elseEntry is InternalMapLiteralEntry) {
         if (patternGuard == null) {
           node = intern.createIfMapEntry(
             offsetForToken(ifToken),
@@ -4642,7 +4642,7 @@ class BodyBuilderImpl extends StackListenerImpl
           );
         }
       } else if (elseEntry is ControlFlowElement) {
-        MapLiteralEntry? elseMapEntry = elseEntry.toMapLiteralEntry(
+        InternalMapLiteralEntry? elseMapEntry = elseEntry.toMapLiteralEntry(
           assignedVariables.reassignInfo,
         );
         if (elseMapEntry != null) {
@@ -4693,9 +4693,9 @@ class BodyBuilderImpl extends StackListenerImpl
           fileOffset: offsetForToken(ifToken),
         );
       }
-    } else if (elseEntry is MapLiteralEntry) {
+    } else if (elseEntry is InternalMapLiteralEntry) {
       if (thenEntry is ControlFlowElement) {
-        MapLiteralEntry? thenMapEntry = thenEntry.toMapLiteralEntry(
+        InternalMapLiteralEntry? thenMapEntry = thenEntry.toMapLiteralEntry(
           assignedVariables.reassignInfo,
         );
         if (thenMapEntry != null) {
@@ -7224,7 +7224,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // Resolve the top of the stack so that if it's a delayed assignment it
     // happens before we go into the else block.
     Object then = pop() as Object;
-    if (then is! MapLiteralEntry) then = toValue(then);
+    if (then is! InternalMapLiteralEntry) then = toValue(then);
 
     Object condition = pop() as Condition;
     exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifElement]);
@@ -7893,7 +7893,13 @@ class BodyBuilderImpl extends StackListenerImpl
     Expression value = popForValue();
     Expression key = popForValue();
     if (nullAwareKeyToken == null && nullAwareValueToken == null) {
-      push(intern.createMapEntry(offsetForToken(colon), key, value));
+      push(
+        intern.createMapLiteralEntry(
+          key,
+          value,
+          fileOffset: offsetForToken(colon),
+        ),
+      );
     } else {
       if (!libraryFeatures.nullAwareElements.isEnabled) {
         // Coverage-ignore-block(suite): Not run.
@@ -7963,7 +7969,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
     for (int i = count - 1; i >= 0; i--) {
       Object? elem = pop();
-      if (elem is MapLiteralEntry) {
+      if (elem is InternalMapLiteralEntry) {
         setOrMapEntries[i] = elem;
       } else {
         setOrMapEntries[i] = toValue(elem);
@@ -7986,7 +7992,7 @@ class BodyBuilderImpl extends StackListenerImpl
         : null;
 
     for (int i = 0; i < setOrMapEntries.length; ++i) {
-      if (setOrMapEntries[i] is! MapLiteralEntry &&
+      if (setOrMapEntries[i] is! InternalMapLiteralEntry &&
           !isConvertibleToMapEntry(setOrMapEntries[i])) {
         hasSetEntry = true;
       }
@@ -8001,12 +8007,12 @@ class BodyBuilderImpl extends StackListenerImpl
     if (isSet) {
       buildLiteralSet(typeArguments, constKeyword, leftBrace, setOrMapEntries);
     } else {
-      List<MapLiteralEntry> mapEntries = new List<MapLiteralEntry>.filled(
+      List<InternalMapLiteralEntry> mapEntries = new List.filled(
         setOrMapEntries.length,
-        dummyMapLiteralEntry,
+        dummyInternalMapLiteralEntry,
       );
       for (int i = 0; i < setOrMapEntries.length; ++i) {
-        if (setOrMapEntries[i] is MapLiteralEntry) {
+        if (setOrMapEntries[i] is InternalMapLiteralEntry) {
           mapEntries[i] = setOrMapEntries[i];
         } else {
           mapEntries[i] = convertToMapEntry(

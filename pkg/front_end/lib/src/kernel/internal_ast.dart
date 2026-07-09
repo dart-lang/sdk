@@ -9199,7 +9199,7 @@ class InternalMapLiteral extends InternalExpression {
   final bool isConst;
   final DartType? keyType;
   final DartType? valueType;
-  final List<MapLiteralEntry> entries;
+  final List<InternalMapLiteralEntry> entries;
 
   new(
     this.entries, {
@@ -9238,7 +9238,7 @@ class InternalMapLiteral extends InternalExpression {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeMapEntry(entries[index]);
+      entries[index].toTextInternal(printer);
     }
     printer.write('}');
   }
@@ -9837,3 +9837,57 @@ class InternalNamedExpression extends TreeNode with InternalTreeNode {
     return "$runtimeType(${toStringInternal()})";
   }
 }
+
+class InternalMapLiteralEntry extends TreeNode with InternalTreeNode {
+  final Expression key;
+
+  final Expression value;
+
+  new({required this.key, required this.value, required int fileOffset}) {
+    key.parent = this;
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) =>
+      unsupported("${runtimeType}.accept", -1, null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      unsupported("${runtimeType}.accept1", -1, null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(key);
+    printer.write(': ');
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+final InternalExpression dummyInternalExpression = new InternalNullLiteral(
+  fileOffset: TreeNode.noOffset,
+);
+
+final InternalMapLiteralEntry dummyInternalMapLiteralEntry =
+    new InternalMapLiteralEntry(
+      key: dummyInternalExpression,
+      value: dummyInternalExpression,
+      fileOffset: TreeNode.noOffset,
+    );

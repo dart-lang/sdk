@@ -6,6 +6,8 @@ import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart' as type;
 
+import '../kernel/collections.dart' as type;
+
 class NullValues {
   static const NullValue Expression = const NullValue("Expression");
   static const NullValue MapLiteralEntry = const NullValue("MapLiteralEntry");
@@ -20,10 +22,12 @@ class ValueKinds {
       const SingleValueKind<type.Expression>();
   static const SingleValueKind<type.Expression> ExpressionOrNull =
       const SingleValueKind<type.Expression>(NullValues.Expression);
-  static const SingleValueKind<type.MapLiteralEntry> MapLiteralEntry =
-      const SingleValueKind<type.MapLiteralEntry>();
-  static const SingleValueKind<type.MapLiteralEntry> MapLiteralEntryOrNull =
-      const SingleValueKind<type.MapLiteralEntry>(NullValues.MapLiteralEntry);
+  static const SingleValueKind<type.InferredMapLiteralEntry> MapLiteralEntry =
+      const SingleValueKind<type.InferredMapLiteralEntry>();
+  static const SingleValueKind<type.InferredMapLiteralEntry>
+  MapLiteralEntryOrNull = const SingleValueKind<type.InferredMapLiteralEntry>(
+    NullValues.MapLiteralEntry,
+  );
   static const SingleValueKind<type.MapPatternEntry> MapPatternEntry =
       const SingleValueKind<type.MapPatternEntry>();
   static const SingleValueKind<type.Pattern> Pattern =

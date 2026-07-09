@@ -142,7 +142,7 @@ class ValueKinds {
   static const ValueKind LabelListOrNull =
       const SingleValueKind<List<type.Label>>(NullValues.Labels);
   static const ValueKind MapLiteralEntry =
-      const SingleValueKind<type.MapLiteralEntry>();
+      const SingleValueKind<type.InternalMapLiteralEntry>();
   static const ValueKind MapPatternEntry =
       const SingleValueKind<type.InternalMapPatternEntry>();
   static const ValueKind ParameterList =

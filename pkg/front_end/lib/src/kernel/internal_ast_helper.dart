@@ -441,7 +441,7 @@ ForInElement createForInElement(
 ForInMapEntry createForInMapEntry(
   InternalForInElement element,
   Expression iterable,
-  MapLiteralEntry body, {
+  InternalMapLiteralEntry body, {
   required bool isAsync,
   required int forOffset,
   required int fileOffset,
@@ -475,7 +475,7 @@ ForMapEntry createForMapEntry(
   List<InternalVariableDeclaration> variables,
   Expression? condition,
   List<Expression> updates,
-  MapLiteralEntry body,
+  InternalMapLiteralEntry body,
 ) {
   return new ForMapEntry(variables, condition, updates, body)
     ..fileOffset = fileOffset;
@@ -559,13 +559,13 @@ Expression createIfCaseElement(
   )..fileOffset = fileOffset;
 }
 
-MapLiteralEntry createIfCaseMapEntry(
+InternalMapLiteralEntry createIfCaseMapEntry(
   int fileOffset, {
   required List<Statement> prelude,
   required Expression expression,
   required InternalPatternGuard patternGuard,
-  required MapLiteralEntry then,
-  MapLiteralEntry? otherwise,
+  required InternalMapLiteralEntry then,
+  InternalMapLiteralEntry? otherwise,
 }) {
   return new IfCaseMapEntry(
     prelude: prelude,
@@ -601,11 +601,11 @@ Expression createIfElement(
   return new IfElement(condition, then, otherwise)..fileOffset = fileOffset;
 }
 
-MapLiteralEntry createIfMapEntry(
+InternalMapLiteralEntry createIfMapEntry(
   int fileOffset,
   Expression condition,
-  MapLiteralEntry then, [
-  MapLiteralEntry? otherwise,
+  InternalMapLiteralEntry then, [
+  InternalMapLiteralEntry? otherwise,
 ]) {
   return new IfMapEntry(condition, then, otherwise)..fileOffset = fileOffset;
 }
@@ -935,18 +935,6 @@ InternalExpression createLogicalExpression(
   );
 }
 
-/// Return a representation of a key/value pair in a literal map at the given
-/// [fileOffset]. The [key] is the representation of the expression used to
-/// compute the key. The [value] is the representation of the expression used
-/// to compute the value.
-MapLiteralEntry createMapEntry(
-  int fileOffset,
-  Expression key,
-  Expression value,
-) {
-  return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
-}
-
 /// Return a representation of a map literal at the given [fileOffset]. The
 /// [isConst] is `true` if the literal is either explicitly or implicitly a
 /// constant. The [keyType] is the representation of the first type argument
@@ -960,7 +948,7 @@ InternalExpression createMapLiteral(
   int fileOffset,
   DartType? keyType,
   DartType? valueType,
-  List<MapLiteralEntry> entries, {
+  List<InternalMapLiteralEntry> entries, {
   required bool isConst,
 }) {
   return new InternalMapLiteral(
@@ -972,12 +960,16 @@ InternalExpression createMapLiteral(
   );
 }
 
-MapLiteralEntry createMapLiteralEntry(
+InternalMapLiteralEntry createMapLiteralEntry(
   Expression key,
   Expression value, {
   required int fileOffset,
 }) {
-  return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
+  return new InternalMapLiteralEntry(
+    key: key,
+    value: value,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createMapPattern(
@@ -1222,7 +1214,7 @@ PatternForMapEntry createPatternForMapEntry(
   required List<InternalVariableDeclaration> variableInitializations,
   required Expression? condition,
   required List<Expression> updates,
-  required MapLiteralEntry body,
+  required InternalMapLiteralEntry body,
 }) {
   return new PatternForMapEntry(
     internalPatternVariableDeclaration: patternVariableDeclaration,
