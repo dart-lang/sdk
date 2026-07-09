@@ -1,0 +1,5 @@
+set noparent
+file:/pkg/front_end/OWNERS
+
+# For updating expect files containing `dart:ffi` code.
+file:/tools/OWNERS_VM

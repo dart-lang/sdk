@@ -1,0 +1,9 @@
+S foo<S>() => throw "foo";
+
+bar<R>(A<R> a) {}
+
+baz() => bar(foo());
+
+class A<T> {}
+
+main() {}

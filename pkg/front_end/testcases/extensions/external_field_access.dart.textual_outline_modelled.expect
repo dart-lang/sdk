@@ -1,0 +1,5 @@
+extension on int {
+  bool get getter {}
+  external int field;
+  set setter(bool value) {}
+}

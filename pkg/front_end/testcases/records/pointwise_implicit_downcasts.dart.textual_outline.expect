@@ -1,0 +1,9 @@
+class Callable {
+  void call() {}
+}
+
+T id<T>(T x) => x;
+
+foo() {}
+
+main() {}

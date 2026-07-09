@@ -1,0 +1,59 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == app_jitk ]
+main/no_main_test/01: Crash
+unsorted/disassemble_test: SkipByDesign # Tested in JIT mode.
+
+[ $compiler == dartkp ]
+unsorted/disassemble_test: SkipByDesign # JIT only test
+
+[ $arch == ia32 && $mode == debug ]
+*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
+
+# ===== dartk + vm status lines =====
+[ $compiler == dartk && $runtime == vm ]
+const/const2_test: Crash # Flaky
+main/no_main_test/01: Skip
+mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
+
+[ $compiler == dartk && $hot_reload_rollback ]
+symbol/conflict_test: Slow, Pass
+
+# ==== dartkp + dart_precompiled status lines ====
+[ $compiler == dartkp && $runtime == dart_precompiled ]
+assert/with_type_test_or_cast_test: Crash
+const/const2_test: Skip # Incompatible flag: --compile_all
+const/evaluation_test: SkipByDesign
+deferred/redirecting_factory_test: Crash # Issue 23408, KernelVM bug: Deferred loading kernel issue 30273.
+export/ambiguous_main_test: Skip # Issue 29895 Fail Issue 14763
+export/double_same_main_test: Skip # Issue 29895 Crash Issue 29895
+field/increment_bailout_test: SkipByDesign
+main/no_main_test/01: Skip
+main/not_a_function_test: Skip
+mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin/illegal_superclass_test: Skip # Issues 24478 and 23773
+optimize/deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
+unsorted/hello_dart_test: Skip # Incompatible flag: --compile_all
+unsorted/invocation_mirror2_test: SkipByDesign
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
+assert/initializer_const_error2_test/cc01: Crash
+assert/initializer_const_error2_test/cc02: Crash
+assert/initializer_const_error2_test/cc03: Crash
+assert/initializer_const_error2_test/cc04: Crash
+assert/initializer_const_error2_test/cc05: Crash
+assert/initializer_const_error2_test/cc06: Crash
+assert/initializer_const_error2_test/cc07: Crash
+assert/initializer_const_error2_test/cc08: Crash
+assert/initializer_const_error2_test/cc09: Crash
+assert/initializer_const_error2_test/cc10: Crash
+assert/initializer_const_error2_test/cc11: Crash
+
+[ $compiler == dartkp && $system == windows ]
+unsorted/disassemble_test: Slow, Pass
+
+[ $mode == debug && $runtime == vm && ($compiler == app_jitk || $compiler == dartk) ]
+optimize/deopt_inlined_function_lazy_test: Skip

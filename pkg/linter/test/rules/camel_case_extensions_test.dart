@@ -1,0 +1,57 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CamelCaseExtensionsTest);
+  });
+}
+
+@reflectiveTest
+class CamelCaseExtensionsTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.camel_case_extensions;
+
+  test_augmentationExtension_lowerCase() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+
+extension e on Object { }
+''');
+
+    await assertNoDiagnostics(r'''
+part of 'a.dart';
+
+augment extension e { }
+''');
+  }
+
+  test_lowerCase() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension [!fooBar!] on Object {}
+''');
+  }
+
+  test_underscore() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension [!Foo_Bar!] on Object { }
+''');
+  }
+
+  test_unnamed() async {
+    await assertNoDiagnostics(r'''
+extension on Object { }
+''');
+  }
+
+  test_wellFormed() async {
+    await assertNoDiagnostics(r'''
+extension FooBar on Object { }
+''');
+  }
+}

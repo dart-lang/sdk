@@ -1,0 +1,20 @@
+library test;
+
+import 'infer_statics_transitively3_a.dart' as p show A, a2;
+import 'infer_statics_transitively3_a.dart' show A, a1;
+
+const t1 = 1;
+
+const t2 = t1;
+
+const t3 = a1;
+
+const t4 = p.a2;
+
+const t5 = A.a3;
+
+const t6 = p.A.a3;
+
+foo() {}
+
+main() {}

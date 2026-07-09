@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  method method() → void {
+    #C2;
+    #C1<(self::C::T%, {required name: core::String})>;
+    #C1<(core::num, {required name: self::C::T%})>;
+  }
+}
+
+constants  {
+  #C1 = constructor-tearoff self::C::•
+  #C2 = instantiation #C1 <(core::num, {required name: core::String})>
+}

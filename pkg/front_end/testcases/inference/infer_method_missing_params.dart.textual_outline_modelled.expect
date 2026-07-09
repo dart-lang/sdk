@@ -1,0 +1,24 @@
+library test;
+
+abstract class A {
+  int f(int x, int y);
+  int g(int x, [int y]);
+  int h(int x, {int y});
+  int i(int x, {int y});
+}
+
+abstract class B {
+  int f(int x);
+  int g(int x);
+  int h(int x);
+  int i(int x, {int z});
+}
+
+abstract class C implements A, B {
+  f(x, y);
+  g(x, [y]);
+  h(x, {y});
+  i(x, {y, z});
+}
+
+main() {}

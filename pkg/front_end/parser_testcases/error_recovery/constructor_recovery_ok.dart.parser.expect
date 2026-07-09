@@ -1,0 +1,29 @@
+class Foo {
+Foo() {
+
+}
+Foo() : initializer = true {
+
+}
+Foo.x() {
+
+}
+Foo.x() : initializer = true {
+
+}
+}
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+Foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+Foo[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] initializer[StringToken] =[SimpleToken] true[KeywordToken] {[BeginToken]
+
+}[SimpleToken]
+Foo[StringToken].[SimpleToken]x[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+Foo[StringToken].[SimpleToken]x[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] initializer[StringToken] =[SimpleToken] true[KeywordToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

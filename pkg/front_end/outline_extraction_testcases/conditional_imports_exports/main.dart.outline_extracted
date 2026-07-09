@@ -1,0 +1,40 @@
+org-dartlang-testcase:///main.dart:
+import 'a.dart' if (dart.library.html) 'b.dart' if (dart.library.io) 'c.dart';
+export 'a2.dart' if (dart.library.html) 'b2.dart' if (dart.library.io) 'c2.dart';
+Foo x() {}
+
+
+
+
+org-dartlang-testcase:///a2.dart:
+class Foo2 {}
+
+
+
+
+org-dartlang-testcase:///b2.dart:
+class Foo2 {}
+
+
+
+
+org-dartlang-testcase:///c2.dart:
+class Foo2 {}
+
+
+
+
+org-dartlang-testcase:///a.dart:
+class Foo {}
+
+
+
+
+org-dartlang-testcase:///b.dart:
+class Foo {}
+
+
+
+
+org-dartlang-testcase:///c.dart:
+class Foo {}

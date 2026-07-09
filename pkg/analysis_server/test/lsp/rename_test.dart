@@ -1,0 +1,1655 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
+import 'change_verifier.dart';
+import 'server_abstract.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(RenameTest);
+  });
+}
+
+@reflectiveTest
+class RenameTest extends AbstractLspAnalysisServerTest {
+  /// A completer that completes when an outbound rename request is sent.
+  ///
+  /// This is used in cancellation tests that need to know when the request has
+  /// been sent and access the ID to cancel.
+  Completer<RequestMessage> outboundRenameRequestCompleter = Completer();
+
+  @override
+  RequestMessage makeRenameRequest(
+    int? version,
+    Uri uri,
+    Position pos,
+    String newName,
+  ) {
+    var request = super.makeRenameRequest(version, uri, pos, newName);
+    outboundRenameRequestCompleter.complete(request);
+    return request;
+  }
+
+  Future<void> test_prepare_class() {
+    const content = '''
+class MyClass {}
+final a = new [!My^Class!]();
+''';
+
+    return _test_prepare(content, 'MyClass');
+  }
+
+  Future<void> test_prepare_class_newKeyword() {
+    const content = '''
+class MyClass {}
+final a = n^ew [!MyClass!]();
+''';
+
+    return _test_prepare(content, 'MyClass');
+  }
+
+  Future<void> test_prepare_class_startOfParameterList() {
+    const content = '''
+class [!MyClass^!]<T> {}
+''';
+
+    return _test_prepare(content, 'MyClass');
+  }
+
+  Future<void> test_prepare_class_typeParameter_atDeclaration() {
+    const content = '''
+class A<[!T^!]> {
+  final List<T> values = [];
+}
+''';
+
+    return _test_prepare(content, 'T');
+  }
+
+  Future<void> test_prepare_class_typeParameter_atReference() {
+    const content = '''
+class A<T> {
+  final List<[!T^!]> values = [];
+}
+''';
+
+    return _test_prepare(content, 'T');
+  }
+
+  Future<void> test_prepare_enum() {
+    const content = '''
+enum [!My^Enum!] { one }
+''';
+
+    return _test_prepare(content, 'MyEnum');
+  }
+
+  Future<void> test_prepare_enumMember() {
+    const content = '''
+enum MyEnum { [!o^ne!] }
+''';
+
+    return _test_prepare(content, 'one');
+  }
+
+  Future<void> test_prepare_enumMember_reference() {
+    const content = '''
+enum MyEnum { one }
+final a = MyEnum.[!o^ne!];
+''';
+
+    return _test_prepare(content, 'one');
+  }
+
+  Future<void> test_prepare_extensionType_onName_begin() {
+    const content = '''
+extension type [!^MyType!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
+  Future<void> test_prepare_extensionType_onName_end() {
+    const content = '''
+extension type [!MyType^!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
+  Future<void> test_prepare_extensionType_onName_inside() {
+    const content = '''
+extension type [!My^Type!](int it) {}
+''';
+
+    return _test_prepare(content, 'MyType');
+  }
+
+  Future<void> test_prepare_function_startOfParameterList() {
+    const content = '''
+void [!aaaa!]^() {}
+''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_function_startOfTypeParameterList() {
+    const content = '''
+void [!aaaa!]^<T>() {}
+''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_importPrefix() {
+    const content = '''
+import 'dart:async' as [!myPr^efix!];
+''';
+
+    return _test_prepare(content, 'myPrefix');
+  }
+
+  Future<void> test_prepare_importWithoutPrefix() {
+    const content = '''
+imp[!^!]ort 'dart:async';
+''';
+
+    return _test_prepare(content, '');
+  }
+
+  Future<void> test_prepare_importWithPrefix() {
+    const content = '''
+imp^ort 'dart:async' as [!myPrefix!];
+''';
+
+    return _test_prepare(content, 'myPrefix');
+  }
+
+  Future<void> test_prepare_invalidRenameLocation() {
+    const content = '''
+void f() {
+  // comm^ent
+}
+''';
+
+    return _test_prepare(content, null);
+  }
+
+  Future<void> test_prepare_method_startOfParameterList() {
+    const content = '''
+class A {
+  void [!aaaa!]^() {}
+}
+''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_method_startOfTypeParameterList() {
+    const content = '''
+class A {
+  void [!aaaa!]^<T>() {}
+}
+''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_sdkClass() async {
+    const content = '''
+final a = new [!Ob^ject!]();
+''';
+    var code = TestCode.parse(content);
+    await initialize();
+    await openFile(mainFileUri, code.code);
+
+    var request = makeRequest(
+      Method.textDocument_prepareRename,
+      TextDocumentPositionParams(
+        textDocument: TextDocumentIdentifier(uri: mainFileUri),
+        position: code.position.position,
+      ),
+    );
+    var response = await channel.sendRequestToServer(request);
+
+    expect(response.id, equals(request.id));
+    expect(response.result, isNull);
+    expect(response.error, isNotNull);
+    expect(response.error!.code, ServerErrorCodes.renameNotValid);
+    expect(response.error!.message, contains('is defined in the SDK'));
+  }
+
+  Future<void> test_prepare_variable() {
+    const content = '''
+void f() {
+  var variable = 0;
+  print([!vari^able!]);
+}
+''';
+
+    return _test_prepare(content, 'variable');
+  }
+
+  Future<void> test_prepare_variable_forEach_statement() {
+    const content = '''
+void f(List<int> values) {
+  for (final [!value^!] in values) {
+    value;
+  }
+}
+''';
+
+    return _test_prepare(content, 'value');
+  }
+
+  Future<void> test_rename_annotation_class() async {
+    const content = '''
+@Foo^()
+class const Foo();
+''';
+    const expectedContent = '''
+@NewName()
+class const NewName();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
+  Future<void> test_rename_annotation_class_prefixed() async {
+    const content = '''
+import '' as self;
+@self.Foo^()
+class const Foo();
+''';
+    const expectedContent = '''
+import '' as self;
+@self.NewName()
+class const NewName();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
+  Future<void> test_rename_annotation_typedef() async {
+    const content = '''
+typedef Bar = Foo;
+@Bar^()
+class const Foo();
+''';
+    const expectedContent = '''
+typedef NewName = Foo;
+@NewName()
+class const Foo();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
+  Future<void> test_rename_annotation_typedef_prefixed() async {
+    const content = '''
+import '' as self;
+typedef Bar = Foo;
+@self.Bar^()
+class const Foo();
+''';
+    const expectedContent = '''
+import '' as self;
+typedef NewName = Foo;
+@self.NewName()
+class const Foo();
+''';
+    await _test_rename_withDocumentChanges(content, 'NewName', expectedContent);
+  }
+
+  Future<void> test_rename_class() {
+    const content = '''
+class MyClass {}
+final a = new [!My^Class!]();
+''';
+    const expectedContent = '''
+class MyNewClass {}
+final a = new MyNewClass();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_class_doesNotRenameFile_disabled() async {
+    const content = '''
+class Main {}
+final a = new [!Ma^in!]();
+''';
+    const expectedContent = '''
+class MyNewMain {}
+final a = new MyNewMain();
+''';
+    await _test_rename_withDocumentChanges(
+      content,
+      'MyNewMain',
+      expectedContent,
+    );
+  }
+
+  Future<void>
+  test_rename_class_doesNotRenameFile_showMessageRequestUnsupportedPreventsPrompt() async {
+    const content = '''
+class Main {}
+final a = new [!Ma^in!]();
+''';
+    const expectedContent = '''
+class MyNewMain {}
+final a = new MyNewMain();
+''';
+
+    // Do the rename with setting enabled, but showMessageRequest not supported.
+    await provideConfig(
+      () => _test_rename_withDocumentChanges(
+        content,
+        'MyNewMain',
+        expectedContent,
+        // showMessageRequest not supported.
+        supportsWindowShowMessageRequest: false,
+      ),
+      // Rename files with prompt enabled.
+      {'renameFilesWithClasses': 'prompt'},
+    );
+  }
+
+  Future<void> test_rename_class_doesRenameFile_afterPrompt() {
+    const content = '''
+class Main {}
+final a = new [!Ma^in!]();
+''';
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart renamed to lib/my_new_main.dart
+>>>>>>>>>> lib/my_new_main.dart renamed from lib/main.dart
+class MyNewMain {}
+final a = new MyNewMain();
+''';
+    var newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
+
+    /// Helper that will respond to the window/showMessageRequest request from
+    /// the server when prompted about renaming the file.
+    Future<MessageActionItem> promptHandler(
+      ShowMessageRequestParams params,
+    ) async {
+      // Ensure the prompt is as expected.
+      expect(params.type, equals(MessageType.Info));
+      expect(
+        params.message,
+        equals("Rename 'main.dart' to 'my_new_main.dart'?"),
+      );
+      expect(params.actions, hasLength(2));
+      expect(
+        params.actions![0],
+        equals(MessageActionItem(title: UserPromptActions.yes)),
+      );
+      expect(
+        params.actions![1],
+        equals(MessageActionItem(title: UserPromptActions.no)),
+      );
+
+      // Respond to the request with the required action.
+      return params.actions!.first;
+    }
+
+    // Run the test and provide the config + prompt handling function.
+    return handleExpectedRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams.fromJson,
+      () => provideConfig(
+        () => _test_rename_withDocumentChanges(
+          content,
+          'MyNewMain',
+          expectedContent,
+          expectedFilePath: newMainFilePath,
+        ),
+        {'renameFilesWithClasses': 'prompt'},
+      ),
+      handler: promptHandler,
+    );
+  }
+
+  Future<void> test_rename_class_doesRenameFile_enabledWithoutPrompt() async {
+    const content = '''
+class Main {}
+final a = new [!Ma^in!]();
+''';
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart renamed to lib/my_new_main.dart
+>>>>>>>>>> lib/my_new_main.dart renamed from lib/main.dart
+class MyNewMain {}
+final a = new MyNewMain();
+''';
+    var newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
+    await provideConfig(
+      () => _test_rename_withDocumentChanges(
+        content,
+        'MyNewMain',
+        expectedContent,
+        expectedFilePath: newMainFilePath,
+      ),
+      {'renameFilesWithClasses': 'always'},
+    );
+  }
+
+  Future<void> test_rename_class_doesRenameFile_renamedFromOtherFile() async {
+    const mainContent = '''
+class Main {}
+''';
+    const otherContent = '''
+import 'main.dart';
+
+final a = Ma^in();
+''';
+    // Since we don't actually perform the file rename (we only include an
+    // instruction for the client to do so), the import will not be updated
+    // by us. Instead, the client will send the rename event back to the server
+    // and it would be handled normally as if the user had done it locally.
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart renamed to lib/my_new_main.dart
+>>>>>>>>>> lib/my_new_main.dart renamed from lib/main.dart
+class MyNewMain {}
+>>>>>>>>>> lib/other.dart
+import 'main.dart';
+
+final a = MyNewMain();
+''';
+
+    var otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    var code = TestCode.parse(mainContent);
+    newFile(mainFilePath, code.code);
+    await pumpEventQueue(times: 5000);
+    await provideConfig(
+      () => _test_rename_withDocumentChanges(
+        otherContent,
+        'MyNewMain',
+        expectedContent,
+        filePath: otherFilePath,
+      ),
+      {'renameFilesWithClasses': 'always'},
+    );
+  }
+
+  Future<void> test_rename_class_typeParameter_atDeclaration() {
+    const content = '''
+class A<[!T^!]> {
+  final List<T> values = [];
+}
+''';
+
+    const expectedContent = '''
+class A<U> {
+  final List<U> values = [];
+}
+''';
+
+    return _test_rename_withDocumentChanges(content, 'U', expectedContent);
+  }
+
+  Future<void> test_rename_classNewKeyword() {
+    const content = '''
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    const expectedContent = '''
+class MyNewClass {}
+final a = new MyNewClass();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_constructor_named_new_declaration() {
+    const content = '''
+class MyClass {
+  new [!na^med!]();
+}
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyClass {
+  new newName();
+}
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_constructor_named_new_declaration_removeName() {
+    const content = '''
+class MyClass {
+  new [!na^med!]();
+}
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyClass {
+  new();
+}
+final a = new MyClass();
+''';
+    return _test_rename_withDocumentChanges(content, '', expectedContent);
+  }
+
+  Future<void> test_rename_constructor_named_new_invocation() {
+    const content = '''
+class MyClass {
+  new named();
+}
+final a = new MyClass.[!na^med!]();
+''';
+    const expectedContent = '''
+class MyClass {
+  new newName();
+}
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_duplicateName_applyAfterDocumentChanges() async {
+    // Perform a refactor that results in a prompt to the user, but then modify
+    // the document before accepting/rejecting to make the rename invalid.
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    var result = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.renameAnyway,
+      beforeResponding: () => replaceFile(999, mainFileUri, '/*Updated*/'),
+    );
+    expect(result.result, isNull);
+    expect(result.error, isNotNull);
+    expect(result.error, isResponseError(ErrorCodes.ContentModified));
+  }
+
+  Future<void> test_rename_duplicateName_applyAnyway() async {
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart
+class MyOtherClass {}
+class MyOtherClass {}
+final a = new MyOtherClass();
+''';
+    var response = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.renameAnyway,
+    );
+
+    var error = response.error;
+    if (error != null) {
+      throw error;
+    }
+
+    var result = WorkspaceEdit.fromJson(
+      response.result as Map<String, Object?>,
+    );
+
+    verifyEdit(result, expectedContent);
+  }
+
+  Future<void> test_rename_duplicateName_cancelWhilePromptPending() async {
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    // Pass a completer as beforeResponding so we can hold off responding to
+    // the prompt reverse-request.
+    var reverseRequestStartedCompleter = Completer<void>();
+    var reverseRequestCompleter = Completer<void>();
+    var responseFuture = _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      // When we complete, we will send renameAnyway, but since we
+      // cancelled the request in the meantime, we expect a cancellation
+      // result.
+      action: UserPromptActions.renameAnyway,
+      beforeResponding: () {
+        // Mark that we started, so the test can continue.
+        reverseRequestStartedCompleter.complete();
+        // But wait for us to trigger the end.
+        return reverseRequestCompleter.future;
+      },
+    );
+
+    // Wait for the server to send the reverse-request so we don't cancel too
+    // early.
+    await reverseRequestStartedCompleter.future;
+
+    // Now, cancel the request.
+    await sendNotificationToServer(
+      makeNotification(
+        Method.cancelRequest,
+        CancelParams(id: (await outboundRenameRequestCompleter.future).id),
+      ),
+    );
+
+    // Expect that the response completes and returns a cancelled state.
+    var response = await responseFuture;
+    expect(response.result, isNull);
+    expect(response.error, isNotNull);
+    expect(response.error, isResponseError(ErrorCodes.RequestCancelled));
+
+    // Unblock the reverse-request.
+    reverseRequestCompleter.complete();
+  }
+
+  Future<void> test_rename_duplicateName_hover_beforeResponding() async {
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+
+    var code = TestCode.parse(content);
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart
+class MyOtherClass {}
+class MyOtherClass {}
+final a = new MyOtherClass();
+''';
+    var response = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.renameAnyway,
+      beforeResponding: () => getHover(mainFileUri, code.position.position),
+    );
+
+    var error = response.error;
+    if (error != null) {
+      throw error;
+    }
+
+    var result = WorkspaceEdit.fromJson(
+      response.result as Map<String, Object?>,
+    );
+
+    verifyEdit(result, expectedContent);
+  }
+
+  Future<void> test_rename_duplicateName_reject() async {
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    var response = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.cancel,
+    );
+    // Expect a successful empty response if cancelled.
+    expect(response.error, isNull);
+    expect(
+      WorkspaceEdit.fromJson(response.result as Map<String, Object?>),
+      equals(emptyWorkspaceEdit),
+    );
+  }
+
+  Future<void>
+  test_rename_duplicateName_showMessageRequestUnsupportedPreventsPrompt() async {
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    var error = await _test_rename_failure(
+      content,
+      'MyOtherClass',
+      supportsWindowShowMessageRequest: false,
+    );
+    expect(error.code, equals(ServerErrorCodes.renameNotValid));
+    expect(
+      error.message,
+      contains('Library already declares class with name \'MyOtherClass\'.'),
+    );
+  }
+
+  Future<void> test_rename_enum() {
+    const content = '''
+enum MyEnum { one }
+final a = MyE^num.one;
+''';
+    const expectedContent = '''
+enum MyNewEnum { one }
+final a = MyNewEnum.one;
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewEnum',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_enumMember() {
+    const content = '''
+enum MyEnum { one }
+final a = MyEnum.o^ne;
+''';
+    const expectedContent = '''
+enum MyEnum { newOne }
+final a = MyEnum.newOne;
+''';
+    return _test_rename_withDocumentChanges(content, 'newOne', expectedContent);
+  }
+
+  Future<void> test_rename_extensionType_onName_begin() {
+    const content = '''
+extension type ^MyType(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewType',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_extensionType_onName_end() {
+    const content = '''
+extension type MyType^(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewType',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_extensionType_onName_inside() {
+    const content = '''
+extension type My^Type(int it) {}
+void f(MyType x) {}
+''';
+    const expectedContent = '''
+extension type MyNewType(int it) {}
+void f(MyNewType x) {}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewType',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_forEachElement_blockBody() {
+    const content = '''
+void f(List<int> values) {
+  [for (final val^ue in values) value * 2];
+}
+''';
+    const expectedContent = '''
+void f(List<int> values) {
+  [for (final newName in values) newName * 2];
+}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_forEachElement_expressionBody() {
+    const content = '''
+Object f() => [for (final val^ue in []) value * 2];
+''';
+    const expectedContent = '''
+Object f() => [for (final newName in []) newName * 2];
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_forEachElement_topLevel() {
+    const content = '''
+final a = [for (final val^ue in []) value * 2];
+''';
+    const expectedContent = '''
+final a = [for (final newName in []) newName * 2];
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_function_startOfParameterList() {
+    const content = '''
+void f^() {}
+''';
+    const expectedContent = '''
+void newName() {}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_function_startOfTypeParameterList() {
+    const content = '''
+void f^<T>() {}
+''';
+    const expectedContent = '''
+void newName<T>() {}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_importPrefix() {
+    const content = '''
+import 'dart:async' as myPr^efix;
+''';
+    const expectedContent = '''
+import 'dart:async' as myNewPrefix;
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewPrefix',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_importWithoutPrefix() {
+    const content = '''
+imp^ort 'dart:async';
+''';
+    const expectedContent = '''
+import 'dart:async' as myAddedPrefix;
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myAddedPrefix',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_importWithPrefix() {
+    const content = '''
+imp^ort 'dart:async' as myPrefix;
+''';
+    const expectedContent = '''
+import 'dart:async' as myNewPrefix;
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewPrefix',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_importWithPrefix_atUse() {
+    const content = '''
+import 'dart:async' as asyync;
+
+void f(asy^ync.Future f1, asyync.Future f2) {}
+''';
+    const expectedContent = '''
+import 'dart:async' as async;
+
+void f(async.Future f1, async.Future f2) {}
+''';
+    return _test_rename_withDocumentChanges(content, 'async', expectedContent);
+  }
+
+  Future<void> test_rename_invalidRenameLocation() {
+    const content = '''
+void f() {
+  // comm^ent
+}
+''';
+    return _test_rename_withDocumentChanges(content, 'MyNewClass', null);
+  }
+
+  Future<void> test_rename_method_startOfParameterList() {
+    const content = '''
+class MyClass {
+  void m^() {}
+}
+''';
+    const expectedContent = '''
+class MyClass {
+  void newName() {}
+}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_method_startOfTypeParameterList() {
+    const content = '''
+class MyClass {
+  void m^<T>() {}
+}
+''';
+    const expectedContent = '''
+class MyClass {
+  void newName<T>() {}
+}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_multipleFiles() async {
+    var referencedFilePath = join(projectFolderPath, 'lib', 'referenced.dart');
+    var referencedFileUri = pathContext.toUri(referencedFilePath);
+    const mainContent = '''
+import 'referenced.dart';
+final a = new My^Class();
+''';
+    const referencedContent = '''
+class MyClass {}
+''';
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart
+import 'referenced.dart';
+final a = new MyNewClass();
+>>>>>>>>>> lib/referenced.dart
+class MyNewClass {}
+''';
+    const mainVersion = 111;
+    const referencedVersion = 222;
+
+    var mainCode = TestCode.parseNormalized(mainContent);
+    var referencedCode = TestCode.parseNormalized(referencedContent);
+
+    // Create initial files (to avoid diagnostics).
+    newFile(mainFilePath, mainCode.code);
+    newFile(referencedFilePath, referencedCode.code);
+
+    setDocumentChangesSupport();
+    await initialize();
+
+    // Open files to assign versions.
+    await openFile(mainFileUri, mainCode.code, version: mainVersion);
+    await openFile(
+      referencedFileUri,
+      referencedCode.code,
+      version: referencedVersion,
+    );
+
+    var result = (await rename(
+      mainFileUri,
+      mainVersion,
+      mainCode.position.position,
+      'MyNewClass',
+    ))!;
+
+    var expectedVersions = {
+      mainFileUri: mainVersion,
+      referencedFileUri: referencedVersion,
+    };
+    verifyEdit(result, expectedContent, expectedVersions: expectedVersions);
+  }
+
+  Future<void> test_rename_nonClass_doesNotRenameFile() async {
+    const content = '''
+final Ma^in = 'test';
+''';
+    const expectedContent = '''
+final MyNewMain = 'test';
+''';
+    await provideConfig(
+      () => _test_rename_withDocumentChanges(
+        content,
+        'MyNewMain',
+        expectedContent,
+      ),
+      {'renameFilesWithClasses': 'always'},
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_className_declaration() {
+    const content = '''
+class [!My^Class!]();
+final a = new MyClass();
+''';
+    const expectedContent = '''
+class MyNewClass();
+final a = new MyNewClass();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_className_invocation() {
+    const content = '''
+class MyClass();
+final a = new [!My^Class!]();
+''';
+    const expectedContent = '''
+class MyNewClass();
+final a = new MyNewClass();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_className_declaration() {
+    const content = '''
+class [!My^Class!].named();
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyNewClass.named();
+final a = new MyNewClass.named();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_className_invocation() {
+    const content = '''
+class MyClass.named();
+final a = new [!My^Class!].named();
+''';
+    const expectedContent = '''
+class MyNewClass.named();
+final a = new MyNewClass.named();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_name_declaration() {
+    const content = '''
+class MyClass.[!na^med!]();
+final a = new MyClass.named();
+''';
+    const expectedContent = '''
+class MyClass.newName();
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_named_name_invocation() {
+    const content = '''
+class MyClass.named();
+final a = new MyClass.[!na^med!]();
+''';
+    const expectedContent = '''
+class MyClass.newName();
+final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_declaring_declaration() {
+    const content = '''
+class MyClass({required final int [!myPa^ram!]}) {
+  this {
+    myParam;
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required final int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_declaring_reference() {
+    const content = '''
+class MyClass({required final int myParam}) {
+  this {
+    [!myPa^ram!];
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required final int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_nonDeclaring_declaration() {
+    const content = '''
+class MyClass({required int [!myPa^ram!]}) {
+  this {
+    myParam;
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_primaryConstructor_param_nonDeclaring_reference() {
+    const content = '''
+class MyClass({required int myParam}) {
+  this {
+    [!myPa^ram!];
+  }
+}
+final a = new MyClass(myParam: 1);
+''';
+    const expectedContent = '''
+class MyClass({required int myNewParam}) {
+  this {
+    myNewParam;
+  }
+}
+final a = new MyClass(myNewParam: 1);
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'myNewParam',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_rejectedForBadName() async {
+    const content = '''
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    var error = await _test_rename_failure(content, 'not a valid class name');
+    expect(error.code, equals(ServerErrorCodes.renameNotValid));
+    expect(error.message, contains('name must not contain'));
+  }
+
+  Future<void> test_rename_rejectedForSameName() async {
+    const content = '''
+class My^Class {}
+''';
+    var error = await _test_rename_failure(content, 'MyClass');
+    expect(error.code, equals(ServerErrorCodes.renameNotValid));
+    expect(
+      error.message,
+      contains('new name must be different than the current name'),
+    );
+  }
+
+  Future<void> test_rename_rejectedForStaleDocument() async {
+    const content = '''
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    var error = await _test_rename_failure(
+      content,
+      'MyNewClass',
+      openFileVersion: 111,
+    );
+    expect(error.code, equals(ErrorCodes.ContentModified));
+    expect(error.message, contains('Document was modified'));
+  }
+
+  Future<void> test_rename_rejectionsDoNotCrashServer() async {
+    // Checks that a rename failure does not stop the server from responding
+    // as was previously the case in https://github.com/dart-lang/sdk/issues/42573
+    // because the error code was duplicated/reused for ClientServerInconsistentState.
+    const content = '''
+/// Test Class
+class My^Class {}
+''';
+    var code = TestCode.parse(content);
+    var error = await _test_rename_failure(content, 'MyClass');
+    expect(error.code, isNotNull);
+
+    // Send any other request to ensure the server is still responsive.
+    var hover = await getHover(mainFileUri, code.position.position);
+    expect(hover?.contents, isNotNull);
+  }
+
+  Future<void> test_rename_sdkClass() async {
+    const content = '''
+final a = new [!Ob^ject!]();
+''';
+    var code = TestCode.parse(content);
+
+    newFile(mainFilePath, code.code);
+    await initialize();
+
+    var request = makeRequest(
+      Method.textDocument_rename,
+      RenameParams(
+        newName: 'Object2',
+        textDocument: TextDocumentIdentifier(uri: mainFileUri),
+        position: code.position.position,
+      ),
+    );
+    var response = await channel.sendRequestToServer(request);
+
+    expect(response.id, equals(request.id));
+    expect(response.result, isNull);
+    expect(response.error, isNotNull);
+    expect(response.error!.code, ServerErrorCodes.renameNotValid);
+    expect(response.error!.message, contains('is defined in the SDK'));
+  }
+
+  /// Unrelated dartdoc references should not be renamed.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/4131
+  Future<void> test_rename_updatesCorrectDartdocReferences() {
+    const content = '''
+class A {
+  int? origi^nalName;
+}
+
+class B {
+  int? originalName;
+}
+
+/// [A.originalName]
+/// [B.originalName]
+/// [C.originalName]
+var a;
+''';
+    const expectedContent = '''
+class A {
+  int? newName;
+}
+
+class B {
+  int? originalName;
+}
+
+/// [A.newName]
+/// [B.originalName]
+/// [C.originalName]
+var a;
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  Future<void> test_rename_usingLegacyChangeInterface() async {
+    // This test initializes without support for DocumentChanges (versioning)
+    // whereas the other tests all use DocumentChanges support (preferred).
+    const content = '''
+class MyClass {}
+final a = new My^Class();
+''';
+    const expectedContent = '''
+>>>>>>>>>> lib/main.dart
+class MyNewClass {}
+final a = new MyNewClass();
+''';
+    var code = TestCode.parseNormalized(content);
+
+    await initialize();
+    await openFile(mainFileUri, code.code, version: 222);
+
+    var result = (await rename(
+      mainFileUri,
+      222,
+      code.position.position,
+      'MyNewClass',
+    ))!;
+
+    verifyEdit(result, expectedContent);
+  }
+
+  Future<void> test_rename_variable() {
+    const content = '''
+void f() {
+  var variable = 0;
+  print([!vari^able!]);
+}
+''';
+    const expectedContent = '''
+void f() {
+  var foo = 0;
+  print(foo);
+}
+''';
+    return _test_rename_withDocumentChanges(content, 'foo', expectedContent);
+  }
+
+  Future<void> test_rename_variable_forEach_statement() {
+    const content = '''
+void f(List<int> values) {
+  for (final [!value^!] in values) {
+    value;
+  }
+}
+''';
+    const expectedContent = '''
+void f(List<int> values) {
+  for (final newName in values) {
+    newName;
+  }
+}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  /// Local variable renames shouldn't fail to rename references to them in
+  /// workspaces with overlapped roots and `driverMap` being sorted such that
+  /// the first driver containing a file is ancestor.
+  Future<void> test_rename_variable_issueDartCode5548() async {
+    // Use hard-coded paths because the failure here may depend on the hash
+    // codes of the folder paths (as stored in `driverMap`) to reproduce.
+    var rootPath = convertPath('/dart_code_test');
+    var nestedProjectPath = join(rootPath, 'packages', 'test_package');
+    var testFilePath = join(nestedProjectPath, 'foo.dart');
+
+    // Force an additional context for the nested project.
+    newFile(join(nestedProjectPath, 'analysis_options.yaml'), '');
+
+    const content = '''
+void f() {
+  var [!^b!] = 1;
+  print(b);
+}
+''';
+    const expectedContent = '''
+void f() {
+  var a = 1;
+  print(a);
+}
+''';
+    await _test_rename_withDocumentChanges(
+      filePath: testFilePath,
+      content,
+      'a',
+      expectedContent,
+      workspaceFolders: [
+        pathContext.toUri(nestedProjectPath),
+        pathContext.toUri(rootPath),
+      ],
+    );
+  }
+
+  Future<void> test_rename_withoutVersionedIdentifier() {
+    // Without sending a document version, the rename should still work because
+    // the server should use the version it had at the start of the rename
+    // operation.
+    const content = '''
+class MyClass {}
+final a = new [!My^Class!]();
+''';
+    const expectedContent = '''
+class MyNewClass {}
+final a = new MyNewClass();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'MyNewClass',
+      expectedContent,
+      sendRenameVersion: false,
+    );
+  }
+
+  Future<void> _test_prepare(
+    String content,
+    String? expectedPlaceholder,
+  ) async {
+    var code = TestCode.parse(content);
+    await initialize();
+    await openFile(mainFileUri, code.code);
+
+    var result = await prepareRename(mainFileUri, code.position.position);
+
+    if (expectedPlaceholder == null) {
+      expect(result, isNull);
+    } else {
+      expect(result!.range, equals(code.range.range));
+      expect(result.placeholder, equals(expectedPlaceholder));
+    }
+  }
+
+  Future<ResponseError> _test_rename_failure(
+    String content,
+    String newName, {
+    int openFileVersion = 222,
+    int renameRequestFileVersion = 222,
+    bool supportsWindowShowMessageRequest = true,
+  }) async {
+    setSupportsWindowShowMessageRequest(supportsWindowShowMessageRequest);
+    setDocumentChangesSupport();
+
+    var code = TestCode.parse(content);
+    await initialize();
+    await openFile(mainFileUri, code.code, version: openFileVersion);
+
+    var result = await renameRaw(
+      mainFileUri,
+      renameRequestFileVersion,
+      code.position.position,
+      newName,
+    );
+
+    expect(result.result, isNull);
+    expect(result.error, isNotNull);
+    return result.error!;
+  }
+
+  /// Tests a rename that is expected to cause an error, which will trigger
+  /// a ShowMessageRequest from the server to the client to allow the refactor
+  /// to be continued or rejected.
+  Future<ResponseMessage> _test_rename_prompt(
+    String content,
+    String newName, {
+    required String expectedMessage,
+    Future<void> Function()? beforeResponding,
+    required String action,
+    int openFileVersion = 222,
+    int renameRequestFileVersion = 222,
+    bool supportsWindowShowMessageRequest = true,
+  }) async {
+    setSupportsWindowShowMessageRequest(supportsWindowShowMessageRequest);
+    setDocumentChangesSupport();
+
+    var code = TestCode.parseNormalized(content);
+    await initialize();
+    await openFile(mainFileUri, code.code, version: openFileVersion);
+
+    // Expect the server to call us back with a ShowMessageRequest prompt about
+    // the errors for us to accept/reject.
+    return handleExpectedRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams.fromJson,
+      () => renameRaw(
+        mainFileUri,
+        renameRequestFileVersion,
+        code.position.position,
+        newName,
+      ),
+      handler: (ShowMessageRequestParams params) async {
+        // Ensure the warning prompt is as expected.
+        expect(params.type, equals(MessageType.Warning));
+        expect(params.message, equals(expectedMessage));
+        expect(params.actions, hasLength(2));
+        expect(
+          params.actions![0],
+          equals(MessageActionItem(title: UserPromptActions.renameAnyway)),
+        );
+        expect(
+          params.actions![1],
+          equals(MessageActionItem(title: UserPromptActions.cancel)),
+        );
+
+        // Allow the test to run some code before we send the response.
+        await beforeResponding?.call();
+
+        // Respond to the request with the required action.
+        return MessageActionItem(title: action);
+      },
+    );
+  }
+
+  Future<void> _test_rename_withDocumentChanges(
+    String content,
+    String newName,
+    String? expectedContent, {
+    String? filePath,
+    String? expectedFilePath,
+    bool sendRenameVersion = true,
+    bool supportsWindowShowMessageRequest = true,
+    List<Uri>? workspaceFolders,
+  }) async {
+    content = normalizeNewlinesForPlatform(content);
+    if (expectedContent != null) {
+      expectedContent = normalizeNewlinesForPlatform(expectedContent);
+    }
+
+    filePath ??= mainFilePath;
+    expectedFilePath ??= filePath;
+    var fileUri = pathContext.toUri(filePath);
+
+    // The specific number doesn't matter here, it's just a placeholder to confirm
+    // the values match.
+    var documentVersion = 222;
+    var expectedVersions = {fileUri: documentVersion};
+
+    setSupportsWindowShowMessageRequest(supportsWindowShowMessageRequest);
+    setDocumentChangesSupport();
+    setFileRenameSupport();
+
+    var code = TestCode.parse(content);
+    await initialize(workspaceFolders: workspaceFolders);
+    await openFile(fileUri, code.code, version: documentVersion);
+    await initialAnalysis;
+
+    var result = await rename(
+      fileUri,
+      sendRenameVersion ? documentVersion : null,
+      code.position.position,
+      newName,
+    );
+
+    if (expectedContent == null) {
+      expect(result, isNull);
+    } else {
+      // For convenience, if a test doesn't provide a full set of edits
+      // we assume only a single edit of the file that was being modified.
+      if (!expectedContent.startsWith(LspChangeVerifier.editMarkerStart)) {
+        expectedContent =
+            '''
+${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
+$expectedContent''';
+      }
+      verifyEdit(result!, expectedContent, expectedVersions: expectedVersions);
+    }
+  }
+}

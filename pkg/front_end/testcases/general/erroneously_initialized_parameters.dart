@@ -1,0 +1,43 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+topLevelOptionalPositional([int x = ""]) {}
+topLevelOptionalNamed({int x = ""}) {}
+topLevelOptionalPositionalImplicit([int x]) {}
+topLevelOptionalNamedImplicit({int x}) {}
+
+class A {
+  A.optionalPositional([int x = ""]) {}
+  A.optionalNamed({int x = ""}) {}
+  A.optionalPositionalImplicit([int x]) {}
+  A.optionalNamedImplicit({int x}) {}
+
+  void fooOptionalPositional([int x = ""]) {}
+  void fooOptionalNamed({int x = ""}) {}
+  void fooOptionalPositionalImplicit([int x]) {}
+  void fooOptionalNamedImplicit({int x}) {}
+}
+
+extension E on A {
+  void barOptionalPositional([int x = ""]) {}
+  void barOptionalNamed({int x = ""}) {}
+  void barOptionalPositionalImplicit([int x]) {}
+  void barOptionalNamedImplicit({int x}) {}
+}
+
+extension type ET(A it) {
+  void bazOptionalPositional([int x = ""]) {}
+  void bazOptionalNamed({int x = ""}) {}
+  void bazOptionalPositionalImplicit([int x]) {}
+  void bazOptionalNamedImplicit({int x}) {}
+}
+
+enum EN {
+  element;
+
+  void foobarOptionalPositional([int x = ""]) {}
+  void foobarOptionalNamed({int x = ""}) {}
+  void foobarOptionalPositionalImplicit([int x]) {}
+  void foobarOptionalNamedImplicit({int x}) {}
+}

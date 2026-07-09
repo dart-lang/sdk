@@ -1,0 +1,11 @@
+test1(dynamic x) => [1, if (x case [int y, ...]) y, 1];
+
+test2(dynamic x) => [2, if (x case String y) y else null, 2];
+
+test3(dynamic x) => [3, if (x case bool b when b) b, 3];
+
+main() {}
+
+expectEquals(x, y) {}
+
+listToString(List<dynamic> list) {}

@@ -1,0 +1,488 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/ast.dart' as ir;
+// ignore: implementation_imports
+import 'package:kernel/src/printer.dart' as ir;
+import 'package:kernel/text/ast_to_text.dart' as ir show debugNodeToString;
+
+/// Collection of scope data collected for a single member.
+class ClosureScopeModel {
+  /// Collection [ScopeInfo] data for the member.
+  KernelScopeInfo? scopeInfo;
+
+  /// Collected [CapturedScope] data for nodes.
+  Map<ir.Node, KernelCapturedScope> capturedScopesMap =
+      <ir.Node, KernelCapturedScope>{};
+
+  /// Collected [ScopeInfo] data for nodes.
+  Map<ir.LocalFunction, KernelScopeInfo> closuresToGenerate =
+      <ir.LocalFunction, KernelScopeInfo>{};
+
+  @override
+  String toString() {
+    return '$scopeInfo\n$capturedScopesMap\n$closuresToGenerate';
+  }
+}
+
+class KernelScopeInfo {
+  final Set<ir.Variable> localsUsedInTryOrSync;
+  final bool hasThisLocal;
+  final Set<ir.Variable> boxedVariables;
+  // If boxedVariables is empty, this will be null, because no variables will
+  // need to be boxed.
+  final NodeBox? capturedVariablesAccessor;
+
+  /// The set of variables that were defined in another scope, but are used in
+  /// this scope. The items in this set are either of type VariableDeclaration
+  /// or TypeParameterTypeWithContext.
+  Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */>
+  freeVariables = <ir.Node>{};
+
+  /// A set of type parameters that are defined in another scope and are only
+  /// used if runtime type information is checked. If runtime type information
+  /// needs to be retained, all of these type variables will be added ot the
+  /// freeVariables set. Whether these variables are actually used as
+  /// freeVariables will be set by the time this structure is converted to a
+  /// JsScopeInfo, so JsScopeInfo does not need to use them.
+  Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti =
+      <TypeVariableTypeWithContext, Set<VariableUse>>{};
+
+  /// If true, `this` is used as a free variable, in this scope. It is stored
+  /// separately from [freeVariables] because there is no single
+  /// `VariableDeclaration` node that represents `this`.
+  bool thisUsedAsFreeVariable = false;
+
+  /// If true, `this` is used as a free variable, in this scope if we are also
+  /// performing runtime type checks. It is stored
+  /// separately from [thisUsedAsFreeVariable] because we don't know at this
+  /// stage if we will be needing type checks for this scope.
+  Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti = <VariableUse>{};
+
+  KernelScopeInfo(this.hasThisLocal)
+    : localsUsedInTryOrSync = <ir.Variable>{},
+      boxedVariables = <ir.Variable>{},
+      capturedVariablesAccessor = null;
+
+  KernelScopeInfo.from(this.hasThisLocal, KernelScopeInfo info)
+    : localsUsedInTryOrSync = info.localsUsedInTryOrSync,
+      boxedVariables = info.boxedVariables,
+      capturedVariablesAccessor = null;
+
+  KernelScopeInfo.withBoxedVariables(
+    this.boxedVariables,
+    this.capturedVariablesAccessor,
+    this.localsUsedInTryOrSync,
+    this.freeVariables,
+    this.freeVariablesForRti,
+    this.thisUsedAsFreeVariable,
+    this.thisUsedAsFreeVariableIfNeedsRti,
+    this.hasThisLocal,
+  );
+
+  @override
+  String toString() {
+    StringBuffer sb = StringBuffer();
+    sb.write('KernelScopeInfo(this=$hasThisLocal,');
+    sb.write('freeVariables=$freeVariables,');
+    sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
+    String comma = '';
+    sb.write('freeVariablesForRti={');
+    freeVariablesForRti.forEach((key, value) {
+      sb.write('$comma$key:$value');
+      comma = ',';
+    });
+    sb.write('})');
+    return sb.toString();
+  }
+}
+
+class KernelCapturedScope extends KernelScopeInfo {
+  KernelCapturedScope(
+    super.boxedVariables,
+    super.capturedVariablesAccessor,
+    super.localsUsedInTryOrSync,
+    super.freeVariables,
+    super.freeVariablesForRti,
+    super.thisUsedAsFreeVariable,
+    super.thisUsedAsFreeVariableIfNeedsRti,
+    super.hasThisLocal,
+  ) : super.withBoxedVariables();
+
+  // Loops through the free variables of an existing KernelCapturedScope and
+  // creates a new KernelCapturedScope that only captures type variables.
+  KernelCapturedScope.forSignature(KernelCapturedScope scope)
+    : this(
+        _empty,
+        null,
+        _empty,
+        Set.of(scope.freeVariables.whereType<TypeVariableTypeWithContext>()),
+        scope.freeVariablesForRti,
+        scope.thisUsedAsFreeVariable,
+        scope.thisUsedAsFreeVariableIfNeedsRti,
+        scope.hasThisLocal,
+      );
+
+  // Silly hack because we don't have const sets.
+  static final Set<ir.Variable> _empty = {};
+
+  bool get requiresContextBox => boxedVariables.isNotEmpty;
+}
+
+class KernelCapturedLoopScope extends KernelCapturedScope {
+  final List<ir.Variable> boxedLoopVariables;
+
+  KernelCapturedLoopScope(
+    Set<ir.Variable> boxedVariables,
+    NodeBox? capturedVariablesAccessor,
+    this.boxedLoopVariables,
+    Set<ir.Variable> localsUsedInTryOrSync,
+    Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */>
+    freeVariables,
+    Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
+    bool thisUsedAsFreeVariable,
+    Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
+    bool hasThisLocal,
+  ) : super(
+        boxedVariables,
+        capturedVariablesAccessor,
+        localsUsedInTryOrSync,
+        freeVariables,
+        freeVariablesForRti,
+        thisUsedAsFreeVariable,
+        thisUsedAsFreeVariableIfNeedsRti,
+        hasThisLocal,
+      );
+
+  bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
+}
+
+/// A local variable to disambiguate between a variable that has been captured
+/// from one scope to another. This is the ir.Node version that corresponds to
+/// [BoxLocal].
+class NodeBox {
+  final String name;
+  final ir.TreeNode executableContext;
+  NodeBox(this.name, this.executableContext);
+}
+
+sealed class VariableUse {}
+
+enum SimpleVariableUse implements VariableUse {
+  /// An explicit variable use.
+  ///
+  /// For type variable this is an explicit as-cast, an is-test or a type
+  /// literal.
+  explicit,
+
+  /// A type variable used in the type of a local variable.
+  localType,
+
+  /// A type variable used in an implicit cast.
+  implicitCast,
+
+  /// A type variable passed as the type argument of a list literal.
+  listLiteral,
+
+  /// A type variable passed as the type argument of a set literal.
+  setLiteral,
+
+  /// A type variable passed as the type argument of a map literal.
+  mapLiteral,
+
+  /// A type variable in a field type.
+  fieldType,
+}
+
+/// A type variable in a parameter type of a member.
+class MemberParameterVariableUse implements VariableUse {
+  final ir.Member member;
+
+  MemberParameterVariableUse(this.member);
+
+  @override
+  int get hashCode => Object.hash(MemberParameterVariableUse, member);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! MemberParameterVariableUse) return false;
+    return member == other.member;
+  }
+
+  @override
+  String toString() => 'MemberParameterVariableUse(member=$member)';
+}
+
+/// A type variable in a parameter type of a local function.
+class LocalParameterVariableUse implements VariableUse {
+  final ir.LocalFunction localFunction;
+
+  LocalParameterVariableUse(this.localFunction);
+
+  @override
+  int get hashCode => Object.hash(LocalParameterVariableUse, localFunction);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! LocalParameterVariableUse) return false;
+    return localFunction == other.localFunction;
+  }
+
+  @override
+  String toString() =>
+      'LocalParameterVariableUse(localFunction=$localFunction)';
+}
+
+/// A type variable used in a return type of a member.
+class MemberReturnTypeVariableUse implements VariableUse {
+  final ir.Member member;
+
+  MemberReturnTypeVariableUse(this.member);
+
+  @override
+  int get hashCode => Object.hash(MemberReturnTypeVariableUse, member);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! MemberReturnTypeVariableUse) return false;
+    return member == other.member;
+  }
+
+  @override
+  String toString() => 'MemberReturnTypeVariableUse(member=$member)';
+}
+
+/// A type variable used in a return type of a local function.
+class LocalReturnTypeVariableUse implements VariableUse {
+  final ir.LocalFunction localFunction;
+
+  LocalReturnTypeVariableUse(this.localFunction);
+
+  @override
+  int get hashCode => Object.hash(LocalReturnTypeVariableUse, localFunction);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! LocalReturnTypeVariableUse) return false;
+    return localFunction == other.localFunction;
+  }
+
+  @override
+  String toString() =>
+      'LocalReturnTypeVariableUse(localFunction=$localFunction)';
+}
+
+/// A type variable passed as a type argument to a constructor.
+class ConstructorTypeArgumentVariableUse implements VariableUse {
+  final ir.Member member;
+
+  ConstructorTypeArgumentVariableUse(this.member);
+
+  @override
+  int get hashCode => Object.hash(ConstructorTypeArgumentVariableUse, member);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! ConstructorTypeArgumentVariableUse) return false;
+    return member == other.member;
+  }
+
+  @override
+  String toString() => 'ConstructorTypeArgumentVariableUse(member=$member)';
+}
+
+/// A type variable passed as a type argument to a static method.
+class StaticTypeArgumentVariableUse implements VariableUse {
+  final ir.Procedure procedure;
+
+  StaticTypeArgumentVariableUse(this.procedure);
+
+  @override
+  int get hashCode => Object.hash(StaticTypeArgumentVariableUse, procedure);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! StaticTypeArgumentVariableUse) return false;
+    return procedure == other.procedure;
+  }
+
+  @override
+  String toString() => 'StaticTypeArgumentVariableUse(procedure=$procedure)';
+}
+
+/// A type variable passed as a type argument to an instance method.
+class InstanceTypeArgumentVariableUse implements VariableUse {
+  final ir.Expression invocation;
+
+  InstanceTypeArgumentVariableUse(this.invocation);
+
+  @override
+  int get hashCode => Object.hash(InstanceTypeArgumentVariableUse, invocation);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! InstanceTypeArgumentVariableUse) return false;
+    return invocation == other.invocation;
+  }
+
+  @override
+  String toString() =>
+      'InstanceTypeArgumentVariableUse(invocation=$invocation)';
+}
+
+/// A type variable passed as a type argument to a local function.
+class LocalTypeArgumentVariableUse implements VariableUse {
+  final ir.LocalFunction localFunction;
+  final ir.Expression invocation;
+
+  LocalTypeArgumentVariableUse(this.localFunction, this.invocation);
+
+  @override
+  int get hashCode =>
+      Object.hash(LocalTypeArgumentVariableUse, localFunction, invocation);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! LocalTypeArgumentVariableUse) return false;
+    return localFunction == other.localFunction &&
+        invocation == other.invocation;
+  }
+
+  @override
+  String toString() =>
+      'LocalTypeArgumentVariableUse(localFunction=$localFunction,invocation=$invocation)';
+}
+
+/// A type argument of an generic instantiation.
+class InstantiationTypeArgumentVariableUse implements VariableUse {
+  final ir.Instantiation instantiation;
+
+  InstantiationTypeArgumentVariableUse(this.instantiation);
+
+  @override
+  int get hashCode =>
+      Object.hash(InstantiationTypeArgumentVariableUse, instantiation);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! InstantiationTypeArgumentVariableUse) return false;
+    return instantiation == other.instantiation;
+  }
+
+  @override
+  String toString() =>
+      'InstantiationTypeArgumentVariableUse(instantiation=$instantiation)';
+}
+
+enum TypeVariableKind { cls, method, local }
+
+/// A fake ir.Node that holds the TypeParameterType as well as the context in
+/// which it occurs.
+class TypeVariableTypeWithContext implements ir.Node {
+  final ir.TreeNode? context;
+  final ir.TypeParameterType type;
+  final TypeVariableKind kind;
+  final ir.TreeNode? typeDeclaration;
+
+  /// [context] can be either an ir.Member or a ir.FunctionDeclaration or
+  /// ir.FunctionExpression.
+  factory TypeVariableTypeWithContext(
+    ir.TypeParameterType type,
+    ir.TreeNode? context,
+  ) {
+    TypeVariableKind kind;
+    ir.GenericDeclaration? typeDeclaration = type.parameter.declaration;
+    // TODO(fishythefish): Use exhaustive pattern switch.
+    if (typeDeclaration is ir.Class) {
+      // We have a class type variable, like `T` in `class Class<T> { ... }`.
+      kind = TypeVariableKind.cls;
+    } else if (typeDeclaration is ir.Procedure) {
+      if (typeDeclaration.isFactory) {
+        // We have a synthesized generic method type variable for a class type
+        // variable.
+        // TODO(johnniwinther): Handle constructor/factory type variables as
+        // method type variables.
+        kind = TypeVariableKind.cls;
+        typeDeclaration = typeDeclaration.enclosingClass;
+      } else {
+        // We have a generic method type variable, like `T` in
+        // `m<T>() { ... }`.
+        kind = TypeVariableKind.method;
+        context = typeDeclaration;
+      }
+    } else {
+      // We have a generic local function type variable, like `T` in
+      // `m() { local<T>() { ... } ... }`.
+      assert(
+        typeDeclaration is ir.LocalFunction,
+        "Unexpected type declaration: $typeDeclaration",
+      );
+      kind = TypeVariableKind.local;
+      context = typeDeclaration;
+    }
+    return TypeVariableTypeWithContext.internal(
+      type,
+      context,
+      kind,
+      typeDeclaration,
+    );
+  }
+
+  TypeVariableTypeWithContext.internal(
+    this.type,
+    this.context,
+    this.kind,
+    this.typeDeclaration,
+  );
+
+  @override
+  R accept<R>(ir.Visitor<R> v) {
+    throw UnsupportedError('TypeVariableTypeWithContext.accept');
+  }
+
+  @override
+  R accept1<R, A>(ir.Visitor1<R, A> v, A arg) {
+    throw UnsupportedError('TypeVariableTypeWithContext.accept1');
+  }
+
+  @override
+  Never visitChildren(ir.Visitor<Object?> v) {
+    throw UnsupportedError('TypeVariableTypeWithContext.visitChildren');
+  }
+
+  @override
+  int get hashCode => type.hashCode;
+
+  @override
+  bool operator ==(other) {
+    if (other is! TypeVariableTypeWithContext) return false;
+    return type == other.type && context == other.context;
+  }
+
+  @override
+  String toString() => 'TypeVariableTypeWithContext(${toStringInternal()})';
+
+  @override
+  String toStringInternal() =>
+      'type=${type.toStringInternal()},context=${context!.toStringInternal()},'
+      'kind=$kind,typeDeclaration=${typeDeclaration!.toStringInternal()}';
+
+  @override
+  String toText(ir.AstTextStrategy strategy) => type.toText(strategy);
+
+  @override
+  void toTextInternal(ir.AstPrinter printer) => type.toTextInternal(printer);
+
+  @override
+  String leakingDebugToString() => ir.debugNodeToString(this);
+}

@@ -1,0 +1,11 @@
+void foo() {
+x
+a<A<A<A<A<T, I>>, A<T, I>>>, A<T, I>>();
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+x[StringToken]
+a[StringToken]<[BeginToken]A[StringToken]<[BeginToken]A[StringToken]<[BeginToken]A[StringToken]<[BeginToken]A[StringToken]<[BeginToken]T[StringToken],[SimpleToken] I[StringToken]>>[SimpleToken],[SimpleToken] A[StringToken]<[BeginToken]T[StringToken],[SimpleToken] I[StringToken]>>>[SimpleToken],[SimpleToken] A[StringToken]<[BeginToken]T[StringToken],[SimpleToken] I[StringToken]>>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

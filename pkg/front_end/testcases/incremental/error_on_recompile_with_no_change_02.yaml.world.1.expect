@@ -1,0 +1,71 @@
+main = <No Member>;
+library from "package:flutter/object.dart" as obj {
+
+  class RenderFoo extends obj::RenderObject {
+    synthetic constructor •() → obj::RenderFoo
+      : super obj::RenderObject::•()
+      ;
+    get constraints() → obj::FooConstraints
+      return super.{obj::RenderObject::constraints} as obj::FooConstraints;
+  }
+  class FooConstraints extends obj::Constraints {
+    synthetic constructor •() → obj::FooConstraints
+      : super obj::Constraints::•()
+      ;
+    get axis() → dart.core::String
+      return "hello";
+  }
+  class Constraints extends dart.core::Object {
+    synthetic constructor •() → obj::Constraints
+      : super dart.core::Object::•()
+      ;
+  }
+  class RenderObject extends dart.core::Object {
+    synthetic constructor •() → obj::RenderObject
+      : super dart.core::Object::•()
+      ;
+    get constraints() → obj::Constraints
+      return new obj::Constraints::•();
+    get renderObject() → obj::RenderObject
+      return this;
+  }
+}
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  import "package:flutter/object.dart";
+  import "org-dartlang-test:///lib2.dart";
+
+  abstract class Adaptor extends lib1::_Adaptor&RenderFoo&LibMixin {
+    synthetic constructor •() → lib1::Adaptor
+      : super lib1::_Adaptor&RenderFoo&LibMixin::•()
+      ;
+  }
+  abstract class _Adaptor&RenderFoo&LibMixin extends obj::RenderFoo implements lib2::LibMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+    synthetic constructor •() → lib1::_Adaptor&RenderFoo&LibMixin
+      : super obj::RenderFoo::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  import "package:flutter/object.dart";
+
+  abstract class LibMixin extends obj::RenderObject /*isMixinDeclaration*/  {
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:flutter/object.dart";
+  import "org-dartlang-test:///lib1.dart";
+
+  class AdaptorElement extends obj::RenderObject {
+    synthetic constructor •() → main::AdaptorElement
+      : super obj::RenderObject::•()
+      ;
+    get renderObject() → lib1::Adaptor
+      return super.{obj::RenderObject::renderObject} as lib1::Adaptor;
+    method foo() → void {
+      dart.core::print(this.{main::AdaptorElement::renderObject}{lib1::Adaptor}.{obj::RenderFoo::constraints}{obj::FooConstraints}.{obj::FooConstraints::axis}{dart.core::String});
+    }
+  }
+}

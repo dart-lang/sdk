@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/from_co19/const_instance_creation_syntax_t04.dart:12:11: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   const A.(); // Error
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor name() → self::A
+    : super core::Object::•()
+    ;
+}
+static method foo() → void {
+  invalid-expression "pkg/front_end/testcases/coverage/from_co19/const_instance_creation_syntax_t04.dart:12:9: Error: This couldn't be parsed.
+  const A.(); // Error
+        ^";
+}

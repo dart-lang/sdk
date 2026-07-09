@@ -1,0 +1,38 @@
+extension type JsonMap1<T>(Map<String, Object?> _)
+    implements Map<String, Object?> {
+  T operator [](String key) => _[key] as T;
+}
+
+void parseJson1(JsonMap1 map) {}
+
+extension type JsonMap2<T>(Map<String, Object?> _)
+    implements Map<String, Object?> {
+  bool containsKey(String key) => _.containsKey(key);
+}
+
+void parseJson2(JsonMap2 map) {}
+
+extension type JsonMap3<T>(Map<String, Object?> _)
+    implements Map<String, Object?> {
+  int get length => _.length;
+}
+
+void parseJson3(JsonMap3 map) {}
+
+extension type JsonList1<T>(List<Object?> _) implements List<Object?> {
+  T operator [](int index) => _[index] as T;
+}
+
+void parseJson4(JsonList1 list) {}
+
+extension type JsonList2<T>(List<Object?> _) implements List<Object?> {
+  int get length => _.length;
+}
+
+void parseJson5(JsonList2 list) {}
+
+extension type JsonList3<T>(List<Object?> _) implements List<Object?> {
+  List<T> sublist(int start, [int? end]) => _.sublist(start, end).cast<T>();
+}
+
+void parseJson6(JsonList3 list) {}

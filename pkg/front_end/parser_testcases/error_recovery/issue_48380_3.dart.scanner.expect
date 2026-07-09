@@ -1,0 +1,15 @@
+enum E {
+v. ;
+
+const E();
+const E.foo();
+}
+
+
+enum[KeywordToken] E[StringToken] {[BeginToken]
+v[StringToken].[SimpleToken] ;[SimpleToken]
+
+const[KeywordToken] E[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] E[StringToken].[SimpleToken]foo[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

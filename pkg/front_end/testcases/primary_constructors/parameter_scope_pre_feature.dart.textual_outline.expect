@@ -1,0 +1,5 @@
+// @dart = 3.10
+
+extension type ET2(int x) {
+  static const String int = 'not a type';
+}

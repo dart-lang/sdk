@@ -1,0 +1,169 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part 'check_bounds_lib.dart';
+
+class A {}
+
+class B extends A {}
+
+class Class<T extends A> {}
+
+extension Extension<T extends B> on Class<T> {
+  get property => 0;
+  set property(_) {}
+  method() {}
+  genericMethod<S extends B>(S s) {}
+  genericMethod2<S extends B>() {}
+  operator [](_) {}
+  operator []=(_, _) {}
+}
+
+main() {}
+
+test(A a) {
+  Class<A> classA = new Class<A>();
+  Class<B> classB = new Class<B>();
+
+  classA.method(); // Error: Expect method not found.
+  classA.method; // Error: Expect method not found.
+  classA.property; // Error: Expect getter not found.
+  classA.property = null; // Error: Expect setter not found.
+  classA[0]; // Error: Expect index get not found.
+  classA[0] = null; // Error: Expect index set not found.
+  Extension(classA).method(); // Error: Expect bounds mismatch.
+  Extension(classA).method; // Error: Expect bounds mismatch.
+  Extension(classA).property; // Error: Expect bounds mismatch.
+  Extension(classA).property = null; // Error: Expect bounds mismatch.
+  Extension(classA).property += null; // Error: Expect bounds mismatch.
+  Extension(classA).property ??= 0; // Error: Expect bounds mismatch.
+  Extension(classA).property(); // Error: Expect bounds mismatch.
+  Extension(classA).property++; // Error: Expect bounds mismatch.
+  --Extension(classA).property; // Error: Expect bounds mismatch.
+  Extension(classA)[0]; // Error: Expect bounds mismatch.
+  Extension(classA)[0] = null; // Error: Expect bounds mismatch.
+  Extension(classA)[0] += null; // Error: Expect bounds mismatch.
+  Extension(classA)[0] ??= 0; // Error: Expect bounds mismatch.
+  Extension<A>(classA).method(); // Error: Expect bounds mismatch.
+  Extension<A>(classA).method; // Error: Expect bounds mismatch.
+  Extension<A>(classA).property; // Error: Expect bounds mismatch.
+  Extension<A>(classA).property = null; // Error: Expect bounds mismatch.
+  Extension<A>(classA).property += null; // Error: Expect bounds mismatch.
+  Extension<A>(classA).property ??= 0; // Error: Expect bounds mismatch.
+  Extension<A>(classA).property(); // Error: Expect bounds mismatch.
+  Extension<A>(classA).property++; // Error: Expect bounds mismatch.
+  --Extension<A>(classA).property; // Error: Expect bounds mismatch.
+  Extension<A>(classA)[0]; // Error: Expect bounds mismatch.
+  Extension<A>(classA)[0] = null; // Error: Expect bounds mismatch.
+  Extension<A>(classA)[0] += null; // Error: Expect bounds mismatch.
+  Extension<A>(classA)[0] ??= 0; // Error: Expect bounds mismatch.
+  Extension(classA).genericMethod(); // Error: Expect bounds mismatch.
+  Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
+  Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
+  Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
+  Extension<A>(classA).genericMethod(); // Error: Expect bounds mismatch.
+  Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
+  Extension<A>(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
+  Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
+
+  classB.method();
+  classB.method;
+  classB.property;
+  classB.property = null;
+  Extension<B>(classB).method();
+  Extension<B>(classB).method;
+  Extension<B>(classB).property;
+  Extension<B>(classB).property = null;
+  Extension<B>(classB).property += null;
+  Extension<B>(classB).property ??= 0;
+  Extension<B>(classB).property();
+  Extension<B>(classB).property++;
+  --Extension<B>(classB).property;
+  Extension<B>(classB)[0];
+  Extension<B>(classB)[0] = null;
+  Extension<B>(classB)[0] += null;
+  Extension<B>(classB)[0] ??= 0;
+  Extension<B>(classB).genericMethod();
+  Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
+  Extension<B>(classB).genericMethod<A>(a); // Error: Argument type mismatch.
+  Extension<B>(classB).genericMethod<B>(a); // Error: Argument type mismatch.
+
+  classB.genericMethod(a); // Error: Expect bounds mismatch.
+  classB.genericMethod<A>(a); // Error: Expect bounds mismatch.
+  classB.genericMethod<B>(a); // Error: Argument type mismatch
+  Extension(classB).method();
+  Extension(classB).method;
+  Extension(classB).property;
+  Extension(classB).property = null;
+  Extension(classB).property += null;
+  Extension(classB).property ??= 0;
+  Extension(classB).property();
+  Extension(classB).property++;
+  --Extension(classB).property;
+  Extension(classB)[0];
+  Extension(classB)[0] = null;
+  Extension(classB)[0] += null;
+  Extension(classB)[0] ??= 0;
+  Extension(classB).genericMethod();
+  Extension(classB).genericMethod(a); // Error: Expect bounds mismatch.
+  Extension(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
+  Extension(classB).genericMethod<B>(a); // Error: Argument type mismatch
+  Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
+  Extension<A>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
+  Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
+  Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
+  Extension<B>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
+  Extension<B>(classB).genericMethod<B>(a); // Error: Argument type mismatch
+}
+
+final A a = new A();
+final Class<A> classA = new Class<A>();
+final Class<B> classB = new Class<B>();
+
+final field1 = classA.method(); // Error: Expect method not found.
+final field2 = Extension(classA).method(); // Error: Expect bounds mismatch.
+final field3 = Extension<A>(classA).method(); // Error: Expect bounds mismatch.
+final field4 = Extension<B>(classA).method();
+final field5 = Extension(classA)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field6 = Extension(classA)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field7 = Extension(classA)
+    .genericMethod<B>(a); // Error: Expect bounds mismatch.
+final field8 = Extension<A>(classA)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field9 = Extension<A>(classA)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field10 = Extension<A>(classA)
+    .genericMethod<B>(a); // Error: Expect bounds mismatch.
+final field11 = Extension<B>(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field12 = Extension<B>(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field13 = Extension<B>(classB).genericMethod<B>(a);
+
+final field14 = classB.method();
+final field15 = Extension(classB).method();
+final field16 = Extension<A>(classB).method(); // Error: Expect bounds mismatch.
+final field17 = Extension<B>(classB).method();
+
+final field18 = classB.genericMethod(a); // Error: Expect bounds mismatch.
+final field19 = classB.genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field20 = classB.genericMethod<B>(a);
+final field21 = Extension(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field22 = Extension(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field23 = Extension(classB).genericMethod<B>(a);
+final field24 = Extension<A>(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field25 = Extension<A>(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field26 = Extension<A>(classB)
+    .genericMethod<B>(a); // Error: Expect bounds mismatch.
+final field27 = Extension<B>(classB)
+    .genericMethod(a); // Error: Expect bounds mismatch.
+final field28 = Extension<B>(classB)
+    .genericMethod<A>(a); // Error: Expect bounds mismatch.
+final field29 = Extension<B>(classB).genericMethod<B>(a);

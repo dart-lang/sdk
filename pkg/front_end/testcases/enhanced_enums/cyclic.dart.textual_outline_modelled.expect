@@ -1,0 +1,7 @@
+enum CyclicReference {
+  e1(e2),
+  e2(e1);
+
+  final CyclicReference other;
+  const CyclicReference(this.other);
+}

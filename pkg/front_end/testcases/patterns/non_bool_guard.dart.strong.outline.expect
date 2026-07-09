@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::List<core::int> v) → core::String
+  ;
+static method test2(core::List<core::int> v) → core::String
+  ;
+static method test3(core::List<core::int> v) → core::String
+  ;

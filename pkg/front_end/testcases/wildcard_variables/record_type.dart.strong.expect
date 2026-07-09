@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef R = (core::String, core::String);
+static field (core::int, core::int) record = (1, 2);
+static method main() → dynamic {
+  (core::int, core::int) localRecord = (1, 2);
+  core::print(localRecord.$1{core::int});
+  core::print(self::record.$1{core::int});
+}

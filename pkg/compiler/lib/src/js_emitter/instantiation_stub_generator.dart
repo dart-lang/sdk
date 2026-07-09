@@ -1,0 +1,232 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library;
+
+import '../common/elements.dart' show JCommonElements, JElementEnvironment;
+import '../elements/entities.dart';
+import '../io/source_information.dart';
+import '../js/js.dart' as js_ast;
+import '../js/js.dart' show js;
+import '../js_backend/namer.dart' show Namer;
+import '../js_model/elements.dart' show JField;
+import '../js_model/js_world.dart' show JClosedWorld;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/codegen_world_builder.dart';
+import '../universe/selector.dart' show Selector;
+import '../universe/world_builder.dart' show SelectorConstraints;
+import 'js_emitter.dart' show CodeEmitterTask, Emitter;
+import 'model.dart';
+
+// Generator of stubs required for Instantiation classes.
+class InstantiationStubGenerator {
+  final CodeEmitterTask _emitterTask;
+  final Namer _namer;
+  final CodegenWorld _codegenWorld;
+  final JClosedWorld _closedWorld;
+  // ignore: UNUSED_FIELD
+  final SourceInformationStrategy _sourceInformationStrategy;
+
+  InstantiationStubGenerator(
+    this._emitterTask,
+    this._namer,
+    this._closedWorld,
+    this._codegenWorld,
+    this._sourceInformationStrategy,
+  );
+
+  Emitter get _emitter => _emitterTask.emitter;
+
+  JCommonElements get _commonElements => _closedWorld.commonElements;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
+
+  /// Generates a stub to forward a call selector with no type arguments to a
+  /// call selector with stored types.
+  ///
+  /// [instantiationClass] is the class containing the captured type arguments.
+  /// [callSelector] is the selector with no type arguments. [targetSelector] is
+  /// the selector accepting the type arguments.
+  ParameterStubMethod _generateStub(
+    ClassEntity instantiationClass,
+    FieldEntity functionField,
+    Selector callSelector,
+    Selector targetSelector,
+  ) {
+    // TODO(sra): Generate source information for stub that has no member.
+    //
+    //SourceInformationBuilder sourceInformationBuilder =
+    //    _sourceInformationStrategy.createBuilderForContext(member);
+    //SourceInformation sourceInformation =
+    //    sourceInformationBuilder.buildStub(member, callStructure);
+
+    assert(callSelector.typeArgumentCount == 0);
+    int typeArgumentCount = targetSelector.typeArgumentCount;
+    assert(typeArgumentCount > 0);
+
+    // The forwarding stub for three arguments of an instantiation with two type
+    // arguments looks like this:
+    //
+    // ```
+    // call$3: function(a0, a1, a2) {
+    //   return this._f.call$2$3(a0, a1, a2, this.$ti[0], this.$ti[1]);
+    // }
+    // ```
+
+    List<js_ast.Parameter> parameters = [];
+    List<js_ast.Expression> arguments = [];
+
+    for (int i = 0; i < callSelector.argumentCount; i++) {
+      String jsName = 'a$i';
+      arguments.add(js('#', jsName));
+      parameters.add(js_ast.Parameter(jsName));
+    }
+
+    for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
+      arguments.add(
+        js('this.#.#[#]', [
+          _namer.rtiFieldJsName,
+          _namer.instanceFieldPropertyName(_commonElements.rtiRestField),
+          js.number(i),
+        ]),
+      );
+    }
+
+    js_ast.Fun function =
+        js('function(#) { return this.#.#(#); }', [
+              parameters,
+              _namer.instanceFieldPropertyName(functionField),
+              _namer.invocationName(targetSelector),
+              arguments,
+            ])
+            as js_ast.Fun;
+    // TODO(sra): .withSourceInformation(sourceInformation);
+
+    js_ast.Name name = _namer.invocationName(callSelector);
+    return ParameterStubMethod(name, null, function, element: functionField);
+  }
+
+  /// Generates a stub for a 'signature' selector. The stub calls the underlying
+  /// function's 'signature' method and calls a helper to substitute the type
+  /// parameters in the type term. The stub looks like this:
+  ///
+  /// ```
+  /// $signature:: function() {
+  ///   return H.instantiatedGenericFunctionType(
+  ///       H.closureFunctionType(this._genericClosure),
+  ///       this.$ti);
+  /// }
+  /// ```
+  ParameterStubMethod _generateSignatureStub(FieldEntity functionField) {
+    js_ast.Name operatorSignature = _namer.asName(
+      _namer.fixedNames.operatorSignature,
+    );
+
+    js_ast.Fun function = _generateSignature(functionField);
+
+    // TODO(sra): Generate source information for stub that has no member.
+    // TODO(sra): .withSourceInformation(sourceInformation);
+
+    return ParameterStubMethod(
+      operatorSignature,
+      null,
+      function,
+      element: functionField,
+    );
+  }
+
+  js_ast.Fun _generateSignature(FieldEntity functionField) =>
+      js('function() { return #(#(this.#), this.#); }', [
+            _emitter.staticFunctionAccess(
+              _commonElements.instantiatedGenericFunctionType,
+            ),
+            _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
+            _namer.instanceFieldPropertyName(functionField),
+            _namer.rtiFieldJsName,
+          ])
+          as js_ast.Fun;
+
+  // Returns all stubs for an instantiation class.
+  //
+  List<StubMethod> generateStubs(
+    ClassEntity instantiationClass,
+    FunctionEntity? member,
+  ) {
+    // 1. Find the number of type parameters in [instantiationClass].
+    int typeArgumentCount = _closedWorld.dartTypes
+        .getThisType(instantiationClass)
+        .typeArguments
+        .length;
+    assert(typeArgumentCount > 0);
+
+    // 2. Find the function field access path.
+    late FieldEntity functionField;
+    _elementEnvironment.forEachInstanceField(instantiationClass, (
+      ClassEntity enclosing,
+      FieldEntity field,
+    ) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field as JField).isElided) {
+        return;
+      }
+      if (field.name == '_genericClosure') functionField = field;
+    });
+
+    String call = _namer.closureInvocationSelectorName;
+    Map<Selector, SelectorConstraints>? callSelectors = _codegenWorld
+        .invocationsByName(call);
+
+    Set<ParameterStructure> computeLiveParameterStructures() {
+      Set<ParameterStructure> parameterStructures = {};
+
+      void process(FunctionEntity function) {
+        if (function.parameterStructure.typeParameters == typeArgumentCount) {
+          parameterStructures.add(function.parameterStructure);
+        }
+      }
+
+      _codegenWorld.closurizedStatics.forEach(process);
+      _codegenWorld.closurizedMembers.forEach(process);
+      _codegenWorld.forEachGenericClosureCallMethod(process);
+
+      return parameterStructures;
+    }
+
+    List<StubMethod> stubs = [];
+
+    // For every call-selector generate a stub to the corresponding selector
+    // with filled-in type arguments.
+
+    if (callSelectors != null) {
+      Set<ParameterStructure>? parameterStructures;
+      for (Selector selector in callSelectors.keys) {
+        CallStructure callStructure = selector.callStructure;
+        if (callStructure.typeArgumentCount != 0) continue;
+        CallStructure genericCallStructure = callStructure
+            .withTypeArgumentCount(typeArgumentCount);
+        parameterStructures ??= computeLiveParameterStructures();
+        for (ParameterStructure parameterStructure in parameterStructures) {
+          if (genericCallStructure.signatureApplies(parameterStructure)) {
+            Selector genericSelector = Selector.call(
+              selector.memberName,
+              genericCallStructure,
+            );
+            stubs.add(
+              _generateStub(
+                instantiationClass,
+                functionField,
+                selector,
+                genericSelector,
+              ),
+            );
+            break;
+          }
+        }
+      }
+    }
+
+    stubs.add(_generateSignatureStub(functionField));
+
+    return stubs;
+  }
+}

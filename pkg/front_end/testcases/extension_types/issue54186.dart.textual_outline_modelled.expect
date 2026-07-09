@@ -1,0 +1,11 @@
+extension type E<X>(F2<X> it) {}
+
+extension type E2<X>(F3<X> it) {}
+
+typedef F<X> = X;
+
+typedef F2<X> = F<F<X>>;
+
+typedef F3<X> = F4<X>;
+
+typedef F4<X> = F4<X>;

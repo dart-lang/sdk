@@ -1,0 +1,7 @@
+class A<X, Y> {
+  A(X x, Y y);
+}
+
+typedef F<X> = A<X, X Function()>;
+
+void main() => F<int>(0, () => 1);

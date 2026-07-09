@@ -1,0 +1,84 @@
+Problems reported:
+
+parser/error_recovery/issue_39202.crash:1:1: Expected a declaration, but got '('.
+() async => a b < c $? >
+^
+
+parser/error_recovery/issue_39202.crash:1:2: Expected a declaration, but got ')'.
+() async => a b < c $? >
+ ^
+
+parser/error_recovery/issue_39202.crash:1:4: A function declaration needs an explicit list of parameters.
+() async => a b < c $? >
+   ^^^^^
+
+parser/error_recovery/issue_39202.crash:1:13: Expected ';' after this.
+() async => a b < c $? >
+            ^
+
+parser/error_recovery/issue_39202.crash:1:19: Expected '>' after this.
+() async => a b < c $? >
+                  ^
+
+parser/error_recovery/issue_39202.crash:1:25: Expected an identifier, but got ''.
+() async => a b < c $? >
+                        ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/error_recovery/issue_39202.crash:1:24: Expected ';' after this.
+() async => a b < c $? >
+                       ^
+
+beginCompilationUnit(()
+  beginMetadataStar(()
+  endMetadataStar(0)
+  beginTopLevelMember(()
+    handleRecoverableError(Message[Template(ExpectedDeclaration), Expected a declaration, but got '('., null, {lexeme: (}], (, ()
+    handleInvalidTopLevelDeclaration(()
+  endTopLevelDeclaration(()
+  beginMetadataStar())
+  endMetadataStar(0)
+  beginTopLevelMember())
+    handleRecoverableError(Message[Template(ExpectedDeclaration), Expected a declaration, but got ')'., null, {lexeme: )}], ), ))
+    handleInvalidTopLevelDeclaration())
+  endTopLevelDeclaration())
+  beginMetadataStar(async)
+  endMetadataStar(0)
+  beginTopLevelMember(async)
+    beginTopLevelMethod(), null, null)
+      handleNoType())
+      handleIdentifier(async, topLevelFunctionDeclaration)
+      handleNoTypeVariables(=>)
+      handleRecoverableError(MissingFunctionParameters, async, async)
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleIdentifier(a, expression)
+      handleNoTypeArguments(b)
+      handleNoArguments(b)
+      handleSend(a, a)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], a, a)
+      handleExpressionFunctionBody(=>, ;)
+    endTopLevelMethod(async, null, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(b)
+  endMetadataStar(0)
+  beginTopLevelMember(b)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, ;)
+      handleIdentifier(b, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(c, typeReference)
+        handleNoTypeArguments($)
+        handleType(c, null)
+        handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected '>' after this., null, {expected: >}], c, c)
+      endTypeArguments(1, <, >)
+      handleType(b, null)
+      handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+      // WARNING: Reporting at eof for .
+      handleIdentifier(, topLevelVariableDeclaration)
+      handleNoFieldInitializer()
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], >, >)
+    endTopLevelFields(null, null, null, null, null, null, null, 1, b, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(4, )

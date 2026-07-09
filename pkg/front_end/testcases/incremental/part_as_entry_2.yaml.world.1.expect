@@ -1,0 +1,17 @@
+main = lib1::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+additionalExports = (lib1::main)
+
+  import "org-dartlang-test:///lib1.dart";
+  export "org-dartlang-test:///lib1.dart";
+
+  part entry.dart;
+}
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method main() → dynamic {
+    dart.core::print("Hello, World!");
+  }
+}

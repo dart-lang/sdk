@@ -1,0 +1,34 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=!]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C1
+  static method someStaticMethod([@vm.inferred-arg-type.metadata=int] core::int i) → core::String
+    return [@vm.inferred-type.metadata=!] i.{core::int::toString}(){() → core::String};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(9223372036854775807));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(-9223372036854775808));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(1311768467294899695));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(-81986143110479071));
+  core::print([@vm.inferred-type.metadata=dart.core::_OneByteString] self::SomeClass::someStaticMethod(-1));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(9223372036854775806));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(-9223372036854775807));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(1152921504606846976));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(2305843009213693952));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(4611686018427387904));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(-6148914691236517206));
+  core::print([@vm.inferred-type.metadata=!] self::SomeClass::someStaticMethod(6148914691236517205));
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

@@ -1,0 +1,358 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:collection/collection.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:front_end/src/kernel/record_use.dart' show isBeingRecorded;
+import 'package:kernel/ast.dart' as ast;
+import 'package:record_use/record_use.dart';
+import 'package:vm/metadata/loading_units.dart' as vm_metadata;
+import 'package:vm/transformations/record_use/record_call.dart';
+import 'package:vm/transformations/record_use/record_instance.dart';
+
+/// Maps a kernel node to the a string representing the loading unit it belongs
+/// to. Different backends may represent loading units differently.
+typedef LoadingUnitLookup = LoadingUnit Function(ast.TreeNode node);
+
+LoadingUnitLookup _getDefaultLoadingUnitLookup(ast.Component component) {
+  final loadingMetadata =
+      component.metadata[vm_metadata
+              .LoadingUnitsMetadataRepository
+              .repositoryTag]
+          as vm_metadata.LoadingUnitsMetadataRepository;
+  final loadingUnits = loadingMetadata.mapping[component]?.loadingUnits ?? [];
+  return (ast.TreeNode node) => LoadingUnit(
+    _loadingUnitForLibrary(enclosingLibrary(node)!, loadingUnits).toString(),
+  );
+}
+
+/// Collect calls and constant instances annotated with `@RecordUse`.
+///
+/// Identify and collect all calls to static methods and loadings of constant
+/// instances of classes annotated in reachable code in the given [component].
+/// This requires the deferred loading to be handled already to also save which
+/// loading unit the usage is made in. Write the result into a JSON at
+/// [recordedUsagesFile].
+///
+/// Only usages in reachable code (executable code) are tracked.
+/// Usages appearing within metadata (annotations) are ignored.
+///
+/// The purpose of this feature is to be able to pass the recorded information
+/// to packages in a post-compilation step, allowing them to remove or modify
+/// assets based on the actual usage in the code prior to bundling in the final
+/// application.
+ast.Component transformComponent(
+  ast.Component component,
+  Uri recordedUsagesFile, {
+  LoadingUnitLookup? loadingUnitLookup,
+}) {
+  loadingUnitLookup ??= _getDefaultLoadingUnitLookup(component);
+
+  final callRecorder = CallRecorder(loadingUnitLookup);
+  final instanceRecorder = InstanceRecorder(loadingUnitLookup);
+  component.accept(_RecordUseVisitor(callRecorder, instanceRecorder));
+
+  final usages = _usages(
+    callRecorder.callsForMethod,
+    instanceRecorder.instancesForClass,
+  );
+  final usagesStorageFormat = usages.toJson();
+  File.fromUri(recordedUsagesFile).writeAsStringSync(
+    JsonEncoder.withIndent('  ').convert(usagesStorageFormat),
+  );
+
+  return component;
+}
+
+class _RecordUseVisitor extends ast.RecursiveVisitor {
+  final CallRecorder staticCallRecorder;
+  final InstanceRecorder instanceUseRecorder;
+
+  _RecordUseVisitor(this.staticCallRecorder, this.instanceUseRecorder);
+
+  @override
+  void visitProcedure(ast.Procedure node) {
+    // Extension member tear-offs call the implementation. We skip them here
+    // to avoid recording the implementation call as a usage, as the usage is
+    // already recorded by the call to the extension member tear-off itself.
+    if (isExtensionMemberTearOff(node) ||
+        isTearOffLowering(node) ||
+        node.isRedirectingFactory) {
+      return;
+    }
+    super.visitProcedure(node);
+  }
+
+  @override
+  void visitStaticInvocation(ast.StaticInvocation node) {
+    if (_isAnnotation(node)) return;
+
+    final target = node.target;
+    if (target.isFactory) {
+      if (target.isRedirectingFactory) {
+        instanceUseRecorder.recordRedirectingFactoryInvocation(node);
+      }
+      // We skip recording non-redirecting factory calls here.
+      // The call inside the factory body to the generative constructor
+      // will be recorded when that body is visited.
+    } else {
+      staticCallRecorder.recordStaticInvocation(node);
+    }
+
+    super.visitStaticInvocation(node);
+  }
+
+  @override
+  void visitStaticGet(ast.StaticGet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticGet(node);
+    instanceUseRecorder.recordStaticGet(node);
+
+    super.visitStaticGet(node);
+  }
+
+  @override
+  void visitStaticTearOff(ast.StaticTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    if (isTearOffLowering(node.target)) {
+      instanceUseRecorder.recordLoweredConstructorTearOff(node);
+    } else {
+      staticCallRecorder.recordStaticTearOff(node);
+    }
+
+    super.visitStaticTearOff(node);
+  }
+
+  @override
+  void visitStaticSet(ast.StaticSet node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordStaticSet(node);
+
+    super.visitStaticSet(node);
+  }
+
+  @override
+  void visitConstructorInvocation(ast.ConstructorInvocation node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordConstructorInvocation(node);
+
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorTearOff(ast.ConstructorTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordConstructorTearOff(node);
+
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitTypedefTearOff(ast.TypedefTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    final expression = node.expression;
+    if (expression is ast.ConstructorTearOff) {
+      instanceUseRecorder.recordConstructorTearOff(expression);
+    } else if (expression is ast.RedirectingFactoryTearOff) {
+      instanceUseRecorder.recordRedirectingFactoryTearOff(expression);
+    } else if (expression is ast.StaticTearOff &&
+        isConstructorTearOffLowering(expression.target)) {
+      instanceUseRecorder.recordLoweredConstructorTearOff(expression);
+    }
+
+    super.visitTypedefTearOff(node);
+  }
+
+  @override
+  void visitRedirectingFactoryTearOff(ast.RedirectingFactoryTearOff node) {
+    if (_isAnnotation(node)) return;
+
+    instanceUseRecorder.recordRedirectingFactoryTearOff(node);
+
+    super.visitRedirectingFactoryTearOff(node);
+  }
+
+  @override
+  void visitConstantExpression(ast.ConstantExpression node) {
+    if (_isAnnotation(node)) return;
+
+    staticCallRecorder.recordConstantExpression(node);
+    instanceUseRecorder.recordConstantExpression(node);
+
+    super.visitConstantExpression(node);
+  }
+
+  @override
+  void defaultExpression(ast.Expression node) {
+    // Prune the traversal of annotations. Since we catch the outermost
+    // expression of an annotation here, we don't need to check sub-expressions
+    // recursively in [_isAnnotation].
+    if (_isAnnotation(node)) return;
+    super.defaultExpression(node);
+  }
+
+  /// Returns whether [node] is a top-level expression in an annotation list.
+  ///
+  /// This only checks the immediate parent because [_RecordUseVisitor] relies on
+  /// [defaultExpression] catching annotations at the outermost expression level
+  /// and pruning the traversal into any sub-expressions.
+  static bool _isAnnotation(ast.TreeNode? node) {
+    final parent = node?.parent;
+    return parent is ast.Annotatable && parent.annotations.contains(node);
+  }
+}
+
+Recordings _usages(
+  Map<DefinitionWithStaticCalls, List<CallReference>> calls,
+  Map<DefinitionWithInstances, List<InstanceReference>> instances,
+) {
+  return Recordings(calls: calls, instances: instances);
+}
+
+Constant evaluateConstant(ast.Constant constant) => switch (constant) {
+  ast.NullConstant() => NullConstant(),
+  ast.BoolConstant() => BoolConstant(constant.value),
+  ast.IntConstant() => IntConstant(constant.value),
+  ast.DoubleConstant() => DoubleConstant(constant.value),
+  ast.StringConstant() => StringConstant(constant.value),
+  ast.SymbolConstant() => SymbolConstant(
+    constant.name,
+    libraryUri: constant.libraryReference?.asLibrary.importUri.toString(),
+  ),
+  ast.MapConstant() => MapConstant(
+    constant.entries
+        .map(
+          (e) => MapEntry(evaluateConstant(e.key), evaluateConstant(e.value)),
+        )
+        .toList(),
+  ),
+  ast.ListConstant() => ListConstant(
+    constant.entries.map(evaluateConstant).toList(),
+  ),
+  ast.InstanceConstant() =>
+    !isBeingRecorded(constant.classNode)
+        ? UnsupportedConstant(
+            "The definition of '${constant.classNode.name}' from "
+            "'${constant.classNode.enclosingLibrary.importUri}' must be "
+            "annotated with '@RecordUse()'.",
+          )
+        : (constant.classNode.isEnum
+              ? evaluateEnumConstant(constant)
+              : evaluateInstanceConstant(constant)),
+  ast.RecordConstant() => evaluateRecordConstant(constant),
+  // The following are not supported, but theoretically could be, so they
+  // are listed explicitly here.
+  ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
+  ast.SetConstant() => SetConstant(
+    constant.entries.map(evaluateConstant).toList(),
+  ),
+  ast.InstantiationConstant() => evaluateConstant(constant.tearOffConstant),
+  ast.TearOffConstant() => UnsupportedConstant(
+    'Function/Method tear-offs are not supported for recording.',
+  ),
+  ast.TypedefTearOffConstant() => evaluateConstant(constant.tearOffConstant),
+  ast.TypeLiteralConstant() => UnsupportedConstant(
+    'Type literals are not supported for recording.',
+  ),
+  ast.UnevaluatedConstant() => UnsupportedConstant(
+    'Unevaluated constants are not supported for recording.',
+  ),
+};
+
+Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
+  ast.NullLiteral() => NullConstant(),
+  ast.IntLiteral() => IntConstant(expression.value),
+  ast.BoolLiteral() => BoolConstant(expression.value),
+  ast.StringLiteral() => StringConstant(expression.value),
+  ast.DoubleLiteral() => DoubleConstant(expression.value),
+  ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
+};
+
+EnumConstant evaluateEnumConstant(ast.InstanceConstant constant) {
+  if (!isBeingRecorded(constant.classNode)) {
+    throw UnsupportedConstant(
+      "The definition of '${constant.classNode.name}' from "
+      "'${constant.classNode.enclosingLibrary.importUri}' must be "
+      "annotated with '@RecordUse()'.",
+    );
+  }
+  int? index;
+  String? name;
+  final fields = <String, Constant>{};
+  for (final entry in constant.fieldValues.entries) {
+    final fieldName = entry.key.asField.name.text;
+    if (fieldName == enumIndexFieldName) {
+      index = (entry.value as ast.IntConstant).value;
+    } else if (fieldName == enumNameFieldName) {
+      name = (entry.value as ast.StringConstant).value;
+    } else {
+      fields[fieldName] = evaluateConstant(entry.value);
+    }
+  }
+  return EnumConstant(
+    definition:
+        definitionFromClass(constant.classNode) as DefinitionWithInstances,
+    index: index!,
+    name: name!,
+    fields: fields,
+  );
+}
+
+InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) {
+  if (!isBeingRecorded(constant.classNode)) {
+    throw UnsupportedConstant(
+      "The definition of '${constant.classNode.name}' from "
+      "'${constant.classNode.enclosingLibrary.importUri}' must be "
+      "annotated with '@RecordUse()'.",
+    );
+  }
+  return InstanceConstant(
+    definition:
+        definitionFromClass(constant.classNode) as DefinitionWithInstances,
+    fields: constant.fieldValues.map(
+      (key, value) => MapEntry(key.asField.name.text, evaluateConstant(value)),
+    ),
+  );
+}
+
+RecordConstant evaluateRecordConstant(ast.RecordConstant constant) {
+  return RecordConstant(
+    positional: constant.positional.map(evaluateConstant).toList(),
+    named: constant.named.map(
+      (key, value) => MapEntry(key, evaluateConstant(value)),
+    ),
+  );
+}
+
+UnsupportedConstant _unsupported(String constantType) =>
+    UnsupportedConstant('$constantType is not supported for recording.');
+
+ast.Library? enclosingLibrary(ast.TreeNode node) {
+  while (node is! ast.Library) {
+    final parent = node.parent;
+    if (parent == null) return null;
+    node = parent;
+  }
+  return node;
+}
+
+int _loadingUnitForLibrary(
+  ast.Library library,
+  List<vm_metadata.LoadingUnit> loadingUnits,
+) {
+  final importUri = library.importUri.toString();
+  return loadingUnits
+          .firstWhereOrNull((unit) => unit.libraryUris.contains(importUri))
+          ?.id ??
+      -1;
+}

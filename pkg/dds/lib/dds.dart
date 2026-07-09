@@ -1,0 +1,300 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// A library used to spawn the Dart Developer Service, used to communicate
+/// with a Dart VM Service instance.
+library;
+
+import 'dart:async';
+import 'dart:io';
+
+import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
+
+import 'src/dds_impl.dart';
+
+typedef UriConverter = String? Function(String uri);
+
+/// An intermediary between a Dart VM service and its clients that offers
+/// additional functionality on top of the standard VM service protocol.
+///
+/// See the [Dart Development Service Protocol](https://github.com/dart-lang/sdk/blob/master/pkg/dds/dds_protocol.md)
+/// for details.
+abstract class DartDevelopmentService {
+  /// Creates a [DartDevelopmentService] instance which will communicate with a
+  /// VM service. Requires the target VM service to have no other connected
+  /// clients.
+  ///
+  /// [remoteVmServiceUri] is the address of the VM service that this
+  /// development service will communicate with.
+  ///
+  /// If provided, [serviceUri] will determine the address and port of the
+  /// spawned Dart Development Service. The format of [serviceUri] must be
+  /// consistent with the protocol determined by [ipv6].
+  ///
+  /// [enableAuthCodes] controls whether or not an authentication code must
+  /// be provided by clients when communicating with this instance of
+  /// [DartDevelopmentService]. Authentication codes take the form of a base64
+  /// encoded string provided as the first element of the DDS path and is meant
+  /// to make it more difficult for unintended clients to connect to this
+  /// service. Authentication codes are enabled by default.
+  ///
+  /// [ipv6] controls whether or not DDS is served via IPv6. IPv4 is enabled by
+  /// default.
+  ///
+  /// If [enablesServicePortFallback] is enabled, DDS will attempt to bind to any
+  /// available port if the specified port is unavailable.
+  ///
+  /// [appName] is a short description of the application that is being served
+  /// by the vm service, and will be sent as the `name` when registering the vm
+  /// service with the Dart Tooling Daemon.
+  static Future<DartDevelopmentService> startDartDevelopmentService(
+    Uri remoteVmServiceUri, {
+    String? appName,
+    Uri? serviceUri,
+    bool enableAuthCodes = true,
+    bool ipv6 = false,
+    bool enableServicePortFallback = false,
+    @Deprecated(
+      'This parameter is deprecated and supplying an argument to it will cause '
+      'no effect.',
+    )
+    List<String> cachedUserTags = const [],
+    DevToolsConfiguration? devToolsConfiguration,
+    bool logRequests = false,
+    UriConverter? uriConverter,
+  }) async {
+    if (!remoteVmServiceUri.isScheme('http')) {
+      throw ArgumentError(
+        'remoteVmServiceUri must have an HTTP scheme. Actual: ${remoteVmServiceUri.scheme}',
+      );
+    }
+    if (serviceUri != null) {
+      if (!serviceUri.isScheme('http')) {
+        throw ArgumentError(
+          'serviceUri must have an HTTP scheme. Actual: ${serviceUri.scheme}',
+        );
+      }
+
+      // If provided an address to bind to, ensure it uses a protocol consistent
+      // with that used to spawn DDS.
+      final addresses = await InternetAddress.lookup(serviceUri.host);
+
+      try {
+        // Check to see if there's a valid address.
+        addresses.firstWhere(
+          (a) => (a.type ==
+              (ipv6 ? InternetAddressType.IPv6 : InternetAddressType.IPv4)),
+        );
+      } on StateError {
+        // Could not find a valid address.
+        throw ArgumentError(
+          "serviceUri '$serviceUri' is not an IPv${ipv6 ? "6" : "4"} address.",
+        );
+      }
+    }
+
+    final service = DartDevelopmentServiceImpl(
+      remoteVmServiceUri,
+      serviceUri,
+      enableAuthCodes,
+      ipv6,
+      devToolsConfiguration,
+      logRequests,
+      enableServicePortFallback,
+      uriConverter,
+      appName,
+    );
+    await service.startService();
+    return service;
+  }
+
+  DartDevelopmentService._();
+
+  /// Stop accepting requests after gracefully handling existing requests.
+  Future<void> shutdown();
+
+  /// Registers an external DevTools server with this instance of
+  /// [DartDevelopmentService] to allow for DDS to redirect DevTools requests
+  /// to the DevTools server.
+  ///
+  /// Throws a [StateError] if DevTools is already being served by DDS.
+  void setExternalDevToolsUri(Uri uri);
+
+  /// The name of the application that is being served by the vm service if
+  /// provided.
+  String? get appName;
+
+  /// Set to `true` if this instance of [DartDevelopmentService] requires an
+  /// authentication code to connect.
+  bool get authCodesEnabled;
+
+  /// Completes when this [DartDevelopmentService] has shut down.
+  Future<void> get done;
+
+  /// The HTTP [Uri] of the remote VM service instance that this service will
+  /// forward requests to.
+  Uri get remoteVmServiceUri;
+
+  /// The web socket [Uri] of the remote VM service instance that this service
+  /// will forward requests to.
+  ///
+  /// Can be used with [WebSocket] to communicate directly with the VM service.
+  Uri get remoteVmServiceWsUri;
+
+  /// The [Uri] VM service clients can use to communicate with this
+  /// [DartDevelopmentService] via HTTP.
+  ///
+  /// Returns `null` if the service is not running.
+  Uri? get uri;
+
+  /// The [Uri] VM service clients can use to communicate with this
+  /// [DartDevelopmentService] via server-sent events (SSE).
+  ///
+  /// Returns `null` if the service is not running.
+  Uri? get sseUri;
+
+  /// The [Uri] VM service clients can use to communicate with this
+  /// [DartDevelopmentService] via a [WebSocket].
+  ///
+  /// Returns `null` if the service is not running.
+  Uri? get wsUri;
+
+  /// The HTTP [Uri] of the hosted DevTools instance.
+  ///
+  /// Returns `null` if DevTools is not running.
+  Uri? get devToolsUri;
+
+  /// Metadata for the Dart Tooling Daemon instance that is hosted by DevTools.
+  ///
+  /// This will be null if DTD was not started by the DevTools server. For
+  /// example, it may have been started by an IDE.
+  DtdInfo? get hostedDartToolingDaemon;
+
+  /// Set to `true` if this instance of [DartDevelopmentService] is accepting
+  /// requests.
+  bool get isRunning;
+
+  @Deprecated(
+    'This getter is deprecated and will always return an empty list.',
+  )
+  List<String> get cachedUserTags;
+
+  /// The version of the DDS protocol supported by this [DartDevelopmentService]
+  /// instance.
+  static const String protocolVersion = '2.1';
+}
+
+/// Thrown by DDS during initialization failures, unexpected connection issues,
+/// and when attempting to spawn DDS when an existing DDS instance exists.
+class DartDevelopmentServiceException implements Exception {
+  /// Set when `DartDeveloperService.startDartDevelopmentService` is called and
+  /// the target VM service already has a Dart Developer Service instance
+  /// connected.
+  static const int existingDdsInstanceError = 1;
+
+  /// Set when the connection to the remote VM service terminates unexpectedly
+  /// during Dart Development Service startup.
+  static const int failedToStartError = 2;
+
+  /// Set when a connection error has occurred after startup.
+  static const int connectionError = 3;
+
+  factory DartDevelopmentServiceException.fromJson(Map<String, Object?> json) {
+    if (json
+        case {
+          'error_code': final int errorCode,
+          'message': final String message,
+        }) {
+      return switch (errorCode) {
+        existingDdsInstanceError =>
+          DartDevelopmentServiceException.existingDdsInstance(
+            message,
+            ddsUri: Uri.parse(json['uri']! as String),
+          ),
+        failedToStartError => DartDevelopmentServiceException.failedToStart(),
+        connectionError =>
+          DartDevelopmentServiceException.connectionIssue(message),
+        _ => throw StateError(
+            'Invalid DartDevelopmentServiceException error_code: $errorCode',
+          ),
+      };
+    }
+    throw StateError('Invalid DartDevelopmentServiceException JSON: $json');
+  }
+
+  /// Thrown when `DartDeveloperService.startDartDevelopmentService` is called
+  /// and the target VM service already has a Dart Developer Service instance
+  /// connected.
+  factory DartDevelopmentServiceException.existingDdsInstance(
+    String message, {
+    Uri? ddsUri,
+  }) {
+    return ExistingDartDevelopmentServiceException._(
+      message,
+      ddsUri: ddsUri,
+    );
+  }
+
+  /// Thrown when the connection to the remote VM service terminates unexpectedly
+  /// during Dart Development Service startup.
+  factory DartDevelopmentServiceException.failedToStart() {
+    return DartDevelopmentServiceException._(
+        failedToStartError, 'Failed to start Dart Development Service');
+  }
+
+  /// Thrown when a connection error has occurred after startup.
+  factory DartDevelopmentServiceException.connectionIssue(String message) {
+    return DartDevelopmentServiceException._(connectionError, message);
+  }
+
+  DartDevelopmentServiceException._(this.errorCode, this.message);
+
+  @override
+  String toString() => 'DartDevelopmentServiceException: $message';
+
+  Map<String, Object?> toJson() => {
+        'error_code': errorCode,
+        'message': message,
+      };
+
+  final int errorCode;
+  final String message;
+}
+
+/// Thrown when attempting to start a new DDS instance when one already exists.
+class ExistingDartDevelopmentServiceException
+    extends DartDevelopmentServiceException {
+  ExistingDartDevelopmentServiceException._(
+    String message, {
+    this.ddsUri,
+  }) : super._(
+          DartDevelopmentServiceException.existingDdsInstanceError,
+          message,
+        );
+
+  /// The URI of the existing DDS instance, if available.
+  ///
+  /// This URL is the base HTTP URI such as `http://127.0.0.1:1234/AbcDefg=/`,
+  /// not the WebSocket URI (which can be obtained by mapping the scheme to
+  /// `ws` (or `wss`) and appending `ws` to the path segments).
+  final Uri? ddsUri;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'uri': ddsUri.toString(),
+      };
+}
+
+class DevToolsConfiguration {
+  const DevToolsConfiguration({
+    required this.customBuildDirectoryPath,
+    this.devToolsServerAddress,
+    this.enable = false,
+  });
+
+  final bool enable;
+  final Uri? devToolsServerAddress;
+  final Uri customBuildDirectoryPath;
+}

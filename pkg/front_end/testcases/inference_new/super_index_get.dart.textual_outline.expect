@@ -1,0 +1,16 @@
+library test;
+
+import 'dart:async';
+
+T f<T>() => throw '';
+
+class B {
+  num operator [](int x) => throw '';
+}
+
+class C extends B {
+  int operator [](Object x) => throw '';
+  void h() {}
+}
+
+main() {}

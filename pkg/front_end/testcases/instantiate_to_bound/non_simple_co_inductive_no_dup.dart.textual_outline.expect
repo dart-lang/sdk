@@ -1,0 +1,5 @@
+class A<TypeX extends Map<A, A>> {}
+
+typedef C<TypeX extends Map<C, C>> = int;
+
+main() {}

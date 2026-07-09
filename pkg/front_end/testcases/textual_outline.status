@@ -1,0 +1,61 @@
+# copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Status file for the textual_outline_suite.dart test suite. This is testing
+# the textual outline used for better incremental compilation.
+
+# These tests have errors in them which isn't reported by the parser but the
+# formatter still sees as syntax errors and thus won't format.
+enhanced_enums/external_constructor: FormatterCrash
+general/invalid_operator: FormatterCrash
+general/invalid_super_initializer: FormatterCrash
+general/issue45700.crash: FormatterCrash
+general/issue48919: FormatterCrash
+general/setter_parameters: FormatterCrash
+inference/property_set_bad_setter: FormatterCrash
+nnbd/instance_duplicates: FormatterCrash
+regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
+regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
+regress/erroneous_setter: FormatterCrash
+regress/erroneous_setter_2: FormatterCrash
+regress/issue_30994: FormatterCrash
+regress/issue_31198: FormatterCrash
+triple_shift/invalid_operator: FormatterCrash
+
+coverage/digit-separators/separators_errors_test: EmptyOutput
+general/error_recovery/issue_38415.crash: EmptyOutput
+general/error_recovery/issue_39024.crash: EmptyOutput
+general/error_recovery/issue_39058.crash: EmptyOutput
+general/issue49357a: EmptyOutput
+primary_constructors/enum_primary_declaring_parameters: EmptyOutput
+rasta/bad_interpolation: EmptyOutput
+rasta/issue_000035: EmptyOutput
+rasta/issue_000035a: EmptyOutput
+rasta/issue_000045: EmptyOutput
+regress/issue_29976: EmptyOutput
+regress/issue_29982: EmptyOutput
+regress/issue_29985: EmptyOutput
+regress/issue_35900: EmptyOutput
+regress/issue_39035.crash: EmptyOutput
+regress/issue_39091_2: EmptyOutput
+regress/utf_16_le_content.crash: EmptyOutput
+
+enhanced_parts/conditional_parts: UnknownChunk
+general/error_recovery/constructor_recovery_operator.crash: UnknownChunk # Test has parser errors
+general/error_recovery/issue_39058_prime.crash: UnknownChunk # Test has parser errors
+general/error_recovery/issue_39202.crash: UnknownChunk # Test has parser errors
+general/factory_var: UnknownChunk # Test has parser errors
+general/issue41842: UnknownChunk # Test has parser errors
+general/issue43363: UnknownChunk # Test has parser errors
+general/issue54006: UnknownChunk # Test has parser errors
+primary_constructors/new_in_initializer: UnknownChunk # Test has parser errors
+primary_constructors/redirecting_non_factory: UnknownChunk # Test has parser errors
+rasta/issue_000046: UnknownChunk # Test has parser errors
+rasta/malformed_const_constructor: UnknownChunk # Test has parser errors
+regress/ambiguous_builder_01: UnknownChunk # Test has parser errors
+regress/issue_34850: UnknownChunk # Test has parser errors
+
+coverage/external_test: FormatterCrash
+coverage/operator_unsupported_test: EmptyOutput
+coverage/syntax_get_set_syntax_test: UnknownChunk

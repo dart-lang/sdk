@@ -1,0 +1,15 @@
+M(r0 uint64, r1 uint64[uint8]) Struct(size: 9)
+M(r2 uint64, r3 uint64[uint8]) Struct(size: 9)
+M(r4 uint64, r5 uint64[uint8]) Struct(size: 9)
+M(r6 uint64, r7 uint64[uint8]) Struct(size: 9)
+M(S+0 uint64, S+8 uint64[uint8]) Struct(size: 9)
+M(S+16 uint64, S+24 uint64[uint8]) Struct(size: 9)
+M(S+32 uint64, S+40 uint64[uint8]) Struct(size: 9)
+M(S+48 uint64, S+56 uint64[uint8]) Struct(size: 9)
+M(S+64 uint64, S+72 uint64[uint8]) Struct(size: 9)
+M(S+80 uint64, S+88 uint64[uint8]) Struct(size: 9)
+v0 double
+S+96 int32
+S+104 int32
+=>
+v0 double

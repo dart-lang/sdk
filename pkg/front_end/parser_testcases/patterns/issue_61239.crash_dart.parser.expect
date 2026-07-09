@@ -1,0 +1,17 @@
+NOTICE: Stream was rewritten by parser!
+
+void f(x) {
+return switch(x) {
+42 =>xor => 42,
+_ => 0,
+}
+;}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] switch[KeywordToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+42[StringToken] =>[SyntheticToken]xor[StringToken] =>[SimpleToken] 42[StringToken],[SimpleToken]
+_[StringToken] =>[SimpleToken] 0[StringToken],[SimpleToken]
+}[SimpleToken]
+;[SyntheticToken]}[SimpleToken]
+[SimpleToken]

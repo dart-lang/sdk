@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  late field core::int a;
+  late final [setter] field core::int b;
+  late field core::int c;
+  late final field core::int d;
+  synthetic constructor •() → self::C
+    ;
+  static synthetic method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+static field self::C c;
+static method main() → void
+  ;
+static method testUninitializedNonFinalInstanceField() → void
+  ;
+static method testUninitializedFinalInstanceField() → void
+  ;
+static method testInitializedNonFinalInstanceField() → void
+  ;
+static method testInitializedFinalInstanceField() → void
+  ;

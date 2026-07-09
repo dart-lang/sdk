@@ -1,0 +1,10 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return () → Null {
+    new #lib1::A::•<dynamic>();
+    #C1;
+  };
+constants  {
+  #C1 = #lib1::A<dynamic> {}
+}

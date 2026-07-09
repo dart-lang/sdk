@@ -1,0 +1,22 @@
+class A {
+  var field = method();
+}
+
+class B extends A {
+  get field => throw '';
+  set field(value) {}
+}
+
+class C extends B {
+  var field;
+}
+
+int? method() => 0;
+
+main() {}
+
+var topLevelFieldFromA = new A().field;
+
+var topLevelFieldFromB = new B().field;
+
+var topLevelFieldFromC = new C().field;

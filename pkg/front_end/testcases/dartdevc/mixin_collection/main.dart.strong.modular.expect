@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+
+static field mai::C c = new mai::C::•();
+
+library;
+import self as mai;
+import "dart:core" as core;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib2.dart";
+
+class C extends mai::_C&Object&M {
+  synthetic constructor •() → mai::C
+    : super mai::_C&Object&M::•()
+    ;
+  static synthetic method _#new#tearOff() → mai::C
+    return new mai::C::•();
+}
+abstract class _C&Object&M = core::Object with mai2::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → mai::_C&Object&M
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub method m1() → core::String
+    return super.{mai2::M::m1}();
+  synthetic mixin-super-stub method m2() → core::String
+    return super.{mai2::M::m2}();
+}
+
+library;
+import self as mai2;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method m1() → core::String {
+    return "hello";
+  }
+  method m2() → core::String {
+    return "hello";
+  }
+}

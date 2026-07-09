@@ -1,0 +1,35 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# We're standing somewhere with a variable in scope that is an extension type.
+# To properly support those we replace the runtime provided type with the type
+# that was found in the kernel object.
+# The VM supports sending over a "scope" that shadows stuff though. If it does
+# we should not replace the type.
+
+sources: |
+  void main() {
+    Cow foo = new Cow("hello");
+    print(foo.say());
+  }
+
+  extension type Cow(String s) {
+    String say() {
+      return 'Moo, $s!';
+    }
+  }
+
+definitions: ["foo"]
+# We pretend like the VM shadowed it by a user-provided scope of type int
+definition_types: ["viaScope", "dart:core", "_Smi", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "main"
+static: true
+offset: 56 # about to call 'say'
+scriptUri: main.dart
+# This should be an error or a dynamic call or something (as "foo" is a _Smi).
+expression: |
+  foo.say()

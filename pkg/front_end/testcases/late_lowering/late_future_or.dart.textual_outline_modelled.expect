@@ -1,0 +1,36 @@
+import 'dart:async';
+
+FutureOr<dynamic> method3() => null;
+
+FutureOr<int> method4() => 0;
+
+FutureOr<int?>? method6() => null;
+
+FutureOr<int?> method5() => null;
+
+FutureOr? method2() => null;
+
+FutureOr method1() => null;
+
+class C<T> {
+  late FutureOr<T> field3;
+  late FutureOr<T?>? field5;
+  late FutureOr<T?> field4;
+  late FutureOr? field2;
+  late FutureOr field1;
+  method() {}
+}
+
+late var field1 = method1();
+
+late var field2 = method2();
+
+late var field3 = method3();
+
+late var field4 = method4();
+
+late var field5 = method5();
+
+late var field6 = method6();
+
+main() {}

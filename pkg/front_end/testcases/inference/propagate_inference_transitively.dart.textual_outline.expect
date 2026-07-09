@@ -1,0 +1,9 @@
+library test;
+
+class A {
+  int x = 2;
+}
+
+test5() {}
+
+main() {}

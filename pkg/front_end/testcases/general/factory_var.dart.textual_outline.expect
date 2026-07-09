@@ -1,0 +1,4 @@
+class Class {
+  factory var x ()= ;
+  1;
+}

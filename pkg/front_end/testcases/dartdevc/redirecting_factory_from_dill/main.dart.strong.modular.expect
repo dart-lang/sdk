@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+additionalExports = (mai::main)
+
+export "org-dartlang-testcase:///main_lib1.dart";
+
+
+library;
+import self as mai;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib2.dart";
+
+static method main() → dynamic {
+  new mai2::_Class::•();
+  #C1(){() → mai2::Class};
+}
+
+constants  {
+  #C1 = static-tearoff mai2::Class::_#new#tearOff
+}

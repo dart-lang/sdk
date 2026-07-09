@@ -1,0 +1,7 @@
+abstract class A<X> {
+  void foo<Y extends X>() {}
+}
+
+class B<Z> extends A<Z> {}
+
+void main() {}

@@ -1,0 +1,42 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:20:43: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
+//  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+//   var x = new /*error:COULD_NOT_INFER*/ C(myF);
+//                                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object? = dynamic> = () → T%;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class C<T extends self::A> extends core::Object {
+  constructor •(() → self::C::T f) → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+}
+class NotA extends core::Object {
+  synthetic constructor •() → self::NotA
+    : super core::Object::•()
+    ;
+}
+static method myF() → self::NotA
+  return throw "";
+static method test() → dynamic {
+  self::C<self::A> x = new self::C::•<self::A>(invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:20:43: Error: The argument type 'NotA Function()' can't be assigned to the parameter type 'A Function()'.
+ - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+ - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+  var x = new /*error:COULD_NOT_INFER*/ C(myF);
+                                          ^" in #C1 as{TypeError} () → self::A);
+}
+
+constants  {
+  #C1 = static-tearoff self::myF
+}

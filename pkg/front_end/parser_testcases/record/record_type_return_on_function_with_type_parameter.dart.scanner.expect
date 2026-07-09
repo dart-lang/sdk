@@ -1,0 +1,13 @@
+(int, T) f1<T>(T t) {
+return (42, t);
+}
+
+(int, T) f2<T>(T t) => (42, t);
+
+
+([BeginToken]int[StringToken],[SimpleToken] T[StringToken])[SimpleToken] f1[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]T[StringToken] t[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] ([BeginToken]42[StringToken],[SimpleToken] t[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+([BeginToken]int[StringToken],[SimpleToken] T[StringToken])[SimpleToken] f2[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]T[StringToken] t[StringToken])[SimpleToken] =>[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] t[StringToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

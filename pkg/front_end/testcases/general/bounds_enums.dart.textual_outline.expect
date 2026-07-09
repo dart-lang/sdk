@@ -1,0 +1,11 @@
+typedef A<X> = X Function(X);
+
+class B<X> {}
+
+enum E1<Y extends A<Y>> { e1<Never>() }
+
+enum E2<Y extends B<Y>> { e2<Never>() }
+
+enum E3<Y extends E3<Y>> { e3<Never>() }
+
+main() {}

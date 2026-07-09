@@ -1,0 +1,10 @@
+abstract class A {
+  void set setter(int value);
+}
+
+class B implements A {
+  get setter => throw '';
+  void set setter(value) {}
+}
+
+main() {}

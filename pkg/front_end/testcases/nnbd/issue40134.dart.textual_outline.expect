@@ -1,0 +1,14 @@
+class GenericMethodBounds<T> {
+  Type get t => T;
+  GenericMethodBounds<E> foo<E extends T>() => new GenericMethodBounds<E>();
+  GenericMethodBounds<E> bar<E extends void Function(T)>() =>
+      new GenericMethodBounds<E>();
+}
+
+class GenericMethodBoundsDerived extends GenericMethodBounds<num> {
+  GenericMethodBounds<E> foo<E extends num>() => new GenericMethodBounds<E>();
+  GenericMethodBounds<E> bar<E extends void Function(num)>() =>
+      new GenericMethodBounds<E>();
+}
+
+main() {}

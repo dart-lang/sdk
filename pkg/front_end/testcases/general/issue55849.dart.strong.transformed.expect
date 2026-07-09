@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<Y extends core::Object? = dynamic> = self::A<Y%>;
+class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor foo(self::A::X% x) → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+@#C1
+static method bar() → void {}
+
+constants  {
+  #C1 = self::A<core::String> {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue55849.dart:
+- A.foo (from org-dartlang-testcase:///issue55849.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

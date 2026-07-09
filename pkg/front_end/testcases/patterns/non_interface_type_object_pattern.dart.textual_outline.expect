@@ -1,0 +1,23 @@
+import 'dart:async';
+
+typedef FunctionType = void Function();
+
+typedef GenericFunctionType<T> = T Function(T);
+
+test<T>(o) {}
+
+void function() {}
+
+int intFunction(int i) => i;
+
+String stringFunction(String s) => s;
+
+bool boolFunction(bool b) => b;
+
+dynamic dynamicFunction(dynamic d) => d;
+
+void multiArgFunction(int i, String s) {}
+
+main() {}
+
+expect(expected, actual) {}

@@ -1,0 +1,66 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///show_hide_lib1.dart" show x1;
+import "org-dartlang-testcase:///show_hide_lib1.dart" as lib show x1;
+import "org-dartlang-testcase:///show_hide_lib2.dart" hide y2;
+import "org-dartlang-testcase:///show_hide_lib2.dart" as lib hide y2;
+import "org-dartlang-testcase:///show_hide_lib3.dart" show x3;
+import "org-dartlang-testcase:///show_hide_lib3.dart" as lib show x3;
+import "org-dartlang-testcase:///show_hide_lib4.dart" hide y4;
+import "org-dartlang-testcase:///show_hide_lib4.dart" as lib hide y4;
+import "org-dartlang-testcase:///show_hide_lib5.dart" show x5;
+import "org-dartlang-testcase:///show_hide_lib5.dart" as lib show x5;
+import "org-dartlang-testcase:///show_hide_lib6.dart" hide y6;
+import "org-dartlang-testcase:///show_hide_lib6.dart" as lib hide y6;
+
+part show_hide_part1.dart;
+part show_hide_part2.dart;
+static method method1() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///show_hide_part1.dart */ method2() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///show_hide_part2.dart */ method3() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static field dynamic x1;
+static field dynamic y1;
+static field dynamic z1;
+
+library;
+import self as self3;
+
+static field dynamic x2;
+static field dynamic y2;
+static field dynamic z2;
+
+library;
+import self as self4;
+
+static field dynamic x3;
+static field dynamic y3;
+static field dynamic z3;
+
+library;
+import self as self5;
+
+static field dynamic x4;
+static field dynamic y4;
+static field dynamic z4;
+
+library;
+import self as self6;
+
+static field dynamic x5;
+static field dynamic y5;
+static field dynamic z5;
+
+library;
+import self as self7;
+
+static field dynamic x6;
+static field dynamic y6;
+static field dynamic z6;

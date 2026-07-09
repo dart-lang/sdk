@@ -1,0 +1,579 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:collection';
+
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/kernel.dart' hide Pattern;
+import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/track_widget_constructor_locations.dart';
+import 'package:kernel/type_environment.dart';
+
+import 'constants.dart' show DevCompilerConstantsBackend;
+import 'kernel_helpers.dart';
+
+/// A kernel [Target] to configure the Dart Front End for dartdevc.
+class DevCompilerTarget extends Target {
+  DevCompilerTarget(this.flags);
+
+  @override
+  final TargetFlags flags;
+
+  WidgetCreatorTracker? _widgetTracker;
+
+  Map<String, Class>? _nativeClasses;
+
+  DiagnosticReporter<Message, LocatedMessage>? _diagnosticReporter;
+
+  @override
+  int get enabledLateLowerings => LateLowering.all;
+
+  @override
+  bool get supportsLateLoweringSentinel => false;
+
+  @override
+  bool get useStaticFieldLowering => false;
+
+  // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
+  //  calls encoded with an explicit property get or disallows getter calls.
+  @override
+  bool get supportsExplicitGetterCalls => false;
+
+  @override
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
+
+  @override
+  String get name => 'dartdevc';
+
+  @override
+  List<String> get extraRequiredLibraries => [
+    'dart:_ddc_only',
+    'dart:_runtime',
+    'dart:_async_status_codes',
+    'dart:_js_shared_embedded_names',
+    'dart:_recipe_syntax',
+    'dart:_rti',
+    'dart:_debugger',
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_internal',
+    'dart:_isolate_helper',
+    'dart:_js_annotations',
+    'dart:_js_helper',
+    'dart:_js_names',
+    'dart:_js_primitives',
+    'dart:_js_types',
+    'dart:_metadata',
+    'dart:_native_typed_data',
+    'dart:async',
+    'dart:collection',
+    'dart:convert',
+    'dart:developer',
+    if (flags.includeUnsupportedPlatformLibraryStubs) 'dart:ffi',
+    'dart:io',
+    'dart:isolate',
+    'dart:js',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+    'dart:js_util',
+    'dart:math',
+    'dart:typed_data',
+    'dart:indexed_db',
+    'dart:html',
+    'dart:html_common',
+    'dart:svg',
+    'dart:web_audio',
+    'dart:web_gl',
+  ];
+
+  @override
+  List<String> get extraRequiredLibrariesPlatform => const ['dart:ffi'];
+
+  // The libraries required to be indexed via CoreTypes.
+  @override
+  List<String> get extraIndexedLibraries => const [
+    'dart:async',
+    'dart:collection',
+    'dart:html',
+    'dart:indexed_db',
+    'dart:js',
+    'dart:js_util',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+    'dart:math',
+    'dart:svg',
+    'dart:typed_data',
+    'dart:web_audio',
+    'dart:web_gl',
+    'dart:_foreign_helper',
+    'dart:_interceptors',
+    'dart:_js_helper',
+    'dart:_js_types',
+    'dart:_native_typed_data',
+    'dart:_runtime',
+    'dart:_rti',
+  ];
+
+  @override
+  bool mayDefineRestrictedType(Uri uri) =>
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_interceptors' ||
+          uri.path == '_js_helper' ||
+          uri.path == '_native_typed_data' ||
+          uri.path == '_runtime');
+
+  /// Returns [true] if [uri] represents a test script has been whitelisted to
+  /// import private platform libraries.
+  ///
+  /// Unit tests for the dart:_runtime library have imports like this. It is
+  /// only allowed from a specific SDK test directory or through the modular
+  /// test framework.
+  bool _allowedTestLibrary(Uri uri) {
+    // Multi-root scheme used by modular test framework.
+    if (uri.isScheme('dev-dart-app')) return true;
+    // Test package used by expression evaluation tests.
+    if (uri.isScheme('package') && uri.path == 'eval_test/test.dart') {
+      return true;
+    }
+    return allowedNativeTest(uri);
+  }
+
+  bool _allowedDartLibrary(Uri uri) => uri.isScheme('dart');
+
+  @override
+  bool enableNative(Uri uri) =>
+      _allowedTestLibrary(uri) || _allowedDartLibrary(uri);
+
+  @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      _allowedTestLibrary(importer) ||
+      (importer.isScheme('package') &&
+          (importer.path.startsWith('dart2js_runtime_metrics/') ||
+              importer.path == 'js/js.dart'));
+
+  @override
+  bool get errorOnUnexactWebIntLiterals => true;
+
+  @override
+  bool get enableNoSuchMethodForwarders => true;
+
+  @override
+  void performModularTransformationsOnLibraries(
+    Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<Library> libraries,
+    Map<String, String>? environmentDefines,
+    DiagnosticReporter diagnosticReporter,
+    ReferenceFromIndex? referenceFromIndex, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    _diagnosticReporter =
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>;
+    _performTransformations(coreTypes, hierarchy, libraries);
+  }
+
+  @override
+  void performTransformationsOnProcedure(
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    Procedure procedure,
+    Map<String, String>? environmentDefines, {
+    void Function(String)? logger,
+    required DiagnosticReporter diagnosticReporter,
+  }) {
+    _diagnosticReporter =
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>;
+    _performTransformations(coreTypes, hierarchy, [procedure]);
+  }
+
+  void _performTransformations(
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<TreeNode> nodes,
+  ) {
+    final jsInteropReporter = JsInteropDiagnosticReporter(_diagnosticReporter!);
+    final jsInteropChecks = JsInteropChecks(
+      coreTypes,
+      hierarchy,
+      jsInteropReporter,
+      _nativeClasses!,
+    );
+    for (var node in nodes) {
+      // Process and validate first before doing anything with exports.
+      node.accept(jsInteropChecks);
+    }
+    final sharedInteropTransformer = SharedInteropTransformer(
+      TypeEnvironment(coreTypes, hierarchy),
+      jsInteropReporter,
+      jsInteropChecks.exportChecker,
+      jsInteropChecks.extensionIndex,
+    );
+    final jsUtilOptimizer = JsUtilOptimizer(
+      coreTypes,
+      hierarchy,
+      jsInteropChecks.extensionIndex,
+      isDart2JS: false,
+    );
+    for (var node in nodes) {
+      _CovarianceTransformer(node).transform();
+      // Shared interop transformer has static checks, so we still visit.
+      node.accept(sharedInteropTransformer);
+      if (!jsInteropReporter.hasJsInteropErrors) {
+        // We can't guarantee calls are well-formed, so don't transform.
+        node.accept(jsUtilOptimizer);
+      }
+    }
+  }
+
+  @override
+  void performOutlineTransformations(
+    Component component, {
+    List<Library>? libraries,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performOutlineTransformations(
+      component,
+      libraries: libraries,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+    // In addition to [performPreConstantEvaluationTransformations] this makes
+    // sure summaries are also transformed.
+    if (flags.trackCreationLocations) {
+      (_widgetTracker ??= WidgetCreatorTracker()).transform(
+        libraries ?? component.libraries,
+        component.libraries,
+        changedStructureNotifier,
+      );
+    }
+  }
+
+  @override
+  void performPreConstantEvaluationTransformations(
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    if (flags.trackCreationLocations) {
+      (_widgetTracker ??= WidgetCreatorTracker()).transform(
+        libraries,
+        component.libraries,
+        changedStructureNotifier,
+      );
+    }
+  }
+
+  @override
+  Expression instantiateInvocation(
+    CoreTypes coreTypes,
+    Expression receiver,
+    String name,
+    Arguments arguments,
+    int offset,
+    bool isSuper,
+  ) {
+    // TODO(jmesserly): preserve source information?
+    // (These method are synthetic. Also unclear if the offset will correspond
+    // to the file where the class resides, or the file where the method we're
+    // mocking resides).
+    Expression createInvocation(String name, List<Expression> positional) {
+      // TODO(jmesserly): this uses the implementation _Invocation class,
+      // because the CFE does not resolve the redirecting factory constructors
+      // like it would for user code. Our code generator expects all redirecting
+      // factories to be resolved to the real constructor.
+      var ctor = coreTypes.index
+          .getClass('dart:core', '_Invocation')
+          .constructors
+          .firstWhere((c) => c.name.text == name);
+      return ConstructorInvocation(ctor, Arguments(positional));
+    }
+
+    if (name.startsWith('get:')) {
+      return createInvocation('getter', [SymbolLiteral(name.substring(4))]);
+    }
+    if (name.startsWith('set:')) {
+      return createInvocation('setter', [
+        SymbolLiteral(name.substring(4)),
+        arguments.positional.single,
+      ]);
+    }
+    var ctorArgs = <Expression>[
+      SymbolLiteral(name),
+      if (arguments.types.isNotEmpty)
+        ListLiteral([for (var t in arguments.types) TypeLiteral(t)])
+      else
+        NullLiteral(),
+      ListLiteral(arguments.positional),
+      if (arguments.named.isNotEmpty)
+        MapLiteral([
+          for (var n in arguments.named)
+            MapLiteralEntry(SymbolLiteral(n.name), n.value),
+        ], keyType: coreTypes.symbolNonNullableRawType)
+      else
+        NullLiteral(),
+    ];
+    return createInvocation('method', ctorArgs);
+  }
+
+  @override
+  ConstantsBackend get constantsBackend => const DevCompilerConstantsBackend();
+
+  @override
+  DartLibrarySupport get dartLibrarySupport =>
+      const DevCompilerDartLibrarySupport();
+
+  // For correctness the DDC runtime needs to reevaluate libraries that contain
+  // mixin applications when the mixin was edited. If the edit was only within
+  // the body of a mixin member the experimental invalidation logic would only
+  // invalidate that library. This enables a search for applications of the
+  // mixin in other libraries adds them to the invalidated set.
+  @override
+  bool get incrementalCompilerIncludeMixinApplicationInvalidatedLibraries =>
+      true;
+}
+
+class DevCompilerDartLibrarySupport extends CustomizedDartLibrarySupport {
+  // This is required so that `dart.library._ddc_only` can be used as an import
+  // condition. Libraries with leading underscores are otherwise considered
+  // unsupported regardless of the library specification.
+  const DevCompilerDartLibrarySupport() : super(supported: const {'_ddc_only'});
+}
+
+/// Analyzes a component to determine if any covariance checks in private
+/// members can be eliminated, and adjusts the flags to remove those checks.
+///
+/// See [_CovarianceTransformer.transform].
+class _CovarianceTransformer extends RecursiveVisitor {
+  /// The set of private instance members in [_library] that (potentially) need
+  /// covariance checks.
+  ///
+  /// Members need checks if they are accessed through a receiver whose type is
+  /// not exactly known (i.e. the actual receiver could be a subtype of its
+  /// static type). If the receiver expression is `this`, `super` or non-factory
+  /// instance creation, it is known to have an exact type.
+  final _checkedMembers = HashSet<Member>();
+
+  /// List of private instance procedures.
+  ///
+  /// [transform] uses this list to eliminate covariance flags for members that
+  /// aren't in [_checkedMembers].
+  final _privateProcedures = <Procedure>[];
+
+  /// List of private instance fields.
+  ///
+  /// [transform] uses this list to eliminate covariance flags for members that
+  /// aren't in [_checkedMembers].
+  final _privateFields = <Field>[];
+
+  late final Library _library;
+
+  /// Create covariance transformer from a node.
+  ///
+  /// The [_node] is expected to be a [Library] in initial compilation
+  /// and a [Procedure] in the interactive expression compilation.
+  _CovarianceTransformer(TreeNode node) {
+    assert(
+      node is Library || node is Procedure,
+      'Unexpected node in _CovarianceTransformer',
+    );
+    if (node is Library) _library = node;
+    if (node is Procedure) _library = node.enclosingLibrary;
+  }
+
+  /// Transforms [_library], eliminating unnecessary checks for private members.
+  ///
+  /// Kernel will mark covariance checks on members, for example:
+  /// - a field with [Field.isCovariantByClass] or
+  ///   [Field.isCovariantByDeclaration].
+  /// - a method/setter with parameter(s) or type parameter(s) that have
+  ///   `isCovariantByClass` or `isCovariantByDeclaration` set.
+  ///
+  /// If the check can be safely eliminated, those properties will be set to
+  /// false so the JS compiler does not emit checks.
+  ///
+  /// Public members always need covariance checks (we cannot see all potential
+  /// call sites), but in some cases we can eliminate these checks for private
+  /// members.
+  ///
+  /// Private members only need covariance checks if they are accessed through a
+  /// receiver whose type is not exactly known (i.e. the actual receiver could
+  /// be a subtype of its static type). If the receiver expression is `this`,
+  /// `super` or non-factory instance creation, it is known to have an exact
+  /// type, so no callee check is necessary to ensure soundness (normal
+  /// subtyping checks at the call site are sufficient).
+  ///
+  /// However to eliminate a check, we must know that all call sites are safe.
+  /// So the first pass is to collect any potentially-unsafe call sites, this
+  /// is done by [_checkTarget] and [_checkTearoff].
+  ///
+  /// Method tearoffs must also be marked potentially-unsafe, regardless of
+  /// whether the receiver type is known, because they could escape. Also their
+  /// runtime type must store `Object` in for covariant parameters (this
+  /// affects `is`, casts, and the `.runtimeType` property).
+  ///
+  /// Note 1: dynamic calls do not need to be considered here, because they
+  /// will be checked based on runtime type information.
+  ///
+  /// Node 2: public members in private classes cannot be treated as private
+  /// unless we know that the member is not exposed via some public interface
+  /// (implemented by their class or a subclass) that needs a covariance check.
+  /// That is somewhat complex to analyze, so for now we ignore it.
+  void transform() {
+    _library.visitChildren(this);
+
+    // Update the tree based on the methods that need checks.
+    for (var field in _privateFields) {
+      if (!_checkedMembers.contains(field)) {
+        field.isCovariantByDeclaration = false;
+        field.isCovariantByClass = false;
+      }
+    }
+    void clearCovariant(FunctionParameter parameter) {
+      parameter.isCovariantByDeclaration = false;
+      parameter.isCovariantByClass = false;
+    }
+
+    for (var member in _privateProcedures) {
+      if (!_checkedMembers.contains(member)) {
+        var function = member.function;
+        function.positionalParameters.forEach(clearCovariant);
+        function.namedParameters.forEach(clearCovariant);
+        for (var t in function.typeParameters) {
+          t.isCovariantByClass = false;
+        }
+      }
+    }
+  }
+
+  /// Checks if [target] is a private member called through a [receiver] that
+  /// will potentially need a covariance check.
+  ///
+  /// If the member needs a check it will be stored in [_checkedMembers].
+  ///
+  /// See [transform] for more information.
+  void _checkTarget(Expression receiver, Member? target) {
+    if (target != null &&
+        target.name.isPrivate &&
+        target.isInstanceMember &&
+        receiver is! ThisExpression &&
+        receiver is! ConstructorInvocation) {
+      assert(
+        target.enclosingLibrary == _library,
+        'call to private member must be in same library',
+      );
+      _checkedMembers.add(target);
+    }
+  }
+
+  /// Checks if [target] is a tearoff of a private member.
+  ///
+  /// In this case we will need a covariance check, because the method could
+  /// escape, and it also has a different runtime type.
+  ///
+  /// See [transform] for more information.
+  void _checkTearoff(Member? target) {
+    if (target != null &&
+        target.name.isPrivate &&
+        target.isInstanceMember &&
+        target is Procedure &&
+        !target.isAccessor) {
+      assert(
+        target.enclosingLibrary == _library,
+        'tearoff of private member must be in same library',
+      );
+      _checkedMembers.add(target);
+    }
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        node.isInstanceMember &&
+        // No need to check abstract methods.
+        node.function.body != null) {
+      _privateProcedures.add(node);
+    }
+    super.visitProcedure(node);
+  }
+
+  @override
+  void visitField(Field node) {
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        isCovariantField(node)) {
+      _privateFields.add(node);
+    }
+    super.visitField(node);
+  }
+
+  @override
+  void visitInstanceGet(InstanceGet node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceSet(node);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+    _checkTarget(node.receiver, node.interfaceTarget);
+    super.visitInstanceGetterInvocation(node);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    _checkTearoff(node.interfaceTarget);
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitEqualsCall(EqualsCall node) {
+    _checkTarget(node.left, node.interfaceTarget);
+    super.visitEqualsCall(node);
+  }
+}
+
+List<Pattern> _allowedNativeTestPatterns = [
+  'tests/dartdevc',
+  'tests/web/native',
+  'tests/web/internal',
+];
+
+bool allowedNativeTest(Uri uri) {
+  var path = uri.path;
+  return _allowedNativeTestPatterns.any((pattern) => path.contains(pattern));
+}

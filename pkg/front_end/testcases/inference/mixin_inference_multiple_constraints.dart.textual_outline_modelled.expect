@@ -1,0 +1,13 @@
+class A extends M2 with M0 {}
+
+class I<X> {}
+
+class J<X> {}
+
+class M1 implements I<int> {}
+
+class M2 extends M1 implements J<double> {}
+
+main() {}
+
+mixin M0<X, Y> on I<X>, J<Y> {}

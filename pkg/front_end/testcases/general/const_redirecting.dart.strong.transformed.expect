@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor named() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super self::A::named()
+    ;
+  const constructor named() → self::B
+    : this self::B::•()
+    ;
+}

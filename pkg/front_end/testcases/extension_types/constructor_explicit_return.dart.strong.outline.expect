@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static field core::int counter;
+  final field core::int value;
+  constructor •() → self::A
+    ;
+}
+extension type View(self::A a) {
+  abstract extension-type-member representation-field get a() → self::A;
+  constructor a = self::View|constructor#a;
+  constructor tearoff a = self::View|constructor#_#a#tearOff;
+  constructor • = self::View|constructor#;
+  constructor tearoff • = self::View|constructor#_#new#tearOff;
+}
+static method main() → dynamic
+  ;
+static extension-type-member method View|constructor#(initializing-formal self::A a) → self::View% /* erasure=self::A, declared=! */
+  ;
+static extension-type-member synthetic method View|constructor#_#new#tearOff(self::A a) → self::View% /* erasure=self::A, declared=! */
+  return self::View|constructor#(a);
+static extension-type-member method View|constructor#a(initializing-formal self::A a) → self::View% /* erasure=self::A, declared=! */
+  ;
+static extension-type-member synthetic method View|constructor#_#a#tearOff(self::A a) → self::View% /* erasure=self::A, declared=! */
+  return self::View|constructor#a(a);
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

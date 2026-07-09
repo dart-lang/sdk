@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+import "dart:collection" as _;
+
+static method test() → dynamic
+  ;

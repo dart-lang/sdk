@@ -1,0 +1,9 @@
+abstract class A {
+  noSuchMethod(Invocation i) {}
+  String foo({String bar = "baz"});
+  int hest([int fisk = 42]);
+}
+
+class B extends A {}
+
+main() {}

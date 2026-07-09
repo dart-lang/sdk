@@ -1,0 +1,19 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+
+linter:
+  rules:
+    - avoid_bool_literals_in_conditional_expressions
+    - avoid_unused_constructor_parameters
+    - cancel_subscriptions
+    - comment_references
+    - directives_ordering
+    - omit_local_variable_types
+    - prefer_const_constructors
+    - throw_in_finally
+    - unnecessary_lambdas
+    - unnecessary_parenthesis
+    - unnecessary_statements

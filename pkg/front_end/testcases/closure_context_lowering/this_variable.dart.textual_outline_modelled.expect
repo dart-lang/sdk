@@ -1,0 +1,107 @@
+class A {
+  A? aNull;
+  A a = new A();
+  A operator +(A other) => this;
+  A operator -() => this;
+  Object? call() => null;
+  Object? field;
+  Object? operator [](int index) => null;
+  capturedBinary() {}
+  capturedCall() {}
+  capturedExpression() {}
+  capturedIndexGet() {}
+  capturedIndexSet() {}
+  capturedMethodCall() {}
+  capturedPropertyCall() {}
+  capturedPropertyCompoundAssignment() {}
+  capturedPropertyGet() {}
+  capturedPropertyIfNullAssignment() {}
+  capturedPropertyIndexGet() {}
+  capturedPropertyIndexSet() {}
+  capturedPropertyPostfix() {}
+  capturedPropertyPrefix() {}
+  capturedPropertySet() {}
+  capturedUnary() {}
+  int n = 0;
+  method() {}
+  notCapturedBinary() {}
+  notCapturedCall() {}
+  notCapturedExpression() {}
+  notCapturedIndexGet() {}
+  notCapturedIndexSet() {}
+  notCapturedMethodCall() {}
+  notCapturedPropertyCall() {}
+  notCapturedPropertyCompoundAssignment() {}
+  notCapturedPropertyGet() {}
+  notCapturedPropertyIfNullAssignment() {}
+  notCapturedPropertyIndexGet() {}
+  notCapturedPropertyIndexSet() {}
+  notCapturedPropertyPostfix() {}
+  notCapturedPropertyPrefix() {}
+  notCapturedPropertySet() {}
+  notCapturedUnary() {}
+  void operator []=(int index, Object? value) {}
+}
+
+class B extends A {
+  @override
+  capturedBinary() {}
+  @override
+  capturedCall() {}
+  @override
+  capturedIndexGet() {}
+  @override
+  capturedIndexSet() {}
+  @override
+  capturedMethodCall() {}
+  @override
+  capturedPropertyCall() {}
+  @override
+  capturedPropertyCompoundAssignment() {}
+  @override
+  capturedPropertyGet() {}
+  @override
+  capturedPropertyIfNullAssignment() {}
+  @override
+  capturedPropertyIndexGet() {}
+  @override
+  capturedPropertyIndexSet() {}
+  @override
+  capturedPropertyPostfix() {}
+  @override
+  capturedPropertyPrefix() {}
+  @override
+  capturedPropertySet() {}
+  @override
+  capturedUnary() {}
+  @override
+  notCapturedBinary() {}
+  @override
+  notCapturedCall() {}
+  @override
+  notCapturedIndexGet() {}
+  @override
+  notCapturedIndexSet() {}
+  @override
+  notCapturedMethodCall() {}
+  @override
+  notCapturedPropertyCall() {}
+  @override
+  notCapturedPropertyCompoundAssignment() {}
+  @override
+  notCapturedPropertyGet() {}
+  @override
+  notCapturedPropertyIfNullAssignment() {}
+  @override
+  notCapturedPropertyIndexGet() {}
+  @override
+  notCapturedPropertyIndexSet() {}
+  @override
+  notCapturedPropertyPostfix() {}
+  @override
+  notCapturedPropertyPrefix() {}
+  @override
+  notCapturedPropertySet() {}
+  @override
+  notCapturedUnary() {}
+}

@@ -1,0 +1,10 @@
+class Sub extends Super {
+  Sub(super._field);
+  void method() {}
+}
+
+class Super {
+  Super(this._field);
+  final int? _field;
+  void set _field(_) {}
+}

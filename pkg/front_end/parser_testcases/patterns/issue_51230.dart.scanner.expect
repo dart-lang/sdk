@@ -1,0 +1,87 @@
+method1(o) => switch (o) {
+final int a => 'working',
+final String a => 'working',
+final () a => 'working',
+final (int, String) a => 'working',
+final int a? => 'working',
+final String a? => 'working',
+final () a? => 'working',
+final (int, String) a? => 'working',
+(:final () a) => 'working',
+(:final (int, String) a) => 'working',
+(:final int a?) => 'working',
+(:final String a?) => 'working',
+(:final () a?) => 'working',
+(:final (int, String) a?) => 'working',
+_ => '',
+};
+
+method2(o) => switch (o) {
+final int async => 'working',
+final String async => 'working',
+
+final () async => 'working',
+final (int, String) async => 'working',
+final int async? => 'working',
+final String async? => 'working',
+final () async? => 'working',
+final (int, String) async? => 'working',
+(:final () async) => 'working',
+(:final (int, String) async) => 'working',
+(:final int async?) => 'working',
+(:final String async?) => 'working',
+(:final () async?) => 'working',
+(:final (int, String) async?) => 'working',
+_ => '',
+};
+
+void foo() {
+
+() async => print("async unnamed taking 0 parameters");
+(int x) async => print("async unnamed taking 1 parameter");
+(int x, int y) async => print("async unnamed taking 2 parameters");
+}
+
+method1[StringToken]([BeginToken]o[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] int[StringToken] a[StringToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] String[StringToken] a[StringToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] ([BeginToken])[SimpleToken] a[StringToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] a[StringToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] int[StringToken] a[StringToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] String[StringToken] a[StringToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] ([BeginToken])[SimpleToken] a[StringToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] a[StringToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken])[SimpleToken] a[StringToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] a[StringToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] int[StringToken] a[StringToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] String[StringToken] a[StringToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken])[SimpleToken] a[StringToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] a[StringToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+_[StringToken] =>[SimpleToken] ''[StringToken],[SimpleToken]
+}[SimpleToken];[SimpleToken]
+
+method2[StringToken]([BeginToken]o[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken] ([BeginToken]o[StringToken])[SimpleToken] {[BeginToken]
+final[KeywordToken] int[StringToken] async[KeywordToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] String[StringToken] async[KeywordToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+
+final[KeywordToken] ([BeginToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] int[StringToken] async[KeywordToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] String[StringToken] async[KeywordToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] ([BeginToken])[SimpleToken] async[KeywordToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] async[KeywordToken]?[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken])[SimpleToken] async[KeywordToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] async[KeywordToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] int[StringToken] async[KeywordToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] String[StringToken] async[KeywordToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken])[SimpleToken] async[KeywordToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+([BeginToken]:[SimpleToken]final[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken] String[StringToken])[SimpleToken] async[KeywordToken]?[SimpleToken])[SimpleToken] =>[SimpleToken] 'working'[StringToken],[SimpleToken]
+_[StringToken] =>[SimpleToken] ''[StringToken],[SimpleToken]
+}[SimpleToken];[SimpleToken]
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+([BeginToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] print[StringToken]([BeginToken]"async unnamed taking 0 parameters"[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken] x[StringToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] print[StringToken]([BeginToken]"async unnamed taking 1 parameter"[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] print[StringToken]([BeginToken]"async unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

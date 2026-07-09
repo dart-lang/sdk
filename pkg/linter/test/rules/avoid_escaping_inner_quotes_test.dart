@@ -1,0 +1,107 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AvoidEscapingInnerQuotesTest);
+  });
+}
+
+@reflectiveTest
+class AvoidEscapingInnerQuotesTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.avoid_escaping_inner_quotes;
+
+  test_doubleQuotes_empty() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print("");
+}
+''');
+  }
+
+  test_doubleQuotes_escapedQuote() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  print([!"\""!]);
+}
+''');
+  }
+
+  test_doubleQuotes_escapedQuote_withInterpolation() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  print([!"\"$f"!]);
+}
+''');
+  }
+
+  test_doubleQuotes_escapedQuote_withSingleQuote() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print("\"'");
+}
+''');
+  }
+
+  test_doubleQuotes_escapedQuote_withSingleQuote_andInterpolation() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print("\"'$f");
+}
+''');
+  }
+
+  test_singleQuotes() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(String d) {
+  print([!'a\'b\'c ${d.length}'!]);
+}
+''');
+  }
+
+  test_singleQuotes_empty() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('');
+}
+''');
+  }
+
+  test_singleQuotes_escapedQuote() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  print([!'\''!]);
+}
+''');
+  }
+
+  test_singleQuotes_escapedQuote_withDoubleQuote() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('\'"');
+}
+''');
+  }
+
+  test_singleQuotes_escapedQuote_withDoubleQuote_andInterpolation() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('\'"$f');
+}
+''');
+  }
+
+  test_singleQuotes_escapedQuote_withInterpolation() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  print([!'\'$f'!]);
+}
+''');
+  }
+}

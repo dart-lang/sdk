@@ -1,0 +1,15 @@
+main() {
+switch(a) {
+
+case x?[4]:{{{2;}}};
+}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken]([BeginToken]a[StringToken])[SimpleToken] {[BeginToken]
+
+case[KeywordToken] x[StringToken]?[SimpleToken][[BeginToken]4[StringToken]][SimpleToken]:[SimpleToken]{[BeginToken]{[BeginToken]{[BeginToken]2[StringToken];[SimpleToken]}[SimpleToken]}[SimpleToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

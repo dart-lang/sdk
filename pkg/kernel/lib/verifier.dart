@@ -1,0 +1,2448 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library kernel.checks;
+
+import 'ast.dart';
+import 'target/targets.dart';
+import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
+
+/// Stages at which verification can occur.
+///
+/// These can be used to enforce different invariants during different stages
+/// of the compilation.
+enum VerificationStage {
+  /// Verification after the outline compilation.
+  outline,
+
+  /// Verification after the body, aka full, compilation, but before pre-
+  /// constant evaluation transformations have been performed.
+  beforePreConstantEvaluationTransformations,
+
+  /// Verification after pre- constant evaluation transformations have been
+  /// performed but before constant evaluation.
+  beforeConstantEvaluation,
+
+  /// Verification after constant evaluation but before modular transformations
+  /// have been performed.
+  afterConstantEvaluation,
+
+  /// Verification after modular transformations have been performed.
+  ///
+  /// This is final stage of a normal compilation.
+  afterModularTransformations,
+
+  /// Verification after global transformations have been performed.
+  ///
+  /// The global transformation is an additional step performed by some
+  /// backends which is not triggered by the front end compilation itself.
+  afterGlobalTransformations;
+
+  bool operator <(VerificationStage other) => index < other.index;
+  bool operator <=(VerificationStage other) => index <= other.index;
+  bool operator >(VerificationStage other) => index > other.index;
+  bool operator >=(VerificationStage other) => index >= other.index;
+}
+
+/// Interface that defines how the AST is verified.
+class Verification {
+  const new();
+
+  /// Returns `true` if [node] is allowed to have no file offset.
+  bool allowNoFileOffset(VerificationStage stage, TreeNode node) {
+    return node is Library;
+  }
+
+  /// Returns `true` if [node] is allowed to have location with a file offset
+  /// that is not in the range of the enclosing file.
+  bool allowInvalidLocation(VerificationStage stage, TreeNode node) {
+    return false;
+  }
+}
+
+void verifyComponent(
+  Target target,
+  VerificationStage stage,
+  Component component, {
+  bool skipPlatform = false,
+  bool Function(Library library)? librarySkipFilter,
+}) {
+  VerifyingVisitor.check(
+    target,
+    stage,
+    component,
+    skipPlatform: skipPlatform,
+    librarySkipFilter: librarySkipFilter,
+  );
+}
+
+class VerificationErrorListener {
+  const new();
+
+  void reportError(
+    String details, {
+    required TreeNode? node,
+    required Uri? problemUri,
+    required int? problemOffset,
+    required TreeNode? context,
+    required TreeNode? origin,
+  }) {
+    throw new VerificationError(context, node, details);
+  }
+}
+
+class VerificationError {
+  final TreeNode? context;
+
+  final TreeNode? node;
+
+  final String details;
+
+  new(this.context, this.node, this.details);
+
+  @override
+  String toString() {
+    Location? location;
+    try {
+      location = node?.location ?? context?.location;
+    } catch (_) {
+      // TODO(ahe): Fix the compiler instead.
+    }
+    if (location != null) {
+      String file = location.file.toString();
+      return "$file:${location.line}:${location.column}: Verification error:"
+          " $details";
+    } else {
+      return "Verification error: $details\n"
+          "Context: '$context'.\n"
+          "Node: '$node'.";
+    }
+  }
+}
+
+enum TypedefState { Done, BeingChecked }
+
+class VerifyingVisitor {
+  static void check(
+    Target target,
+    VerificationStage stage,
+    Component component, {
+    required bool skipPlatform,
+    bool Function(Library library)? librarySkipFilter,
+    VerificationErrorListener listener = const VerificationErrorListener(),
+  }) {
+    component.accept(
+      new _VerifyingVisitor(
+        target,
+        stage,
+        skipPlatform: skipPlatform,
+        librarySkipFilter: librarySkipFilter,
+        listener: listener,
+      ),
+    );
+  }
+}
+
+/// Checks that a kernel component is well-formed.
+///
+/// This does not include any kind of type checking.
+class _VerifyingVisitor extends RecursiveResultVisitor<void> {
+  final Target target;
+
+  Uri? fileUri;
+
+  final VerificationErrorListener listener;
+
+  final List<TreeNode> treeNodeStack = <TreeNode>[];
+  final bool skipPlatform;
+  final bool Function(Library library)? librarySkipFilter;
+
+  final Set<Class> classes = new Set<Class>();
+  final Set<Typedef> typedefs = new Set<Typedef>();
+  Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
+  Set<StructuralParameter> structuralParametersInScope =
+      new Set<StructuralParameter>();
+  Set<Variable> variableDeclarationsInScope = new Set<Variable>();
+  final List<Variable> variableStack = <Variable>[];
+  final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
+  final Set<Constant> seenConstants = <Constant>{};
+  final Set<Member> _membersSeenByVerifier = new Set.identity();
+  final List<Scope> scopeStack = [];
+
+  Map<Reference, ExtensionMemberDescriptor>? _extensionsMembers;
+  Map<Reference, ExtensionTypeMemberDescriptor>? _extensionTypeMembers;
+
+  bool classTypeParametersAreInScope = false;
+
+  /// The compilation stage at which this verification is performed.
+  final VerificationStage stage;
+
+  AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
+
+  bool inCatchBlock = false;
+
+  bool inUnevaluatedConstant = false;
+
+  bool inConstant = false;
+
+  Library? currentLibrary;
+
+  Member? currentMember;
+
+  Class? currentClass;
+
+  Extension? currentExtension;
+
+  ExtensionTypeDeclaration? currentExtensionTypeDeclaration;
+
+  TreeNode? currentParent;
+
+  TreeNode? get currentClassOrExtensionOrMember =>
+      currentMember ??
+      currentClass ??
+      currentExtension ??
+      currentExtensionTypeDeclaration;
+
+  new(
+    this.target,
+    this.stage, {
+    required this.skipPlatform,
+    required this.librarySkipFilter,
+    required this.listener,
+  });
+
+  /// If true, relax certain checks for *outline* mode. For example, don't
+  /// attempt to validate constructor initializers.
+  bool get isOutline => stage == VerificationStage.outline;
+
+  /// If true, assume that constant evaluation has been performed (with a
+  /// target that did not opt out of any of the constant inlining) and report
+  /// a verification error for anything that should have been removed by it.
+  bool get afterConst => stage >= VerificationStage.afterConstantEvaluation;
+
+  /// If true, constant fields and local variables are expected to be inlined.
+  bool get constantsAreAlwaysInlined =>
+      target.constantsBackend.alwaysInlineConstants;
+
+  /// If true, constant local variables are expected to have been removed.
+  bool get constantLocalsShouldBeRemoved => !target.constantsBackend.keepLocals;
+
+  bool checkVariableInScopeStack(VariableBase node) {
+    int occurrenceCount = 0;
+    for (Scope scope in scopeStack) {
+      for (VariableContext context in scope.contexts) {
+        for (VariableBase currentVariable in context.variables) {
+          if (identical(currentVariable, node)) {
+            occurrenceCount++;
+          }
+        }
+      }
+    }
+
+    switch (occurrenceCount) {
+      case 1:
+        return true;
+      case 0:
+        if (node is! SyntheticVariable && node.parent is Let) {
+          // TODO(johnniwinther,cstefantsova): Let variables are not set up
+          // correctly.
+          problem(
+            node,
+            "Variable '${node.cosmeticName}' of the kind "
+            "'${node.runtimeType}' wasn't found in the enclosing scopes.",
+          );
+        }
+        return false;
+      default:
+        problem(
+          node,
+          "Variable '${node.cosmeticName}' of the kind "
+          "'${node.runtimeType}' occurs multiple times "
+          "(x${occurrenceCount}) in the enclosing contexts.",
+        );
+        return false;
+    }
+  }
+
+  bool checkVariableIsInOwnContext(VariableBase node) {
+    VariableContext variableContext;
+    try {
+      variableContext = node.context;
+    } on Error {
+      _reportMissingVariableContext(node);
+      return false;
+    }
+
+    for (VariableBase variable in variableContext.variables) {
+      if (identical(node, variable)) {
+        return true;
+      }
+    }
+    problem(
+      node,
+      "Variable '${node.cosmeticName}' of the kind '${node.runtimeType}' "
+      "can't be found in its own context.",
+    );
+    return false;
+  }
+
+  void _reportMissingVariableContext(VariableBase node) {
+    if (node is! SyntheticVariable && node.parent is Let) {
+      // TODO(johnniwinther,cstefantsova): Let variables are not set up
+      // correctly.
+      problem(
+        node,
+        "A '${node.runtimeType}' variable with cosmetic name "
+        "'${node.cosmeticName}' doesn't have its context set.",
+      );
+    }
+  }
+
+  void enterScopeProvider(ScopeProvider node) {
+    if (node.scope case var scope?) {
+      scopeStack.add(scope);
+
+      if (target.flags.isClosureContextLoweringEnabled) {
+        for (VariableContext context in scope.contexts) {
+          for (VariableBase variable in context.variables) {
+            VariableContext variableContext;
+            try {
+              variableContext = variable.context;
+            } on Error {
+              _reportMissingVariableContext(variable);
+              continue;
+            }
+
+            if (!identical(context, variableContext)) {
+              problem(
+                node,
+                "Variable '${variable.cosmeticName}' appears in a context "
+                "that's not its own.",
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void exitScopeProvider(ScopeProvider node) {
+    if (node.scope case var scope?) {
+      Scope removedScope = scopeStack.removeLast();
+      if (!identical(removedScope, scope)) {
+        // TODO(cstefantsova): This looks like an internal error. Should we
+        // report it differently?
+        problem(
+          node,
+          "Top scope on the stack doesn't match the scope of the exited "
+          "ScopeProvider object ('${node.runtimeType}').",
+        );
+      }
+    }
+  }
+
+  @override
+  void defaultTreeNode(TreeNode node) {
+    enterTreeNode(node);
+    visitChildren(node);
+    exitTreeNode(node);
+  }
+
+  @override
+  void defaultConstantReference(Constant constant) {
+    if (seenConstants.add(constant)) {
+      constant.accept(this);
+    }
+  }
+
+  @override
+  void defaultConstant(Constant constant) {
+    constant.visitChildren(this);
+  }
+
+  void problem(
+    TreeNode? node,
+    String details, {
+    TreeNode? context,
+    TreeNode? origin,
+  }) {
+    TreeNode? problemNode = node ?? context ?? currentClassOrExtensionOrMember;
+    int offset = problemNode?.fileOffset ?? -1;
+    Location? location = problemNode != null
+        ? _getLocation(problemNode, allowInvalidLocation: true)
+        : null;
+    Uri? file = location?.file ?? fileUri;
+    Uri? uri = file == null ? null : file;
+    String verifierState = 'Target=${target.name}, $stage: ';
+    listener.reportError(
+      '$verifierState$details',
+      problemUri: uri,
+      problemOffset: offset,
+      node: node,
+      context: context ?? currentClassOrExtensionOrMember,
+      origin: origin,
+    );
+  }
+
+  TreeNode? enterParent(TreeNode node) {
+    if (!identical(node.parent, currentParent)) {
+      problem(
+        node,
+        "Incorrect parent pointer on ${node}:"
+        " expected ${currentParent},"
+        " but found: ${node.parent}.",
+        context: currentParent,
+      );
+    }
+    TreeNode? oldParent = currentParent;
+    currentParent = node;
+    return oldParent;
+  }
+
+  void exitParent(TreeNode? oldParent) {
+    currentParent = oldParent;
+  }
+
+  int enterLocalScope() => variableStack.length;
+
+  void exitLocalScope(int stackHeight) {
+    for (int i = stackHeight; i < variableStack.length; ++i) {
+      undeclareVariable(variableStack[i]);
+    }
+    variableStack.length = stackHeight;
+  }
+
+  /// Calls [f] with [node] set up as the parent node.
+  void inTreeNode(TreeNode node, void Function() f) {
+    TreeNode? oldParent = enterParent(node);
+    f();
+    exitParent(oldParent);
+  }
+
+  void visitChildren(TreeNode node) {
+    inTreeNode(node, () => node.visitChildren(this));
+  }
+
+  void visitWithLocalScope(TreeNode node) {
+    enterTreeNode(node);
+    int stackHeight = enterLocalScope();
+    visitChildren(node);
+    exitLocalScope(stackHeight);
+    exitTreeNode(node);
+  }
+
+  void declareVariable(Variable variable) {
+    if (variableDeclarationsInScope.contains(variable)) {
+      problem(variable, "Variable '$variable' declared more than once.");
+    }
+    variableDeclarationsInScope.add(variable);
+    variableStack.add(variable);
+  }
+
+  void undeclareVariable(Variable variable) {
+    variableDeclarationsInScope.remove(variable);
+  }
+
+  void declareTypeParameters(List<TypeParameter> parameters) {
+    for (int i = 0; i < parameters.length; ++i) {
+      TypeParameter parameter = parameters[i];
+      if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
+        problem(
+          currentParent,
+          "Missing bound for type parameter '$parameter'.",
+        );
+      }
+      if (identical(
+        parameter.defaultType,
+        TypeParameter.unsetDefaultTypeSentinel,
+      )) {
+        problem(
+          currentParent,
+          "Missing default type for type parameter '$parameter'.",
+        );
+      }
+      if (!typeParametersInScope.add(parameter)) {
+        problem(parameter, "Type parameter '$parameter' redeclared.");
+      }
+    }
+  }
+
+  void declareStructuralParameters(List<StructuralParameter> parameters) {
+    for (int i = 0; i < parameters.length; ++i) {
+      StructuralParameter parameter = parameters[i];
+      if (identical(parameter.bound, StructuralParameter.unsetBoundSentinel)) {
+        problem(
+          currentParent,
+          "Missing bound for type parameter '$parameter'.",
+        );
+      }
+      if (identical(
+        parameter.defaultType,
+        StructuralParameter.unsetDefaultTypeSentinel,
+      )) {
+        problem(
+          currentParent,
+          "Missing default type for type parameter '$parameter'.",
+        );
+      }
+      if (!structuralParametersInScope.add(parameter)) {
+        problem(currentParent, "Type parameter '$parameter' redeclared.");
+      }
+    }
+  }
+
+  void undeclareTypeParameters(List<TypeParameter> parameters) {
+    typeParametersInScope.removeAll(parameters);
+  }
+
+  void undeclareStructuralParameters(List<StructuralParameter> parameters) {
+    structuralParametersInScope.removeAll(parameters);
+  }
+
+  void checkVariableInScope(Variable variable, TreeNode where) {
+    // TODO(cstefantsova): Support new variable model.
+    if (!target.flags.isClosureContextLoweringEnabled &&
+        !variableDeclarationsInScope.contains(variable)) {
+      problem(where, "Variable '$variable' used out of scope.");
+    }
+  }
+
+  void _declareMember(Member member) {
+    if (!_membersSeenByVerifier.add(member)) {
+      problem(
+        member.function,
+        "Member '$member' has been declared more than once.",
+      );
+    }
+  }
+
+  @override
+  void visitComponent(Component component) {
+    for (Library library in component.libraries) {
+      for (Class class_ in library.classes) {
+        if (!classes.add(class_)) {
+          problem(class_, "Class '$class_' declared more than once.");
+        }
+      }
+      for (Typedef typedef_ in library.typedefs) {
+        if (!typedefs.add(typedef_)) {
+          problem(typedef_, "Typedef '$typedef_' declared more than once.");
+        }
+      }
+
+      library.forEachMember(_declareMember);
+      for (Class class_ in library.classes) {
+        class_.forEachMember(_declareMember);
+      }
+      for (ExtensionTypeDeclaration extensionTypeDeclaration
+          in library.extensionTypeDeclarations) {
+        extensionTypeDeclaration.procedures.forEach(_declareMember);
+      }
+    }
+    visitChildren(component);
+  }
+
+  @override
+  void visitLibrary(Library node) {
+    if (skipPlatform &&
+        node.importUri.isScheme('dart') &&
+        // 'dart:test' is used in the unit tests and isn't an actual part of the
+        // platform so we don't skip its verification.
+        node.importUri.path != 'test') {
+      return;
+    }
+    if (librarySkipFilter != null && librarySkipFilter!(node)) {
+      return;
+    }
+
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    currentLibrary = node;
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    visitList(node.dependencies, this);
+    visitList(node.parts, this);
+    visitList(node.typedefs, this);
+    visitList(node.classes, this);
+    visitList(node.extensions, this);
+    visitList(node.extensionTypeDeclarations, this);
+    visitList(node.procedures, this);
+    visitList(node.fields, this);
+    exitParent(oldParent);
+    currentLibrary = null;
+    exitTreeNode(node);
+    _extensionsMembers = null;
+    _extensionTypeMembers = null;
+  }
+
+  Map<Reference, ExtensionMemberDescriptor> _computeExtensionMembers(
+    Library library,
+  ) {
+    if (_extensionsMembers == null) {
+      Map<Reference, ExtensionMemberDescriptor> map = _extensionsMembers = {};
+      for (Extension extension in library.extensions) {
+        for (ExtensionMemberDescriptor descriptor
+            in extension.memberDescriptors) {
+          Reference? memberReference = descriptor.memberReference;
+          if (memberReference != null) {
+            map[memberReference] = descriptor;
+            Member member = memberReference.asMember;
+            if (!member.isExtensionMember) {
+              problem(
+                member,
+                "Member $member (${descriptor}) from $extension is not "
+                " marked as an extension member.",
+              );
+            }
+          }
+          Reference? tearOffReference = descriptor.tearOffReference;
+          if (tearOffReference != null) {
+            map[tearOffReference] = descriptor;
+            Member tearOff = tearOffReference.asMember;
+            if (!tearOff.isExtensionMember) {
+              problem(
+                tearOff,
+                "Tear-off $tearOff (${descriptor}) from $extension is not "
+                "marked as an extension member.",
+              );
+            }
+          }
+          if (memberReference == null && tearOffReference == null) {
+            problem(
+              extension,
+              "Both member and tear-off references are null in "
+              "the descriptor $descriptor from $extension.",
+            );
+          }
+        }
+      }
+    }
+    return _extensionsMembers!;
+  }
+
+  @override
+  void visitLibraryPart(LibraryPart node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitLibraryDependency(LibraryDependency node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    visitList(node.combinators, this);
+    exitParent(oldParent);
+    exitTreeNode(node);
+  }
+
+  Map<Reference, ExtensionTypeMemberDescriptor> _computeExtensionTypeMembers(
+    Library library,
+  ) {
+    if (_extensionTypeMembers == null) {
+      Map<Reference, ExtensionTypeMemberDescriptor> map =
+          _extensionTypeMembers = {};
+      for (ExtensionTypeDeclaration extensionTypeDeclaration
+          in library.extensionTypeDeclarations) {
+        for (ExtensionTypeMemberDescriptor descriptor
+            in extensionTypeDeclaration.memberDescriptors) {
+          Reference? memberReference = descriptor.memberReference;
+          if (memberReference != null) {
+            map[memberReference] = descriptor;
+            Member member = memberReference.asMember;
+            if (!member.isExtensionTypeMember) {
+              problem(
+                member,
+                "Member $member (${descriptor}) from "
+                "$extensionTypeDeclaration is not marked as an extension "
+                "type member.",
+              );
+            }
+          }
+          Reference? tearOffReference = descriptor.tearOffReference;
+          if (tearOffReference != null) {
+            map[tearOffReference] = descriptor;
+            Member tearOff = tearOffReference.asMember;
+            if (!tearOff.isExtensionTypeMember) {
+              problem(
+                tearOff,
+                "Tear-off $tearOff (${descriptor}) from "
+                "$extensionTypeDeclaration is not marked as an extension "
+                "type member.",
+              );
+            }
+          }
+          if (memberReference == null && tearOffReference == null) {
+            problem(
+              extensionTypeDeclaration,
+              "Both member and tear-off references are null in "
+              "the descriptor $descriptor from $extensionTypeDeclaration.",
+            );
+          }
+        }
+      }
+    }
+    return _extensionTypeMembers!;
+  }
+
+  @override
+  void visitExtension(Extension node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    currentExtension = node;
+    _computeExtensionMembers(node.enclosingLibrary);
+    declareTypeParameters(node.typeParameters);
+    final TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.onType.accept(this);
+    exitParent(oldParent);
+    undeclareTypeParameters(node.typeParameters);
+    currentExtension = null;
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    currentExtensionTypeDeclaration = node;
+    _computeExtensionTypeMembers(node.enclosingLibrary);
+    declareTypeParameters(node.typeParameters);
+    final TreeNode? oldParent = enterParent(node);
+    for (DartType type in node.implements) {
+      if (!(type is ExtensionType || type is InterfaceType)) {
+        problem(
+          node,
+          "Extension type can only implement extension types and interface "
+          "types. Found $type.",
+        );
+      } else if (type is ExtensionType &&
+              type.nullability == Nullability.nullable ||
+          type is! ExtensionType && type.isPotentiallyNullable) {
+        problem(
+          node,
+          "Extension type can only implement non-nullable types. "
+          "Found $type.",
+        );
+      }
+    }
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.declaredRepresentationType.accept(this);
+    visitList(node.procedures, this);
+    exitParent(oldParent);
+    undeclareTypeParameters(node.typeParameters);
+    currentExtensionTypeDeclaration = null;
+    exitTreeNode(node);
+  }
+
+  void checkTypedef(Typedef node) {
+    TypedefState? state = typedefState[node];
+    if (state == TypedefState.Done) return;
+    if (state == TypedefState.BeingChecked) {
+      problem(node, "The typedef '$node' refers to itself", context: node);
+    }
+    assert(state == null);
+    enterTreeNode(node);
+    typedefState[node] = TypedefState.BeingChecked;
+    Set<TypeParameter> savedTypeParameters = typeParametersInScope;
+    typeParametersInScope = node.typeParameters.toSet();
+    TreeNode? savedParent = currentParent;
+    currentParent = node;
+    // Visit children without checking the parent pointer on the typedef itself
+    // since this can be called from a context other than its true parent.
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.type?.accept(this);
+    currentParent = savedParent;
+    typeParametersInScope = savedTypeParameters;
+    typedefState[node] = TypedefState.Done;
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitTypedef(Typedef node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    checkTypedef(node);
+    // Enter and exit the node to check the parent pointer on the typedef node.
+    exitParent(enterParent(node));
+    exitTreeNode(node);
+  }
+
+  void _findExtensionMember(Member node) {
+    assert(node.isExtensionMember);
+    Map<Reference, ExtensionMemberDescriptor> extensionMembers =
+        _computeExtensionMembers(node.enclosingLibrary);
+    if (!extensionMembers.containsKey(node.reference)) {
+      problem(
+        node,
+        "Extension member $node is not found in any extension of the "
+        "enclosing library.",
+      );
+    }
+  }
+
+  void _findExtensionTypeMember(Member node) {
+    assert(node.isExtensionTypeMember);
+    Map<Reference, ExtensionTypeMemberDescriptor> extensionTypeMembers =
+        _computeExtensionTypeMembers(node.enclosingLibrary);
+    if (node is Procedure &&
+        node.stubKind == ProcedureStubKind.RepresentationField) {
+      if (extensionTypeMembers.containsKey(node.reference)) {
+        problem(
+          node,
+          "Extension type representation field $node is found amongst the "
+          "lowered extension type members of the enclosing library.",
+        );
+      }
+    } else {
+      if (!extensionTypeMembers.containsKey(node.reference)) {
+        problem(
+          node,
+          "Extension type member $node is not found in any extension type "
+          "declaration of the enclosing library.",
+        );
+      }
+    }
+  }
+
+  @override
+  void visitField(Field node) {
+    enterTreeNode(node);
+    enterScopeProvider(node);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
+    currentMember = node;
+    TreeNode? oldParent = enterParent(node);
+    bool isTopLevel = node.parent == currentLibrary;
+    if (isTopLevel && !node.isStatic) {
+      problem(
+        node,
+        "The top-level field '${node.name.text}' should be static",
+        context: node,
+      );
+    }
+    if (node.isConst && !node.isStatic) {
+      problem(
+        node,
+        "The const field '${node.name.text}' should be static",
+        context: node,
+      );
+    }
+    bool isImmutable = node.isLate
+        ? (node.isFinal && node.initializer != null)
+        : (node.isFinal || node.isConst);
+    if (isImmutable == node.hasSetter) {
+      if (node.hasSetter) {
+        problem(
+          node,
+          "The immutable field '${node.name.text}' has a setter reference",
+          context: node,
+        );
+      } else {
+        if (isOutline && node.isLate) {
+          // TODO(johnniwinther): Should we add a flag on Field for having
+          // a declared initializer?
+          // The initializer is not included in the outline so we can't tell
+          // whether it has an initializer or not.
+        } else {
+          problem(
+            node,
+            "The mutable field '${node.name.text}' has no setter reference",
+            context: node,
+          );
+        }
+      }
+    }
+    if (node.isExtensionMember) {
+      _findExtensionMember(node);
+    }
+    if (node.isExtensionTypeMember) {
+      _findExtensionTypeMember(node);
+    }
+    classTypeParametersAreInScope = !node.isStatic;
+    node.thisVariable?.accept(this);
+    node.initializer?.accept(this);
+    node.type.accept(this);
+    classTypeParametersAreInScope = false;
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    currentMember = null;
+    exitScopeProvider(node);
+    exitTreeNode(node);
+  }
+
+  void _visitAnnotations(List<Expression> annotations) {
+    for (Expression annotation in annotations) {
+      if (stage >= VerificationStage.afterConstantEvaluation) {
+        if (!(annotation is ConstantExpression ||
+            annotation is InvalidExpression)) {
+          problem(
+            annotation,
+            "Unexpected annotation $annotation (${annotation.runtimeType}). "
+            "Expected a ConstantExpression or InvalidExpression.",
+          );
+        }
+      }
+      annotation.accept(this);
+    }
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
+    if (node.isExtensionMember) {
+      _findExtensionMember(node);
+    }
+    if (node.isExtensionTypeMember) {
+      _findExtensionTypeMember(node);
+    }
+
+    if (node.isRedirectingFactory &&
+        node.function.redirectingFactoryTarget == null) {
+      problem(
+        node,
+        "Procedure '${node.name}' doesn't have a redirecting "
+        "factory target, but has the 'isRedirectingFactory' bit set.",
+      );
+    } else if (!node.isRedirectingFactory &&
+        node.function.redirectingFactoryTarget != null) {
+      problem(
+        node,
+        "Procedure '${node.name}' has redirecting factory target, but "
+        "doesn't have the 'isRedirectingFactory' bit set.",
+      );
+    }
+
+    currentMember = node;
+    TreeNode? oldParent = enterParent(node);
+    classTypeParametersAreInScope = !node.isStatic;
+    if (node.isAbstract && node.isExternal) {
+      problem(node, "Procedure cannot be both abstract and external.");
+    }
+    if (node.isMemberSignature && node.isForwardingStub) {
+      problem(
+        node,
+        "Procedure cannot be both a member signature and a forwarding stub: "
+        "$node.",
+      );
+    }
+    if (node.isMemberSignature && node.isForwardingSemiStub) {
+      problem(
+        node,
+        "Procedure cannot be both a member signature and a forwarding semi "
+        "stub $node.",
+      );
+    }
+    if (node.isMemberSignature && node.isNoSuchMethodForwarder) {
+      problem(
+        node,
+        "Procedure cannot be both a member signature and a noSuchMethod "
+        "forwarder $node.",
+      );
+    }
+    if (node.isMemberSignature && node.memberSignatureOrigin == null) {
+      problem(
+        node,
+        "Member signature must have a member signature origin $node.",
+      );
+    }
+    if (node.abstractForwardingStubTarget != null &&
+        !(node.isForwardingStub || node.isForwardingSemiStub)) {
+      problem(
+        node,
+        "Only forwarding stubs can have a forwarding stub interface target "
+        "$node.",
+      );
+    }
+    if (node.concreteForwardingStubTarget != null &&
+        !(node.isForwardingStub || node.isForwardingSemiStub)) {
+      problem(
+        node,
+        "Only forwarding stubs can have a forwarding stub super target "
+        "$node.",
+      );
+    }
+    node.function.accept(this);
+    classTypeParametersAreInScope = false;
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
+    // from external procedures declared with a body or by removing the external
+    // flag from such procedures.
+    /*if (node.isExternal) {
+      if (node.function.body != null) {
+        problem(node, "External procedure has non-null body.");
+      }
+    } else if (node.isAbstract) {
+      if (node.function.body != null) {
+        problem(node, "Abstract procedure has non-null body.");
+      }
+    } else {
+      if (node.function.body == null) {
+        problem(node, "Non-external/abstract procedure has no body.");
+      }
+    }*/
+    currentMember = null;
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitConstructor(Constructor node) {
+    enterTreeNode(node);
+    enterScopeProvider(node.function);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
+    currentMember = node;
+    classTypeParametersAreInScope = true;
+    if (node.isExtensionMember) {
+      _findExtensionMember(node);
+    }
+    if (node.isExtensionTypeMember) {
+      _findExtensionTypeMember(node);
+    }
+
+    // The constructor member needs special treatment due to parameters being
+    // in scope in the initializer list.
+    TreeNode? oldParent = enterParent(node);
+    int stackHeight = enterLocalScope();
+    visitChildren(node.function);
+    visitList(node.initializers, this);
+    if (!isOutline) {
+      checkInitializers(node);
+    }
+    exitLocalScope(stackHeight);
+    classTypeParametersAreInScope = false;
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
+    // from external constructors declared with a body or by removing the
+    // external flag from such constructors.
+    /*if (node.isExternal) {
+      if (node.function.body != null) {
+        problem(node, "External constructor has non-null body.");
+      }
+    } else {
+      if (node.function.body == null) {
+        problem(node, "Non-external constructor has no body.");
+      }
+    }*/
+    classTypeParametersAreInScope = false;
+    currentMember = null;
+    exitScopeProvider(node.function);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitClass(Class node) {
+    enterTreeNode(node);
+    fileUri = checkLocation(node, node.name, node.fileUri);
+    currentClass = node;
+    declareTypeParameters(node.typeParameters);
+    TreeNode? oldParent = enterParent(node);
+    classTypeParametersAreInScope = false;
+    _visitAnnotations(node.annotations);
+    classTypeParametersAreInScope = true;
+    visitList(node.typeParameters, this);
+    visitList(node.fields, this);
+    visitList(node.constructors, this);
+    visitList(node.procedures, this);
+    exitParent(oldParent);
+    undeclareTypeParameters(node.typeParameters);
+    currentClass = null;
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitFunctionNode(FunctionNode node) {
+    enterTreeNode(node);
+    enterScopeProvider(node);
+    declareTypeParameters(node.typeParameters);
+    bool savedInCatchBlock = inCatchBlock;
+    AsyncMarker savedAsyncMarker = currentAsyncMarker;
+    currentAsyncMarker = node.asyncMarker;
+    if (!isOutline) {
+      if (node.asyncMarker == AsyncMarker.Async &&
+          node.emittedValueType == null) {
+        problem(
+          node,
+          "No future value type set for async function in opt-in library.",
+        );
+      }
+
+      TreeNode? parent = node.parent;
+      if (parent is! Procedure ||
+          !parent.isAbstract &&
+              !parent.isSynthetic &&
+              !parent.isSyntheticForwarder) {
+        for (
+          int positionalIndex = 0;
+          positionalIndex < node.positionalParameters.length;
+          positionalIndex++
+        ) {
+          if (positionalIndex >= node.requiredParameterCount) {
+            PositionalParameter positionalParameter =
+                node.positionalParameters[positionalIndex];
+            if (positionalParameter.defaultValue == null &&
+                // Global transformations like TFA may not maintain this
+                // invariant.
+                stage != VerificationStage.afterGlobalTransformations) {
+              problem(
+                positionalParameter,
+                "An optional positional parameter is expected to have a "
+                "default value initializer, defined or synthesized.",
+              );
+            }
+          }
+        }
+        for (NamedParameter namedParameter in node.namedParameters) {
+          if (!namedParameter.isRequired &&
+              namedParameter.defaultValue == null &&
+              // Global transformations like TFA may not maintain this
+              // invariant.
+              stage != VerificationStage.afterGlobalTransformations) {
+            problem(
+              namedParameter,
+              "An optional named parameter is expected to have a default "
+              "value initializer, defined or synthesized.",
+            );
+          }
+        }
+      }
+    }
+    inCatchBlock = false;
+    visitWithLocalScope(node);
+    inCatchBlock = savedInCatchBlock;
+    currentAsyncMarker = savedAsyncMarker;
+    undeclareTypeParameters(node.typeParameters);
+    exitScopeProvider(node);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitFunctionType(FunctionType node) {
+    for (int i = 1; i < node.namedParameters.length; ++i) {
+      if (node.namedParameters[i - 1].compareTo(node.namedParameters[i]) >= 0) {
+        problem(
+          currentParent,
+          "Named parameters are not sorted on function type ($node).",
+        );
+      }
+    }
+    declareStructuralParameters(node.typeParameters);
+    visitList(node.positionalParameters, this);
+    visitList(node.namedParameters, this);
+    node.returnType.accept(this);
+    undeclareStructuralParameters(node.typeParameters);
+  }
+
+  @override
+  void visitBlock(Block node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitForInStatement(ForInStatement node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    enterScopeProvider(node);
+    visitWithLocalScope(node);
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitLet(Let node) {
+    if (_isCompileTimeErrorEncoding(node)) return;
+    visitWithLocalScope(node);
+  }
+
+  @override
+  void visitInvalidExpression(InvalidExpression node) {
+    return;
+  }
+
+  @override
+  void visitBlockExpression(BlockExpression node) {
+    enterTreeNode(node);
+    enterScopeProvider(node);
+    int stackHeight = enterLocalScope();
+    // Do not visit the block directly because the value expression needs to
+    // be in its scope.
+    TreeNode? oldParent = enterParent(node);
+    enterParent(node.body);
+    for (int i = 0; i < node.body.statements.length; ++i) {
+      node.body.statements[i].accept(this);
+    }
+    exitParent(node);
+    node.value.accept(this);
+    exitParent(oldParent);
+    exitLocalScope(stackHeight);
+    exitScopeProvider(node);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitCatch(Catch node) {
+    enterScopeProvider(node);
+    bool savedInCatchBlock = inCatchBlock;
+    inCatchBlock = true;
+    visitWithLocalScope(node);
+    inCatchBlock = savedInCatchBlock;
+    exitScopeProvider(node);
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+        // ok
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+        if (node.expression != null) {
+          problem(
+            node,
+            "Return statement in function with async marker: "
+            "$currentAsyncMarker",
+          );
+        }
+        break;
+    }
+    super.visitReturnStatement(node);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+        problem(
+          node,
+          "Yield statement in function with async marker: "
+          "$currentAsyncMarker",
+        );
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+        // ok
+        break;
+    }
+    super.visitYieldStatement(node);
+  }
+
+  @override
+  void visitRethrow(Rethrow node) {
+    if (!inCatchBlock) {
+      problem(node, "Rethrow must be inside a Catch block.");
+    }
+  }
+
+  @override
+  void defaultVariable(Variable node) {
+    return _verifyVariableDeclaration(node);
+  }
+
+  void _verifyVariableDeclaration(Variable node) {
+    enterTreeNode(node);
+    visitChildren(node);
+    declareVariable(node);
+    if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
+      Expression? initializer = node.initializer;
+      if (!(initializer is InvalidExpression ||
+          initializer is ConstantExpression &&
+              initializer.constant is UnevaluatedConstant)) {
+        problem(node, "Constant VariableDeclaration");
+      }
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitCatchVariable(CatchVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitLateVariable(LateVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitPositionalParameter(PositionalParameter node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitNamedParameter(NamedParameter node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitSyntheticVariable(SyntheticVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitThisVariable(ThisVariable node) {
+    _verifyVariable(node);
+  }
+
+  void _verifyVariable(Variable node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    declareVariable(node);
+    exitTreeNode(node);
+
+    if (target.flags.isClosureContextLoweringEnabled && !isOutline) {
+      checkVariableInScopeStack(node);
+      checkVariableIsInOwnContext(node);
+    }
+  }
+
+  @override
+  void visitVariableGet(VariableGet node) {
+    enterTreeNode(node);
+    checkVariableInScope(node.variable, node);
+    visitChildren(node);
+    if (constantsAreAlwaysInlined &&
+        afterConst &&
+        node.variable.isConst &&
+        !inUnevaluatedConstant) {
+      problem(node, "VariableGet of const variable '${node.variable}'.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitVariableSet(VariableSet node) {
+    enterTreeNode(node);
+    checkVariableInScope(node.variable, node);
+    visitChildren(node);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitStaticGet(StaticGet node) {
+    enterTreeNode(node);
+    visitChildren(node);
+    // TODO(johnniwinther): Can this be deleted now?
+    // Currently Constructor.hasGetter returns `false` even though the CFE uses
+    // it as a getter for internal purposes:
+    //
+    // CFE is letting all call site of a redirecting constructor be resolved
+    // to the real target.  In order to resolve it, it seems to add a body into
+    // the redirecting-factory constructor which caches the target constructor.
+    // That cache is via a `StaticGet(real-constructor)` node, which we make
+    // here pass the verifier.
+    if (!node.target.hasGetter && node.target is! Constructor) {
+      problem(node, "StaticGet of '${node.target}' without getter.");
+    }
+    if (node.target.isInstanceMember) {
+      problem(node, "StaticGet of '${node.target}' that's an instance member.");
+    }
+    if (constantsAreAlwaysInlined &&
+        afterConst &&
+        node.target is Field &&
+        node.target.isConst) {
+      problem(node, "StaticGet of const field '${node.target}'.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitStaticSet(StaticSet node) {
+    enterTreeNode(node);
+    visitChildren(node);
+    if (!node.target.hasSetter) {
+      problem(node, "StaticSet to '${node.target}' without setter.");
+    }
+    if (node.target.isInstanceMember) {
+      problem(node, "StaticSet to '${node.target}' that's an instance member.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitStaticInvocation(StaticInvocation node) {
+    enterTreeNode(node);
+    checkTargetedInvocation(node.target, node);
+    if (node.target.isInstanceMember) {
+      problem(
+        node,
+        "StaticInvocation of '${node.target}' that's an instance member.",
+      );
+    }
+    if (node.isConst &&
+        !(node.target.isConst &&
+            node.target.isExternal &&
+            node.target.kind == ProcedureKind.Factory) &&
+        !(node.target.isConst && node.target.isExtensionTypeMember)) {
+      problem(
+        node,
+        "Constant StaticInvocation of '${node.target}' that isn't"
+        " a const external factory or a const extension type constructor.",
+      );
+    }
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
+      problem(node, "Constant StaticInvocation.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitTypedefTearOff(TypedefTearOff node) {
+    _checkTypedefTearOff(node);
+    declareStructuralParameters(node.structuralParameters);
+    super.visitTypedefTearOff(node);
+    undeclareStructuralParameters(node.structuralParameters);
+  }
+
+  void checkTargetedInvocation(Member target, InvocationExpression node) {
+    visitChildren(node);
+    if (target.function == null) {
+      problem(node, "${node.runtimeType} without function.");
+    }
+    if (!areArgumentsCompatible(node.arguments, target.function!)) {
+      problem(
+        node,
+        "${node.runtimeType} with incompatible arguments for '${target}'.",
+      );
+    }
+    int expectedTypeParameters = target is Constructor
+        ? target.enclosingClass.typeParameters.length
+        : target.function!.typeParameters.length;
+    if (node.arguments.types.length != expectedTypeParameters) {
+      problem(
+        node,
+        "${node.runtimeType} with wrong number of type arguments"
+        " for '${target}'.",
+      );
+    }
+  }
+
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    enterTreeNode(node);
+    checkTargetedInvocation(node.target, node);
+    if (node.target.enclosingClass.isAbstract) {
+      problem(node, "$node of abstract class ${node.target.enclosingClass}.");
+    }
+    if (node.isConst && !node.target.isConst) {
+      problem(
+        node,
+        "Constant ConstructorInvocation fo '${node.target}' that"
+        " isn't const.",
+      );
+    }
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
+      problem(node, "Invocation of const constructor '${node.target}'.");
+    }
+    exitTreeNode(node);
+  }
+
+  bool areArgumentsCompatible(Arguments arguments, FunctionNode function) {
+    if (arguments.positional.length < function.requiredParameterCount) {
+      return false;
+    }
+    if (arguments.positional.length > function.positionalParameters.length) {
+      return false;
+    }
+    namedLoop:
+    for (int i = 0; i < arguments.named.length; ++i) {
+      NamedExpression argument = arguments.named[i];
+      String name = argument.name;
+      for (int j = 0; j < function.namedParameters.length; ++j) {
+        if (function.namedParameters[j].parameterName == name) {
+          continue namedLoop;
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    enterTreeNode(node);
+    visitChildren(node);
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
+      problem(node, "Constant list literal.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitSetLiteral(SetLiteral node) {
+    enterTreeNode(node);
+    visitChildren(node);
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
+      problem(node, "Constant set literal.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    enterTreeNode(node);
+    visitChildren(node);
+    if (afterConst && node.isConst && !inUnevaluatedConstant) {
+      problem(node, "Constant map literal.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) {
+    enterTreeNode(node);
+    if (afterConst && !inUnevaluatedConstant) {
+      problem(node, "Symbol literal.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    enterTreeNode(node);
+    if (node.target.parent == null) {
+      problem(node, "Target has no parent.");
+    } else {
+      SwitchStatement statement = node.target.parent as SwitchStatement;
+      for (SwitchCase switchCase in statement.cases) {
+        if (switchCase == node.target) {
+          exitTreeNode(node);
+          return;
+        }
+      }
+      problem(node, "Switch case isn't child of parent.");
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitInstanceConstant(InstanceConstant constant) {
+    constant.visitChildren(this);
+    if (constant.typeArguments.length !=
+        constant.classNode.typeParameters.length) {
+      problem(
+        currentParent,
+        "Constant $constant provides ${constant.typeArguments.length}"
+        " type arguments, but the class declares"
+        " ${constant.classNode.typeParameters.length} parameters.",
+      );
+    }
+    Set<Class> superClasses = <Class>{};
+    int fieldCount = 0;
+    for (Class? cls = constant.classNode; cls != null; cls = cls.superclass) {
+      superClasses.add(cls);
+      for (Field f in cls.fields) {
+        if (!f.isStatic && !f.isConst) fieldCount++;
+      }
+    }
+    if (constant.fieldValues.length != fieldCount) {
+      problem(
+        currentParent,
+        "Constant $constant provides ${constant.fieldValues.length}"
+        " field values, but the class declares"
+        " $fieldCount fields.",
+      );
+    }
+    for (Reference fieldRef in constant.fieldValues.keys) {
+      Field field = fieldRef.asField;
+      if (!superClasses.contains(field.enclosingClass)) {
+        problem(
+          currentParent,
+          "Constant $constant refers to field $field,"
+          " which does not belong to the right class.",
+        );
+      }
+    }
+  }
+
+  @override
+  void visitUnevaluatedConstant(UnevaluatedConstant constant) {
+    bool savedInUnevaluatedConstant = inUnevaluatedConstant;
+    inUnevaluatedConstant = true;
+    TreeNode? oldParent = currentParent;
+    currentParent = null;
+    constant.expression.accept(this);
+    currentParent = oldParent;
+    inUnevaluatedConstant = savedInUnevaluatedConstant;
+  }
+
+  @override
+  void defaultMemberReference(Member node) {
+    if (!_membersSeenByVerifier.contains(node)) {
+      problem(
+        node,
+        "Dangling reference to '$node', parent is: '${node.parent}'.",
+      );
+    }
+  }
+
+  @override
+  void visitClassReference(Class node) {
+    if (!classes.contains(node)) {
+      problem(
+        node,
+        "Dangling reference to '$node', parent is: '${node.parent}'.",
+      );
+    }
+  }
+
+  @override
+  void visitTypedefReference(Typedef node) {
+    if (!typedefs.contains(node)) {
+      problem(
+        node,
+        "Dangling reference to '$node', parent is: '${node.parent}'",
+      );
+    }
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    TypeParameter parameter = node.parameter;
+    GenericDeclaration? declaration = parameter.declaration;
+    if (!typeParametersInScope.contains(parameter)) {
+      problem(
+        currentParent,
+        "Type parameter '$parameter' referenced out of"
+        " scope, declaration is: '${declaration}'.",
+      );
+    }
+    if (declaration is Class && !classTypeParametersAreInScope) {
+      problem(
+        currentParent,
+        "Type parameter '$parameter' referenced from"
+        " static context, declaration is: '${declaration}'.",
+      );
+    }
+    defaultDartType(node);
+  }
+
+  @override
+  void visitInterfaceType(InterfaceType node) {
+    if (isNullType(node) && node.nullability != Nullability.nullable) {
+      problem(localContext, "Found a not nullable Null type: ${node}");
+    }
+    defaultDartType(node);
+    if (node.typeArguments.length != node.classNode.typeParameters.length) {
+      problem(
+        currentParent,
+        "Type $node provides ${node.typeArguments.length}"
+        " type arguments, but the class declares"
+        " ${node.classNode.typeParameters.length} parameters.",
+      );
+    }
+    if (node.classNode.isAnonymousMixin) {
+      bool isOk = false;
+      if (currentParent is FunctionNode) {
+        TreeNode? functionNodeParent = currentParent!.parent;
+        if (functionNodeParent is Constructor) {
+          if (functionNodeParent.parent == node.classNode) {
+            // We only allow references to anonymous mixins in types as the
+            // return type of its own constructor.
+            isOk = true;
+          }
+        }
+      }
+      if (!isOk) {
+        problem(
+          currentParent,
+          "Type $node references an anonymous mixin class.",
+        );
+      }
+    }
+  }
+
+  @override
+  void visitTypedefType(TypedefType node) {
+    checkTypedef(node.typedefNode);
+    defaultDartType(node);
+    if (node.typeArguments.length != node.typedefNode.typeParameters.length) {
+      problem(
+        currentParent,
+        "The typedef type $node provides ${node.typeArguments.length}"
+        " type arguments, but the typedef declares"
+        " ${node.typedefNode.typeParameters.length} parameters.",
+      );
+    }
+  }
+
+  @override
+  void visitConstantExpression(ConstantExpression node) {
+    enterTreeNode(node);
+    inTreeNode(node, () {
+      bool oldInConstant = inConstant;
+      node.type.accept(this);
+      // Only visit the [Constant] in constant context.
+      inConstant = true;
+      node.constant.accept(this);
+      inConstant = oldInConstant;
+    });
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    if (identical(node.bound, TypeParameter.unsetBoundSentinel)) {
+      problem(node, "Unset bound on type parameter $node");
+    }
+    if (identical(node.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
+      problem(node, "Unset default type on type parameter $node");
+    }
+    // ignore: deprecated_member_use_from_same_package
+    if (node.parent == null) {
+      // TODO(johnniwinther): Enable this check.
+      // problem(node, "Type parameter without parent: $node");
+      node.visitChildren(this);
+    } else {
+      visitChildren(node);
+    }
+  }
+
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    _checkTypedefTearOff(node);
+    declareStructuralParameters(node.parameters);
+    super.visitTypedefTearOffConstant(node);
+    undeclareStructuralParameters(node.parameters);
+  }
+
+  void _checkInterfaceTarget(Expression node, Member interfaceTarget) {
+    if (!interfaceTarget.isInstanceMember) {
+      problem(
+        node,
+        "Interface target $interfaceTarget is not an instance member.",
+      );
+    }
+    if (interfaceTarget is Procedure &&
+        interfaceTarget.stubKind == ProcedureStubKind.RepresentationField) {
+      problem(
+        node,
+        "Representation field used as interface target: $interfaceTarget.",
+      );
+    }
+    if (interfaceTarget.enclosingClass == null) {
+      problem(
+        node,
+        "Interface target $interfaceTarget does not have an "
+        "enclosing class.",
+      );
+    }
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+        node,
+        "Instance invocation with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
+    }
+    _checkInterfaceTarget(node, node.interfaceTarget);
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitInstanceGet(InstanceGet node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+        node,
+        "Instance get with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
+    }
+    _checkInterfaceTarget(node, node.interfaceTarget);
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+        node,
+        "Instance tear-off with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
+    }
+    _checkInterfaceTarget(node, node.interfaceTarget);
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+        node,
+        "Instance set with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
+    }
+    _checkInterfaceTarget(node, node.interfaceTarget);
+    super.visitInstanceSet(node);
+  }
+
+  /// Invoked by all visit methods if the visited node is a [TreeNode].
+  // TODO(johnniwinther): Merge this with enter/exitParent.
+  void enterTreeNode(TreeNode node) {
+    treeNodeStack.add(node);
+    testLocation(node);
+  }
+
+  /// Invoked by all visit methods if the visited node is a [TreeNode].
+  void exitTreeNode(TreeNode node) {
+    if (treeNodeStack.isEmpty) {
+      throw new StateError(
+        "Attempting to exit tree node '${node}' "
+        "when the tree node stack is empty.",
+      );
+    }
+    if (!identical(treeNodeStack.last, node)) {
+      throw new StateError(
+        "Attempting to exit tree node '${node}' "
+        "when another node '${treeNodeStack.last}' is active.",
+      );
+    }
+    treeNodeStack.removeLast();
+  }
+
+  TreeNode? getLastSeenTreeNode({bool withLocation = false}) {
+    assert(treeNodeStack.isNotEmpty);
+    for (int i = treeNodeStack.length - 1; i >= 0; --i) {
+      TreeNode node = treeNodeStack[i];
+      if (withLocation && !_hasLocation(_getLocation(node), node)) continue;
+      return node;
+    }
+    return null;
+  }
+
+  TreeNode? getSameLibraryLastSeenTreeNode({bool withLocation = false}) {
+    if (treeNodeStack.isEmpty) return null;
+    if (currentLibrary == null) return null;
+
+    for (int i = treeNodeStack.length - 1; i >= 0; --i) {
+      TreeNode node = treeNodeStack[i];
+      Location? location = _getLocation(node);
+      if (withLocation && !_hasLocation(location, node)) continue;
+      if (location != null && location.file == currentLibrary!.fileUri) {
+        return node;
+      }
+    }
+    return null;
+  }
+
+  /// Returns the `TreeNode.location` while handling [RangeError]s caused by
+  /// file offsets not within the range of the enclosing file.
+  Location? _getLocation(TreeNode node, {bool allowInvalidLocation = false}) {
+    try {
+      return node.location;
+    } on RangeError catch (e) {
+      if (allowInvalidLocation ||
+          target.verification.allowInvalidLocation(stage, node)) {
+        return null;
+      }
+      problem(
+        node,
+        "Invalid location with target '${target.name}' on "
+        "${node} (${node.runtimeType}): $e",
+      );
+    }
+    return null;
+  }
+
+  bool _hasLocation(Location? location, TreeNode node) {
+    return location != null && node.fileOffset != TreeNode.noOffset;
+  }
+
+  bool _isInSameLibrary(Library? library, TreeNode node) {
+    if (library == null) return false;
+    Location? location = _getLocation(node);
+    if (location == null) return false;
+    return library.fileUri == location.file;
+  }
+
+  TreeNode? get localContext {
+    TreeNode? result = getSameLibraryLastSeenTreeNode(withLocation: true);
+    if (result == null &&
+        currentClassOrExtensionOrMember != null &&
+        _isInSameLibrary(currentLibrary, currentClassOrExtensionOrMember!)) {
+      result = currentClassOrExtensionOrMember;
+    }
+    return result;
+  }
+
+  TreeNode? get remoteContext {
+    TreeNode? result = getLastSeenTreeNode(withLocation: true);
+    if (result != null && _isInSameLibrary(currentLibrary, result)) {
+      result = null;
+    }
+    return result;
+  }
+
+  // We disable the location test for now, at least these tests currently fail:
+  //  outline/dartdevc/factory_patch/main
+  //  outline/general/constructor_patch/main
+  //  outline/general/factory_patch/main
+  //  outline/general/mixin_from_patch/main
+  //  outline/general/multiple_class_patches/main
+  //  outline/general/patch_extends_implements/main
+  //  outline/nnbd/platform_optional_parameters/main
+  //  pkg/front_end/test/macros/application/macro_application_test.dart -p \
+  //    subtypes.dart
+  static const bool doTestLocation = false;
+
+  void testLocation(TreeNode node) {
+    if (!doTestLocation) return;
+    // When these comes from patching (and in the future from augmentation) they
+    // don't point correctly.
+    if (node is LibraryDependency || node is LibraryPart) return;
+    try {
+      if (node.fileOffset != TreeNode.noOffset) {
+        node.location;
+      }
+    } catch (e) {
+      problem(
+        node,
+        "${node.runtimeType} crashes when  asked for location: '$e'",
+        context: node,
+      );
+    }
+  }
+
+  Uri checkLocation(TreeNode node, String? name, Uri fileUri) {
+    if (name == null || name.contains("#")) {
+      // TODO(ahe): Investigate if these checks can be enabled:
+      // if (node.fileUri != null && node is! Library) {
+      //   problem(node, "A synthetic node shouldn't have a fileUri",
+      //       context: node);
+      // }
+      // if (node.fileOffset != -1) {
+      //   problem(node, "A synthetic node shouldn't have a fileOffset",
+      //       context: node);
+      // }
+      return fileUri;
+    } else {
+      if (node.fileOffset == TreeNode.noOffset &&
+          !target.verification.allowNoFileOffset(stage, node)) {
+        problem(node, "'$name' has no fileOffset", context: node);
+      }
+      return fileUri;
+    }
+  }
+
+  void checkSuperInvocation(TreeNode node) {
+    Member? containingMember = getContainingMember(node);
+    if (containingMember == null) {
+      problem(node, 'Super call outside of any member');
+    } else {
+      if (!containingMember.containsSuperCalls) {
+        problem(
+          node,
+          'Super call in a member lacking TransformerFlag.superCalls',
+        );
+      }
+    }
+  }
+
+  Member? getContainingMember(TreeNode? node) {
+    while (node != null) {
+      if (node is Member) return node;
+      node = node.parent;
+    }
+    return null;
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    enterTreeNode(node);
+    super.visitAsExpression(node);
+    if (node.fileOffset == TreeNode.noOffset &&
+        !node.isUnchecked &&
+        !target.verification.allowNoFileOffset(stage, node)) {
+      TreeNode? parent = node.parent;
+      while (parent != null) {
+        if (parent.fileOffset != TreeNode.noOffset) break;
+        parent = parent.parent;
+      }
+      problem(parent, "No offset for $node", context: node);
+    }
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitExpressionStatement(ExpressionStatement node) {
+    // Bypass verification of the [StaticGet] in [RedirectingFactoryBody] as
+    // this is a static get without a getter.
+    enterTreeNode(node);
+    super.visitExpressionStatement(node);
+    exitTreeNode(node);
+  }
+
+  bool isNullType(DartType node) => node is NullType;
+
+  bool isObjectClass(Class c) {
+    return c.name == "Object" &&
+        c.enclosingLibrary.importUri.isScheme("dart") &&
+        c.enclosingLibrary.importUri.path == "core";
+  }
+
+  bool isTopType(DartType node) {
+    return node is DynamicType ||
+        node is VoidType ||
+        node is InterfaceType &&
+            isObjectClass(node.classNode) &&
+            node.nullability == Nullability.nullable ||
+        node is FutureOrType && isTopType(node.typeArgument);
+  }
+
+  bool isFutureOrNull(DartType node) {
+    return isNullType(node) ||
+        node is FutureOrType && isFutureOrNull(node.typeArgument);
+  }
+
+  @override
+  void defaultDartType(DartType node) {
+    if (!AllowedTypes.isAllowed(node, inConstant: inConstant)) {
+      final TreeNode? localContext = this.localContext;
+      final TreeNode? remoteContext = this.remoteContext;
+      problem(
+        localContext,
+        "Unexpected appearance of the disallowed type $node"
+        "${inConstant ? " inside a constant" : ""}.",
+        origin: remoteContext,
+      );
+    }
+    super.defaultDartType(node);
+  }
+
+  @override
+  void visitSuperMethodInvocation(SuperMethodInvocation node) {
+    enterTreeNode(node);
+    checkSuperInvocation(node);
+    super.visitSuperMethodInvocation(node);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitSuperPropertyGet(SuperPropertyGet node) {
+    enterTreeNode(node);
+    checkSuperInvocation(node);
+    super.visitSuperPropertyGet(node);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) {
+    enterTreeNode(node);
+    checkSuperInvocation(node);
+    super.visitSuperPropertySet(node);
+    exitTreeNode(node);
+  }
+
+  void _checkConstructorTearOff(Node node, Member tearOffTarget) {
+    if (tearOffTarget.enclosingLibrary.importUri.isScheme('dart')) {
+      // Platform libraries are not compilation with test flags and might
+      // contain tear-offs not expected when testing lowerings.
+      return;
+    }
+    if (tearOffTarget is Constructor &&
+        target.isConstructorTearOffLoweringEnabled) {
+      problem(
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        '${node.runtimeType} nodes for generative constructors should be '
+        'lowered for target "${target.name}".',
+      );
+    }
+    if (tearOffTarget is Procedure &&
+        tearOffTarget.isFactory &&
+        target.isFactoryTearOffLoweringEnabled) {
+      problem(
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        '${node.runtimeType} nodes for factory constructors should be '
+        'lowered for target "${target.name}".',
+      );
+    }
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _checkConstructorTearOff(node, node.target);
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    _checkConstructorTearOff(node, node.target);
+    super.visitConstructorTearOffConstant(node);
+  }
+
+  void _checkTypedefTearOff(Node node) {
+    if (target.isTypedefTearOffLoweringEnabled) {
+      problem(
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        '${node.runtimeType} nodes for typedefs should be '
+        'lowered for target "${target.name}".',
+      );
+    }
+  }
+
+  void _checkRedirectingFactoryTearOff(Node node) {
+    if (target.isRedirectingFactoryTearOffLoweringEnabled) {
+      problem(
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        'ConstructorTearOff nodes for redirecting factories should be '
+        'lowered for target "${target.name}".',
+      );
+    }
+  }
+
+  @override
+  void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    enterScopeProvider(node.function);
+    _checkRedirectingFactoryTearOff(node);
+    super.visitRedirectingFactoryTearOff(node);
+    exitScopeProvider(node.function);
+  }
+
+  @override
+  void visitRedirectingFactoryTearOffConstant(
+    RedirectingFactoryTearOffConstant node,
+  ) {
+    enterScopeProvider(node.function);
+    _checkRedirectingFactoryTearOff(node);
+    super.visitRedirectingFactoryTearOffConstant(node);
+    exitScopeProvider(node.function);
+  }
+
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    if (node.expressionTypeInternal == null) {
+      problem(node, 'SwitchStatement.expressionType has not been set.');
+    }
+    super.visitSwitchStatement(node);
+  }
+
+  @override
+  void visitListConcatenation(ListConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitSetConcatenation(SetConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitMapConcatenation(MapConcatenation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitInstanceCreation(InstanceCreation node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      if (!inUnevaluatedConstant) {
+        problem(node, "Unexpected internal node $node.");
+      }
+    }
+  }
+
+  @override
+  void visitFileUriExpression(FileUriExpression node) {
+    if (!target.supportsFileUriExpression) {
+      if (stage >= VerificationStage.afterConstantEvaluation) {
+        if (!inUnevaluatedConstant) {
+          problem(node, "Unexpected internal node $node.");
+        }
+      }
+    }
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitIfCaseStatement(IfCaseStatement node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternSwitchStatement(PatternSwitchStatement node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void defaultPattern(Pattern node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternGuard(PatternGuard node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+
+  @override
+  void visitPatternSwitchCase(PatternSwitchCase node) {
+    if (stage >= VerificationStage.afterConstantEvaluation) {
+      problem(node, "Unexpected internal node $node.");
+    }
+  }
+}
+
+class StaticTypeError {
+  TreeNode context;
+  String message;
+
+  new({required this.context, required this.message});
+}
+
+class VerifyGetStaticType extends RecursiveVisitor {
+  final TypeEnvironment env;
+  Member? currentMember;
+  final StatefulStaticTypeContext _staticTypeContext;
+  final List<StaticTypeError> errors = [];
+
+  new(this.env)
+    : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
+
+  @override
+  void visitLibrary(Library node) {
+    _staticTypeContext.enterLibrary(node);
+    super.visitLibrary(node);
+    _staticTypeContext.leaveLibrary(node);
+  }
+
+  @override
+  void visitField(Field node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitField(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = node;
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitProcedure(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = node;
+  }
+
+  @override
+  void visitConstructor(Constructor node) {
+    currentMember = node;
+    _staticTypeContext.enterMember(node);
+    super.visitConstructor(node);
+    _staticTypeContext.leaveMember(node);
+    currentMember = null;
+  }
+
+  @override
+  void visitLet(Let node) {
+    if (_isCompileTimeErrorEncoding(node)) return;
+    super.visitLet(node);
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    if (node.isCovarianceCheck &&
+        node.operand.getStaticType(_staticTypeContext) == node.type) {
+      String message =
+          "The operand of the as-check with isCovarianceCheck flag set has the "
+          "same static type as the target type of the check. "
+          "Operand node kind is '${node.operand.runtimeType}'. Target check "
+          "type is '${node.type}'.";
+      errors.add(new StaticTypeError(context: node, message: message));
+      // TODO(cstefantsova): Make sure the 'errors' are reported, then remove
+      // the throw statement below.
+      throw message;
+    }
+  }
+
+  @override
+  void visitInvalidExpression(InvalidExpression node) {
+    return;
+  }
+
+  @override
+  void defaultExpression(Expression node) {
+    try {
+      node.getStaticType(_staticTypeContext);
+    } catch (_) {
+      print(
+        'Error in $currentMember in ${currentMember?.fileUri}: '
+        '$node (${node.runtimeType})',
+      );
+      rethrow;
+    }
+    super.defaultExpression(node);
+  }
+}
+
+void checkInitializers(Constructor constructor) {
+  // TODO(ahe): I'll add more here in other CLs.
+}
+
+bool _isCompileTimeErrorEncoding(TreeNode? node) {
+  return node is Let && node.variable.initializer is InvalidExpression;
+}
+
+class AllowedTypes implements DartTypeVisitor<bool> {
+  static bool isAllowed(DartType type, {required bool inConstant}) {
+    return type.accept(
+      inConstant
+          ? const AllowedTypes(inConstant: true)
+          : const AllowedTypes(inConstant: false),
+    );
+  }
+
+  final bool inConstant;
+
+  const new({required this.inConstant});
+
+  @override
+  bool visitAuxiliaryType(AuxiliaryType node) => false;
+
+  @override
+  bool visitDynamicType(DynamicType node) => true;
+
+  @override
+  bool visitFunctionType(FunctionType node) => true;
+
+  @override
+  bool visitFutureOrType(FutureOrType node) => true;
+
+  @override
+  bool visitExtensionType(ExtensionType node) => !inConstant;
+
+  @override
+  bool visitInterfaceType(InterfaceType node) => true;
+
+  @override
+  bool visitIntersectionType(IntersectionType node) => true;
+
+  @override
+  bool visitInvalidType(InvalidType node) => true;
+
+  @override
+  bool visitNeverType(NeverType node) => true;
+
+  @override
+  bool visitNullType(NullType node) => true;
+
+  @override
+  bool visitRecordType(RecordType node) => true;
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) => true;
+
+  @override
+  bool visitStructuralParameterType(StructuralParameterType node) => true;
+
+  @override
+  bool visitTypedefType(TypedefType node) => true;
+
+  @override
+  bool visitVoidType(VoidType node) => true;
+
+  @override
+  bool visitFunctionTypeParameterType(FunctionTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
+    throw new UnimplementedError(
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
+  }
+
+  @override
+  bool visitClassTypeParameterType(ClassTypeParameterType node) {
+    // TODO(cstefantsova): Implement visitClassTypeParameterType.
+    throw new UnimplementedError(
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
+  }
+}

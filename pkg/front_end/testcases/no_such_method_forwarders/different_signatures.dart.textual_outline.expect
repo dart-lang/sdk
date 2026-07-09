@@ -1,0 +1,10 @@
+class Class {
+  dynamic noSuchMethod(Invocation invocation) => 42;
+  void abstractMethod1(int i);
+  void abstractMethod2(int i);
+}
+
+class SubClass extends Class {
+  void abstractMethod1(num n);
+  void abstractMethod2(int i);
+}

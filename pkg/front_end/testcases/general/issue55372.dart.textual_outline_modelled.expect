@@ -1,0 +1,18 @@
+class A {
+  String? foo2;
+  String? operator [](bool key) => "";
+  double? foo1;
+  int foo3 = 0;
+  void operator []=(bool key, String? value) {}
+}
+
+class B extends A {
+  test() {}
+}
+
+extension E on dynamic {
+  int? operator [](String key) => 0;
+  void operator []=(String key, int? value) {}
+}
+
+main() {}

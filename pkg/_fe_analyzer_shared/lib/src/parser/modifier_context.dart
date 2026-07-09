@@ -1,0 +1,736 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
+
+import '../scanner/token.dart'
+    show Keyword, Token, TokenIsAExtension, TokenType;
+import 'formal_parameter_kind.dart';
+import 'member_kind.dart' show MemberKind;
+import 'parser_impl.dart' show Parser;
+
+bool isModifier(Token token) {
+  if (!token.isModifier) {
+    return false;
+  } else if (token.type.isBuiltIn) {
+    // A built-in keyword can only be a modifier as long as it is
+    // followed by another keyword or an identifier. Otherwise, it is the
+    // identifier.
+    //
+    // For example, `external` is a modifier in this declaration:
+    //   external Foo foo();
+    // but is the identifier in this declaration
+    //   external() => true;
+    // and in
+    //   for (final external in list) { }
+    Token next = token.next!;
+    Keyword? keyword = next.keyword;
+    if (keyword == null && !next.isIdentifier || keyword == Keyword.IN) {
+      // Record type is a possibility.
+      if (next.isA(TokenType.OPEN_PAREN)) {
+        Token afterGroup = next.endGroup!.next!;
+        if (afterGroup.isIdentifier || _thisOrSuperWithDot(afterGroup)) {
+          // We've seen either
+          // [modifier] [record type] [identifier], or
+          // [modifier] [record type] `this` `.`, or
+          // [modifier] [record type] `super` `.`
+          return true;
+        } else if (afterGroup.isA(TokenType.QUESTION) &&
+            (afterGroup.next!.isIdentifier ||
+                _thisOrSuperWithDot(afterGroup.next!))) {
+          // We've seen either
+          // [modifier] [record type] `?` [identifier], or
+          // [modifier] [record type] `?` `this` `.`, or
+          // [modifier] [record type] `?` `super` `.`
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+bool _thisOrSuperWithDot(Token token) {
+  if (token.isA(Keyword.THIS) || token.isA(Keyword.SUPER)) {
+    return token.next!.isA(TokenType.PERIOD);
+  }
+  return false;
+}
+
+/// This class is used to parse modifiers in most locations where modifiers
+/// can occur, but does not call handleModifier or handleModifiers.
+class ModifierContext {
+  final Parser parser;
+  Token? abstractToken;
+  Token? augmentToken;
+  Token? constToken;
+  Token? covariantToken;
+  Token? externalToken;
+  Token? finalToken;
+  Token? lateToken;
+  Token? requiredToken;
+  Token? staticToken;
+  Token? varToken;
+
+  // Set `true` when parsing modifiers after the `factory` token.
+  bool _afterFactory = false;
+
+  ModifierContext(this.parser);
+
+  set staticOrCovariant(Token? staticOrCovariant) {
+    if (staticOrCovariant == null) {
+      covariantToken = null;
+      staticToken = null;
+    } else if (staticOrCovariant.isA(Keyword.COVARIANT)) {
+      covariantToken = staticOrCovariant;
+      staticToken = null;
+    } else if (staticOrCovariant.isA(Keyword.STATIC)) {
+      covariantToken = null;
+      staticToken = staticOrCovariant;
+    } else {
+      throw "Internal error: "
+          "Unexpected staticOrCovariant '$staticOrCovariant'.";
+    }
+  }
+
+  Token? get varFinalOrConst => varToken ?? finalToken ?? constToken;
+
+  set varFinalOrConst(Token? varFinalOrConst) {
+    if (varFinalOrConst == null) {
+      varToken = null;
+      finalToken = null;
+      constToken = null;
+    } else if (varFinalOrConst.isA(Keyword.VAR)) {
+      varToken = varFinalOrConst;
+      finalToken = null;
+      constToken = null;
+    } else if (varFinalOrConst.isA(Keyword.FINAL)) {
+      varToken = null;
+      finalToken = varFinalOrConst;
+      constToken = null;
+    } else if (varFinalOrConst.isA(Keyword.CONST)) {
+      varToken = null;
+      finalToken = null;
+      constToken = varFinalOrConst;
+    } else {
+      throw "Internal error: Unexpected varFinalOrConst '$varFinalOrConst'.";
+    }
+  }
+
+  /// Parse modifiers for class declarations.
+  Token parseClassModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    if (constToken != null) {
+      reportTopLevelModifierError(constToken!, keyword);
+    }
+    if (externalToken != null) {
+      reportTopLevelModifierError(externalToken!, keyword);
+    }
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for enum declarations.
+  Token parseEnumModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for extension declarations.
+  Token parseExtensionModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for mixin declarations.
+  Token parseMixinModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for library, import, export, part (of) directives and
+  /// typedef and extension declarations.
+  Token parseTopLevelKeywordModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(augmentToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for class methods and fields.
+  Token parseClassMemberModifiers(Token token) {
+    token = _parseModifiers(token);
+    reportExtraneousModifier(requiredToken);
+    return token;
+  }
+
+  /// Parse modifiers for formal parameters.
+  Token parseFormalParameterModifiers(
+    Token token,
+    FormalParameterKind parameterKind,
+    MemberKind memberKind,
+  ) {
+    token = _parseModifiers(token);
+
+    if (memberKind == MemberKind.PrimaryConstructor) {
+      if (!parameterKind.isNamed) {
+        reportExtraneousModifier(requiredToken);
+      }
+    } else {
+      if (parameterKind != FormalParameterKind.optionalNamed) {
+        reportExtraneousModifier(requiredToken);
+      }
+    }
+
+    switch (memberKind) {
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+      case MemberKind.AnonymousMethod:
+        reportExtraneousModifier(this.covariantToken);
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+        reportExtraneousModifierInExtension(this.covariantToken);
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+        reportExtraneousModifierInExtensionType(this.covariantToken);
+      case MemberKind.PrimaryConstructor:
+        if (covariantToken != null) {
+          if (parser.isPrimaryConstructorsFeatureEnabled) {
+            if (varFinalOrConst == null || !varFinalOrConst!.isA(Keyword.VAR)) {
+              parser.reportRecoverableError(
+                covariantToken!,
+                diag.invalidCovariantModifierInPrimaryConstructor,
+              );
+            }
+          } else {
+            parser.reportRecoverableErrorWithToken(
+              covariantToken!,
+              diag.extraneousModifierInPrimaryConstructor,
+            );
+          }
+        }
+      case MemberKind.Catch:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.NonStaticMethod:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+    }
+    if (constToken != null) {
+      reportExtraneousModifier(constToken);
+    } else if (memberKind == MemberKind.GeneralizedFunctionType) {
+      if (varFinalOrConst != null) {
+        parser.reportRecoverableError(
+          varFinalOrConst!,
+          diag.functionTypedParameterVar,
+        );
+      }
+    }
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(externalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(staticToken);
+    return token;
+  }
+
+  /// Parse modifiers for library directives.
+  Token parseLibraryDirectiveModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers after the `factory` token.
+  Token parseModifiersAfterFactory(Token token) {
+    _afterFactory = true;
+    token = _parseModifiers(token);
+    if (abstractToken != null) {
+      parser.reportRecoverableError(abstractToken!, diag.abstractClassMember);
+    }
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    return token;
+  }
+
+  /// Parse modifiers for top level functions and fields.
+  Token parseTopLevelMemberModifiers(Token token) {
+    token = _parseModifiers(token);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    return token;
+  }
+
+  Token parseTypedefModifiers(Token token, Token keyword) {
+    token = _parseModifiers(token);
+    reportTopLevelModifierError(constToken, keyword);
+    reportTopLevelModifierError(externalToken, keyword);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(varToken);
+    return token;
+  }
+
+  /// Parse modifiers for variable declarations.
+  Token parseVariableDeclarationModifiers(Token token) {
+    token = _parseModifiers(token);
+    reportExtraneousModifier(abstractToken);
+    reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(externalToken);
+    reportExtraneousModifier(requiredToken);
+    reportExtraneousModifier(staticToken);
+    reportExtraneousModifier(augmentToken);
+    return token;
+  }
+
+  /// Parse modifiers during recovery when modifiers are out of order
+  /// or invalid. Typically clients call methods like
+  /// [parseClassMemberModifiers] which in turn calls this method,
+  /// rather than calling this method directly.
+  ///
+  /// The various modifier token parameters represent tokens of modifiers
+  /// that have already been parsed prior to recovery. The [staticOrCovariant]
+  /// parameter is for convenience if caller has a token that may be either
+  /// `static` or `covariant`. The first non-null parameter of
+  /// [staticOrCovariant], [staticToken], or [covariantToken] will be used,
+  /// in that order, and the others ignored.
+  Token _parseModifiers(Token token) {
+    // Process invalid and out-of-order modifiers
+    Token next = token.next!;
+    while (true) {
+      final String? value = next.stringValue;
+      if (isModifier(next)) {
+        if (identical('abstract', value)) {
+          token = _parseAbstract(token);
+        } else if (identical('augment', value)) {
+          token = _parseAugment(token);
+        } else if (identical('const', value)) {
+          token = _parseConst(token);
+        } else if (identical('covariant', value)) {
+          token = _parseCovariant(token);
+        } else if (identical('external', value)) {
+          token = _parseExternal(token);
+        } else if (identical('final', value)) {
+          token = _parseFinal(token);
+        } else if (identical('late', value)) {
+          token = _parseLate(token);
+        } else if (identical('required', value)) {
+          token = _parseRequired(token);
+        } else if (identical('static', value)) {
+          token = _parseStatic(token);
+        } else if (identical('var', value)) {
+          token = _parseVar(token);
+        } else {
+          throw 'Internal Error: Unhandled modifier: $value';
+        }
+      } else if (_afterFactory && identical('factory', value)) {
+        parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+        token = next;
+      } else {
+        break;
+      }
+      next = token.next!;
+    }
+    return token;
+  }
+
+  Token _parseAbstract(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.ABSTRACT));
+    if (abstractToken == null) {
+      abstractToken = next;
+
+      if (varFinalOrConst != null) {
+        reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(next, covariantToken!.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    return next;
+  }
+
+  Token _parseAugment(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.AUGMENT));
+    if (augmentToken == null) {
+      augmentToken = next;
+
+      if (varFinalOrConst != null) {
+        reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
+      } else if (abstractToken != null) {
+        reportModifierOutOfOrder(next, abstractToken!.lexeme);
+      } else if (constToken != null) {
+        reportModifierOutOfOrder(next, constToken!.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(next, covariantToken!.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
+      } else if (staticToken != null) {
+        reportModifierOutOfOrder(next, staticToken!.lexeme);
+      } else if (externalToken != null) {
+        reportModifierOutOfOrder(next, externalToken!.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    return next;
+  }
+
+  Token _parseConst(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.CONST));
+    if (varFinalOrConst == null && covariantToken == null) {
+      constToken = next;
+
+      if (_afterFactory) {
+        reportModifierOutOfOrder(next, 'factory');
+      } else if (lateToken != null) {
+        reportConflictingModifiers(next, lateToken!);
+      }
+      return next;
+    }
+
+    // Recovery
+    if (constToken != null) {
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    } else if (covariantToken != null) {
+      reportConflictingModifiers(next, covariantToken!);
+    } else if (finalToken != null) {
+      parser.reportRecoverableError(next, diag.constAndFinal);
+    } else if (varToken != null) {
+      reportConflictingModifiers(next, varToken!);
+    } else {
+      throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
+    }
+    return next;
+  }
+
+  Token _parseCovariant(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.COVARIANT));
+    if (constToken == null &&
+        covariantToken == null &&
+        staticToken == null &&
+        !_afterFactory) {
+      covariantToken = next;
+
+      if (varToken != null) {
+        reportModifierOutOfOrder(next, varToken!.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    if (covariantToken != null) {
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    } else if (_afterFactory) {
+      reportExtraneousModifier(next);
+    } else if (constToken != null) {
+      reportConflictingModifiers(next, constToken!);
+    } else if (staticToken != null) {
+      parser.reportRecoverableError(next, diag.covariantAndStatic);
+    } else {
+      throw 'Internal Error: Unhandled recovery: $next';
+    }
+    return next;
+  }
+
+  Token _parseExternal(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.EXTERNAL));
+    if (externalToken == null) {
+      externalToken = next;
+
+      if (_afterFactory) {
+        reportModifierOutOfOrder(next, 'factory');
+      } else if (constToken != null) {
+        reportModifierOutOfOrder(next, constToken!.lexeme);
+      } else if (staticToken != null) {
+        reportModifierOutOfOrder(next, staticToken!.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
+      } else if (varFinalOrConst != null) {
+        reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(next, covariantToken!.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    return next;
+  }
+
+  Token _parseFinal(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.FINAL));
+    if (varFinalOrConst == null && !_afterFactory) {
+      finalToken = next;
+      return next;
+    }
+
+    // Recovery
+    if (finalToken != null) {
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    } else if (_afterFactory) {
+      reportExtraneousModifier(next);
+    } else if (constToken != null) {
+      parser.reportRecoverableError(next, diag.constAndFinal);
+    } else if (varToken != null) {
+      parser.reportRecoverableError(next, diag.finalAndVar);
+    } else if (lateToken != null) {
+      reportModifierOutOfOrder(next, lateToken!.lexeme);
+    } else {
+      throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
+    }
+    return next;
+  }
+
+  Token _parseLate(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.LATE));
+    if (lateToken == null) {
+      lateToken = next;
+
+      if (constToken != null) {
+        reportConflictingModifiers(next, constToken!);
+      } else if (varToken != null) {
+        reportModifierOutOfOrder(next, varToken!.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    return next;
+  }
+
+  Token _parseRequired(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.REQUIRED));
+    if (requiredToken == null) {
+      requiredToken = next;
+
+      if (constToken != null) {
+        reportModifierOutOfOrder(requiredToken!, constToken!.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(requiredToken!, covariantToken!.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(requiredToken!, finalToken!.lexeme);
+      } else if (varToken != null) {
+        reportModifierOutOfOrder(requiredToken!, varToken!.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    return next;
+  }
+
+  Token _parseStatic(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.STATIC));
+    if (covariantToken == null && staticToken == null && !_afterFactory) {
+      staticToken = next;
+
+      if (abstractToken != null && parser.isAugmentationsFeatureEnabled) {
+        reportModifierOutOfOrder(next, abstractToken!.lexeme);
+      } else if (constToken != null) {
+        reportModifierOutOfOrder(next, constToken!.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(next, finalToken!.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken!.lexeme);
+      } else if (varToken != null) {
+        reportModifierOutOfOrder(next, varToken!.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    if (covariantToken != null) {
+      parser.reportRecoverableError(next, diag.covariantAndStatic);
+    } else if (staticToken != null) {
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    } else if (_afterFactory) {
+      reportExtraneousModifier(next);
+    } else {
+      throw 'Internal Error: Unhandled recovery: $next';
+    }
+    return next;
+  }
+
+  Token _parseVar(Token token) {
+    Token next = token.next!;
+    assert(next.isA(Keyword.VAR));
+    if (varFinalOrConst == null && !_afterFactory) {
+      varToken = next;
+      return next;
+    }
+
+    // Recovery
+    if (varToken != null) {
+      parser.reportRecoverableErrorWithToken(next, diag.duplicatedModifier);
+    } else if (_afterFactory) {
+      reportExtraneousModifier(next);
+    } else if (constToken != null) {
+      reportConflictingModifiers(next, constToken!);
+    } else if (finalToken != null) {
+      parser.reportRecoverableError(next, diag.finalAndVar);
+    } else {
+      throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
+    }
+    return next;
+  }
+
+  void reportConflictingModifiers(Token modifier, Token earlierModifier) {
+    parser.reportRecoverableError(
+      modifier,
+      diag.conflictingModifiers.withArguments(
+        modifier: modifier.lexeme,
+        earlierModifier: earlierModifier.lexeme,
+      ),
+    );
+  }
+
+  void reportExtraneousModifier(Token? modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(modifier, diag.extraneousModifier);
+    }
+  }
+
+  // Report an error for the given modifier preceding a top level keyword
+  // such as `import` or `class`.
+  void reportTopLevelModifierError(Token? modifier, Token afterModifiers) {
+    if (modifier != null) {
+      if (modifier.isA(Keyword.CONST) && afterModifiers.isA(Keyword.CLASS)) {
+        parser.reportRecoverableError(modifier, diag.constClass);
+      } else if (modifier.isA(Keyword.EXTERNAL)) {
+        if (afterModifiers.isA(Keyword.CLASS)) {
+          parser.reportRecoverableError(modifier, diag.externalClass);
+        } else if (afterModifiers.isA(Keyword.ENUM)) {
+          parser.reportRecoverableError(modifier, diag.externalEnum);
+        } else if (afterModifiers.isA(Keyword.TYPEDEF)) {
+          parser.reportRecoverableError(modifier, diag.externalTypedef);
+        } else {
+          parser.reportRecoverableErrorWithToken(
+            modifier,
+            diag.extraneousModifier,
+          );
+        }
+      } else {
+        parser.reportRecoverableErrorWithToken(
+          modifier,
+          diag.extraneousModifier,
+        );
+      }
+    }
+  }
+
+  void reportExtraneousModifierInExtension(Token? modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(
+        modifier,
+        diag.extraneousModifierInExtension,
+      );
+    }
+  }
+
+  void reportExtraneousModifierInExtensionType(Token? modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(
+        modifier,
+        diag.extraneousModifierInExtensionType,
+      );
+    }
+  }
+
+  void reportExtraneousModifierInPrimaryConstructor(Token? modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(
+        modifier,
+        diag.extraneousModifierInPrimaryConstructor,
+      );
+    }
+  }
+
+  void reportModifierOutOfOrder(Token modifier, String beforeModifier) {
+    parser.reportRecoverableError(
+      modifier,
+      diag.modifierOutOfOrder.withArguments(
+        modifier: modifier.lexeme,
+        expectedLaterModifier: beforeModifier,
+      ),
+    );
+  }
+}

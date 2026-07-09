@@ -1,0 +1,294 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(FieldDeclarationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class FieldDeclarationResolutionTest extends PubPackageResolutionTest {
+  test_initializer_late_super() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  late Object f = super;
+//                ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+}
+''');
+
+    var node = result.findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: Object
+      element: dart:core::@class::Object
+      type: Object
+    variables
+      VariableDeclaration
+        name: f
+        equals: =
+        initializer: SuperExpression
+          superKeyword: super
+          staticType: A
+        declaredFragment: <testLibraryFragment> f@24
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_initializer_late_this() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  late Object f = this;
+}
+''');
+
+    var node = result.findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: Object
+      element: dart:core::@class::Object
+      type: Object
+    variables
+      VariableDeclaration
+        name: f
+        equals: =
+        initializer: ThisExpression
+          thisKeyword: this
+          staticType: A
+        declaredFragment: <testLibraryFragment> f@24
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_initializer_notLate_field() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  final int a = 0;
+  final int b = a;
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
+}
+''');
+
+    var node = result.findNode.fieldDeclaration('b =');
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    type: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    variables
+      VariableDeclaration
+        name: b
+        equals: =
+        initializer: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@class::A::@getter::a
+          staticType: int
+        declaredFragment: <testLibraryFragment> b@41
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_initializer_notLate_getterInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  int get a => 0;
+  final int b = a;
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
+}
+''');
+
+    var node = result.findNode.fieldDeclaration('b =');
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    type: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    variables
+      VariableDeclaration
+        name: b
+        equals: =
+        initializer: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@class::A::@getter::a
+          staticType: int
+        declaredFragment: <testLibraryFragment> b@40
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_initializer_notLate_methodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  int a() => 0;
+  final int b = a();
+//              ^
+// [diag.implicitThisReferenceInInitializer] The instance member 'a' can't be accessed in an initializer.
+}
+''');
+
+    var node = result.findNode.fieldDeclaration('b =');
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    type: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    variables
+      VariableDeclaration
+        name: b
+        equals: =
+        initializer: MethodInvocation
+          methodName: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::A::@method::a
+            staticType: int Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: int Function()
+          staticType: int
+        declaredFragment: <testLibraryFragment> b@38
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_initializer_notLate_this() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  final a = this;
+//          ^^^^
+// [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
+}
+''');
+
+    var node = result.findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: ThisExpression
+          thisKeyword: this
+          staticType: A
+        declaredFragment: <testLibraryFragment> a@18
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_session_getterSetter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  var f = 0;
+}
+''');
+    var getter = result.findElement.getter('f');
+    expect(getter.session, result.session);
+
+    var setter = result.findElement.setter('f');
+    expect(setter.session, result.session);
+  }
+
+  test_type_inferred_int() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  var f = 0;
+}
+''');
+    assertType(result.findElement.field('f').type, 'int');
+  }
+
+  test_type_inferred_Never() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  var f = throw 42;
+}
+''');
+    assertType(result.findElement.field('f').type, 'Never');
+  }
+
+  test_type_inferred_noInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  var f;
+}
+''');
+    assertType(result.findElement.field('f').type, 'dynamic');
+  }
+
+  test_type_inferred_null() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  var f = null;
+}
+''');
+    assertType(result.findElement.field('f').type, 'dynamic');
+  }
+
+  test_type_scope() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<T> {
+  var f = <T>[];
+}
+''');
+
+    var node = result.findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: f
+        equals: =
+        initializer: ListLiteral
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+                element: #E0 T
+                type: T
+            rightBracket: >
+          leftBracket: [
+          rightBracket: ]
+          staticType: List<T>
+        declaredFragment: <testLibraryFragment> f@19
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+}

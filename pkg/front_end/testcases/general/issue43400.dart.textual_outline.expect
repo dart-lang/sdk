@@ -1,0 +1,5 @@
+class Generic<A> {}
+
+extension Extension<A> on Generic<A> {
+  static Generic<A> field = null;
+}

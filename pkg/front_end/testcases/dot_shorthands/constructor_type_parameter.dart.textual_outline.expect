@@ -1,0 +1,20 @@
+class C<T> {
+  T value;
+  C(this.value);
+  C.id(this.value);
+  C<int> toInt(int v) => C<int>(v);
+}
+
+extension type ET<T>(T v) {
+  ET.id(this.v);
+  ET<int> toInt(int v) => ET<int>(v);
+}
+
+class CC<T, S extends Iterable<T>> {
+  T t;
+  CC(this.t);
+}
+
+U bar<U>(CC<U, Iterable<U>> cc) => cc.t;
+
+main() {}

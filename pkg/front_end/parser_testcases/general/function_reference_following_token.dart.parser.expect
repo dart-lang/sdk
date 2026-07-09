@@ -1,0 +1,177 @@
+NOTICE: Stream was rewritten by parser!
+
+var typeArgs_closeBrace = {f<a, b>};
+var typeArgs_closeBracket = [f<a, b>];
+var typeArgs_closeParen = g(f<a, b>);
+var typeArgs_colon = {f<a, b>: null};
+var typeArgs_comma = [f<a, b>, null];
+var typeArgs_equals = f<a, b> == null;
+var typeArgs_not_equals = f<a, b> != null;
+
+
+
+var typeArgs_openParen = f<a, b>();
+
+
+
+var typeArgs_period_methodInvocation = f<a, b>.toString();
+
+var typeArgs_period_methodInvocation_generic = f<a, b>.foo<c>();
+var typeArgs_period_propertyAccess = f<a, b>.hashCode;
+
+var typeArgs_semicolon = f<a, b>;
+
+
+
+
+
+
+
+
+var operators_ampersand = f(a<b,c>*synthetic*&d);
+
+
+
+var operators_as = f(a<b,c>as);
+
+var operators_asterisk = f(a<b,c>*synthetic**d);
+
+
+
+
+
+var operators_bang_openBracket = f(a<b,c>![d]);
+
+
+
+var operators_bang_paren = f(a<b,c>!(d));
+
+var operators_bar = f(a<b,c>*synthetic*|d);
+var operators_caret = f(a<b,c>*synthetic*^d);
+var operators_is = f(a<b,c> *synthetic*is int);
+
+
+
+
+
+var operators_lessThan = f<a><b>[];
+
+
+
+var operators_minus = f(a<b,c>-d);
+
+
+
+var operators_openBracket = f(a<b,c>[d]);
+
+
+
+
+
+
+var operators_openBracket_error = f(a<b,c>[d]>e);
+
+
+
+var operators_openBracket_unambiguous = f(a<b,c>[d, e]);
+
+var operators_percent = f(a<b,c>*synthetic*%d);
+var operators_period_period = f(a<b,c>*synthetic*..toString());
+var operators_plus = f(a<b,c>*synthetic*+d);
+var operators_question = f(a<b,c> *synthetic*? null : null);
+var operators_question_period_methodInvocation = f(a<b,c>*synthetic*?.toString());
+var operators_question_period_methodInvocation_generic = f(a<b,c>*synthetic*?.foo<c>());
+var operators_question_period_period = f(a<b,c>?..*synthetic*,toString());
+var operators_question_period_propertyAccess = f(a<b,c>*synthetic*?.hashCode);
+var operators_question_question = f(a<b,c> *synthetic*?? d);
+var operators_slash = f(a<b,c>*synthetic*/d);
+var operators_tilde_slash = f(a<b,c>*synthetic*~/d);
+
+
+var[KeywordToken] typeArgs_closeBrace[StringToken] =[SimpleToken] {[BeginToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken]}[SimpleToken];[SimpleToken]
+var[KeywordToken] typeArgs_closeBracket[StringToken] =[SimpleToken] [[BeginToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken]][SimpleToken];[SimpleToken]
+var[KeywordToken] typeArgs_closeParen[StringToken] =[SimpleToken] g[StringToken]([BeginToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] typeArgs_colon[StringToken] =[SimpleToken] {[BeginToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken]:[SimpleToken] null[KeywordToken]}[SimpleToken];[SimpleToken]
+var[KeywordToken] typeArgs_comma[StringToken] =[SimpleToken] [[BeginToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken],[SimpleToken] null[KeywordToken]][SimpleToken];[SimpleToken]
+var[KeywordToken] typeArgs_equals[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] ==[SimpleToken] null[KeywordToken];[SimpleToken]
+var[KeywordToken] typeArgs_not_equals[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] !=[SimpleToken] null[KeywordToken];[SimpleToken]
+
+
+
+var[KeywordToken] typeArgs_openParen[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+
+var[KeywordToken] typeArgs_period_methodInvocation[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] typeArgs_period_methodInvocation_generic[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken].[SimpleToken]foo[StringToken]<[BeginToken]c[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] typeArgs_period_propertyAccess[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken].[SimpleToken]hashCode[StringToken];[SimpleToken]
+
+var[KeywordToken] typeArgs_semicolon[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken];[SimpleToken]
+
+
+
+
+
+
+
+
+var[KeywordToken] operators_ampersand[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]&[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+
+
+
+var[KeywordToken] operators_as[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken]as[KeywordToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] operators_asterisk[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]*[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+
+
+
+
+
+var[KeywordToken] operators_bang_openBracket[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken]![SimpleToken][[BeginToken]d[StringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+
+
+
+var[KeywordToken] operators_bang_paren[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken]![SimpleToken]([BeginToken]d[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] operators_bar[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]|[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_caret[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]^[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_is[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken] [SyntheticStringToken]is[KeywordToken] int[StringToken])[SimpleToken];[SimpleToken]
+
+
+
+
+
+var[KeywordToken] operators_lessThan[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken]>[SimpleToken]<[BeginToken]b[StringToken]>[SimpleToken][[SyntheticBeginToken]][SyntheticToken];[SimpleToken]
+
+
+
+var[KeywordToken] operators_minus[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken]-[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+
+
+
+var[KeywordToken] operators_openBracket[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][[BeginToken]d[StringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+
+
+
+
+
+
+var[KeywordToken] operators_openBracket_error[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][[BeginToken]d[StringToken]][SimpleToken]>[SimpleToken]e[StringToken])[SimpleToken];[SimpleToken]
+
+
+
+var[KeywordToken] operators_openBracket_unambiguous[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][[BeginToken]d[StringToken],[SimpleToken] e[StringToken]][SimpleToken])[SimpleToken];[SimpleToken]
+
+var[KeywordToken] operators_percent[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]%[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_period_period[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]..[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_plus[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]+[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_question[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken] [SyntheticStringToken]?[SimpleToken] null[KeywordToken] :[SimpleToken] null[KeywordToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_question_period_methodInvocation[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]?.[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_question_period_methodInvocation_generic[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]?.[SimpleToken]foo[StringToken]<[BeginToken]c[StringToken]>[SimpleToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_question_period_period[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken]?..[SimpleToken][SyntheticStringToken],[SyntheticToken]toString[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_question_period_propertyAccess[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]?.[SimpleToken]hashCode[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_question_question[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken] [SyntheticStringToken]??[SimpleToken] d[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_slash[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]/[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] operators_tilde_slash[StringToken] =[SimpleToken] f[StringToken]([BeginToken]a[StringToken]<[BeginToken]b[StringToken],[SimpleToken]c[StringToken]>[SimpleToken][SyntheticStringToken]~/[SimpleToken]d[StringToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

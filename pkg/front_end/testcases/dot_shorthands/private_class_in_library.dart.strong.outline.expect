@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Public_C = self::_C;
+typedef Public_Const = self::_Const;
+class _C extends core::Object {
+  constructor named() → self::_C
+    ;
+  constructor •() → self::_C
+    ;
+  static get getter() → self::_C
+    ;
+  static method method() → self::_C
+    ;
+}
+class _Const extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::_Const
+    : super core::Object::•()
+    ;
+  const constructor named() → self::_Const
+    : super core::Object::•()
+    ;
+}
+static final field self::_C v;
+static const field self::_Const constV = const self::_Const::•();
+static method test() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///private_class_in_library.dart:21:29 -> InstanceConstant(const _Const{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

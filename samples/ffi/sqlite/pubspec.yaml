@@ -1,0 +1,10 @@
+name: sqlite3
+version: 0.0.1
+description: >-
+  Sqlite3 wrapper. Demo for dart:ffi.
+environment:
+  sdk: ^3.0.0
+dependencies:
+  ffi: ^2.0.0
+dev_dependencies:
+  test: ^1.21.1

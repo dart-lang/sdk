@@ -1,0 +1,22 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    constant_identifier_names: ignore
+    non_constant_identifier_names: ignore
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
+    todo: ignore
+    # Existing violations (109)
+    unintended_html_in_doc_comment: ignore
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_bool_literals_in_conditional_expressions
+    - no_literal_bool_comparisons
+    - omit_local_variable_types
+    - prefer_single_quotes
+    - unawaited_futures
+    - unnecessary_const_in_enum_constructor
+    - unnecessary_type_name_in_constructor

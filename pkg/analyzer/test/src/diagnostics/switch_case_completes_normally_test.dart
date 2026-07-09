@@ -1,0 +1,213 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SwitchCaseCompletesNormallyTest);
+    defineReflectiveTests(SwitchCaseCompletesNormallyTest_Language219);
+  });
+}
+
+@reflectiveTest
+class SwitchCaseCompletesNormallyTest extends PubPackageResolutionTest
+    with SwitchCaseCompletesNormallyTestCases {
+  @override
+  bool get _patternsEnabled => true;
+}
+
+@reflectiveTest
+class SwitchCaseCompletesNormallyTest_Language219
+    extends PubPackageResolutionTest
+    with WithLanguage219Mixin, SwitchCaseCompletesNormallyTestCases {
+  @override
+  bool get _patternsEnabled => false;
+}
+
+mixin SwitchCaseCompletesNormallyTestCases on PubPackageResolutionTest {
+  bool get _patternsEnabled;
+
+  test_break() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      break;
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_completes() async {
+    if (_patternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      print(0);
+    default:
+      return;
+  }
+}''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+//  ^^^^
+// [diag.switchCaseCompletesNormally] The 'case' shouldn't complete normally.
+      print(0);
+    default:
+      return;
+  }
+}''');
+    }
+  }
+
+  test_continue_loop() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  while (true) {
+    switch (a) {
+      case 0:
+        continue;
+      default:
+        return;
+    }
+  }
+}
+''');
+  }
+
+  test_for_whatever() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      for (;;) {
+        print(0);
+      }
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_lastCase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(int a) {
+  switch (a) {
+    case 0:
+      print(0);
+  }
+}
+''');
+  }
+
+  test_methodInvocation_never() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      neverCompletes();
+    default:
+      return;
+  }
+}
+
+Never neverCompletes() {
+  throw 0;
+}
+''');
+  }
+
+  test_multiple_cases_sharing_a_body() async {
+    if (_patternsEnabled) {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+    case 1:
+      print(0);
+    default:
+      return;
+  }
+}''');
+    } else {
+      await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+//  ^^^^
+// [diag.switchCaseCompletesNormally] The 'case' shouldn't complete normally.
+    case 1:
+      print(0);
+    default:
+      return;
+  }
+}''');
+    }
+  }
+
+  test_return() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      return;
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_return2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+    case 1:
+      return;
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_throw() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      throw 42;
+    default:
+      return;
+  }
+}
+''');
+  }
+
+  test_while_true() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      while (true) {
+        print(0);
+      }
+    default:
+      return;
+  }
+}
+''');
+  }
+}

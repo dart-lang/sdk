@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:6:3: Error: Functions marked 'async' must have a return type assignable to 'Future'.
+//   int f_async() async {
+//   ^^^
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:12:3: Error: Functions marked 'async*' must have a return type assignable to 'Stream'.
+//   int f_async_star() async* {
+//   ^^^
+//
+// pkg/front_end/testcases/regress/issue_37681.dart:20:3: Error: Functions marked 'sync*' must have a return type assignable to 'Iterable'.
+//   int f_sync_star() sync* {
+//   ^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method main() → dynamic async /* emittedValueType= dynamic */ {
+  function f_async() → core::int async /* emittedValueType= core::Object? */ {
+    return 42;
+  }
+  core::print(await f_async(){() → core::int} /* runtimeCheckType= asy::Future<core::int> */ );
+  function f_async_star() → core::int async* /* emittedValueType= dynamic */ {
+    yield 42;
+  }
+  await for (dynamic x in (f_async_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>) {
+    core::print(x);
+  }
+  function f_sync_star() → core::int sync* /* emittedValueType= dynamic */ {
+    yield 42;
+  }
+  for (dynamic x in (f_sync_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+    core::print(x);
+  }
+}

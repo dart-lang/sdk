@@ -1,0 +1,167 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field dynamic field;
+  synthetic constructor •() → self::Class
+    ;
+}
+class GenericClass<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::GenericClass::T? field;
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T%>
+    ;
+}
+extension Extension on self::Class {
+  method readGetter = self::Extension|readGetter;
+  method tearoff readGetter = self::Extension|get#readGetter;
+  method writeSetterRequired = self::Extension|writeSetterRequired;
+  method tearoff writeSetterRequired = self::Extension|get#writeSetterRequired;
+  method writeSetterOptional = self::Extension|writeSetterOptional;
+  method tearoff writeSetterOptional = self::Extension|get#writeSetterOptional;
+  method writeSetterNamed = self::Extension|writeSetterNamed;
+  method tearoff writeSetterNamed = self::Extension|get#writeSetterNamed;
+  get tearOffGetterNoArgs = self::Extension|get#tearOffGetterNoArgs;
+  get tearOffGetterRequired = self::Extension|get#tearOffGetterRequired;
+  get tearOffGetterOptional = self::Extension|get#tearOffGetterOptional;
+  get tearOffGetterNamed = self::Extension|get#tearOffGetterNamed;
+  get property = self::Extension|get#property;
+  set property = self::Extension|set#property;
+  method invocations = self::Extension|invocations;
+  method tearoff invocations = self::Extension|get#invocations;
+  method tearOffs = self::Extension|tearOffs;
+  method tearoff tearOffs = self::Extension|get#tearOffs;
+  method getterCalls = self::Extension|getterCalls;
+  method tearoff getterCalls = self::Extension|get#getterCalls;
+}
+extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
+  method readGetter = self::GenericExtension|readGetter;
+  method tearoff readGetter = self::GenericExtension|get#readGetter;
+  method writeSetterRequired = self::GenericExtension|writeSetterRequired;
+  method tearoff writeSetterRequired = self::GenericExtension|get#writeSetterRequired;
+  method writeSetterOptional = self::GenericExtension|writeSetterOptional;
+  method tearoff writeSetterOptional = self::GenericExtension|get#writeSetterOptional;
+  method writeSetterNamed = self::GenericExtension|writeSetterNamed;
+  method tearoff writeSetterNamed = self::GenericExtension|get#writeSetterNamed;
+  method genericWriteSetterRequired = self::GenericExtension|genericWriteSetterRequired;
+  method tearoff genericWriteSetterRequired = self::GenericExtension|get#genericWriteSetterRequired;
+  method genericWriteSetterOptional = self::GenericExtension|genericWriteSetterOptional;
+  method tearoff genericWriteSetterOptional = self::GenericExtension|get#genericWriteSetterOptional;
+  method genericWriteSetterNamed = self::GenericExtension|genericWriteSetterNamed;
+  method tearoff genericWriteSetterNamed = self::GenericExtension|get#genericWriteSetterNamed;
+  get property = self::GenericExtension|get#property;
+  set property = self::GenericExtension|set#property;
+  get tearOffGetterNoArgs = self::GenericExtension|get#tearOffGetterNoArgs;
+  get tearOffGetterRequired = self::GenericExtension|get#tearOffGetterRequired;
+  get tearOffGetterOptional = self::GenericExtension|get#tearOffGetterOptional;
+  get tearOffGetterNamed = self::GenericExtension|get#tearOffGetterNamed;
+  get tearOffGetterGenericRequired = self::GenericExtension|get#tearOffGetterGenericRequired;
+  get tearOffGetterGenericOptional = self::GenericExtension|get#tearOffGetterGenericOptional;
+  get tearOffGetterGenericNamed = self::GenericExtension|get#tearOffGetterGenericNamed;
+  method invocations = self::GenericExtension|invocations;
+  method tearoff invocations = self::GenericExtension|get#invocations;
+  method tearOffs = self::GenericExtension|tearOffs;
+  method tearoff tearOffs = self::GenericExtension|get#tearOffs;
+  method getterCalls = self::GenericExtension|getterCalls;
+  method tearoff getterCalls = self::GenericExtension|get#getterCalls;
+}
+static extension-member method Extension|readGetter(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#readGetter(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|readGetter(#this);
+static extension-member method Extension|writeSetterRequired(lowered final self::Class #this, dynamic value) → dynamic
+  ;
+static extension-member method Extension|get#writeSetterRequired(lowered final self::Class #this) → (dynamic) → dynamic
+  return (dynamic value) → dynamic => self::Extension|writeSetterRequired(#this, value);
+static extension-member method Extension|writeSetterOptional(lowered final self::Class #this, [dynamic value]) → dynamic
+  ;
+static extension-member method Extension|get#writeSetterOptional(lowered final self::Class #this) → ([dynamic]) → dynamic
+  return ([dynamic value]) → dynamic => self::Extension|writeSetterOptional(#this, value);
+static extension-member method Extension|writeSetterNamed(lowered final self::Class #this, {dynamic value}) → dynamic
+  ;
+static extension-member method Extension|get#writeSetterNamed(lowered final self::Class #this) → ({value: dynamic}) → dynamic
+  return ({dynamic value}) → dynamic => self::Extension|writeSetterNamed(#this, value: value);
+static extension-member method Extension|get#tearOffGetterNoArgs(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#tearOffGetterRequired(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#tearOffGetterOptional(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#tearOffGetterNamed(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#property(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|set#property(lowered final self::Class #this, dynamic value) → void
+  ;
+static extension-member method Extension|invocations(lowered final self::Class #this, dynamic value) → dynamic
+  ;
+static extension-member method Extension|get#invocations(lowered final self::Class #this) → (dynamic) → dynamic
+  return (dynamic value) → dynamic => self::Extension|invocations(#this, value);
+static extension-member method Extension|tearOffs(lowered final self::Class #this, dynamic value) → dynamic
+  ;
+static extension-member method Extension|get#tearOffs(lowered final self::Class #this) → (dynamic) → dynamic
+  return (dynamic value) → dynamic => self::Extension|tearOffs(#this, value);
+static extension-member method Extension|getterCalls(lowered final self::Class #this, dynamic value) → dynamic
+  ;
+static extension-member method Extension|get#getterCalls(lowered final self::Class #this) → (dynamic) → dynamic
+  return (dynamic value) → dynamic => self::Extension|getterCalls(#this, value);
+static extension-member method GenericExtension|readGetter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|readGetter::T%> #this) → self::GenericExtension|readGetter::T?
+  ;
+static extension-member method GenericExtension|get#readGetter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#readGetter::T%> #this) → () → self::GenericExtension|get#readGetter::T?
+  return () → self::GenericExtension|get#readGetter::T? => self::GenericExtension|readGetter<self::GenericExtension|get#readGetter::T%>(#this);
+static extension-member method GenericExtension|writeSetterRequired<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|writeSetterRequired::T%> #this, self::GenericExtension|writeSetterRequired::T% value) → dynamic
+  ;
+static extension-member method GenericExtension|get#writeSetterRequired<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#writeSetterRequired::T%> #this) → (self::GenericExtension|get#writeSetterRequired::T%) → dynamic
+  return (self::GenericExtension|get#writeSetterRequired::T% value) → dynamic => self::GenericExtension|writeSetterRequired<self::GenericExtension|get#writeSetterRequired::T%>(#this, value);
+static extension-member method GenericExtension|writeSetterOptional<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|writeSetterOptional::T%> #this, [self::GenericExtension|writeSetterOptional::T? value]) → dynamic
+  ;
+static extension-member method GenericExtension|get#writeSetterOptional<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#writeSetterOptional::T%> #this) → ([self::GenericExtension|get#writeSetterOptional::T?]) → dynamic
+  return ([self::GenericExtension|get#writeSetterOptional::T? value]) → dynamic => self::GenericExtension|writeSetterOptional<self::GenericExtension|get#writeSetterOptional::T%>(#this, value);
+static extension-member method GenericExtension|writeSetterNamed<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|writeSetterNamed::T%> #this, {self::GenericExtension|writeSetterNamed::T? value}) → dynamic
+  ;
+static extension-member method GenericExtension|get#writeSetterNamed<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#writeSetterNamed::T%> #this) → ({value: self::GenericExtension|get#writeSetterNamed::T?}) → dynamic
+  return ({self::GenericExtension|get#writeSetterNamed::T? value}) → dynamic => self::GenericExtension|writeSetterNamed<self::GenericExtension|get#writeSetterNamed::T%>(#this, value: value);
+static extension-member method GenericExtension|genericWriteSetterRequired<T extends core::Object? = dynamic, S extends self::GenericExtension|genericWriteSetterRequired::T% = dynamic>(lowered final self::GenericClass<self::GenericExtension|genericWriteSetterRequired::T%> #this, self::GenericExtension|genericWriteSetterRequired::S% value) → dynamic
+  ;
+static extension-member method GenericExtension|get#genericWriteSetterRequired<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#genericWriteSetterRequired::T%> #this) → <S extends self::GenericExtension|get#genericWriteSetterRequired::T% = dynamic>(S%) → dynamic
+  return <S extends self::GenericExtension|get#genericWriteSetterRequired::T% = dynamic>(S% value) → dynamic => self::GenericExtension|genericWriteSetterRequired<self::GenericExtension|get#genericWriteSetterRequired::T%, S%>(#this, value);
+static extension-member method GenericExtension|genericWriteSetterOptional<T extends core::Object? = dynamic, S extends self::GenericExtension|genericWriteSetterOptional::T% = dynamic>(lowered final self::GenericClass<self::GenericExtension|genericWriteSetterOptional::T%> #this, [self::GenericExtension|genericWriteSetterOptional::S? value]) → dynamic
+  ;
+static extension-member method GenericExtension|get#genericWriteSetterOptional<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#genericWriteSetterOptional::T%> #this) → <S extends self::GenericExtension|get#genericWriteSetterOptional::T% = dynamic>([S?]) → dynamic
+  return <S extends self::GenericExtension|get#genericWriteSetterOptional::T% = dynamic>([S? value]) → dynamic => self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|get#genericWriteSetterOptional::T%, S%>(#this, value);
+static extension-member method GenericExtension|get#genericWriteSetterNamed<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#genericWriteSetterNamed::T%> #this) → <S extends self::GenericExtension|get#genericWriteSetterNamed::T% = dynamic>({value: S?}) → dynamic
+  return <S extends self::GenericExtension|get#genericWriteSetterNamed::T% = dynamic>({S? value}) → dynamic => self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|get#genericWriteSetterNamed::T%, S%>(#this, value: value);
+static extension-member method GenericExtension|genericWriteSetterNamed<T extends core::Object? = dynamic, S extends self::GenericExtension|genericWriteSetterNamed::T% = dynamic>(lowered final self::GenericClass<self::GenericExtension|genericWriteSetterNamed::T%> #this, {self::GenericExtension|genericWriteSetterNamed::S? value}) → dynamic
+  ;
+static extension-member method GenericExtension|get#property<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#property::T%> #this) → self::GenericExtension|get#property::T?
+  ;
+static extension-member method GenericExtension|set#property<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#property::T%> #this, self::GenericExtension|set#property::T? value) → void
+  ;
+static extension-member method GenericExtension|get#tearOffGetterNoArgs<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffGetterNoArgs::T%> #this) → dynamic
+  ;
+static extension-member method GenericExtension|get#tearOffGetterRequired<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffGetterRequired::T%> #this) → dynamic
+  ;
+static extension-member method GenericExtension|get#tearOffGetterOptional<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffGetterOptional::T%> #this) → dynamic
+  ;
+static extension-member method GenericExtension|get#tearOffGetterNamed<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffGetterNamed::T%> #this) → dynamic
+  ;
+static extension-member method GenericExtension|get#tearOffGetterGenericRequired<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffGetterGenericRequired::T%> #this) → dynamic
+  ;
+static extension-member method GenericExtension|get#tearOffGetterGenericOptional<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffGetterGenericOptional::T%> #this) → dynamic
+  ;
+static extension-member method GenericExtension|get#tearOffGetterGenericNamed<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffGetterGenericNamed::T%> #this) → dynamic
+  ;
+static extension-member method GenericExtension|invocations<T extends core::Object? = dynamic, S extends self::GenericExtension|invocations::T% = dynamic>(lowered final self::GenericClass<self::GenericExtension|invocations::T%> #this, self::GenericExtension|invocations::S% value) → dynamic
+  ;
+static extension-member method GenericExtension|get#invocations<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#invocations::T%> #this) → <S extends self::GenericExtension|get#invocations::T% = dynamic>(S%) → dynamic
+  return <S extends self::GenericExtension|get#invocations::T% = dynamic>(S% value) → dynamic => self::GenericExtension|invocations<self::GenericExtension|get#invocations::T%, S%>(#this, value);
+static extension-member method GenericExtension|tearOffs<T extends core::Object? = dynamic, S extends self::GenericExtension|tearOffs::T% = dynamic>(lowered final self::GenericClass<self::GenericExtension|tearOffs::T%> #this, self::GenericExtension|tearOffs::S% value) → dynamic
+  ;
+static extension-member method GenericExtension|get#tearOffs<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#tearOffs::T%> #this) → <S extends self::GenericExtension|get#tearOffs::T% = dynamic>(S%) → dynamic
+  return <S extends self::GenericExtension|get#tearOffs::T% = dynamic>(S% value) → dynamic => self::GenericExtension|tearOffs<self::GenericExtension|get#tearOffs::T%, S%>(#this, value);
+static extension-member method GenericExtension|getterCalls<T extends core::Object? = dynamic, S extends self::GenericExtension|getterCalls::T% = dynamic>(lowered final self::GenericClass<self::GenericExtension|getterCalls::T%> #this, self::GenericExtension|getterCalls::S% value) → dynamic
+  ;
+static extension-member method GenericExtension|get#getterCalls<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#getterCalls::T%> #this) → <S extends self::GenericExtension|get#getterCalls::T% = dynamic>(S%) → dynamic
+  return <S extends self::GenericExtension|get#getterCalls::T% = dynamic>(S% value) → dynamic => self::GenericExtension|getterCalls<self::GenericExtension|get#getterCalls::T%, S%>(#this, value);
+static method main() → dynamic
+  ;

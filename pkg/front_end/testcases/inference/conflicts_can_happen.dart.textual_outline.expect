@@ -1,0 +1,27 @@
+library test;
+
+class I1 {
+  int x = 0;
+}
+
+class I2 extends I1 {
+  int y = 0;
+}
+
+class A {
+  final I1 a = throw '';
+}
+
+class B {
+  final I2 a = throw '';
+}
+
+class C1 implements A, B {
+  get a => throw '';
+}
+
+class C2 implements B, A {
+  get a => throw '';
+}
+
+main() {}

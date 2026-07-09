@@ -1,0 +1,5 @@
+set noparent
+file:/tools/OWNERS_INTEROP
+bkonyi@google.com
+# In addition allow global owners.
+file:/OWNERS

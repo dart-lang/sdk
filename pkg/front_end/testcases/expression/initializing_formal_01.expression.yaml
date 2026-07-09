@@ -1,0 +1,35 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Standing at the last parameter of a method with an initializing formal.
+
+sources: |
+  void main() {
+    new Foo(1, 42);
+  }
+
+  class Foo {
+    num i;
+    int j;
+
+    Foo(int this.i, int x) : j = i * x {
+      print(i);
+    }
+  }
+
+# We pretend like the VM sends over "i" too. It currently doesn't though.
+definitions: ["i", "x"]
+# We pretend to VM doesn't send over information so we can see a difference in
+# the output when we find the actual type (i.e. when we find it to be in scope).
+definition_types: ["null", "null"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "Foo"
+position: "#Foo"
+static: false
+offset: 88 # on the last parameter ("x").
+scriptUri: main.dart
+expression: |
+  i.isEven

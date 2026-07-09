@@ -1,0 +1,11 @@
+abstract class I {
+  void foo();
+}
+
+class B extends Object with A {}
+
+main() {}
+
+mixin class A implements I {
+  dynamic noSuchMethod(Invocation i) => null;
+}

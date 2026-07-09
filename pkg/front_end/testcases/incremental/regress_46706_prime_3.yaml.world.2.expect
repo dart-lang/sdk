@@ -1,0 +1,14 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  static method libMethod() → void {}
+  static method partMethod() → void {}
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart" as lib;
+
+  static method main() → void {
+    lib::partMethod();
+  }
+}

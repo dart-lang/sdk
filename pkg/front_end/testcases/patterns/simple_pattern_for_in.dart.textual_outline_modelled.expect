@@ -1,0 +1,11 @@
+expectEquals(x, y) {}
+
+expectThrows(void Function() f) {}
+
+main() {}
+
+test1(dynamic x) {}
+
+test2(Iterable<List<String>> x) {}
+
+test3(Iterable<dynamic> x) {}

@@ -1,0 +1,389 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(OverriddenFieldsTest);
+  });
+}
+
+@reflectiveTest
+class OverriddenFieldsTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.overridden_fields;
+
+  test_augmentationClass() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+
+class O {
+  final a = '';
+}
+
+class A extends O { }
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
+augment class A {
+  final [!a!] = '';
+}
+''');
+    await assertNoDiagnosticsInFile(a.path);
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There is a diagnostic in b.dart.',
+  )
+  // TODO(scheglov): implement augmentation
+  test_augmentedField() async {
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+
+augment class A {
+  augment final a = '';
+}
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
+part 'b.dart';
+
+class O {
+  final a = '';
+}
+
+class A extends O {
+  @override
+  final [!a!] = '';
+}
+''');
+    await assertNoDiagnosticsInFile(b.path);
+  }
+
+  test_conflictingFieldAndMethod() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  int x() => 0;
+}
+
+class B extends A {
+  int x = 9;
+}
+''',
+      [error(diag.conflictingFieldAndMethod, 55, 1)],
+    );
+  }
+
+  /// https://github.com/dart-lang/linter/issues/2874
+  test_conflictingStaticAndInstance() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static final String field = 'value';
+}
+
+class B extends A {
+  String field = 'otherValue';
+}
+''');
+  }
+
+  test_extendingClass_multipleDeclarations() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  int y = 1;
+}
+class B extends A {
+  final x = 1, [!y!] = 2;
+}
+''');
+  }
+
+  test_extendingClass_overridingAbstract() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  abstract int x;
+}
+class B extends A {
+  @override
+  int x = 1;
+}
+''');
+  }
+
+  test_extendingClass_staticField() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static int x = 1;
+}
+class B extends A {
+  static int x = 2;
+}
+''');
+  }
+
+  test_extendsClass_indirectly() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  int x = 0;
+}
+class B extends A {}
+class C extends B {
+  @override
+  int [!x!] = 1;
+}
+''');
+  }
+
+  test_externalLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int? public;
+}
+''');
+    await assertDiagnosticsFromMarkup(r'''
+import 'a.dart';
+class B extends A {
+  int? [!public!];
+}
+''');
+  }
+
+  test_externalLibraryWithPrivateField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int? _private;
+}
+''');
+    await assertNoDiagnostics(r'''
+import 'a.dart';
+class B extends A {
+  int? _private;
+}
+''');
+  }
+
+  test_fieldOverridesGetter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int get a => 0;
+}
+class B extends A {
+  @override
+  int a = 1;
+}
+''');
+  }
+
+  test_implementingClass() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 1;
+}
+class B implements A {
+  @override
+  int x = 2;
+}
+''');
+  }
+
+  test_mixingInMixin() async {
+    await assertDiagnosticsFromMarkup(r'''
+mixin M {
+  int x = 1;
+}
+class A with M {
+  @override
+  int [!x!] = 2;
+}
+''');
+  }
+
+  test_mixingInMixin_overridingAbstract() async {
+    await assertNoDiagnostics(r'''
+mixin M {
+  abstract int x;
+}
+class A with M {
+  @override
+  int x = 2;
+}
+''');
+  }
+
+  test_mixinInheritsFromNotObject() async {
+    // See: https://github.com/dart-lang/linter/issues/2969
+    // Preserves existing testing logic but has so many misuses of mixins that
+    // that it's hard to know how much tested logic is intentional.
+    await assertDiagnostics(
+      r'''
+class Base {
+  Object field = 'lorem';
+
+  Object something = 'change';
+}
+
+class Bad1 extends Base {
+  @override
+  final x = 1, field = 'ipsum';
+}
+
+class GC11 extends Bad1 {
+  @override
+  Object something = 'done';
+
+  Object gc33 = 'gc33';
+}
+
+class GC13 extends Object with Bad1 {
+  @override
+  Object something = 'done';
+
+  @override
+  Object field = 'lint';
+}
+
+abstract class GC21 extends GC11 {
+  @override
+  Object something = 'done';
+}
+
+class GC23 extends Object with GC13 {
+  @override
+  Object something = 'done';
+
+  @override
+  Object field = 'lint';
+}
+
+abstract class GC31 extends GC13 {
+  @override
+  Object something = 'done';
+}
+
+abstract class GC32 implements GC13 {
+  @override
+  Object something = 'done';
+}
+
+class GC33 extends GC21 with GC13 {
+  @override
+  Object something = 'done';
+
+  @override
+  Object gc33 = 'yada';
+}
+
+class GC34 extends GC33 {
+  @override
+  var x = 3;
+
+  @override
+  Object gc33 = 'yada';
+}
+''',
+      [
+        error(diag.overrideOnNonOverridingField, 120, 1),
+        lint(127, 5),
+        lint(194, 9),
+        error(diag.classUsedAsMixin, 273, 4),
+        lint(301, 9),
+        lint(343, 5),
+        lint(418, 9),
+        error(diag.classUsedAsMixin, 472, 4),
+        lint(500, 9),
+        lint(542, 5),
+        lint(617, 9),
+        error(diag.classUsedAsMixin, 751, 4),
+        lint(779, 9),
+        lint(821, 4),
+        lint(883, 1),
+        lint(912, 4),
+      ],
+    );
+  }
+
+  test_mixinSuperclassConstraint() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  int x = 1;
+}
+mixin M on A {
+  @override
+  final [!x!] = 1;
+}
+''');
+  }
+
+  test_overridingAbstractField() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  abstract int x;
+}
+
+class B extends A {
+  @override
+  int x = 1;
+}
+''');
+  }
+
+  test_privateFieldInSameLibrary() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  int _x = 0;
+}
+
+class B extends A {
+  int [!_x!] = 9;
+}
+''');
+  }
+
+  test_publicFieldFromDeclaringParameter() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  int x = 0;
+}
+
+class B(var int [!x!]) extends A {}
+''');
+  }
+
+  test_publicFieldInSameLibrary() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  int x = 0;
+}
+
+class B extends A {
+  int [!x!] = 9;
+}
+''');
+  }
+
+  test_recursiveInterfaceInheritance() async {
+    // Produces a recursive_interface_inheritance diagnostic.
+    await assertDiagnostics(
+      r'''
+class A extends B {}
+class B extends A {
+  int field = 0;
+}
+''',
+      [
+        // No lint
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
+      ],
+    );
+  }
+}

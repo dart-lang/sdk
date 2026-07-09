@@ -1,0 +1,15 @@
+interface class A {}
+
+abstract interface class B {}
+
+mixin M {}
+interface class C = Object with M;
+
+
+interface[KeywordToken] class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
+
+abstract[KeywordToken] interface[KeywordToken] class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]
+
+mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+interface[KeywordToken] class[KeywordToken] C[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
+[SimpleToken]

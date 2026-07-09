@@ -1,0 +1,7 @@
+library test;
+
+main() {}
+
+var x = f();
+
+void f() {}

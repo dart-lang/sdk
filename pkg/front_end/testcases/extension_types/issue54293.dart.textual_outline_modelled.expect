@@ -1,0 +1,5 @@
+extension type Int(int i) implements int {
+  Int operator +(int other) {}
+}
+
+void test() {}

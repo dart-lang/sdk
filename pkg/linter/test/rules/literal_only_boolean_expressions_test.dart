@@ -1,0 +1,299 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LiteralOnlyBooleanExpressionsTest);
+  });
+}
+
+@reflectiveTest
+class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.literal_only_boolean_expressions;
+
+  test_adjacent_string_interpolation_constant() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  const a = 20;
+  [!if ('$a' '0' == 20) {}!]
+}
+''');
+  }
+
+  test_adjacent_string_interpolation_nonconstant() async {
+    await assertNoDiagnostics(r'''
+void f(int a) {
+  if ('$a' '0' == 20) {}
+}
+''');
+  }
+
+  test_doWhile_false() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!do {} while (false);!]
+}
+''');
+  }
+
+  test_for_trueCondition() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!for (; true; ) {}!]
+}
+''');
+  }
+
+  test_if_andTrue() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!if (1 != 0 && true) {}!]
+}
+''');
+  }
+
+  test_if_notTrue() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  if (!true) {}
+}
+''',
+      [lint(13, 13), error(diag.deadCode, 24, 2)],
+    );
+  }
+
+  test_if_nullAware_notEqual() async {
+    await assertNoDiagnostics(r'''
+void f(String? text) {
+  if ((text?.length ?? 0) != 0) {}
+}
+''');
+  }
+
+  test_if_or_thenAndTrue() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!if (1 != 0 || 3 < 4 && true) {}!]
+}
+''');
+  }
+
+  test_if_true() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!if (true) {}!]
+}
+''');
+  }
+
+  test_if_trueAnd() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!if (true && 1 != 0) {}!]
+}
+''');
+  }
+
+  test_if_trueAnd_thenOr() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!if (true && 1 != 0 || 3 < 4) {}!]
+}
+''');
+  }
+
+  test_if_trueAndFalse() async {
+    await assertDiagnostics(
+      r'''
+void bad() {
+  if (true && false) {}
+}
+''',
+      [lint(15, 21), error(diag.deadCode, 34, 2)],
+    );
+  }
+
+  test_if_x() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  [!if (1 != 0) {}!]
+}
+''');
+  }
+
+  test_ifCase_intLiteral() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  if (1 case {1:0}) {
+    print('');
+  }
+}
+''',
+      [
+        // No lint
+        error(diag.patternNeverMatchesValueType, 24, 5),
+      ],
+    );
+  }
+
+  test_ifCase_listLiteral() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  if ([1] case [1]) {
+    print('');
+  }
+}
+''');
+  }
+
+  test_ifCase_mapLiteral() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  if ({1:0} case {1:0}) {
+    print('');
+  }
+}
+''');
+  }
+
+  test_ifCase_objectInstantiation() async {
+    await assertNoDiagnostics(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+
+void f() {
+  if (A(1) case A(a: 1)) {
+    print('');
+  }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4352
+  test_ifCase_record() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  if (('', '') case (String(), String())) {
+    print('');
+  }
+}
+''');
+  }
+
+  test_is_expression_both_operands_known() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  if (20 is int) {}
+}
+''',
+      [lint(13, 17), error(diag.unnecessaryTypeCheckTrue, 17, 9)],
+    );
+  }
+
+  test_is_expression_only_left_operand_unknown() async {
+    await assertNoDiagnostics(r'''
+void f(a) {
+  if (a is int) {}
+}
+''');
+  }
+
+  test_is_expression_only_right_operand_unknown() async {
+    await assertNoDiagnostics(r'''
+void f<T>(a) {
+  if (20 is T) {}
+}
+''');
+  }
+
+  test_nullAware() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(bool p) {
+  [!if (null ?? p) {}!]
+}
+''');
+  }
+
+  test_string_interpolation_constant() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f() {
+  const a = 15;
+  [!if ('$a' == '20') {}!]
+}
+''');
+  }
+
+  test_string_interpolation_nonconstant() async {
+    await assertNoDiagnostics(r'''
+void f(int a) {
+  if ('$a'=='20') {}
+}
+''');
+  }
+
+  test_string_interpolation_typeVariable() async {
+    await assertNoDiagnostics(r'''
+void f<T>() {
+  if ('$T' == '20') {}
+}
+''');
+  }
+
+  test_switchExpression() async {
+    await assertNoDiagnostics(r'''
+bool f(Object o) => switch(o) {
+    [1] => true,
+    {1:1} => false,
+    (1, 1) => false,
+    String(isEmpty: false) => false,
+    _ => false,
+  };
+''');
+  }
+
+  test_whenClause() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  switch (1) {
+    case [int a] when true: print(a);
+  }
+}
+''',
+      [error(diag.patternNeverMatchesValueType, 35, 7), lint(43, 9)],
+    );
+  }
+
+  test_while_notTrue() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  while (!true) {}
+}
+''',
+      [lint(13, 16), error(diag.deadCode, 27, 2)],
+    );
+  }
+
+  test_whileTrue() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  while (true) {
+    print('!');
+  }
+}
+''');
+  }
+}

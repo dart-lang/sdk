@@ -1,0 +1,7 @@
+test1() {}
+
+test2() {}
+
+main() {}
+
+expectEquals(x, y) {}

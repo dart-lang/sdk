@@ -1,0 +1,5 @@
+class B<T extends Comparable<T>> {}
+
+var y = new B();
+
+main() {}

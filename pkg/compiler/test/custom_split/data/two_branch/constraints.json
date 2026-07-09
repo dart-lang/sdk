@@ -1,0 +1,27 @@
+[
+  {
+    "type": "reference",
+    "name": "memory:sdk/tests/web/native/main.dart#step1",
+    "import": "memory:sdk/tests/web/native/main.dart#step1"
+  },
+  {
+    "type": "reference",
+    "name": "memory:sdk/tests/web/native/main.dart#step2a",
+    "import": "memory:sdk/tests/web/native/main.dart#step2a"
+  },
+  {
+    "type": "reference",
+    "name": "memory:sdk/tests/web/native/main.dart#step2b",
+    "import": "memory:sdk/tests/web/native/main.dart#step2b"
+  },
+  {
+    "type": "relative_order",
+    "predecessor": "memory:sdk/tests/web/native/main.dart#step1",
+    "successor": "memory:sdk/tests/web/native/main.dart#step2a"
+  },
+  {
+    "type": "relative_order",
+    "predecessor": "memory:sdk/tests/web/native/main.dart#step1",
+    "successor": "memory:sdk/tests/web/native/main.dart#step2b"
+  }
+]

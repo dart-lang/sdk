@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Field extends core::Object {
+  field core::int _;
+  synthetic constructor •() → self::Field
+    ;
+  method member() → void
+    ;
+}

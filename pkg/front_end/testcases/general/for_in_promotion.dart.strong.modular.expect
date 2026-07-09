@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(core::int? n) → dynamic {
+  if(!(n == null)) {
+    for (final core::int #t1 in <core::int>[42]) {
+      n = #t1;
+      n{core::int}.{core::int::isEven}{core::bool};
+    }
+    n{core::int}.{core::int::isEven}{core::bool};
+  }
+}
+static method main() → dynamic {
+  self::test(42);
+  self::test(null);
+}

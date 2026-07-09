@@ -1,0 +1,160 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#include "include/bin/dart_io_api.h"
+
+#include "bin/crypto.h"
+#include "bin/directory.h"
+#include "bin/eventhandler.h"
+#include "bin/io_natives.h"
+#if defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service_no_ssl.h"
+#else  // defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/io_service.h"
+#endif  // defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/platform.h"
+#include "bin/process.h"
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#include "bin/secure_socket_filter.h"
+#endif
+#include "bin/thread.h"
+#include "bin/utils.h"
+
+namespace dart {
+namespace bin {
+
+void BootstrapDartIo() {
+  // Bootstrap 'dart:io' event handler.
+  TimerUtils::InitOnce();
+  Process::Init();
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+  SSLFilter::Init();
+#endif
+  EventHandler::Start();
+}
+
+void CleanupDartIo() {
+  EventHandler::Stop();
+  Process::TerminateExitCodeHandler();
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+  SSLFilter::Cleanup();
+#endif
+  Process::Cleanup();
+  IOService::Cleanup();
+}
+
+void SetSystemTempDirectory(const char* system_temp) {
+  Directory::SetSystemTemp(system_temp);
+}
+
+void SetExecutableName(const char* executable_name) {
+  Platform::SetExecutableName(executable_name);
+}
+
+void SetExecutableArguments(int script_index, char** argv) {
+  Platform::SetExecutableArguments(script_index, argv);
+}
+
+void GetIOEmbedderInformation(Dart_EmbedderInformation* info) {
+  ASSERT(info != nullptr);
+  ASSERT(info->version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
+
+  Process::GetRSSInformation(&(info->max_rss), &(info->current_rss));
+}
+
+void* OpenFile(const char* name, bool write) {
+  return DartUtils::OpenFile(name, write);
+}
+void ReadFile(uint8_t** data, intptr_t* file_len, void* stream) {
+  DartUtils::ReadFile(data, file_len, stream);
+}
+void WriteFile(const void* buffer, intptr_t num_bytes, void* stream) {
+  DartUtils::WriteFile(buffer, num_bytes, stream);
+}
+void CloseFile(void* stream) {
+  DartUtils::CloseFile(stream);
+}
+
+bool GetEntropy(uint8_t* buffer, intptr_t length) {
+  return Crypto::GetRandomBytes(length, buffer);
+}
+
+Dart_NativeFunction LookupIONative(Dart_Handle name,
+                                   int argument_count,
+                                   bool* auto_setup_scope) {
+  return IONativeLookup(name, argument_count, auto_setup_scope);
+}
+
+void* LookupIOFfiNative(const char* name, uintptr_t argument_count) {
+  return IOFfiNativeLookup(name, argument_count);
+}
+
+const uint8_t* LookupIONativeSymbol(Dart_NativeFunction nf) {
+  return IONativeSymbol(nf);
+}
+
+Dart_Handle SetupDartIoLibrary(const DartIoSettings& settings) {
+  RETURN_IF_ERROR(Builtin::TrySetNativeResolver(Builtin::kIOLibrary));
+
+  // Configure dart:_http _httpConnectionHook is provided.
+  if (settings.http_connection_hook != nullptr) {
+    ASSIGN_OR_RETURN(Dart_Handle http_lib,
+                     Builtin::LoadAndCheckLibrary(Builtin::kHttpLibrary));
+    RETURN_IF_ERROR(Dart_SetField(http_lib,
+                                  DartUtils::NewString("_httpConnectionHook"),
+                                  settings.http_connection_hook));
+  }
+
+  Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+
+  if (settings.namespace_root != nullptr) {
+    ASSIGN_OR_RETURN(
+        Dart_Handle namespc_type,
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "_Namespace"));
+    Dart_Handle args[] = {settings.namespace_root};
+    RETURN_IF_ERROR(args[0]);
+    RETURN_IF_ERROR(Dart_Invoke(
+        namespc_type, DartUtils::NewString("_setupNamespace"), 1, args));
+  }
+
+  if (settings.disable_exit) {
+    ASSIGN_OR_RETURN(
+        Dart_Handle embedder_config_type,
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "_EmbedderConfig"));
+    RETURN_IF_ERROR(embedder_config_type);
+    RETURN_IF_ERROR(Dart_SetField(
+        embedder_config_type, DartUtils::NewString("_mayExit"), Dart_False()));
+  }
+
+  ASSIGN_OR_RETURN(Dart_Handle platform_type,
+                   DartUtils::GetDartType(DartUtils::kIOLibURL, "_Platform"));
+
+  if (settings.script_uri != nullptr) {
+    RETURN_IF_ERROR(Dart_SetField(platform_type,
+                                  DartUtils::NewString("_nativeScript"),
+                                  DartUtils::NewString(settings.script_uri)));
+  }
+
+  if (settings.locale_name_callback != nullptr) {
+    RETURN_IF_ERROR(Dart_SetField(platform_type,
+                                  DartUtils::NewString("_localeClosure"),
+                                  settings.locale_name_callback));
+  }
+
+  if (settings.enable_network_profiling) {
+#if !defined(PRODUCT)
+    auto dart_type =
+        DartUtils::GetDartType(DartUtils::kIOLibURL, "_NetworkProfiling");
+    ASSIGN_OR_RETURN(Dart_Handle network_profiling_type, dart_type);
+    RETURN_IF_ERROR(Dart_Invoke(
+        network_profiling_type,
+        DartUtils::NewString("_registerServiceExtension"), 0, nullptr));
+#endif  // !defined(PRODUCT)
+  }
+
+  return Dart_Invoke(io_lib, DartUtils::NewString("_setupHooks"), 0, nullptr);
+}
+
+}  // namespace bin
+}  // namespace dart

@@ -1,0 +1,9 @@
+class Class extends Super with Mixin {
+  Class();
+}
+
+class Super {
+  Super.named();
+}
+
+mixin Mixin {}

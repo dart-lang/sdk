@@ -1,0 +1,21 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  factory $CLASSNAME(String title, {String$NULLABLE dir, String$NULLABLE body,
+      String$NULLABLE lang, String$NULLABLE tag, String$NULLABLE icon}) {
+
+    var parsedOptions = {};
+    if (dir != null) parsedOptions['dir'] = dir;
+    if (body != null) parsedOptions['body'] = body;
+    if (lang != null) parsedOptions['lang'] = lang;
+    if (tag != null) parsedOptions['tag'] = tag;
+    if (icon != null) parsedOptions['icon'] = icon;
+    return $CLASSNAME._factory$CLASSNAME(title, parsedOptions);
+  }
+$!MEMBERS
+}

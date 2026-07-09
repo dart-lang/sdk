@@ -1,0 +1,12 @@
+expect(expected, actual) {}
+
+extension _ on int {
+  int method(int i) => this + i;
+}
+
+main() {}
+
+method(dynamic d) => switch (d) {
+  int(:var method) => method(d),
+  _ => 0,
+};

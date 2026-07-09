@@ -1,0 +1,13 @@
+library;
+import self as self;
+
+import "package:expect/expect.dart";
+
+static method test1(dynamic stringList) → dynamic
+  ;
+static method test2(dynamic stringList) → dynamic
+  ;
+static method test3(dynamic stringMap) → dynamic
+  ;
+static method main() → dynamic
+  ;

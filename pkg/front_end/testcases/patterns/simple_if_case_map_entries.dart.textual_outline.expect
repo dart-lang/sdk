@@ -1,0 +1,11 @@
+test1(dynamic x) => {1: 1, if (x case int y) 2: y, 3: 3};
+
+test2(dynamic x) => {1: 1, if (x case String y) 2: y else 2: null, 3: 3};
+
+test3(dynamic x) => {1: 1, if (x case bool b when b) 2: b, 3: 3};
+
+main() {}
+
+expectEquals(x, y) {}
+
+mapToString(Map<dynamic, dynamic> map) {}

@@ -1,0 +1,8 @@
+import 'show_hide_lib1.dart' as lib show x1;
+import 'show_hide_lib1.dart' show x1;
+import 'show_hide_lib2.dart' as lib hide y2;
+import 'show_hide_lib2.dart' hide y2;
+
+part 'show_hide_part1.dart';
+
+method1() {}

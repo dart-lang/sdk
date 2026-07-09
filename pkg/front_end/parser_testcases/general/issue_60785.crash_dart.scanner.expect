@@ -1,0 +1,19 @@
+void foo(String s) {
+switch (s) {
+case 'foo') {
+print('foo');
+} else {
+print('bar');
+}
+}}
+
+
+[UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken]String[StringToken] s[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]s[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] 'foo'[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]'foo'[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken] else[KeywordToken] {[BeginToken]
+print[StringToken]([BeginToken]'bar'[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SyntheticToken]}[SimpleToken]
+[SimpleToken]

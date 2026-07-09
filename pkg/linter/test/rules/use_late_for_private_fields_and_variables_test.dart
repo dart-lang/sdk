@@ -1,0 +1,373 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UseLateForPrivateFieldsAndVariablesTest);
+  });
+}
+
+@reflectiveTest
+class UseLateForPrivateFieldsAndVariablesTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.use_late_for_private_fields_and_variables;
+
+  test_extensionType_instanceField() async {
+    await assertDiagnostics(
+      '''
+extension type E(int i) {
+  int? _i;
+}
+''',
+      [
+        // No lint.
+        error(diag.extensionTypeDeclaresInstanceField, 33, 2),
+      ],
+    );
+  }
+
+  test_extensionType_staticField() async {
+    await assertDiagnosticsFromMarkup('''
+extension type E(int i) {
+  static int? [!_i!];
+}
+''');
+  }
+
+  test_instanceField_private() async {
+    await assertDiagnosticsFromMarkup('''
+class C {
+  int? [!_i!];
+}
+''');
+  }
+
+  test_instanceField_private_assignedInConstructorInitializer() async {
+    await assertNoDiagnostics('''
+class C {
+  C([int? i]) : _i = i;
+  int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_assignedInPrimaryConstructorInitializer() async {
+    await assertNoDiagnostics('''
+class C([int? i]) {
+  this : _i = i;
+  int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_declaredInPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'test.dart';
+''');
+    await assertNoDiagnostics('''
+part of 'lib.dart';
+
+class C {
+  final String? _s;
+  C(this._s);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/3823
+  test_instanceField_private_enum() async {
+    await assertNoDiagnostics('''
+enum E {
+  a('a'),
+  b('b', 'c');
+
+  const E(this._v, [this._v2]);
+
+  final String _v;
+  final String? _v2;
+}
+''');
+  }
+
+  test_instanceField_private_enum_originPrimaryConstructor() async {
+    await assertNoDiagnostics('''
+// ignore: unused_field_from_primary_constructor
+enum E(final String _v, [final String? v2]) {
+  a('a'),
+  b('b', 'c');
+}
+''');
+  }
+
+  test_instanceField_private_enum_primaryConstructor() async {
+    await assertNoDiagnostics('''
+enum E(this._v, [this._v2]) {
+  a('a'),
+  b('b', 'c');
+  final String _v;
+  final String? _v2;
+}
+''');
+  }
+
+  test_instanceField_private_inClassWithConstConstructor() async {
+    await assertNoDiagnostics('''
+class C {
+  const C([this._i]);
+  final int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_inClassWithConstPrimaryConstructor() async {
+    await assertNoDiagnostics('''
+class const C([this._i]) {
+  final int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_primaryConstructor() async {
+    await assertNoDiagnostics('''
+class C(int? _i);
+''');
+  }
+
+  test_instanceField_private_primaryConstructor_namedParameter() async {
+    await assertNoDiagnostics('''
+// ignore: unused_field_from_primary_constructor
+class C({final int? _i});
+''');
+  }
+
+  test_instanceField_private_withFieldFormalParameter() async {
+    await assertNoDiagnostics('''
+class C {
+  C([this._i]);
+  int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_withFieldFormalParameter_named() async {
+    await assertNoDiagnostics('''
+class C {
+  C({this._i});
+  int? _i;
+}
+''');
+  }
+
+  test_instanceField_public() async {
+    await assertNoDiagnostics('''
+class C {
+  int? i;
+}
+''');
+  }
+
+  test_instanceField_public_originPrimaryConstructor() async {
+    await assertNoDiagnostics('''
+class C(var int? i);
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4180
+  test_patternAssignment_field() async {
+    await assertDiagnostics(
+      '''
+class C {
+  int? _i;
+  void m() {
+    _i?.abs();
+    (_i, ) = (null, );
+  }
+}
+''',
+      [
+        // No lint.
+        error(diag.patternAssignmentNotLocalVariable, 54, 2),
+      ],
+    );
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4180
+  test_patternAssignment_topLevel() async {
+    await assertDiagnostics(
+      '''
+int? _i;
+m() {
+  _i?.abs();
+  (_i, ) = (null, );
+}
+''',
+      [
+        // No lint.
+        error(diag.patternAssignmentNotLocalVariable, 31, 2),
+      ],
+    );
+  }
+
+  test_staticField_private_onClass() async {
+    await assertDiagnosticsFromMarkup('''
+class C {
+  static int? [!_i!];
+}
+''');
+  }
+
+  test_staticField_private_onExtension() async {
+    await assertDiagnosticsFromMarkup('''
+extension E on int {
+  static int? [!_i!];
+}
+''');
+  }
+
+  test_staticField_public_onPrivateExtension() async {
+    await assertDiagnosticsFromMarkup('''
+extension _E on int {
+  static int? [!i!];
+}
+''');
+  }
+
+  test_staticField_public_onPublicExtension() async {
+    await assertNoDiagnostics('''
+extension E on int {
+  static int? i;
+}
+''');
+  }
+
+  test_staticField_public_onUnnamedExtension() async {
+    await assertDiagnosticsFromMarkup('''
+extension on int {
+  static int? [!i!];
+}
+''');
+  }
+
+  test_topLevel_assigned() async {
+    await assertDiagnosticsFromMarkup('''
+int? [!_i!];
+void f() {
+  _i = 1;
+}
+''');
+  }
+
+  test_topLevel_declaredInPart() async {
+    newFile('$testPackageRootPath/lib/lib.dart', '''
+part 'test.dart';
+
+void f() {
+  _i = 1;
+}
+''');
+    await assertDiagnosticsFromMarkup('''
+part of 'lib.dart';
+
+int? [!_i!];
+''');
+  }
+
+  test_topLevel_neverUsed() async {
+    await assertDiagnosticsFromMarkup('''
+int? [!_i!];
+''');
+  }
+
+  test_topLevel_onlyAssignedNull() async {
+    await assertNoDiagnostics('''
+int? _i;
+void f() {
+  _i = null;
+}
+''');
+  }
+
+  test_topLevel_onlyEqualityCompared() async {
+    await assertNoDiagnostics('''
+int? _i;
+f() {
+  _i == 1;
+}
+''');
+  }
+
+  test_topLevel_onlyNullAwareAccess() async {
+    await assertNoDiagnostics('''
+int? _i;
+f() {
+  _i?.abs();
+}
+''');
+  }
+
+  test_topLevel_onlyNullChecked() async {
+    await assertDiagnosticsFromMarkup('''
+int? [!_i!];
+f() {
+  _i!.abs();
+}
+''');
+  }
+
+  test_topLevel_onlyNullChecked_beforePassedAsArgument() async {
+    await assertDiagnosticsFromMarkup('''
+int? [!_i!];
+f(int i) {
+  f(_i!);
+}
+''');
+  }
+
+  test_topLevel_onlyNullTest() async {
+    await assertNoDiagnostics('''
+int? _i;
+f() {
+  if (_i != null) _i.toString();
+}
+''');
+  }
+
+  test_topLevel_passedAsArgument() async {
+    await assertNoDiagnostics('''
+int? _i;
+f(int? i) {
+  f(_i);
+}
+''');
+  }
+
+  test_topLevel_public() async {
+    await assertNoDiagnostics('''
+int? i;
+void f() {
+  i = 1;
+}
+''');
+  }
+
+  test_topLevel_usedInPart() async {
+    newFile('$testPackageRootPath/lib/part.dart', '''
+part of 'test.dart';
+
+void f() {
+  _i = 1;
+}
+''');
+    await assertDiagnosticsFromMarkup('''
+part 'part.dart';
+
+int? [!_i!];
+''');
+  }
+}

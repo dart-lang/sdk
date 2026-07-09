@@ -1,0 +1,57 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# The FFI transformation of nested structs has to update both position and size
+# of non-changed libraries, so the alternative invalidation has to be disabled.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "dart:ffi";
+        import 'lib.dart';
+        final class X extends Struct {
+          external Y x1;
+          external Y x2;
+          @Uint8()
+          external int x3;
+        }
+      lib.dart: |
+        import 'lib2.dart';
+        final class Y extends Struct {
+          @Uint8()
+          external int y1;
+          @Uint8()
+          external int y2;
+          @Uint64()
+          external int y3;
+        }
+      lib2.dart: |
+        export 'lib3.dart';
+      lib3.dart: |
+        export 'dart:ffi';
+    expectedLibraryCount: 4
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib.dart
+    sources:
+      lib.dart: |
+        import 'lib2.dart';
+        final class Y extends Struct {
+          @Uint8()
+          external int y1;
+          @Uint64()
+          external int y3;
+          @Uint8()
+          external int y2;
+        }
+    expectedLibraryCount: 4
+    # The FFI transformation have to update the size and position of containers
+    # (i.e. other structs with this Struct inside), so rebuilding only the
+    # changed library doesn't work.
+    advancedInvalidation: importsFfiClass

@@ -1,0 +1,13 @@
+String test1(C c) {}
+
+class C {
+  C(this.value);
+  String log = "";
+  dynamic operator >(num other) {}
+  final int value;
+  void clearLog() {}
+}
+
+main() {}
+
+throws(void Function() f) {}

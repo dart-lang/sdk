@@ -1,0 +1,57 @@
+class A {
+  @Annotation()
+  covariant late num covariantInstanceField;
+  @Annotation()
+  late final int finalInstanceField;
+  @Annotation()
+  late final int finalInstanceFieldWithInitializer = 0;
+  @Annotation()
+  late int instanceField;
+  @Annotation()
+  static late final int finalStaticField;
+  @Annotation()
+  static late final int finalStaticFieldWithInitializer = 0;
+  @Annotation()
+  static late int staticField;
+}
+
+class Annotation {
+  const Annotation();
+}
+
+extension Extension on A {
+  @Annotation()
+  static late final int finalExtensionStaticField;
+  @Annotation()
+  static late final int finalExtensionStaticFieldWithInitializer = 0;
+  @Annotation()
+  static late int extensionStaticField;
+}
+
+@Annotation()
+late final int finalTopLevelField;
+
+@Annotation()
+late final int finalTopLevelFieldWithInitializer = 0;
+
+@Annotation()
+late int topLevelField;
+
+main() {}
+
+mixin B {
+  @Annotation()
+  covariant late num covariantInstanceField;
+  @Annotation()
+  late final int finalInstanceField;
+  @Annotation()
+  late final int finalInstanceFieldWithInitializer = 0;
+  @Annotation()
+  late int instanceField;
+  @Annotation()
+  static late final int finalStaticField;
+  @Annotation()
+  static late final int finalStaticFieldWithInitializer = 0;
+  @Annotation()
+  static late int staticField;
+}

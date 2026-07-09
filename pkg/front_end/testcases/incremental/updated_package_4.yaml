@@ -1,0 +1,49 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Compile an application with a .dart_tool/package_config.json.
+# Then delete the content of .dart_tool/package_config.json, still using the
+# package in code. This should be an error.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      package/b.dart: |
+        b() {
+          print("hello from package");
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../package"
+            }
+          ]
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    checkInvalidatedFiles: false
+    invalidate:
+      - .dart_tool/package_config.json
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": []
+        }
+    errors: true
+    expectedLibraryCount: 1
+    advancedInvalidation: packageUpdate

@@ -1,0 +1,21 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Status file for the modular_suite.dart test suite.
+
+coverage/anonymous_methods/expression_explicitly_wrongly_typed: TypeCheckError
+constructor_tearoffs/call_instantiation: TypeCheckError
+enhanced_enums/declared_hashcode: TypeCheckError
+enhanced_enums/declared_index: TypeCheckError
+extensions/extension_setter_error: TypeCheckError
+general/abstract_members: TypeCheckError
+general/bug30695: TypeCheckError
+general/hierarchy/conflict: TypeCheckError
+general/hierarchy/duplicates: TypeCheckError
+general/supertype_conflict: TypeCheckError
+inference/instantiate_tearoff_of_call: TypeCheckError
+inference/mixin_inference_outwards_3: TypeCheckError
+inference/mixin_inference_outwards_4: TypeCheckError
+inference/mixin_inference_unification_1: TypeCheckError
+inference/mixin_inference_unification_2: TypeCheckError

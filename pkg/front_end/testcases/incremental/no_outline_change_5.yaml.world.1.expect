@@ -1,0 +1,32 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  part myPart.dart;
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → main::Foo
+      : super dart.core::Object::•()
+      ;
+    @#C1
+    method toString() → dart.core::String
+      return "Foo!";
+  }
+  static method main() → dynamic async /* emittedValueType= dynamic */ {
+    await main::whatever() /* runtimeCheckType= dart.async::Future<dynamic> */ ;
+    dart.core::print(#C2);
+  }
+  static method /* from org-dartlang-test:///myPart.dart */ whatever() → dynamic async /* emittedValueType= dynamic */ {
+    await null /* runtimeCheckType= dart.async::Future<Null> */ ;
+    return "hello";
+  }
+}
+constants  {
+  #C1 = dart.core::_Override {}
+  #C2 = main::Foo {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- Foo. (from org-dartlang-test:///main.dart:4:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+

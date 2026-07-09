@@ -1,0 +1,393 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
+
+/// Verifier for [CollectionElement]s in list, set, or map literals.
+class LiteralElementVerifier {
+  final TypeProvider typeProvider;
+  final TypeSystemImpl typeSystem;
+  final DiagnosticReporter _diagnosticReporter;
+  final FeatureSet featureSet;
+  final ErrorVerifier _errorVerifier;
+
+  final bool forList;
+  final bool forSet;
+  final TypeImpl? elementType;
+
+  final bool forMap;
+  final TypeImpl? mapKeyType;
+  final TypeImpl? mapValueType;
+
+  LiteralElementVerifier(
+    this.typeProvider,
+    this.typeSystem,
+    this._diagnosticReporter,
+    this._errorVerifier, {
+    this.forList = false,
+    this.forSet = false,
+    this.elementType,
+    this.forMap = false,
+    this.mapKeyType,
+    this.mapValueType,
+    required this.featureSet,
+  });
+
+  bool get _strictCasts => _errorVerifier.options.strictCasts;
+
+  void verify(CollectionElement element) {
+    _verifyElement(element as CollectionElementImpl);
+  }
+
+  /// Check that the given [type] is assignable to the [elementType], otherwise
+  /// report the list or set error on the [errorNode].
+  void _checkAssignableToElementType(TypeImpl type, AstNode errorNode) {
+    var elementType = this.elementType;
+
+    if (!typeSystem.isAssignableTo(
+      type,
+      elementType!,
+      strictCasts: _strictCasts,
+    )) {
+      bool assignableWhenNullable = typeSystem.isAssignableTo(
+        type,
+        typeSystem.makeNullable(elementType),
+        strictCasts: _strictCasts,
+      );
+      var errorCode = switch ((
+        forList: forList,
+        assignableWhenNullable: assignableWhenNullable,
+      )) {
+        (forList: false, assignableWhenNullable: false) =>
+          diag.setElementTypeNotAssignable,
+        (forList: false, assignableWhenNullable: true) =>
+          diag.setElementTypeNotAssignableNullability,
+        (forList: true, assignableWhenNullable: false) =>
+          diag.listElementTypeNotAssignable,
+        (forList: true, assignableWhenNullable: true) =>
+          diag.listElementTypeNotAssignableNullability,
+      };
+      _diagnosticReporter.report(
+        errorCode
+            .withArguments(actualType: type, expectedType: elementType)
+            .at(errorNode),
+      );
+    }
+  }
+
+  /// Verify that the given [element] can be assigned to the [elementType] of
+  /// the enclosing list, set, of map literal.
+  void _verifyElement(CollectionElementImpl? element) {
+    switch (element) {
+      case ExpressionImpl():
+        if (forList || forSet) {
+          if (elementType is! VoidType &&
+              _errorVerifier.checkForUseOfVoidResult(element)) {
+            return;
+          }
+          _checkAssignableToElementType(element.typeOrThrow, element);
+        } else {
+          _diagnosticReporter.report(diag.expressionInMap.at(element));
+        }
+      case ForElementImpl():
+        _verifyElement(element.body);
+      case IfElementImpl():
+        _verifyElement(element.thenElement);
+        _verifyElement(element.elseElement);
+      case MapLiteralEntryImpl():
+        if (forMap) {
+          _verifyMapLiteralEntry(element);
+        } else {
+          _diagnosticReporter.report(diag.mapEntryNotInMap.at(element));
+        }
+      case SpreadElementImpl():
+        var isNullAware = element.isNullAware;
+        Expression expression = element.expression;
+        if (forList || forSet) {
+          _verifySpreadForListOrSet(isNullAware, expression);
+        } else if (forMap) {
+          _verifySpreadForMap(isNullAware, expression);
+        }
+      case NullAwareElementImpl():
+        if (forList || forSet) {
+          var valueType = element.value.typeOrThrow;
+          // A null-aware marker tests this expression for `null`, so a `void`
+          // value is used even when the stored element type is also `void`.
+          if (valueType is VoidType) {
+            _errorVerifier.checkForUseOfVoidResult(element.value);
+            return;
+          }
+          _checkAssignableToElementType(
+            typeSystem.promoteToNonNull(valueType),
+            element,
+          );
+        } else {
+          _diagnosticReporter.report(diag.expressionInMap.at(element));
+        }
+      case null:
+        break;
+    }
+  }
+
+  /// Verify that the [entry]'s key and value are assignable to [mapKeyType]
+  /// and [mapValueType].
+  void _verifyMapLiteralEntry(MapLiteralEntry entry) {
+    var mapKeyType = this.mapKeyType!;
+    var keyType = entry.key.typeOrThrow;
+
+    // A null-aware marker tests this expression for `null`, so a `void` value
+    // is used even when the stored key type is also `void`.
+    if (entry.keyQuestion != null && keyType is VoidType) {
+      _errorVerifier.checkForUseOfVoidResult(entry.key);
+      return;
+    }
+
+    if (mapKeyType is! VoidType &&
+        _errorVerifier.checkForUseOfVoidResult(entry.key)) {
+      return;
+    }
+
+    var mapValueType = this.mapValueType!;
+    var valueType = entry.value.typeOrThrow;
+
+    // A null-aware marker tests this expression for `null`, so a `void` value
+    // is used even when the stored value type is also `void`.
+    if (entry.valueQuestion != null && valueType is VoidType) {
+      _errorVerifier.checkForUseOfVoidResult(entry.value);
+      return;
+    }
+
+    if (mapValueType is! VoidType &&
+        _errorVerifier.checkForUseOfVoidResult(entry.value)) {
+      return;
+    }
+
+    // If the key is null-aware, the entry is only added when the key is not
+    // `null`, so the key type to check should be promoted to non-null.
+    if (entry.keyQuestion != null) {
+      keyType = typeSystem.promoteToNonNull(keyType);
+    }
+    if (!typeSystem.isAssignableTo(
+      keyType,
+      mapKeyType,
+      strictCasts: _strictCasts,
+    )) {
+      if (entry.keyQuestion == null &&
+          typeSystem.isAssignableTo(
+            keyType,
+            typeSystem.makeNullable(mapKeyType),
+            strictCasts: _strictCasts,
+          )) {
+        _diagnosticReporter.report(
+          diag.mapKeyTypeNotAssignableNullability
+              .withArguments(actualType: keyType, expectedType: mapKeyType)
+              .at(entry.key),
+        );
+      } else {
+        _diagnosticReporter.report(
+          diag.mapKeyTypeNotAssignable
+              .withArguments(actualType: keyType, expectedType: mapKeyType)
+              .at(entry.key),
+        );
+      }
+    }
+
+    // If the value is null-aware, the entry is only added when the value is not
+    // `null`, so the value type to check should be promoted to non-null.
+    if (entry.valueQuestion != null) {
+      valueType = typeSystem.promoteToNonNull(valueType);
+    }
+    if (!typeSystem.isAssignableTo(
+      valueType,
+      mapValueType,
+      strictCasts: _strictCasts,
+    )) {
+      if (entry.valueQuestion == null &&
+          typeSystem.isAssignableTo(
+            valueType,
+            typeSystem.makeNullable(mapValueType),
+            strictCasts: _strictCasts,
+          )) {
+        _diagnosticReporter.report(
+          diag.mapValueTypeNotAssignableNullability
+              .withArguments(actualType: valueType, expectedType: mapValueType)
+              .at(entry.value),
+        );
+      } else {
+        _diagnosticReporter.report(
+          diag.mapValueTypeNotAssignable
+              .withArguments(actualType: valueType, expectedType: mapValueType)
+              .at(entry.value),
+        );
+      }
+    }
+  }
+
+  /// Verify that the type of the elements of the given [expression] can be
+  /// assigned to the [elementType] of the enclosing collection.
+  void _verifySpreadForListOrSet(bool isNullAware, Expression expression) {
+    var expressionType = expression.typeOrThrow;
+    if (expressionType is DynamicType) {
+      if (_errorVerifier.strictCasts) {
+        _diagnosticReporter.report(diag.notIterableSpread.at(expression));
+      }
+      return;
+    }
+
+    if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+      return;
+    }
+
+    if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
+      if (isNullAware) {
+        return;
+      }
+      _diagnosticReporter.report(diag.notNullAwareNullSpread.at(expression));
+      return;
+    }
+
+    var iterableType = expressionType.asInstanceOf(
+      typeProvider.iterableElement,
+    );
+
+    if (iterableType == null) {
+      _diagnosticReporter.report(diag.notIterableSpread.at(expression));
+      return;
+    }
+
+    var iterableElementType = iterableType.typeArguments[0];
+    var elementType = this.elementType;
+    if (!typeSystem.isAssignableTo(
+      iterableElementType,
+      elementType!,
+      strictCasts: _strictCasts,
+    )) {
+      var errorCode = forList
+          ? diag.listElementTypeNotAssignable
+          : diag.setElementTypeNotAssignable;
+      // Also check for an "implicit tear-off conversion" which would be applied
+      // after desugaring a spread element.
+      var implicitCallMethod = _errorVerifier.getImplicitCallMethod(
+        iterableElementType,
+        elementType,
+        expression,
+      );
+      if (implicitCallMethod == null) {
+        _diagnosticReporter.report(
+          errorCode
+              .withArguments(
+                actualType: iterableElementType,
+                expectedType: elementType,
+              )
+              .at(expression),
+        );
+      } else {
+        var tearoffType = implicitCallMethod.type;
+        if (featureSet.isEnabled(Feature.constructor_tearoffs)) {
+          var typeArguments = typeSystem.inferFunctionTypeInstantiation(
+            elementType as FunctionTypeImpl,
+            tearoffType,
+            diagnosticReporter: _diagnosticReporter,
+            errorNode: expression,
+            genericMetadataIsEnabled: true,
+            inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
+              Feature.inference_using_bounds,
+            ),
+            strictInference: _errorVerifier.options.strictInference,
+            strictCasts: _errorVerifier.options.strictCasts,
+            typeSystemOperations: _errorVerifier.typeSystemOperations,
+            dataForTesting: null,
+            nodeForTesting: null,
+          );
+          if (typeArguments.isNotEmpty) {
+            tearoffType = tearoffType.instantiate(typeArguments);
+          }
+        }
+
+        if (!typeSystem.isAssignableTo(
+          tearoffType,
+          elementType,
+          strictCasts: _strictCasts,
+        )) {
+          _diagnosticReporter.report(
+            errorCode
+                .withArguments(
+                  actualType: iterableElementType,
+                  expectedType: elementType,
+                )
+                .at(expression),
+          );
+        }
+      }
+    }
+  }
+
+  /// Verify that the [expression] is a subtype of `Map<Object, Object>`, and
+  /// its key and values are assignable to [mapKeyType] and [mapValueType].
+  void _verifySpreadForMap(bool isNullAware, Expression expression) {
+    var expressionType = expression.typeOrThrow;
+    if (expressionType is DynamicType) {
+      if (_errorVerifier.strictCasts) {
+        _diagnosticReporter.report(diag.notMapSpread.at(expression));
+      }
+      return;
+    }
+
+    if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
+      return;
+    }
+
+    if (typeSystem.isSubtypeOf(expressionType, typeSystem.nullNone)) {
+      if (isNullAware) {
+        return;
+      }
+      _diagnosticReporter.report(diag.notNullAwareNullSpread.at(expression));
+      return;
+    }
+
+    var mapType = expressionType.asInstanceOf(typeProvider.mapElement);
+
+    if (mapType == null) {
+      _diagnosticReporter.report(diag.notMapSpread.at(expression));
+      return;
+    }
+
+    var keyType = mapType.typeArguments[0];
+    var mapKeyType = this.mapKeyType;
+    if (!typeSystem.isAssignableTo(
+      keyType,
+      mapKeyType!,
+      strictCasts: _strictCasts,
+    )) {
+      _diagnosticReporter.report(
+        diag.mapKeyTypeNotAssignable
+            .withArguments(actualType: keyType, expectedType: mapKeyType)
+            .at(expression),
+      );
+    }
+
+    var valueType = mapType.typeArguments[1];
+    var mapValueType = this.mapValueType;
+    if (!typeSystem.isAssignableTo(
+      valueType,
+      mapValueType!,
+      strictCasts: _strictCasts,
+    )) {
+      _diagnosticReporter.report(
+        diag.mapValueTypeNotAssignable
+            .withArguments(actualType: valueType, expectedType: mapValueType)
+            .at(expression),
+      );
+    }
+  }
+}

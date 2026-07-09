@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "unresolved_constructor_lib.dart" as unr;
+
+import "org-dartlang-testcase:///unresolved_constructor.dart" as lib;
+import "org-dartlang-testcase:///unresolved_constructor_lib.dart" as lib;
+import "org-dartlang-testcase:///unresolved_constructor_lib.dart";
+
+class Super extends core::Object {
+  constructor constructor() → self::Super
+    ;
+  constructor constructor1() → self::Super
+    ;
+  constructor constructor2() → self::Super
+    ;
+}
+class Class1 extends self::Super {
+  constructor •() → self::Class1
+    ;
+  constructor named() → self::Class1
+    ;
+}
+class Class2 extends unr::Private {
+  constructor named() → self::Class2
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+class Class3 extends self::_Class3&Private&Mixin {
+  constructor named() → self::Class3
+    ;
+}
+abstract class _Class3&Private&Mixin = unr::Private with self::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor unr::_named() → self::_Class3&Private&Mixin
+    : super unr::Private::_named()
+    ;
+}
+static method test() → dynamic
+  ;
+
+library;
+import self as unr;
+import "dart:core" as core;
+
+class Private extends core::Object /*hasConstConstructor*/  {
+  const constructor _named() → unr::Private
+    : super core::Object::•()
+    ;
+}

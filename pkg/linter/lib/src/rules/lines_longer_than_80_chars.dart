@@ -1,0 +1,214 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+
+const _cr = '\r';
+
+const _desc = r'Avoid lines longer than 80 characters.';
+
+const _lf = '\n';
+
+bool _looksLikeUriOrPath(String value) {
+  /// String looks like URI if it contains a slash or backslash.
+  const int $SLASH = 47;
+  const int $BACKSLASH = 92;
+  for (int i = 0; i < value.length; i++) {
+    int char = value.codeUnitAt(i);
+    if (char == $BACKSLASH || char == $SLASH) return true;
+  }
+  return false;
+}
+
+class LinesLongerThan80Chars extends AnalysisRule {
+  new() : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.linesLongerThan80Chars;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this, context);
+    registry.addCompilationUnit(this, visitor);
+  }
+}
+
+class _AllowedCommentVisitor extends SimpleAstVisitor<void> {
+  final LineInfo lineInfo;
+
+  final allowedLines = <int>[];
+  new(this.lineInfo);
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    Token? token = node.beginToken;
+    while (token != null) {
+      Token? comment = token.precedingComments;
+      while (comment != null) {
+        _visitComment(comment);
+        comment = comment.next;
+      }
+      if (token == token.next) break;
+      token = token.next;
+    }
+  }
+
+  void _visitComment(Token comment) {
+    var content = comment.lexeme;
+    var lines = <String>[];
+    if (content.startsWith('///')) {
+      lines.add(content.substring(3));
+    } else if (content.startsWith('//')) {
+      var commentContent = content.substring(2);
+      if (commentContent.trimLeft().startsWith('ignore:')) {
+        allowedLines.add(lineInfo.getLocation(comment.offset).lineNumber);
+      } else {
+        lines.add(commentContent);
+      }
+    } else if (content.startsWith('/*')) {
+      // remove last slash before finding slash
+      lines.addAll(
+        content
+            .substring(2, content.length - 2)
+            .split('$_cr$_lf')
+            .expand((e) => e.split(_cr))
+            .expand((e) => e.split(_lf)),
+      );
+    }
+    for (var i = 0; i < lines.length; i++) {
+      var value = lines[i];
+      if (_looksLikeUriOrPath(value)) {
+        var line = lineInfo.getLocation(comment.offset).lineNumber + i;
+        allowedLines.add(line);
+      }
+    }
+  }
+}
+
+class _AllowedLongLineVisitor extends RecursiveAstVisitor<void> {
+  final LineInfo lineInfo;
+
+  final allowedLines = <int>[];
+  new(this.lineInfo);
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    if (node.isMultiline) {
+      _handleMultilines(node);
+    } else {
+      _handleSingleLine(node, node.value);
+    }
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    if (node.isMultiline) {
+      _handleMultilines(node);
+    } else {
+      var value = node.elements.map((e) {
+        if (e is InterpolationString) return e.value;
+        if (e is InterpolationExpression) return ' ' * e.length;
+        throw ArgumentError(
+          'Unhandled string interpolation element: ${node.runtimeType}',
+        );
+      }).join();
+      _handleSingleLine(node, value);
+    }
+  }
+
+  void _handleMultilines(SingleStringLiteral node) {
+    var startLine = lineInfo.getLocation(node.offset).lineNumber;
+    var endLine = lineInfo.getLocation(node.end).lineNumber;
+    for (var i = startLine; i <= endLine; i++) {
+      allowedLines.add(i);
+    }
+  }
+
+  void _handleSingleLine(AstNode node, String value) {
+    if (_looksLikeUriOrPath(value)) {
+      var line = lineInfo.getLocation(node.offset).lineNumber;
+      allowedLines.add(line);
+    }
+  }
+}
+
+class _LineInfo {
+  final int index;
+  final int offset;
+  final int end;
+  new({required this.index, required this.offset, required this.end});
+  int get length => end - offset;
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  final RuleContext context;
+
+  new(this.rule, this.context);
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    var lineInfo = node.lineInfo;
+    var lineCount = lineInfo.lineCount;
+    var longLines = <_LineInfo>[];
+    assert(context.currentUnit?.unit == node);
+    var content = context.currentUnit?.content;
+    for (var i = 0; i < lineCount; i++) {
+      var start = lineInfo.getOffsetOfLine(i);
+      int end;
+      if (i == lineCount - 1) {
+        end = node.end;
+      } else {
+        end = lineInfo.getOffsetOfLine(i + 1) - 1;
+        var length = end - start;
+        if (length > 80) {
+          if (content != null &&
+              content[end] == _lf &&
+              content[end - 1] == _cr) {
+            end--;
+          }
+        }
+      }
+      var length = end - start;
+      if (length > 80) {
+        // Use 80 as the start of the range so that navigating to the lint
+        // will place the caret at exactly the location where the line needs
+        // to wrap.
+        var line = _LineInfo(index: i, offset: start + 80, end: end);
+        longLines.add(line);
+      }
+    }
+
+    if (longLines.isEmpty) return;
+
+    var allowedLineVisitor = _AllowedLongLineVisitor(lineInfo);
+    node.accept(allowedLineVisitor);
+    var allowedCommentVisitor = _AllowedCommentVisitor(lineInfo);
+    node.accept(allowedCommentVisitor);
+
+    var allowedLines = [
+      ...allowedLineVisitor.allowedLines,
+      ...allowedCommentVisitor.allowedLines,
+    ];
+
+    for (var line in longLines) {
+      if (allowedLines.contains(line.index + 1)) continue;
+      rule.reportAtOffset(line.offset, line.length);
+    }
+  }
+}

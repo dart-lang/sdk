@@ -1,0 +1,11 @@
+class Foo {
+  get foo.x() {
+    // Not OK.
+  }
+  get foo.x() : initializer = true {
+    // Not OK.
+  }
+  get foo() : initializer = true {
+    // Not OK.
+  }
+}

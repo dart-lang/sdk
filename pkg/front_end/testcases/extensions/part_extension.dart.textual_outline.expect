@@ -1,0 +1,3 @@
+part 'part_extension_part.dart';
+
+main() {}

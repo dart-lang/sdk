@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::String value;
+  synthetic constructor •() → self::C
+    ;
+}
+static method something() → core::String?
+  ;
+static method main() → void
+  ;

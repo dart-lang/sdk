@@ -1,0 +1,17 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  static method main() → dynamic {
+    dart.core::print("Hello, World!");
+  }
+}
+library from "org-dartlang-test:///maybe_part.dart" as may {
+
+  import "org-dartlang-test:///main.dart";
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → may::Foo
+      : super dart.core::Object::•()
+      ;
+  }
+}

@@ -1,0 +1,12 @@
+import 'main_lib.dart';
+
+abstract class RenderSliver extends RenderObject {
+  SliverConstraints get constraints => super.constraints as SliverConstraints;
+}
+
+abstract class RenderSliverSingleBoxAdapter extends RenderSliver
+    with RenderObjectWithChildMixin {}
+
+class SliverConstraints {}
+
+main() {}

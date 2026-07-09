@@ -1,0 +1,38 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_dart_root = get_path_info(".", "abspath")
+
+declare_args() {
+  # Whether to enable the SDK hash check that will prevent loading a kernel
+  # into a VM which was built with a different SDK.
+  verify_sdk_hash = true
+
+  # When verify_sdk_hash is true, this string is used as the verification hash
+  # instead of calculating one from the contents of the tree using the
+  # make_version.py script.
+  dart_sdk_verification_hash = ""
+
+  # The location in the build output directory of the built Dart SDK.
+  dart_sdk_output = "dart-sdk"
+
+  # When set to `true`, the Dart Runtime Service based implementation of the
+  # VM service will be included in the build. By default, the legacy VM
+  # service implementation will be launched by the VM, unless the
+  # --include-experimental-vm-service VM flag is provided.
+  include_experimental_vm_service = false
+}
+
+# The SDK hash to build into VM and kernels.
+# The value 0000000000 signifies no hash is set, which will disable the check.
+if (verify_sdk_hash) {
+  sdk_hash = dart_sdk_verification_hash
+  if (sdk_hash == "") {
+    sdk_hash = exec_script("$_dart_root/tools/make_version.py",
+                           [ "--format={{GIT_HASH}}" ],
+                           "trim string")
+  }
+} else {
+  sdk_hash = "0000000000"
+}

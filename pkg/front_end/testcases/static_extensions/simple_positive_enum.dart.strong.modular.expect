@@ -1,0 +1,93 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::A element = #C3;
+  static const field core::List<self::A> values = #C4;
+  const synthetic constructor •(core::int #index, core::String #name) → self::A
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "A.${this.{core::_Enum::_name}{core::String}}";
+  static get enumGetter() → core::String
+    return "A.enumGetter";
+  static set enumSetter(core::num value) → void {
+    throw "A.enumSetter=";
+  }
+  static method enumMethod() → core::String
+    return "A.enumMethod";
+}
+extension E on self::A {
+  static get enumGetter = get self::E|enumGetter;
+  static get extensionGetter = get self::E|extensionGetter;
+  static set enumSetter = set self::E|enumSetter;
+  static set extensionSetter = set self::E|extensionSetter;
+  static method enumMethod = self::E|enumMethod;
+  static method extensionMethod = self::E|extensionMethod;
+}
+static extension-member get E|enumGetter() → core::String
+  return "E.enumGetter";
+static extension-member get E|extensionGetter() → core::String
+  return "E.extensionGetter";
+static extension-member set E|enumSetter(core::num value) → void {}
+static extension-member set E|extensionSetter(core::bool value) → void {}
+static extension-member method E|enumMethod() → core::String
+  return "E.enumMethod";
+static extension-member method E|extensionMethod() → core::String
+  return "E.extensionMethod";
+static method main() → dynamic {
+  self::expectEqual(self::A::enumGetter, "A.enumGetter");
+  self::expectEqual(self::E|extensionGetter, "E.extensionGetter");
+  self::expectThrows(() → Null {
+    self::A::enumSetter = 0;
+  });
+  self::expectDoesntThrow(() → Null {
+    self::E|extensionSetter = false;
+  });
+  self::expectEqual(self::A::enumMethod(), "A.enumMethod");
+  self::expectEqual(self::E|extensionMethod(), "E.extensionMethod");
+}
+static method expectEqual(dynamic a, dynamic b) → dynamic {
+  if(!(a =={core::Object::==}{(core::Object) → core::bool} b)) {
+    throw "Expected the values to be equal.";
+  }
+}
+static method expectThrows(() → dynamic f) → dynamic {
+  core::bool hasThrown = false;
+  try {
+    f(){() → dynamic};
+  }
+  on dynamic catch(no-exception-var) {
+    hasThrown = true;
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw an exception.";
+  }
+}
+static method expectDoesntThrow(() → dynamic f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → dynamic};
+    hasThrown = false;
+  }
+  on dynamic catch(no-exception-var) {
+  }
+  if(hasThrown) {
+    throw "Expected the function not to throw exceptions.";
+  }
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::A {index:#C1, _name:#C2}
+  #C4 = <self::A>[#C3]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///simple_positive_enum.dart:
+- A. (from org-dartlang-testcase:///simple_positive_enum.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

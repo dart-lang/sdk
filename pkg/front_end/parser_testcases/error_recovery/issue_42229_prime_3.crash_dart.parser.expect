@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+Stream<List<x>> *synthetic*;
+
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]x[StringToken]>[SimpleToken]>[SimpleToken] [SyntheticStringToken];[SyntheticToken][SimpleToken]

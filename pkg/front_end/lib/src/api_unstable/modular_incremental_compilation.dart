@@ -1,0 +1,288 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:typed_data';
+
+import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
+import 'package:kernel/target/targets.dart' show Target;
+
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../api_prototype/file_system.dart' show FileSystem;
+import '../base/compiler_context.dart' show CompilerContext;
+import '../base/incremental_compiler.dart' show IncrementalCompiler;
+import '../base/processed_options.dart' show ProcessedOptions;
+import 'compiler_state.dart'
+    show InitializedCompilerState, WorkerInputComponent, digestsEqual;
+import 'util.dart' show equalMaps, equalSets;
+
+/// Initializes the compiler for a modular build.
+///
+/// Re-uses cached components from [oldState.workerInputCache], and reloads them
+/// as necessary based on [workerInputDigests].
+///
+/// Notes:
+/// * [outputLoadedAdditionalDillModules] should be given as an empty list of
+///   the same size as the [additionalDillModules]. The input summaries are
+///   loaded (or taken from cache) and placed in this list in order, i.e. the
+///   `i`-th entry in [outputLoadedAdditionalDillModules] after this call
+///   corresponds to the component loaded from the `i`-th entry in
+///   [additionalDillModules].
+Future<InitializedCompilerState> initializeIncrementalCompiler(
+  InitializedCompilerState? oldState,
+  Set<String> tags,
+  List<Component> outputLoadedAdditionalDillModules,
+  Uri? sdkSummary,
+  Uri? packagesFile,
+  Uri? librariesSpecificationUri,
+  List<Uri> additionalDillModules,
+  Map<Uri, List<int>> workerInputDigests,
+  Target target, {
+  bool compileSdk = false,
+  Uri? sdkRoot = null,
+  required FileSystem fileSystem,
+  required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+  Map<String, String> environmentDefines = const {},
+  bool? outlineOnly,
+  bool omitPlatform = false,
+  bool trackNeededDillLibraries = false,
+  bool verbose = false,
+}) async {
+  bool isRetry = false;
+  while (true) {
+    try {
+      final List<int>? sdkDigest = sdkSummary == null
+          ? null
+          : workerInputDigests[sdkSummary];
+      if (sdkDigest == null && sdkSummary != null) {
+        throw new StateError("Expected to get digest for $sdkSummary");
+      }
+
+      Map<Uri, WorkerInputComponent> workerInputCache =
+          oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
+      Map<Uri, Uri> workerInputCacheLibs =
+          oldState?.workerInputCacheLibs ?? new Map<Uri, Uri>();
+
+      WorkerInputComponent? cachedSdkInput = sdkSummary == null
+          ? null
+          : workerInputCache[sdkSummary];
+
+      IncrementalCompiler incrementalCompiler;
+      CompilerOptions options;
+      ProcessedOptions processedOpts;
+
+      if (oldState == null ||
+          oldState.incrementalCompiler == null ||
+          oldState.options.compileSdk != compileSdk ||
+          oldState.incrementalCompiler!.outlineOnly != outlineOnly ||
+          !equalMaps(
+            oldState.options.explicitExperimentalFlags,
+            explicitExperimentalFlags,
+          ) ||
+          !equalMaps(oldState.options.environmentDefines, environmentDefines) ||
+          !equalSets(oldState.tags, tags) ||
+          (sdkSummary != null &&
+              (cachedSdkInput == null ||
+                  !digestsEqual(cachedSdkInput.digest, sdkDigest))) ||
+          (oldState.options.target == null ||
+              !oldState.options.target!.isModularlyCompatibleWith(target))) {
+        // No - or immediately not correct - previous state.
+        // We'll load a new sdk, anything loaded already will have a wrong root.
+        workerInputCache.clear();
+        workerInputCacheLibs.clear();
+
+        // The sdk was either not cached or it has changed.
+        options = new CompilerOptions()
+          ..compileSdk = compileSdk
+          ..sdkRoot = sdkRoot
+          ..sdkSummary = sdkSummary
+          ..packagesFileUri = packagesFile
+          ..librariesSpecificationUri = librariesSpecificationUri
+          ..target = target
+          ..fileSystem = fileSystem
+          ..omitPlatform = omitPlatform
+          ..environmentDefines = environmentDefines
+          ..explicitExperimentalFlags = explicitExperimentalFlags
+          ..verbose = verbose;
+
+        processedOpts = new ProcessedOptions(options: options);
+        if (sdkSummary != null && sdkDigest != null) {
+          cachedSdkInput = new WorkerInputComponent(
+            sdkDigest,
+            (await processedOpts.loadSdkSummary(null))!,
+          );
+          workerInputCache[sdkSummary] = cachedSdkInput;
+          for (Library lib in cachedSdkInput.component.libraries) {
+            if (workerInputCacheLibs.containsKey(lib.importUri)) {
+              throw new StateError("Duplicate sources in sdk.");
+            }
+            workerInputCacheLibs[lib.importUri] = sdkSummary;
+          }
+        }
+
+        incrementalCompiler = new IncrementalCompiler.fromComponent(
+          new CompilerContext(processedOpts),
+          cachedSdkInput?.component,
+          outlineOnly,
+        );
+      } else {
+        options = oldState.options;
+        processedOpts = oldState.processedOpts;
+        Component? sdkComponent = cachedSdkInput?.component;
+
+        // Make sure the canonical name root knows about the sdk - otherwise we
+        // won't be able to link to it when loading more outlines.
+        sdkComponent?.adoptChildren();
+
+        // TODO(jensj): This is - at least currently - necessary,
+        // although it's not entirely obvious why.
+        // It likely has to do with several outlines containing the same
+        // libraries. Once that stops (and we check for it) we can probably
+        // remove this, and instead only do it when about to reuse a component
+        // further down.
+        for (WorkerInputComponent cachedInput in workerInputCache.values) {
+          cachedInput.component.adoptChildren();
+        }
+
+        // Reuse the incremental compiler, but reset as needed.
+        incrementalCompiler = oldState.incrementalCompiler!;
+        incrementalCompiler.invalidateAllSources();
+        options.packagesFileUri = packagesFile;
+        options.fileSystem = fileSystem;
+        processedOpts.clearFileSystemCache();
+        options.target!.updateModularCompatibilityAs(target);
+      }
+
+      // Then read all the input summary components.
+      CanonicalName? nameRoot = cachedSdkInput?.component.root;
+      Map<Uri, Uri>? libraryToInputDill;
+      if (trackNeededDillLibraries) {
+        libraryToInputDill = new Map<Uri, Uri>();
+      }
+      List<int> loadFromDillIndexes = <int>[];
+
+      // Notice that the ordering of the input summaries matter, so we need to
+      // keep them in order.
+      if (outputLoadedAdditionalDillModules.length !=
+          additionalDillModules.length) {
+        throw new ArgumentError("Invalid length.");
+      }
+      Set<Uri> additionalDillModulesSet = new Set<Uri>();
+      for (int i = 0; i < additionalDillModules.length; i++) {
+        Uri summaryUri = additionalDillModules[i];
+        additionalDillModulesSet.add(summaryUri);
+        WorkerInputComponent? cachedInput = workerInputCache[summaryUri];
+        List<int>? digest = workerInputDigests[summaryUri];
+        if (digest == null) {
+          throw new StateError("Expected to get digest for $summaryUri");
+        }
+        if (cachedInput == null ||
+            cachedInput.component.root != nameRoot ||
+            !digestsEqual(digest, cachedInput.digest)) {
+          // Remove any old libraries from workerInputCacheLibs.
+          Component? component = cachedInput?.component;
+          if (component != null) {
+            for (Library lib in component.libraries) {
+              workerInputCacheLibs.remove(lib.importUri);
+            }
+          }
+
+          loadFromDillIndexes.add(i);
+        } else {
+          // Need to reset cached components so they are usable again.
+          Component component = cachedInput.component;
+          if (trackNeededDillLibraries) {
+            for (Library lib in component.libraries) {
+              libraryToInputDill![lib.importUri] = summaryUri;
+            }
+          }
+          component.computeCanonicalNames(); // this isn't needed, is it?
+          outputLoadedAdditionalDillModules[i] = component;
+        }
+      }
+
+      for (int i = 0; i < loadFromDillIndexes.length; i++) {
+        int index = loadFromDillIndexes[i];
+        Uri additionalDillModuleUri = additionalDillModules[index];
+        List<int>? digest = workerInputDigests[additionalDillModuleUri];
+        if (digest == null) {
+          throw new StateError(
+            "Expected to get digest for $additionalDillModuleUri",
+          );
+        }
+
+        Uint8List bytes = await fileSystem
+            .entityForUri(additionalDillModuleUri)
+            .readAsBytes();
+        WorkerInputComponent cachedInput = new WorkerInputComponent(
+          digest,
+          await processedOpts.loadComponent(
+            bytes,
+            nameRoot,
+            alwaysCreateNewNamedNodes: true,
+          ),
+        );
+        workerInputCache[additionalDillModuleUri] = cachedInput;
+        outputLoadedAdditionalDillModules[index] = cachedInput.component;
+        for (Library lib in cachedInput.component.libraries) {
+          if (workerInputCacheLibs.containsKey(lib.importUri)) {
+            Uri fromSummary = workerInputCacheLibs[lib.importUri]!;
+            if (additionalDillModulesSet.contains(fromSummary)) {
+              throw new StateError(
+                "Asked to load several summaries that contain the same "
+                "library.",
+              );
+            } else {
+              // Library contained in old cached component. Flush that cache.
+              Component component = workerInputCache
+                  .remove(fromSummary)!
+                  .component;
+              for (Library lib in component.libraries) {
+                workerInputCacheLibs.remove(lib.importUri);
+              }
+            }
+          } else {
+            workerInputCacheLibs[lib.importUri] = additionalDillModuleUri;
+          }
+
+          if (trackNeededDillLibraries) {
+            libraryToInputDill![lib.importUri] = additionalDillModuleUri;
+          }
+        }
+      }
+
+      incrementalCompiler.setModulesToLoadOnNextComputeDelta(
+        outputLoadedAdditionalDillModules,
+      );
+
+      return new InitializedCompilerState(
+        options,
+        processedOpts,
+        workerInputCache: workerInputCache,
+        workerInputCacheLibs: workerInputCacheLibs,
+        incrementalCompiler: incrementalCompiler,
+        tags: tags,
+        libraryToInputDill: libraryToInputDill,
+      );
+    } catch (e, s) {
+      if (isRetry) rethrow;
+      print('''
+Failed to initialize incremental compiler, throwing away old state.
+
+This is likely a result of https://github.com/dart-lang/sdk/issues/38102, if
+you are consistently seeing this problem please see that issue.
+
+The specific exception that was encountered was:
+
+$e
+$s
+''');
+      isRetry = true;
+      oldState = null;
+      // Artificial delay to attempt to increase the odds of recovery from
+      // timing related issues.
+      await new Future.delayed(const Duration(milliseconds: 50));
+    }
+  }
+}

@@ -1,0 +1,14 @@
+# Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file for
+# details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Perfetto targets fail to build without this variable. It is used by Perfetto
+# targets to distinguish embedder builds from Perfetto standalone builds, and
+# builds in the Android tree.
+perfetto_build_with_embedder = true
+perfetto_root_path = "//third_party/perfetto/src/"
+
+# We do not actually bring a real protobuf library as a dependency for Dart
+# because it requires pulling lots of other things (e.g. abseil).
+perfetto_protobuf_target_prefix = "//third_party/perfetto/mock_protobuf"
+perfetto_protobuf_gni = perfetto_protobuf_target_prefix + "/proto_library.gni"

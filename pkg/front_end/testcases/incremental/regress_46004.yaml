@@ -1,0 +1,33 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'dart:ffi';
+        import 'lib.dart';
+        final class X extends Struct {
+          external COMObject xx;
+        }
+      lib.dart: |
+        import 'dart:ffi';
+
+        final class COMObject extends Struct {
+          external Pointer<IntPtr> lpVtbl;
+
+          // This should not be interpreted as a native field.
+          // Neither the first nor the second compilation.
+          Pointer<IntPtr> get vtable => Pointer.fromAddress(lpVtbl.value);
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: importsFfi

@@ -1,0 +1,5 @@
+typedef T G<T>(T t);
+
+test() {}
+
+main() {}

@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field (core::int, core::int) pair;
+  const constructor •(core::int x, core::int y) → self::A
+    : self::A::pair = (x, y), super core::Object::•()
+    ;
+}
+static method main() → void
+  ;

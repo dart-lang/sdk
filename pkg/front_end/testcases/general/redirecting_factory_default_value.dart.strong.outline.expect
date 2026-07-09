@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int field;
+  constructor •([initializing-formal core::int field = 42]) → self::A
+    ;
+  static factory redirect([core::int field = 42]) → self::A /* redirection-target: self::A::• */
+    return new self::A::•(field);
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

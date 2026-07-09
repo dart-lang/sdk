@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Sueta extends core::Object {
+  synthetic constructor •() → self::Sueta
+    ;
+  static method test(core::int positional, {has-declared-initializer core::int named1, has-declared-initializer core::int named2}) → void
+    ;
+}
+extension SuetaExtension on self::Sueta {
+  static method test = self::SuetaExtension|test;
+}
+static method main(core::List<core::String> arguments) → void
+  ;
+static method test(core::int positional, {has-declared-initializer core::int named1, has-declared-initializer core::int named2}) → void
+  ;
+static extension-member method SuetaExtension|test(core::int pos, {has-declared-initializer core::int named1, has-declared-initializer core::int named2}) → void
+  ;
+static method test1() → void
+  ;
+static method test2() → void
+  ;
+static method test3() → void
+  ;

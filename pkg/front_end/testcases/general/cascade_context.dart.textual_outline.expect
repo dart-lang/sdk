@@ -1,0 +1,5 @@
+T f<T>() => throw '';
+
+test() {}
+
+main() {}

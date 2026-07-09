@@ -1,0 +1,5 @@
+import 'dart-ext:/usr/local/somewhere';
+import 'dart-ext:foo/../there';
+import 'dart-ext:here';
+
+main() {}

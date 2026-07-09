@@ -1,0 +1,27 @@
+export 'late_statics_lib.dart';
+import 'late_statics_lib.dart' as lib;
+
+class Statics {
+  static late final int b;
+  static late final int d = -1;
+  static late int a;
+  static late int c = -1;
+}
+
+void main() {}
+
+void testInitializedFinalStaticField() {}
+
+void testInitializedFinalTopLevelField() {}
+
+void testInitializedNonFinalStaticField() {}
+
+void testInitializedNonFinalTopLevelField() {}
+
+void testUninitializedFinalStaticField() {}
+
+void testUninitializedFinalTopLevelField() {}
+
+void testUninitializedNonFinalStaticField() {}
+
+void testUninitializedNonFinalTopLevelField() {}

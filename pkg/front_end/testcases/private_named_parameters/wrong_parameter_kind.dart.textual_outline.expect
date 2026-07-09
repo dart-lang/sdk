@@ -1,0 +1,8 @@
+class C {
+  C({int? _notInitializingFormal});
+  factory C.fact({int? _inFactory}) => throw '!';
+}
+
+void function({int? _parameter}) {}
+
+main() {}

@@ -1,0 +1,5 @@
+import 'error_location_04_lib1.dart';
+
+import 'error_location_04_lib2.dart';
+
+main() {}

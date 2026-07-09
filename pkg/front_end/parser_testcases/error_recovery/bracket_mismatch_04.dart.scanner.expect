@@ -1,0 +1,9 @@
+void foo() {
+foo(() {bar());});
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+foo[StringToken]([BeginToken]([BeginToken])[SimpleToken] {[BeginToken]bar[StringToken]([BeginToken])[SimpleToken])[SimpleToken];[SimpleToken]}[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

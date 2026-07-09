@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class C extends core::Object {
+  final field core::int? _privateFinalField;
+  final field core::int? publicFinalField;
+  field core::int? _privateField;
+  field core::int? publicField;
+  constructor •(core::int? i) → self::C
+    ;
+  abstract get _privateAbstractGetter() → core::int?;
+  abstract get publicAbstractGetter() → core::int?;
+  get _privateConcreteGetter() → core::int?
+    ;
+  get publicConcreteGetter() → core::int?
+    ;
+}
+static method acceptsInt(core::int x) → void
+  ;
+static method testPrivateFinalField(self::C c) → void
+  ;
+static method testPublicFinalField(self::C c) → void
+  ;
+static method testPrivateField(self::C c) → void
+  ;
+static method testPublicField(self::C c) → void
+  ;
+static method testPrivateAbstractGetter(self::C c) → void
+  ;
+static method testPublicAbstractGetter(self::C c) → void
+  ;
+static method testPrivateConcreteGetter(self::C c) → void
+  ;
+static method testPublicConcreteGetter(self::C c) → void
+  ;
+static method main() → dynamic
+  ;

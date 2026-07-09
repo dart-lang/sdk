@@ -1,0 +1,21 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("//build_overrides/build.gni")
+
+# This config needs to be propagated to all targets that depend on
+# ":libprotozero".
+config("libprotozero_config") {
+  include_dirs = [
+    "$perfetto_root_path/include",
+    "$root_gen_dir/$perfetto_root_path/build_config",
+  ]
+}
+
+# This target includes Perfetto's protozero target, which we need to serialize
+# proto messages. This target also propagates ":libprotozero_config".
+source_set("libprotozero") {
+  public_configs = [ ":libprotozero_config" ]
+  deps = [ "$perfetto_root_path/src/protozero" ]
+}

@@ -1,0 +1,391 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+import '../extensions.dart';
+
+const _desc = r'Cascade consecutive method invocations on the same reference.';
+
+Element? _getElementFromVariableDeclarationStatement(
+  VariableDeclarationStatement statement,
+) {
+  var variables = statement.variables.variables;
+  if (variables.length == 1) {
+    var variable = variables.single;
+    if (variable.initializer is AwaitExpression) {
+      // `await` has a higher precedence than a cascade, but because the token
+      // `await` is followed by whitespace, it may look like the cascade binds
+      // tighter, for example in `await Future.value([1,2,3])..forEach(print)`.
+      //
+      // In such a case, we should not return any cascadable element here.
+      return null;
+    }
+    return variable.declaredFragment?.element;
+  }
+  return null;
+}
+
+ExecutableElement? _getExecutableElementFromMethodInvocation(
+  MethodInvocation node,
+) {
+  if (_isInvokedWithoutNullAwareOperator(node.operator)) {
+    var executableElement = node.methodName.canonicalElement;
+    if (executableElement is ExecutableElement) {
+      return executableElement;
+    }
+  }
+  return null;
+}
+
+Element? _getPrefixElementFromExpression(Expression rawExpression) {
+  var expression = rawExpression.unParenthesized;
+  if (expression is PrefixedIdentifier) {
+    return expression.prefix.canonicalElement;
+  } else if (expression is PropertyAccess &&
+      _isInvokedWithoutNullAwareOperator(expression.operator) &&
+      expression.target is SimpleIdentifier) {
+    return expression.target.canonicalElement;
+  }
+  return null;
+}
+
+Element? _getTargetElementFromCascadeExpression(CascadeExpression node) =>
+    node.target.canonicalElement;
+
+Element? _getTargetElementFromMethodInvocation(MethodInvocation node) =>
+    node.target.canonicalElement;
+
+bool _isInvokedWithoutNullAwareOperator(Token? token) =>
+    token?.type == TokenType.PERIOD;
+
+/// Rule to lint consecutive invocations of methods or getters on the same
+/// reference that could be done with the cascade operator.
+class CascadeInvocations extends AnalysisRule {
+  /// Default constructor.
+  new() : super(name: LintNames.cascade_invocations, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.cascadeInvocations;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+    registry.addBlock(this, visitor);
+    registry.addSwitchCase(this, visitor);
+    registry.addSwitchDefault(this, visitor);
+    registry.addSwitchPatternCase(this, visitor);
+  }
+}
+
+/// A CascadableExpression is an object that is built from an expression and
+/// knows if it is able to join to another CascadableExpression.
+class _CascadableExpression {
+  static final nullCascadableExpression = _CascadableExpression._(null, []);
+
+  /// Whether this expression can be joined with a previous expression via a
+  /// cascade operation.
+  ///
+  /// If this expression is a [PropertyAccess], [CascadeExpression], or
+  /// [MethodInvocation] in which the target is not a [SimpleIdentifier], or an
+  /// [AssignmentExpression] in which the left side is not a [SimpleIdentifier],
+  /// it cannot join. See bugs https://github.com/dart-lang/linter/issues/1323
+  /// and https://github.com/dart-lang/linter/issues/3240.
+  // TODO(srawlins): Refactor this lint, (https://github.com/dart-lang/linter/issues/3240)
+  // rule to use
+  // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
+  // should remove this need for checking for a simple target.
+  final bool canJoin;
+
+  /// Whether this expression can receive an additional expression with a
+  /// cascade operation.
+  ///
+  /// For example, `a.b = 1` can receive, but `a = 1` cannot receive.
+  ///
+  /// If this expression is a [PropertyAccess], [CascadeExpression], or
+  /// [MethodInvocation] in which the target is not a [SimpleIdentifier], or an
+  /// [AssignmentExpression] in which the left side is not a [SimpleIdentifier],
+  /// it cannot receive. See bugs
+  /// https://github.com/dart-lang/linter/issues/1323 and
+  /// https://github.com/dart-lang/linter/issues/3240.
+  // TODO(srawlins): Refactor this lint, (https://github.com/dart-lang/linter/issues/3240)
+  // rule to use
+  // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
+  // should remove this need for checking for a simple target.
+  final bool canReceive;
+  final bool canBeCascaded;
+
+  /// This is necessary when you have a variable declaration so that element
+  /// is critical and it can't be used as a parameter of a method invocation or
+  /// in the right part of an assignment in a following expression that we would
+  /// like to join to this.
+  final bool isCritical;
+  final Element? element;
+  final List<AstNode> criticalNodes;
+
+  factory fromExpressionStatement(ExpressionStatement statement) {
+    var expression = statement.expression.unParenthesized;
+    if (expression is AssignmentExpression) {
+      return _CascadableExpression._fromAssignmentExpression(expression);
+    }
+    if (expression is MethodInvocation) {
+      return _CascadableExpression._fromMethodInvocation(expression);
+    }
+    if (expression is CascadeExpression) {
+      return _CascadableExpression._fromCascadeExpression(expression);
+    }
+    if (expression is PropertyAccess &&
+        _isInvokedWithoutNullAwareOperator(expression.operator)) {
+      return _CascadableExpression._fromPropertyAccess(expression);
+    }
+    if (expression is PrefixedIdentifier) {
+      return _CascadableExpression._fromPrefixedIdentifier(expression);
+    }
+    return nullCascadableExpression;
+  }
+
+  factory fromVariableDeclarationStatement(VariableDeclarationStatement node) {
+    var element = _getElementFromVariableDeclarationStatement(node);
+    return _CascadableExpression._(
+      element,
+      node.variables.variables.map((v) => v.initializer).nonNulls.toList(),
+      canReceive: !node.variables.isConst,
+      isCritical: true,
+    );
+  }
+
+  new _(
+    this.element,
+    this.criticalNodes, {
+    this.canJoin = false,
+    this.canReceive = false,
+    this.canBeCascaded = false,
+    this.isCritical = false,
+  });
+
+  factory _fromAssignmentExpression(AssignmentExpression node) {
+    var leftExpression = node.leftHandSide.unParenthesized;
+    if (leftExpression is SimpleIdentifier) {
+      return _CascadableExpression._(
+        leftExpression.element,
+        [node.rightHandSide],
+        canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
+        isCritical: true,
+      );
+    }
+    // setters
+    var variable = _getPrefixElementFromExpression(leftExpression);
+    var canReceive =
+        node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
+        variable is VariableElement &&
+        !variable.isStatic;
+    return _CascadableExpression._(
+      variable,
+      [node.rightHandSide],
+      canJoin: true,
+      canReceive: canReceive,
+      canBeCascaded: true,
+    );
+  }
+
+  factory _fromCascadeExpression(CascadeExpression node) {
+    var targetIsSimple = node.target is SimpleIdentifier;
+    return _CascadableExpression._(
+      _getTargetElementFromCascadeExpression(node),
+      node.cascadeSections,
+      canJoin: targetIsSimple,
+      canReceive: targetIsSimple,
+      canBeCascaded: true,
+    );
+  }
+
+  factory _fromMethodInvocation(MethodInvocation node) {
+    var executableElement = _getExecutableElementFromMethodInvocation(node);
+    var isNonStatic = executableElement?.isStatic == false;
+    if (isNonStatic) {
+      var targetIsSimple = node.target is SimpleIdentifier;
+      return _CascadableExpression._(
+        _getTargetElementFromMethodInvocation(node),
+        [node.methodName, node.argumentList],
+        canJoin: targetIsSimple,
+        canReceive: targetIsSimple,
+        canBeCascaded: true,
+      );
+    }
+    return nullCascadableExpression;
+  }
+
+  factory _fromPrefixedIdentifier(PrefixedIdentifier node) =>
+      _CascadableExpression._(
+        node.prefix.canonicalElement,
+        [node.identifier],
+        canJoin: true,
+        canReceive: true,
+        canBeCascaded: true,
+      );
+
+  factory _fromPropertyAccess(PropertyAccess node) {
+    var targetIsSimple = node.target is SimpleIdentifier;
+    return _CascadableExpression._(
+      node.target.canonicalElement,
+      [node.propertyName],
+      canJoin: targetIsSimple,
+      canReceive: targetIsSimple,
+      canBeCascaded: true,
+    );
+  }
+
+  /// Whether `this` is compatible to be joined with [expressionBox] with a
+  /// cascade operation.
+  bool compatibleWith(_CascadableExpression expressionBox) =>
+      element != null &&
+      expressionBox.canReceive &&
+      canJoin &&
+      (canBeCascaded || expressionBox.canBeCascaded) &&
+      element == expressionBox.element &&
+      !_hasCriticalDependencies(expressionBox);
+
+  bool _hasCriticalDependencies(_CascadableExpression expressionBox) {
+    var dependencyVisitor = _CriticalDependencyVisitor(expressionBox);
+    for (var node in criticalNodes) {
+      if (dependencyVisitor.isOrHasCriticalNode(node)) return true;
+    }
+
+    return expressionBox.criticalNodes.any(
+      (node) => dependencyVisitor.isOrHasCriticalNode(node),
+    );
+  }
+}
+
+class _CriticalDependencyVisitor extends UnifyingAstVisitor<void> {
+  final _CascadableExpression expressionBox;
+
+  bool foundCriticalNode = false;
+
+  new(this.expressionBox);
+
+  bool isOrHasCriticalNode(AstNode node) {
+    node.accept(this);
+    return foundCriticalNode;
+  }
+
+  @override
+  visitNode(AstNode node) {
+    if (foundCriticalNode) return;
+
+    var targetElement = expressionBox.element;
+    if (node.canonicalElement == targetElement) {
+      foundCriticalNode = true;
+      return;
+    }
+
+    if (targetElement is PropertyAccessorElement) {
+      if (node.canonicalElement == targetElement.variable) {
+        foundCriticalNode = true;
+        return;
+      }
+    }
+
+    var variable = switch (targetElement) {
+      PropertyAccessorElement() => targetElement.variable,
+      PropertyInducingElement() => targetElement,
+      _ => null,
+    };
+
+    if (variable is PropertyInducingElement) {
+      if (node is FunctionExpression) {
+        foundCriticalNode = true;
+        return;
+      }
+
+      var nodeElement = node.canonicalElement;
+      if (nodeElement is ExecutableElement) {
+        if (nodeElement.enclosingElement == variable.enclosingElement) {
+          foundCriticalNode = true;
+          return;
+        }
+      }
+    }
+
+    super.visitNode(node);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitBlock(Block node) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _checkStatements(node.statements);
+  }
+
+  void _checkStatements(List<Statement> statements) {
+    if (statements.length < 2) {
+      return;
+    }
+    var previousExpressionBox = _CascadableExpression.nullCascadableExpression;
+    Statement? previousStatement;
+    Statement? firstStatementInCascade;
+
+    for (var statement in statements) {
+      var currentExpressionBox = _CascadableExpression.nullCascadableExpression;
+      if (statement is VariableDeclarationStatement) {
+        currentExpressionBox =
+            _CascadableExpression.fromVariableDeclarationStatement(statement);
+      }
+      if (statement is ExpressionStatement) {
+        currentExpressionBox = _CascadableExpression.fromExpressionStatement(
+          statement,
+        );
+      }
+      if (currentExpressionBox.compatibleWith(previousExpressionBox)) {
+        firstStatementInCascade ??= statement;
+      } else {
+        if (firstStatementInCascade != null && previousStatement != null) {
+          var offset = firstStatementInCascade.offset;
+          var length = previousStatement.end - offset;
+          rule.reportAtOffset(offset, length);
+          firstStatementInCascade = null;
+        }
+      }
+      previousExpressionBox = currentExpressionBox;
+      previousStatement = statement;
+    }
+
+    if (firstStatementInCascade != null && previousStatement != null) {
+      var offset = firstStatementInCascade.offset;
+      var length = previousStatement.end - offset;
+      rule.reportAtOffset(offset, length);
+    }
+  }
+}

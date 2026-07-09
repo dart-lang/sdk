@@ -1,0 +1,23 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Dart2js regression test. Error in initializer might be report with the wrong
+// current element.
+
+class C {
+  const C();
+  // [error column 3, length 5]
+  // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
+
+  final x = 1;
+  final y = x;
+  //        ^
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  // [cfe] Can't access 'this' in a field initializer to read 'x'.
+}
+
+main() {
+  const C().y;
+}

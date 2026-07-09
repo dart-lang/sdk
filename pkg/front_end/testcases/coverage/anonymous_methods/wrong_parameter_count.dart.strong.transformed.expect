@@ -1,0 +1,98 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:7:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.() {};
+//     ^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:10:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.(a, b) {};
+//     ^^^^^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:13:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.([a]) {};
+//     ^^^^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:16:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.({a}) {};
+//     ^^^^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:19:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.({required a}) {};
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:22:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.() => 0;
+//     ^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:25:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.(a, b) => 0;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:28:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.([a]) => 0;
+//     ^^^^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:31:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.({a}) => 0;
+//     ^^^^^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:34:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+// Try removing the parameter list, or changing it to have exactly one required positional parameter.
+//   1.({required a}) => 0;
+//     ^^^^^^^^^^^^^^
+//
+import self as self;
+
+static method test() → void {
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:7:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.() {};
+    ^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:10:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.(a, b) {};
+    ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:13:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.([a]) {};
+    ^^^^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:16:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.({a}) {};
+    ^^^^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:19:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.({required a}) {};
+    ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:22:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.() => 0;
+    ^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:25:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.(a, b) => 0;
+    ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:28:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.([a]) => 0;
+    ^^^^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:31:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.({a}) => 0;
+    ^^^^^";
+  invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/wrong_parameter_count.dart:34:5: Error: An anonymous method with a parameter list must have exactly one required, positional parameter.
+Try removing the parameter list, or changing it to have exactly one required positional parameter.
+  1.({required a}) => 0;
+    ^^^^^^^^^^^^^^";
+}

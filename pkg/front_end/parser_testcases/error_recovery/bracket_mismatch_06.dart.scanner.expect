@@ -1,0 +1,9 @@
+main() {
+new C(;
+)}
+
+
+[UnmatchedToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+new[KeywordToken] C[StringToken]([BeginToken];[SimpleToken]
+)[SyntheticToken]}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class ImplicitScopeTest extends core::Object {
+  synthetic constructor •() → self::ImplicitScopeTest
+    ;
+  static method alwaysTrue() → core::bool
+    ;
+  static method testMain() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

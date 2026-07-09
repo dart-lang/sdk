@@ -1,0 +1,17 @@
+NOTICE: Stream was rewritten by parser!
+
+void f(x) {
+switch (x) {
+case dynamic(foo: int()):
+break;
+}
+}
+
+
+[UnmatchedToken]void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] dynamic[KeywordToken]([BeginToken]foo[StringToken]:[SimpleToken] int[StringToken]([BeginToken])[SimpleToken])[SyntheticToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

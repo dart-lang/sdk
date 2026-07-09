@@ -1,0 +1,55 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  import "org-dartlang-test:///main.dart";
+
+  extension Extension1 on main::A {
+    method baz = lib1::Extension1|baz;
+    method tearoff baz = lib1::Extension1|get#baz;
+  }
+  static extension-member method Extension1|baz(lowered final main::A #this) → dynamic
+    return 42;
+  static extension-member method Extension1|get#baz(lowered final main::A #this) → () → dynamic
+    return () → dynamic => lib1::Extension1|baz(#this);
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+additionalExports = (main::A,
+  lib1::Extension1,
+  main::Extension2,
+  main::main)
+
+  import "org-dartlang-test:///main.dart";
+  import "org-dartlang-test:///lib1.dart";
+  export "org-dartlang-test:///main.dart";
+  export "org-dartlang-test:///lib1.dart";
+
+  static method method(main::A a) → dynamic {
+    lib1::Extension1|baz(a);
+    main::Extension2|boz(a);
+    lib1::Extension1|baz(a);
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart";
+
+  class A extends dart.core::Object {
+    synthetic constructor •() → main::A
+      : super dart.core::Object::•()
+      ;
+    method foo() → dynamic {}
+  }
+  extension Extension2 on main::A {
+    method boz = main::Extension2|boz;
+    method tearoff boz = main::Extension2|get#boz;
+  }
+  static method main() → dynamic {
+    lib2::method(new main::A::•());
+  }
+  static extension-member method Extension2|boz(lowered final main::A #this) → dynamic {
+    return 123;
+  }
+  static extension-member method Extension2|get#boz(lowered final main::A #this) → () → dynamic
+    return () → dynamic => main::Extension2|boz(#this);
+}

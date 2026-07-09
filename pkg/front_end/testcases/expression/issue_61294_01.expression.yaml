@@ -1,0 +1,41 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/dart-lang/sdk/issues/61294
+
+# Definition, offset, method etc extracted by starting the VM with
+# `-DDFE_VERBOSE=true`, e.g.
+# ```
+# out/ReleaseX64/dart -DDFE_VERBOSE=true --enable-vm-service \
+# --disable-service-auth-codes --pause_isolates_on_start inputFile.dart
+# ```
+# and then issuing the expression compilation.
+
+sources: |
+  import "dart:developer";
+
+  extension on String? {
+    bool get isNullOrEmpty {
+      var str = this;
+      debugger();
+      return str == null || str.isEmpty;
+    }
+  }
+
+  void main() {
+    String? str = "hello";
+    print(str.isNullOrEmpty);
+  }
+
+definitions: ["#this", "str"]
+definition_types: ["dart:core", "_OneByteString", "1", "0", "dart:core", "_OneByteString", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "_extension#0.isNullOrEmpty"
+static: true
+offset: 100
+scriptUri: main.dart
+expression: |
+  str

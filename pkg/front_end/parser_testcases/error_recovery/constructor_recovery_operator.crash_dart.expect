@@ -1,0 +1,268 @@
+Problems reported:
+
+parser/error_recovery/constructor_recovery_operator.crash:2:9: Expected a function body, but got '/'.
+  Foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:2:9: Operator declarations must be preceded by the keyword 'operator'.
+  Foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:2:9: A method declaration needs an explicit list of parameters.
+  Foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:2:9: The name of a constructor must match the name of the enclosing class.
+  Foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:5:8: Expected a function body, but got '.'.
+  Foo()./ : super() {
+       ^
+
+parser/error_recovery/constructor_recovery_operator.crash:5:8: Expected a class member, but got '.'.
+  Foo()./ : super() {
+       ^
+
+parser/error_recovery/constructor_recovery_operator.crash:5:9: Operator declarations must be preceded by the keyword 'operator'.
+  Foo()./ : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:5:9: A method declaration needs an explicit list of parameters.
+  Foo()./ : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:5:9: The name of a constructor must match the name of the enclosing class.
+  Foo()./ : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:8:9: Expected a function body, but got '/'.
+  foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:8:9: Operator declarations must be preceded by the keyword 'operator'.
+  foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:8:9: A method declaration needs an explicit list of parameters.
+  foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:8:9: The name of a constructor must match the name of the enclosing class.
+  foo() / : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:11:8: Expected a function body, but got '.'.
+  foo()./ : super() {
+       ^
+
+parser/error_recovery/constructor_recovery_operator.crash:11:8: Expected a class member, but got '.'.
+  foo()./ : super() {
+       ^
+
+parser/error_recovery/constructor_recovery_operator.crash:11:9: Operator declarations must be preceded by the keyword 'operator'.
+  foo()./ : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:11:9: A method declaration needs an explicit list of parameters.
+  foo()./ : super() {
+        ^
+
+parser/error_recovery/constructor_recovery_operator.crash:11:9: The name of a constructor must match the name of the enclosing class.
+  foo()./ : super() {
+        ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(Foo, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, Foo)
+      handleNoPrimaryConstructor(DeclarationKind.Class, Foo, null)
+      handleNoType(Foo)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(Foo)
+        endMetadataStar(0)
+        beginMember()
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, Foo, Foo)
+            handleNoType({)
+            handleIdentifier(Foo, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got '/'., null, {lexeme: /}], /, /)
+            handleInvalidFunctionBody({)
+          endConstructor(DeclarationKind.Class, Foo, null, (, null, })
+        endMember()
+        beginMetadataStar(/)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingOperatorKeyword, /, /)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, operator, Foo)
+            handleNoType(})
+            handleOperatorName(operator, /)
+            handleNoTypeVariables(:)
+            handleRecoverableError(MissingMethodParameters, /, /)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(super)
+                handleSuperExpression(super, expression)
+                handleNoTypeArguments(()
+                beginArguments(()
+                endArguments(0, (, ))
+                handleSend(super, ))
+              endInitializer())
+            endInitializers(1, :, ))
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+            handleRecoverableError(ConstructorWithWrongName, /, /)
+          endConstructor(DeclarationKind.Class, operator, null, (, :, })
+        endMember()
+        beginMetadataStar(Foo)
+        endMetadataStar(0)
+        beginMember()
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, Foo, Foo)
+            handleNoType(})
+            handleIdentifier(Foo, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got '.'., null, {lexeme: .}], ., .)
+            handleInvalidFunctionBody({)
+          endConstructor(DeclarationKind.Class, Foo, null, (, null, })
+        endMember()
+        beginMetadataStar(.)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(Message[Template(ExpectedClassMember), Expected a class member, but got '.'., null, {lexeme: .}], ., .)
+          handleInvalidMember(.)
+        endMember()
+        beginMetadataStar(/)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingOperatorKeyword, /, /)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, operator, Foo)
+            handleNoType(.)
+            handleOperatorName(operator, /)
+            handleNoTypeVariables(:)
+            handleRecoverableError(MissingMethodParameters, /, /)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(super)
+                handleSuperExpression(super, expression)
+                handleNoTypeArguments(()
+                beginArguments(()
+                endArguments(0, (, ))
+                handleSend(super, ))
+              endInitializer())
+            endInitializers(1, :, ))
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+            handleRecoverableError(ConstructorWithWrongName, /, /)
+          endConstructor(DeclarationKind.Class, operator, null, (, :, })
+        endMember()
+        beginMetadataStar(foo)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, foo, Foo)
+            handleNoType(})
+            handleIdentifier(foo, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got '/'., null, {lexeme: /}], /, /)
+            handleInvalidFunctionBody({)
+          endMethod(DeclarationKind.Class, null, foo, (, null, })
+        endMember()
+        beginMetadataStar(/)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingOperatorKeyword, /, /)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, operator, Foo)
+            handleNoType(})
+            handleOperatorName(operator, /)
+            handleNoTypeVariables(:)
+            handleRecoverableError(MissingMethodParameters, /, /)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(super)
+                handleSuperExpression(super, expression)
+                handleNoTypeArguments(()
+                beginArguments(()
+                endArguments(0, (, ))
+                handleSend(super, ))
+              endInitializer())
+            endInitializers(1, :, ))
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+            handleRecoverableError(ConstructorWithWrongName, /, /)
+          endConstructor(DeclarationKind.Class, operator, null, (, :, })
+        endMember()
+        beginMetadataStar(foo)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, foo, Foo)
+            handleNoType(})
+            handleIdentifier(foo, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got '.'., null, {lexeme: .}], ., .)
+            handleInvalidFunctionBody({)
+          endMethod(DeclarationKind.Class, null, foo, (, null, })
+        endMember()
+        beginMetadataStar(.)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(Message[Template(ExpectedClassMember), Expected a class member, but got '.'., null, {lexeme: .}], ., .)
+          handleInvalidMember(.)
+        endMember()
+        beginMetadataStar(/)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingOperatorKeyword, /, /)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, operator, Foo)
+            handleNoType(.)
+            handleOperatorName(operator, /)
+            handleNoTypeVariables(:)
+            handleRecoverableError(MissingMethodParameters, /, /)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            beginInitializers(:)
+              beginInitializer(super)
+                handleSuperExpression(super, expression)
+                handleNoTypeArguments(()
+                beginArguments(()
+                endArguments(0, (, ))
+                handleSend(super, ))
+              endInitializer())
+            endInitializers(1, :, ))
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+            endBlockFunctionBody(0, {, })
+            handleRecoverableError(ConstructorWithWrongName, /, /)
+          endConstructor(DeclarationKind.Class, operator, null, (, :, })
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 10, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )

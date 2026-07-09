@@ -1,0 +1,19 @@
+abstract class AbstractClass implements Interface {
+  int get declaredAbstractGetter;
+  int get declaredAbstractImplementsAbstractGetter;
+  int get declaredAbstractImplementsConcreteGetter;
+  int get declaredConcreteGetter => 0;
+  int get declaredConcreteImplementsAbstractGetter => 0;
+  int get declaredConcreteImplementsConcreteGetter => 0;
+}
+
+abstract class Interface {
+  int get declaredAbstractImplementsAbstractGetter;
+  int get declaredAbstractImplementsConcreteGetter => 0;
+  int get declaredConcreteImplementsAbstractGetter;
+  int get declaredConcreteImplementsConcreteGetter => 0;
+  int get implementedAbstractGetter;
+  int get implementedConcreteGetter => 0;
+}
+
+main() {}

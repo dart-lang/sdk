@@ -1,0 +1,5 @@
+class A with Comparable<int> {
+  int compareTo(int x) => 0;
+}
+
+class B with Error {}

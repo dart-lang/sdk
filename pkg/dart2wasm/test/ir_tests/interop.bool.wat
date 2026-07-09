@@ -1,0 +1,77 @@
+(module $M
+  (type $#Top (struct
+    (field $field0 i32)))
+  (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param i32) (result externref))
+  (func $"dart2wasm.N (import)" (import "dart2wasm" "N") (param externref) (result externref))
+  (func $"dart2wasm.R (import)" (import "dart2wasm" "R") (param externref) (result externref))
+  (global $"boolValueNullable initialized" (mut i32) <...>)
+  (global $boolValueNullable (mut (ref null $#Top)) <...>)
+  (global $false (ref $#Top) <...>)
+  (global $true (ref $#Top) <...>)
+  (func $boolValue implicit getter (result i32) <...>)
+  (func $ktrue implicit getter (result i32) <...>)
+  (func $sinkBool (param $var0 i32) <...>)
+  (func $sinkBoolNullable (param $var0 (ref null $#Top)) <...>)
+  (@binaryen.inline 0)
+  (func $testBoolConstant
+    i32.const 1
+    call $"dart2wasm.M (import)"
+    call $"dart2wasm.R (import)"
+    call $toDartBool
+    call $sinkBool
+  )
+  (@binaryen.inline 0)
+  (func $testBoolConstantNullable
+    ref.null noextern
+    call $"dart2wasm.N (import)"
+    call $toDartNullableBool
+    call $sinkBoolNullable
+  )
+  (@binaryen.inline 0)
+  (func $testBoolValue
+    call $"boolValue implicit getter"
+    call $"dart2wasm.M (import)"
+    call $"dart2wasm.R (import)"
+    call $toDartBool
+    call $sinkBool
+  )
+  (@binaryen.inline 0)
+  (func $testBoolValueNullable
+    (local $var0 (ref null $#Top))
+    global.get $"boolValueNullable initialized"
+    if (result (ref null $#Top))
+      global.get $boolValueNullable
+    else
+      call $"ktrue implicit getter"
+      if (result (ref null $#Top))
+        global.get $true
+        global.get $false
+        call $"boolValue implicit getter"
+        select (ref $#Top)
+      else
+        ref.null none
+      end
+      local.tee $var0
+      global.set $boolValueNullable
+      i32.const 1
+      global.set $"boolValueNullable initialized"
+      local.get $var0
+    end
+    local.tee $var0
+    ref.is_null
+    if (result externref)
+      ref.null noextern
+    else
+      local.get $var0
+      global.get $false
+      ref.eq
+      i32.eqz
+      call $"dart2wasm.M (import)"
+    end
+    call $"dart2wasm.N (import)"
+    call $toDartNullableBool
+    call $sinkBoolNullable
+  )
+  (func $toDartBool (param $var0 externref) (result i32) <...>)
+  (func $toDartNullableBool (param $var0 externref) (result (ref null $#Top)) <...>)
+)

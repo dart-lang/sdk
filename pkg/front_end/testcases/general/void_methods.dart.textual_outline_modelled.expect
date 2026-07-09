@@ -1,0 +1,8 @@
+class Foo {
+  List list = [1, 2, 3];
+  operator []=(x, y) => list[x] = y;
+  set first(x) => list[0] = x;
+  void clear() => list.clear();
+}
+
+main() {}

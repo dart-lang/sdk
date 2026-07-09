@@ -1,0 +1,130 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/element/element.dart';
+
+extension ClassElementExtensions on ClassElement {
+  /// Return `true` if this element represents the class `Iterable` from
+  /// `dart:core`.
+  bool get isDartCoreIterable => name == 'Iterable' && library.isDartCore;
+
+  /// Return `true` if this element represents the class `List` from
+  /// `dart:core`.
+  bool get isDartCoreList => name == 'List' && library.isDartCore;
+
+  /// Return `true` if this element represents the class `Map` from
+  /// `dart:core`.
+  bool get isDartCoreMap => name == 'Map' && library.isDartCore;
+
+  /// Return `true` if this element represents the class `Set` from
+  /// `dart:core`.
+  bool get isDartCoreSet => name == 'Set' && library.isDartCore;
+}
+
+extension ElementExtensions on Element {
+  /// Canonicalizes an element so that field formal parameters map to their
+  /// fields and property accessors map to their variables.
+  // TODO(FMorschel): Move this when the occurrences are removed and only LSP is
+  //  supported.
+  Element? get canonical => switch (this) {
+    FieldFormalParameterElement(:var field) when field?.name == name =>
+      field?.baseElement,
+    PropertyAccessorElement(:var variable, :var isOriginVariable)
+        when isOriginVariable ||
+            variable is FieldElement &&
+                variable.isOriginDeclaringFormalParameter =>
+      variable.baseElement,
+    _ => baseElement,
+  };
+
+  /// Whether this element, the enclosing class (if there is one), or
+  /// the enclosing library, has been annotated with the `@Deprecated()`
+  /// annotation.
+  bool get hasOrInheritsDeprecated {
+    if (isDeprecatedWithKind('use')) {
+      return true;
+    }
+
+    var ancestor = enclosingElement;
+    if (ancestor is InterfaceElement) {
+      if (ancestor.isDeprecatedWithKind('use')) {
+        return true;
+      }
+      ancestor = ancestor.enclosingElement;
+    }
+    return ancestor is LibraryElement && ancestor.isDeprecatedWithKind('use');
+  }
+
+  /// Return this element and all its enclosing elements.
+  Iterable<Element> get withAncestors sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var enclosing = current.enclosingElement;
+      if (enclosing == null) {
+        break;
+      }
+      current = enclosing;
+    }
+  }
+}
+
+extension FragmentExtensions on Fragment {
+  /// Return this fragment and all its enclosing fragment.
+  Iterable<Fragment> get withAncestors sync* {
+    var current = this;
+    while (true) {
+      yield current;
+      var enclosing = current.enclosingFragment;
+      if (enclosing == null) {
+        break;
+      }
+      current = enclosing;
+    }
+  }
+}
+
+extension MethodElementExtensions on MethodElement {
+  /// Return `true` if this element represents the method `cast` from either
+  /// `Iterable`, `List`, `Map`, or `Set`.
+  bool get isCastMethod {
+    if (name != 'cast') {
+      return false;
+    }
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
+    return definingClass.isDartCoreIterable ||
+        definingClass.isDartCoreList ||
+        definingClass.isDartCoreMap ||
+        definingClass.isDartCoreSet;
+  }
+
+  /// Return `true` if this element represents the method `toList` from
+  /// `Iterable`.
+  bool get isToListMethod {
+    if (name != 'toList') {
+      return false;
+    }
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
+    return definingClass.isDartCoreIterable;
+  }
+
+  /// Return `true` if this element represents the method `toSet` from
+  /// `Iterable`.
+  bool get isToSetMethod {
+    if (name != 'toSet') {
+      return false;
+    }
+    var definingClass = enclosingElement;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
+    return definingClass.isDartCoreIterable;
+  }
+}

@@ -1,0 +1,25 @@
+foo1(int? x) => <int>[?x];
+foo2(String? x) => <String>{?x};
+foo3(bool? x, num y) => <bool, num>{?x: y};
+bar1(int? x) => <int>[?x];
+bar2(int? x, bool b) => <int>{ if (b) ?x };
+bar3(int? x) => <int>{ for (var _ in []) ?x };
+bar4(String x, bool? y) => <String, bool>{x: ?y};
+bar5(int? x, num y) => <int, num>{?x: y};
+bar6(double? x, Symbol? y) => <double, Symbol>{?x: ?y};
+bar7(num? x, double? y, bool b) => <num, double>{ if (b) ?x: ?y };
+bar8(num? x, double? y) => <num, double>{ for (var _ in []) ?x: ?y };
+
+
+foo1[StringToken]([BeginToken]int[StringToken]?[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]?[SimpleToken]x[StringToken]][SimpleToken];[SimpleToken]
+foo2[StringToken]([BeginToken]String[StringToken]?[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]String[StringToken]>[SimpleToken]{[BeginToken]?[SimpleToken]x[StringToken]}[SimpleToken];[SimpleToken]
+foo3[StringToken]([BeginToken]bool[StringToken]?[SimpleToken] x[StringToken],[SimpleToken] num[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]bool[StringToken],[SimpleToken] num[StringToken]>[SimpleToken]{[BeginToken]?[SimpleToken]x[StringToken]:[SimpleToken] y[StringToken]}[SimpleToken];[SimpleToken]
+bar1[StringToken]([BeginToken]int[StringToken]?[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]?[SimpleToken]x[StringToken]][SimpleToken];[SimpleToken]
+bar2[StringToken]([BeginToken]int[StringToken]?[SimpleToken] x[StringToken],[SimpleToken] bool[StringToken] b[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]int[StringToken]>[SimpleToken]{[BeginToken] if[KeywordToken] ([BeginToken]b[StringToken])[SimpleToken] ?[SimpleToken]x[StringToken] }[SimpleToken];[SimpleToken]
+bar3[StringToken]([BeginToken]int[StringToken]?[SimpleToken] x[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]int[StringToken]>[SimpleToken]{[BeginToken] for[KeywordToken] ([BeginToken]var[KeywordToken] _[StringToken] in[KeywordToken] [][SimpleToken])[SimpleToken] ?[SimpleToken]x[StringToken] }[SimpleToken];[SimpleToken]
+bar4[StringToken]([BeginToken]String[StringToken] x[StringToken],[SimpleToken] bool[StringToken]?[SimpleToken] y[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]String[StringToken],[SimpleToken] bool[StringToken]>[SimpleToken]{[BeginToken]x[StringToken]:[SimpleToken] ?[SimpleToken]y[StringToken]}[SimpleToken];[SimpleToken]
+bar5[StringToken]([BeginToken]int[StringToken]?[SimpleToken] x[StringToken],[SimpleToken] num[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]int[StringToken],[SimpleToken] num[StringToken]>[SimpleToken]{[BeginToken]?[SimpleToken]x[StringToken]:[SimpleToken] y[StringToken]}[SimpleToken];[SimpleToken]
+bar6[StringToken]([BeginToken]double[StringToken]?[SimpleToken] x[StringToken],[SimpleToken] Symbol[StringToken]?[SimpleToken] y[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]double[StringToken],[SimpleToken] Symbol[StringToken]>[SimpleToken]{[BeginToken]?[SimpleToken]x[StringToken]:[SimpleToken] ?[SimpleToken]y[StringToken]}[SimpleToken];[SimpleToken]
+bar7[StringToken]([BeginToken]num[StringToken]?[SimpleToken] x[StringToken],[SimpleToken] double[StringToken]?[SimpleToken] y[StringToken],[SimpleToken] bool[StringToken] b[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]num[StringToken],[SimpleToken] double[StringToken]>[SimpleToken]{[BeginToken] if[KeywordToken] ([BeginToken]b[StringToken])[SimpleToken] ?[SimpleToken]x[StringToken]:[SimpleToken] ?[SimpleToken]y[StringToken] }[SimpleToken];[SimpleToken]
+bar8[StringToken]([BeginToken]num[StringToken]?[SimpleToken] x[StringToken],[SimpleToken] double[StringToken]?[SimpleToken] y[StringToken])[SimpleToken] =>[SimpleToken] <[BeginToken]num[StringToken],[SimpleToken] double[StringToken]>[SimpleToken]{[BeginToken] for[KeywordToken] ([BeginToken]var[KeywordToken] _[StringToken] in[KeywordToken] [][SimpleToken])[SimpleToken] ?[SimpleToken]x[StringToken]:[SimpleToken] ?[SimpleToken]y[StringToken] }[SimpleToken];[SimpleToken]
+[SimpleToken]

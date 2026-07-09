@@ -1,0 +1,27 @@
+method1a<T extends (int, String)>(T t) => t.$1;
+
+method1b<T extends (int, String)>(T t) => t.$2;
+
+method1c<T extends (int, String)>(T t) => t.$3;
+
+method1d<T extends (int, String)>(T t) => t.a;
+
+method2a<T extends (int, {String a})>(T t) => t.$1;
+
+method2b<T extends (int, {String a})>(T t) => t.a;
+
+method2c<T extends (int, {String a})>(T t) => t.$2;
+
+method2d<T extends (int, {String a})>(T t) => t.b;
+
+method3a<T extends (int, String), S extends T>(S t) => t.$1;
+
+method3b<T extends (int, String), S extends T>(S t) => t.$2;
+
+method3c<T extends (int, String), S extends T>(S t) => t.$3;
+
+method3d<T extends (int, String), S extends T>(S t) => t.a;
+
+void method1<T>(T t) {}
+
+void method2(Object t) {}

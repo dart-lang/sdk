@@ -1,0 +1,23 @@
+class Inner {
+  Other? other = int.parse('3') == 3 ? Other() : null;
+}
+
+class Other {
+  String text = 42.toString();
+}
+
+class WrapperA extends Wrapper {
+  Inner inner = Inner();
+}
+
+class WrapperB extends Wrapper {
+  Inner inner = Inner();
+}
+
+sealed class Wrapper {}
+
+var obj = int.parse('1') == 1 ? WrapperB() : WrapperA();
+
+void foo(Wrapper wrapper) {}
+
+void main() {}

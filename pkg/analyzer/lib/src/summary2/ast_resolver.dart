@@ -1,0 +1,174 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/summary2/link.dart';
+
+/// Used to resolve some AST nodes - variable initializers, and annotations.
+class AstResolver {
+  final Linker _linker;
+  final LibraryFragmentImpl _libraryFragment;
+  final Scope _nameScope;
+  final FeatureSet _featureSet;
+  final DiagnosticListener _diagnosticListener =
+      DiagnosticListener.nullListener;
+  final AnalysisOptions analysisOptions;
+  final InterfaceElementImpl? enclosingClassElement;
+  final ExecutableElementImpl? enclosingExecutableElement;
+  late final _resolutionVisitor = ResolutionVisitor(
+    libraryFragment: _libraryFragment,
+    nameScope: _nameScope,
+    docImportLibraries: const [],
+    diagnosticListener: _diagnosticListener,
+    strictInference: analysisOptions.strictInference,
+    strictCasts: analysisOptions.strictCasts,
+    dataForTesting: null,
+  );
+  late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
+  late final _flowAnalysis = FlowAnalysisHelper(
+    false,
+    typeSystemOperations: TypeSystemOperations(
+      _libraryFragment.library.typeSystem,
+      strictCasts: analysisOptions.strictCasts,
+    ),
+    typeAnalyzerOptions: _typeAnalyzerOptions,
+  );
+  late final _resolverVisitor = ResolverVisitor(
+    _linker.inheritance,
+    _libraryFragment.library,
+    LibraryResolutionContext(),
+    _libraryFragment.source,
+    _libraryFragment.library.typeProvider,
+    _diagnosticListener,
+    featureSet: _featureSet,
+    analysisOptions: analysisOptions,
+    flowAnalysisHelper: _flowAnalysis,
+    libraryFragment: _libraryFragment,
+    typeAnalyzerOptions: _typeAnalyzerOptions,
+  );
+
+  AstResolver(
+    this._linker,
+    this._libraryFragment,
+    this._nameScope,
+    this.analysisOptions, {
+    this.enclosingClassElement,
+    this.enclosingExecutableElement,
+  }) : _featureSet = _libraryFragment.library.featureSet;
+
+  void resolveAnnotation(AnnotationImpl node) {
+    ElementBindingVisitor.forPartialResolution(
+      fragment: _libraryFragment,
+    ).bindSubtree(_libraryFragment, node);
+    node.accept(_resolutionVisitor);
+    _prepareEnclosingDeclarations();
+    _flowAnalysis.bodyOrInitializer_enter(node, null);
+    node.accept(_resolverVisitor);
+    _resolverVisitor.checkIdle();
+    _flowAnalysis.bodyOrInitializer_exit();
+  }
+
+  void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
+    var element = node.declaredFragment!.element;
+
+    // We don't want to visit the whole node because that will try to create an
+    // element for it; we just want to process its children so that we can
+    // resolve initializers and/or a redirection.
+    void accept(AstVisitor<Object?> visitor) {
+      node.initializers.accept(visitor);
+      node.redirectedConstructor?.accept(visitor);
+    }
+
+    _prepareEnclosingDeclarations();
+    accept(_resolutionVisitor);
+
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      element.formalParameters,
+      visit: accept,
+    );
+    accept(_resolverVisitor);
+    _resolverVisitor.checkIdle();
+    _flowAnalysis.bodyOrInitializer_exit();
+  }
+
+  /// If resolving the initializer of a non-late instance field, there
+  /// might be [inScopePrimaryConstructorParameters].
+  void resolveExpression(
+    ExpressionImpl Function() getNode, {
+    TypeImpl contextType = UnknownInferredType.instance,
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
+  }) {
+    ExpressionImpl node = getNode();
+    ElementBindingVisitor.forPartialResolution(
+      fragment: _libraryFragment,
+    ).bindSubtree(_libraryFragment, node);
+    node.accept(_resolutionVisitor);
+    // Node may have been rewritten so get it again.
+    node = getNode();
+    _prepareEnclosingDeclarations();
+    _flowAnalysis.bodyOrInitializer_enter(
+      node.parent as AstNodeImpl,
+      inScopePrimaryConstructorParameters,
+    );
+    _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
+    _resolverVisitor.popRewrite();
+    _resolverVisitor.checkIdle();
+    _flowAnalysis.bodyOrInitializer_exit();
+  }
+
+  void resolvePrimaryConstructor(
+    PrimaryConstructorDeclarationImpl node,
+    PrimaryConstructorBodyImpl body,
+  ) {
+    var element = node.declaredFragment!.element;
+
+    void accept(AstVisitor<Object?> visitor) {
+      body.initializers.accept(visitor);
+    }
+
+    var bindingVisitor = ElementBindingVisitor.forPartialResolution(
+      fragment: _libraryFragment,
+    );
+    for (var initializer in body.initializers) {
+      bindingVisitor.bindSubtree(node.declaredFragment!, initializer);
+    }
+
+    _prepareEnclosingDeclarations();
+    accept(_resolutionVisitor);
+
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      element.formalParameters,
+      visit: accept,
+    );
+    accept(_resolverVisitor);
+    _resolverVisitor.checkIdle();
+    _flowAnalysis.bodyOrInitializer_exit();
+  }
+
+  void _prepareEnclosingDeclarations() {
+    _resolutionVisitor.prepareEnclosingDeclarations(
+      enclosingClassElement: enclosingClassElement,
+    );
+
+    _resolverVisitor.prepareEnclosingDeclarations(
+      enclosingClassElement: enclosingClassElement,
+      enclosingExecutableElement: enclosingExecutableElement,
+    );
+  }
+}

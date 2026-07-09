@@ -1,0 +1,29 @@
+class Foo {
+Foo operator >>(_) => this;
+}
+
+main() {
+Foo foo = new Foo();
+foo >> 42;
+print(foo >> 42);
+print(foo >>= 42);
+if ((foo >>= 42) == foo) {
+print("same");
+}
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+Foo[StringToken] operator[KeywordToken] >>[SimpleToken]([BeginToken]_[StringToken])[SimpleToken] =>[SimpleToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+Foo[StringToken] foo[StringToken] =[SimpleToken] new[KeywordToken] Foo[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+foo[StringToken] >>[SimpleToken] 42[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]foo[StringToken] >>[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]foo[StringToken] >>=[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+if[KeywordToken] ([BeginToken]([BeginToken]foo[StringToken] >>=[SimpleToken] 42[StringToken])[SimpleToken] ==[SimpleToken] foo[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"same"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

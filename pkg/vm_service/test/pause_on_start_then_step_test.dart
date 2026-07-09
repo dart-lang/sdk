@@ -1,0 +1,19 @@
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'common/service_test_common.dart';
+import 'pause_on_start_then_step_lib.dart' as testee_lib;
+
+void main([args = const <String>[]]) => // LINE_A
+    IsolateTestHarness('pause_on_start_then_step_test.dart', args)
+        .hasPausedAtStart()
+        .stepInto()
+        .hasStoppedAtBreakpoint()
+        .stoppedAtLine('LINE_A')
+        .run(
+      testeeMain: testee_lib.main,
+      pauseOnStart: true,
+      pauseOnExit: true,
+      extraArgs: ['--trace-service', '--trace-service-verbose'],
+    );

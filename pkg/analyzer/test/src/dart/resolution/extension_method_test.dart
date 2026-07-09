@@ -1,0 +1,5033 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ExtensionMethodsDeclarationTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
+    defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
+    defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+/// Tests that show that extension declarations and the members inside them are
+/// resolved correctly.
+@reflectiveTest
+class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest {
+  @override
+  List<MockSdkLibrary> get additionalMockSdkLibraries => [
+    MockSdkLibrary('test1', [
+      MockSdkLibraryUnit('test1/test1.dart', r'''
+extension E on Object {
+  int get a => 1;
+}
+
+class A {}
+'''),
+    ]),
+    MockSdkLibrary('test2', [
+      MockSdkLibraryUnit('test2/test2.dart', r'''
+extension E on Object {
+  int get a => 1;
+}
+'''),
+    ]),
+  ];
+
+  test_constructor() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E {
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^
+// [diag.expectedTypeName] Expected a type name.
+  E() {}
+//^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
+}
+''');
+  }
+
+  test_factory() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E {
+//        ^
+// [diag.expectedToken] Expected to find 'on'.
+//          ^
+// [diag.expectedTypeName] Expected a type name.
+  factory S() {}
+//^^^^^^^
+// [diag.extensionDeclaresConstructor] Extensions can't declare constructors.
+}
+''');
+  }
+
+  test_fromPlatform() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:test2';
+
+f(Object o) {
+  o.a;
+}
+''');
+  }
+
+  test_metadata() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+const int ann = 1;
+class C {}
+@ann
+extension E on C {}
+''');
+    var node = result.findNode.annotation('@ann');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: ann
+    element: <testLibrary>::@getter::ann
+    staticType: null
+  element: <testLibrary>::@getter::ann
+''');
+  }
+
+  test_multipleExtensions_noConflict() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E1 on C {}
+extension E2 on C {}
+''');
+  }
+
+  test_this_type_interface() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  void foo() {
+    this;
+  }
+}
+''');
+    var node = result.findNode.this_('this;');
+    assertResolvedNodeText(node, r'''
+ThisExpression
+  thisKeyword: this
+  staticType: int
+''');
+  }
+
+  test_this_type_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E<T> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    var node = result.findNode.this_('this;');
+    assertResolvedNodeText(node, r'''
+ThisExpression
+  thisKeyword: this
+  staticType: T
+''');
+  }
+
+  test_this_type_typeParameter_withBound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E<T extends Object> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    var node = result.findNode.this_('this;');
+    assertResolvedNodeText(node, r'''
+ThisExpression
+  thisKeyword: this
+  staticType: T
+''');
+  }
+
+  test_visibility_hidden() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int a = 1;
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib.dart' hide E;
+
+f(C c) {
+  c.a;
+//  ^
+// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
+}
+''');
+  }
+
+  test_visibility_notShown() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int a = 1;
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib.dart' show C;
+
+f(C c) {
+  c.a;
+//  ^
+// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
+}
+''');
+  }
+
+  test_visibility_private() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int _a = 1;
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib.dart';
+
+f(C c) {
+  c._a;
+//  ^^
+// [diag.undefinedGetter] The getter '_a' isn't defined for the type 'C'.
+}
+''');
+  }
+
+  test_visibility_shadowed_byClass() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib.dart';
+
+class E {}
+f(C c) {
+  c.a;
+}
+''');
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: package:test/lib.dart::@extension::E::@getter::a
+    staticType: int
+  element: package:test/lib.dart::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_visibility_shadowed_byImport() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension E on Object {
+  int get a => 1;
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+class E {}
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart';
+import 'lib2.dart';
+
+f(Object o, A a) {
+  o.a;
+}
+''');
+    var node = result.findNode.prefixed('o.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: o
+    element: <testLibrary>::@function::f::@formalParameter::o
+    staticType: Object
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: package:test/lib1.dart::@extension::E::@getter::a
+    staticType: int
+  element: package:test/lib1.dart::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_visibility_shadowed_byLocal_imported() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib.dart';
+
+f(C c) {
+  double E = 2.71;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'E' isn't used.
+  c.a;
+}
+''');
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: package:test/lib.dart::@extension::E::@getter::a
+    staticType: int
+  element: package:test/lib.dart::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_visibility_shadowed_byLocal_local() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+f(C c) {
+  double E = 2.71;
+//       ^
+// [diag.unusedLocalVariable] The value of the local variable 'E' isn't used.
+  c.a;
+}
+''');
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@getter::a
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_visibility_shadowed_byTopLevelVariable() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib.dart';
+
+double E = 2.71;
+f(C c) {
+  c.a;
+}
+''');
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: package:test/lib.dart::@extension::E::@getter::a
+    staticType: int
+  element: package:test/lib.dart::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_visibility_shadowed_platformByNonPlatform() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on Object {
+  int get a => 1;
+}
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:test1';
+import 'lib.dart';
+
+f(Object o, A a, B b) {
+  o.a;
+}
+''');
+  }
+
+  test_visibility_withPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib.dart' as p;
+
+f(p.C c) {
+  c.a;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest {
+  test_named_generic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C<T> {}
+extension E<S> on C<S> {}
+''');
+    var node = result.findNode.typeAnnotation('C<S>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: S
+        element: #E0 S
+        type: S
+    rightBracket: >
+  element: <testLibrary>::@class::C
+  type: C<S>
+''');
+  }
+
+  test_named_onDynamic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on dynamic {}
+''');
+    var node = result.findNode.typeAnnotation('dynamic');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: dynamic
+  element: dynamic
+  type: dynamic
+''');
+  }
+
+  test_named_onEnum() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A {a, b, c}
+extension E on A {}
+''');
+    var node = result.findNode.typeAnnotation('A {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: <testLibrary>::@enum::A
+  type: A
+''');
+  }
+
+  test_named_onFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {}
+''');
+    var node = result.findNode.typeAnnotation('Function');
+    assertResolvedNodeText(node, r'''
+GenericFunctionType
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  functionKeyword: Function
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      declaredFragment: <testLibraryFragment> null@null
+        element: isPrivate
+          type: int
+    rightParenthesis: )
+  declaredFragment: GenericFunctionTypeElement
+    parameters
+      <empty>
+        kind: required positional
+        element:
+          type: int
+    returnType: int
+    type: int Function(int)
+  type: int Function(int)
+''');
+  }
+
+  test_named_onInterface() async {
+    var code = '''
+class C { }
+extension E on C {}
+''';
+
+    var result = await resolveTestCodeWithDiagnostics(code);
+
+    var node = result.findNode.typeAnnotation('C {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: C
+  element: <testLibrary>::@class::C
+  type: C
+''');
+  }
+
+  test_named_onMixin() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin M {
+}
+extension E on M {}
+''');
+    var node = result.findNode.typeAnnotation('M {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: M
+  element: <testLibrary>::@mixin::M
+  type: M
+''');
+  }
+
+  test_unnamed_generic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C<T> {}
+extension<S> on C<S> {}
+''');
+    var node = result.findNode.typeAnnotation('C<S>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: S
+        element: #E0 S
+        type: S
+    rightBracket: >
+  element: <testLibrary>::@class::C
+  type: C<S>
+''');
+  }
+
+  test_unnamed_onDynamic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension on dynamic {}
+''');
+    var node = result.findNode.typeAnnotation('dynamic');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: dynamic
+  element: dynamic
+  type: dynamic
+''');
+  }
+
+  test_unnamed_onEnum() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A {a, b, c}
+extension on A {}
+''');
+    var node = result.findNode.typeAnnotation('A {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: <testLibrary>::@enum::A
+  type: A
+''');
+  }
+
+  test_unnamed_onFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension on int Function(String) {}
+''');
+    var node = result.findNode.typeAnnotation('Function');
+    assertResolvedNodeText(node, r'''
+GenericFunctionType
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  functionKeyword: Function
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+      declaredFragment: <testLibraryFragment> null@null
+        element: isPrivate
+          type: String
+    rightParenthesis: )
+  declaredFragment: GenericFunctionTypeElement
+    parameters
+      <empty>
+        kind: required positional
+        element:
+          type: String
+    returnType: int
+    type: int Function(String)
+  type: int Function(String)
+''');
+  }
+
+  test_unnamed_onInterface() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C { }
+extension on C {}
+''');
+    var node = result.findNode.typeAnnotation('C {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: C
+  element: <testLibrary>::@class::C
+  type: C
+''');
+  }
+
+  test_unnamed_onMixin() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin M {
+}
+extension on M {}
+''');
+    var node = result.findNode.typeAnnotation('M {}');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: M
+  element: <testLibrary>::@mixin::M
+  type: M
+''');
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest {
+  /// Corresponds to: extension_member_resolution_t07
+  test_dynamicInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+class C extends A {
+  String method(int i) => "$i";
+  noSuchMethod(Invocation i) { }
+}
+
+extension E<T extends A> on T {
+  String method(int i, String s) => '';
+}
+
+main() {
+  dynamic c = new C();
+  c.method(42, "-42");
+}
+''');
+  }
+
+  test_instance_call_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int call(int x) => 0;
+}
+
+extension E on C {
+  int call(int x) => 0;
+}
+
+f(C c) {
+  c(2);
+}
+''');
+    var node = result.findNode.functionExpressionInvocation('c(2)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::C::@method::call
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_instance_call_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  int call(int x) => 0;
+}
+
+f(C c) {
+  c(2);
+}
+''');
+    var node = result.findNode.functionExpressionInvocation('c(2)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@extension::E::@method::call
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_instance_call_fromExtension_int() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  int call(int x) => 0;
+}
+
+f() {
+  1(2);
+}
+''');
+    var node = result.findNode.functionExpressionInvocation('1(2)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: IntegerLiteral
+    literal: 1
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@extension::E::@method::call
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_instance_compoundAssignment_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  C operator +(int i) => this;
+}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  c += 2;
+}
+''');
+    var node = result.findNode.assignment('+=');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+    staticType: int
+  readElement: <testLibrary>::@function::f::@formalParameter::c
+  readType: C
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
+  writeType: C
+  element: <testLibrary>::@class::C::@method::+
+  staticType: C
+''');
+  }
+
+  test_instance_compoundAssignment_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  c += 2;
+}
+''');
+    var node = result.findNode.assignment('+=');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  readElement: <testLibrary>::@function::f::@formalParameter::c
+  readType: C
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
+  writeType: C
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: C
+''');
+  }
+
+  test_instance_getter_fromDifferentExtension_usingBounds() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {}
+extension E1 on B {
+  int get g => 0;
+}
+extension E2<T extends B> on T {
+  void a() {
+    g;
+  }
+}
+''');
+    var node = result.findNode.simple('g;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: g
+  element: <testLibrary>::@extension::E1::@getter::g
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromDifferentExtension_withoutTarget() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E1 on C {
+  int get a => 1;
+}
+extension E2 on C {
+  void m() {
+    a;
+  }
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E1::@getter::a
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromExtendedType_usingBounds() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {
+  int get g => 0;
+}
+extension E<T extends B> on T {
+  void a() {
+    g;
+  }
+}
+''');
+    var node = result.findNode.simple('g;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: g
+  element: <testLibrary>::@class::B::@getter::g
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromExtendedType_withoutTarget() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void m() {
+    a;
+  }
+}
+extension E on C {
+  int get a => 1;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  int get a => 1;
+}
+g(int Function(int) f) {
+  f.a;
+}
+''');
+    var node = result.findNode.prefixed('f.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@getter::a
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  int get a => 1;
+}
+
+f(C c) {
+  c.a;
+}
+''');
+    var node = result.findNode.prefixed('c.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@getter::a
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromInstance_extensionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {}
+
+extension E on A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    var node = result.findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromInstance_Never() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on Never {
+  int get foo => 0;
+}
+
+f(Never a) {
+  a.foo;
+//  ^^^^
+// [diag.deadCode] Dead code.
+}
+''');
+    var node = result.findNode.prefixed('a.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Never
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: Never
+  element: <null>
+  staticType: Never
+''');
+  }
+
+  test_instance_getter_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int? {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a.foo;
+}
+''');
+    var node = result.findNode.prefixed('a.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromInstance_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a?.foo;
+}
+''');
+    var node = result.findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_instance_getter_methodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  double Function(int) get a => (b) => 2.0;
+}
+
+f(C c) {
+  c.a(0);
+}
+''');
+    var node = result.findNode.functionExpressionInvocation('c.a(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@extension::E::@getter::a
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: double Function(int)
+  staticType: double
+''');
+  }
+
+  test_instance_getter_specificSubtypeMatchLocal() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+class B extends A {}
+
+extension A_Ext on A {
+  int get a => 1;
+}
+extension B_Ext on B {
+  int get a => 2;
+}
+
+f(B b) {
+  b.a;
+}
+''');
+    var node = result.findNode.prefixed('b.a');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: B
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::B_Ext::@getter::a
+    staticType: int
+  element: <testLibrary>::@extension::B_Ext::@getter::a
+  staticType: int
+''');
+  }
+
+  test_instance_getterInvoked_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  String Function() get a => () => 'a';
+}
+g(int Function(int) f) {
+  f.a();
+}
+''');
+    var node = result.findNode.functionExpressionInvocation('f.a()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::g::@formalParameter::f
+      staticType: int Function(int)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@extension::E::@getter::a
+      staticType: String Function()
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_instance_method_fromDifferentExtension_usingBounds() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {}
+extension E1 on B {
+  void m() {}
+}
+extension E2<T extends B> on T {
+  void a() {
+    m();
+  }
+}
+''');
+    var node = result.findNode.methodInvocation('m();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    element: <testLibrary>::@extension::E1::@method::m
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromDifferentExtension_withoutTarget() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {}
+extension E1 on B {
+  void a() {}
+}
+extension E2 on B {
+  void m() {
+    a();
+  }
+}
+''');
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E1::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromExtendedType_usingBounds() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {
+  void m() {}
+}
+extension E<T extends B> on T {
+  void a() {
+    m();
+  }
+}
+''');
+    var node = result.findNode.methodInvocation('m();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: m
+    element: <testLibrary>::@class::B::@method::m
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromExtendedType_withoutTarget() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {
+  void m() {
+    a();
+  }
+}
+extension E on B {
+  void a() {}
+}
+''');
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  void a() {}
+}
+g(int Function(int) f) {
+  f.a();
+}
+''');
+    var node = result.findNode.methodInvocation('f.a()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {}
+
+extension A on B {
+  void a() {}
+}
+
+f(B b) {
+  b.a();
+}
+''');
+    var node = result.findNode.methodInvocation('b.a()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::A::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_extensionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {}
+
+extension E on A {
+  void foo() {}
+}
+
+void f(A a) {
+  a.foo();
+}
+''');
+
+    var node = result.findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_importInPart() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'x.dart';
+void f() {
+  0.foo();
+}
+''',
+    });
+    var result = results[b]!;
+
+    var node = result.findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: package:test/x.dart::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_Never() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on Never {
+  void foo() {}
+}
+
+f(Never a) {
+  a.foo();
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//     ^^^
+// [diag.deadCode] Dead code.
+}
+''');
+
+    var node = result.findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
+  }
+
+  test_instance_method_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  a.foo();
+}
+''');
+    var node = result.findNode.methodInvocation('a.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_nullable_nullLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  null.foo();
+}
+''');
+    var node = result.findNode.methodInvocation('null.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: NullLiteral
+    literal: null
+    staticType: Null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  void foo() {}
+}
+
+f(int? a) {
+  a?.foo();
+}
+''');
+    var node = result.findNode.methodInvocation('a?.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_nullLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E<T> on T {
+  void foo() {}
+}
+
+f() {
+  null.foo();
+}
+''');
+    var node = result.findNode.methodInvocation('null.foo()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: NullLiteral
+    literal: null
+    staticType: Null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_privateName() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  void _foo() {}
+}
+
+void f() {
+  0._foo();
+}
+''');
+    var node = result.findNode.methodInvocation('_foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: _foo
+    element: <testLibrary>::@extension::E::@method::_foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromInstance_privateName_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+
+extension E on int {
+  void _foo() {}
+}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics('''
+part 'a.dart';
+
+void f() {
+  0._foo();
+}
+''');
+
+    var node = result.findNode.methodInvocation('_foo();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: _foo
+    element: <testLibrary>::@extension::E::@method::_foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_specificSubtypeMatchLocal() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+class B extends A {}
+
+extension A_Ext on A {
+  void a() {}
+}
+extension B_Ext on B {
+  void a() {}
+}
+
+f(B b) {
+  b.a();
+}
+''');
+
+    var node = result.findNode.methodInvocation('b.a()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::B_Ext::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_specificSubtypeMatchLocalGenerics() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<T> {}
+
+class B<T> extends A<T> {}
+
+class C {}
+
+extension A_Ext<T> on A<T> {
+  void f(T x) {}
+}
+
+extension B_Ext<T> on B<T> {
+  void f(T x) {}
+}
+
+f(B<C> x, C o) {
+  x.f(o);
+}
+''');
+    var node = result.findNode.methodInvocation('x.f(o)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: B<C>
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::B_Ext::@method::f
+      substitution: {T: C}
+    staticType: void Function(C)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: o
+        correspondingParameter: x@null
+        element: <testLibrary>::@function::f::@formalParameter::o
+        staticType: C
+    rightParenthesis: )
+  staticInvokeType: void Function(C)
+  staticType: void
+''');
+  }
+
+  test_instance_operator_binary_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void operator +(int i) {}
+}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  c + 2;
+}
+''');
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+    staticType: int
+  element: <testLibrary>::@class::C::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_instance_operator_binary_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  void operator +(int i) {}
+}
+g(int Function(int) f) {
+  f + 2;
+}
+''');
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_instance_operator_binary_fromExtension_interfaceType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  c + 2;
+}
+''');
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_instance_operator_binary_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A? {
+  int operator +(int _) => 0;
+}
+
+f(A? a) {
+  a + 1;
+}
+''');
+    var node = result.findNode.binary('a + 1');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A?
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::_
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::+
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_instance_operator_binary_undefinedTarget() async {
+    // Ensure that there is no exception thrown while resolving the code.
+    await resolveTestCodeWithDiagnostics('''
+extension on Object {}
+var a = b + c;
+//      ^
+// [diag.undefinedIdentifier] Undefined name 'b'.
+//          ^
+// [diag.undefinedIdentifier] Undefined name 'c'.
+''');
+  }
+
+  test_instance_operator_index_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void operator [](int index) {}
+}
+extension E on C {
+  void operator [](int index) {}
+}
+f(C c) {
+  c[2];
+}
+''');
+    var node = result.findNode.index('c[2]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@class::C::@method::[]
+  staticType: void
+''');
+  }
+
+  test_instance_operator_index_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  void operator [](int index) {}
+}
+g(int Function(int) f) {
+  f[2];
+}
+''');
+    var node = result.findNode.index('f[2]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@extension::E::@method::[]
+  staticType: void
+''');
+  }
+
+  test_instance_operator_index_fromExtension_interfaceType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void operator [](int index) {}
+}
+f(C c) {
+  c[2];
+}
+''');
+    var node = result.findNode.index('c[2]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@extension::E::@method::[]
+  staticType: void
+''');
+  }
+
+  test_instance_operator_index_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int? {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a[0];
+}
+''');
+    var node = result.findNode.index('a[0]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@extension::E::@method::[]
+  staticType: int
+''');
+  }
+
+  test_instance_operator_index_fromInstance_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a?[0];
+}
+''');
+    var node = result.findNode.index('a?[0]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@extension::E::@method::[]
+  staticType: int?
+''');
+  }
+
+  test_instance_operator_indexEquals_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void operator []=(int index, int value) {}
+}
+extension E on C {
+  void operator []=(int index, int value) {}
+}
+f(C c) {
+  c[2] = 1;
+}
+''');
+    var node = result.findNode.assignment('[2] =');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::C::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_operator_indexEquals_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  void operator []=(int index, int value) {}
+}
+g(int Function(int) f) {
+  f[2] = 3;
+}
+''');
+    var node = result.findNode.assignment('f[2]');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::g::@formalParameter::f
+      staticType: int Function(int)
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_operator_indexEquals_fromExtension_interfaceType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void operator []=(int index, int value) {}
+}
+f(C c) {
+  c[2] = 3;
+}
+''');
+    var node = result.findNode.assignment('c[2]');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_operator_postfix_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  C operator +(int i) => this;
+}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  c++;
+}
+''');
+    var node = result.findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: ++
+  readElement: <testLibrary>::@function::f::@formalParameter::c
+  readType: C
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
+  writeType: C
+  element: <testLibrary>::@class::C::@method::+
+  staticType: C
+''');
+  }
+
+  test_instance_operator_postfix_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  int Function(int) operator +(int i) => this;
+}
+g(int Function(int) f) {
+  f++;
+}
+''');
+    var node = result.findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: null
+  operator: ++
+  readElement: <testLibrary>::@function::g::@formalParameter::f
+  readType: int Function(int)
+  writeElement: <testLibrary>::@function::g::@formalParameter::f
+  writeType: int Function(int)
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: int Function(int)
+''');
+  }
+
+  test_instance_operator_postfix_fromExtension_interfaceType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  c++;
+}
+''');
+    var node = result.findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  operator: ++
+  readElement: <testLibrary>::@function::f::@formalParameter::c
+  readType: C
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
+  writeType: C
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: C
+''');
+  }
+
+  test_instance_operator_postfixInc_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  a++;
+}
+''');
+    var node = result.findNode.postfix('a++');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: null
+  operator: ++
+  readElement: <testLibrary>::@function::f::@formalParameter::a
+  readType: A?
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
+  writeType: A?
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: A?
+''');
+  }
+
+  test_instance_operator_prefix_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  C operator +(int i) => this;
+}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  ++c;
+}
+''');
+    var node = result.findNode.prefix('++');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  readElement: <testLibrary>::@function::f::@formalParameter::c
+  readType: C
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
+  writeType: C
+  element: <testLibrary>::@class::C::@method::+
+  staticType: C
+''');
+  }
+
+  test_instance_operator_prefix_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  int Function(int) operator +(int i) => this;
+}
+g(int Function(int) f) {
+  ++f;
+}
+''');
+    var node = result.findNode.prefix('++');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: null
+  readElement: <testLibrary>::@function::g::@formalParameter::f
+  readType: int Function(int)
+  writeElement: <testLibrary>::@function::g::@formalParameter::f
+  writeType: int Function(int)
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: int Function(int)
+''');
+  }
+
+  test_instance_operator_prefix_fromExtension_interfaceType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  ++c;
+}
+''');
+    var node = result.findNode.prefix('++');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: null
+  readElement: <testLibrary>::@function::f::@formalParameter::c
+  readType: C
+  writeElement: <testLibrary>::@function::f::@formalParameter::c
+  writeType: C
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: C
+''');
+  }
+
+  test_instance_operator_prefixInc_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  ++a;
+}
+''');
+    var node = result.findNode.prefix('++a');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: null
+  readElement: <testLibrary>::@function::f::@formalParameter::a
+  readType: A?
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
+  writeType: A?
+  element: <testLibrary>::@extension::E::@method::+
+  staticType: A?
+''');
+  }
+
+  test_instance_operator_unary_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  C operator -() => this;
+}
+extension E on C {
+  C operator -() => this;
+}
+f(C c) {
+  -c;
+}
+''');
+    var node = result.findNode.prefix('-c');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  element: <testLibrary>::@class::C::@method::unary-
+  staticType: C
+''');
+  }
+
+  test_instance_operator_unary_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  void operator -() {}
+}
+g(int Function(int) f) {
+  -f;
+}
+''');
+    var node = result.findNode.prefix('-f');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: void
+''');
+  }
+
+  test_instance_operator_unary_fromExtension_interfaceType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  C operator -() => this;
+}
+f(C c) {
+  -c;
+}
+''');
+    var node = result.findNode.prefix('-c');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: C
+''');
+  }
+
+  test_instance_operator_unaryMinus_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A? {
+  A? operator -() => this;
+}
+
+f(A? a) {
+  -a;
+}
+''');
+    var node = result.findNode.prefix('-a');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A?
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: A?
+''');
+  }
+
+  test_instance_setter_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  set a(int x) {}
+}
+g(int Function(int) f) {
+  f.a = 1;
+}
+''');
+    var node = result.findNode.assignment('a = 1');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::g::@formalParameter::f
+      staticType: int Function(int)
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_setter_fromInstance_extensionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {}
+
+extension E on A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo = 0;
+}
+''');
+
+    var node = result.findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_setter_fromInstance_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int? {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a.foo = 1;
+}
+''');
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int?
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_setter_fromInstance_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a?.foo = 1;
+}
+''');
+    var node = result.findNode.assignment('foo = 1');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int?
+''');
+  }
+
+  test_instance_setter_oneMatch() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  set a(int x) {}
+}
+
+f(C c) {
+  c.a = 1;
+}
+''');
+    var node = result.findNode.assignment('a = 1');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_tearoff_fromExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int Function(int) {
+  void a(int x) {}
+}
+g(int Function(int) f) => f.a;
+''');
+    var node = result.findNode.prefixed('a;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function(int)
+  element: <testLibrary>::@extension::E::@method::a
+  staticType: void Function(int)
+''');
+  }
+
+  test_instance_tearoff_fromExtension_interfaceType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  void a(int x) {}
+}
+
+f(C c) => c.a;
+''');
+    var node = result.findNode.prefixed('a;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function(int)
+  element: <testLibrary>::@extension::E::@method::a
+  staticType: void Function(int)
+''');
+  }
+
+  test_static_field_importedWithPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  static int a = 1;
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib.dart' as p;
+
+f() {
+  p.E.a;
+}
+''');
+    var node = result.findNode.propertyAccess('p.E.a;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: E
+      element: package:test/lib.dart::@extension::E
+      staticType: null
+    element: package:test/lib.dart::@extension::E
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    element: package:test/lib.dart::@extension::E::@getter::a
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_static_field_local() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static int a = 1;
+}
+
+f() {
+  E.a;
+}
+''');
+    var node = result.findNode.prefixed('E.a;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: E
+    element: <testLibrary>::@extension::E
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@getter::a
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_static_getter_failure_onDynamic() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on dynamic {
+  static int get foo => 0;
+}
+
+void f() {
+  dynamic.foo;
+//        ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+}
+''');
+  }
+
+  test_static_getter_failure_onFutureOr() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+
+extension E on FutureOr<int> {
+  static int get foo => 0;
+}
+
+void f() {
+  FutureOr.foo;
+//         ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'FutureOr<T>'.
+}
+''');
+  }
+
+  test_static_getter_failure_onNever() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on Never {
+  static int get foo => 0;
+}
+
+void f() {
+  Never.foo;
+//      ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+}
+''');
+  }
+
+  test_static_getter_failure_onTypeVariable() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E<X extends String> on X {
+  static int get foo => 0;
+}
+
+void f() {
+  String.foo;
+//       ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'String'.
+}
+''');
+  }
+
+  test_static_getter_importedWithPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  static int get a => 1;
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib.dart' as p;
+
+f() {
+  p.E.a;
+}
+''');
+    var node = result.findNode.propertyAccess('p.E.a;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: E
+      element: package:test/lib.dart::@extension::E
+      staticType: null
+    element: package:test/lib.dart::@extension::E
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    element: package:test/lib.dart::@extension::E::@getter::a
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_static_getter_local() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static int get a => 1;
+}
+
+f() {
+  E.a;
+}
+''');
+    var node = result.findNode.prefixed('E.a;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: E
+    element: <testLibrary>::@extension::E
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@getter::a
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onClass_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onClass_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onClass_viaTypedef_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+typedef T = A;
+
+extension E on T {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onClass_viaTypedef_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+typedef T<Y> = A<Y>;
+
+extension E on T<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onEnum_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A { element; }
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@enum::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onEnum_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A<X> { element; }
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@enum::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onExtensionType_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(Object? it) {}
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onExtensionType_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A<X>(Object? it) {}
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onMixin_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin A {}
+
+extension E on A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@mixin::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onMixin_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin A<X> {}
+
+extension E on A<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+    var node = result.findNode.prefixed('A.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@mixin::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onTypedef_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+typedef T = A;
+
+extension E on T {
+  static int get foo => 0;
+}
+
+void f() {
+  T.foo;
+}
+''');
+
+    var node = result.findNode.prefixed('T.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: T
+    element: <testLibrary>::@typeAlias::T
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_getter_success_onTypedef_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+typedef T<Y> = A<Y>;
+
+extension E on T<String> {
+  static int get foo => 0;
+}
+
+void f() {
+  T.foo;
+}
+''');
+
+    var node = result.findNode.prefixed('T.foo');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: T
+    element: <testLibrary>::@typeAlias::T
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  element: <testLibrary>::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_static_method_importedWithPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  static void a() {}
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib.dart' as p;
+
+f() {
+  p.E.a();
+}
+''');
+    var node = result.findNode.methodInvocation('E.a()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: E
+      element: package:test/lib.dart::@extension::E
+      staticType: null
+    element: package:test/lib.dart::@extension::E
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    element: package:test/lib.dart::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_local() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static void a() {}
+}
+
+f() {
+  E.a();
+}
+''');
+    var node = result.findNode.methodInvocation('E.a()');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: E
+    element: <testLibrary>::@extension::E
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_setter_failure_onDynamic() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on dynamic {
+  static void set foo(int value) {}
+}
+
+void f() {
+  dynamic.foo = 0;
+//        ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
+}
+''');
+  }
+
+  test_static_setter_failure_onFutureOr() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+
+extension E on FutureOr<int> {
+  static void set foo(int value) {}
+}
+
+void f() {
+  FutureOr.foo = 0;
+//         ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'FutureOr<T>'.
+}
+''');
+  }
+
+  test_static_setter_failure_onNever() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on Never {
+  static void set foo(int value) {}
+}
+
+void f() {
+  Never.foo = 0;
+//      ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
+}
+''');
+  }
+
+  test_static_setter_failure_onTypeVariable() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E<X extends String> on X {
+  static void set foo(int value) {}
+}
+
+void f() {
+  String.foo = 0;
+//       ^^^
+// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'String'.
+}
+''');
+  }
+
+  test_static_setter_importedWithPrefix() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+
+extension E on C {
+  static set a(int x) {}
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'lib.dart' as p;
+
+f() {
+  p.E.a = 3;
+}
+''');
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        element: <testLibraryFragment>::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: E
+        element: package:test/lib.dart::@extension::E
+        staticType: null
+      element: package:test/lib.dart::@extension::E
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::a::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: package:test/lib.dart::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_local() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static set a(int x) {}
+}
+
+f() {
+  E.a = 3;
+}
+''');
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: E
+      element: <testLibrary>::@extension::E
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onClass_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+extension E on A {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onClass_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+extension E on A<String> {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onClass_viaTypedef_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+typedef T = A;
+
+extension E on T {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onClass_viaTypedef_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+typedef T<Y> = A<Y>;
+
+extension E on T<String> {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onEnum_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A { element; }
+
+extension E on A {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@enum::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onEnum_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum A<X> { element; }
+
+extension E on A<String> {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@enum::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onExtensionType_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(Object? it) {}
+
+extension E on A {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@extensionType::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onExtensionType_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A<X>(Object? it) {}
+
+extension E on A<String> {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@extensionType::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onMixin_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin A {}
+
+extension E on A {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@mixin::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onMixin_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin A<X> {}
+
+extension E on A<String> {
+  static void set foo(int value) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    var node = result.findNode.assignment('A.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@mixin::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onTypedef_noTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {}
+
+typedef T = A;
+
+extension E on T {
+  static void set foo(int value) {}
+}
+
+void f() {
+  T.foo = 0;
+}
+''');
+
+    var node = result.findNode.assignment('T.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: T
+      element: <testLibrary>::@typeAlias::T
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_success_onTypedef_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A<X> {}
+
+typedef T<Y> = A<Y>;
+
+extension E on T<String> {
+  static void set foo(int value) {}
+}
+
+void f() {
+  T.foo = 0;
+}
+''');
+
+    var node = result.findNode.assignment('T.foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: T
+      element: <testLibrary>::@typeAlias::T
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_tearoff() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static void a(int x) {}
+}
+
+f() => E.a;
+''');
+    var node = result.findNode.prefixed('E.a;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: E
+    element: <testLibrary>::@extension::E
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function(int)
+  element: <testLibrary>::@extension::E::@method::a
+  staticType: void Function(int)
+''');
+  }
+
+  test_thisAccessOnDynamic() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on dynamic {
+  int get d => 3;
+
+  void testDynamic() {
+    // Static type of `this` is dynamic, allows dynamic invocation.
+    this.arglebargle();
+  }
+}
+''');
+  }
+
+  test_thisAccessOnFunction() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on Function {
+  int get f => 4;
+
+  void testFunction() {
+    // Static type of `this` is Function. Allows any dynamic invocation.
+    this();
+    this(1);
+    this(x: 1);
+    // No function can have both optional positional and named parameters.
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest {
+  test_instance_call() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  int call(int x) => 0;
+  int m() => this(2);
+}
+''');
+    var node = result.findNode.functionExpressionInvocation('this(2)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ThisExpression
+    thisKeyword: this
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: <testLibrary>::@extension::E::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@extension::E::@method::call
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_instance_getter_asSetter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E1 on int {
+  int get foo => 0;
+}
+
+extension E2 on int {
+  int get foo => 0;
+  void f() {
+    foo = 0;
+//  ^^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E2'.
+  }
+}
+''');
+    var node = result.findNode.assignment('foo = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E2::@getter::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int get a => 1;
+}
+
+extension E on C {
+  int get a => 1;
+  int m() => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromThis_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int get a => 1;
+}
+
+extension E on C {
+  int get a => 1;
+  int m() => this.a;
+}
+''');
+    var node = result.findNode.propertyAccess('this.a');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@class::C::@getter::a
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_instance_getter_fromThis_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  int get a => 1;
+  int m() => this.a;
+}
+''');
+
+    var node = result.findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@getter::a
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_instance_method_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void a() {}
+}
+extension E on C {
+  void a() {}
+  void b() { a(); }
+}
+''');
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromThis_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void a() {}
+}
+extension E on C {
+  void a() {}
+  void b() { this.a(); }
+}
+''');
+    var node = result.findNode.methodInvocation('this.a');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@class::C::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_method_fromThis_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void a() {}
+  void b() { this.a(); }
+}
+''');
+    var node = result.findNode.methodInvocation('this.a');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_instance_operator_binary_fromThis_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void operator +(int i) {}
+}
+extension E on C {
+  void operator +(int i) {}
+  void b() { this + 2; }
+}
+''');
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
+    staticType: int
+  element: <testLibrary>::@class::C::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_instance_operator_binary_fromThis_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void operator +(int i) {}
+  void b() { this + 2; }
+}
+''');
+    var node = result.findNode.binary('+ ');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::i
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::+
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_instance_operator_index_fromThis_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void operator [](int index) {}
+}
+extension E on C {
+  void operator [](int index) {}
+  void b() { this[2]; }
+}
+''');
+    var node = result.findNode.index('this[2]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@class::C::@method::[]
+  staticType: void
+''');
+  }
+
+  test_instance_operator_index_fromThis_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void operator [](int index) {}
+  void b() { this[2]; }
+}
+''');
+    var node = result.findNode.index('this[2]');
+    assertResolvedNodeText(node, r'''
+IndexExpression
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@extension::E::@method::[]
+  staticType: void
+''');
+  }
+
+  test_instance_operator_indexEquals_fromThis_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void operator []=(int index, int value) {}
+}
+extension E on C {
+  void operator []=(int index, int value) {}
+  void b() { this[2] = 1; }
+}
+''');
+    var node = result.findNode.assignment('this[2]');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::C::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_operator_indexEquals_fromThis_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void operator []=(int index, int value) {}
+  void b() { this[2] = 3; }
+}
+''');
+    var node = result.findNode.assignment('this[2]');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_operator_unary_fromThis_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void operator -() {}
+}
+extension E on C {
+  void operator -() {}
+  void b() { -this; }
+}
+''');
+    var node = result.findNode.prefix('-this');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  element: <testLibrary>::@class::C::@method::unary-
+  staticType: void
+''');
+  }
+
+  test_instance_operator_unary_fromThis_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  void operator -() {}
+  void b() { -this; }
+}
+''');
+    var node = result.findNode.prefix('-this');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: -
+  operand: ThisExpression
+    thisKeyword: this
+    staticType: C
+  element: <testLibrary>::@extension::E::@method::unary-
+  staticType: void
+''');
+  }
+
+  test_instance_setter_asGetter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E1 on int {
+  set foo(int _) {}
+}
+
+extension E2 on int {
+  set foo(int _) {}
+  void f() {
+    foo;
+//  ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
+  }
+}
+''');
+    var node = result.findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_instance_setter_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  set a(int _) {}
+}
+
+extension E on C {
+  set a(int _) {}
+  void m() {
+    a = 3;
+  }
+}
+''');
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_setter_fromThis_fromExtendedType() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  set a(int _) {}
+}
+
+extension E on C {
+  set a(int _) {}
+  void m() {
+    this.a = 3;
+  }
+}
+''');
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@class::C::@setter::a::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::C::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_setter_fromThis_fromExtension() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  set a(int _) {}
+  void m() {
+    this.a = 3;
+  }
+}
+''');
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: a
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_instance_tearoff_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  void a(int x) {}
+  get b => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@method::a
+  staticType: void Function(int)
+''');
+  }
+
+  test_instance_tearoff_fromThis() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  void a(int x) {}
+  get c => this.a;
+}
+''');
+    var node = result.findNode.propertyAccess('this.a;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function(int)
+  staticType: void Function(int)
+''');
+  }
+
+  test_static_field_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static int a = 1;
+  int m() => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_static_field_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static int a = 1;
+  static int m() => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_static_getter_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static int get a => 1;
+  int m() => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_static_getter_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static int get a => 1;
+  static int m() => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@getter::a
+  staticType: int
+''');
+  }
+
+  test_static_method_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  static void a() {}
+  void b() { a(); }
+}
+''');
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_method_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+extension E on C {
+  static void a() {}
+  static void b() { a(); }
+}
+''');
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@extension::E::@method::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_static_setter_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static set a(int x) {}
+  void m() {
+    a = 3;
+  }
+}
+''');
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_setter_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static set a(int x) {}
+  static void m() {
+    a = 3;
+  }
+}
+''');
+    var node = result.findNode.assignment('a = 3');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::x
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_static_tearoff_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static void a(int x) {}
+  get b => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@method::a
+  staticType: void Function(int)
+''');
+  }
+
+  test_static_tearoff_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {}
+
+extension E on C {
+  static void a(int x) {}
+  static get c => a;
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@extension::E::@method::a
+  staticType: void Function(int)
+''');
+  }
+
+  test_topLevel_function_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void a() {}
+}
+
+void a() {}
+
+extension E on C {
+  void b() {
+    a();
+  }
+}
+''');
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_topLevel_function_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  void a() {}
+}
+
+void a() {}
+
+extension E on C {
+  static void b() {
+    a();
+  }
+}
+''');
+    var node = result.findNode.methodInvocation('a();');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::a
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_topLevel_getter_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int get a => 0;
+}
+
+int get a => 0;
+
+extension E on C {
+  void b() {
+    a;
+  }
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@getter::a
+  staticType: int
+''');
+  }
+
+  test_topLevel_getter_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int get a => 0;
+}
+
+int get a => 0;
+
+extension E on C {
+  static void b() {
+    a;
+  }
+}
+''');
+    var node = result.findNode.simple('a;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: a
+  element: <testLibrary>::@getter::a
+  staticType: int
+''');
+  }
+
+  test_topLevel_setter_fromInstance() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  set a(int _) {}
+}
+
+set a(int _) {}
+
+extension E on C {
+  void b() {
+    a = 0;
+  }
+}
+''');
+    var node = result.findNode.assignment('a = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_topLevel_setter_fromStatic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  set a(int _) {}
+}
+
+set a(int _) {}
+
+extension E on C {
+  static void b() {
+    a = 0;
+  }
+}
+''');
+    var node = result.findNode.assignment('a = 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@setter::a::@formalParameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@setter::a
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+}

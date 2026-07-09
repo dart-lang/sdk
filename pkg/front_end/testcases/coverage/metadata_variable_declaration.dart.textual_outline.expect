@@ -1,0 +1,44 @@
+const annotation = null;
+
+var v0;
+
+var ;
+
+@annotation
+
+v1;
+
+var v2, @;
+
+annotation v3;
+
+int v4 = -1;
+
+int ;
+
+@annotation
+
+v5 = -1;
+
+int v6 = -1, @;
+
+annotation v7 = -1;
+
+class C {
+  var f0;
+  var ;
+  @annotation
+  f1;
+  var f2, ;
+  @annotation
+  f3;
+  int f4 = -1;
+  int ;
+  @annotation
+  f5 = -1;
+  int f6 = -1, ;
+  @annotation
+  f7 = -1;
+}
+
+void foo() {}

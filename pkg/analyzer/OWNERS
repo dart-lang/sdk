@@ -1,0 +1,18 @@
+file:/tools/OWNERS_MODEL
+
+# api.txt is a generated file that documents the types and methods in
+# the analyzer public API; accordingly, changes to it need to be
+# reviewed by the developer experience team.
+per-file api.txt=set noparent
+per-file api.txt=file:/tools/OWNERS_DEVELOPER_EXPERIENCE
+per-file api.txt=file:/OWNERS # (For last resort global approvers)
+
+# messages.yaml contains error message text, so it should be
+# reviewable by the either the model team or the developer experience
+# team.
+per-file messages.yaml=file:/tools/OWNERS_DEVELOPER_EXPERIENCE
+
+# .g.dart files are generated, and we have tests making sure the code
+# generation is up to date, so it is safe for them to be reviewed by
+# either the model team or the developer experience team.
+per-file *.g.dart=file:/tools/OWNERS_DEVELOPER_EXPERIENCE

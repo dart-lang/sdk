@@ -1,0 +1,13 @@
+library test;
+
+class C {
+  D<T> f<T>() => throw '';
+}
+
+class D<T> {}
+
+C c = throw '';
+
+var f = c.f<int>();
+
+main() {}

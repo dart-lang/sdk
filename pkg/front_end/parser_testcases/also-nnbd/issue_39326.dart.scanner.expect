@@ -1,0 +1,9 @@
+main() {
+var c;
+c?.[1] = 42;
+}
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] c[StringToken];[SimpleToken]
+c[StringToken]?.[SimpleToken][[BeginToken]1[StringToken]][SimpleToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

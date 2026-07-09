@@ -1,0 +1,9 @@
+NOTICE: Stream was rewritten by parser!
+
+f(x
+){}class C {}
+
+
+[UnmatchedToken]f[StringToken]([BeginToken]x[StringToken]
+)[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken]class[KeywordToken] C[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

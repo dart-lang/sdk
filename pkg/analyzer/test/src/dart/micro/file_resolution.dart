@@ -1,0 +1,184 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:convert';
+
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart';
+import 'package:analyzer_utilities/testing/tree_string_sink.dart';
+import 'package:crypto/crypto.dart';
+import 'package:linter/src/rules.dart';
+import 'package:test/test.dart';
+
+import '../../../util/diff.dart';
+import '../analysis/analyzer_state_printer.dart' as printer;
+import '../resolution/node_text_expectations.dart';
+import '../resolution/resolution.dart';
+
+/// [FileResolver] based implementation of [ResolutionTest].
+class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
+  final CiderByteStore byteStore = CiderByteStore();
+
+  final FileResolverTestData testData = FileResolverTestData();
+
+  final StringBuffer logBuffer = StringBuffer();
+  late PerformanceLog logger;
+
+  late FileResolver fileResolver;
+
+  final printer.IdProvider _idProvider = printer.IdProvider();
+
+  printer.AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
+      printer.AnalyzerStatePrinterConfiguration();
+
+  FileSystemState get fsState => fileResolver.fsState!;
+
+  LibraryContext get libraryContext {
+    return fileResolver.libraryContext!;
+  }
+
+  Folder get sdkRoot => newFolder('/sdk');
+
+  @override
+  File get testFile => getFile('$testPackageLibPath/test.dart');
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  String get testPackageRootPath => '$workspaceRootPath/dart/test';
+
+  String get workspaceRootPath => '/workspace';
+
+  @override
+  void addTestFile(String content) {
+    newFile(testFile.path, content);
+  }
+
+  void addTestFileWithDiagnosticExpectations(String code) {
+    var cleanCode = removeDiagnosticExpectations(code);
+    addTestFile(cleanCode);
+  }
+
+  void assertDiagnosticsInCode(String code, List<Diagnostic> diagnostics) {
+    var cleanCode = removeDiagnosticExpectations(code);
+    var actual = updateExpectedDiagnostics(
+      content: cleanCode,
+      actualDiagnostics: diagnostics,
+    );
+    if (actual != code) {
+      NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(code, actual);
+      }
+      fail('See the difference above.');
+    }
+  }
+
+  void assertStateString(String expected) {
+    var buffer = StringBuffer();
+    printer.AnalyzerStatePrinter(
+      byteStore: byteStore,
+      unlinkedUnitStore: fsState.unlinkedUnitStore as UnlinkedUnitStoreImpl,
+      idProvider: _idProvider,
+      libraryContext: libraryContext,
+      configuration: analyzerStatePrinterConfiguration,
+      resourceProvider: resourceProvider,
+      sink: TreeStringSink(sink: buffer, indent: ''),
+      withKeysGetPut: true,
+    ).writeFileResolver(testData);
+    var actual = buffer.toString();
+
+    if (actual != expected) {
+      NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
+    }
+  }
+
+  Future<void> assertTestErrorsWithDiagnostics(String code) async {
+    var result = await fileResolver.getErrors2(path: testFile.path);
+    assertDiagnosticsInCode(code, result.diagnostics);
+  }
+
+  /// Create a new [FileResolver] into [fileResolver].
+  ///
+  /// We do this the first time, and to test reusing results from [byteStore].
+  void createFileResolver() {
+    var workspace = BlazeWorkspace.find(resourceProvider, testFile.path)!;
+
+    fileResolver = FileResolver(
+      logger: logger,
+      resourceProvider: resourceProvider,
+      byteStore: byteStore,
+      sourceFactory: workspace.createSourceFactory(
+        FolderBasedDartSdk(resourceProvider, sdkRoot),
+        null,
+      ),
+      getFileDigest: (String path) => _getDigest(path),
+      workspace: workspace,
+      prefetchFiles: null,
+      isGenerated: (_) => false,
+      testData: testData,
+    );
+  }
+
+  Future<ErrorsResult> getErrorsWithDiagnostics(File file, String code) async {
+    modifyFile2(file, removeDiagnosticExpectations(code));
+    var result = await fileResolver.getErrors2(path: file.path);
+    assertDiagnosticsInCode(code, result.diagnostics);
+    return result;
+  }
+
+  @override
+  Future<ResolvedUnitResultImpl> resolveFile(
+    File file, {
+    OperationPerformanceImpl? performance,
+  }) async {
+    return await fileResolver.resolve(path: file.path, performance: performance)
+        as ResolvedUnitResultImpl;
+  }
+
+  @override
+  Future<TestResolvedUnitResult> resolveTestFile() async {
+    var result = await resolveFile(testFile);
+    return TestResolvedUnitResult(result);
+  }
+
+  void setUp() {
+    registerLintRules();
+
+    logger = PerformanceLog(logBuffer);
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+
+    newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
+    newFile('/workspace/dart/test/BUILD', '');
+    createFileResolver();
+  }
+
+  String _getDigest(String path) {
+    try {
+      var content = resourceProvider.getFile(path).readAsStringSync();
+      var contentBytes = utf8.encode(content);
+      return md5.convert(contentBytes).toString();
+    } catch (_) {
+      return '';
+    }
+  }
+}

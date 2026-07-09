@@ -1,0 +1,10 @@
+class Class {}
+
+extension Extension on Class {
+  void method1({bool b = false, String s = ', '}) => null;
+  void method2([bool b = false, String s = ', ']) => null;
+  void method3(int i, {bool b = false, String s = ', '}) {}
+  void method4(int i, [bool b = false, String s = ', ']) {}
+}
+
+main() {}

@@ -1,0 +1,41 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "expect",
+      "rootUri": "../../../../pkg/expect",
+      "packageUri": "lib/",
+      "languageVersion": "3.13"
+    },
+    {
+      "name": "path",
+      "rootUri": "../../../../third_party/pkg/core/pkgs/path",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "lib1",
+      "rootUri": "../pkgs/lib1"
+    },
+    {
+      "name": "lib2",
+      "rootUri": "../pkgs/lib2"
+    },
+    {
+      "name": "lib3",
+      "rootUri": "../pkgs/lib3"
+    },
+    {
+      "name": "package1",
+      "rootUri": "../pkgs/package1"
+    },
+    {
+      "name": "package2",
+      "rootUri": "../pkgs/package2"
+    },
+    {
+      "name": "shared",
+      "rootUri": "../pkgs/shared"
+    }
+  ]
+}

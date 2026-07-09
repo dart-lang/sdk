@@ -1,0 +1,24 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Extension methods.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        late final int x = 42;
+        extension Foo on int {
+          void x() { /*content =)*/ }
+        }
+    expectedLibraryCount: 1
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly

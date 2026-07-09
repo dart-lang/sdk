@@ -1,0 +1,10 @@
+library test;
+
+T f<T>(T t) => t;
+
+class C {
+  C(int p) : x = f(1 + p);
+  final x;
+}
+
+main() {}

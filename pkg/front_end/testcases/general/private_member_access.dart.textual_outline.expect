@@ -1,0 +1,3 @@
+import 'private_member_access_lib.dart';
+
+method(Class c) {}

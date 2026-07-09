@@ -1,0 +1,11 @@
+class Class<X> {}
+
+extension type ExtensionType<X>(int i) {}
+
+method1() => Typedef1();
+
+method2() => Typedef2(0);
+
+typedef Typedef1<X extends num> = Class<X>;
+
+typedef Typedef2<X extends num> = ExtensionType<X>;

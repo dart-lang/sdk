@@ -1,0 +1,27 @@
+NOTICE: Stream was rewritten by parser!
+
+void foo() {
+return r"""
+æbler
+æbler"""
+
+;
+}
+
+void bar() {
+return r"""
+æbler"""
+;}
+
+[UnterminatedString][UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] r"""
+æbler
+æbler"""[StringToken]
+
+;[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] bar[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] r"""
+æbler"""[SyntheticStringToken]
+;[SyntheticToken]}[SyntheticToken][SimpleToken]

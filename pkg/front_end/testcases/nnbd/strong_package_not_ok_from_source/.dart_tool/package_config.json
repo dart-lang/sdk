@@ -1,0 +1,15 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "opt_out_package",
+      "rootUri": "../opt_out_package/lib/",
+      "languageVersion": "2.11"
+    },
+    {
+      "name": "opt_in_package",
+      "rootUri": "../opt_in_package/lib/"
+    }
+
+  ]
+}

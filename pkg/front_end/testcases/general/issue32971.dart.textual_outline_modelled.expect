@@ -1,0 +1,13 @@
+import "package:expect/expect.dart";
+
+class A extends B with M {}
+
+class B {
+  bool f() {}
+}
+
+class M {
+  bool g() {}
+}
+
+void main() {}

@@ -1,0 +1,10 @@
+class Class {
+  Class();
+  const Class.named() {}
+}
+
+const a = const Class();
+
+const b = const Class.named();
+
+main() {}

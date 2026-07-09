@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo(core::String x, {required core::bool y, required core::num z}) → void
+  ;
+static method main() → void
+  ;

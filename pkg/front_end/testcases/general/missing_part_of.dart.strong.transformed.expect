@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/missing_part_of.dart:5:6: Error: Can't use 'pkg/front_end/testcases/general/missing_part_of_part.dart' as a part, because it has no 'part of' declaration.
+// part 'missing_part_of_part.dart';
+//      ^
+//
+import self as self;
+
+part missing_part_of_part.dart;
+
+library;
+import self as self2;

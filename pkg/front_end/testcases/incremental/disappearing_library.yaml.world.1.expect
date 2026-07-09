@@ -1,0 +1,15 @@
+main = mai::main;
+library bLibrary from "org-dartlang-test:///b.dart" as bLi {
+
+  static method foo() → dynamic {
+    dart.core::print("hello from b.dart foo!");
+  }
+}
+library mainLibrary from "org-dartlang-test:///main.dart" as mai {
+
+  import "org-dartlang-test:///b.dart" as b;
+
+  static method main() → dynamic {
+    bLi::foo();
+  }
+}

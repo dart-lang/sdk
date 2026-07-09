@@ -1,0 +1,11 @@
+extension Est<T> on T {
+  void st<X extends E<T>>() {}
+}
+
+extension type F(Future<int> _) implements Future<int> {}
+
+typedef E<S> = S Function(S);
+
+void cfeAwait<XF extends F>(XF xf) async {}
+
+void main() {}

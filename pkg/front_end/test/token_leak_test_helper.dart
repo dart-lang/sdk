@@ -1,0 +1,44 @@
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:core' as core;
+import 'dart:core';
+
+import 'token_leak_test_helper.dart' as self;
+
+core.String field = '';
+
+void main() {
+  core.String value = field;
+  method(value);
+}
+
+@annotation
+void method(@annotation core.String value) {
+  core.print(value);
+  void local(@annotation int i) {}
+  local(0);
+}
+
+const annotation = const Object();
+
+class Class {
+  new();
+  new named();
+  factory fact1() = Class;
+  factory fact2() = Class.named;
+  factory fact3() = self.Class;
+  factory fact4() = self.Class.named;
+}
+
+enum E {
+  a(0),
+  b(1);
+
+  final int value;
+
+  new(this.value);
+}
+
+final class const AsciiCodec({final bool allowInvalid = false}) {}

@@ -1,0 +1,5 @@
+int? lateLocalInit() => 123;
+
+main() {}
+
+expect(expected, actual) {}

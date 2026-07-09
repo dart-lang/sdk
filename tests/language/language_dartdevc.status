@@ -1,0 +1,17 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sections in this file should contain "$compiler == ddc".
+
+[ $compiler == ddc ]
+closure/cycles_test: Pass, Slow # Long test to pressure GC, periodically times out
+external_abstract_fields/external_fields_test: SkipByDesign # Non-JS-interop external members are not supported
+inference_update_2/external_field_test: SkipByDesign # Non-JS-interop external members are not supported
+inference_update_2/why_not_promoted_external_error_test: SkipByDesign # Non-JS-interop external members are not supported
+number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics.
+superinterface_variance/*: Skip # Issue dart-lang/language#113
+vm/*: SkipByDesign # VM only tests.; VM only tests.
+
+[ $compiler == ddc && $runtime == ff ]
+closure/cycles_test: SkipByDesign # Long test to pressure GC, consistently slow and times out on FF

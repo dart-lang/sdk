@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/optimization/optimization_test.dart
+prod=pkg/compiler/test/optimization/optimization_test.dart

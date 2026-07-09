@@ -1,0 +1,84 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+/**
+ * The type used by the
+ * [Window.localStorage] and [Window.sessionStorage] properties.
+ * Storage is implemented as a Map&lt;String, String>.
+ *
+ * To store and get values, use Dart's built-in map syntax:
+ *
+ *     window.localStorage['key1'] = 'val1';
+ *     window.localStorage['key2'] = 'val2';
+ *     window.localStorage['key3'] = 'val3';
+ *     assert(window.localStorage['key3'] == 'val3');
+ *
+ * You can use [Map](https://api.dart.dev/dart-core/Map-class.html) APIs
+ * such as containsValue(), clear(), and length:
+ *
+ *     assert(window.localStorage.containsValue('does not exist') == false);
+ *     window.localStorage.clear();
+ *     assert(window.localStorage.length == 0);
+ *
+ */
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
+    with MapMixin<String, String> {
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
+
+  // TODO(nweiz): update this when maps support lazy iteration
+  bool containsValue(Object$NULLABLE value) => values.any((e) => e == value);
+
+  bool containsKey(Object$NULLABLE key) =>
+    _getItem(key $#NULLSAFECAST(as String)) != null;
+
+  String$NULLABLE operator [](Object$NULLABLE key) => _getItem(key $#NULLSAFECAST(as String));
+
+  void operator []=(String key, String value) { _setItem(key, value); }
+
+  String putIfAbsent(String key, String ifAbsent()) {
+    if (!containsKey(key)) this[key] = ifAbsent();
+    return this[key] $#NULLSAFECAST(as String);
+  }
+
+  String$NULLABLE remove(Object$NULLABLE key) {
+    final value = this[key];
+    _removeItem(key $#NULLSAFECAST(as String));
+    return value;
+  }
+
+  void clear() => _clear();
+
+  void forEach(void f(String key, String value)) {
+    for (var i = 0; true; i++) {
+      final key = _key(i);
+      if (key == null) return;
+
+      f(key, this[key]$NULLASSERT);
+    }
+  }
+
+  Iterable<String> get keys {
+    final keys = <String>[];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Iterable<String> get values {
+    final values = <String>[];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length => _length;
+
+  bool get isEmpty => _key(0) == null;
+
+  bool get isNotEmpty => !isEmpty;
+$!MEMBERS
+}

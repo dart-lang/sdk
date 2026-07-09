@@ -1,0 +1,31 @@
+argumentTypeNotAssignable(Class cls) {}
+
+class Class {
+  Class operator >(int i) => new Class();
+  bool operator >=(Class cls) => true;
+  int get field => 42;
+}
+
+duplicateAssignmentPatternVariable(List<String> list) {}
+
+duplicateRecordPatternField(o) {}
+
+duplicateRestPattern(o) {}
+
+emptyMapPattern(o) {}
+
+matchedTypeIsStrictlyNonNullable(List<int> list) {}
+
+nonBooleanCondition(int i) {}
+
+patternTypeMismatchInIrrefutableContext(List<String> list) {}
+
+refutablePatternInIrrefutableContext(int? x) {}
+
+relationalPatternOperatorReturnTypeNotAssignableToBool(Class cls) {}
+
+restPatternNotLastInMap(o) {}
+
+restPatternWithSubPatternInMap(o) {}
+
+singleRestPatternInMap(o) {}

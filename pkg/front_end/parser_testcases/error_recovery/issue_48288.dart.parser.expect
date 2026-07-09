@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+void f(int x) {
+g(*synthetic*: 1, bbb: 0);
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+g[StringToken]([BeginToken][SyntheticStringToken]:[SimpleToken] 1[StringToken],[SimpleToken] bbb[StringToken]:[SimpleToken] 0[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

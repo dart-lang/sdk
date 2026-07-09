@@ -1,0 +1,34 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::MyFinalizable
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 3)]
+[@vm.unboxing-info.metadata=()->i]
+static method doSomething() → core::int
+  return 3;
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 3)]
+[@vm.unboxing-info.metadata=(b)->i]
+static method useFinalizableSync([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → core::int {
+  return block {
+    final synthesized core::int :expressionValueWrappedFinalizable = [@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] self::doSomething();
+    _in::reachabilityFence(finalizable);
+  } =>:expressionValueWrappedFinalizable;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::MyFinalizable finalizable = new self::MyFinalizable::•();
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] self::useFinalizableSync(finalizable));
+  _in::reachabilityFence(finalizable);
+}

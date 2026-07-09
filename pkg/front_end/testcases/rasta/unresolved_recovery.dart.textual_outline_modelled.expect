@@ -1,0 +1,9 @@
+beforeTestMissingTry() {}
+
+class E {
+  foo() {}
+}
+
+main() {}
+
+testMissingTry() {}

@@ -1,0 +1,53 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::A element = const self::A::•(0, "element");
+  static const field core::List<self::A> values = const <self::A>[self::A::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::A
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "A.${this.{core::_Enum::_name}{core::String}}";
+  static get enumGetter() → core::String
+    ;
+  static set enumSetter(core::num value) → void
+    ;
+  static method enumMethod() → core::String
+    ;
+}
+extension E on self::A {
+  static get enumGetter = get self::E|enumGetter;
+  static get extensionGetter = get self::E|extensionGetter;
+  static set enumSetter = set self::E|enumSetter;
+  static set extensionSetter = set self::E|extensionSetter;
+  static method enumMethod = self::E|enumMethod;
+  static method extensionMethod = self::E|extensionMethod;
+}
+static extension-member get E|enumGetter() → core::String
+  ;
+static extension-member get E|extensionGetter() → core::String
+  ;
+static extension-member set E|enumSetter(core::num value) → void
+  ;
+static extension-member set E|extensionSetter(core::bool value) → void
+  ;
+static extension-member method E|enumMethod() → core::String
+  ;
+static extension-member method E|extensionMethod() → core::String
+  ;
+static method main() → dynamic
+  ;
+static method expectEqual(dynamic a, dynamic b) → dynamic
+  ;
+static method expectThrows(() → dynamic f) → dynamic
+  ;
+static method expectDoesntThrow(() → dynamic f) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_positive_enum.dart:6:3 -> InstanceConstant(const A{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_positive_enum.dart:5:6 -> ListConstant(const <A>[const A{_Enum.index: 0, _Enum._name: "element"}])
+Extra constant evaluation: evaluated: 7, effectively constant: 2

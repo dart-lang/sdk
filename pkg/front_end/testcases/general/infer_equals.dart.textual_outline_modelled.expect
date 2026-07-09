@@ -1,0 +1,6 @@
+class Class {
+  operator ==(o) {}
+  var field;
+}
+
+main() {}

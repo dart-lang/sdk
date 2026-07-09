@@ -1,0 +1,12 @@
+S+0 int32[int8]
+S+4 int32[int8]
+S+8 int32[int8]
+S+12 int32[int8]
+S+16 int32[int8]
+S+20 int32[int8]
+S+24 int32[int8]
+S+28 int32[int8]
+S+32 int32[int8]
+S+36 int32[int8]
+=>
+eax int8

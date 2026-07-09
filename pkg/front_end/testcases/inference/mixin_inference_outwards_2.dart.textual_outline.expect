@@ -1,0 +1,11 @@
+class I<X> {}
+
+class M0<T> extends I<T> {}
+
+mixin M1<T> on I<T> {}
+
+mixin M2<T> on I<T> {}
+
+class A extends M0<int> with M1, M2 {}
+
+main() {}

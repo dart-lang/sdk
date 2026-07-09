@@ -1,0 +1,11 @@
+expectEquals(x, y) {}
+
+main() {}
+
+test1(dynamic x) {}
+
+test2(dynamic x) {}
+
+test3(dynamic x) {}
+
+test4(dynamic x) {}

@@ -1,0 +1,22 @@
+# Helper package for testing sourcemaps. Used by ddc and dart2js.
+name: sourcemap_testing
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  _fe_analyzer_shared: any
+  dart2js_tools: any
+  expect: any
+  path: any
+  source_maps: any
+  source_span: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any

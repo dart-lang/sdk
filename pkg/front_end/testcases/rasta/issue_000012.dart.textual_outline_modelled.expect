@@ -1,0 +1,9 @@
+class A {
+  var field;
+}
+
+class B extends A {
+  m() {}
+}
+
+main() {}

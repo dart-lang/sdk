@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+}
+static method returnDynamic() → dynamic
+  ;
+static method returnClass() → self::Class async 
+  ;
+static method returnFutureClass() → asy::Future<self::Class> async 
+  ;
+static method returnFutureOrClass() → FutureOr<self::Class> async 
+  ;
+static method returnClassFromDynamic() → self::Class async 
+  ;
+static method returnFutureClassDynamic() → asy::Future<self::Class> async 
+  ;
+static method returnFutureOrClassDynamic() → FutureOr<self::Class> async 
+  ;
+static method returnClassFromFutureClass() → self::Class async 
+  ;
+static method returnFutureClassFromFutureClass() → asy::Future<self::Class> async 
+  ;
+static method returnFutureOrClassFromFutureClass() → FutureOr<self::Class> async 
+  ;
+static method returnClassFromFutureOrClass() → self::Class async 
+  ;
+static method returnFutureClassFromFutureOrClass() → asy::Future<self::Class> async 
+  ;
+static method returnFutureOrClassFromFutureOrClass() → FutureOr<self::Class> async 
+  ;
+static method main() → dynamic async 
+  ;

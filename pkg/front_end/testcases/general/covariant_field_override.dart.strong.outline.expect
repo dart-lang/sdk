@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::num field;
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object {
+  covariant-by-declaration field core::num field;
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends self::A implements self::B {
+  covariant-by-declaration field core::num field;
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → dynamic
+  ;

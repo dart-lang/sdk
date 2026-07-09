@@ -1,0 +1,9 @@
+main() {
+try {} finally {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]}[SimpleToken] finally[KeywordToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

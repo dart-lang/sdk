@@ -1,0 +1,116 @@
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+
+const _desc = r'Omit type annotations for local variables.';
+
+class OmitLocalVariableTypes extends AnalysisRule {
+  new() : super(name: LintNames.omit_local_variable_types, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.omitLocalVariableTypes;
+
+  @override
+  List<String> get incompatibleRules => const [
+    LintNames.always_specify_types,
+    LintNames.specify_nonobvious_local_variable_types,
+  ];
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this, context.typeProvider);
+    registry.addForStatement(this, visitor);
+    registry.addVariableDeclarationStatement(this, visitor);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  final TypeProvider typeProvider;
+
+  new(this.rule, this.typeProvider);
+
+  @override
+  void visitForStatement(ForStatement node) {
+    var loopParts = node.forLoopParts;
+    if (loopParts is ForPartsWithDeclarations) {
+      _visitVariableDeclarationList(loopParts.variables);
+    } else if (loopParts is ForEachPartsWithDeclaration) {
+      var loopVariableType = loopParts.loopVariable.type;
+      var staticType = loopVariableType?.type;
+      if (staticType == null || staticType is DynamicType) return;
+
+      var loopType = loopParts.iterable.staticType;
+      if (loopType is! InterfaceType) return;
+
+      var iterableType = loopType.asInstanceOf(typeProvider.iterableElement);
+      if (iterableType == null) return;
+
+      if (iterableType.typeArguments.isNotEmpty &&
+          iterableType.typeArguments.first == staticType) {
+        rule.reportAtNode(loopVariableType);
+      }
+    }
+  }
+
+  @override
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _visitVariableDeclarationList(node.variables);
+  }
+
+  void _visitVariableDeclarationList(VariableDeclarationList node) {
+    var staticType = node.type?.type;
+    if (staticType == null ||
+        staticType is DynamicType ||
+        staticType.isDartCoreNull) {
+      return;
+    }
+    for (var child in node.variables) {
+      var initializer = child.initializer;
+      if (initializer == null || initializer.staticType != staticType) {
+        return;
+      }
+
+      if (initializer is IntegerLiteral && !staticType.isDartCoreInt) {
+        // Coerced int.
+        return;
+      }
+
+      if (initializer.dependsOnDeclaredTypeForInference) {
+        return;
+      }
+    }
+    rule.reportAtNode(node.type);
+  }
+}
+
+extension on Expression {
+  bool get dependsOnDeclaredTypeForInference {
+    if (this case MethodInvocation(:var methodName, typeArguments: null)) {
+      var element = methodName.element;
+      return switch (element) {
+        LocalFunctionElement() => element.returnType is TypeParameterType,
+        TopLevelFunctionElement() => element.returnType is TypeParameterType,
+        _ => false,
+      };
+    }
+    return false;
+  }
+}

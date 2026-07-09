@@ -1,0 +1,17 @@
+org-dartlang-testcase:///main.dart:
+import 'test3.dart';
+var x = test3partfoo();
+
+
+
+
+org-dartlang-testcase:///test3.dart:
+library test3;
+part "test3_part.dart";
+
+
+
+
+org-dartlang-testcase:///test3_part.dart:
+part of test3;
+void test3partfoo() {}

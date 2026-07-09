@@ -1,0 +1,51 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce a crash:
+# World 1 is "accepted"
+# World 2 is "rejected" (doesn't save in last good whatnot)
+# World 3 loads from component (the data from world 1)
+# In practise - at least via flutter - the reject happens after a hot restart on
+# a compile-error, but only the reject is actually needed to reproduce.
+
+type: newworld
+omitPlatform: false # Or fromComponent later won't work.
+worlds:
+  - entry: main.dart
+    noFullComponent: true # Only compile once
+    sources:
+      main.dart: |
+        extension on String {
+          int get fooValue => 42;
+        }
+    expectedLibraryCount: 1
+    expectsPlatform: true
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    noFullComponent: true # Only compile once
+    reject: true
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        extension on String {
+          int get fooValue => 42;
+        }
+  - entry: main.dart
+    noFullComponent: true # Only compile once
+    # This mimics a reject of the previous compile (together with the
+    # `reject: true` on the previous world).
+    fromComponent: true
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        extension on String {
+          int get fooValue => 42;
+        }
+    expectedLibraryCount: 1
+    expectsPlatform: true
+    advancedInvalidation: bodiesOnly

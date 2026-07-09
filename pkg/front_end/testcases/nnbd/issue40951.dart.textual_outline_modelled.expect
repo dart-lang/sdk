@@ -1,0 +1,37 @@
+abstract class B {
+  B() {}
+  B.bar(this.field1) {}
+  B.baz(this.field1, this.field2) {}
+  B.foo() {}
+  num field1;
+  num field2;
+}
+
+abstract class D {
+  D() {}
+  D.bar(this.field1) {}
+  D.baz(this.field1, this.field2) {}
+  D.foo() {}
+  final num? field1;
+  final num? field2;
+}
+
+class A {
+  A() {}
+  A.bar(this.field1) {}
+  A.baz(this.field1, this.field2) {}
+  A.foo() {}
+  num field1;
+  num field2;
+}
+
+class C {
+  C() {}
+  C.bar(this.field1) {}
+  C.baz(this.field1, this.field2) {}
+  C.foo() {}
+  final num? field1;
+  final num? field2;
+}
+
+main() {}

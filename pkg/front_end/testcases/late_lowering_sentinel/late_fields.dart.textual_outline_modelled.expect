@@ -1,0 +1,19 @@
+late Never neverTopLevelField;
+
+late final int? nullableFinalTopLevelField;
+
+late final int? nullableFinalTopLevelFieldWithInitializer = null;
+
+late final int nonNullableFinalTopLevelField;
+
+late final int nonNullableFinalTopLevelFieldWithInitializer = 0;
+
+late int? nullableTopLevelField;
+
+late int? nullableTopLevelFieldWithInitializer = null;
+
+late int nonNullableTopLevelField;
+
+late int nonNullableTopLevelFieldWithInitializer = 0;
+
+main() {}

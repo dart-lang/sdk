@@ -1,0 +1,107 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  factory $CLASSNAME() => document.createDocumentFragment();
+
+  factory $CLASSNAME.html(String$NULLABLE html,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+
+    return document.body$NULLASSERT.createFragment(html,
+      validator: validator, treeSanitizer: treeSanitizer);
+  }
+
+  factory $CLASSNAME.svg(String$NULLABLE svgContent,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+
+    return new svg.SvgSvgElement().createFragment(svgContent,
+        validator: validator, treeSanitizer: treeSanitizer);
+  }
+
+  HtmlCollection get _children => throw new UnimplementedError(
+      'Use _docChildren instead');
+
+  // Native field is used only by Dart code so does not lead to instantiation
+  // of native classes
+  @Creates('Null')
+  List<Element>$NULLABLE _docChildren;
+
+  List<Element> get children {
+    if (_docChildren == null) {
+      _docChildren = new FilteredElementList(this);
+    }
+    return _docChildren$NULLASSERT;
+  }
+
+  set children(List<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    var copy = value.toList();
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
+  }
+
+  /**
+   * Finds all descendant elements of this document fragment that match the
+   * specified group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var items = document.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+    new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
+
+$if NNBD
+  // innerHtml is marked as nullable, even though it is guaranteed to return a
+  // non-nullable, because ShadowRoot.innerHtml overrides it and can be
+  // incompatible.
+$endif
+  String$NULLABLE get innerHtml {
+    final e = new DivElement();
+    e.append(this.clone(true));
+    return e.innerHtml;
+  }
+
+  set innerHtml(String$NULLABLE value) {
+    this.setInnerHtml(value);
+  }
+
+  void setInnerHtml(String$NULLABLE html,
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+
+    this.nodes.clear();
+    append(document.body$NULLASSERT.createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer));
+  }
+
+  /**
+   * Adds the specified text as a text node after the last child of this
+   * document fragment.
+   */
+  void appendText(String text) {
+    this.append(new Text(text));
+  }
+
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this document fragment.
+   */
+  void appendHtml(String text,
+        {NodeValidator$NULLABLE validator,
+         NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    this.append(new DocumentFragment.html(text, validator: validator,
+        treeSanitizer: treeSanitizer));
+  }
+$!MEMBERS
+}

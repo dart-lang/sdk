@@ -1,0 +1,56 @@
+Problems reported:
+
+parser/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
+  await for () {}
+             ^
+
+parser/error_recovery/empty_await_for:2:14: Expected 'in' before this.
+  await for () {}
+             ^
+
+parser/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
+  await for () {}
+             ^
+
+parser/error_recovery/empty_await_for:2:14: Expected an identifier, but got ')'.
+  await for () {}
+             ^
+
+beginCompilationUnit(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(, null, null)
+      handleNoType()
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(async, null)
+      beginBlockFunctionBody({)
+        beginForStatement(for)
+          handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ')'., Try inserting an identifier before ')'., {lexeme: )}], ), ))
+          handleIdentifier(, expression)
+          handleNoTypeArguments())
+          handleNoArguments())
+          handleSend(, )
+          handleForInitializerExpressionStatement(, true)
+          handleRecoverableError(Message[Template(ExpectedButGot), Expected 'in' before this., null, {expected: in}], ), ))
+          handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ')'., Try inserting an identifier before ')'., {lexeme: )}], ), ))
+          beginForInExpression())
+            handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ')'., Try inserting an identifier before ')'., {lexeme: )}], ), ))
+            handleIdentifier(, expression)
+            handleNoTypeArguments())
+            handleNoArguments())
+            handleSend(, )
+          endForInExpression())
+          handleForInLoopParts(await, for, (, null, in)
+          beginForInBody({)
+            beginBlock({, BlockKind(statement))
+            endBlock(0, {, }, BlockKind(statement))
+          endForInBody(})
+        endForIn(})
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )

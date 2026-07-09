@@ -1,0 +1,376 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#include "vm/os_thread.h"
+
+#include "platform/address_sanitizer.h"
+#include "platform/atomic.h"
+#include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
+#include "vm/lockers.h"
+#include "vm/log.h"
+#include "vm/profiler.h"
+#include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
+
+namespace dart {
+
+OSThread* OSThread::thread_list_head_ = nullptr;
+Mutex* OSThread::thread_list_lock_ = nullptr;
+bool OSThread::creation_enabled_ = false;
+thread_local OSThreadPtr OSThread::current_os_thread_ = {};
+
+#if defined(SUPPORT_TIMELINE)
+inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
+  RecorderSynchronizationLockScope ls;
+  if (!ls.IsActive()) {
+    return;
+  }
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != nullptr) {
+    recorder->AddTrackMetadataBasedOnThread(
+        OS::ProcessId(), OSThread::ThreadIdToIntPtr(thread.trace_id()),
+        thread.name());
+  }
+}
+#endif  // defined(SUPPORT_TIMELINE)
+
+OSThread::OSThread()
+    : BaseThread(true),
+      id_(OSThread::GetCurrentThreadId()),
+#ifdef SUPPORT_TIMELINE
+      trace_id_(OSThread::GetCurrentThreadTraceId()),
+#endif
+      name_(OSThread::GetCurrentThreadName()),
+      timeline_block_lock_(),
+      log_(new class Log()) {
+  // Try to get accurate stack bounds from pthreads, etc.
+  if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
+    FATAL("Failed to retrieve stack bounds");
+  }
+
+  stack_headroom_ = CalculateHeadroom(stack_base_ - stack_limit_);
+
+#if defined(USING_THREAD_SANITIZER)
+  // The Mac default stack size of 8 MB results in TSAN's stack recording
+  // overflowing in some tests before Dart reaches regular stack overflow.
+  // Clamp the stack size used by Dart so we hit a Dart stack overflow
+  // exception before corrupting TSAN. This is only relevant in run_vm_tests,
+  // which runs Dart on the main thread. The standalone embedder runs even the
+  // main isolate on thread pool workers, which the VM created with a smaller
+  // stack size.
+  const size_t kMaxDartStackSize = GetMaxStackSize();
+  if (stack_base_ - stack_limit_ - stack_headroom_ > kMaxDartStackSize) {
+    stack_headroom_ = stack_base_ - stack_limit_ - kMaxDartStackSize;
+  }
+#endif
+
+  ASSERT(stack_base_ != 0);
+  ASSERT(stack_limit_ != 0);
+  ASSERT(stack_base_ > stack_limit_);
+  ASSERT(stack_base_ > GetCurrentStackPointer());
+  ASSERT(stack_limit_ < GetCurrentStackPointer());
+  RELEASE_ASSERT(HasStackHeadroom());
+}
+
+OSThread* OSThread::CreateOSThread() {
+  ASSERT(thread_list_lock_ != nullptr);
+  MutexLocker ml(thread_list_lock_);
+  if (!creation_enabled_) {
+    return nullptr;
+  }
+  OSThread* os_thread = new OSThread();
+  AddThreadToListLocked(os_thread);
+  return os_thread;
+}
+
+OSThreadPtr::~OSThreadPtr() {
+  delete thread_;
+  thread_ = nullptr;
+}
+
+OSThread::~OSThread() {
+  if (!is_os_thread()) {
+    // If the embedder enters an isolate on this thread and does not exit the
+    // isolate, the thread local at thread_key_, which we are destructing here,
+    // will contain a dart::Thread instead of a dart::OSThread.
+    FATAL("Thread exited without calling Dart_ExitIsolate");
+  }
+  RemoveThreadFromList(this);
+  delete log_;
+  log_ = nullptr;
+#if defined(SUPPORT_TIMELINE)
+  RecorderSynchronizationLockScope ls;
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != nullptr && !ls.IsShuttingDown()) {
+    // Acquire the recorder's lock so that |timeline_block_| cannot be given to
+    // another thread until the call to |TimelineEventRecorder::FinishBlock| is
+    // complete. This is guarded by a check ensuring that the recorder has not
+    // yet been deleted, and thus ensuring that the recorder's lock can be
+    // acquired. It is fine to skip the call to
+    // |TimelineEventRecorder::FinishBlock| if the recorder has already been
+    // deleted, because only the recorder cares about whether blocks have been
+    // marked as finished.
+    MutexLocker recorder_lock_locker(&Timeline::recorder()->lock_);
+    MutexLocker timeline_block_lock_locker(timeline_block_lock());
+    Timeline::recorder()->FinishBlock(timeline_block_);
+  }
+#endif
+  timeline_block_ = nullptr;
+  free(name_);
+}
+
+void OSThread::SetName(const char* name) {
+  MutexLocker ml(thread_list_lock_);
+  // Clear the old thread name.
+  if (name_ != nullptr) {
+    free(name_);
+    name_ = nullptr;
+  }
+  ASSERT(OSThread::Current() == this);
+  ASSERT(name != nullptr);
+  name_ = Utils::StrDup(name);
+
+#if defined(SUPPORT_TIMELINE)
+  UpdateTimelineTrackMetadata(*this);
+#endif  // defined(SUPPORT_TIMELINE)
+}
+
+DART_NOINLINE
+uword OSThread::GetCurrentStackPointer() {
+#ifdef _MSC_VER
+  return reinterpret_cast<uword>(_AddressOfReturnAddress()) + kWordSize;
+#elif __GNUC__
+#if defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
+  // RISC-V has unusual choice of FP as SP at entry (i.e., DWARF CFA).
+  return reinterpret_cast<uword>(__builtin_frame_address(0));
+#else
+  // Usually FP is address of saved FP, two slots from SP at entry.
+  return reinterpret_cast<uword>(__builtin_frame_address(0)) + 2 * kWordSize;
+#endif
+#else
+#error Unimplemented
+#endif
+}
+
+#if defined(DART_INCLUDE_PROFILER)
+void OSThread::DisableThreadInterrupts() {
+  ASSERT(OSThread::Current() == this);
+  thread_interrupt_disabled_.fetch_add(1u);
+}
+
+void OSThread::EnableThreadInterrupts() {
+  ASSERT(OSThread::Current() == this);
+  uintptr_t old = thread_interrupt_disabled_.fetch_sub(1u);
+  if (Profiler::IsRunning() && (old == 1)) {
+    ThreadInterrupter::WakeUp();
+  }
+  if (old == 0) {
+    // We just decremented from 0, this means we've got a mismatched pair
+    // of calls to EnableThreadInterrupts and DisableThreadInterrupts.
+    FATAL("Invalid call to OSThread::EnableThreadInterrupts()");
+  }
+}
+
+bool OSThread::ThreadInterruptsEnabled() {
+  return thread_interrupt_disabled_ == 0;
+}
+#endif  // defined(DART_INCLUDE_PROFILER)
+
+void OSThread::Init() {
+  // Allocate the global OSThread lock.
+  if (thread_list_lock_ == nullptr) {
+    thread_list_lock_ = new Mutex();
+  }
+  ASSERT(thread_list_lock_ != nullptr);
+
+  // Enable creation of OSThread structures in the VM.
+  EnableOSThreadCreation();
+
+  // Create a new OSThread structure and set it as the TLS.
+  OSThread* os_thread = CreateOSThread();
+  ASSERT(os_thread != nullptr);
+  OSThread::SetCurrent(os_thread);
+  os_thread->SetName("Dart_Initialize");
+}
+
+void OSThread::Cleanup() {
+// We cannot delete the thread list lock, yet.
+// See the note on thread_list_lock_ in os_thread.h.
+#if 0
+  if (thread_list_lock_ != nullptr) {
+    // Delete the global OSThread lock.
+    ASSERT(thread_list_lock_ != nullptr);
+    delete thread_list_lock_;
+    thread_list_lock_ = nullptr;
+  }
+#endif
+}
+
+OSThread* OSThread::CreateAndSetUnknownThread() {
+  ASSERT(OSThread::GetCurrentTLS() == nullptr);
+  OSThread* os_thread = CreateOSThread();
+  if (os_thread != nullptr) {
+    OSThread::SetCurrent(os_thread);
+    if (os_thread->name() == nullptr) {
+      os_thread->SetName("Unknown");
+    }
+  }
+  return os_thread;
+}
+
+bool OSThread::IsThreadInList(ThreadId id) {
+  if (id == OSThread::kInvalidThreadId) {
+    return false;
+  }
+  OSThreadIterator it;
+  while (it.HasNext()) {
+    ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
+    OSThread* t = it.Next();
+    // An address test is not sufficient because the allocator may recycle
+    // the address for another Thread. Test against the thread's id.
+    if (t->id() == id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool OSThread::CanCreateOSThreads() {
+  return creation_enabled_;
+}
+
+void OSThread::DisableOSThreadCreation() {
+  MutexLocker ml(thread_list_lock_);
+  creation_enabled_ = false;
+}
+
+void OSThread::EnableOSThreadCreation() {
+  MutexLocker ml(thread_list_lock_);
+  creation_enabled_ = true;
+}
+
+OSThread* OSThread::GetOSThreadFromThread(ThreadState* thread) {
+  ASSERT(thread->os_thread() != nullptr);
+  return thread->os_thread();
+}
+
+void OSThread::AddThreadToListLocked(OSThread* thread) {
+  ASSERT(thread != nullptr);
+  ASSERT(thread_list_lock_ != nullptr);
+  ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
+  ASSERT(creation_enabled_);
+  ASSERT(thread->thread_list_next_ == nullptr);
+
+#if defined(DEBUG)
+  {
+    // Ensure that we aren't already in the list.
+    OSThread* current = thread_list_head_;
+    while (current != nullptr) {
+      ASSERT(current != thread);
+      current = current->thread_list_next_;
+    }
+  }
+#endif
+
+  // Insert at head of list.
+  thread->thread_list_next_ = thread_list_head_;
+  thread_list_head_ = thread;
+}
+
+void OSThread::RemoveThreadFromList(OSThread* thread) {
+  bool final_thread = false;
+  {
+    ASSERT(thread != nullptr);
+    ASSERT(thread_list_lock_ != nullptr);
+    MutexLocker ml(thread_list_lock_);
+    OSThread* current = thread_list_head_;
+    OSThread* previous = nullptr;
+
+    // Scan across list and remove |thread|.
+    while (current != nullptr) {
+      if (current == thread) {
+        // We found |thread|, remove from list.
+        if (previous == nullptr) {
+          thread_list_head_ = thread->thread_list_next_;
+        } else {
+          previous->thread_list_next_ = current->thread_list_next_;
+        }
+        thread->thread_list_next_ = nullptr;
+        final_thread = !creation_enabled_ && (thread_list_head_ == nullptr);
+        break;
+      }
+      previous = current;
+      current = current->thread_list_next_;
+    }
+  }
+  // Check if this is the last thread. The last thread does a cleanup
+  // which removes the thread local key and the associated mutex.
+  if (final_thread) {
+    Cleanup();
+  }
+}
+
+// current_vm_thread_ is also accessed from signal handlers for the profiler.
+// When detaching the thread, it is important that the stores don't get
+// reordered, such as
+//     current_vm_thread_ = nullptr;
+//     thread->set_os_thread(nullptr);
+// otherwise the profiler may observe a non-null Thread::Current() with a null
+// thread->os_thread().
+// Logically current_vm_thread_ should be volatile, but that is too restrictive
+// around loads. Instead, we block inlining of the much rarer stores.
+DART_NOINLINE
+void OSThread::SetCurrentTLS(BaseThread* value) {
+  // Provides thread-local destructors.
+  current_os_thread_.set(static_cast<OSThread*>(value));
+
+  // Allows the C compiler more freedom to optimize.
+  if ((value != nullptr) && !value->is_os_thread()) {
+    current_vm_thread_ = static_cast<Thread*>(value);
+  } else {
+    current_vm_thread_ = nullptr;
+  }
+}
+
+void OSThread::Start(const char* name,
+                     ThreadStartFunction function,
+                     uword parameter) {
+  int result = TryStart(name, function, parameter);
+  if (result != 0) {
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("Could not start thread %s: %d (%s)", name, result,
+          Utils::StrError(result, error_buf, kBufferSize));
+  }
+}
+
+OSThreadIterator::OSThreadIterator() {
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
+  // Lock the thread list while iterating.
+  OSThread::thread_list_lock_->Lock();
+  next_ = OSThread::thread_list_head_;
+}
+
+OSThreadIterator::~OSThreadIterator() {
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
+  // Unlock the thread list when done.
+  OSThread::thread_list_lock_->Unlock();
+}
+
+bool OSThreadIterator::HasNext() const {
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
+  ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
+  return next_ != nullptr;
+}
+
+OSThread* OSThreadIterator::Next() {
+  ASSERT(OSThread::thread_list_lock_ != nullptr);
+  ASSERT(OSThread::thread_list_lock_->IsOwnedByCurrentThread());
+  OSThread* current = next_;
+  next_ = next_->thread_list_next_;
+  return current;
+}
+
+}  // namespace dart

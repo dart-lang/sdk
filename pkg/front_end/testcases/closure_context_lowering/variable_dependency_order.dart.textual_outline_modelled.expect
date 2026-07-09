@@ -1,0 +1,5 @@
+class A with M {}
+
+mixin M {
+  foo() {}
+}

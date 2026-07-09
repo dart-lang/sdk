@@ -1,0 +1,10 @@
+const a = null;
+
+@a
+class C = D with E;
+
+class D {}
+
+mixin E {}
+
+main() {}

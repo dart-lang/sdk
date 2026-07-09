@@ -1,0 +1,37 @@
+const a = 1;
+
+class C1() {
+  this;
+}
+
+class C2() {
+  this : assert(true);
+}
+
+class C3() {
+  this {}
+}
+
+class C4() {
+  this : assert(true) {}
+}
+
+class C5() {
+  @a
+  this;
+}
+
+class C6() {
+  @a
+  this : assert(true);
+}
+
+class C7() {
+  @a
+  this {}
+}
+
+class C8() {
+  @a
+  this : assert(true) {}
+}

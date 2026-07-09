@@ -1,0 +1,8 @@
+class A<T> {}
+
+extension Extension<T> on A<A<T>> {
+  method1() {}
+  method2<A>(A a) {}
+}
+
+main() {}

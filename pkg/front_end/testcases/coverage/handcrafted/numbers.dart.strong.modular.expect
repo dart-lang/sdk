@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → void {
+  core::double minInt64Value = -9223372036854776000.0;
+}

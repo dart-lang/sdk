@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31186.dart:6:16: Error: Expected an identifier, but got 'true'.
+// Try inserting an identifier before 'true'.
+//   return null?.true;
+//                ^^^^
+//
+import self as self;
+
+static method bad() → dynamic {
+  return invalid-expression "pkg/front_end/testcases/regress/issue_31186.dart:6:16: Error: Expected an identifier, but got 'true'.
+Try inserting an identifier before 'true'.
+  return null?.true;
+               ^^^^";
+}
+static method main() → dynamic {}

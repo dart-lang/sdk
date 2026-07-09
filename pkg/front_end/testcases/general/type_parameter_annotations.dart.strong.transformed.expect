@@ -1,0 +1,95 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_parameter_annotations.dart:11:25: Error: Undefined name 'foo'.
+// class Class<@Annotation(foo) T> {
+//                         ^^^
+//
+// pkg/front_end/testcases/general/type_parameter_annotations.dart:15:27: Error: Undefined name 'foo'.
+// void function<@Annotation(foo) T>(dynamic foo) {
+//                           ^^^
+//
+// pkg/front_end/testcases/general/type_parameter_annotations.dart:19:33: Error: Undefined name 'foo'.
+// extension Extension<@Annotation(foo) T> on Class<T> {
+//                                 ^^^
+//
+// pkg/front_end/testcases/general/type_parameter_annotations.dart:22:56: Error: Not a constant expression.
+//   void extensionMethod<@Annotation(foo) T, @Annotation(bar) U>() {}
+//                                                        ^^^
+//
+// pkg/front_end/testcases/general/type_parameter_annotations.dart:26:27: Error: Not a constant expression.
+//   void method<@Annotation(foo) T, @Annotation(bar) U>(dynamic foo) {
+//                           ^^^
+//
+// pkg/front_end/testcases/general/type_parameter_annotations.dart:33:25: Error: Undefined name 'foo'.
+// mixin Mixin<@Annotation(foo) T> {
+//                         ^^^
+//
+// pkg/front_end/testcases/general/type_parameter_annotations.dart:37:29: Error: Undefined name 'foo'.
+// typedef Typedef<@Annotation(foo) T> = void Function<foo>();
+//                             ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Typedef<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:37:29: Error: Undefined name 'foo'.
+typedef Typedef<@Annotation(foo) T> = void Function<foo>();
+                            ^^^" unrelated T extends core::Object? = dynamic> = <foo extends core::Object? = dynamic>() → void;
+class Annotation extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic d) → self::Annotation
+    : super core::Object::•()
+    ;
+}
+class Class<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:11:25: Error: Undefined name 'foo'.
+class Class<@Annotation(foo) T> {
+                        ^^^" T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+  static method foo() → void {}
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method method<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:26:27: Error: Not a constant expression.
+  void method<@Annotation(foo) T, @Annotation(bar) U>(dynamic foo) {
+                          ^^^" T extends core::Object? = dynamic, @#C1 U extends core::Object? = dynamic>(dynamic foo) → void {
+    dynamic foo;
+  }
+  static method bar() → void {}
+}
+abstract class Mixin<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:33:25: Error: Undefined name 'foo'.
+mixin Mixin<@Annotation(foo) T> {
+                        ^^^" T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  static method foo() → void {}
+}
+extension Extension<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:19:33: Error: Undefined name 'foo'.
+extension Extension<@Annotation(foo) T> on Class<T> {
+                                ^^^" T extends core::Object? = dynamic> on self::Class<T%> {
+  static method foo = self::Extension|foo;
+  method extensionMethod = self::Extension|extensionMethod;
+  method tearoff extensionMethod = self::Extension|get#extensionMethod;
+}
+static method function<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:15:27: Error: Undefined name 'foo'.
+void function<@Annotation(foo) T>(dynamic foo) {
+                          ^^^" T extends core::Object? = dynamic>(dynamic foo) → void {
+  dynamic foo;
+}
+static extension-member method Extension|foo() → void {}
+static extension-member method Extension|extensionMethod<#T extends core::Object? = dynamic, @#C1 T extends core::Object? = dynamic, @invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:22:56: Error: Not a constant expression.
+  void extensionMethod<@Annotation(foo) T, @Annotation(bar) U>() {}
+                                                       ^^^" U extends core::Object? = dynamic>(lowered final self::Class<self::Extension|extensionMethod::#T%> #this) → void {}
+static extension-member method Extension|get#extensionMethod<#T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#extensionMethod::#T%> #this) → <T extends core::Object? = dynamic, U extends core::Object? = dynamic>() → void
+  return <T extends core::Object? = dynamic, U extends core::Object? = dynamic>() → void => self::Extension|extensionMethod<self::Extension|get#extensionMethod::#T%, T%, U%>(#this);
+
+constants  {
+  #C1 = self::Annotation {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///type_parameter_annotations.dart:
+- Annotation. (from org-dartlang-testcase:///type_parameter_annotations.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

@@ -1,0 +1,7 @@
+void method<S>(S<int> a) {}
+
+class Class<T> {
+  void method<S>(T<int> a, S<int> b) {}
+}
+
+main() {}

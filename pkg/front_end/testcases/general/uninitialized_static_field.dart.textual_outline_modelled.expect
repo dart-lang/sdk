@@ -1,0 +1,10 @@
+class C {
+  static final finalField;
+  static var field;
+}
+
+class D {
+  factory D() => throw '';
+  static final finalField;
+  static var field;
+}

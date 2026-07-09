@@ -1,0 +1,196 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
+
+/// Information about a single language feature whose presence or absence
+/// depends on the supported Dart SDK version, and possibly on the presence of
+/// experimental flags.
+abstract class Feature {
+  /// Feature information for anonymous methods.
+  @experimental
+  static final anonymous_methods = ExperimentalFeatures.anonymous_methods;
+
+  /// Feature information for augmentations.
+  static final augmentations = ExperimentalFeatures.augmentations;
+
+  /// Feature information for class modifiers.
+  static final class_modifiers = ExperimentalFeatures.class_modifiers;
+
+  /// Feature information for number literal digit separators.
+  static final digit_separators = ExperimentalFeatures.digit_separators;
+
+  /// Feature information for the 2018 constant update.
+  static final constant_update_2018 = ExperimentalFeatures.constant_update_2018;
+
+  /// Feature information for non-nullability by default.
+  static final non_nullable = ExperimentalFeatures.non_nullable;
+
+  /// Feature information for constructor tear-offs.
+  static final constructor_tearoffs = ExperimentalFeatures.constructor_tearoffs;
+
+  /// Feature information for control flow collections.
+  static final control_flow_collections =
+      ExperimentalFeatures.control_flow_collections;
+
+  /// Feature information for dot shorthands.
+  static final dot_shorthands = ExperimentalFeatures.dot_shorthands;
+
+  /// Feature information for enhanced enums.
+  static final enhanced_enums = ExperimentalFeatures.enhanced_enums;
+
+  /// Feature information for enhanced parts.
+  static final enhanced_parts = ExperimentalFeatures.enhanced_parts;
+
+  /// Feature information for extension methods.
+  static final extension_methods = ExperimentalFeatures.extension_methods;
+
+  /// Feature information for generic metadata.
+  static final generic_metadata = ExperimentalFeatures.generic_metadata;
+
+  /// Feature information for getter-setter-error.
+  static final getter_setter_error = ExperimentalFeatures.getter_setter_error;
+
+  /// Feature information for inference using bounds.
+  static final inference_using_bounds =
+      ExperimentalFeatures.inference_using_bounds;
+
+  /// Feature information for inference-update-1.
+  static final inference_update_1 = ExperimentalFeatures.inference_update_1;
+
+  /// Feature information for inference-update-2.
+  static final inference_update_2 = ExperimentalFeatures.inference_update_2;
+
+  /// Feature information for inference-update-3.
+  static final inference_update_3 = ExperimentalFeatures.inference_update_3;
+
+  /// Feature information for inference-update-4.
+  static final inference_update_4 = ExperimentalFeatures.inference_update_4;
+
+  /// Feature information for type promotion of 'this'.
+  static final this_promotion = ExperimentalFeatures.this_promotion;
+
+  /// Feature information for inline classes.
+  static final inline_class = ExperimentalFeatures.inline_class;
+
+  /// Feature information for macros.
+  static final macros = ExperimentalFeatures.macros;
+
+  /// Feature information for null-aware elements.
+  static final null_aware_elements = ExperimentalFeatures.null_aware_elements;
+
+  /// Feature information for patterns.
+  static final patterns = ExperimentalFeatures.patterns;
+
+  /// Feature information for primary constructors.
+  static final primary_constructors = ExperimentalFeatures.primary_constructors;
+
+  /// Feature information for private named parameters.
+  static final private_named_parameters =
+      ExperimentalFeatures.private_named_parameters;
+
+  /// Feature information for records.
+  static final records = ExperimentalFeatures.records;
+
+  /// Feature information for spread collections.
+  static final spread_collections = ExperimentalFeatures.spread_collections;
+
+  /// Feature information for sealed classes.
+  static final sealed_class = ExperimentalFeatures.sealed_class;
+
+  /// Feature information for set literals.
+  static final set_literals = ExperimentalFeatures.set_literals;
+
+  /// Feature information for sound flow analysis.
+  static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
+
+  /// Feature information for static extensions.
+  static final static_extensions = ExperimentalFeatures.static_extensions;
+
+  /// Feature information for super parameters.
+  static final super_parameters = ExperimentalFeatures.super_parameters;
+
+  /// Feature information for the triple-shift operator.
+  static final triple_shift = ExperimentalFeatures.triple_shift;
+
+  /// Feature information for named arguments anywhere.
+  static final named_arguments_anywhere =
+      ExperimentalFeatures.named_arguments_anywhere;
+
+  /// Feature information for non-function type aliases.
+  static final nonfunction_type_aliases =
+      ExperimentalFeatures.nonfunction_type_aliases;
+
+  /// Feature information for unnamed libraries.
+  static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
+
+  /// Feature information for unquoted imports.
+  static final unquotedImports = ExperimentalFeatures.unquoted_imports;
+
+  /// Feature information for variance.
+  static final variance = ExperimentalFeatures.variance;
+
+  /// Feature information for wildcard variables.
+  static final wildcard_variables = ExperimentalFeatures.wildcard_variables;
+
+  /// If the feature may be enabled or disabled on the command line, the
+  /// experimental flag that may be used to enable it.  Otherwise `null`.
+  ///
+  /// Should be `null` if [status] is `current` or `abandoned`.
+  String? get experimentalFlag;
+
+  /// If [status] is not `future`, the first language version in which this
+  /// feature was enabled by default.  Otherwise `null`.
+  Version? get releaseVersion;
+
+  /// The status of the feature.
+  FeatureStatus get status;
+}
+
+/// An unordered collection of [Feature] objects.
+abstract class FeatureSet {
+  /// Computes the set of features implied by the given set of experimental
+  /// enable flags.
+  factory FeatureSet.fromEnableFlags2({
+    required Version sdkLanguageVersion,
+    required List<String> flags,
+  }) = ExperimentStatus.fromStrings2;
+
+  /// Computes the set of features for the latest language version known
+  /// to the analyzer, with experiments according to [flags].  Use it only if
+  /// you really don't care which language version you want to use, and sure
+  /// that the code that you process is valid for the latest language version.
+  ///
+  /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
+  factory FeatureSet.latestLanguageVersion({List<String> flags}) =
+      ExperimentStatus.latestLanguageVersion;
+
+  /// Queries whether the given [feature] is contained in this feature set.
+  bool isEnabled(Feature feature);
+
+  /// Computes a subset of this FeatureSet by removing any features that are
+  /// not available in the given language version.
+  FeatureSet restrictToVersion(Version version);
+}
+
+/// Information about the status of a language feature.
+enum FeatureStatus {
+  /// The language feature has not yet shipped.  It may not be used unless an
+  /// experimental flag is used to enable it.
+  future,
+
+  /// The language feature has not yet shipped, but we are testing the effect of
+  /// enabling it by default.  It may be used in any library with an appropriate
+  /// version constraint, unless an experimental flag is used to disable it.
+  provisional,
+
+  /// The language feature has been shipped.  It may be used in any library with
+  /// an appropriate version constraint.
+  current,
+
+  /// The language feature is no longer planned.  It may not be used.
+  abandoned,
+}

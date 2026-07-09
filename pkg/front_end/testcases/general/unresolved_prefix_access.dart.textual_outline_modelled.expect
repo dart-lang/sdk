@@ -1,0 +1,5 @@
+import 'unresolved_prefix_access.dart' as prefix;
+
+main() {}
+
+test() {}

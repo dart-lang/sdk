@@ -1,0 +1,125 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UseSettersToChangePropertiesTest);
+  });
+}
+
+@reflectiveTest
+class UseSettersToChangePropertiesTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.use_setters_to_change_properties;
+
+  test_abstract() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  void setX(int x);
+}
+''');
+  }
+
+  test_combo() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  int x = 0;
+  void setX(int x) => this.x += x;
+}
+''');
+  }
+
+  test_extension() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  int x = 0;
+}
+
+extension E on A {
+  void [!setX!](int x) {
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_inheritedFromSuperclass() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  void setX(int x);
+}
+
+class B extends A {
+  int x = 0;
+
+  void setX(int x) {
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_inheritedFromSuperInterface() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  void setX(int x);
+}
+
+class B implements A {
+  int x = 0;
+
+  void setX(int x) {
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_multipleStatements() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 0;
+  void setX(int x) {
+    this.x = x;
+    print(x);
+  }
+}
+''');
+  }
+
+  test_nonTrivialRightSide() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 0;
+  void setX(int x) {
+    this.x = x + 1;
+  }
+}
+''');
+  }
+
+  test_setterLike_blockBody() async {
+    await assertDiagnosticsFromMarkup(r'''
+abstract class A {
+  int x = 0;
+  void [!setX!](int x) {
+    this.x = x;
+  }
+}
+''');
+  }
+
+  test_setterLike_expressionBody() async {
+    await assertDiagnosticsFromMarkup(r'''
+abstract class A {
+  int x = 0;
+  void [!setX!](int x) => this.x = x;
+}
+''');
+  }
+}

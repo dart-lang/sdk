@@ -1,0 +1,25 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=()->i]
+static method foo() → core::int
+  return [@vm.inferred-type.metadata=int] core::int::parse("1");
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=()->i]
+static method bar() → core::int {
+  try {
+    return [@vm.inferred-type.metadata=int] self::foo();
+  }
+  on core::Object catch(final core::Object e, final core::StackTrace st) {
+    core::Error::throwWithStackTrace(e, st);
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → dynamic {
+  core::print([@vm.inferred-type.metadata=int] self::bar());
+}

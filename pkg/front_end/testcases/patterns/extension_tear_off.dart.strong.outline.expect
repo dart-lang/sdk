@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension _ on core::int {
+  method method = self::_|method;
+  method tearoff method = self::_|get#method;
+}
+static extension-member method _|method(lowered final core::int #this, core::int i) → core::int
+  ;
+static extension-member method _|get#method(lowered final core::int #this) → (core::int) → core::int
+  return (core::int i) → core::int => self::_|method(#this, i);
+static method method(dynamic d) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

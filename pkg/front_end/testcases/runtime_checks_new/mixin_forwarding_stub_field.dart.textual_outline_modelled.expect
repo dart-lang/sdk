@@ -1,0 +1,30 @@
+library test;
+
+abstract class I<T> {
+  Object get y;
+  T get x;
+  void set x(T value);
+  void set y(covariant Object value);
+}
+
+class B {
+  int get x {}
+  int get y {}
+  void set x(int value) {}
+  void set y(int value) {}
+}
+
+class C = B with M implements I<int>;
+
+mixin M {
+  int x = 0;
+  int y = 0;
+}
+
+void expect(Object value, Object expected) {}
+
+void expectTypeError(void callback()) {}
+
+void main() {}
+
+void test(I<Object> i) {}

@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int annotation = 1;
+static field (core::int, core::String) topLevelFieldType;
+static method topLevelMethodReturnType() → (core::int, {required b: core::String})
+  ;
+static method topLevelSetterType(({required a: core::int, required b: core::String}) value) → void
+  ;
+static method topLevelMethodParameterType((core::String, core::int) o) → void
+  ;
+static method method() → void
+  ;

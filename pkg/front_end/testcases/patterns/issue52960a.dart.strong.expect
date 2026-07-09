@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method firstAndLast(core::List<core::int> a) → (core::int, core::int)
+  return (a.{core::Iterable::first}{core::int}, a.{core::Iterable::last}{core::int});
+static method main() → dynamic {
+  final hoisted has-declared-initializer core::int first;
+  final hoisted has-declared-initializer core::int last;
+  {
+    final synthesized(core::int, core::int) #0#0 = self::firstAndLast(<core::int>[1, 2, 3]);
+    first = #0#0.$1{core::int};
+    last = #0#0.$2{core::int};
+  }
+  core::print("first: ${first}, last: ${last}");
+}

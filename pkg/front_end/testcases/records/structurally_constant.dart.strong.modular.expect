@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method method1([dynamic a = #C3, dynamic b = #C6]) → void {
+  (0, 1);
+  (#C4, {c: "foo"});
+}
+static method method2({dynamic a = #C3, dynamic b = #C6}) → void {
+  (<core::String>[], {c: "foo"});
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = (#C1, #C2)
+  #C4 = <core::String>[]
+  #C5 = "foo"
+  #C6 = (#C4, {c:#C5})
+}

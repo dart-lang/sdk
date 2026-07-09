@@ -1,0 +1,26 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///export_vs_prefix_lib1.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "export_vs_prefix_lib2.dart" as exp;
+additionalExports = (exp::foo)
+
+import "org-dartlang-testcase:///export_vs_prefix_lib2.dart" as foo;
+export "org-dartlang-testcase:///export_vs_prefix_lib2.dart";
+
+static method bar() → dynamic
+  ;
+
+library;
+import self as exp;
+
+static method foo() → void
+  ;
+static method bar() → void
+  ;

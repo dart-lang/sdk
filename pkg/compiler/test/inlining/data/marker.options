@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/inlining/inlining_test.dart
+prod=pkg/compiler/test/inlining/inlining_test.dart

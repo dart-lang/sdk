@@ -1,0 +1,8 @@
+class A<T> {}
+
+class B<S> {
+  final List<A<S>> foo = <A<S>>[];
+  final List<A<num>> bar = <A<num>>[];
+}
+
+main() {}

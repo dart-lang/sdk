@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  @core::override
+  method noSuchMethod(core::Object o, {core::String foo = ""}) → dynamic
+    ;
+  @core::override
+  method toString({core::String foo = ""}) → core::String
+    ;
+}
+static method main() → dynamic
+  ;
+static method test() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///dynamic_object_call.dart:6:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///dynamic_object_call.dart:9:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

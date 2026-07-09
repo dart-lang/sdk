@@ -1,0 +1,157 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract sealed class S extends core::Object {
+  synthetic constructor •() → self::S
+    : super core::Object::•()
+    ;
+}
+class A extends self::S {
+  synthetic constructor •() → self::A
+    : super self::S::•()
+    ;
+}
+class B extends self::S {
+  synthetic constructor •() → self::B
+    : super self::S::•()
+    ;
+}
+class C extends self::S {
+  synthetic constructor •() → self::C
+    : super self::S::•()
+    ;
+}
+class X extends self::A {
+  synthetic constructor •() → self::X
+    : super self::A::•()
+    ;
+}
+class Y extends self::B {
+  synthetic constructor •() → self::Y
+    : super self::B::•()
+    ;
+}
+class Z extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::Z
+    : super core::Object::•()
+    ;
+}
+static method unsound1(self::S s) → core::int
+  return block {
+    core::int #t1;
+    final synthesized self::S #0#0 = s;
+    #L1:
+    {
+      {
+        if(let final dynamic #t2 = #0#0 as self::A in (#0#0 as self::A) is self::X) {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+      {
+        if(let final dynamic #t3 = #0#0 as self::B in (#0#0 as self::B) is self::Y) {
+          #t1 = 1;
+          break #L1;
+        }
+      }
+      throw{for-error-handling} new _in::ReachabilityError::•("None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.");
+    }
+  } =>#t1;
+static method sound1(self::S s) → core::int?
+  return block {
+    core::int? #t4;
+    final synthesized self::S #0#0 = s;
+    #L2:
+    {
+      {
+        if(let final dynamic #t5 = #0#0 as self::A in (#0#0 as self::A) is self::X) {
+          #t4 = 0;
+          break #L2;
+        }
+      }
+      {
+        if(let final dynamic #t6 = #0#0 as self::B in (#0#0 as self::B) is self::Y) {
+          #t4 = 1;
+          break #L2;
+        }
+      }
+      {
+        if(true) {
+          #t4 = null;
+          break #L2;
+        }
+      }
+      throw{for-error-handling} new _in::ReachabilityError::•("None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.");
+    }
+  } =>#t4;
+static method unsound2(self::S s) → core::int {
+  #L3:
+  {
+    final synthesized self::S #0#0 = s;
+    {
+      if(let final dynamic #t7 = #0#0 as self::A in (#0#0 as self::A) is self::X) {
+        {
+          return 0;
+        }
+      }
+    }
+    {
+      if(let final dynamic #t8 = #0#0 as self::B in (#0#0 as self::B) is self::Y) {
+        {
+          return 1;
+        }
+      }
+    }
+    throw{for-error-handling} new _in::ReachabilityError::•("None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.");
+  }
+}
+static method sound2(self::S s) → core::int? {
+  #L4:
+  {
+    final synthesized self::S #0#0 = s;
+    {
+      if(let final dynamic #t9 = #0#0 as self::A in (#0#0 as self::A) is self::X) {
+        {
+          return 0;
+        }
+      }
+    }
+    {
+      if(let final dynamic #t10 = #0#0 as self::B in (#0#0 as self::B) is self::Y) {
+        {
+          return 1;
+        }
+      }
+    }
+    {
+      if(true) {
+        {
+          return null;
+        }
+      }
+    }
+    throw{for-error-handling} new _in::ReachabilityError::•("None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.");
+  }
+}
+static method main() → dynamic {
+  self::expect(self::sound1(new self::X::•()), self::unsound1(new self::X::•()));
+  self::throws(() → void => self::unsound1(new self::Z::•()));
+  self::expect(self::sound2(new self::X::•()), self::unsound2(new self::X::•()));
+  self::throws(() → void => self::unsound2(new self::Z::•()));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Missing exception";
+}

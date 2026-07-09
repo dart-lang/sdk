@@ -1,0 +1,15 @@
+library test;
+
+NotA myF() => throw '';
+
+class A {}
+
+class C<T extends A> {
+  C(F<T> f);
+}
+
+class NotA {}
+
+test() {}
+
+typedef T F<T>();

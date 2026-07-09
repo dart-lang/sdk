@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static method test(dynamic a, {dynamic b, dynamic c}) → core::int
+  ;
+static method main() → dynamic
+  ;

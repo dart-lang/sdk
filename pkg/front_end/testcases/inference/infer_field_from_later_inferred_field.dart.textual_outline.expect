@@ -1,0 +1,13 @@
+library test;
+
+int? nullableInt = 0;
+
+class A implements B {
+  var x;
+}
+
+class B {
+  var x = nullableInt;
+}
+
+main() {}

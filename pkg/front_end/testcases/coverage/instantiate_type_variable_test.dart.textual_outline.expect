@@ -1,0 +1,4 @@
+class Foo<T> {
+  Foo() {}
+  dynamic make() {}
+}

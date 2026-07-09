@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Script for generating AOT snapshot using Dart 2 pipeline: Fasta with
+# strong mode enabled, AOT specific Kernel-to-Kernel transformations and
+# Dart VM precompiler with strong mode semantics and reified generics.
+
+# Parse incoming arguments and extract the value of --packages option if any
+# was passed. Split options (--xyz) and non-options into two separate arrays.
+# All options will be passed to gen_snapshot, while --packages will be
+# passed to Fasta.
+
+set -e
+
+function follow_links() {
+  local file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+SDK_DIR="$CUR_DIR/../../.."
+
+. "$CUR_DIR/shared_functions.sh"
+
+OPTIONS=()
+GEN_KERNEL_OPTIONS=()
+PACKAGES=
+BUILD_ASM=0
+
+ARGV=()
+for arg in "$@"; do
+  case $arg in
+    --packages=sdk)
+    PACKAGES="$SDK_DIR/.dart_tool/package_config.json"
+    ;;
+    --packages=*)
+    PACKAGES="$arg"
+    ;;
+    --enable-asserts | \
+    --sound-null-safety | \
+    --no-sound-null-safety | \
+    --enable-experiment=*)
+    GEN_KERNEL_OPTIONS+=("$arg")
+    OPTIONS+=("$arg")
+    ;;
+    --tfa | \
+    --no-tfa | \
+    --protobuf-tree-shaker-v2 | \
+    --minimal-kernel | \
+    --no-embed-sources | \
+    --dynamic-interface=* | \
+    -D* )
+    GEN_KERNEL_OPTIONS+=("$arg")
+    ;;
+    --build-assembly)
+    BUILD_ASM=1
+    ;;
+    -v*)
+    set -x
+    ;;
+    --*)
+    OPTIONS+=("$arg")
+    ;;
+    *)
+    ARGV+=("$arg")
+    ;;
+  esac
+done
+
+if [ "${#ARGV[@]}" -ne 2 ]; then
+    echo "Usage: $0 [options] <source> <snapshot>"
+    exit 1
+fi
+
+SOURCE_FILE="${ARGV[0]}"
+SNAPSHOT_FILE="${ARGV[1]}"
+
+if [ $BUILD_ASM -eq 1 ]; then
+  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-assembly"
+  GEN_SNAPSHOT_FILENAME="--assembly=${SNAPSHOT_FILE}.S"
+else
+  GEN_SNAPSHOT_OPTION="--snapshot-kind=app-aot-elf"
+  GEN_SNAPSHOT_FILENAME="--elf=${SNAPSHOT_FILE}"
+fi
+
+if [[ `uname` == 'Darwin' ]]; then
+  OUT_DIR="$SDK_DIR/xcodebuild"
+else
+  OUT_DIR="$SDK_DIR/out"
+fi
+
+HOST_ARCH="$(host_arch)"
+
+export DART_CONFIGURATION=${DART_CONFIGURATION:-Release$HOST_ARCH}
+TARGET_ARCH="$(parse_target_arch "$DART_CONFIGURATION")"
+BUILD_DIR="$OUT_DIR/$DART_CONFIGURATION"
+if [ ! -d "$BUILD_DIR" ]; then
+  echo "$BUILD_DIR is not a directory" >&2
+  exit 1
+fi
+
+function find_dart {
+  local tools_dart="${SDK_DIR}/tools/sdks/dart-sdk/bin/dart"
+  if [ -f "$tools_dart" ]; then
+    echo "$tools_dart"
+  else
+    local host_dart=""
+    if is_cross_compiled "$HOST_ARCH" "$TARGET_ARCH"; then
+      host_dart="$OUT_DIR/Release$HOST_ARCH/dart"
+    else
+      host_dart="$BUILD_DIR/dart"
+    fi
+    if [ ! -f "$host_dart" ]; then
+      echo "Cannot find dart at either $tools_dart or $host_dart" >&2
+      exit 1
+    fi
+    echo "$host_dart"
+  fi
+}
+
+DART="$(find_dart)"
+
+function gen_kernel() {
+  if [[ "$DART_GN_ARGS" == *"precompile_tools=true"* ]]; then
+    # Precompile gen_kernel to an AOT app.
+    buildtools/ninja/ninja -C "$BUILD_DIR" gen_kernel.exe
+    "$BUILD_DIR/gen_kernel.exe" $@
+  else
+    $DART ${DART_VM_FLAGS} "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@
+  fi
+}
+
+# Step 1: Generate Kernel binary from the input Dart source.
+gen_kernel --platform "${BUILD_DIR}/vm_platform.dill"                   \
+     --aot                                                                     \
+     "${GEN_KERNEL_OPTIONS[@]}"                                                \
+     $PACKAGES                                                                 \
+     -o "$SNAPSHOT_FILE.dill"                                                  \
+     "$SOURCE_FILE"
+
+GEN_SNAPSHOT="gen_snapshot"
+# If the target architecture differs from the host architecture, use
+# gen_snapshot for the host architecture for cross compilation, which is
+# denoted by an X between the build mode and the architecture name,
+# e.g., ReleaseXARM64 on X64.
+if [[ "$DART_CONFIGURATION" =~ (Debug|Release|Product)X[^6] ]] && \
+      is_cross_compiled "$HOST_ARCH" "$TARGET_ARCH"; then
+  case "$HOST_ARCH" in
+    "X64")
+    GEN_SNAPSHOT="clang_x64/${GEN_SNAPSHOT}"
+    ;;
+    "ARM64")
+    GEN_SNAPSHOT="clang_arm64/${GEN_SNAPSHOT}"
+    ;;
+    *)
+    echo "Unexpected host architecture $HOST_ARCH for cross compilation" >&2
+    exit 1
+    ;;
+  esac
+fi
+
+# Step 2: Generate snapshot from the Kernel binary.
+${BUILD_DIR}/${GEN_SNAPSHOT}                                                   \
+     ${GEN_SNAPSHOT_FLAGS}                                                     \
+     "$GEN_SNAPSHOT_OPTION"                                                    \
+     "$GEN_SNAPSHOT_FILENAME"                                                  \
+     "${OPTIONS[@]}"                                                           \
+     "$SNAPSHOT_FILE.dill"
+
+# Step 3: Assemble the assembly file into an ELF object.
+if [ $BUILD_ASM -eq 1 ]; then
+    gcc -shared -o "$SNAPSHOT_FILE" "${SNAPSHOT_FILE}.S"
+fi

@@ -1,0 +1,5 @@
+class A<TypeX extends A, TypeY extends A> {}
+
+main() {}
+
+typedef C<TypeX extends C, TypeY extends C> = int;

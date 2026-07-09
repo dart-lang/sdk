@@ -1,0 +1,5 @@
+import 'issue61717_lib.dart';
+
+base class C extends B {}
+
+void main() {}

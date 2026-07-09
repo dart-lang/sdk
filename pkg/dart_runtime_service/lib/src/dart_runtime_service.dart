@@ -1,0 +1,405 @@
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
+
+import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:stream_channel/stream_channel.dart';
+
+import 'clients.dart';
+import 'dart_runtime_service_backend.dart';
+import 'dart_runtime_service_options.dart';
+import 'event_streams.dart';
+import 'exceptions.dart';
+import 'handlers.dart';
+import 'utils.dart';
+
+typedef RpcResponse = Map<String, Object?>;
+typedef DartRuntimeServiceBackendBuilder =
+    DartRuntimeServiceBackend Function(DartRuntimeService);
+
+class DartRuntimeService {
+  DartRuntimeService._({
+    required this.config,
+    required DartRuntimeServiceBackendBuilder backendBuilder,
+  }) : authCode = config.disableAuthCodes ? null : generateSecret() {
+    if (config.enableLogging) {
+      _logger.onRecord.listen(stderr.writeln);
+    }
+    backend = backendBuilder(this);
+    // We can't use the const constructors here as they won't pickup Dart
+    // environment variables specified at runtime when the service is compiled
+    // to a snapshot. This behavior is somewhat undefined and doesn't work
+    // in AOT, but is maintained for backwards compatibility.
+    silenceServiceOutput =
+        // TODO(48602): deprecate SILENT_OBSERVATORY in favor of
+        // SILENT_VM_SERVICE
+        // ignore: prefer_const_constructors
+        bool.fromEnvironment('SILENT_OBSERVATORY') ||
+        // ignore: prefer_const_constructors
+        bool.fromEnvironment('SILENT_VM_SERVICE') ||
+        // ignore: prefer_const_constructors
+        bool.fromEnvironment('SILENT_SERVICE');
+  }
+
+  static Future<DartRuntimeService> initialize({
+    required DartRuntimeServiceOptions config,
+    required DartRuntimeServiceBackendBuilder backendBuilder,
+  }) async {
+    final service = DartRuntimeService._(
+      config: config,
+      backendBuilder: backendBuilder,
+    );
+    await service._initialize();
+    return service;
+  }
+
+  final DartRuntimeServiceOptions config;
+
+  late final DartRuntimeServiceBackend backend;
+
+  /// The ws:// URI pointing to this [DartRuntimeService]'s server.
+  ///
+  /// Throws [DartRuntimeServiceServerNotRunning] if the HTTP server is not
+  /// active.
+  ///
+  /// It's possible that the returned [Uri] is no longer valid if the server
+  /// was recently shut down.
+  Uri get uri {
+    if (_server == null) {
+      throw const DartRuntimeServiceServerNotRunning();
+    }
+    return _uri!;
+  }
+
+  Uri? _uri;
+
+  /// The http:// URI pointing to this [DartRuntimeService]'s server.
+  ///
+  /// Throws [DartRuntimeServiceServerNotRunning] if the HTTP server is not
+  /// active.
+  ///
+  /// It's possible that the returned [Uri] is no longer valid if the server
+  /// was recently shut down.
+  Uri get httpUri => uri.replace(
+    scheme: 'http',
+    pathSegments: [
+      ...uri.pathSegments,
+      if (uri.pathSegments.isEmpty || uri.pathSegments.last.isNotEmpty) '',
+    ],
+  );
+
+  /// The sse:// URI pointing to this [DartRuntimeService]'s server.
+  ///
+  /// Throws [StateError] if [DartRuntimeServiceOptions.sseHandlerPath] is not
+  /// set.
+  ///
+  /// Throws [DartRuntimeServiceServerNotRunning] if the HTTP server is not
+  /// active.
+  ///
+  /// It's possible that the returned [Uri] is no longer valid if the server
+  /// was recently shut down.
+  Uri get sseUri {
+    if (config.sseHandlerPath == null) {
+      throw StateError('SSE handler path not configured.');
+    }
+    return uri.replace(
+      scheme: 'sse',
+      pathSegments: [...uri.pathSegments, config.sseHandlerPath!],
+    );
+  }
+
+  /// The authentication code needed to communicate with the service.
+  ///
+  /// When authentication codes are disabled, this field is null.
+  final String? authCode;
+
+  final _logger = Logger('$DartRuntimeService');
+
+  /// Exposes methods for controlling acceptance of new [Client] connections.
+  ClientConnectionController get clientConnectionController => clientManager;
+
+  @visibleForTesting
+  late final ClientManager clientManager = backend.clientManagerBuilder();
+
+  /// The set of currently connected [Client]s.
+  UnmodifiableClientNamedLookup get clients => clientManager.clients;
+
+  /// Exposes methods for interacting with event streams.
+  EventStreamMethods get eventStreams => eventStreamManager;
+
+  @visibleForTesting
+  late final eventStreamManager = EventStreamManager(
+    backend: backend,
+    clientsGetter: () => clients,
+  );
+
+  final _serverLock = Pool(1);
+  HttpServer? _server;
+  bool _shutdownCalled = false;
+  final _initializedCompleter = Completer<void>();
+
+  /// Returns true if the HTTP server is active.
+  bool get isServerRunning => _server != null;
+
+  /// If true, the service won't write any messages to STDOUT.
+  ///
+  /// Note: this does not impact logging output when
+  /// [DartRuntimeServiceOptions.enableLogging] is true.
+  bool silenceServiceOutput = false;
+
+  /// Writes [message] to STDOUT, unless [silenceServiceOutput] is true.
+  void printServiceOutput(String message) {
+    if (silenceServiceOutput) {
+      return;
+    }
+    stdout.writeln(message);
+  }
+
+  /// Initializes the service's state without starting the web server.
+  Future<void> _initialize() async {
+    try {
+      await backend.initialize();
+
+      if (_shutdownCalled) {
+        _logger.info(
+          'Shutdown was called during backend initialization. Aborting.',
+        );
+        return;
+      }
+
+      if (config.autoStart) {
+        _logger.info('Autostart enabled. Starting server.');
+        await _startServer();
+      }
+      if (_shutdownCalled) {
+        _logger.info('Shutdown was called during initialization. Aborting.');
+        return;
+      }
+      await backend.onServiceReady(this);
+    } finally {
+      if (!_initializedCompleter.isCompleted) {
+        _initializedCompleter.complete();
+      }
+    }
+  }
+
+  /// Shuts down the service and cleans up backend state.
+  Future<void> shutdown() async {
+    _shutdownCalled = true;
+    if (!_initializedCompleter.isCompleted) {
+      await _initializedCompleter.future;
+    }
+    await clientManager.shutdown();
+    await backend.clearState();
+    await backend.shutdown();
+    try {
+      await _shutdownServer();
+    } on DartRuntimeServiceServerNotRunning catch (_) {}
+    Logger.root.clearListeners();
+    _logger.info('Dart Runtime Service shutdown complete.');
+  }
+
+  /// Enables or disables the server based on the value of [enable].
+  ///
+  /// [silenceOutput] is used to determine if the service will output
+  /// non-logging information to the terminal.
+  ///
+  /// This is called when `dart:developer`'s [Service.controlWebServer] is
+  /// invoked.
+  Future<void> serverControl({required bool enable, bool? silenceOutput}) {
+    return _serverLock.withResource(() async {
+      if (silenceOutput != null) {
+        _logger.info(
+          'silenceServiceOutput: $silenceServiceOutput -> $silenceOutput',
+        );
+        silenceServiceOutput = silenceOutput;
+      }
+      if (!enable && isServerRunning) {
+        await _shutdownServerLocked();
+      } else if (enable && !isServerRunning) {
+        await _startServerLocked();
+      }
+    });
+  }
+
+  /// Toggles the state of the HTTP server, enabling it if it's not running and
+  /// disabling it if it is running.
+  Future<void> toggleServer() {
+    return _serverLock.withResource(() async {
+      if (isServerRunning) {
+        await _shutdownServerLocked();
+      } else {
+        await _startServerLocked();
+      }
+    });
+  }
+
+  /// Creates an artificial client to process JSON-RPC requests from
+  /// non-standard sources (e.g., from native code).
+  Client addArtificialClient({
+    required StreamChannel<String> connection,
+    required String name,
+  }) {
+    return clientManager.addClient(
+      connection: connection,
+      name: name,
+      artificial: true,
+    );
+  }
+
+  Future<void> _startServer() => _serverLock.withResource(_startServerLocked);
+
+  Future<void> _startServerLocked() async {
+    if (_server != null) {
+      _logger.warning(
+        "Attempted to start the HTTP server, but it's already running.",
+      );
+      throw const DartRuntimeServiceServerAlreadyRunning();
+    }
+    final hostStr = config.host ?? InternetAddress.loopbackIPv4.host;
+    var parsedHost = InternetAddress.tryParse(hostStr);
+    if (parsedHost == null) {
+      final addresses = await InternetAddress.lookup(hostStr);
+      parsedHost = addresses.firstWhere(
+        (a) => a.type == InternetAddressType.IPv4,
+        orElse: () => addresses.first,
+      );
+    }
+    final host = parsedHost;
+
+    _logger.info('Starting the Dart Runtime Service.');
+    String? errorMessage;
+    var port = config.port;
+    Future<HttpServer?> start() async {
+      try {
+        _logger.info('Attempting to bind to ${host.address}:$port');
+        final handlers = _handlers();
+        return await io.serve(handlers, host, port);
+      } on SocketException catch (e) {
+        if (config.enableServicePortFallback && port != 0) {
+          _logger.info(
+            'Port $port is already in use. Retrying with a random port.',
+          );
+          port = 0;
+          return await start();
+        }
+        var msg = e.message;
+        if (e.osError != null) {
+          msg += ' (${e.osError!.message})';
+        }
+        msg += ': ${e.address?.host}:${e.port}';
+        errorMessage = msg;
+        return null;
+      }
+    }
+
+    final server = await runZonedGuarded(start, (e, st) {
+      _logger.warning('Asynchronous error: $e\n$st');
+    });
+
+    if (server == null) {
+      final message =
+          'Failed to start server: ${errorMessage ?? 'Unknown error'}';
+      _logger.warning(message);
+      throw DartRuntimeServiceFailedToStartException(
+        message: errorMessage ?? 'Unknown error',
+      );
+    }
+
+    _server = server;
+    _uri = Uri(
+      scheme: 'ws',
+      host: host.address,
+      port: server.port,
+      path: authCode != null ? '/$authCode' : '',
+    );
+    await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
+    _logger.info(
+      'Dart Runtime Service HTTP server started successfully and is '
+      'listening at $uri.',
+    );
+  }
+
+  Future<void> _shutdownServer() =>
+      _serverLock.withResource(_shutdownServerLocked);
+
+  Future<void> _shutdownServerLocked() async {
+    final server = _server;
+    if (server == null) {
+      _logger.warning(
+        "Attempting to shut down the HTTP server, but it's not "
+        'running.',
+      );
+      throw const DartRuntimeServiceServerNotRunning();
+    }
+    _logger.info('Dart Runtime Service HTTP server is shutting down.');
+    _server = null;
+    _uri = null;
+    await server.close(force: true);
+    _logger.info('Dart Runtime Service HTTP server is closed.');
+    await backend.onServerShutdown();
+  }
+
+  /// Send a [StreamEvent] to subscribed clients.
+  void sendEvent({required StreamEventBase event}) {
+    event.send(eventStreamMethods: eventStreamManager);
+  }
+
+  shelf.Handler _handlers() {
+    _logger.info('Building Shelf handlers.');
+    var pipeline = const shelf.Pipeline();
+    if (config.enableLogging) {
+      pipeline = pipeline.addMiddleware(requestLoggingMiddleware());
+    }
+    if (!config.disableAuthCodes) {
+      _logger.info(
+        'Authentication codes are enabled. Adding authentication '
+        'code verification handler.',
+      );
+      pipeline = pipeline.addMiddleware(
+        authCodeVerificationMiddleware(authCode: authCode!),
+      );
+    }
+
+    if (!config.disableOriginCheck) {
+      _logger.info('Origin checks are enabled. Adding CORS check handler.');
+      pipeline = pipeline.addMiddleware(originCheckMiddleware(frontend: this));
+    }
+
+    var handlerCascade = shelf.Cascade();
+    if (config.sseHandlerPath != null) {
+      _logger.info(
+        'SSE connections are enabled. Adding SSE handler listening '
+        'at ${config.sseHandlerPath}.',
+      );
+      handlerCascade = handlerCascade.add(
+        sseClientHandler(
+          clientManager: clientManager,
+          sseHandlerPath: config.sseHandlerPath!,
+          authCode: authCode,
+        ),
+      );
+    }
+
+    _logger.info(
+      'Web socket connections are enabled. Adding web socket handler.',
+    );
+    handlerCascade = handlerCascade.add(
+      webSocketClientHandler(clientManager: clientManager),
+    );
+
+    _logger.info('HTTP requests are accepted. Adding HTTP request handler.');
+    handlerCascade = handlerCascade.add(httpRequestHandler(frontend: this));
+
+    _logger.info('Shelf handlers generated.');
+    return pipeline.addHandler(handlerCascade.handler);
+  }
+}

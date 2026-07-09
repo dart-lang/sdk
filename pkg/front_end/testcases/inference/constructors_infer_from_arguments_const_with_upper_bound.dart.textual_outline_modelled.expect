@@ -1,0 +1,12 @@
+library test;
+
+class C<T extends num> {
+  const C(this.x);
+  final T x;
+}
+
+class D<T extends num> {
+  const D();
+}
+
+void main() {}

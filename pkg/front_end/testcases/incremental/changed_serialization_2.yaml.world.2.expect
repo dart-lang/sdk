@@ -1,0 +1,34 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  class A extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → lib::A
+      : super dart.core::Object::•()
+      ;
+  }
+  class B extends dart.core::Object implements lib::A /*hasConstConstructor*/  {
+    const constructor •() → lib::B
+      : super dart.core::Object::•()
+      ;
+  }
+  class C extends lib::B /*hasConstConstructor*/  {
+    const constructor •([lib::A a = #C1]) → lib::C
+      : super lib::B::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+}
+constants  {
+  #C1 = lib::A {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib.dart:
+- A. (from org-dartlang-test:///lib.dart:2:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+

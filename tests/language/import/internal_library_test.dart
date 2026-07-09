@@ -1,0 +1,33 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// The formatter puts a blank line above the static error marker.
+// dart format off
+
+// Test that a private library cannot be accessed from outside the platform.
+
+library internal_library_test;
+
+import 'dart:core'; // This loads 'dart:_foreign_helper' and 'patch:core'.
+import 'dart:_foreign_helper';
+//     ^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.IMPORT_INTERNAL_LIBRARY
+// [cfe] Can't access platform private library.
+// [cfe] Dart library 'dart:_foreign_helper' is not available on this platform.
+
+part 'dart:_foreign_helper';
+//   ^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.PART_OF_NON_PART
+// [cfe] Can't access platform private library.
+// [cfe] Can't use 'org-dartlang-untranslatable-uri:dart%3A_foreign_helper' as a part, because it has no 'part of' declaration.
+// [cfe] Dart library 'dart:_foreign_helper' is not available on this platform.
+
+void main() {
+  JS('int', '0');
+  // [error column 3]
+  // [cfe] Method not found: 'JS'.
+  JS('int', '0');
+  // [error column 3]
+  // [cfe] Method not found: 'JS'.
+}

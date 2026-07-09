@@ -1,0 +1,5 @@
+import 'main_lib1.dart';
+
+Class cls = new Class();
+
+int i = new int();

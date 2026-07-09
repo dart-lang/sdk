@@ -1,0 +1,22 @@
+r0 int32
+s0 float
+r1 int32
+d1 double
+r2 int32
+s1 float
+r3 int32
+d2 double
+S+0 int32
+s6 float
+S+4 int32
+d4 double
+S+8 int32
+s7 float
+S+12 int32
+d5 double
+S+16 int32
+s12 float
+S+20 int32
+d7 double
+=>
+q0 double

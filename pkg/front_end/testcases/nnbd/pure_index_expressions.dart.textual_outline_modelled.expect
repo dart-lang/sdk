@@ -1,0 +1,43 @@
+abstract class Map<K, V> {
+  V operator [](K index);
+  void operator []=(K index, V value);
+}
+
+bool b = true;
+
+class Class {
+  Class operator +(Class cls) => cls;
+  Class operator [](Class cls) => new Class();
+  void explicitExtensionGetSetForEffect(int i) {}
+  void explicitExtensionGetSetForValue(int i) {}
+  void implicitExtensionGetSetForEffect(int i) {}
+  void implicitExtensionGetSetForValue(int i) {}
+  void indexGetSetForEffect(Map<Class, Class> map) {}
+  void indexGetSetForValue(Map<Class, Class> map) {}
+  void operator []=(Class cls, Class value) {}
+}
+
+class Class2 {
+  Class2 operator +(Class2 cls) => cls;
+  void explicitExtensionGetSetForEffect() {}
+  void explicitExtensionGetSetForValue() {}
+  void implicitExtensionGetSetForEffect() {}
+  void implicitExtensionGetSetForValue() {}
+}
+
+class Subclass extends Class {
+  void superIndexGetSetForEffect() {}
+  void superIndexGetSetForValue() {}
+}
+
+extension Extension on int {
+  Class operator [](Class cls) => new Class();
+  void operator []=(Class cls, Class value) {}
+}
+
+extension Extension2 on Class2 {
+  Class2 operator [](Class2 cls) => new Class2();
+  void operator []=(Class2 cls, Class2 value) {}
+}
+
+main() {}

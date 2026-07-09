@@ -1,0 +1,22 @@
+(r0, r1) int64[double]
+(r2, r3) int64[double]
+S+0 double
+S+8 double
+S+16 double
+S+24 double
+S+32 double
+S+40 double
+S+48 double
+S+56 double
+S+64 double
+S+72 double
+S+80 double
+S+88 double
+S+96 double
+S+104 double
+S+112 double
+S+120 double
+S+128 double
+S+136 double
+=>
+(r0, r1) int64[double]

@@ -1,0 +1,296 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+abstract class CanvasRenderingContext {
+  CanvasElement get canvas;
+}
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
+$!MEMBERS
+
+  ImageData createImageDataFromImageData(ImageData imagedata) =>
+    JS('ImageData', '#.createImageData(#)', this, imagedata);
+
+  /**
+   * Sets the color used inside shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setFillColorRgb(int r, int g, int b, [num a = 1]) {
+    this.fillStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  /**
+   * Sets the color used inside shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setFillColorHsl(int h, num s, num l, [num a = 1]) {
+    this.fillStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [r], [g], [b] are 0-255, [a] is 0-1.
+   */
+  void setStrokeColorRgb(int r, int g, int b, [num a = 1]) {
+    this.strokeStyle = 'rgba($r, $g, $b, $a)';
+  }
+
+  /**
+   * Sets the color used for stroking shapes.
+   * [h] is in degrees, 0-360.
+   * [s], [l] are in percent, 0-100.
+   * [a] is 0-1.
+   */
+  void setStrokeColorHsl(int h, num s, num l, [num a = 1]) {
+    this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
+  }
+
+  void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
+      [bool anticlockwise = false]) {
+    // TODO(terry): This should not be needed: dartbug.com/20939.
+    JS('void', '#.arc(#, #, #, #, #, #)', this, x, y, radius, startAngle,
+       endAngle, anticlockwise);
+  }
+
+  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) =>
+    JS('CanvasPattern', '#.createPattern(#, #)', this, image, repetitionType);
+
+  /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image will be drawn to an area of this canvas defined by
+   * [destRect]. [sourceRect] defines the region of the source image that is
+   * drawn.
+   * If [sourceRect] is not provided, then
+   * the entire rectangular image from [source] will be drawn to this context.
+   *
+   * If the image is larger than canvas
+   * will allow, the image will be clipped to fit the available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
+   *     ImageElement img = document.query('img');
+   *     img.width = 100;
+   *     img.height = 100;
+   *
+   *     // Scale the image to 20x20.
+   *     ctx.drawImageToRect(img, new Rectangle(50, 50, 20, 20));
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageToRect(video, new Rectangle(50, 50, 100, 100),
+   *         sourceRect: new Rectangle(40, 40, 20, 20));
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageToRect(otherCanvas, new Rectangle(0, 0, 100, 20),
+   *         sourceRect: new Rectangle(0, 0, 100, 20));
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  void drawImageToRect(CanvasImageSource source, Rectangle destRect,
+      {Rectangle$NULLABLE sourceRect}) {
+    if (sourceRect == null) {
+      drawImageScaled(source,
+          destRect.left,
+          destRect.top,
+          destRect.width,
+          destRect.height);
+    } else {
+      drawImageScaledFromSource(source,
+          sourceRect.left,
+          sourceRect.top,
+          sourceRect.width,
+          sourceRect.height,
+          destRect.left,
+          destRect.top,
+          destRect.width,
+          destRect.height);
+    }
+  }
+
+  /**
+   * Draws an image from a CanvasImageSource to this canvas.
+   *
+   * The entire image from [source] will be drawn to this context with its top
+   * left corner at the point ([destX], [destY]). If the image is
+   * larger than canvas will allow, the image will be clipped to fit the
+   * available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
+   *     ImageElement img = document.query('img');
+   *
+   *     ctx.drawImage(img, 100, 100);
+   *
+   *     VideoElement video = document.query('video');
+   *     ctx.drawImage(video, 0, 0);
+   *
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     otherCanvas.width = 100;
+   *     otherCanvas.height = 100;
+   *     ctx.drawImage(otherCanvas, 590, 590); // will get clipped
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @JSName('drawImage')
+  void drawImage(CanvasImageSource source, num destX, num destY) native;
+
+  /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image will be drawn to this context with its top left corner at the
+   * point ([destX], [destY]) and will be scaled to be [destWidth] wide and
+   * [destHeight] tall.
+   *
+   * If the image is larger than canvas
+   * will allow, the image will be clipped to fit the available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
+   *     ImageElement img = document.query('img');
+   *     img.width = 100;
+   *     img.height = 100;
+   *
+   *     // Scale the image to 300x50 at the point (20, 20)
+   *     ctx.drawImageScaled(img, 20, 20, 300, 50);
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @JSName('drawImage')
+  void drawImageScaled(CanvasImageSource source,
+      num destX, num destY, num destWidth, num destHeight) native;
+
+  /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image is a region of [source] that is [sourceWidth] wide and
+   * [sourceHeight] tall with top left corner at ([sourceX], [sourceY]).
+   * The image will be drawn to this context with its top left corner at the
+   * point ([destX], [destY]) and will be scaled to be [destWidth] wide and
+   * [destHeight] tall.
+   *
+   * If the image is larger than canvas
+   * will allow, the image will be clipped to fit the available space.
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageScaledFromSource(video, 40, 40, 20, 20, 50, 50, 100, 100);
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas to this one.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageScaledFromSource(otherCanvas, 0, 0, 100, 20, 0, 0, 100, 20);
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @JSName('drawImage')
+  void drawImageScaledFromSource(CanvasImageSource source,
+      num sourceX, num sourceY, num sourceWidth, num sourceHeight,
+      num destX, num destY, num destWidth, num destHeight) native;
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  // TODO(14316): Firefox has this functionality with mozDashOffset, but it
+  // needs to be polyfilled.
+  num get lineDashOffset => JS('num',
+      '#.lineDashOffset || #.webkitLineDashOffset', this, this);
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  // TODO(14316): Firefox has this functionality with mozDashOffset, but it
+  // needs to be polyfilled.
+  set lineDashOffset(num value) {
+    JS('void',
+       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
+       '#.webkitLineDashOffset = #', this, this, value, this, value);
+  }
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  List<num> getLineDash() {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+    if (JS('bool', '!!#.getLineDash', this)) {
+      return JS('List<num>', '#.getLineDash()', this);
+    } else if (JS('bool', '!!#.webkitLineDash', this)) {
+      return JS('List<num>', '#.webkitLineDash', this);
+    }
+    return [];
+  }
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @SupportedBrowser(SupportedBrowser.IE, '11')
+  @Unstable()
+  void setLineDash(List<num> dash) {
+    // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
+    // different.
+    if (JS('bool', '!!#.setLineDash', this)) {
+      JS('void', '#.setLineDash(#)', this, dash);
+    } else if (JS('bool', '!!#.webkitLineDash', this)) {
+      JS('void', '#.webkitLineDash = #', this, dash);
+    }
+  }
+
+
+  /**
+   * Draws text to the canvas.
+   *
+   * The text is drawn starting at coordinates ([x], [y]).
+   * If [maxWidth] is provided and the [text] is computed to be wider than
+   * [maxWidth], then the drawn text is scaled down horizontally to fit.
+   *
+   * The text uses the current [CanvasRenderingContext2D.font] property for font
+   * options, such as typeface and size, and the current
+   * [CanvasRenderingContext2D.fillStyle] for style options such as color.
+   * The current [CanvasRenderingContext2D.textAlign] and
+   * [CanvasRenderingContext2D.textBaseline] properties are also applied to the
+   * drawn text.
+   */
+  void fillText(String text, num x, num y, [num$NULLABLE maxWidth]) {
+    if (maxWidth != null) {
+      JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
+    } else {
+      JS('void', '#.fillText(#, #, #)', this, text, x, y);
+    }
+  }
+
+  /** Deprecated always returns 1.0 */
+  @deprecated
+  double get backingStorePixelRatio => 1.0;
+}

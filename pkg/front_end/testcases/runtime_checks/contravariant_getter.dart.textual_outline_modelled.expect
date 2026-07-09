@@ -1,0 +1,12 @@
+library test;
+
+class C<T> {
+  F<T> y = throw '';
+  void f(T value) {}
+}
+
+typedef void F<T>(T x);
+
+void g(C<num> c) {}
+
+void main() {}

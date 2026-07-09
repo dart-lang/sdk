@@ -1,0 +1,33 @@
+class Class<T> {
+  static var field;
+}
+
+extension Extension<T> on Class<T> {
+  static get property => Class.field;
+  static set property(value) {}
+  static var field;
+  static readGetter() {}
+  static writeSetterRequired(value) {}
+  static writeSetterOptional([value]) {}
+  static writeSetterNamed({value}) {}
+  static genericWriteSetterRequired<S>(S value) {}
+  static genericWriteSetterOptional<S>([S? value]) {}
+  static genericWriteSetterNamed<S>({S? value}) {}
+  static get tearOffGetterNoArgs => readGetter;
+  static get tearOffGetterRequired => writeSetterRequired;
+  static get tearOffGetterOptional => writeSetterOptional;
+  static get tearOffGetterNamed => writeSetterNamed;
+  static get tearOffGetterGenericRequired => genericWriteSetterRequired;
+  static get tearOffGetterGenericOptional => genericWriteSetterOptional;
+  static get tearOffGetterGenericNamed => genericWriteSetterNamed;
+  static invocationsFromStaticContext(int value) {}
+  static tearOffsFromStaticContext(int value) {}
+  static fieldAccessFromStaticContext() {}
+  static getterCallsFromStaticContext(int value) {}
+  invocationsFromInstanceContext(T value) {}
+  tearOffsFromInstanceContext(T value) {}
+  fieldAccessFromInstanceContext() {}
+  getterCallsFromInstanceContext(T value) {}
+}
+
+main() {}

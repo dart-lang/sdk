@@ -1,0 +1,7 @@
+extension type E._(int i) {
+  E.foo(int i) : this._(i);
+  int get value => i;
+  int get foo => i;
+}
+
+void main() {}

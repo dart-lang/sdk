@@ -1,0 +1,13 @@
+f() {
+var a, b, c;
+a?.[b] = c;
+a?[b] = c;
+a ? [b] = c;
+}
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken],[SimpleToken] c[StringToken];[SimpleToken]
+a[StringToken]?.[SimpleToken][[BeginToken]b[StringToken]][SimpleToken] =[SimpleToken] c[StringToken];[SimpleToken]
+a[StringToken]?[SimpleToken][[BeginToken]b[StringToken]][SimpleToken] =[SimpleToken] c[StringToken];[SimpleToken]
+a[StringToken] ?[SimpleToken] [[BeginToken]b[StringToken]][SimpleToken] =[SimpleToken] c[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

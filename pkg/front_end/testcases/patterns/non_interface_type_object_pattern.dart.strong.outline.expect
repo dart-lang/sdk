@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef FunctionType = () → void;
+typedef GenericFunctionType<invariant T extends core::Object? = dynamic> = (T%) → T%;
+static method test<T extends core::Object? = dynamic>(dynamic o) → dynamic
+  ;
+static method function() → void
+  ;
+static method intFunction(core::int i) → core::int
+  ;
+static method stringFunction(core::String s) → core::String
+  ;
+static method boolFunction(core::bool b) → core::bool
+  ;
+static method dynamicFunction(dynamic d) → dynamic
+  ;
+static method multiArgFunction(core::int i, core::String s) → void
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

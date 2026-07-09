@@ -1,0 +1,122 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:io';
+
+import 'package:kernel/ast.dart';
+import 'package:kernel/kernel.dart';
+
+import 'instrumenter.dart';
+import 'instrumenter.dart' as instrumenter;
+
+class SubtypeInstrumenterConfig implements InstrumenterConfig {
+  const new();
+
+  @override
+  String get afterName => 'after';
+
+  @override
+  String get beforeName => 'before';
+
+  @override
+  Arguments createAfterArguments(List<String> namesById) {
+    return new Arguments([]);
+  }
+
+  @override
+  Arguments createBeforeArguments(List<String> namesById) {
+    return new Arguments([]);
+  }
+
+  @override
+  Arguments createEnterArguments(int id, Member member) {
+    FunctionNode function = member.function!;
+    return new Arguments([
+      new ThisExpression(),
+      ...function.positionalParameters.map<Expression>(
+        (e) => new VariableGet(e),
+      ),
+    ]);
+  }
+
+  @override
+  Arguments createExitArguments(int id, Member member) {
+    return new Arguments([]);
+  }
+
+  @override
+  String get enterName => 'enter';
+
+  @override
+  String get exitName => 'exit';
+
+  @override
+  bool includeConstructor(Constructor constructor) {
+    return false;
+  }
+
+  @override
+  bool includeProcedure(Procedure procedure) {
+    if (procedure.name.text == 'performSubtypeCheck') {
+      Library library = procedure.enclosingLibrary;
+      Class? cls = procedure.enclosingClass;
+      if (cls?.name == 'Types' &&
+          library.importUri.isScheme('package') &&
+          library.importUri.path == 'kernel/src/types.dart') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  String get libFilename => 'subtype_lib.dart';
+
+  @override
+  void wrapConstructor(
+    Constructor c,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  ) {
+    instrumenter.wrapConstructor(
+      this,
+      c,
+      namesById,
+      instrumenterEnter,
+      instrumenterExit,
+    );
+  }
+
+  @override
+  void wrapProcedure(
+    Procedure p,
+    List<String> namesById,
+    Procedure instrumenterEnter,
+    Procedure instrumenterExit,
+  ) {
+    instrumenter.wrapProcedure(
+      this,
+      p,
+      namesById,
+      instrumenterEnter,
+      instrumenterExit,
+    );
+  }
+}
+
+Future<void> main(List<String> arguments) async {
+  Directory tmpDir = Directory.systemTemp.createTempSync("subtype_measure");
+  try {
+    Uri output = parseCompilerArguments(arguments);
+    await compileInstrumentationLibrary(
+      tmpDir,
+      const SubtypeInstrumenterConfig(),
+      arguments,
+      output,
+    );
+  } finally {
+    tmpDir.deleteSync(recursive: true);
+  }
+}

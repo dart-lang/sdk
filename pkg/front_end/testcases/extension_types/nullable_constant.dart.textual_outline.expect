@@ -1,0 +1,7 @@
+extension type const ET(int? i) {}
+
+const dynamic a = ET(null);
+
+const dynamic b = ET(0);
+
+const List<int?> c = [a, b];

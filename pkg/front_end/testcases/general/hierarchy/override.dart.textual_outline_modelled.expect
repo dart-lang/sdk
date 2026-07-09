@@ -1,0 +1,15 @@
+class Class extends Super {
+  void extendedMethod1(num n);
+  void extendedMethod2(int i);
+  void overriddenMethod1(num n) {}
+  void overriddenMethod2(int n) {}
+}
+
+class Super {
+  void extendedMethod1(int i) {}
+  void extendedMethod2(num i) {}
+  void overriddenMethod1(int i) {}
+  void overriddenMethod2(num n) {}
+}
+
+main() {}

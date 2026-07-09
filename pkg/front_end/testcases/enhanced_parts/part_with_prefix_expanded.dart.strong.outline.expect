@@ -1,0 +1,34 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib1.dart" as foo;
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib1.dart" as bar;
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib2.dart" as foo;
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib3.dart" as bar;
+
+part part_with_prefix_expanded_part1.dart;
+part part_with_prefix_expanded_part2.dart;
+static method method1() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///part_with_prefix_expanded_part1.dart */ method2() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///part_with_prefix_expanded_part2.dart */ method3() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static method method1() → dynamic
+  ;
+
+library;
+import self as self3;
+
+static method method2() → dynamic
+  ;
+
+library;
+import self as self4;
+
+static method method3() → dynamic
+  ;

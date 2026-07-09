@@ -1,0 +1,9 @@
+const maxNativeInt = (65536 * 65536 * 65536 * 32 - 1) * 1024;
+
+const minNativeInt = -1 * 65536 * 65536 * 65536 * 32768;
+
+double asDouble(double x) => x;
+
+void equals(dynamic a, dynamic b) {}
+
+void foo() {}

@@ -1,0 +1,3 @@
+X id<X>(X x) => x;
+
+void main() {}

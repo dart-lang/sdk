@@ -1,0 +1,12 @@
+mixin Mixin {}
+
+class Base {
+  final int x;
+  const Base(this.x);
+}
+
+class Application = Base with Mixin;
+
+main() {}
+
+expect(expected, actual) {}

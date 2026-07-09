@@ -1,0 +1,41 @@
+abstract class AbstractA {
+  abstract final dynamic fieldAbstractFinalDynamicOfAbstractA;
+  abstract num fieldAbstractNonNullableOfAbstractA;
+  external final dynamic fieldExternalFinalDynamicOfAbstractA;
+  external num fieldExternalNonNullableOfAbstractA;
+}
+
+abstract class AbstractB {
+  abstract final dynamic fieldAbstractFinalDynamicOfAbstractB;
+  abstract num fieldAbstractNonNullableOfAbstractB;
+  external final dynamic fieldExternalFinalDynamicOfAbstractB;
+  external num fieldExternalNonNullableOfAbstractB;
+}
+
+class A {
+  final dynamic fieldFinalDynamicOfA;
+  late final dynamic fieldLateFinalDynamicOfA;
+  late num fieldLateNonNullableOfA;
+  num fieldNonNullableOfA;
+}
+
+class B {
+  factory B() => throw 42;
+  final dynamic fieldFinalDynamicOfB;
+  late final dynamic fieldLateFinalDynamicOfB;
+  late num fieldLateNonNullableOfB;
+  num fieldNonNullableOfB;
+}
+
+main() {}
+
+mixin M {
+  abstract final dynamic fieldAbstractFinalDynamicOfM;
+  abstract num fieldAbstractNonNullableOfM;
+  external final dynamic fieldExternalFinalDynamicOfM;
+  external num fieldExternalNonNullableOfM;
+  final dynamic fieldFinalDynamicOfM;
+  late final dynamic fieldLateFinalDynamicOfM;
+  late num fieldLateNonNullableOfM;
+  num fieldNonNullableOfM;
+}

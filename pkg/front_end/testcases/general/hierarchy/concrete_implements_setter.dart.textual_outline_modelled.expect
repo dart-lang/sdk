@@ -1,0 +1,19 @@
+class ConcreteClass implements Interface {
+  void set declaredAbstractImplementsAbstractSetter(int value);
+  void set declaredAbstractImplementsConcreteSetter(int value);
+  void set declaredAbstractSetter(int value);
+  void set declaredConcreteImplementsAbstractSetter(int value) {}
+  void set declaredConcreteImplementsConcreteSetter(int value) {}
+  void set declaredConcreteSetter(int value) {}
+}
+
+class Interface {
+  void set declaredAbstractImplementsAbstractSetter(int value);
+  void set declaredAbstractImplementsConcreteSetter(int value) {}
+  void set declaredConcreteImplementsAbstractSetter(int value);
+  void set declaredConcreteImplementsConcreteSetter(int value) {}
+  void set implementedAbstractSetter(int value);
+  void set implementedConcreteSetter(int value) {}
+}
+
+main() {}

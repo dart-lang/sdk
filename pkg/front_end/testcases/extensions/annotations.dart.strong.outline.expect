@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  @/*original=core::pragma::•*/ const core::pragma::_("dart2js:noInline")
+  method instanceMethod() → dynamic
+    ;
+  @/*original=core::pragma::•*/ const core::pragma::_("dart2js:noInline")
+  static method staticMethod() → dynamic
+    ;
+}
+extension Extension on self::Class {
+  method extensionInstanceMethod = self::Extension|extensionInstanceMethod;
+  method tearoff extensionInstanceMethod = self::Extension|get#extensionInstanceMethod;
+  static method extensionStaticMethod = self::Extension|extensionStaticMethod;
+}
+@/*original=core::pragma::•*/ const core::pragma::_("dart2js:noInline")
+static extension-member method Extension|extensionInstanceMethod(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#extensionInstanceMethod(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|extensionInstanceMethod(#this);
+@/*original=core::pragma::•*/ const core::pragma::_("dart2js:noInline")
+static extension-member method Extension|extensionStaticMethod() → dynamic
+  ;
+@/*original=core::pragma::•*/ const core::pragma::_("dart2js:noInline")
+static method topLevelMethod() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///annotations.dart:6:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///annotations.dart:9:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///annotations.dart:14:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///annotations.dart:17:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///annotations.dart:21:2 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Extra constant evaluation: evaluated: 8, effectively constant: 5

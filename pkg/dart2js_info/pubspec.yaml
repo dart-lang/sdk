@@ -1,0 +1,31 @@
+name: dart2js_info
+publish_to: none
+
+description: >-
+  Libraries and tools to process data produced when running dart2js with
+  --dump-info.
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  args: any
+  collection: any
+  fixnum: any
+  path: any
+  protobuf: any
+  shelf: any
+  yaml: any
+  vm_snapshot_analysis: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  expect: any
+  lints: any
+  test: any
+
+executables:
+  dart2js_info: tools

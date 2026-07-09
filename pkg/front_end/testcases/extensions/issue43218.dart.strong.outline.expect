@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int value;
+  constructor •() → self::C
+    ;
+  method init() → dynamic
+    ;
+  get id() → core::int
+    ;
+  set id(core::int v) → void
+    ;
+}
+extension Ext on self::C {
+  get id = self::Ext|get#id;
+}
+static extension-member method Ext|get#id(lowered final self::C #this) → core::int
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

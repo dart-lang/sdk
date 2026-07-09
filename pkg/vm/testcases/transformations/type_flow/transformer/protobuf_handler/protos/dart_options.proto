@@ -1,0 +1,41 @@
+// Experimental options controlling Dart code generation.
+syntax = "proto2";
+
+package dart_options;
+
+import "google/protobuf/descriptor.proto";
+
+// A mixin that can be used in the 'with' clause of the generated Dart class
+// for a proto message.
+message DartMixin {
+  // The name of the mixin class.
+  optional string name = 1;
+
+  // A URI pointing to the Dart library that defines the mixin.
+  // The generated Dart code will use this in an import statement.
+  optional string import_from = 2;
+}
+
+// Defines additional Dart imports to be used with messages in this file.
+message Imports {
+  // Mixins to be used on messages in this file.
+  // These mixins are in addition to internally defined mixins (e.g PbMapMixin)
+  // and may override them.
+  //
+  // Warning: mixins are experimental. The protoc Dart plugin doesn't check
+  // for name conflicts between mixin class members and generated class members,
+  // so the generated code may contain errors. Therefore, running dartanalyzer
+  // on the generated file is a good idea.
+  repeated DartMixin mixins = 1;
+}
+
+extend google.protobuf.FileOptions {
+  optional Imports imports = 28125061;
+}
+
+extend google.protobuf.MessageOptions {
+  // Applies the named mixin.
+  // For now, "PbMapMixin" is the only available mixin.
+  // The empty string can be used to turn off mixins for this message.
+  optional string mixin = 96128839;
+}

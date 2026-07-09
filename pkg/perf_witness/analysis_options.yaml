@@ -1,0 +1,11 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - lib/src/assets/**
+
+linter:
+  rules:
+    - directives_ordering
+    - prefer_final_locals
+    - sort_pub_dependencies

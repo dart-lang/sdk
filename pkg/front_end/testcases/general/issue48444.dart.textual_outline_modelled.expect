@@ -1,0 +1,9 @@
+abstract class A {
+  void foo() {}
+}
+
+class B extends A {
+  void bar(bool t) {}
+}
+
+main() {}

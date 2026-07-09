@@ -1,0 +1,13 @@
+class A {
+  A(bool this.v1, num this.v2);
+  bool v1;
+  num v2;
+}
+
+class C = A with M1;
+
+main() {}
+
+mixin M1 {
+  num v2 = 0;
+}

@@ -1,0 +1,5 @@
+foo() {}
+
+String? bar() => "asdf";
+
+main() {}

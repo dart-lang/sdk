@@ -1,0 +1,54 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 42
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_generative_constructor.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        },
+        {
+          "kind": "constructor",
+          "name": "a"
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_generative_constructor.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "creation"
+          }
+        ]
+      }
+    ]
+  }
+}

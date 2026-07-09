@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "private_member_access_lib.dart" as pri;
+
+import "org-dartlang-testcase:///private_member_access_lib.dart";
+
+static method method(pri::Class c) → dynamic
+  ;
+
+library;
+import self as pri;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int _privateField;
+  synthetic constructor •() → pri::Class
+    ;
+  method _privateMethod() → void
+    ;
+}

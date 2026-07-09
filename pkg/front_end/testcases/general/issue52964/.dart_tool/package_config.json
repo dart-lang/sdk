@@ -1,0 +1,11 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "fruits",
+      "rootUri": "../fruits/",
+      "packageUri": "lib/"
+    }
+
+  ]
+}

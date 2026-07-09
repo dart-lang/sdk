@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/private_named_parameters/wrong_parameter_kind.dart:7:11: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+//   C({int? _notInitializingFormal});
+//           ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/wrong_parameter_kind.dart:10:24: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+//   factory C.fact({int? _inFactory}) => throw '!';
+//                        ^^^^^^^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/wrong_parameter_kind.dart:14:21: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+// void function({int? _parameter}) {}
+//                     ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •({core::int? _notInitializingFormal = null}) → self::C
+    ;
+  static factory fact({core::int? _inFactory = null}) → self::C
+    ;
+}
+static method function({core::int? _parameter}) → void
+  ;
+static method main() → dynamic
+  ;

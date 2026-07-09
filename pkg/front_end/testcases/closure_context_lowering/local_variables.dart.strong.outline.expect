@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method testNotCaptured() → dynamic
+  ;
+static method testCaptured() → dynamic
+  ;
+static method testForCounterNotCaptured() → dynamic
+  ;
+static method testForCounterCaptured() → dynamic
+  ;
+static method testForInCounterNotCaptured(positional-parameter list) → dynamic
+  ;
+static method testForInCounterCaptured(positional-parameter list) → dynamic
+  ;
+static method testForInElementCounterNotCaptured(positional-parameter list) → dynamic
+  ;
+static method testForInElementCounterCaptured(positional-parameter list) → dynamic
+  ;
+static method testForInMapEntryCounterNotCaptured(positional-parameter list) → dynamic
+  ;
+static method testForInMapEntryCounterCaptured(positional-parameter list) → dynamic
+  ;

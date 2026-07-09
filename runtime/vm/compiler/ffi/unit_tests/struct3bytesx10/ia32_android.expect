@@ -1,0 +1,12 @@
+S+4 Struct(size: 3)
+S+8 Struct(size: 3)
+S+12 Struct(size: 3)
+S+16 Struct(size: 3)
+S+20 Struct(size: 3)
+S+24 Struct(size: 3)
+S+28 Struct(size: 3)
+S+32 Struct(size: 3)
+S+36 Struct(size: 3)
+S+40 Struct(size: 3)
+=>
+P(S+0 uint32, ret:eax uint32) Struct(size: 3)

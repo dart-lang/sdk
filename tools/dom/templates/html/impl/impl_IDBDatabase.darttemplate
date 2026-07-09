@@ -1,0 +1,63 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  ObjectStore createObjectStore(String name,
+      {keyPath, bool$NULLABLE autoIncrement}) {
+    var options = {};
+    if (keyPath != null) {
+      options['keyPath'] = keyPath;
+    }
+    if (autoIncrement != null) {
+      options['autoIncrement'] = autoIncrement;
+    }
+
+    return _createObjectStore(name, options);
+  }
+
+  Transaction transaction(storeName_OR_storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new ArgumentError(mode);
+    }
+
+    // TODO(sra): Ensure storeName_OR_storeNames is a string or List<String>,
+    // and copy to JavaScript array if necessary.
+
+    // Try and create a transaction with a string mode.  Browsers that expect a
+    // numeric mode tend to convert the string into a number.  This fails
+    // silently, resulting in zero ('readonly').
+    return _transaction(storeName_OR_storeNames, mode);
+  }
+
+  Transaction transactionStore(String storeName, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new ArgumentError(mode);
+    }
+    // Try and create a transaction with a string mode.  Browsers that expect a
+    // numeric mode tend to convert the string into a number.  This fails
+    // silently, resulting in zero ('readonly').
+    return _transaction(storeName, mode);
+  }
+
+  Transaction transactionList(List<String> storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new ArgumentError(mode);
+    }
+    List storeNames_1 = convertDartToNative_StringArray(storeNames);
+    return _transaction(storeNames_1, mode);
+  }
+
+  Transaction transactionStores(DomStringList storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new ArgumentError(mode);
+    }
+    return _transaction(storeNames, mode);
+  }
+
+  @JSName('transaction')
+  Transaction _transaction(stores, mode) native;
+
+$!MEMBERS}

@@ -1,0 +1,5 @@
+main() {}
+
+test() {}
+
+typedef Foo = (int, int);

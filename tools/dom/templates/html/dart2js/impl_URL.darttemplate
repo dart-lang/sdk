@@ -1,0 +1,30 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  static String createObjectUrl(blob_OR_source_OR_stream) =>
+      JS('String',
+         '(self.URL || self.webkitURL).createObjectURL(#)',
+          blob_OR_source_OR_stream);
+
+  static String createObjectUrlFromSource(MediaSource source) =>
+      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', source);
+  
+  static String createObjectUrlFromStream(MediaStream stream) =>
+      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', stream);
+  
+  static String createObjectUrlFromBlob(Blob blob) =>
+      JS('String', '(self.URL || self.webkitURL).createObjectURL(#)', blob);
+
+  static void revokeObjectUrl(String url) =>
+      JS('void',
+         '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
+
+  String toString() => JS('String', 'String(#)', this);
+
+$!MEMBERS
+}

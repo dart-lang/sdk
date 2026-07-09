@@ -1,0 +1,6 @@
+class Foo {
+  get Foo() {}
+  get Foo() : initializer = true {}
+  get Foo.x() {}
+  get Foo.x() : initializer = true {}
+}

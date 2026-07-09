@@ -1,0 +1,61 @@
+int x1;
+late int x2;
+late List<int> x3;
+late final int x4;
+late x5;
+;
+late;
+;
+
+main(List<String> args) {
+int y1;
+late int y2;
+late List<int> y3;
+late final int y4;
+late y5;
+;
+late;
+;
+}
+
+class Foo {
+int z1;
+late int z2;
+late List<int> x3;
+late final int z4;
+late z5;
+;
+late;
+;
+}
+
+int[StringToken] x1[StringToken];[SimpleToken]
+late[KeywordToken] int[StringToken] x2[StringToken];[SimpleToken]
+late[KeywordToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] x3[StringToken];[SimpleToken]
+late[KeywordToken] final[KeywordToken] int[StringToken] x4[StringToken];[SimpleToken]
+late[KeywordToken] x5[StringToken];[SimpleToken]
+;[SimpleToken]
+late[KeywordToken];[SimpleToken]
+;[SimpleToken]
+
+main[StringToken]([BeginToken]List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken] args[StringToken])[SimpleToken] {[BeginToken]
+int[StringToken] y1[StringToken];[SimpleToken]
+late[KeywordToken] int[StringToken] y2[StringToken];[SimpleToken]
+late[KeywordToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] y3[StringToken];[SimpleToken]
+late[KeywordToken] final[KeywordToken] int[StringToken] y4[StringToken];[SimpleToken]
+late[KeywordToken] y5[StringToken];[SimpleToken]
+;[SimpleToken]
+late[KeywordToken];[SimpleToken]
+;[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+int[StringToken] z1[StringToken];[SimpleToken]
+late[KeywordToken] int[StringToken] z2[StringToken];[SimpleToken]
+late[KeywordToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] x3[StringToken];[SimpleToken]
+late[KeywordToken] final[KeywordToken] int[StringToken] z4[StringToken];[SimpleToken]
+late[KeywordToken] z5[StringToken];[SimpleToken]
+;[SimpleToken]
+late[KeywordToken];[SimpleToken]
+;[SimpleToken]
+}[SimpleToken][SimpleToken]

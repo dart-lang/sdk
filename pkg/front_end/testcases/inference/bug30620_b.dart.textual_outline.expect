@@ -1,0 +1,10 @@
+library test;
+
+class A {
+  final String foo;
+  A(this.foo);
+  bool operator ==(Object other) =>
+      other is A && other.foo == this.foo && other.foo == this.foo;
+}
+
+main() {}

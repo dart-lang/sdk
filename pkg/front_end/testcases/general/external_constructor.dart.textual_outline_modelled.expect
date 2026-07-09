@@ -1,0 +1,34 @@
+abstract class A {}
+
+class B {
+  external B(A a);
+  final A a;
+}
+
+class C {
+  C.named(this.a1, this.a2);
+  external C();
+  final A a1;
+  final A a2;
+}
+
+class D {
+  D.named(this.a1);
+  external D();
+  final A a1;
+  final A a2;
+}
+
+class E {
+  E(this.a2);
+  external E.named();
+  final A a1;
+  final A a2;
+}
+
+class F {
+  F(this.a1, this.a2);
+  external F.named();
+  final A a1;
+  final A a2;
+}

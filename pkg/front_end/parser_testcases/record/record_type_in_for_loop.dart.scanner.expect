@@ -1,0 +1,13 @@
+main() {
+for((int, int) x in [(42, 42), (21, 21)]) {
+print(x);
+}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+for[KeywordToken]([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] x[StringToken] in[KeywordToken] [[BeginToken]([BeginToken]42[StringToken],[SimpleToken] 42[StringToken])[SimpleToken],[SimpleToken] ([BeginToken]21[StringToken],[SimpleToken] 21[StringToken])[SimpleToken]][SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

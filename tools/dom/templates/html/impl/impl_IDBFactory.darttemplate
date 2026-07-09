@@ -1,0 +1,89 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  /**
+   * Checks to see if Indexed DB is supported on the current platform.
+   */
+  static bool get supported {
+    return JS('bool',
+        '!!(window.indexedDB || '
+        'window.webkitIndexedDB || '
+        'window.mozIndexedDB)');
+  }
+
+  Future<Database> open(String name,
+      {int$NULLABLE version,
+      void onUpgradeNeeded(VersionChangeEvent event)$NULLABLE,
+      void onBlocked(Event event)$NULLABLE}) {
+    if ((version == null) != (onUpgradeNeeded == null)) {
+      return new Future.error(new ArgumentError(
+          'version and onUpgradeNeeded must be specified together'));
+    }
+    try {
+      OpenDBRequest request;
+      if (version != null) {
+        request = _open(name, version);
+      } else {
+        request = _open(name);
+      }
+
+      if (onUpgradeNeeded != null) {
+        request.onUpgradeNeeded.listen(onUpgradeNeeded);
+      }
+      if (onBlocked != null) {
+        request.onBlocked.listen(onBlocked);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future<IdbFactory> deleteDatabase(String name,
+      {void onBlocked(Event e)$NULLABLE}) {
+    try {
+      var request = _deleteDatabase(name);
+
+      if (onBlocked != null) {
+        request.onBlocked.listen(onBlocked);
+      }
+      var completer = new Completer<IdbFactory>.sync();
+      request.onSuccess.listen((e) {
+        completer.complete(this);
+      });
+      request.onError.listen(completer.completeError);
+      return completer.future;
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  /**
+   * Deprecated. Always returns `false`.
+   */
+  @Deprecated('No longer supported on modern browsers. Always returns false.')
+  bool get supportsDatabaseNames => false;
+
+$!MEMBERS
+}
+
+
+/**
+ * Ties a request to a completer, so the completer is completed when it succeeds
+ * and errors out when the request errors.
+ */
+Future<T> _completeRequest<T>(Request request) {
+  var completer = new Completer<T>.sync();
+  // TODO: make sure that completer.complete is synchronous as transactions
+  // may be committed if the result is not processed immediately.
+  request.onSuccess.listen((e) {
+    T result = request.result;
+    completer.complete(result);
+  });
+  request.onError.listen(completer.completeError);
+  return completer.future;
+}

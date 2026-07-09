@@ -1,0 +1,11 @@
+library test;
+
+final z = 42;
+
+int x = 0;
+
+int y = 0;
+
+main() {}
+
+test1() {}

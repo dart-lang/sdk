@@ -1,0 +1,5 @@
+baz() => foo(<Z>() => <dynamic, Z>{});
+
+foo<X>(Map<X, Y> Function<Y>() f) => null;
+
+main() {}

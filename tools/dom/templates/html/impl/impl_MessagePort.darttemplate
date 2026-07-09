@@ -1,0 +1,24 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  void addEventListener(String type, EventListener$NULLABLE listener,
+      [bool$NULLABLE useCapture]) {
+    // Messages posted to ports are initially paused, allowing listeners to be
+    // setup, start() needs to be explicitly invoked to begin handling messages.
+    if (type == 'message') {
+      _start();
+    }
+
+    super.addEventListener(type, listener, useCapture);
+  }
+
+$!MEMBERS
+}
+

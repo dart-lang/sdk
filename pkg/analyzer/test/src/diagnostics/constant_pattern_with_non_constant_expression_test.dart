@@ -1,0 +1,569 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConstantPatternWithNonConstantExpressionTest);
+  });
+}
+
+@reflectiveTest
+class ConstantPatternWithNonConstantExpressionTest
+    extends PubPackageResolutionTest {
+  test_boolLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  if (x case true) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: BooleanLiteral
+      literal: true
+      staticType: bool
+    matchedValueType: dynamic
+''');
+  }
+
+  test_class_field_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static const a = 0;
+}
+
+void f(x) {
+  if (x case A.a) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: A
+        element: <testLibrary>::@class::A
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::A::@getter::a
+        staticType: int
+      element: <testLibrary>::@class::A::@getter::a
+      staticType: int
+    matchedValueType: dynamic
+''');
+  }
+
+  test_class_field_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static final a = 0;
+}
+
+void f(x) {
+  if (x case A.a) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_doubleLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  if (x case 1.2) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: DoubleLiteral
+      literal: 1.2
+      staticType: double
+    matchedValueType: dynamic
+''');
+  }
+
+  test_importPrefix_class_field_const() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as prefix;
+
+void f(x) {
+  if (x case prefix.A.a) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: PropertyAccess
+      target: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+          element: <testLibraryFragment>::@prefix::prefix
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          element: package:test/a.dart::@class::A
+          staticType: null
+        element: package:test/a.dart::@class::A
+        staticType: null
+      operator: .
+      propertyName: SimpleIdentifier
+        token: a
+        element: package:test/a.dart::@class::A::@getter::a
+        staticType: int
+      staticType: int
+    matchedValueType: dynamic
+''');
+  }
+
+  test_importPrefix_class_field_notConst() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as prefix;
+
+void f(x) {
+  if (x case prefix.A.a) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: PropertyAccess
+      target: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+          element: <testLibraryFragment>::@prefix::prefix
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          element: package:test/a.dart::@class::A
+          staticType: null
+        element: package:test/a.dart::@class::A
+        staticType: null
+      operator: .
+      propertyName: SimpleIdentifier
+        token: a
+        element: package:test/a.dart::@class::A::@getter::a
+        staticType: int
+      staticType: int
+    matchedValueType: dynamic
+''');
+  }
+
+  test_instanceCreation_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+void f(x) {
+  if (x case const A()) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    matchedValueType: dynamic
+''');
+  }
+
+  test_intLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  if (x case 0) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: IntegerLiteral
+      literal: 0
+      staticType: int
+    matchedValueType: dynamic
+''');
+  }
+
+  test_listLiteral_element_intLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  if (x case const [0]) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: ListLiteral
+      leftBracket: [
+      elements
+        IntegerLiteral
+          literal: 0
+          staticType: int
+      rightBracket: ]
+      staticType: List<int>
+    matchedValueType: dynamic
+''');
+  }
+
+  test_listLiteral_element_localVariable_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  const a = 0;
+  if (x case const [a]) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: ListLiteral
+      leftBracket: [
+      elements
+        SimpleIdentifier
+          token: a
+          element: a@20
+          staticType: int
+      rightBracket: ]
+      staticType: List<int>
+    matchedValueType: dynamic
+''');
+  }
+
+  test_listLiteral_element_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  final a = 0;
+  if (x case const [a]) {}
+//                  ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_localVariable_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  const a = 0;
+  if (x case a) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: a
+      element: a@20
+      staticType: int
+    matchedValueType: dynamic
+''');
+  }
+
+  test_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case a) {}
+//           ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_mapLiteral_entries_intLiteral_intLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  if (x case const {0: 1}) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        MapLiteralEntry
+          key: IntegerLiteral
+            literal: 0
+            staticType: int
+          separator: :
+          value: IntegerLiteral
+            literal: 1
+            staticType: int
+      rightBracket: }
+      isMap: true
+      staticType: Map<int, int>
+    matchedValueType: dynamic
+''');
+  }
+
+  test_mapLiteral_entries_key_localVariable_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  const a = 0;
+  if (x case const {a: 1}) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        MapLiteralEntry
+          key: SimpleIdentifier
+            token: a
+            element: a@20
+            staticType: int
+          separator: :
+          value: IntegerLiteral
+            literal: 1
+            staticType: int
+      rightBracket: }
+      isMap: true
+      staticType: Map<int, int>
+    matchedValueType: dynamic
+''');
+  }
+
+  test_mapLiteral_entries_key_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  final a = 0;
+  if (x case const {a: 1}) {}
+//                  ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_mapLiteral_entries_value_localVariable_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  const a = 0;
+  if (x case const {0: a}) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        MapLiteralEntry
+          key: IntegerLiteral
+            literal: 0
+            staticType: int
+          separator: :
+          value: SimpleIdentifier
+            token: a
+            element: a@20
+            staticType: int
+      rightBracket: }
+      isMap: true
+      staticType: Map<int, int>
+    matchedValueType: dynamic
+''');
+  }
+
+  test_mapLiteral_entries_value_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  final a = 0;
+  if (x case const {0: a}) {}
+//                     ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_setLiteral_element_intLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  if (x case const {0}) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        IntegerLiteral
+          literal: 0
+          staticType: int
+      rightBracket: }
+      isMap: false
+      staticType: Set<int>
+    matchedValueType: dynamic
+''');
+  }
+
+  test_setLiteral_element_localVariable_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  const a = 0;
+  if (x case const {a}) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    constKeyword: const
+    expression: SetOrMapLiteral
+      leftBracket: {
+      elements
+        SimpleIdentifier
+          token: a
+          element: a@20
+          staticType: int
+      rightBracket: }
+      isMap: false
+      staticType: Set<int>
+    matchedValueType: dynamic
+''');
+  }
+
+  test_switch_constPattern_parameter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(e, int a) {
+  switch (e) {
+    case const (3 + a):
+//                  ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+      break;
+  }
+}
+''');
+  }
+
+  test_topLevelVariable_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const a = 0;
+
+void f(x) {
+  if (x case a) {}
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@getter::a
+      staticType: int
+    matchedValueType: dynamic
+''');
+  }
+
+  test_topLevelVariable_notConst() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+final a = 0;
+
+void f(x) {
+  if (x case a) {}
+//           ^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@getter::a
+      staticType: int
+    matchedValueType: dynamic
+''');
+  }
+
+  test_unresolvedIdentifier() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Object? x) {
+  if (x case foo) {}
+//           ^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
+}
+''');
+
+    var node = result.findNode.singleGuardedPattern;
+    assertResolvedNodeText(node, r'''
+GuardedPattern
+  pattern: ConstantPattern
+    expression: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    matchedValueType: Object?
+''');
+  }
+}

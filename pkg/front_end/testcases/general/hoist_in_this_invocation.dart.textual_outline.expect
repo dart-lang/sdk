@@ -1,0 +1,5 @@
+class Class {
+  method1() {}
+  method2(int a, {required bool b}) {}
+  method3(int a, {required Class c}) {}
+}

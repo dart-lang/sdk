@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test(() → dynamic f, () → dynamic g) → dynamic {
+  try {
+    f(){() → dynamic};
+  }
+  on core::Object catch(final wildcard core::Object _#wc0#formal) {
+    g(){() → dynamic};
+    rethrow;
+  }
+}
+static method main() → dynamic {}

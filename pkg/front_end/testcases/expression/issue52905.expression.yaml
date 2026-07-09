@@ -1,0 +1,41 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  class Color {
+    final String name;
+    Color(this.name);
+  }
+  
+  class Theme {
+    Color get primary => Color('primary');
+    Color get white => Color('white');
+    Color get transparent => Color('transparent');
+  }
+  
+  enum _Type {
+    primary,
+    background,
+    outline,
+    text,
+  }
+  
+  class Class {
+    final _Type _type;
+    final Theme theme;
+    final Color? backgroundColor;
+  
+    Class(this._type, this.theme, this.backgroundColor);
+
+    method() {
+    }
+  }
+definitions: []
+position: "#Class"
+expression: |
+  switch (_type) {
+    _Type.primary => theme.primary,
+    _Type.background => theme.white,
+    _Type.outline || _Type.text => theme.transparent,
+  }

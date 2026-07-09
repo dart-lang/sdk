@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method f<T extends Never>(self::f::T t) → void
+  ;
+static method main() → dynamic
+  ;

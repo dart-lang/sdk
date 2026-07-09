@@ -1,0 +1,5 @@
+void test(String default) { }
+
+
+void[KeywordToken] test[StringToken]([BeginToken]String[StringToken] default[KeywordToken])[SimpleToken] {[BeginToken] }[SimpleToken]
+[SimpleToken]

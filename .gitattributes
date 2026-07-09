@@ -1,0 +1,32 @@
+# Source files should not be normalized to avoid confusing clang-format-diff.py
+*.c text eol=lf
+*.cc text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.dart text eol=lf
+*.sh text eol=lf
+
+# Explicitly declare text files we want to be normalized.
+*.gyp text
+*.gypi text
+*.mk text
+*.Makefile text
+*.md text
+*.yaml text
+
+# File that should not be converted.
+tests/web/eof_line_ending_test.dart -text
+tests/language/string/multiline_newline_cr.dart -text
+tests/language/string/multiline_newline_crlf.dart -text
+tests/language/string/multiline_newline_lf.dart -text
+tests/lib/mirrors/method_mirror_source_line_ending_cr.dart -text
+tests/lib/mirrors/method_mirror_source_line_ending_crlf.dart -text
+tests/lib/mirrors/method_mirror_source_line_ending_lf.dart -text
+tests/lib/mirrors/method_mirror_source_other.dart -text
+
+# Files to leave alone and not diff.
+*.png binary
+*.jpg binary
+*.xpi binary
+
+*.status diff=status

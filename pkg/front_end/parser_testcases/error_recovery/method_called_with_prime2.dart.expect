@@ -1,0 +1,84 @@
+Problems reported:
+
+parser/error_recovery/method_called_with_prime2:5:11: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+class B {}foo
+          ^^^
+
+parser/error_recovery/method_called_with_prime2:5:11: Expected ';' after this.
+class B {}foo
+          ^^^
+
+parser/error_recovery/method_called_with_prime2:6:11: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+class M1 {foo
+          ^^^
+
+parser/error_recovery/method_called_with_prime2:6:11: Expected ';' after this.
+class M1 {foo
+          ^^^
+
+parser/error_recovery/method_called_with_prime2:7:3: Classes can't be declared inside other classes.
+  class M2 {
+  ^^^^^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(B, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, B)
+      handleNoPrimaryConstructor(DeclarationKind.Class, B, null)
+      handleNoType(B)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(foo)
+  endMetadataStar(0)
+  beginTopLevelMember(foo)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, foo, foo)
+      handleNoType(})
+      handleIdentifier(foo, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], foo, foo)
+    endTopLevelFields(null, null, null, null, null, null, null, 1, foo, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(M1, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, M1)
+      handleNoPrimaryConstructor(DeclarationKind.Class, M1, null)
+      handleNoType(M1)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(foo)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, {)
+            handleRecoverableError(MissingConstFinalVarOrType, foo, foo)
+            handleNoType({)
+            handleIdentifier(foo, fieldDeclaration)
+            handleNoFieldInitializer(class)
+            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], foo, foo)
+          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, foo, ;)
+        endMember()
+        beginMetadataStar(class)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(ClassInClass, class, class)
+          handleInvalidMember(class)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 2, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+endCompilationUnit(3, )

@@ -1,0 +1,3 @@
+extension type V1(String id) {}
+
+extension type V(num id) implements V1 {}

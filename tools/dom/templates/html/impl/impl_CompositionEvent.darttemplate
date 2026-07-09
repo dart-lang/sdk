@@ -1,0 +1,31 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  factory $CLASSNAME(String type,
+      {bool canBubble = false, bool cancelable = false, Window$NULLABLE view,
+      String$NULLABLE data, String$NULLABLE locale}) {
+    if (view == null) {
+      view = window;
+    }
+    CompositionEvent e =
+        document._createEvent("CompositionEvent") $#NULLSAFECAST(as CompositionEvent);
+
+    if (Device.isFirefox) {
+      // Firefox requires the locale parameter that isn't supported elsewhere.
+      JS('void', '#.initCompositionEvent(#, #, #, #, #, #)',
+          e, type, canBubble, cancelable, view, data, locale);
+    } else {
+      e._initCompositionEvent(type, canBubble, cancelable, view, data);
+    }
+
+    return e;
+  }
+
+$!MEMBERS
+}

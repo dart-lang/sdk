@@ -1,0 +1,25 @@
+test1() => (0, $1: 0);
+
+test2() => ($1: 0);
+
+test3() => (0, $2: 1);
+
+(int, {String $1}) test4() => throw 0;
+
+({bool $1}) test5() => throw 0;
+
+(num, {double $2}) test6() => throw 0;
+
+(num, {double $01}) test7() => throw 0;
+
+(num, {double $0x1}) test8() => throw 0;
+
+(num, bool, {double $01}) test9() => throw 0;
+
+({String $1, bool $01, int $0x1}) test10() => throw 0;
+
+test11() => (10, 11, 12, $3: 13);
+
+(int, double, num, {String $3}) test12() => throw 0;
+
+main() {}

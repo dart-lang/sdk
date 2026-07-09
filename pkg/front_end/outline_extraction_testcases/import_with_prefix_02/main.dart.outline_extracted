@@ -1,0 +1,17 @@
+org-dartlang-testcase:///main.dart:
+import 'a.dart' as x;
+import 'b.dart' as x;
+var foo = x.foo();
+var bar = x.bar();
+
+
+
+
+org-dartlang-testcase:///a.dart:
+String foo() {}
+
+
+
+
+org-dartlang-testcase:///b.dart:
+String bar() {}

@@ -1,0 +1,333 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:io' show File;
+import 'dart:typed_data' show Uint8List;
+
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions, CfeDiagnosticMessage;
+import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/incremental_compiler.dart'
+    show IncrementalCompiler;
+import 'package:front_end/src/base/problems.dart';
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+import 'package:front_end/src/kernel/constant_evaluator.dart'
+    as constants
+    show transformLibraries, ErrorReporter;
+import 'package:front_end/src/kernel/kernel_target.dart';
+import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
+import 'package:kernel/ast.dart';
+import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
+import 'package:kernel/target/targets.dart'
+    show DiagnosticReporter, Target, TargetFlags;
+import 'package:kernel/type_environment.dart';
+import "package:vm/modular/target/flutter.dart" show FlutterTarget;
+import "package:vm/modular/target/vm.dart" show VmTarget;
+
+import 'incremental_suite.dart' show getOptions;
+
+bool? tryWithNoEnvironment;
+bool verbose = false;
+bool skipNonNullEnvironment = false;
+bool skipNullEnvironment = false;
+
+void benchmark(Component component, List<Library> libraries) {
+  if (tryWithNoEnvironment == null) throw "tryWithNoEnvironment not set";
+  KernelTarget target = incrementalCompiler.kernelTargetForTesting!;
+
+  Uint8List serializedComponent = serializeComponent(component);
+
+  for (int k = 0; k < 3; k++) {
+    Map<String, String>? environmentDefines = null;
+    String environmentDefinesDescription = "null environment";
+
+    for (int j = 0; j < 2; j++) {
+      Stopwatch stopwatch = new Stopwatch()..start();
+      int iterations = 0;
+      int sum = 0;
+      for (int i = 0; i < 5; i++) {
+        if (!tryWithNoEnvironment! && environmentDefines == null) continue;
+        if (skipNullEnvironment && environmentDefines == null) continue;
+        if (skipNonNullEnvironment && environmentDefines != null) continue;
+        stopwatch.reset();
+        Component component = new Component();
+        BinaryBuilder binaryBuilder = new BinaryBuilder(
+          serializedComponent,
+          disableLazyClassReading: true,
+          disableLazyReading: true,
+        );
+        binaryBuilder.readComponent(component);
+        if (verbose) {
+          print("Loaded component in ${stopwatch.elapsedMilliseconds} ms");
+        }
+
+        stopwatch.reset();
+        CoreTypes coreTypes = new CoreTypes(component);
+        ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
+        TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
+        if (verbose) {
+          print(
+            "Created core types and class hierarchy"
+            " in ${stopwatch.elapsedMilliseconds} ms",
+          );
+        }
+
+        stopwatch.reset();
+        constants.transformLibraries(
+          component,
+          component.libraries,
+          target.backendTarget,
+          environmentDefines,
+          environment,
+          new SilentErrorReporter(),
+          evaluateAnnotations: true,
+          enableTripleShift: target.globalFeatures.tripleShift.isEnabled,
+          enableConstFunctions: target.globalFeatures.constFunctions.isEnabled,
+          enableConstructorTearOff:
+              target.globalFeatures.constructorTearoffs.isEnabled,
+          errorOnUnevaluatedConstant:
+              incrementalCompiler.context.options.errorOnUnevaluatedConstant,
+        );
+        print(
+          "Transformed constants with $environmentDefinesDescription"
+          " in ${stopwatch.elapsedMilliseconds} ms",
+        );
+        sum += stopwatch.elapsedMilliseconds;
+        iterations++;
+      }
+      if (verbose) {
+        print(
+          "With $environmentDefinesDescription: "
+          "Did constant evaluation $iterations iterations in $sum ms,"
+          " i.e. an average of ${sum / iterations} ms per iteration.",
+        );
+      }
+      environmentDefines = {};
+      environmentDefinesDescription = "empty environment";
+    }
+  }
+}
+
+class SilentErrorReporter implements constants.ErrorReporter {
+  @override
+  bool get supportsTrackingReportedErrors => false;
+
+  @override
+  bool get hasSeenError {
+    return unsupported("SilentErrorReporter.hasSeenError", -1, null);
+  }
+
+  @override
+  void report(LocatedMessage message, [List<LocatedMessage>? context]) {
+    // ignore
+  }
+}
+
+late IncrementalCompiler incrementalCompiler;
+
+Future<void> main(List<String> arguments) async {
+  Uri? platformUri;
+  Uri mainUri;
+  String targetString = "VM";
+
+  String? filename;
+  for (String arg in arguments) {
+    if (arg.startsWith("--")) {
+      if (arg.startsWith("--platform=")) {
+        String platform = arg.substring("--platform=".length);
+        platformUri = Uri.base.resolve(platform);
+      } else if (arg == "--target=VM") {
+        targetString = "VM";
+      } else if (arg == "--target=flutter") {
+        targetString = "flutter";
+      } else if (arg == "--target=ddc") {
+        targetString = "ddc";
+      } else if (arg == "--target=dart2js") {
+        targetString = "dart2js";
+      } else if (arg == "-v") {
+        verbose = true;
+      } else if (arg == "--skip-null-environment") {
+        skipNullEnvironment = true;
+      } else if (arg == "--skip-non-null-environment") {
+        skipNonNullEnvironment = true;
+      } else {
+        throw "Unknown option $arg";
+      }
+    } else if (filename != null) {
+      throw "Already got '$filename', '$arg' is also a filename; "
+          "can only get one";
+    } else {
+      filename = arg;
+    }
+  }
+
+  if (platformUri == null) {
+    throw "No platform given. Use --platform=/path/to/platform.dill";
+  }
+  if (!new File.fromUri(platformUri).existsSync()) {
+    throw "The platform file '$platformUri' doesn't exist";
+  }
+  if (filename == null) {
+    throw "Need file to operate on";
+  }
+  File file = new File(filename);
+  if (!file.existsSync()) throw "File $filename doesn't exist.";
+  mainUri = file.absolute.uri;
+
+  incrementalCompiler = new IncrementalCompiler(
+    setupCompilerContext(targetString, false, platformUri, mainUri),
+  );
+  await incrementalCompiler.computeDelta();
+}
+
+CompilerContext setupCompilerContext(
+  String targetString,
+  bool trackCreationLocations,
+  Uri platformUri,
+  Uri mainUri,
+) {
+  CompilerOptions options = getOptions();
+
+  TargetFlags targetFlags = new TargetFlags(
+    trackCreationLocations: trackCreationLocations,
+  );
+  Target target;
+  switch (targetString) {
+    case "VM":
+      target = new HookInVmTarget(targetFlags);
+      tryWithNoEnvironment = false;
+      break;
+    case "flutter":
+      target = new HookInFlutterTarget(targetFlags);
+      tryWithNoEnvironment = false;
+      break;
+    case "ddc":
+      target = new HookInDevCompilerTarget(targetFlags);
+      tryWithNoEnvironment = false;
+      break;
+    case "dart2js":
+      target = new HookInDart2jsTarget("dart2js", targetFlags);
+      tryWithNoEnvironment = true;
+      break;
+    default:
+      throw "Unknown target '$targetString'";
+  }
+  options.target = target;
+  options.sdkRoot = null;
+  options.sdkSummary = platformUri;
+  options.omitPlatform = false;
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
+    // don't care.
+  };
+
+  ProcessedOptions processedOptions = new ProcessedOptions(
+    options: options,
+    inputs: [mainUri],
+  );
+  CompilerContext compilerContext = new CompilerContext(processedOptions);
+  return compilerContext;
+}
+
+class HookInVmTarget extends VmTarget {
+  new(TargetFlags flags) : super(flags);
+
+  @override
+  void performPreConstantEvaluationTransformations(
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performPreConstantEvaluationTransformations(
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+    benchmark(component, libraries);
+  }
+}
+
+class HookInDart2jsTarget extends Dart2jsTarget {
+  new(String name, TargetFlags flags) : super(name, flags);
+
+  @override
+  void performPreConstantEvaluationTransformations(
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performPreConstantEvaluationTransformations(
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+    benchmark(component, libraries);
+  }
+}
+
+class HookInDevCompilerTarget extends DevCompilerTarget {
+  new(TargetFlags flags) : super(flags);
+
+  @override
+  void performPreConstantEvaluationTransformations(
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performPreConstantEvaluationTransformations(
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+    benchmark(component, libraries);
+  }
+}
+
+class HookInFlutterTarget extends FlutterTarget {
+  new(TargetFlags flags) : super(flags);
+
+  @override
+  void performPreConstantEvaluationTransformations(
+    Component component,
+    CoreTypes coreTypes,
+    List<Library> libraries,
+    DiagnosticReporter diagnosticReporter, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    super.performPreConstantEvaluationTransformations(
+      component,
+      coreTypes,
+      libraries,
+      diagnosticReporter,
+      logger: logger,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+    benchmark(component, libraries);
+  }
+}

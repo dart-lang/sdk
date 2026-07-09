@@ -1,0 +1,95 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:5:14: Error: Declaring parameters can't be initializing.
+// Try removing the `this.` prefix or making the parameter non-declaring.
+// class C0(var this.str) {
+//              ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:9:16: Error: Declaring parameters can't be initializing.
+// Try removing the `this.` prefix or making the parameter non-declaring.
+// class C1(final this.str) {
+//                ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:13:10: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+// class C2(const this.str) {
+//          ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:18:14: Error: Declaring parameters can't be super parameters.
+// Try removing the `super.` prefix or making the parameter non-declaring.
+// class C3(var super.str) extends S3;
+//              ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:21:16: Error: Declaring parameters can't be super parameters.
+// Try removing the `super.` prefix or making the parameter non-declaring.
+// class C4(final super.str) extends S4;
+//                ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:25:10: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+// class C5(const super.str) extends S5;
+//          ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:6:7: Error: 'str' is already declared in this scope.
+//   var str;
+//       ^^^
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:5:19: Context: Previous declaration of 'str'.
+// class C0(var this.str) {
+//                   ^^^
+//
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:10:9: Error: 'str' is already declared in this scope.
+//   final str;
+//         ^^^
+// pkg/front_end/testcases/primary_constructors/initializing_declaring.dart:9:21: Context: Previous declaration of 'str'.
+// class C1(final this.str) {
+//                     ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  field core::Object? str;
+  constructor •(initializing-formal core::Object? str) → self::C0
+    ;
+}
+class C1 extends core::Object {
+  final field core::Object? str;
+  constructor •(final initializing-formal core::Object? str) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  final field dynamic str;
+  constructor •(initializing-formal dynamic str) → self::C2
+    ;
+}
+class S3 extends core::Object {
+  field core::Object? str;
+  constructor •(initializing-formal core::Object? str) → self::S3
+    ;
+}
+class C3 extends self::S3 {
+  field core::Object? str;
+  constructor •(initializing-formal super-initializing-formal core::Object? str) → self::C3
+    ;
+}
+class S4 extends core::Object {
+  final field core::Object? str;
+  constructor •(final initializing-formal core::Object? str) → self::S4
+    ;
+}
+class C4 extends self::S4 {
+  final field core::Object? str;
+  constructor •(final initializing-formal super-initializing-formal core::Object? str) → self::C4
+    ;
+}
+class S5 extends core::Object {
+  final field core::Object? str;
+  constructor •(final initializing-formal core::Object? str) → self::S5
+    ;
+}
+class C5 extends self::S5 {
+  constructor •(super-initializing-formal core::Object? str) → self::C5
+    ;
+}

@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+f() {
+try {
+true ? *synthetic*: 2;
+} catch (e) {}
+}
+
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]
+true[KeywordToken] ?[SimpleToken] [SyntheticStringToken]:[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken] catch[KeywordToken] ([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,40 @@
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/toolchain/rbe.gni")
+
+declare_args() {
+  # Minimum supported version of the Mac SDK.
+  mac_sdk_min = "14.0"
+
+  # Path to a specific version of the Mac SDK, not including a backslash at
+  # the end. If empty, the path to the lowest version greater than or equal to
+  # mac_sdk_min is used.
+  mac_sdk_path = ""
+
+  mac_enable_relative_sdk_path = true
+}
+
+find_sdk_args = [
+  "--print_sdk_path",
+  mac_sdk_min,
+]
+
+if (mac_enable_relative_sdk_path) {
+  find_sdk_args += [
+    "--create_symlink_at",
+
+    # $root_build_dir starts with "//", which is removed by rebase_path().
+    rebase_path("$root_build_dir/sdk/xcode_links", "//"),
+  ]
+}
+
+# The tool will print the SDK path on the first line, and the version on the
+# second line.
+find_sdk_lines =
+    exec_script("//build/mac/find_sdk.py", find_sdk_args, "list lines")
+mac_sdk_version = find_sdk_lines[1]
+if (mac_sdk_path == "") {
+  mac_sdk_path = find_sdk_lines[0]
+}

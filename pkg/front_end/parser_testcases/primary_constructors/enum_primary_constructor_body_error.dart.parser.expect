@@ -1,0 +1,51 @@
+NOTICE: Stream was rewritten by parser!
+
+enum const E1() {
+this() {}
+}
+
+enum const E2() {
+this(int ,x) : assert(1 > 2) {}
+}
+
+enum const E3() {
+this();
+}
+
+enum const E4() {
+this(int ,x) : assert(1 > 2);
+}
+
+enum const E5() {
+this : assert(1 > 2);
+}
+
+enum const E6() {
+this {}
+}
+
+
+enum[KeywordToken] const[KeywordToken] E1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+enum[KeywordToken] const[KeywordToken] E2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken]int[StringToken] ,[SyntheticToken]x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+enum[KeywordToken] const[KeywordToken] E3[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+enum[KeywordToken] const[KeywordToken] E4[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken]([BeginToken]int[StringToken] ,[SyntheticToken]x[StringToken])[SimpleToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+enum[KeywordToken] const[KeywordToken] E5[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+enum[KeywordToken] const[KeywordToken] E6[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+this[KeywordToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

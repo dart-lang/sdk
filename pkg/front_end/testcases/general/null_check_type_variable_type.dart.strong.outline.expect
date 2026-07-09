@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Element extends core::Object {
+  synthetic constructor •() → self::Element
+    ;
+}
+class Class<E extends self::Element?> extends core::Object {
+  covariant-by-class field self::Class::E? element;
+  constructor •(initializing-formal self::Class::E? element) → self::Class<self::Class::E%>
+    ;
+  method setElement(covariant-by-class self::Class::E? element) → void
+    ;
+}
+static method main() → dynamic
+  ;

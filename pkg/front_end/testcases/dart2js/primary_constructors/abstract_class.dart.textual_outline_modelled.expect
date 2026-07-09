@@ -1,0 +1,1 @@
+abstract class C7(var int v);

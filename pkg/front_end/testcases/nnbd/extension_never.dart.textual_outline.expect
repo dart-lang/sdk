@@ -1,0 +1,9 @@
+extension Extension on Never {
+  extensionMethod() {}
+}
+
+implicitAccess(Never never) {}
+
+explicitAccess(Never never) {}
+
+main() {}

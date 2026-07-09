@@ -1,0 +1,9 @@
+class A {
+List<List<int.> > p;
+}
+
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken].[SimpleToken]>[SimpleToken] >[SimpleToken] p[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

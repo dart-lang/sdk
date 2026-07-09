@@ -1,0 +1,42 @@
+Problems reported:
+
+parser/error_recovery/issue_39058.crash:1:1: Expected a declaration, but got '{'.
+{<[](
+^
+
+parser/error_recovery/issue_39058.crash:1:5: Can't find ')' to match '('.
+{<[](
+    ^
+
+parser/error_recovery/issue_39058.crash:1:2: Can't find '>' to match '<'.
+{<[](
+ ^
+
+parser/error_recovery/issue_39058.crash:1:1: Can't find '}' to match '{'.
+{<[](
+^
+
+beginCompilationUnit({)
+  beginMetadataStar({)
+  endMetadataStar(0)
+  beginTopLevelMember({)
+    handleRecoverableError(Message[Template(ExpectedDeclaration), Expected a declaration, but got '{'., null, {lexeme: {}], {, {)
+    beginBlock({, BlockKind(invalid))
+      beginTypeArguments(<)
+        handleIdentifier(, typeReference)
+        handleNoTypeArguments([])
+        handleType(, null)
+      endTypeArguments(1, <, >)
+      handleLiteralList(0, [, null, ])
+      handleExpressionStatement(<, ;)
+    endBlock(1, {, }, BlockKind(invalid))
+    handleInvalidTopLevelBlock({)
+    handleInvalidTopLevelDeclaration(})
+  endTopLevelDeclaration(})
+  handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find ')' to match '('., null, {expected: ), lexeme: (}], UnmatchedToken((), UnmatchedToken(())
+  handleErrorToken(UnmatchedToken(<))
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '>' to match '<'., null, {expected: >, lexeme: <}], UnmatchedToken(<), UnmatchedToken(<))
+  handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '}' to match '{'., null, {expected: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+endCompilationUnit(1, )

@@ -1,0 +1,177 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part1.dart:14:5: Error: Undefined name 'y1'.
+//   d.y1; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part2.dart:13:5: Error: Undefined name 'x1'.
+//   d.x1; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part2.dart:14:5: Error: Undefined name 'y1'.
+//   d.y1; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part2.dart:16:5: Error: Undefined name 'y2'.
+//   d.y2; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:12:5: Error: Method not found: 'loadLibrary'.
+//   d.loadLibrary(); // Error
+//     ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:13:5: Error: Undefined name 'x1'.
+//   d.x1; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:14:5: Error: Undefined name 'y1'.
+//   d.y1; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:15:5: Error: Undefined name 'x2'.
+//   d.x2; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:16:5: Error: Undefined name 'y2'.
+//   d.y2; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:18:5: Error: Undefined name 'y3'.
+//   d.y3; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:11:5: Error: Undefined name 'x1'.
+//   d.x1; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:12:5: Error: Undefined name 'y1'.
+//   d.y1; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:13:5: Error: Undefined name 'x2'.
+//   d.x2; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:14:5: Error: Undefined name 'y2'.
+//   d.y2; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:15:5: Error: Undefined name 'x3'.
+//   d.x3; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:16:5: Error: Undefined name 'y3'.
+//   d.y3; // Error
+//     ^^
+//
+// pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:18:5: Error: Undefined name 'y4'.
+//   d.y4; // Error
+//     ^^
+//
+import self as self;
+import "deferred_lib1.dart" as def;
+import "deferred_lib2.dart" as def2;
+import "deferred_lib3.dart" as def3;
+import "deferred_lib4.dart" as def4;
+
+import "org-dartlang-testcase:///deferred_lib1.dart" deferred as d hide y1;
+import "org-dartlang-testcase:///deferred_lib2.dart" deferred as d#1 show x2;
+import "org-dartlang-testcase:///deferred_lib3.dart" as d hide y3;
+import "org-dartlang-testcase:///deferred_lib4.dart" deferred as d#2 show x4;
+
+part deferred_part1.dart;
+part deferred_part2.dart;
+part deferred_part3.dart;
+part deferred_part4.dart;
+static method /* from org-dartlang-testcase:///deferred_part1.dart */ method1() → dynamic {
+  LoadLibrary(d);
+  let final dynamic #t1 = CheckLibraryIsLoaded(d) in def::x1;
+  let final dynamic #t2 = CheckLibraryIsLoaded(d) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part1.dart:14:5: Error: Undefined name 'y1'.
+  d.y1; // Error
+    ^^";
+}
+static method /* from org-dartlang-testcase:///deferred_part2.dart */ method2() → dynamic {
+  LoadLibrary(d#1);
+  let final dynamic #t3 = CheckLibraryIsLoaded(d#1) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part2.dart:13:5: Error: Undefined name 'x1'.
+  d.x1; // Error
+    ^^";
+  let final dynamic #t4 = CheckLibraryIsLoaded(d#1) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part2.dart:14:5: Error: Undefined name 'y1'.
+  d.y1; // Error
+    ^^";
+  let final dynamic #t5 = CheckLibraryIsLoaded(d#1) in def2::x2;
+  let final dynamic #t6 = CheckLibraryIsLoaded(d#1) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part2.dart:16:5: Error: Undefined name 'y2'.
+  d.y2; // Error
+    ^^";
+}
+static method /* from org-dartlang-testcase:///deferred_part3.dart */ method3() → dynamic {
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:12:5: Error: Method not found: 'loadLibrary'.
+  d.loadLibrary(); // Error
+    ^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:13:5: Error: Undefined name 'x1'.
+  d.x1; // Error
+    ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:14:5: Error: Undefined name 'y1'.
+  d.y1; // Error
+    ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:15:5: Error: Undefined name 'x2'.
+  d.x2; // Error
+    ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:16:5: Error: Undefined name 'y2'.
+  d.y2; // Error
+    ^^";
+  def3::x3;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part3.dart:18:5: Error: Undefined name 'y3'.
+  d.y3; // Error
+    ^^";
+}
+static method /* from org-dartlang-testcase:///deferred_part4.dart */ method4() → dynamic {
+  LoadLibrary(d#2);
+  let final dynamic #t7 = CheckLibraryIsLoaded(d#2) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:11:5: Error: Undefined name 'x1'.
+  d.x1; // Error
+    ^^";
+  let final dynamic #t8 = CheckLibraryIsLoaded(d#2) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:12:5: Error: Undefined name 'y1'.
+  d.y1; // Error
+    ^^";
+  let final dynamic #t9 = CheckLibraryIsLoaded(d#2) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:13:5: Error: Undefined name 'x2'.
+  d.x2; // Error
+    ^^";
+  let final dynamic #t10 = CheckLibraryIsLoaded(d#2) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:14:5: Error: Undefined name 'y2'.
+  d.y2; // Error
+    ^^";
+  let final dynamic #t11 = CheckLibraryIsLoaded(d#2) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:15:5: Error: Undefined name 'x3'.
+  d.x3; // Error
+    ^^";
+  let final dynamic #t12 = CheckLibraryIsLoaded(d#2) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:16:5: Error: Undefined name 'y3'.
+  d.y3; // Error
+    ^^";
+  let final dynamic #t13 = CheckLibraryIsLoaded(d#2) in def4::x4;
+  let final dynamic #t14 = CheckLibraryIsLoaded(d#2) in invalid-expression "pkg/front_end/testcases/enhanced_parts/deferred_part4.dart:18:5: Error: Undefined name 'y4'.
+  d.y4; // Error
+    ^^";
+}
+
+library;
+import self as def;
+
+static field dynamic x1;
+static field dynamic y1;
+
+library;
+import self as def2;
+
+static field dynamic x2;
+static field dynamic y2;
+
+library;
+import self as def3;
+
+static field dynamic x3;
+static field dynamic y3;
+
+library;
+import self as def4;
+
+static field dynamic x4;
+static field dynamic y4;

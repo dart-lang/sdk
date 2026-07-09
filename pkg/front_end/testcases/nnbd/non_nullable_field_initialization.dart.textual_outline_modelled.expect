@@ -1,0 +1,78 @@
+class A {
+  A.bar(this.fieldOfA);
+  A.foo();
+  int fieldOfA;
+  static int staticFieldOfA;
+}
+
+class B<X extends Object?, Y extends Object> {
+  B.bar(this.fieldOfB, this.fieldOfB2);
+  B.foo();
+  X fieldOfB;
+  Y fieldOfB2;
+}
+
+class C<X extends Object?, Y extends Object> {
+  C.bar(this.fieldOfC10);
+  C.foo(this.fieldOfC10);
+  Null fieldOfX4;
+  X? fieldOfX;
+  Y? fieldOfX6;
+  dynamic fieldOfX3;
+  int? fieldOfX2;
+  int Function()? fieldOfX5;
+  int fieldOfC10;
+  late X fieldOfC8;
+  late Y fieldOfC9;
+  late int fieldOfC7;
+  static int? staticFieldOfX;
+  static int staticFieldOfXInitialized = 42;
+  static late int lateStaticFieldOfC;
+}
+
+class Foo {}
+
+extension P on Foo {
+  static int staticFieldOfE;
+}
+
+extension Q on Foo {
+  static int? staticFieldOfQ;
+  static int staticFieldOfQInitialized = 42;
+  static late int lateStaticFieldOfQ;
+}
+
+int? nullableTopLevelField;
+
+int topLevelField;
+
+int topLevelFieldWithInitializer = 42;
+
+late int lateTopLevelField;
+
+main() {}
+
+mixin L<X extends Object?, Y extends Object> {
+  Null fieldOfL4;
+  X? fieldOfL;
+  Y? fieldOfL6;
+  dynamic fieldOfL3;
+  int? fieldOfL2;
+  int Function()? fieldOfL5;
+  late X fieldOfM8;
+  late Y fieldOfM9;
+  late int fieldOfM7;
+  static int? staticFieldOfL;
+  static int staticFieldOfLInitialized = 42;
+  static late int lateStaticFieldOfM;
+}
+
+mixin M {
+  int fieldOfM;
+  static int staticFieldOfM;
+}
+
+mixin N<X extends Object?, Y extends Object> {
+  X fieldOfN;
+  Y fieldOfN2;
+}

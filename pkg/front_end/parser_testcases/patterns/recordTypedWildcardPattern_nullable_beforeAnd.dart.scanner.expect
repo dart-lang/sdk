@@ -1,0 +1,13 @@
+void f(x) {
+switch (x) {
+case (int,)? _ && _:
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]int[StringToken],[SimpleToken])[SimpleToken]?[SimpleToken] _[StringToken] &&[SimpleToken] _[StringToken]:[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

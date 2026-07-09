@@ -1,0 +1,50 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+# Sections in this file should contain "$compiler == dartk" or
+# "$compiler == dartkp".
+
+isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
+
+[ $compiler == fasta ]
+html/*: Skip # TODO(ahe): Make dart:html available.
+js/*: Skip # TODO(ahe): Make dart:js available.
+
+[ $arch == ia32 && $mode == debug ]
+*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
+
+[ $compiler == app_jitk && ($mode == product || $mode == release) ]
+isolate/spawn_uri_nested_vm_test: Skip # Timeout, Issue 33385
+
+[ $compiler == dartk && $mode == debug && $runtime == vm ]
+mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
+
+# ===== dartk + vm status lines =====
+[ $compiler == dartk && $runtime == vm ]
+html/*: SkipByDesign # dart:html not supported on VM.
+isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
+mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
+
+[ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
+mirrors/dynamic_load_test: Skip # Reload has an effect similar to deleting the dynamically loaded library
+
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
+isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
+
+# ===== dartkp + dart_precompiled status lines =====
+[ $compiler == dartkp && $runtime == dart_precompiled ]
+html/*: SkipByDesign # dart:html not supported on VM.
+isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
+mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
+
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
+html/*: SkipByDesign
+js/*: SkipByDesign
+
+[ $hot_reload || $hot_reload_rollback ]
+isolate/issue_6610_test: Skip # Sources are looked up on every reload request.

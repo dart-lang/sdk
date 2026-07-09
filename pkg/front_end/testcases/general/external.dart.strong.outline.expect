@@ -1,0 +1,10 @@
+library;
+import self as self;
+
+import "dart:isolate";
+
+static field dynamic subscription;
+static method onData(dynamic x) → void
+  ;
+static method main() → dynamic
+  ;

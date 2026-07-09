@@ -1,0 +1,10 @@
+{
+  "vm": {
+    "comment:0": "This adds to the default libraries found in the platform.",
+    "libraries": {
+      "test": {
+        "uri": "origin_lib.dart"
+      }
+    }
+  }
+}

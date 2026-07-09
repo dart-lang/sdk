@@ -1,0 +1,13 @@
+enum Color { red, blue, green }
+
+void main() {
+var c = .;
+}
+
+
+enum[KeywordToken] Color[StringToken] {[BeginToken] red[StringToken],[SimpleToken] blue[StringToken],[SimpleToken] green[StringToken] }[SimpleToken]
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] c[StringToken] =[SimpleToken] .[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

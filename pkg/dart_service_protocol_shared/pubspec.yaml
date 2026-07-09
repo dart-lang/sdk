@@ -1,0 +1,17 @@
+name: dart_service_protocol_shared
+description: A package that implements service extensions and stream managers.
+
+version: 0.0.3
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/dart_service_protocol_shared
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+dependencies:
+  meta: ^1.11.0
+
+dev_dependencies:
+  lints: any
+  test: any

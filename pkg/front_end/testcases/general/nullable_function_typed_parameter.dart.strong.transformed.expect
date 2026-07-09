@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field () → void f;
+  constructor •(() →? void f) → self::C
+    : self::C::f = let final () →? void #t1 = f in #t1 == null ?{() → void} () → void {} : #t1{() → void}, super core::Object::•()
+    ;
+}

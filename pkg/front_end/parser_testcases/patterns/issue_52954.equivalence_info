@@ -1,0 +1,8 @@
+files:
+  - issue_52954.dart
+  - issue_52954_prime.dart
+filters:
+  - ignoreListenerArguments
+ignored:
+  - handleNoName
+  - handleIdentifier

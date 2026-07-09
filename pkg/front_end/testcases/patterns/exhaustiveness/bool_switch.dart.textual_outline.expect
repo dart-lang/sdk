@@ -1,0 +1,19 @@
+void exhaustiveSwitch(bool b) {}
+
+void nonExhaustiveSwitch1(bool b) {}
+
+void nonExhaustiveSwitch2(bool b) {}
+
+void nonExhaustiveSwitchWithDefault(bool b) {}
+
+void exhaustiveNullableSwitch(bool? b) {}
+
+void nonExhaustiveNullableSwitch1(bool? b) {}
+
+void nonExhaustiveNullableSwitch2(bool? b) {}
+
+void unreachableCase1(bool b) {}
+
+void unreachableCase2(bool b) {}
+
+void unreachableCase3(bool? b) {}

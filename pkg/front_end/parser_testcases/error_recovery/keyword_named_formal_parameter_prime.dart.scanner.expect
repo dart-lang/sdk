@@ -1,0 +1,967 @@
+void test(int abstractX) {}
+void test([int abstractX]) {}
+void test([int abstractX = 42]) {}
+void test({int abstractX}) {}
+void test({int abstractX: 42}) {}
+void test({int abstractX = 42}) {}
+
+void test(int asX) {}
+void test([int asX]) {}
+void test([int asX = 42]) {}
+void test({int asX}) {}
+void test({int asX: 42}) {}
+void test({int asX = 42}) {}
+
+void test(int assertX) {}
+void test([int assertX]) {}
+void test([int assertX = 42]) {}
+void test({int assertX}) {}
+void test({int assertX: 42}) {}
+void test({int assertX = 42}) {}
+
+void test(int asyncX) {}
+void test([int asyncX]) {}
+void test([int asyncX = 42]) {}
+void test({int asyncX}) {}
+void test({int asyncX: 42}) {}
+void test({int asyncX = 42}) {}
+
+void test(int awaitX) {}
+void test([int awaitX]) {}
+void test([int awaitX = 42]) {}
+void test({int awaitX}) {}
+void test({int awaitX: 42}) {}
+void test({int awaitX = 42}) {}
+
+void test(int breakX) {}
+void test([int breakX]) {}
+void test([int breakX = 42]) {}
+void test({int breakX}) {}
+void test({int breakX: 42}) {}
+void test({int breakX = 42}) {}
+
+void test(int caseX) {}
+void test([int caseX]) {}
+void test([int caseX = 42]) {}
+void test({int caseX}) {}
+void test({int caseX: 42}) {}
+void test({int caseX = 42}) {}
+
+void test(int catchX) {}
+void test([int catchX]) {}
+void test([int catchX = 42]) {}
+void test({int catchX}) {}
+void test({int catchX: 42}) {}
+void test({int catchX = 42}) {}
+
+void test(int classX) {}
+void test([int classX]) {}
+void test([int classX = 42]) {}
+void test({int classX}) {}
+void test({int classX: 42}) {}
+void test({int classX = 42}) {}
+
+void test(int constX) {}
+void test([int constX]) {}
+void test([int constX = 42]) {}
+void test({int constX}) {}
+void test({int constX: 42}) {}
+void test({int constX = 42}) {}
+
+void test(int continueX) {}
+void test([int continueX]) {}
+void test([int continueX = 42]) {}
+void test({int continueX}) {}
+void test({int continueX: 42}) {}
+void test({int continueX = 42}) {}
+
+void test(int covariantX) {}
+void test([int covariantX]) {}
+void test([int covariantX = 42]) {}
+void test({int covariantX}) {}
+void test({int covariantX: 42}) {}
+void test({int covariantX = 42}) {}
+
+void test(int defaultX) {}
+void test([int defaultX]) {}
+void test([int defaultX = 42]) {}
+void test({int defaultX}) {}
+void test({int defaultX: 42}) {}
+void test({int defaultX = 42}) {}
+
+void test(int deferredX) {}
+void test([int deferredX]) {}
+void test([int deferredX = 42]) {}
+void test({int deferredX}) {}
+void test({int deferredX: 42}) {}
+void test({int deferredX = 42}) {}
+
+void test(int doX) {}
+void test([int doX]) {}
+void test([int doX = 42]) {}
+void test({int doX}) {}
+void test({int doX: 42}) {}
+void test({int doX = 42}) {}
+
+void test(int dynamicX) {}
+void test([int dynamicX]) {}
+void test([int dynamicX = 42]) {}
+void test({int dynamicX}) {}
+void test({int dynamicX: 42}) {}
+void test({int dynamicX = 42}) {}
+
+void test(int elseX) {}
+void test([int elseX]) {}
+void test([int elseX = 42]) {}
+void test({int elseX}) {}
+void test({int elseX: 42}) {}
+void test({int elseX = 42}) {}
+
+void test(int enumX) {}
+void test([int enumX]) {}
+void test([int enumX = 42]) {}
+void test({int enumX}) {}
+void test({int enumX: 42}) {}
+void test({int enumX = 42}) {}
+
+void test(int exportX) {}
+void test([int exportX]) {}
+void test([int exportX = 42]) {}
+void test({int exportX}) {}
+void test({int exportX: 42}) {}
+void test({int exportX = 42}) {}
+
+void test(int extendsX) {}
+void test([int extendsX]) {}
+void test([int extendsX = 42]) {}
+void test({int extendsX}) {}
+void test({int extendsX: 42}) {}
+void test({int extendsX = 42}) {}
+
+void test(int extensionX) {}
+void test([int extensionX]) {}
+void test([int extensionX = 42]) {}
+void test({int extensionX}) {}
+void test({int extensionX: 42}) {}
+void test({int extensionX = 42}) {}
+
+void test(int externalX) {}
+void test([int externalX]) {}
+void test([int externalX = 42]) {}
+void test({int externalX}) {}
+void test({int externalX: 42}) {}
+void test({int externalX = 42}) {}
+
+void test(int factoryX) {}
+void test([int factoryX]) {}
+void test([int factoryX = 42]) {}
+void test({int factoryX}) {}
+void test({int factoryX: 42}) {}
+void test({int factoryX = 42}) {}
+
+void test(int falseX) {}
+void test([int falseX]) {}
+void test([int falseX = 42]) {}
+void test({int falseX}) {}
+void test({int falseX: 42}) {}
+void test({int falseX = 42}) {}
+
+void test(int finalX) {}
+void test([int finalX]) {}
+void test([int finalX = 42]) {}
+void test({int finalX}) {}
+void test({int finalX: 42}) {}
+void test({int finalX = 42}) {}
+
+void test(int finallyX) {}
+void test([int finallyX]) {}
+void test([int finallyX = 42]) {}
+void test({int finallyX}) {}
+void test({int finallyX: 42}) {}
+void test({int finallyX = 42}) {}
+
+void test(int forX) {}
+void test([int forX]) {}
+void test([int forX = 42]) {}
+void test({int forX}) {}
+void test({int forX: 42}) {}
+void test({int forX = 42}) {}
+
+void test(int FunctionX) {}
+void test([int FunctionX]) {}
+void test([int FunctionX = 42]) {}
+void test({int FunctionX}) {}
+void test({int FunctionX: 42}) {}
+void test({int FunctionX = 42}) {}
+
+void test(int getX) {}
+void test([int getX]) {}
+void test([int getX = 42]) {}
+void test({int getX}) {}
+void test({int getX: 42}) {}
+void test({int getX = 42}) {}
+
+void test(int hideX) {}
+void test([int hideX]) {}
+void test([int hideX = 42]) {}
+void test({int hideX}) {}
+void test({int hideX: 42}) {}
+void test({int hideX = 42}) {}
+
+void test(int ifX) {}
+void test([int ifX]) {}
+void test([int ifX = 42]) {}
+void test({int ifX}) {}
+void test({int ifX: 42}) {}
+void test({int ifX = 42}) {}
+
+void test(int implementsX) {}
+void test([int implementsX]) {}
+void test([int implementsX = 42]) {}
+void test({int implementsX}) {}
+void test({int implementsX: 42}) {}
+void test({int implementsX = 42}) {}
+
+void test(int importX) {}
+void test([int importX]) {}
+void test([int importX = 42]) {}
+void test({int importX}) {}
+void test({int importX: 42}) {}
+void test({int importX = 42}) {}
+
+void test(int inX) {}
+void test([int inX]) {}
+void test([int inX = 42]) {}
+void test({int inX}) {}
+void test({int inX: 42}) {}
+void test({int inX = 42}) {}
+
+void test(int inoutX) {}
+void test([int inoutX]) {}
+void test([int inoutX = 42]) {}
+void test({int inoutX}) {}
+void test({int inoutX: 42}) {}
+void test({int inoutX = 42}) {}
+
+void test(int interfaceX) {}
+void test([int interfaceX]) {}
+void test([int interfaceX = 42]) {}
+void test({int interfaceX}) {}
+void test({int interfaceX: 42}) {}
+void test({int interfaceX = 42}) {}
+
+void test(int isX) {}
+void test([int isX]) {}
+void test([int isX = 42]) {}
+void test({int isX}) {}
+void test({int isX: 42}) {}
+void test({int isX = 42}) {}
+
+void test(int lateX) {}
+void test([int lateX]) {}
+void test([int lateX = 42]) {}
+void test({int lateX}) {}
+void test({int lateX: 42}) {}
+void test({int lateX = 42}) {}
+
+void test(int libraryX) {}
+void test([int libraryX]) {}
+void test([int libraryX = 42]) {}
+void test({int libraryX}) {}
+void test({int libraryX: 42}) {}
+void test({int libraryX = 42}) {}
+
+void test(int mixinX) {}
+void test([int mixinX]) {}
+void test([int mixinX = 42]) {}
+void test({int mixinX}) {}
+void test({int mixinX: 42}) {}
+void test({int mixinX = 42}) {}
+
+void test(int nativeX) {}
+void test([int nativeX]) {}
+void test([int nativeX = 42]) {}
+void test({int nativeX}) {}
+void test({int nativeX: 42}) {}
+void test({int nativeX = 42}) {}
+
+void test(int newX) {}
+void test([int newX]) {}
+void test([int newX = 42]) {}
+void test({int newX}) {}
+void test({int newX: 42}) {}
+void test({int newX = 42}) {}
+
+void test(int nullX) {}
+void test([int nullX]) {}
+void test([int nullX = 42]) {}
+void test({int nullX}) {}
+void test({int nullX: 42}) {}
+void test({int nullX = 42}) {}
+
+void test(int ofX) {}
+void test([int ofX]) {}
+void test([int ofX = 42]) {}
+void test({int ofX}) {}
+void test({int ofX: 42}) {}
+void test({int ofX = 42}) {}
+
+void test(int onX) {}
+void test([int onX]) {}
+void test([int onX = 42]) {}
+void test({int onX}) {}
+void test({int onX: 42}) {}
+void test({int onX = 42}) {}
+
+void test(int operatorX) {}
+void test([int operatorX]) {}
+void test([int operatorX = 42]) {}
+void test({int operatorX}) {}
+void test({int operatorX: 42}) {}
+void test({int operatorX = 42}) {}
+
+void test(int outX) {}
+void test([int outX]) {}
+void test([int outX = 42]) {}
+void test({int outX}) {}
+void test({int outX: 42}) {}
+void test({int outX = 42}) {}
+
+void test(int partX) {}
+void test([int partX]) {}
+void test([int partX = 42]) {}
+void test({int partX}) {}
+void test({int partX: 42}) {}
+void test({int partX = 42}) {}
+
+void test(int patchX) {}
+void test([int patchX]) {}
+void test([int patchX = 42]) {}
+void test({int patchX}) {}
+void test({int patchX: 42}) {}
+void test({int patchX = 42}) {}
+
+void test(int requiredX) {}
+void test([int requiredX]) {}
+void test([int requiredX = 42]) {}
+void test({int requiredX}) {}
+void test({int requiredX: 42}) {}
+void test({int requiredX = 42}) {}
+
+void test(int rethrowX) {}
+void test([int rethrowX]) {}
+void test([int rethrowX = 42]) {}
+void test({int rethrowX}) {}
+void test({int rethrowX: 42}) {}
+void test({int rethrowX = 42}) {}
+
+void test(int returnX) {}
+void test([int returnX]) {}
+void test([int returnX = 42]) {}
+void test({int returnX}) {}
+void test({int returnX: 42}) {}
+void test({int returnX = 42}) {}
+
+void test(int setX) {}
+void test([int setX]) {}
+void test([int setX = 42]) {}
+void test({int setX}) {}
+void test({int setX: 42}) {}
+void test({int setX = 42}) {}
+
+void test(int showX) {}
+void test([int showX]) {}
+void test([int showX = 42]) {}
+void test({int showX}) {}
+void test({int showX: 42}) {}
+void test({int showX = 42}) {}
+
+void test(int sourceX) {}
+void test([int sourceX]) {}
+void test([int sourceX = 42]) {}
+void test({int sourceX}) {}
+void test({int sourceX: 42}) {}
+void test({int sourceX = 42}) {}
+
+void test(int staticX) {}
+void test([int staticX]) {}
+void test([int staticX = 42]) {}
+void test({int staticX}) {}
+void test({int staticX: 42}) {}
+void test({int staticX = 42}) {}
+
+void test(int superX) {}
+void test([int superX]) {}
+void test([int superX = 42]) {}
+void test({int superX}) {}
+void test({int superX: 42}) {}
+void test({int superX = 42}) {}
+
+void test(int switchX) {}
+void test([int switchX]) {}
+void test([int switchX = 42]) {}
+void test({int switchX}) {}
+void test({int switchX: 42}) {}
+void test({int switchX = 42}) {}
+
+void test(int syncX) {}
+void test([int syncX]) {}
+void test([int syncX = 42]) {}
+void test({int syncX}) {}
+void test({int syncX: 42}) {}
+void test({int syncX = 42}) {}
+
+void test(int thisX) {}
+void test([int thisX]) {}
+void test([int thisX = 42]) {}
+void test({int thisX}) {}
+void test({int thisX: 42}) {}
+void test({int thisX = 42}) {}
+
+void test(int throwX) {}
+void test([int throwX]) {}
+void test([int throwX = 42]) {}
+void test({int throwX}) {}
+void test({int throwX: 42}) {}
+void test({int throwX = 42}) {}
+
+void test(int trueX) {}
+void test([int trueX]) {}
+void test([int trueX = 42]) {}
+void test({int trueX}) {}
+void test({int trueX: 42}) {}
+void test({int trueX = 42}) {}
+
+void test(int tryX) {}
+void test([int tryX]) {}
+void test([int tryX = 42]) {}
+void test({int tryX}) {}
+void test({int tryX: 42}) {}
+void test({int tryX = 42}) {}
+
+void test(int typedefX) {}
+void test([int typedefX]) {}
+void test([int typedefX = 42]) {}
+void test({int typedefX}) {}
+void test({int typedefX: 42}) {}
+void test({int typedefX = 42}) {}
+
+void test(int varX) {}
+void test([int varX]) {}
+void test([int varX = 42]) {}
+void test({int varX}) {}
+void test({int varX: 42}) {}
+void test({int varX = 42}) {}
+
+void test(int voidX) {}
+void test([int voidX]) {}
+void test([int voidX = 42]) {}
+void test({int voidX}) {}
+void test({int voidX: 42}) {}
+void test({int voidX = 42}) {}
+
+void test(int whileX) {}
+void test([int whileX]) {}
+void test([int whileX = 42]) {}
+void test({int whileX}) {}
+void test({int whileX: 42}) {}
+void test({int whileX = 42}) {}
+
+void test(int withX) {}
+void test([int withX]) {}
+void test([int withX = 42]) {}
+void test({int withX}) {}
+void test({int withX: 42}) {}
+void test({int withX = 42}) {}
+
+void test(int yieldX) {}
+void test([int yieldX]) {}
+void test([int yieldX = 42]) {}
+void test({int yieldX}) {}
+void test({int yieldX: 42}) {}
+void test({int yieldX = 42}) {}
+
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] abstractX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] abstractX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] abstractX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] abstractX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] abstractX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] abstractX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] asX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] asX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] asX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] asX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] asX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] asX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] assertX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] assertX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] assertX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] assertX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] assertX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] assertX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] asyncX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] asyncX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] asyncX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] asyncX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] asyncX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] asyncX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] awaitX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] awaitX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] awaitX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] awaitX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] awaitX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] awaitX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] breakX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] breakX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] breakX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] breakX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] breakX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] breakX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] caseX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] caseX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] caseX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] caseX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] caseX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] caseX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] catchX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] catchX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] catchX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] catchX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] catchX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] catchX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] classX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] classX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] classX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] classX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] classX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] classX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] constX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] constX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] constX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] constX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] constX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] constX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] continueX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] continueX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] continueX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] continueX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] continueX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] continueX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] covariantX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] covariantX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] covariantX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] covariantX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] covariantX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] covariantX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] defaultX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] defaultX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] defaultX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] defaultX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] defaultX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] defaultX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] deferredX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] deferredX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] deferredX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] deferredX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] deferredX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] deferredX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] doX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] doX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] doX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] doX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] doX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] doX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] dynamicX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] dynamicX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] dynamicX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] dynamicX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] dynamicX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] dynamicX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] elseX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] elseX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] elseX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] elseX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] elseX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] elseX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] enumX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] enumX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] enumX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] enumX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] enumX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] enumX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] exportX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] exportX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] exportX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] exportX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] exportX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] exportX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] extendsX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] extendsX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] extendsX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] extendsX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] extendsX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] extendsX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] extensionX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] extensionX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] extensionX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] extensionX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] extensionX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] extensionX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] externalX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] externalX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] externalX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] externalX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] externalX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] externalX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] factoryX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] factoryX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] factoryX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] factoryX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] factoryX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] factoryX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] falseX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] falseX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] falseX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] falseX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] falseX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] falseX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] finalX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] finalX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] finalX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] finalX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] finalX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] finalX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] finallyX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] finallyX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] finallyX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] finallyX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] finallyX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] finallyX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] forX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] forX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] forX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] forX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] forX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] forX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] FunctionX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] FunctionX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] FunctionX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] FunctionX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] FunctionX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] FunctionX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] getX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] getX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] getX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] getX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] getX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] getX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] hideX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] hideX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] hideX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] hideX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] hideX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] hideX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] ifX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] ifX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] ifX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] ifX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] ifX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] ifX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] implementsX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] implementsX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] implementsX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] implementsX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] implementsX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] implementsX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] importX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] importX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] importX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] importX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] importX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] importX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] inX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] inX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] inX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] inX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] inX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] inX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] inoutX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] inoutX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] inoutX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] inoutX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] inoutX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] inoutX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] interfaceX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] interfaceX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] interfaceX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] interfaceX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] interfaceX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] interfaceX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] isX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] isX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] isX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] isX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] isX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] isX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] lateX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] lateX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] lateX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] lateX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] lateX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] lateX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] libraryX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] libraryX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] libraryX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] libraryX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] libraryX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] libraryX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] mixinX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] mixinX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] mixinX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] mixinX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] mixinX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] mixinX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] nativeX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] nativeX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] nativeX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] nativeX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] nativeX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] nativeX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] newX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] newX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] newX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] newX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] newX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] newX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] nullX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] nullX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] nullX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] nullX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] nullX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] nullX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] ofX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] ofX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] ofX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] ofX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] ofX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] ofX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] onX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] onX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] onX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] onX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] onX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] onX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] operatorX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] operatorX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] operatorX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] operatorX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] operatorX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] operatorX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] outX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] outX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] outX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] outX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] outX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] outX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] partX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] partX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] partX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] partX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] partX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] partX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] patchX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] patchX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] patchX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] patchX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] patchX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] patchX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] requiredX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] requiredX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] requiredX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] requiredX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] requiredX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] requiredX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] rethrowX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] rethrowX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] rethrowX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] rethrowX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] rethrowX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] rethrowX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] returnX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] returnX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] returnX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] returnX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] returnX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] returnX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] setX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] setX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] setX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] setX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] setX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] setX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] showX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] showX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] showX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] showX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] showX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] showX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] sourceX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] sourceX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] sourceX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] sourceX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] sourceX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] sourceX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] staticX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] staticX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] staticX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] staticX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] staticX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] staticX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] superX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] superX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] superX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] superX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] superX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] superX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] switchX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] switchX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] switchX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] switchX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] switchX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] switchX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] syncX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] syncX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] syncX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] syncX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] syncX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] syncX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] thisX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] thisX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] thisX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] thisX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] thisX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] thisX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] throwX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] throwX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] throwX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] throwX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] throwX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] throwX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] trueX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] trueX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] trueX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] trueX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] trueX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] trueX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] tryX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] tryX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] tryX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] tryX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] tryX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] tryX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] typedefX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] typedefX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] typedefX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] typedefX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] typedefX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] typedefX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] varX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] varX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] varX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] varX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] varX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] varX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] voidX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] voidX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] voidX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] voidX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] voidX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] voidX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] whileX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] whileX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] whileX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] whileX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] whileX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] whileX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] withX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] withX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] withX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] withX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] withX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] withX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] test[StringToken]([BeginToken]int[StringToken] yieldX[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] yieldX[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken][[BeginToken]int[StringToken] yieldX[StringToken] =[SimpleToken] 42[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] yieldX[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] yieldX[StringToken]:[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] test[StringToken]([BeginToken]{[BeginToken]int[StringToken] yieldX[StringToken] =[SimpleToken] 42[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

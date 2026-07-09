@@ -1,0 +1,13 @@
+# Copyright (c) 2020 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+_toolchain_cpu = host_cpu
+
+default_clang_prefix =
+    rebase_path("//buildtools/${host_os}-${_toolchain_cpu}/clang/bin",
+                root_build_dir)
+
+declare_args() {
+  clang_prefix = default_clang_prefix
+}

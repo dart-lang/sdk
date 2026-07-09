@@ -1,0 +1,14 @@
+class C {
+  static var d = () {
+    throw "Baz";
+  };
+  var e = () {
+    throw "Baz";
+  };
+}
+
+var c = () {
+  throw "Baz";
+};
+
+void test() {}

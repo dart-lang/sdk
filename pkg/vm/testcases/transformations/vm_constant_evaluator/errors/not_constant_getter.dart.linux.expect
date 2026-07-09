@@ -1,0 +1,6 @@
+Constant evaluation error: Constant evaluation error:
+not_constant_getter.dart:376 Constant evaluation error: The invocation of 'args' is not allowed in a constant expression.
+Member: notConstant
+File: not_constant_getter.dart
+Offset: 361
+Message: cannot evaluate to a constant

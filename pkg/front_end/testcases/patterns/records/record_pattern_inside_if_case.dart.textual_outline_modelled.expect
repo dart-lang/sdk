@@ -1,0 +1,9 @@
+test1(Record x) {}
+
+test2((int, int) x) {}
+
+test3((int, {int a}) x) {}
+
+test4(({int a, int b}) x) {}
+
+test5((int, double, {String foo, dynamic bar}) x) {}

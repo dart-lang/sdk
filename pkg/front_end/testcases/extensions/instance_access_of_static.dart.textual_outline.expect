@@ -1,0 +1,10 @@
+class Class1 {}
+
+extension Extension1 on Class1 {
+  static staticMethod() {}
+  static int get staticProperty {}
+  static set staticProperty(int value) {}
+  static var staticField = 42;
+}
+
+main() {}

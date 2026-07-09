@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/super_access_in_initializer.dart:14:30: Error: Undefined name 'property'.
+//   Class(bool value) : assert(property), this.field = property, super(property);
+//                              ^^^^^^^^
+//
+// pkg/front_end/testcases/general/super_access_in_initializer.dart:14:54: Error: Undefined name 'property'.
+//   Class(bool value) : assert(property), this.field = property, super(property);
+//                                                      ^^^^^^^^
+//
+// pkg/front_end/testcases/general/super_access_in_initializer.dart:14:70: Error: Undefined name 'property'.
+//   Class(bool value) : assert(property), this.field = property, super(property);
+//                                                                      ^^^^^^^^
+//
+// pkg/front_end/testcases/general/super_access_in_initializer.dart:16:27: Error: Undefined name 'property'.
+//   Class.redirect() : this(property);
+//                           ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor •(core::bool value) → self::Super
+    : super core::Object::•()
+    ;
+  get property() → core::bool
+    return true;
+}
+class Class extends self::Super {
+  field core::bool field;
+  constructor •(core::bool value) → self::Class
+    : assert(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:14:30: Error: Undefined name 'property'.
+  Class(bool value) : assert(property), this.field = property, super(property);
+                             ^^^^^^^^"), self::Class::field = invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:14:54: Error: Undefined name 'property'.
+  Class(bool value) : assert(property), this.field = property, super(property);
+                                                     ^^^^^^^^", super self::Super::•(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:14:70: Error: Undefined name 'property'.
+  Class(bool value) : assert(property), this.field = property, super(property);
+                                                                     ^^^^^^^^")
+    ;
+  constructor redirect() → self::Class
+    : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:16:27: Error: Undefined name 'property'.
+  Class.redirect() : this(property);
+                          ^^^^^^^^")
+    ;
+}
+static method main() → dynamic {}

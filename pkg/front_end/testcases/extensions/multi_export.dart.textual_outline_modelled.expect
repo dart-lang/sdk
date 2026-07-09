@@ -1,0 +1,6 @@
+import 'multi_export_lib1.dart' as lib;
+import 'multi_export_lib2.dart' as lib;
+import 'multi_export_lib3.dart' as lib;
+import 'multi_export_lib4.dart' as lib;
+
+main() {}

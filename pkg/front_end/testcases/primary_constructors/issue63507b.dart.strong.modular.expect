@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/issue63507b.dart:10:18: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//   this : assert((i = 0) == 0); // Error
+//                  ^
+//
+// pkg/front_end/testcases/primary_constructors/issue63507b.dart:19:17: Error: A primary constructor parameter can't be assigned to in an initializer.
+// Try removing the assignment.
+//   bool field = (i = 0) == 0; // Error
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  constructor •(core::int? i) → self::C0
+    : assert((i = 0) =={core::num::==}{(core::Object) → core::bool} 0), super core::Object::•()
+    ;
+}
+class C1 extends core::Object {
+  constructor •(core::int? i) → self::C1
+    : assert(invalid-expression "pkg/front_end/testcases/primary_constructors/issue63507b.dart:10:18: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+  this : assert((i = 0) == 0); // Error
+                 ^" =={core::Object::==}{(core::Object) → core::bool} 0), super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  field core::bool field;
+  constructor •(core::int? i) → self::C2
+    : self::C2::field = (i = 0) =={core::num::==}{(core::Object) → core::bool} 0, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  field core::bool field;
+  constructor •(core::int? i) → self::C3
+    : self::C3::field = invalid-expression "pkg/front_end/testcases/primary_constructors/issue63507b.dart:19:17: Error: A primary constructor parameter can't be assigned to in an initializer.
+Try removing the assignment.
+  bool field = (i = 0) == 0; // Error
+                ^" =={core::Object::==}{(core::Object) → core::bool} 0, super core::Object::•()
+    ;
+}

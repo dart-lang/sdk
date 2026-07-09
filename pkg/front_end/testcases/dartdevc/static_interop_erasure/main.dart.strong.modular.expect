@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "main_lib.dart" as sta;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void {
+  sta::setUp();
+  sta::StaticJSClass staticJs = sta::StaticJSClass::factory();
+}

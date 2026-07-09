@@ -1,0 +1,485 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'fix_processor.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AddEnumConstantTest);
+  });
+}
+
+@reflectiveTest
+class AddEnumConstantTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.addEnumConstant;
+
+  Future<void> test_add() async {
+    await resolveTestCode('''
+enum E {ONE}
+
+E e() {
+  return E.TWO;
+}
+''');
+    await assertHasFix('''
+enum E {ONE, TWO}
+
+E e() {
+  return E.TWO;
+}
+''', matchFixMessage: "Add enum constant 'TWO'");
+  }
+
+  Future<void> test_add_dotShorthand() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+E e() {
+  return .TWO;
+}
+''');
+    await assertHasFix('''
+enum E { ONE, TWO }
+
+E e() {
+  return .TWO;
+}
+''', matchFixMessage: "Add enum constant 'TWO'");
+  }
+
+  Future<void> test_differentLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '''
+enum E {ONE}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {ONE, TWO}
+''', target: '$testPackageLibPath/a.dart');
+  }
+
+  Future<void> test_differentLibrary_dotShorthand() async {
+    newFile('$testPackageLibPath/a.dart', '''
+enum E { ONE }
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E { ONE, TWO }
+''', target: '$testPackageLibPath/a.dart');
+  }
+
+  Future<void> test_named() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named();
+
+  const E.named();
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE.named(), TWO.named();
+
+  const E.named();
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_named_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named();
+
+  const E.named();
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE.named(), TWO.named();
+
+  const E.named();
+}
+
+E e() {
+  return .TWO;
+}
+''');
+  }
+
+  Future<void> test_named_factory() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named();
+
+  const E.named();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE.named(), TWO.named();
+
+  const E.named();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_named_factory_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named();
+
+  const E.named();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE.named(), TWO.named();
+
+  const E.named();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+  }
+
+  Future<void> test_named_named() async {
+    await resolveTestCode('''
+enum E {
+  ONE.something(), TWO.other();
+
+  const E.something();
+  const E.other();
+}
+
+E e() {
+  return E.THREE;
+}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_named_named_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.something(), TWO.other();
+
+  const E.something();
+  const E.other();
+}
+
+E e() {
+  return .THREE;
+}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_named_nonZeroParameters() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named(1);
+
+  final int i;
+  const E.named(this.i);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_named_nonZeroParameters_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named(1);
+
+  final int i;
+  const E.named(this.i);
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_named_unnamed() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named();
+
+  const E.named();
+  const E();
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_namedPrimary() async {
+    await resolveTestCode('''
+enum E.named() {
+  one.named();
+}
+
+E e = E.two;
+''');
+
+    await assertHasFix('''
+enum E.named() {
+  one.named(), two.named();
+}
+
+E e = E.two;
+''');
+  }
+
+  Future<void> test_namedPrimary_nonZeroParameters() async {
+    await resolveTestCode('''
+enum E.named(final int i) {
+  one.named(1);
+}
+
+E e = E.two;
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_toEmpty_braces() async {
+    await resolveTestCode('''
+enum E {}
+
+void f() {
+  E.ONE;
+}
+''');
+    await assertHasFix(
+      '''
+enum E { ONE }
+
+void f() {
+  E.ONE;
+}
+''',
+      filter: (e) {
+        // Filter to ignore enum_without_constants
+        return e.diagnosticCode == diag.undefinedEnumConstant;
+      },
+    );
+  }
+
+  Future<void> test_toEmpty_dotShorthand() async {
+    await resolveTestCode('''
+enum E {}
+
+E e() {
+  return .ONE;
+}
+''');
+    await assertHasFix(
+      '''
+enum E { ONE }
+
+E e() {
+  return .ONE;
+}
+''',
+      filter: (e) {
+        // Filter to ignore enum_without_constants
+        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+      },
+    );
+  }
+
+  Future<void> test_toEmpty_semicolon() async {
+    await resolveTestCode('''
+enum E;
+
+void f() {
+  E.ONE;
+}
+''');
+    await assertHasFix(
+      '''
+enum E { ONE }
+
+void f() {
+  E.ONE;
+}
+''',
+      filter: (e) {
+        // Filter to ignore enum_without_constants
+        return e.diagnosticCode == diag.undefinedEnumConstant;
+      },
+    );
+  }
+
+  Future<void> test_unnamed() async {
+    await resolveTestCode('''
+enum E {
+  ONE;
+
+  const E();
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE, TWO;
+
+  const E();
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_unnamed_factory() async {
+    await resolveTestCode('''
+enum E {
+  ONE;
+
+  const E();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE, TWO;
+
+  const E();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_unnamed_nonZeroParameters() async {
+    await resolveTestCode('''
+enum E {
+  ONE(1);
+
+  final int i;
+  const E(this.i);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_unnamedPrimary() async {
+    await resolveTestCode('''
+enum E() {
+  one;
+}
+
+E e = E.two;
+''');
+
+    await assertHasFix('''
+enum E() {
+  one, two;
+}
+
+E e = E.two;
+''');
+  }
+
+  Future<void> test_unnamedPrimary_nonZeroParameters() async {
+    await resolveTestCode('''
+enum E(final int i) {
+  one(1);
+}
+
+E e = E.two;
+''');
+
+    await assertNoFix();
+  }
+}

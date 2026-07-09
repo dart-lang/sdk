@@ -1,0 +1,22 @@
+abstract class C {
+  C? operator +(int i);
+  int get cProperty => 0;
+}
+
+direct_assignment(int? i, int? j) {}
+
+compound_assignment(C? c, int i) {}
+
+via_postfix_op(C? c) {}
+
+via_prefix_op(C? c) {}
+
+via_for_each_statement(int? i, List<int?> list) {}
+
+via_for_each_list_element(int? i, List<int?> list) {}
+
+via_for_each_set_element(int? i, List<int?> list) {}
+
+via_for_each_map_key(int? i, List<int?> list) {}
+
+via_for_each_map_value(int? i, List<int?> list) {}

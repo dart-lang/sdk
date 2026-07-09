@@ -1,0 +1,16 @@
+org-dartlang-testcase:///main.dart:
+import "foo.dart";
+int get giveInt => 43;
+var x = "hello".giveInt;
+
+
+
+
+org-dartlang-testcase:///foo.dart:
+extension Foo on String {
+  int get giveInt => 42;
+}
+extension BarExtension on Bar {
+  int get giveInt => 42;
+}
+class Bar {}

@@ -1,0 +1,7 @@
+class Super {
+  void set foo(num x) {}
+}
+
+class Sub extends Super {
+  void set foo(int x) {}
+}

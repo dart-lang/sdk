@@ -1,0 +1,12 @@
+extension Extension on String {
+  static method() {}
+  static get getter => null;
+  static set setter(_) {}
+  static get property => null;
+  static set property(_) {}
+  static var field;
+}
+
+main() {}
+
+errors() {}

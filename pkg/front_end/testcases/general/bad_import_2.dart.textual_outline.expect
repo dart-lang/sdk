@@ -1,0 +1,5 @@
+import "bad_import_2.dart" show a;
+
+import "bad_import_2.dart" show a as b show c;
+
+import "bad_import_2.dart" as b;

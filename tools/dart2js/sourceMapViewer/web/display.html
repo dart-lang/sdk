@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Display</title>
+  </head>
+  <style>
+    span.range0 {color:green;background-color:#DA81F5}
+    span.range1 {color:green;background-color:#81F7D8}
+    span.range2 {color:green;background-color:#BEF781}
+    span.range3 {color:green;background-color:#F79F81}
+    span.marker {
+      color:green;
+      background-color:red;
+      white-space: pre
+    }
+    #group{
+      width:100%;
+      height:100%;
+    }
+    span.source pre {
+      white-space: pre;
+      font-family: monospace
+    }
+    div#generated_output div{
+      white-space: pre;
+      font-family: monospace
+    }
+    div#selected_source div{
+      white-space: pre;
+      font-family: monospace
+    }
+  </style>
+  <body>
+    <h1>Display</h1>
+    <div id="group">
+    <table style="width:100%;">
+    <tr><td>
+      <h2>Generated Output</h2>
+      <div id="target_filename"></div>
+      <div id="generated_output" style="border:2px solid;overflow:auto;width:550px;height:50px;"></div>
+    </td><td>
+      <h2>Selected Source Code</h2>
+      <div id="source_filename"></div>
+      <div id="selected_source" style="border:2px solid;overflow:auto;width:550px;height:50px;"></div>
+    </td><td>
+      <div id="current_span" style="background-color: #99ff99;visibility:hidden;border:green 1px dashed;overflow:auto;width:250px;height:50px;font-size:12pt;position:absolute;"></div>
+    </td>
+    <tr><td>
+     <h2>Decoded Map</h2>
+     <small><i>(&lt;generated column&gt;,&lt;src url id&gt;,&lt;src line&gt;,&lt;src col&gt;)</i></small>
+     <div id="decoded_map" style="border: 2px solid;overflow:auto;width:550px;height:50px;"></div>
+     </td><td>
+     <h2>Original Map</h2>
+     <small><i>The encoded mapping data.</i></small>
+     <div id="original_map" style="border: 2px solid;overflow:auto;width:550px;height:50px;"></div>
+     </td>
+    </tr>
+    </table></div>
+    <script defer src="display.dart.js"></script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+extension type Id(int id) {}
+
+test() {}
+
+main() {}
+
+expect(expected, actual) {}

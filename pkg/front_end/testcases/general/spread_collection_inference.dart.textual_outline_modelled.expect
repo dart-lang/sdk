@@ -1,0 +1,5 @@
+Map<K, V> bar<K, V>() => throw '';
+
+foo(dynamic dynVar) {}
+
+main() {}

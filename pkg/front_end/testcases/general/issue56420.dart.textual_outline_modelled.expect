@@ -1,0 +1,13 @@
+A<Y1, Y2> Function<Y1 extends B, Y2 extends B>() f1 =
+    <Y1 extends B, Y2 extends B>() => new A<Y1, Y2>();
+
+A<Z2, Z1> Function<Z1 extends B, Z2 extends B>() f2 =
+    <Z1 extends B, Z2 extends B>() => new A<Z2, Z1>();
+
+class A<X1 extends B, X2 extends B> {}
+
+class B {}
+
+main() {}
+
+test(bool b) {}

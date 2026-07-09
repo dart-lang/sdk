@@ -1,0 +1,9 @@
+class A {
+  int get bar {}
+}
+
+expect(expected, actual) {}
+
+int count = 0;
+
+main() {}

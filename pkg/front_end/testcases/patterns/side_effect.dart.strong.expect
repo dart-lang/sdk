@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method sideEffect<T extends core::Object? = dynamic>(core::List<self::sideEffect::T%> list) → core::List<self::sideEffect::T%> {
+  core::print(self::sideEffect::T%);
+  return list;
+}
+static method method() → dynamic {
+  {
+    final synthesized core::List<dynamic> #0#0 = self::sideEffect<dynamic>(<dynamic>[]);
+    if(!true)
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+  {
+    final synthesized core::List<dynamic> #1#0 = self::sideEffect<dynamic>(<dynamic>[]);
+    if(!true)
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+  {
+    final synthesized core::List<dynamic> #2#0 = self::sideEffect<dynamic>(<dynamic>[]);
+    if(true) {
+      core::print(true);
+    }
+  }
+  #L1:
+  {
+    final synthesized core::List<dynamic> #3#0 = self::sideEffect<dynamic>(<dynamic>[]);
+    {
+      if(true) {
+      }
+    }
+  }
+  return block {
+    core::bool #t1;
+    final synthesized core::List<dynamic> #4#0 = self::sideEffect<dynamic>(<dynamic>[]);
+    #L2:
+    {
+      {
+        if(true) {
+          #t1 = true;
+          break #L2;
+        }
+      }
+    }
+  } =>#t1;
+}

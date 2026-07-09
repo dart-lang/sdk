@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class I<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T%>
+    ;
+}
+class J<T extends core::Object? = dynamic> extends self::I<self::J::T%> {
+  synthetic constructor •() → self::J<self::J::T%>
+    ;
+}
+class A<T extends core::Object? = dynamic> extends self::J<self::A::T%> {
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+}
+extension /* unnamed */ _extension#0<T extends core::Object? = dynamic> on self::I<T%> {
+  get member = self::_extension#0|get#member;
+}
+extension /* unnamed */ _extension#1<T extends core::Object? = dynamic> on self::A<T%> {
+  method member = self::_extension#1|member;
+  method tearoff member = self::_extension#1|get#member;
+}
+static extension-member method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num
+  ;
+static extension-member method _extension#1|member<T extends core::Object? = dynamic>(lowered final self::A<self::_extension#1|member::T%> #this, self::_extension#1|member::T% t) → void
+  ;
+static extension-member method _extension#1|get#member<T extends core::Object? = dynamic>(lowered final self::A<self::_extension#1|get#member::T%> #this) → (self::_extension#1|get#member::T%) → void
+  return (self::_extension#1|get#member::T% t) → void => self::_extension#1|member<self::_extension#1|get#member::T%>(#this, t);
+static method exhaustiveInferred(self::A<core::num> a) → dynamic
+  ;
+static method exhaustiveTyped(self::A<core::num> a) → dynamic
+  ;
+static method unreachable(self::A<core::num> a) → dynamic
+  ;
+static method nonExhaustiveRestricted(self::A<core::num> a) → dynamic
+  ;
+static method intersection(dynamic o) → dynamic
+  ;
+static method exhaustiveMixed(self::I<core::num> i) → core::num
+  ;

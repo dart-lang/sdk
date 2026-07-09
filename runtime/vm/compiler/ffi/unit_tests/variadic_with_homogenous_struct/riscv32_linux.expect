@@ -1,0 +1,15 @@
+fa0 double
+fa1 double
+fa2 double
+fa3 double
+fa4 double
+fa5 double
+fa6 double
+fa7 double
+a0 int32[float]
+P(a1 uint32) Struct(size: 12)
+(a2, t3) int64
+t4 int32
+P(t5 uint32) Struct(size: 12)
+=>
+fa0 double

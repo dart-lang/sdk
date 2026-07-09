@@ -1,0 +1,21 @@
+# Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  extension Foo on String {
+    int parseAsInt() {
+      int result = int.parse(this);
+      print("Parsed $this to $result");
+      print(getFortyTwo());
+      return result;
+    }
+
+    int getFortyTwo() {
+      return 42;
+    }
+  }
+definitions: ["#this"]
+method: "Foo.parseAsInt"
+expression: |
+  () { print(getFortyTwo()); return this; }

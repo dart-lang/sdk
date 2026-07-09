@@ -1,0 +1,13 @@
+void foo1({required int otherName()}) => null;
+void foo2(int otherName(), [int otherName()]) => null;
+void foo3(int otherName(), {int otherName()}) => null;
+void foo4(int otherName(), {required int otherName()}) => null;
+void foo5(int otherName()) => null;
+
+
+void[KeywordToken] foo1[StringToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken]}[SimpleToken])[SimpleToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+void[KeywordToken] foo2[StringToken]([BeginToken]int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken],[SimpleToken] [[BeginToken]int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken]][SimpleToken])[SimpleToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+void[KeywordToken] foo3[StringToken]([BeginToken]int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken],[SimpleToken] {[BeginToken]int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken]}[SimpleToken])[SimpleToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+void[KeywordToken] foo4[StringToken]([BeginToken]int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken],[SimpleToken] {[BeginToken]required[KeywordToken] int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken]}[SimpleToken])[SimpleToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+void[KeywordToken] foo5[StringToken]([BeginToken]int[StringToken] otherName[StringToken]([BeginToken])[SimpleToken])[SimpleToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+[SimpleToken]

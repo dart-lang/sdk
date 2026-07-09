@@ -1,0 +1,13 @@
+abstract class C {
+  external final int? _f1;
+}
+
+extension on C {
+  external final int? _f2;
+}
+
+main() {}
+
+void testExternalFieldInClass(C c) {}
+
+void testExternalFieldInExtension(C c) {}

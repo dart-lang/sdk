@@ -1,0 +1,43 @@
+class A {
+method1() {}
+method2() {}
+}
+
+class B {
+method1(String foo) {
+
+
+
+print("${}foo.length hello world" );
+}
+
+method2() {}
+}
+
+class C {
+method1() {}
+method2() {}
+}
+
+
+[UnmatchedToken]class[KeywordToken] A[StringToken] {[BeginToken]
+method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] B[StringToken] {[BeginToken]
+method1[StringToken]([BeginToken]String[StringToken] foo[StringToken])[SimpleToken] {[BeginToken]
+
+
+
+print[StringToken]([BeginToken]"[StringToken]${[BeginToken]}[SyntheticToken]foo.length hello world"[StringToken] )[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

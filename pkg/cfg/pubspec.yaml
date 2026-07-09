@@ -1,0 +1,19 @@
+name: cfg
+description: CFG/SSA compiler IR and optimization passes.
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.13.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  kernel: any
+  meta: any
+
+dev_dependencies:
+  front_end: any
+  test: any
+  vm: any

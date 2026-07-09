@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Class1 extends core::Object {
+  field FutureOr<dynamic>instanceField1;
+  field FutureOr<core::int?>instanceField2;
+  field FutureOr<FutureOr<dynamic>>instanceField3;
+  static field FutureOr<dynamic>staticField1;
+  static field FutureOr<core::int?>staticField2;
+  static field FutureOr<FutureOr<dynamic>>staticField3;
+  synthetic constructor •() → self::Class1
+    ;
+  method instanceMethod1([FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null]) → void
+    ;
+  method instanceMethod2({FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null}) → void
+    ;
+  static method staticMethod1([FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3]) → void
+    ;
+  static method staticMethod2({FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3}) → void
+    ;
+}
+class Class2 extends core::Object {
+  field FutureOr<dynamic>instanceField1;
+  field FutureOr<core::int?>instanceField2;
+  field FutureOr<FutureOr<dynamic>>instanceField3;
+  constructor constructor1(initializing-formal FutureOr<dynamic>instanceField1, initializing-formal FutureOr<core::int?>instanceField2, initializing-formal FutureOr<FutureOr<dynamic>>instanceField3) → self::Class2
+    ;
+  constructor constructor2() → self::Class2
+    ;
+}
+static field FutureOr<dynamic>topLevelField1;
+static field FutureOr<core::int?>topLevelField2;
+static field FutureOr<FutureOr<dynamic>>topLevelField3;
+static method toplevelMethod1([FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3]) → void
+  ;
+static method toplevelMethod2({FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3}) → void
+  ;
+static method main() → dynamic
+  ;

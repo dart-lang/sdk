@@ -1,0 +1,9 @@
+class C {
+  C(this.x);
+  C get field => C(1);
+  C method() => C(1);
+  const C.constNamed(this.x);
+  final int x;
+}
+
+void main() {}

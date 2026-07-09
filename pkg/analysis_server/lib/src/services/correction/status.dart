@@ -1,0 +1,157 @@
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+
+/// An outcome of a condition checking operation.
+class RefactoringStatus {
+  /// The current severity of this [RefactoringStatus] - the maximum of the
+  /// severities of its [problems].
+  RefactoringProblemSeverity? _severity;
+
+  /// A list of [RefactoringProblem]s.
+  final List<RefactoringProblem> problems = [];
+
+  /// Creates a new OK [RefactoringStatus].
+  new();
+
+  /// Creates a new [RefactoringStatus] with the ERROR severity.
+  factory error(String msg, [Location? location]) {
+    var status = RefactoringStatus();
+    status.addError(msg, location);
+    return status;
+  }
+
+  /// Creates a new [RefactoringStatus] with the FATAL severity.
+  factory fatal(String msg, [Location? location]) {
+    var status = RefactoringStatus();
+    status.addFatalError(msg, location);
+    return status;
+  }
+
+  /// Creates a new [RefactoringStatus] with the WARNING severity.
+  factory warning(String msg, [Location? location]) {
+    var status = RefactoringStatus();
+    status.addWarning(msg, location);
+    return status;
+  }
+
+  /// Returns `true` if the severity is FATAL or ERROR.
+  bool get hasError {
+    return _severity == RefactoringProblemSeverity.FATAL ||
+        _severity == RefactoringProblemSeverity.ERROR;
+  }
+
+  /// Returns `true` if the severity is FATAL.
+  bool get hasFatalError => _severity == RefactoringProblemSeverity.FATAL;
+
+  /// Returns `true` if the severity is WARNING.
+  bool get hasWarning => _severity == RefactoringProblemSeverity.WARNING;
+
+  /// Return `true` if the severity is `OK`.
+  bool get isOK => _severity == null;
+
+  /// Returns the message of the [RefactoringProblem] with highest severity;
+  /// may be `null` if no problems.
+  String? get message {
+    var problem = this.problem;
+    if (problem == null) {
+      return null;
+    }
+    return problem.message;
+  }
+
+  /// Returns the first [RefactoringProblem] with the highest severity.
+  ///
+  /// Returns `null` if no entries.
+  RefactoringProblem? get problem {
+    for (var problem in problems) {
+      if (problem.severity == _severity) {
+        return problem;
+      }
+    }
+    return null;
+  }
+
+  /// Returns the current severity of this [RefactoringStatus].
+  RefactoringProblemSeverity? get severity => _severity;
+
+  /// Adds an ERROR problem with the given message and location.
+  void addError(String msg, [Location? location]) {
+    _addProblem(
+      RefactoringProblem(
+        RefactoringProblemSeverity.ERROR,
+        msg,
+        location: location,
+      ),
+    );
+  }
+
+  /// Adds a FATAL problem with the given message and location.
+  void addFatalError(String msg, [Location? location]) {
+    _addProblem(
+      RefactoringProblem(
+        RefactoringProblemSeverity.FATAL,
+        msg,
+        location: location,
+      ),
+    );
+  }
+
+  /// Merges [other] into this [RefactoringStatus].
+  ///
+  /// The [other]'s entries are added to this.
+  ///
+  /// The resulting severity is the more severe of this and [other] severities.
+  ///
+  /// Merging with `null` is allowed - it has no effect.
+  void addStatus(RefactoringStatus? other) {
+    if (other == null) {
+      return;
+    }
+    problems.addAll(other.problems);
+    _severity = RefactoringProblemSeverity.max(_severity, other.severity);
+  }
+
+  /// Adds a WARNING problem with the given message and location.
+  void addWarning(String msg, [Location? location]) {
+    _addProblem(
+      RefactoringProblem(
+        RefactoringProblemSeverity.WARNING,
+        msg,
+        location: location,
+      ),
+    );
+  }
+
+  @override
+  String toString() {
+    var sb = StringBuffer();
+    sb.write('<');
+    var severity = _severity;
+    if (severity == null) {
+      sb.write('OK');
+    } else {
+      sb.write(severity.name);
+    }
+    if (!isOK) {
+      sb.write('\n');
+      for (var problem in problems) {
+        sb.write('\t');
+        sb.write(problem);
+        sb.write('\n');
+      }
+    }
+    sb.write('>');
+    return sb.toString();
+  }
+
+  /// Adds the given [RefactoringProblem] and updates [severity].
+  void _addProblem(RefactoringProblem problem) {
+    problems.add(problem);
+    // update maximum severity
+    var severity = problem.severity;
+    _severity = RefactoringProblemSeverity.max(_severity, severity);
+  }
+}

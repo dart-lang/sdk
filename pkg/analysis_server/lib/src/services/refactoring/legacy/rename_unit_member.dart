@@ -1,0 +1,360 @@
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/protocol_server.dart'
+    show newLocation_fromElement, newLocation_fromMatch, SourceChange;
+import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
+import 'package:analysis_server/src/services/search/element_visitors.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart' show Identifier;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+
+/// Checks if creating a top-level function with the given [name] in [library]
+/// will cause any conflicts.
+Future<RefactoringStatus> validateCreateFunction(
+  SearchEngine searchEngine,
+  LibraryElement library,
+  String name,
+) {
+  return _CreateUnitMemberValidator(
+    searchEngine,
+    library,
+    ElementKind.FUNCTION,
+    name,
+  ).validate();
+}
+
+/// Checks if creating a top-level function with the given [name] in [element]
+/// will cause any conflicts.
+Future<RefactoringStatus> validateRenameTopLevel(
+  SearchEngine searchEngine,
+  Element element,
+  String name,
+) {
+  return _RenameUnitMemberValidator(searchEngine, element, name).validate();
+}
+
+/// A [Refactoring] for renaming compilation unit member [Element]s.
+class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
+  final CorrectionUtils utils;
+
+  /// If the element is a Flutter `StatefulWidget` declaration, this is the
+  /// corresponding `State` declaration.
+  ClassElement? _flutterWidgetState;
+
+  /// If [_flutterWidgetState] is set, this is the new name of it.
+  String? _flutterWidgetStateNewName;
+
+  new(super.workspace, super.sessionHelper, this.resolvedUnit, super.element)
+    : utils = CorrectionUtils(resolvedUnit),
+      super();
+
+  @override
+  String get refactoringName {
+    if (element is ExtensionElement) {
+      return 'Rename Extension';
+    }
+    if (element is ExtensionTypeElement) {
+      return 'Rename Extension Type';
+    }
+    if (element is TopLevelFunctionElement) {
+      return 'Rename Top-Level Function';
+    }
+    if (element is TopLevelVariableElement) {
+      return 'Rename Top-Level Variable';
+    }
+    if (element is TypeAliasElement) {
+      return 'Rename Type Alias';
+    }
+    return 'Rename Class';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var elements = switch (element) {
+      PropertyInducingElement element when element.isOriginGetterSetter => [
+        ?element.getter,
+        ?element.setter,
+      ],
+      _ => [element],
+    };
+
+    // Rename each element and references to it.
+    var processor = RenameProcessor2(
+      workspace,
+      sessionHelper,
+      builder,
+      newName,
+    );
+    for (var element in elements) {
+      await processor.renameElement(element);
+    }
+
+    // If a StatefulWidget is being renamed, rename also its State.
+    var flutterWidgetState = _flutterWidgetState;
+    if (flutterWidgetState != null) {
+      _updateFlutterWidgetStateName();
+      await RenameProcessor2(
+        workspace,
+        sessionHelper,
+        builder,
+        _flutterWidgetStateNewName!,
+      ).renameElement(flutterWidgetState);
+    }
+  }
+
+  @override
+  Future<RefactoringStatus> checkFinalConditions() async {
+    var status = await validateRenameTopLevel(searchEngine, element, newName);
+    var flutterWidgetState = _flutterWidgetState;
+    var flutterWidgetStateNewName = _flutterWidgetStateNewName;
+    if (flutterWidgetState != null && flutterWidgetStateNewName != null) {
+      _updateFlutterWidgetStateName();
+      status.addStatus(
+        await validateRenameTopLevel(
+          searchEngine,
+          flutterWidgetState,
+          flutterWidgetStateNewName,
+        ),
+      );
+    }
+    return status;
+  }
+
+  @override
+  Future<RefactoringStatus> checkInitialConditions() {
+    _findFlutterStateClass();
+    return super.checkInitialConditions();
+  }
+
+  @override
+  RefactoringStatus checkNewName() {
+    var result = super.checkNewName();
+    if (element is ExtensionTypeElement) {
+      result.addStatus(validateExtensionTypeName(newName));
+    }
+    if (element is TopLevelFunctionElement) {
+      result.addStatus(validateFunctionName(newName));
+    }
+    if (element is InterfaceElement) {
+      result.addStatus(validateClassName(newName));
+    }
+    if (element is TopLevelVariableElement) {
+      result.addStatus(validateVariableName(newName));
+    }
+    if (element is TypeAliasElement) {
+      result.addStatus(validateTypeAliasName(newName));
+    }
+    return result;
+  }
+
+  @override
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
+
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
+  }
+
+  void _findFlutterStateClass() {
+    var element = this.element;
+    if (element is ClassElement && element.isStatefulWidgetDeclaration) {
+      var oldStateName = '${oldName}State';
+      var library = element.library;
+      _flutterWidgetState =
+          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
+    }
+  }
+
+  void _updateFlutterWidgetStateName() {
+    var flutterWidgetState = _flutterWidgetState;
+    if (flutterWidgetState != null) {
+      var flutterWidgetStateNewName = '${newName}State';
+      // If the State was private, ensure that it stays private.
+      if (flutterWidgetState.name!.startsWith('_') &&
+          !flutterWidgetStateNewName.startsWith('_')) {
+        flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
+      }
+      _flutterWidgetStateNewName = flutterWidgetStateNewName;
+    }
+  }
+}
+
+/// The base class for the create and rename validators.
+class _BaseUnitMemberValidator {
+  final SearchEngine searchEngine;
+  final LibraryElement library;
+  final ElementKind elementKind;
+  final String name;
+
+  final RefactoringStatus result = RefactoringStatus();
+
+  new(this.searchEngine, this.library, this.elementKind, this.name);
+
+  /// Returns `true` if [element] is visible at the given [SearchMatch].
+  bool _isVisibleAt(Element element, SearchMatch at) {
+    var atLibrary = at.element.library!;
+    // may be the same library
+    if (library == atLibrary) {
+      return true;
+    }
+    // check imports
+    // TODO(enhanced-parts): This needs to look at the set of imports for the
+    //  library fragment in which the reference occurs.
+    for (var libraryImport in atLibrary.firstFragment.libraryImports) {
+      // ignore if imported with prefix
+      if (libraryImport.prefix != null) {
+        continue;
+      }
+      // check imported elements
+      if (libraryImport.namespace.definedNames2.containsValue(element)) {
+        return true;
+      }
+    }
+    // no, it is not visible
+    return false;
+  }
+
+  /// Validates if an element with the [name] will conflict with another
+  /// top-level [Element] in the same library.
+  void _validateWillConflict() {
+    for (var element in library.children) {
+      if (hasDisplayName(element, name)) {
+        var message = formatList(
+          "Library already declares {0} with name '{1}'.",
+          [getElementKindName(element), name],
+        );
+        result.addError(message, newLocation_fromElement(element));
+      }
+    }
+  }
+
+  /// Validates if renamed [element] will shadow any [Element] named [name].
+  Future<void> _validateWillShadow(Element? element) async {
+    var declarations = await searchEngine.searchMemberDeclarations(name);
+    for (var declaration in declarations) {
+      var member = declaration.element;
+      var declaringClass = member.enclosingElement as InterfaceElement;
+      var memberReferences = await searchEngine.searchReferences(member);
+      for (var memberReference in memberReferences) {
+        var refElement = memberReference.element;
+        // cannot be shadowed if qualified
+        if (memberReference.isQualified) {
+          continue;
+        }
+        // cannot be shadowed if declared in the same class as reference
+        var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
+        if (refClass == declaringClass) {
+          continue;
+        }
+        // ignore if not visible
+        if (element != null && !_isVisibleAt(element, memberReference)) {
+          continue;
+        }
+        // OK, reference will be shadowed be the element being renamed
+        var message = formatList(
+          element != null
+              ? "Renamed {0} will shadow {1} '{2}'."
+              : "Created {0} will shadow {1} '{2}'.",
+          [
+            elementKind.displayName,
+            getElementKindName(member),
+            getElementQualifiedName(member),
+          ],
+        );
+        result.addError(message, newLocation_fromMatch(memberReference));
+      }
+    }
+  }
+}
+
+/// Helper to check if the created element will cause any conflicts.
+class _CreateUnitMemberValidator extends _BaseUnitMemberValidator {
+  new(super.searchEngine, super.library, super.elementKind, super.name);
+
+  Future<RefactoringStatus> validate() async {
+    _validateWillConflict();
+    await _validateWillShadow(null);
+    return result;
+  }
+}
+
+/// Helper to check if the renamed element will cause any conflicts.
+class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
+  final Element element;
+  List<SearchMatch> references = <SearchMatch>[];
+
+  new(SearchEngine searchEngine, this.element, String name)
+    : super(searchEngine, element.library!, element.kind, name);
+
+  Future<RefactoringStatus> validate() async {
+    _validateWillConflict();
+    references = await searchEngine.searchReferences(element);
+    _validateWillBeInvisible();
+    _validateWillBeShadowed();
+    await _validateWillShadow(element);
+    return result;
+  }
+
+  /// Validates if any usage of [element] renamed to [name] will be invisible.
+  void _validateWillBeInvisible() {
+    if (!Identifier.isPrivateName(name)) {
+      return;
+    }
+    for (var reference in references) {
+      var refElement = reference.element;
+      var refLibrary = refElement.library!;
+      if (refLibrary != library) {
+        var message = formatList("Renamed {0} will be invisible in '{1}'.", [
+          getElementKindName(element),
+          getElementQualifiedName(refLibrary),
+        ]);
+        result.addError(message, newLocation_fromMatch(reference));
+      }
+    }
+  }
+
+  /// Validates if any usage of [element] renamed to [name] will be shadowed.
+  void _validateWillBeShadowed() {
+    for (var reference in references) {
+      var refElement = reference.element;
+      var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
+      if (refClass != null) {
+        visitChildren(refClass, (shadow) {
+          if (hasDisplayName(shadow, name)) {
+            var message = formatList(
+              "Reference to renamed {0} will be shadowed by {1} '{2}'.",
+              [
+                getElementKindName(element),
+                getElementKindName(shadow),
+                getElementQualifiedName(shadow),
+              ],
+            );
+            result.addError(message, newLocation_fromElement(shadow));
+          }
+          return false;
+        });
+      }
+    }
+  }
+}

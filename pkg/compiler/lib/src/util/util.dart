@@ -1,0 +1,269 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library;
+
+// ignore: implementation_imports
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB;
+
+export 'maplet.dart';
+export 'setlet.dart';
+
+/// Helper functions for creating hash codes.
+class Hashing {
+  /// If an integer is masked by this constant, the result is guaranteed to be
+  /// in Smi range.
+  static const int smiMask = 0x3fffffff;
+
+  /// Mix the bits of [value] and merge them with [existing].
+  static int mixHashCodeBits(int existing, int value) {
+    // Spread the bits of value. Try to stay in the 30-bit range to
+    // avoid overflowing into a more expensive integer representation.
+    int h = value & 0x1fffffff;
+    h += ((h & 0x3fff) << 15) ^ 0x1fffcd7d;
+    h ^= (h >> 10);
+    h += ((h & 0x3ffffff) << 3);
+    h ^= (h >> 6);
+    h += ((h & 0x7ffffff) << 2) + ((h & 0x7fff) << 14);
+    h ^= (h >> 16);
+    // Combine the two hash values.
+    int high = existing >> 15;
+    int low = existing & 0x7fff;
+    return ((high * 13) ^ (low * 997) ^ h) & smiMask;
+  }
+
+  /// Returns a hash value computed from all the characters in the string.
+  static int stringHash(String s) {
+    int hash = mixHashCodeBits(0, s.length);
+    for (int i = 0; i < s.length; i++) {
+      hash = mixHashCodeBits(hash, s.codeUnitAt(i));
+    }
+    return hash;
+  }
+
+  /// Mix the bits of `object.hashCode` with [existing].
+  static int objectHash(Object? object, [int existing = 0]) {
+    return mixHashCodeBits(existing, object.hashCode);
+  }
+
+  /// Mix the bits of `.hashCode` all non-null objects.
+  static int objectsHash(
+    Object? obj1, [
+    Object? obj2,
+    Object? obj3,
+    Object? obj4,
+    Object? obj5,
+  ]) {
+    int hash = 0;
+    if (obj5 != null) hash = objectHash(obj5, hash);
+    if (obj4 != null) hash = objectHash(obj4, hash);
+    if (obj3 != null) hash = objectHash(obj3, hash);
+    if (obj2 != null) hash = objectHash(obj2, hash);
+    return objectHash(obj1, hash);
+  }
+
+  /// Mix the bits of the element hash codes of [list] with [existing].
+  static int listHash(List<Object?>? list, [int existing = 0]) {
+    int h = existing;
+    if (list != null) {
+      int length = list.length;
+      for (int i = 0; i < length; i++) {
+        h = mixHashCodeBits(h, list[i].hashCode);
+      }
+    }
+    return h;
+  }
+
+  /// Mix the bits of the element hash codes of [iterable] with [existing].
+  static int setHash<E>(Iterable<E>? iterable, [int existing = 0]) {
+    int h = existing;
+    if (iterable != null) {
+      for (E e in iterable) {
+        h += objectsHash(e);
+      }
+    }
+    return h & smiMask;
+  }
+
+  /// Mix the bits of the hash codes of the unordered key/value from [map] with
+  /// [existing].
+  static int unorderedMapHash(Map<Object?, Object?> map, [int existing = 0]) {
+    if (map.isEmpty) return existing;
+    List<int> hashCodes = List.filled(map.length, 0);
+    int i = 0;
+    for (var entry in map.entries) {
+      hashCodes[i++] = objectHash(entry.key, objectHash(entry.value));
+    }
+    hashCodes.sort();
+    int h = existing;
+    for (int hashCode in hashCodes) {
+      h = mixHashCodeBits(h, hashCode);
+    }
+    return h;
+  }
+
+  /// Mix the bits of the key/value hash codes from [map] with [existing].
+  static int mapHash(Map<Object?, Object?> map, [int existing = 0]) {
+    int h = existing;
+    for (var key in map.keys) {
+      h = mixHashCodeBits(h, key.hashCode);
+      h = mixHashCodeBits(h, map[key].hashCode);
+    }
+    return h;
+  }
+}
+
+bool identicalElements<E>(List<E>? a, List<E>? b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (int index = 0; index < a.length; index++) {
+    if (!identical(a[index], b[index])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool equalElements<E>(List<E>? a, List<E>? b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (int index = 0; index < a.length; index++) {
+    if (a[index] != b[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool equalSets<E>(Set<E>? a, Set<E>? b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  return a.length == b.length && a.containsAll(b) && b.containsAll(a);
+}
+
+bool equalMaps<K, V>(Map<K, V>? a, Map<K, V>? b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (K key in a.keys) {
+    if (a[key] != b[key]) return false;
+  }
+  return true;
+}
+
+/// File name prefix used to shorten the file name in stack traces printed by
+/// [trace].
+String? stackTraceFilePrefix;
+
+/// Writes the characters of [string] on [buffer].  The characters
+/// are escaped as suitable for JavaScript and JSON.  [buffer] is
+/// anything which supports [:write:] and [:writeCharCode:], for example,
+/// [StringSink].  Note that JS supports \xnn and \unnnn whereas JSON only
+/// supports the \unnnn notation.  Therefore we use the \unnnn notation.
+void writeJsonEscapedCharsOn(String string, StringSink buffer) {
+  void addCodeUnitEscaped(StringSink buffer, int code) {
+    assert(code < 0x10000);
+    buffer.write(r'\u');
+    if (code < 0x1000) {
+      buffer.write('0');
+      if (code < 0x100) {
+        buffer.write('0');
+        if (code < 0x10) {
+          buffer.write('0');
+        }
+      }
+    }
+    buffer.write(code.toRadixString(16));
+  }
+
+  void writeEscapedOn(String string, StringSink buffer) {
+    for (int i = 0; i < string.length; i++) {
+      int code = string.codeUnitAt(i);
+      if (code == $DQ) {
+        buffer.write(r'\"');
+      } else if (code == $TAB) {
+        buffer.write(r'\t');
+      } else if (code == $LF) {
+        buffer.write(r'\n');
+      } else if (code == $CR) {
+        buffer.write(r'\r');
+      } else if (code == $DEL) {
+        addCodeUnitEscaped(buffer, $DEL);
+      } else if (code == $LS) {
+        // This Unicode line terminator and $PS are invalid in JS string
+        // literals.
+        addCodeUnitEscaped(buffer, $LS); // 0x2028.
+      } else if (code == $PS) {
+        addCodeUnitEscaped(buffer, $PS); // 0x2029.
+      } else if (code == $BACKSLASH) {
+        buffer.write(r'\\');
+      } else {
+        if (code < 0x20) {
+          addCodeUnitEscaped(buffer, code);
+          // We emit DEL (ASCII 0x7f) as an escape because it would be confusing
+          // to have it unescaped in a string literal.  We also escape
+          // everything above 0x7f because that means we don't have to worry
+          // about whether the web server serves it up as Latin1 or UTF-8.
+        } else if (code < 0x7f) {
+          buffer.writeCharCode(code);
+        } else {
+          // This will output surrogate pairs in the form \udxxx\udyyy, rather
+          // than the more logical \u{zzzzzz}.  This should work in JavaScript
+          // (especially old UCS-2 based implementations) and is the only
+          // format that is allowed in JSON.
+          addCodeUnitEscaped(buffer, code);
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < string.length; i++) {
+    int code = string.codeUnitAt(i);
+    if (code < 0x20 ||
+        code == $DEL ||
+        code == $DQ ||
+        code == $LS ||
+        code == $PS ||
+        code == $BACKSLASH ||
+        code >= 0x80) {
+      writeEscapedOn(string, buffer);
+      return;
+    }
+  }
+  buffer.write(string);
+}
+
+int longestCommonPrefixLength(List<Object?> a, List<Object?> b) {
+  int index = 0;
+  for (; index < a.length && index < b.length; index++) {
+    if (a[index] != b[index]) {
+      break;
+    }
+  }
+  return index;
+}
+
+/// Returns [suggestedName] if it is not in [usedNames]. Otherwise concatenates
+/// the smallest number that makes it not appear in [usedNames].
+///
+/// Adds the result to [usedNames].
+String makeUnique(
+  String suggestedName,
+  Set<String> usedNames, [
+  String separator = '',
+]) {
+  String result = suggestedName;
+  if (usedNames.contains(suggestedName)) {
+    int counter = 0;
+    while (usedNames.contains(result)) {
+      counter++;
+      result = "$suggestedName$separator$counter";
+    }
+  }
+  usedNames.add(result);
+  return result;
+}

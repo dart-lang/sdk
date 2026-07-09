@@ -1,0 +1,65 @@
+Problems reported:
+
+parser/coverage/string4:8:10: Expected ';' after this.
+  return r"""
+         ^^^^^...
+
+parser/coverage/string4:8:10: String starting with r""" must end with """.
+  return r"""
+         ^^^^^...
+
+parser/coverage/string4:7:12: Can't find '}' to match '{'.
+void bar() {
+           ^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(UnmatchedToken({), null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(foo, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString(r"""
+æbler
+æbler""")
+          endLiteralString(0, r"""
+æbler
+æbler""")
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(}, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(bar, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          beginLiteralString(r"""
+æbler""")
+          endLiteralString(0, r"""
+æbler""")
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], r"""
+æbler""", r"""
+æbler""")
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  handleErrorToken(UnterminatedString(r"""))
+  handleRecoverableError(Message[Template(UnterminatedString), String starting with r""" must end with """., null, {openQuote: r""", expectedCloseQuote: """}], UnterminatedString(r"""), UnterminatedString(r"""))
+  handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '}' to match '{'., null, {expected: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+endCompilationUnit(2, )

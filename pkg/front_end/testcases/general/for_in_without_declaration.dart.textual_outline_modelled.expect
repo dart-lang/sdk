@@ -1,0 +1,18 @@
+bool topLevelField = true;
+
+class C extends Super {
+  int instanceField = 0;
+  m() {}
+  static double staticField = 0.0;
+  static var untypedStaticField;
+  var untypedInstanceField;
+}
+
+class Super {
+  int superInstanceField = 0;
+  var untypedSuperInstanceField;
+}
+
+main() {}
+
+var untypedTopLevelField;

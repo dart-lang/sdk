@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(dynamic x) → dynamic
+  ;
+static method test2(core::Iterable<core::List<core::String>> x) → dynamic
+  ;
+static method test3(core::Iterable<dynamic> x) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;
+static method expectThrows(() → void f) → dynamic
+  ;

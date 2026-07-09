@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C0 extends core::Object {
+  constructor •(core::int? i) → self::C0
+    ;
+}
+class C1 extends core::Object {
+  constructor •(core::int? i) → self::C1
+    ;
+}
+class C2 extends core::Object {
+  field core::bool field;
+  constructor •(core::int? i) → self::C2
+    ;
+}
+class C3 extends core::Object {
+  field core::bool field;
+  constructor •(core::int? i) → self::C3
+    ;
+}

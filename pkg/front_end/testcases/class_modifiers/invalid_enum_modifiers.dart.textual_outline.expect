@@ -1,0 +1,7 @@
+base enum Base { v }
+
+final enum Final { v }
+
+interface enum Interface { v }
+
+sealed enum Sealed { v }

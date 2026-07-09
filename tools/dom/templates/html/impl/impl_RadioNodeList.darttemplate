@@ -1,0 +1,10 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+// Omit RadioNodeList for dart2js.  The Dart Form and FieldSet APIs don't
+// currently expose an API the returns RadioNodeList.  The only use of a
+// RadioNodeList is to get the selected value and it will be cleaner to
+// introduce a different API for that purpose.

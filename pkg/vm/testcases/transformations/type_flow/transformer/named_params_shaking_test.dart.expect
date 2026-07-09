@@ -1,0 +1,59 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+import "package:expect/expect.dart" as exp;
+import "dart:math" as math;
+
+import "dart:math";
+import "package:expect/expect.dart";
+
+abstract class TestNamedOrderBase extends core::Object {
+
+  [@vm.unboxing-info.metadata=(i,i,i,i)->b]
+  constructor •([@vm.inferred-arg-type.metadata=int] dynamic w, [@vm.inferred-arg-type.metadata=int] core::int? x, [@vm.inferred-arg-type.metadata=int] core::int? y, [@vm.inferred-arg-type.metadata=int] core::int? z) → self::TestNamedOrderBase
+    : super core::Object::•() {
+    self::testNamedOrder(_in::unsafeCast<core::int>(w), x, y, z);
+  }
+}
+class TestNamedOrderSub extends self::TestNamedOrderBase {
+
+  [@vm.inferred-type.metadata=int]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=(i)->i]
+  field core::int x;
+  constructor •() → self::TestNamedOrderSub
+    : self::TestNamedOrderSub::x = [@vm.inferred-type.metadata=int] self::dec(), final core::int #t1 = [@vm.inferred-type.metadata=int] self::inc(), final core::int #t2 = [@vm.inferred-type.metadata=int] self::inc(), final core::int #t3 = [@vm.inferred-type.metadata=int] self::inc(), final core::int #t4 = [@vm.inferred-type.metadata=int] self::dec(), super self::TestNamedOrderBase::•(#t1, #t4, #t3, #t2) {
+    exp::Expect::equals([@vm.direct-call.metadata=#lib::TestNamedOrderSub.x] [@vm.inferred-type.metadata=int] this.{self::TestNamedOrderSub::x}{core::int}, 0);
+  }
+}
+
+[@vm.inferred-type.metadata=int]
+[@vm.unboxing-info.metadata=(i)->i]
+static field core::int global = 0;
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=()->i]
+static method inc() → core::int
+  return self::global = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int] self::global.{core::num::+}(1){(core::num) → core::int};
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=()->i]
+static method dec() → core::int
+  return self::global = [@vm.inferred-type.metadata=int] math::max<core::int>(0, self::global = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.-] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int] self::global.{core::num::-}(1){(core::num) → core::int});
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=(i,i,i,i)->b]
+static method testNamedOrder([@vm.inferred-arg-type.metadata=int] core::int w, [@vm.inferred-arg-type.metadata=int] core::int? x, [@vm.inferred-arg-type.metadata=int] core::int? y, [@vm.inferred-arg-type.metadata=int] core::int? z) → void {
+  exp::Expect::equals(w, 1);
+  exp::Expect::equals(z, 2);
+  exp::Expect::equals(y, 3);
+  exp::Expect::equals(x, 2);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → dynamic {
+  let final core::int #t5 = [@vm.inferred-type.metadata=int] self::inc() in let final core::int #t6 = [@vm.inferred-type.metadata=int] self::inc() in let final core::int #t7 = [@vm.inferred-type.metadata=int] self::inc() in let final core::int #t8 = [@vm.inferred-type.metadata=int] self::dec() in self::testNamedOrder(#t5, #t8, #t7, #t6);
+  self::global = 1;
+  new self::TestNamedOrderSub::•();
+}

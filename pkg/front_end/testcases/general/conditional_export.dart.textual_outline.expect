@@ -1,0 +1,15 @@
+import 'conditional_export_lib1.dart' as a;
+
+import 'conditional_export_lib2.dart' as b;
+
+import 'conditional_export_lib3.dart' as c;
+
+testA(a.HttpRequest request) {}
+
+testB(b.HttpRequest request) {}
+
+testC(c.HttpRequest request) {}
+
+void main() {}
+
+expect(expected, actual) {}

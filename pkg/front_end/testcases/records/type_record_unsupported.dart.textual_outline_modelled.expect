@@ -1,0 +1,73 @@
+// @dart = 2.17
+
+import './type_record_unsupported_lib.dart';
+
+FromSupportedAR foo12() => throw '';
+
+FromSupportedR foo11() => throw '';
+
+FromSupportedRR foo13() => throw '';
+
+List<Record> foo9() => throw '';
+
+Record foo1() => throw '';
+
+abstract class A1 extends Record {}
+
+abstract class A2 implements Record {}
+
+abstract class A3 with Record {}
+
+abstract class A4 extends A<Record> {}
+
+abstract class A5 implements A<Record> {}
+
+abstract class A6 with A<Record> {}
+
+abstract class A7 extends FromSupportedR {}
+
+abstract class A8 extends FromSupportedAR {}
+
+abstract class A9 extends FromSupportedRR {}
+
+dynamic foo10(List<Record> l) => null;
+
+dynamic foo14(FromSupportedR r) => null;
+
+dynamic foo15(FromSupportedAR l) => null;
+
+dynamic foo16(FromSupportedRR l) => null;
+
+dynamic foo17() => FromSupportedR;
+
+dynamic foo18() => FromSupportedAR;
+
+dynamic foo19() => FromSupportedRR;
+
+dynamic foo2() => new Record();
+
+dynamic foo3() => const Record();
+
+dynamic foo4() => <Record>[];
+
+dynamic foo5() => Record;
+
+dynamic foo6() => List<Record>;
+
+dynamic foo7(Record r) => null;
+
+dynamic foo8({required Record r}) => null;
+
+main() {}
+
+typedef AR = A<Record>;
+
+typedef AR2 = A<FromSupportedR>;
+
+typedef AR3 = A<FromSupportedRR>;
+
+typedef AR4 = A<FromSupportedAR>;
+
+typedef R = Record;
+
+typedef RR = FromSupportedR;

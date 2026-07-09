@@ -1,0 +1,9 @@
+library test;
+
+class B<T> {
+  T x = throw '';
+}
+
+class C extends B<num> {}
+
+void main() {}

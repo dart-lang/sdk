@@ -1,0 +1,2 @@
+# Point to a non-json file. Try to use it, it should give an error.
+--packages=.packagesX

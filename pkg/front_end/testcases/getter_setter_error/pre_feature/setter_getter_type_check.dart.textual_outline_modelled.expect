@@ -1,0 +1,7 @@
+// @dart = 3.6
+
+enum E<T> {
+  element2<int>();
+
+  static void set element2(E<String> val) {}
+}

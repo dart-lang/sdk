@@ -1,0 +1,7 @@
+analyzer:
+  plugins:
+    angular2_analyzer_plugin:
+      path: /Users/pquitslund/src/git/clones/angular2-dart-analyzer/analyzer_plugin/
+      class_name: AngularAnalyzerPlugin
+      library_uri: package:angular2_analyzer_plugin/plugin.dart
+    

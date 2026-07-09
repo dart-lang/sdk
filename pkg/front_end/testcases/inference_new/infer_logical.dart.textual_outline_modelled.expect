@@ -1,0 +1,11 @@
+library test;
+
+T f<T>() => throw '';
+
+main() {}
+
+var x = f() || f();
+
+var y = f() && f();
+
+void test() {}

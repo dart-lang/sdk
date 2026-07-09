@@ -1,0 +1,3 @@
+f() { m(T<R(<Z)>)}
+
+[UnmatchedToken][UnmatchedToken][UnmatchedToken][UnmatchedToken]f[StringToken]([BeginToken])[SimpleToken] {[BeginToken] m[StringToken]([BeginToken]T[StringToken]<[BeginToken]R[StringToken]([BeginToken]<[BeginToken]Z[StringToken])[SyntheticToken]>[SyntheticToken])[SyntheticToken]}[SyntheticToken][SimpleToken]

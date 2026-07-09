@@ -1,0 +1,12 @@
+S+0 Union(size: 5)
+S+8 Union(size: 5)
+S+16 Union(size: 5)
+S+24 Union(size: 5)
+S+32 Union(size: 5)
+S+40 Union(size: 5)
+S+48 Union(size: 5)
+S+56 Union(size: 5)
+S+64 Union(size: 5)
+S+72 Union(size: 5)
+=>
+P(rdi int64, ret:rax int64) Union(size: 5)

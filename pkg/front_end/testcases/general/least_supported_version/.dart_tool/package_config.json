@@ -1,0 +1,12 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "opt_out",
+      "rootUri": "../opt_out/",
+      "packageUri": "lib/",
+      "languageVersion": "2.11"
+    }
+
+  ]
+}

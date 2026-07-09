@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class M extends core::Object {
+  synthetic constructor •() → self::M
+    ;
+}
+class A extends self::M {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::M {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends self::M {
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::D
+    ;
+}
+static method method(self::M m) → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -1,0 +1,93 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class A extends B with C implements D {}
+class A1 extends B implements D with C {}
+class A2 implements D extends B with C {}
+class A3 implements D with C extends B {}
+class A4 with C implements D extends B {}
+class A5 with C extends B implements D {}
+class A6 extends B with C implements D extends B {}
+class A7 extends B with C implements D implements D {}
+class A8 extends B with C implements D with C {}
+class A9 extends B implements D with C extends B {}
+class A10 extends B implements D with C implements D {}
+class A11 extends B implements D with C with C {}
+class A12 extends B extends B with C implements D {}
+class A13 extends B with C with C implements D {}
+class A14 extends B with C implements D implements D {}
+class A15 with D extends B {}
+class A16 implements D extends B {}
+class A17 implements D with C {}
+class A18 extends {}
+class A19 extends B with {}
+class A20 with {}
+class A21 extends B with C implements {}
+class A22 with C implements {}
+class A23 implements {}
+class A24 extends B extends {}
+class A25 with C with {}
+class A26 implements D implements {}
+
+class N = B with C implements D;
+class N1 = B implements D with C;
+class N2 = implements D extends B with C;
+class N3 = implements D with C extends B;
+class N4 = with C implements D extends B;
+class N5 = with C extends B implements D;
+class N6 = B with C implements D extends B;
+class N7 = B with C implements D implements D;
+class N8 = B with C implements D with C;
+class N9 = B implements D with C extends B;
+class N10 = B implements D with C implements D;
+class N11 = B implements D with C with C;
+class N12 = B extends B with C implements D;
+class N13 = B with C with C implements D;
+class N14 = B with C implements D implements D;
+class N15 = with D extends B;
+class N16 = implements D extends B;
+class N17 = implements D with C;
+class N18 = ;
+class N19 = B with;
+class N20 = with;
+class N21 = B with C implements;
+class N22 = with C implements;
+class N23 = implements;
+class N24 = B extends;
+class N25 = with C with;
+class N26 = implements D implements;
+
+enum E extends B with C implements D { element }
+enum E1 extends B implements D with C { element }
+enum E2 implements D extends B with C { element }
+enum E3 implements D with C extends B { element }
+enum E4 with C implements D extends B { element }
+enum E5 with C extends B implements D { element }
+enum E6 extends B with C implements D extends B { element }
+enum E7 extends B with C implements D implements D { element }
+enum E8 extends B with C implements D with C { element }
+enum E9 extends B implements D with C extends B { element }
+enum E10 extends B implements D with C implements D { element }
+enum E11 extends B implements D with C with C { element }
+enum E12 extends B extends B with C implements D { element }
+enum E13 extends B with C with C implements D { element }
+enum E14 extends B with C implements D implements D { element }
+enum E15 with D extends B { element }
+enum E16 implements D extends B { element }
+enum E17 implements D with C { element }
+enum E18 extends { element }
+enum E19 extends B with { element }
+enum E20 with { element }
+enum E21 extends B with C implements { element }
+enum E22 with C implements { element }
+enum E23 implements { element }
+enum E24 extends B extends { element }
+enum E25 with C with { element }
+enum E26 implements D implements { element }
+
+class B {}
+class C {}
+class D {}
+
+main() {}

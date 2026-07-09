@@ -1,0 +1,5 @@
+library test;
+
+void f(List<String> y) {}
+
+main() {}

@@ -1,0 +1,41 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/named_fields_clashing_with_positional.dart:8:15: Error: Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.
+// (int, {String $1}) test4() => throw 0; // Error.
+//               ^^
+//
+// pkg/front_end/testcases/records/named_fields_clashing_with_positional.dart:16:28: Error: Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.
+// (int, double, num, {String $3}) test12() => throw 0; // Error.
+//                            ^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic
+  ;
+static method test2() → dynamic
+  ;
+static method test3() → dynamic
+  ;
+static method test4() → invalid-type
+  ;
+static method test5() → ({required $1: core::bool})
+  ;
+static method test6() → (core::num, {required $2: core::double})
+  ;
+static method test7() → (core::num, {required $01: core::double})
+  ;
+static method test8() → (core::num, {required $0x1: core::double})
+  ;
+static method test9() → (core::num, core::bool, {required $01: core::double})
+  ;
+static method test10() → ({required $01: core::bool, required $0x1: core::int, required $1: core::String})
+  ;
+static method test11() → dynamic
+  ;
+static method test12() → invalid-type
+  ;
+static method main() → dynamic
+  ;

@@ -1,0 +1,97 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasImageSource$IMPLEMENTS {
+$!MEMBERS
+  /** An API for drawing on this canvas. */
+  CanvasRenderingContext2D get context2D =>
+      JS('Null|CanvasRenderingContext2D', '#.getContext(#)', this, '2d');
+
+  /**
+   * Returns a new Web GL context for this canvas.
+   *
+   * ## Other resources
+   *
+   * * [WebGL fundamentals](http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/)
+   *   from HTML5Rocks.
+   * * [WebGL homepage](http://get.webgl.org/).
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  gl.RenderingContext$NULLABLE getContext3d({alpha = true, depth = true, stencil = false,
+    antialias = true, premultipliedAlpha = true, preserveDrawingBuffer = false}) {
+
+    var options = {
+      'alpha': alpha,
+      'depth': depth,
+      'stencil': stencil,
+      'antialias': antialias,
+      'premultipliedAlpha': premultipliedAlpha,
+      'preserveDrawingBuffer': preserveDrawingBuffer,
+    };
+    var context = getContext('webgl', options);
+    if (context == null) {
+      context = getContext('experimental-webgl', options);
+    }
+    return context $#NULLSAFECAST(as gl.RenderingContext$NULLABLE);
+  }
+
+  /**
+   * Returns a data URI containing a representation of the image in the
+   * format specified by type (defaults to 'image/png').
+   *
+   * Data Uri format is as follow
+   * `data:[<MIME-type>][;charset=<encoding>][;base64],<data>`
+   *
+   * Optional parameter [quality] in the range of 0.0 and 1.0 can be used when
+   * requesting [type] 'image/jpeg' or 'image/webp'. If [quality] is not passed
+   * the default value is used. Note: the default value varies by browser.
+   *
+   * If the height or width of this canvas element is 0, then 'data:' is
+   * returned, representing no data.
+   *
+   * If the type requested is not 'image/png', and the returned value is
+   * 'data:image/png', then the requested type is not supported.
+   *
+   * Example usage:
+   *
+   *     CanvasElement canvas = new CanvasElement();
+   *     var ctx = canvas.context2D
+   *     ..fillStyle = "rgb(200,0,0)"
+   *     ..fillRect(10, 10, 55, 50);
+   *     var dataUrl = canvas.toDataUrl("image/jpeg", 0.95);
+   *     // The Data Uri would look similar to
+   *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
+   *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+   *     // 9TXL0Y4OHwAAAABJRU5ErkJggg=='
+   *     //Create a new image element from the data URI.
+   *     var img = new ImageElement();
+   *     img.src = dataUrl;
+   *     document.body.children.add(img);
+   *
+   * See also:
+   *
+   * * [Data URI Scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) from Wikipedia.
+   *
+   * * [HTMLCanvasElement](https://developer.mozilla.org/en-US/docs/DOM/HTMLCanvasElement) from MDN.
+   *
+   * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
+   */
+  String toDataUrl([String type = 'image/png', num$NULLABLE quality]) =>
+      _toDataUrl(type, quality);
+
+  @JSName('toBlob')
+  void _toBlob(BlobCallback callback, [String$NULLABLE type,
+      Object$NULLABLE arguments]) native;
+
+  Future<Blob> toBlob([String$NULLABLE type, Object$NULLABLE arguments]) {
+    var completer = new Completer<Blob>();
+      _toBlob((value) {
+        completer.complete(value);
+      }, type, arguments);
+    return completer.future;
+  }
+}

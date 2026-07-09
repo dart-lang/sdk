@@ -1,0 +1,8 @@
+class C {
+  const C(int i, String s) : r = (i + 1, name: s + "!");
+  final (num, {String name}) r;
+}
+
+expect(expected, actual) {}
+
+main() {}

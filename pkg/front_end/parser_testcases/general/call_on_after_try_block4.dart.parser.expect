@@ -1,0 +1,33 @@
+NOTICE: Stream was rewritten by parser!
+
+void main(int on) {
+try {
+;
+} catch (e) {
+;
+} on Foo {
+;
+}
+
+
+
+on *synthetic*{}*synthetic*= 42;
+}
+
+
+
+void[KeywordToken] main[StringToken]([BeginToken]int[StringToken] on[KeywordToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] catch[KeywordToken] ([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] on[KeywordToken] Foo[StringToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken]
+
+
+
+on[KeywordToken] [SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken][SyntheticStringToken]=[SimpleToken] 42[StringToken];[SimpleToken]
+}[SimpleToken]
+
+[SimpleToken]

@@ -1,0 +1,18 @@
+name: dart2js_tools
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+description: >
+  Collection of tools used with dart2js including analyzing compilation
+  information, deobfuscation of stack-traces and minified names.
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  path: any
+  source_maps: any
+  source_span: any
+  stack_trace: any

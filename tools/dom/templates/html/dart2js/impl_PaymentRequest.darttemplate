@@ -1,0 +1,34 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
+  factory PaymentRequest(List<Map> methodData, Map details,
+      [Map$NULLABLE options]) {
+    var methodData_1 = [];
+    for (var i in methodData) {
+      methodData_1.add(convertDartToNative_Dictionary(i));
+    }
+    if (options != null) {
+      var details_1 = convertDartToNative_Dictionary(details);
+      var options_2 = convertDartToNative_Dictionary(options);
+      return PaymentRequest._create_1(methodData_1, details_1, options_2);
+    }
+    var details_1 = convertDartToNative_Dictionary(details);
+    return PaymentRequest._create_2(methodData_1, details_1);
+  }
+
+  static PaymentRequest _create_1(methodData, details, options) => JS(
+      'PaymentRequest',
+      'new PaymentRequest(#,#,#)',
+      methodData,
+      details,
+      options);
+  static PaymentRequest _create_2(methodData, details) =>
+      JS('PaymentRequest', 'new PaymentRequest(#,#)', methodData, details);
+
+$!MEMBERS
+}
+

@@ -1,0 +1,48 @@
+class HasIndexGet {
+  operator [](_) {}
+}
+
+class HasIndexGetSet {
+  operator [](_) {}
+  operator []=(_, _) {}
+}
+
+class HasIndexSet {
+  operator []=(_, _) {}
+}
+
+class HasNone {}
+
+explicit(
+  HasNone hasNone,
+  HasIndexGet hasIndexGet,
+  HasIndexSet hasIndexSet,
+  HasIndexGetSet hasIndexGetSet,
+) {}
+
+extension HasIndexGetExtension on HasIndexGet {
+  operator [](_) {}
+  operator []=(_, _) {}
+}
+
+extension HasIndexGetSetExtension on HasIndexGetSet {
+  operator [](_) {}
+  operator []=(_, _) {}
+}
+
+extension HasIndexSetExtension on HasIndexSet {
+  operator [](_) {}
+  operator []=(_, _) {}
+}
+
+extension HasNoneExtension on HasNone {
+  operator [](_) {}
+  operator []=(_, _) {}
+}
+
+implicit(
+  HasNone hasNone,
+  HasIndexGet hasIndexGet,
+  HasIndexSet hasIndexSet,
+  HasIndexGetSet hasIndexGetSet,
+) {}

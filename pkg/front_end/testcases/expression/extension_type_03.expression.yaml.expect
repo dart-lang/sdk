@@ -1,0 +1,4 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(#lib1::Foo% /* erasure=dart.core::int, declared=! */ f, dart.core::List<#lib1::Foo% /* erasure=dart.core::int, declared=! */> foos) → dynamic
+  return foos.{dart.core::Iterable::first}{#lib1::Foo% /* erasure=dart.core::int, declared=! */} as{Unchecked} dart.core::int;

@@ -1,0 +1,129 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:6:14: Error: The 'external-effect' pragma can only be applied to methods.
+// Try removing the pragma or applying it to a method.
+// external int a;
+//              ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:9:18: Error: The 'external-effect' pragma can only be applied to methods.
+// Try removing the pragma or applying it to a method.
+// external int get b;
+//                  ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:12:14: Error: The 'external-effect' pragma can only be applied to methods.
+// Try removing the pragma or applying it to a method.
+// external set c(int value);
+//              ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:15:6: Error: A function annotated with the 'external-effect' pragma must be external.
+// Try making the function external.
+// void d(Object? o) {}
+//      ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:18:15: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+// external void e(Object o);
+//               ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:27:17: Error: A function annotated with the 'external-effect' pragma must be static.
+// Try making the function static.
+//   external void a(Object? o);
+//                 ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:30:23: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+//   external static int b(Object? o);
+//                       ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:33:24: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+//   external static void c(Object? o, Object? x);
+//                        ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:36:24: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+//   external static void d(int i);
+//                        ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:39:24: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+//   external static void e([Object? o = const Object()]);
+//                        ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:42:24: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+//   external static void f({required Object? o});
+//                        ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:45:24: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+//   external static void g({Object? o = 3});
+//                        ^
+//
+// pkg/front_end/testcases/external_effect/invalid_annotations.dart:48:24: Error: A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'
+// Try correcting the type of the function.
+//   external static void h<T>(T? t);
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external method a(core::Object? o) → void;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static method b(core::Object? o) → core::int;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static method c(core::Object? o, core::Object? x) → void;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static method d(core::int i) → void;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static method e([has-declared-initializer core::Object? o]) → void;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static method f({required core::Object? o}) → void;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static method g({has-declared-initializer core::Object? o}) → void;
+  @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+  external static method h<T extends core::Object? = dynamic>(self::A::h::T? t) → void;
+}
+static const field core::String z = "external-effect";
+@/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+external static get a() → core::int;
+@/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+external static set a(synthesized core::int #externalFieldValue) → void;
+@/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+external static get b() → core::int;
+@/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+external static set c(core::int value) → void;
+@/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+static method d(core::Object? o) → void
+  ;
+@/*original=core::pragma::•*/ const core::pragma::_("external-effect")
+external static method e(core::Object o) → void;
+@/*original=core::pragma::•*/ const core::pragma::_(self::z)
+external static method f(core::Object? o) → void;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:26:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:29:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:32:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:35:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:38:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:41:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:44:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:47:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:5:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:5:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:8:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:11:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:14:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:17:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:22:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Extra constant evaluation: evaluated: 15, effectively constant: 15

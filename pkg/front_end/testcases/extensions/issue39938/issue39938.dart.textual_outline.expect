@@ -1,0 +1,5 @@
+import 'issue39938_lib.dart';
+
+main() {}
+
+expect(expected, actual) {}

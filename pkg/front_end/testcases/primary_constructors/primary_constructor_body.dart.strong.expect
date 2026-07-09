@@ -1,0 +1,57 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •() → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  constructor •() → self::C2
+    : assert(true), super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  constructor •() → self::C3
+    : super core::Object::•() {
+    core::print(0);
+  }
+}
+class C4 extends core::Object {
+  constructor •() → self::C4
+    : assert(true), super core::Object::•() {
+    core::print(0);
+  }
+}
+class C5 extends core::Object {
+  @#C1
+  constructor •() → self::C5
+    : super core::Object::•()
+    ;
+}
+class C6 extends core::Object {
+  @#C1
+  constructor •() → self::C6
+    : assert(true), super core::Object::•()
+    ;
+}
+class C7 extends core::Object {
+  @#C1
+  constructor •() → self::C7
+    : super core::Object::•() {
+    core::print(0);
+  }
+}
+class C8 extends core::Object {
+  @#C1
+  constructor •() → self::C8
+    : assert(true), super core::Object::•() {
+    core::print(0);
+  }
+}
+static const field core::int a = #C1;
+
+constants  {
+  #C1 = 1
+}

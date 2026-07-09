@@ -1,0 +1,8 @@
+abstract class A<T> {
+  T baz();
+  bar(T value) {}
+  barInt(int value) {}
+  foo() {}
+}
+
+main() {}

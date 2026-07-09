@@ -1,0 +1,17 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    # This directory isn't intended to be analyzed.
+    - sdks/**
+    # There are a fair number of issues in here.
+    - dart2js/**
+    - dom/**
+    - test_generators/**
+  language:
+    strict-inference: true
+
+linter:
+  rules:
+    - comment_references
+    - directives_ordering

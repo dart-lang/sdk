@@ -1,0 +1,13 @@
+f() {
+try {
+true ? : 2;
+} catch (e) {}
+}
+
+
+f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]
+true[KeywordToken] ?[SimpleToken] :[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken] catch[KeywordToken] ([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,550 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#include "platform/globals.h"
+#if defined(DART_HOST_OS_WINDOWS)
+
+#include "bin/socket_base.h"
+
+#include "bin/builtin.h"
+#include "bin/eventhandler.h"
+#include "bin/file.h"
+#include "bin/lockers.h"
+#include "bin/socket_base_win.h"
+#include "bin/thread.h"
+#include "bin/utils.h"
+#include "bin/utils_win.h"
+#include "platform/syslog.h"
+
+namespace dart {
+namespace bin {
+
+SocketAddress::SocketAddress(const RawAddr& addr) : addr_(addr) {
+  if (addr.is_unnamed_unix_socket()) {
+    as_string_[0] = 0;
+  } else if (addr.ss.ss_family == AF_UNIX) {
+    memmove(as_string_, addr.un.sun_path, sizeof(addr.un.sun_path));
+  } else {
+    int err = SocketBase::FormatNumericAddress(addr, as_string_,
+                                               kMaxAddressStringLength);
+
+    if (err != 0) {
+      as_string_[0] = 0;
+    }
+  }
+}
+
+static Mutex* init_mutex = new Mutex();
+static bool socket_initialized = false;
+
+bool SocketBase::Initialize() {
+  MutexLocker lock(init_mutex);
+  if (socket_initialized) {
+    return true;
+  }
+  int err;
+  WSADATA winsock_data;
+  WORD version_requested = MAKEWORD(2, 2);
+  err = WSAStartup(version_requested, &winsock_data);
+  if (err == 0) {
+    socket_initialized = true;
+  } else {
+    Syslog::PrintErr("Unable to initialize Winsock: %d\n", WSAGetLastError());
+  }
+  return (err == 0);
+}
+
+bool SocketBase::FormatNumericAddress(const RawAddr& addr,
+                                      char* address,
+                                      int len) {
+  RawAddr& raw = const_cast<RawAddr&>(addr);
+  wchar_t buf[SocketAddress::kMaxAddressStringLength];
+  DWORD result_len = ARRAY_SIZE(buf);
+  intptr_t result =
+      WSAAddressToStringW(&raw.addr, raw.size, nullptr, buf, &result_len);
+  if (result != 0) {
+    return true;
+  }
+  WideToUtf8Scope wide_name(buf);
+  strncpy(address, wide_name.utf8(), len);
+  return false;
+}
+
+intptr_t SocketBase::Available(intptr_t fd) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
+  return client_socket->Available();
+}
+
+intptr_t SocketBase::Read(intptr_t fd,
+                          void* buffer,
+                          intptr_t num_bytes,
+                          SocketOpKind sync) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->Read(buffer, num_bytes);
+}
+
+intptr_t SocketBase::RecvFrom(intptr_t fd,
+                              void* buffer,
+                              intptr_t num_bytes,
+                              RawAddr* addr,
+                              SocketOpKind sync) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->RecvFrom(buffer, num_bytes, addr);
+}
+
+bool SocketControlMessage::is_file_descriptors_control_message() {
+  return false;
+}
+
+intptr_t SocketBase::ReceiveMessage(intptr_t fd,
+                                    void* buffer,
+                                    int64_t* p_buffer_num_bytes,
+                                    SocketControlMessage** p_messages,
+                                    SocketOpKind sync,
+                                    OSError* p_oserror) {
+  errno = ENOSYS;
+  return -1;
+}
+
+bool SocketBase::AvailableDatagram(intptr_t fd,
+                                   void* buffer,
+                                   intptr_t num_bytes) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
+  return client_socket->DataReady();
+}
+
+bool SocketBase::HasPendingWrite(intptr_t fd) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->HasPendingWrite();
+}
+
+intptr_t SocketBase::Write(intptr_t fd,
+                           const void* buffer,
+                           intptr_t num_bytes,
+                           SocketOpKind sync) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->Write(buffer, num_bytes);
+}
+
+intptr_t SocketBase::SendTo(intptr_t fd,
+                            const void* buffer,
+                            intptr_t num_bytes,
+                            const RawAddr& addr,
+                            SocketOpKind sync) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  RawAddr& raw = const_cast<RawAddr&>(addr);
+  return handle->SendTo(buffer, num_bytes, raw);
+}
+
+intptr_t SocketBase::SendMessage(intptr_t fd,
+                                 void* buffer,
+                                 size_t num_bytes,
+                                 SocketControlMessage* messages,
+                                 intptr_t num_messages,
+                                 SocketOpKind sync,
+                                 OSError* p_oserror) {
+  errno = ENOSYS;
+  return -1;
+}
+
+bool SocketBase::GetSocketName(intptr_t fd, RawAddr* raw) {
+  ASSERT(fd >= 0);
+  ASSERT(raw != nullptr);
+  return getsockname(fd, &raw->addr, &raw->size) != SOCKET_ERROR;
+}
+
+intptr_t SocketBase::GetPort(intptr_t fd) {
+  ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
+  SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
+  RawAddr raw;
+  if (getsockname(socket_handle->socket(), &raw.addr, &raw.size) ==
+      SOCKET_ERROR) {
+    return 0;
+  }
+  return SocketAddress::GetAddrPort(raw);
+}
+
+SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
+  ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
+  SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
+  RawAddr raw;
+  if (socket_handle->is_client_socket() &&
+      reinterpret_cast<ClientSocket*>(fd)->PopulateRemoteAddr(raw)) {
+    // `raw` was populated by `ClientSocket::PopulateRemoteAddr`.
+  } else {
+    if (getpeername(socket_handle->socket(), &raw.addr, &raw.size)) {
+      return nullptr;
+    }
+  }
+  *port = SocketAddress::GetAddrPort(raw);
+  // Clear the port before calling WSAAddressToString as WSAAddressToString
+  // includes the port in the formatted string.
+  if (raw.ss.ss_family != AF_UNIX) {
+    SocketAddress::SetAddrPort(&raw, 0);
+  }
+  return new SocketAddress(raw);
+}
+
+bool SocketBase::IsBindError(intptr_t error_number) {
+  return error_number == WSAEADDRINUSE || error_number == WSAEADDRNOTAVAIL ||
+         error_number == WSAEINVAL;
+}
+
+void SocketBase::GetError(intptr_t fd, OSError* os_error) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  os_error->SetCodeAndMessage(OSError::kSystem, handle->last_error());
+}
+
+int SocketBase::GetType(intptr_t fd) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  switch (GetFileType(handle->handle())) {
+    case FILE_TYPE_CHAR:
+      return File::kTerminal;
+    case FILE_TYPE_PIPE:
+      return File::kPipe;
+    case FILE_TYPE_DISK:
+      return File::kFile;
+    default:
+      return GetLastError() == NO_ERROR ? File::kOther : -1;
+  }
+}
+
+intptr_t SocketBase::GetStdioHandle(intptr_t num) {
+  if (num != 0) {
+    return -1;
+  }
+  HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+  if (handle == INVALID_HANDLE_VALUE) {
+    return -1;
+  }
+  StdHandle* std_handle = StdHandle::Stdin(handle);
+  std_handle->Retain();
+  return reinterpret_cast<intptr_t>(std_handle);
+}
+
+AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
+                                                      int type,
+                                                      OSError** os_error) {
+  Initialize();
+
+  // Perform a name lookup for a host name.
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = SocketAddress::FromType(type);
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_ADDRCONFIG;
+  hints.ai_protocol = IPPROTO_TCP;
+
+  // Check if host is valid dotted-quad IPv4 address or valid IPv6 address.
+  struct in_addr ipv4_bin;
+  struct in6_addr ipv6_bin;
+  if (inet_pton(AF_INET, host, &ipv4_bin) == 1) {
+    // If it is a valid strict IPv4, parse it safely as a numeric host.
+    hints.ai_family = AF_INET;
+    hints.ai_flags |= AI_NUMERICHOST;  // Safe local parsing
+  } else if (inet_pton(AF_INET6, host, &ipv6_bin) == 1) {
+    // 2. If it is a valid strict IPv6, parse it safely as a numeric host.
+    hints.ai_family = AF_INET6;
+    hints.ai_flags |= AI_NUMERICHOST;  // Safe local parsing
+  } else if (inet_addr(host) != INADDR_NONE) {
+    // Reject legacy inet_aton strings (like "127.1", "0x7f.1")
+    // If inet_aton accepts and inet_pton does not, it's a malformed IP.
+    ASSERT(*os_error == nullptr);
+    SetLastError(WSAHOST_NOT_FOUND);
+    *os_error = new OSError();
+    return nullptr;
+  }
+
+  struct addrinfo* info = nullptr;
+  int status = getaddrinfo(host, 0, &hints, &info);
+  if (status != 0) {
+    // We failed, try without AI_ADDRCONFIG. This can happen when looking up
+    // e.g. '::1', when there are no global IPv6 addresses.
+    hints.ai_flags = 0;
+    status = getaddrinfo(host, 0, &hints, &info);
+  }
+  if (status != 0) {
+    ASSERT(*os_error == nullptr);
+    DWORD error_code = WSAGetLastError();
+    SetLastError(error_code);
+    *os_error = new OSError();
+    return nullptr;
+  }
+  intptr_t count = 0;
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
+    if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
+      count++;
+    }
+  }
+  AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
+  intptr_t i = 0;
+  for (struct addrinfo* c = info; c != nullptr; c = c->ai_next) {
+    if ((c->ai_family == AF_INET) || (c->ai_family == AF_INET6)) {
+      RawAddr raw;
+      memmove(&raw.addr, c->ai_addr, c->ai_addrlen);
+      raw.size = c->ai_addrlen;
+
+      addresses->SetAt(i, new SocketAddress(raw));
+      i++;
+    }
+  }
+  freeaddrinfo(info);
+  return addresses;
+}
+
+bool SocketBase::ReverseLookup(const RawAddr& addr,
+                               char* host,
+                               intptr_t host_len,
+                               OSError** os_error) {
+  ASSERT(host_len >= NI_MAXHOST);
+  int status = getnameinfo(&addr.addr, addr.size, host, host_len, nullptr, 0,
+                           NI_NAMEREQD);
+  if (status != 0) {
+    ASSERT(*os_error == nullptr);
+    DWORD error_code = WSAGetLastError();
+    SetLastError(error_code);
+    *os_error = new OSError();
+    return false;
+  }
+  return true;
+}
+
+bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
+  int result;
+  const auto system_address = Utf8ToWideChar(address);
+  if (type == SocketAddress::TYPE_IPV4) {
+    result = InetPton(AF_INET, system_address.get(), &addr->in.sin_addr);
+  } else {
+    ASSERT(type == SocketAddress::TYPE_IPV6);
+    result = InetPton(AF_INET6, system_address.get(), &addr->in6.sin6_addr);
+  }
+  return result == 1;
+}
+
+bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
+  wchar_t tmp_buffer[SocketAddress::kMaxAddressStringLength];
+  if (addr->addr.sa_family == AF_INET) {
+    if (InetNtop(AF_INET, &addr->in.sin_addr, tmp_buffer,
+                 ARRAY_SIZE(tmp_buffer)) == nullptr) {
+      return false;
+    }
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    if (InetNtop(AF_INET6, &addr->in6.sin6_addr, tmp_buffer,
+                 ARRAY_SIZE(tmp_buffer)) == nullptr) {
+      return false;
+    }
+  }
+  WideToUtf8Scope wide_to_utf8_scope(tmp_buffer);
+  if (wide_to_utf8_scope.length() < SocketAddress::kMaxAddressStringLength) {
+    strncpy(str, wide_to_utf8_scope.utf8(),
+            SocketAddress::kMaxAddressStringLength);
+    return true;
+  }
+  return false;
+}
+
+AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
+    int type,
+    OSError** os_error) {
+  Initialize();
+
+  ULONG size = 0;
+  DWORD flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST |
+                GAA_FLAG_SKIP_DNS_SERVER;
+  // Query the size needed.
+  int status = GetAdaptersAddresses(SocketAddress::FromType(type), flags,
+                                    nullptr, nullptr, &size);
+  IP_ADAPTER_ADDRESSES* addrs = nullptr;
+  if (status == ERROR_BUFFER_OVERFLOW) {
+    addrs = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(malloc(size));
+    // Get the addresses now we have the right buffer.
+    status = GetAdaptersAddresses(SocketAddress::FromType(type), flags, nullptr,
+                                  addrs, &size);
+  }
+  if (status != NO_ERROR) {
+    ASSERT(*os_error == nullptr);
+    DWORD error_code = WSAGetLastError();
+    SetLastError(error_code);
+    *os_error = new OSError();
+    return nullptr;
+  }
+  intptr_t count = 0;
+  for (IP_ADAPTER_ADDRESSES* a = addrs; a != nullptr; a = a->Next) {
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != nullptr;
+         u = u->Next) {
+      count++;
+    }
+  }
+  AddressList<InterfaceSocketAddress>* addresses =
+      new AddressList<InterfaceSocketAddress>(count);
+  intptr_t i = 0;
+  for (IP_ADAPTER_ADDRESSES* a = addrs; a != nullptr; a = a->Next) {
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != nullptr;
+         u = u->Next) {
+      ASSERT(type != AF_INET || a->Flags & IP_ADAPTER_IPV4_ENABLED);
+      ASSERT(type != AF_INET6 || a->Flags & IP_ADAPTER_IPV6_ENABLED);
+      ASSERT(a->IfIndex == a->Ipv6IfIndex ||
+             !(a->Flags & IP_ADAPTER_IPV4_ENABLED) ||
+             !(a->Flags & IP_ADAPTER_IPV6_ENABLED));
+      addresses->SetAt(i, new InterfaceSocketAddress(
+                              RawAddr::FromInet4or6(u->Address.lpSockaddr),
+                              StringUtilsWin::WideToUtf8(a->FriendlyName),
+                              a->Ipv6IfIndex != 0 ? a->Ipv6IfIndex : a->IfIndex,
+                              u->OnLinkPrefixLength));
+      i++;
+    }
+  }
+  free(addrs);
+  return addresses;
+}
+
+void SocketBase::Close(intptr_t fd) {
+  ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
+  client_socket->Close();
+}
+
+bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int on;
+  socklen_t len = sizeof(on);
+  int err = getsockopt(handle->socket(), IPPROTO_TCP, TCP_NODELAY,
+                       reinterpret_cast<char*>(&on), &len);
+  if (err == 0) {
+    *enabled = (on == 1);
+  }
+  return (err == 0);
+}
+
+bool SocketBase::SetNoDelay(intptr_t fd, bool enabled) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int on = enabled ? 1 : 0;
+  return setsockopt(handle->socket(), IPPROTO_TCP, TCP_NODELAY,
+                    reinterpret_cast<char*>(&on), sizeof(on)) == 0;
+}
+
+bool SocketBase::GetMulticastLoop(intptr_t fd,
+                                  intptr_t protocol,
+                                  bool* enabled) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  uint8_t on;
+  socklen_t len = sizeof(on);
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_LOOP
+                                                     : IPV6_MULTICAST_LOOP;
+  if (getsockopt(handle->socket(), level, optname, reinterpret_cast<char*>(&on),
+                 &len) == 0) {
+    *enabled = (on == 1);
+    return true;
+  }
+  return false;
+}
+
+bool SocketBase::SetMulticastLoop(intptr_t fd,
+                                  intptr_t protocol,
+                                  bool enabled) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int on = enabled ? 1 : 0;
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_LOOP
+                                                     : IPV6_MULTICAST_LOOP;
+  return setsockopt(handle->socket(), level, optname,
+                    reinterpret_cast<char*>(&on), sizeof(on)) == 0;
+}
+
+bool SocketBase::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  uint8_t v;
+  socklen_t len = sizeof(v);
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_TTL
+                                                     : IPV6_MULTICAST_HOPS;
+  if (getsockopt(handle->socket(), level, optname, reinterpret_cast<char*>(&v),
+                 &len) == 0) {
+    *value = v;
+    return true;
+  }
+  return false;
+}
+
+bool SocketBase::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int v = value;
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_TTL
+                                                     : IPV6_MULTICAST_HOPS;
+  return setsockopt(handle->socket(), level, optname,
+                    reinterpret_cast<char*>(&v), sizeof(v)) == 0;
+}
+
+bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int on;
+  socklen_t len = sizeof(on);
+  int err = getsockopt(handle->socket(), SOL_SOCKET, SO_BROADCAST,
+                       reinterpret_cast<char*>(&on), &len);
+  if (err == 0) {
+    *enabled = (on == 1);
+  }
+  return (err == 0);
+}
+
+bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int on = enabled ? 1 : 0;
+  return setsockopt(handle->socket(), SOL_SOCKET, SO_BROADCAST,
+                    reinterpret_cast<char*>(&on), sizeof(on)) == 0;
+}
+
+bool SocketBase::SetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           const char* data,
+                           int length) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  return setsockopt(handle->socket(), level, option, data, length) == 0;
+}
+
+bool SocketBase::GetOption(intptr_t fd,
+                           int level,
+                           int option,
+                           char* data,
+                           unsigned int* length) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int optlen = static_cast<int>(*length);
+  auto result = getsockopt(handle->socket(), level, option, data, &optlen);
+  *length = static_cast<unsigned int>(optlen);
+  return result == 0;
+}
+
+bool SocketBase::JoinMulticast(intptr_t fd,
+                               const RawAddr& addr,
+                               const RawAddr&,
+                               int interfaceIndex) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  struct group_req mreq;
+  mreq.gr_interface = interfaceIndex;
+  memmove(&mreq.gr_group, &addr.ss, addr.size);
+  return setsockopt(handle->socket(), proto, MCAST_JOIN_GROUP,
+                    reinterpret_cast<char*>(&mreq), sizeof(mreq)) == 0;
+}
+
+bool SocketBase::LeaveMulticast(intptr_t fd,
+                                const RawAddr& addr,
+                                const RawAddr&,
+                                int interfaceIndex) {
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+  struct group_req mreq;
+  mreq.gr_interface = interfaceIndex;
+  memmove(&mreq.gr_group, &addr.ss, addr.size);
+  return setsockopt(handle->socket(), proto, MCAST_LEAVE_GROUP,
+                    reinterpret_cast<char*>(&mreq), sizeof(mreq)) == 0;
+}
+
+}  // namespace bin
+}  // namespace dart
+
+#endif  // defined(DART_HOST_OS_WINDOWS)

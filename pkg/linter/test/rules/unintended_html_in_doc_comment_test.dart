@@ -1,0 +1,267 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UnintendedHtmlInDocCommentTest);
+  });
+}
+
+@reflectiveTest
+class UnintendedHtmlInDocCommentTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.unintended_html_in_doc_comment;
+
+  test_autolink() async {
+    await assertNoDiagnostics(r'''
+/// <http://foo.bar.baz>
+class C {}
+''');
+  }
+
+  test_codeBlock_fenced() async {
+    await assertNoDiagnostics(r'''
+/// ```dart
+/// List<int>
+/// test comment
+/// Iterable<bool>
+/// ```
+class C {}
+''');
+  }
+
+  test_codeBlock_indented() async {
+    await assertNoDiagnostics(r'''
+/// Example:
+///
+///     var x = List<int>();
+///
+class C {}
+''');
+  }
+
+  test_codeSpan() async {
+    await assertNoDiagnostics(r'''
+/// `List<int> <tag>`
+class C {}
+''');
+  }
+
+  test_codeSpan_backSlashEscaped() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// \\\`List/*[0*/<int>/*0]*/ /*[1*/<tag>/*1]*/`
+class C {}
+''');
+  }
+
+  test_codeSpan_longQuote() async {
+    await assertNoDiagnostics(r'''
+/// The ```List<int> <tag> and `<tag>` example```
+class C {}
+''');
+  }
+
+  test_codeSpan_multiple() async {
+    await assertNoDiagnostics(r'''
+/// `<` or `>`
+class C {}
+''');
+  }
+
+  test_codeSpan_unterminated() async {
+    // An unterminated long code span has no effect.
+    await assertDiagnosticsFromMarkup(r'''
+/// A ```List[!<int>!] and quoted `<tag>` example
+class C {}
+''');
+  }
+
+  test_hangingAngleBracket_left() async {
+    await assertNoDiagnostics(r'''
+/// n < 12
+class C {}
+''');
+  }
+
+  test_hangingAngleBracket_right() async {
+    await assertNoDiagnostics(r'''
+/// n > 12
+class C {}
+''');
+  }
+
+  test_html_cData() async {
+    await assertNoDiagnostics(r'''
+/// <[CDATA[aaa]]>
+class C {}
+''');
+  }
+
+  test_html_cData_nested() async {
+    await assertNoDiagnostics(r'''
+/// <[CDATA[<bad>]]>
+class C {}
+''');
+  }
+
+  test_html_comment() async {
+    await assertNoDiagnostics(r'''
+/// <!--comment-->
+class C {}
+''');
+  }
+
+  test_html_comment_nested() async {
+    await assertNoDiagnostics(r'''
+/// <!--<bad>-->
+class C {}
+''');
+  }
+
+  test_html_declaration() async {
+    await assertNoDiagnostics(r'''
+/// <!DOCTYPE html>
+class C {}
+''');
+  }
+
+  test_html_processingInstruction() async {
+    await assertNoDiagnostics(r'''
+/// <?aaa?>
+class C {}
+''');
+  }
+
+  test_html_processingInstruction_nested() async {
+    await assertNoDiagnostics(r'''
+/// <?<bad>?>
+class C {}
+''');
+  }
+
+  test_html_tags_valid() async {
+    await assertNoDiagnostics(r'''
+/// <table class="properties">
+/// <th scope="row">
+/// <br />
+/// <h1> Test. </h1>
+class C {}
+''');
+  }
+
+  test_notDocComment() async {
+    await assertNoDiagnostics(r'''
+// List<int> <tag>
+class C {}
+''');
+  }
+
+  test_notHtml_space() async {
+    await assertNoDiagnostics(r'''
+/// n < 0 || n > 512
+class C {}
+''');
+  }
+
+  test_unintendedHtml() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Text List[!<int>!].
+class C {}
+''');
+  }
+
+  test_unintendedHtml_javaDoc() async {
+    await assertDiagnosticsFromMarkup(r'''
+/** Text List[!<int>!]. */
+class C {}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_codeSpan() async {
+    await assertNoDiagnostics(r'''
+/** Text `List<int>`. */
+class C {}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline() async {
+    await assertDiagnosticsFromMarkup(r'''
+/**
+ *  Text List[!<int>!].
+ */
+class C {}
+''');
+  }
+
+  test_unintendedHtml_multipleDocComments() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Text List.
+class A {}
+
+/// Text List[!<int>!].
+class C {}
+''');
+  }
+
+  test_unintendedHtml_multipleLines() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Text List.
+/// Text List[!<int>!].
+class C {}
+''');
+  }
+
+  test_unintendedHtml_nested() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Text List[!<List<int>!]>.
+class C {}
+''');
+  }
+
+  test_unintendedHtml_reference_withTypeArgument() async {
+    await assertNoDiagnostics(r'''
+/// Text [List<int>].
+class C {}
+''');
+  }
+
+  test_unintendedHtml_spaces() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Text [!<your name here>!].
+class C {}
+''');
+  }
+
+  test_unintendedHtml_tags_slash() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// /*[0*/</bad>/*0]*/ /*[1*/<bad/>/*1]*/
+class C {}
+''');
+  }
+
+  test_unintendedHtml_tagsEntity() async {
+    await assertNoDiagnostics(r'''
+/// &lt;assignment&gt; -> &lt;variable&gt; = &lt;expression&gt;
+class C {}
+''');
+  }
+
+  test_unintendedHtml_tagsEscaped() async {
+    await assertNoDiagnostics(r'''
+/// \<assignment\> -> \<variable\> = \<expression\>
+class C {}
+''');
+  }
+
+  test_unintendedHtml_tagsMultiple() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// /*[0*/<assignment>/*0]*/ -> /*[1*/<variable>/*1]*/ = /*[2*/<expression>/*2]*/
+class C {}
+''');
+  }
+}

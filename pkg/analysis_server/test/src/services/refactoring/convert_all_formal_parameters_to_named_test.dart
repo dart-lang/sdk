@@ -1,0 +1,468 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'refactoring_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertAllFormalParametersToNamedTest);
+  });
+}
+
+@reflectiveTest
+class ConvertAllFormalParametersToNamedTest extends RefactoringTest {
+  @override
+  String get refactoringCommandId =>
+      ConvertAllFormalParametersToNamed.commandName;
+
+  Future<void> test_constructor_factoryKeyword() async {
+    addTestSource(r'''
+class A {
+  new _();
+  ^factory(int a, {int? b}) => A._();
+}
+
+void f() {
+  A(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new _();
+  factory({required int a, int? b}) => A._();
+}
+
+void f() {
+  A(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_named_factoryKeyword() async {
+    addTestSource(r'''
+class A {
+  new();
+  factory ^named(int a, {int? b}) => A();
+}
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new();
+  factory named({required int a, int? b}) => A();
+}
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_named_factoryKeyword_keyword() async {
+    addTestSource(r'''
+class A {
+  new();
+  ^factory named(int a, {int? b}) => A();
+}
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new();
+  factory named({required int a, int? b}) => A();
+}
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_named_newKeyword() async {
+    addTestSource(r'''
+class A {
+  new ^named(int a, {int? b});
+}
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new named({required int a, int? b});
+}
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_newKeyword() async {
+    addTestSource(r'''
+class A {
+  ^new(int a, {int? b});
+}
+
+void f() {
+  A(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new({required int a, int? b});
+}
+
+void f() {
+  A(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_formalParameters_empty() async {
+    addTestSource(r'''
+void ^test() {}
+
+void f() {
+  test();
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_formalParameters_optionalNamed() async {
+    addTestSource(r'''
+void ^test(int a, {int? b}) {}
+
+void f() {
+  test(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+void test({required int a, int? b}) {}
+
+void f() {
+  test(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_formalParameters_optionalPositional() async {
+    addTestSource(r'''
+void ^test([int a]) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+void test({required int a}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+  }
+
+  Future<void> test_formalParameters_requiredNamed() async {
+    addTestSource(r'''
+void ^test({required int? a}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_formalParameters_requiredPositional() async {
+    addTestSource(r'''
+void ^test(int a) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+void test({required int a}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+  }
+
+  Future<void> test_multiple_files() async {
+    // TODO(scheglov): Unify behind `testPackageLibPath`
+    var a = getFile('$projectFolderPath/lib/a.dart');
+    newFile(a.path, r'''
+import 'main.dart';
+
+void f2() {
+  test(1);
+}
+''');
+
+    addTestSource(r'''
+void ^test(int a) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/a.dart
+import 'main.dart';
+
+void f2() {
+  test(a: 1);
+}
+>>>>>>>>>> lib/main.dart
+void test({required int a}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+  }
+
+  Future<void> test_noTarget_argument() async {
+    addTestSource(r'''
+void test(int a) {}
+
+void f() {
+  test(42^);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_noTarget_returnType() async {
+    addTestSource(r'''
+^void test(int a) {}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_primaryConstructor() async {
+    addTestSource(r'''
+class ^A(int a, {int? b});
+
+void f() {
+  A(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A({required int a, int? b});
+
+void f() {
+  A(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    addTestSource(r'''
+class A.^named(int a, {int? b});
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A.named({required int a, int? b});
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_private_constructor() async {
+    addTestSource(r'''
+class C {
+  int? _a;
+  int? _b;
+
+  ^C(this._a, {this._b});
+}
+
+void f() {
+  C(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class C {
+  int? _a;
+  int? _b;
+
+  C({required this._a, this._b});
+}
+
+void f() {
+  C(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_private_constructor_unsupported() async {
+    addTestSource(r'''
+// @dart=3.10
+class C {
+  int? _a;
+  int? _b;
+
+  ^C(this._a, {int? b}) : _b = b;
+}
+
+void f() {
+  C(0, b: 1);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_private_function() async {
+    // Functions can't have private named parameters, so the refactoring can't
+    // be applied.
+    addTestSource(r'''
+^test(int _a, int _b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_private_function_unsupported() async {
+    // Functions can't have private named parameters, so the refactoring can't
+    // be applied.
+    addTestSource(r'''
+// @dart=3.10
+^test(int _a, int _b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
+  Future<void> test_private_primaryConstructor() async {
+    addTestSource(r'''
+class ^C(this._a, {this._b});
+
+void f() {
+  C(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class C({required this._a, this._b});
+
+void f() {
+  C(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_target_methodInvocation_name() async {
+    addTestSource(r'''
+void test(int a) {}
+
+void f() {
+  ^test(0);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+void test({required int a}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+  }
+
+  Future<void> test_target_topFunctionDeclaration_name() async {
+    addTestSource(r'''
+void ^test(int a) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+void test({required int a}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+  }
+
+  Future<void> verifyRefactoring(String expected) async {
+    await initializeServer();
+
+    var codeAction = await expectCodeActionWithTitle(
+      ConvertAllFormalParametersToNamed.constTitle,
+    );
+
+    await verifyCommandEdits(codeAction.command!, expected);
+  }
+
+  Future<void> _assertNoRefactoring() async {
+    await initializeServer();
+
+    await expectNoCodeActionWithTitle(
+      ConvertAllFormalParametersToNamed.constTitle,
+    );
+  }
+}

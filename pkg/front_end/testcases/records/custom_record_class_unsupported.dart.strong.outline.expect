@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Record extends core::Object {
+  synthetic constructor •() → self::Record
+    ;
+  abstract method create() → self::Record;
+}
+static method main() → dynamic
+  ;

@@ -1,0 +1,36 @@
+org-dartlang-testcase:///main.dart:
+import 'package:foo/a.dart' as foo;
+class A {
+  var c1 = foo.C<A>.b();
+  var c2 = new foo.C2<A>.b();
+}
+
+
+
+
+org-dartlang-testcase:///a.dart:
+library foo.a;
+export 'b.dart';
+export 'c.dart';
+export 'd.dart';
+
+
+
+
+org-dartlang-testcase:///b.dart:
+
+
+
+
+org-dartlang-testcase:///c.dart:
+class C<T> {
+  const C.b();
+}
+class C2<T> {
+  const C2.b();
+}
+
+
+
+
+org-dartlang-testcase:///d.dart:

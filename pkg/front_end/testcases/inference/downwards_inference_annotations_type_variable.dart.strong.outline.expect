@@ -1,0 +1,32 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<@self::Foo::•(const <core::String>[]) unrelated T extends core::Object? = dynamic> = () → void;
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::List<core::String> l) → self::Foo
+    : super core::Object::•()
+    ;
+}
+class C<@self::Foo::•(const <core::String>[]) T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    ;
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    ;
+  method m<@self::Foo::•(const <core::String>[]) T extends core::Object? = dynamic>() → void
+    ;
+}
+static method f<@self::Foo::•(const <core::String>[]) T extends core::Object? = dynamic>() → void
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:13:17 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:11:10 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:18:11 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_type_variable.dart:15:9 -> InstanceConstant(const Foo{})
+Extra constant evaluation: evaluated: 4, effectively constant: 4

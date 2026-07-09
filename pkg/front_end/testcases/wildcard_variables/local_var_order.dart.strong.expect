@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo(core::String s) → core::String {
+  core::print(s);
+  return s;
+}
+static method test() → dynamic {
+  core::String a = self::foo("a");
+  self::foo("b");
+  core::String c = self::foo("c");
+  self::foo("d");
+}

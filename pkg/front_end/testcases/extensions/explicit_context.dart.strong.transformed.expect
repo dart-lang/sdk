@@ -1,0 +1,165 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_compact_hash" as _co;
+
+extension E<T extends core::Object? = dynamic> on core::Set<T%> {
+  get property = self::E|get#property;
+  set property = self::E|set#property;
+  method method = self::E|method;
+  method tearoff method = self::E|get#method;
+  operator [] = self::E|[];
+  operator []= = self::E|[]=;
+}
+static extension-member method E|get#property<T extends core::Object? = dynamic>(lowered final core::Set<self::E|get#property::T%> #this) → core::int
+  return 0;
+static extension-member method E|set#property<T extends core::Object? = dynamic>(lowered final core::Set<self::E|set#property::T%> #this, core::int value) → void {}
+static extension-member method E|method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|method::T%> #this) → core::int
+  return 0;
+static extension-member method E|get#method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|get#method::T%> #this) → () → core::int
+  return () → core::int => self::E|method<self::E|get#method::T%>(#this);
+static extension-member method E|[]<T extends core::Object? = dynamic>(lowered final core::Set<self::E|[]::T%> #this, core::int index) → core::int
+  return 0;
+static extension-member method E|[]=<T extends core::Object? = dynamic>(lowered final core::Set<self::E|[]=::T%> #this, core::int index, core::int value) → void {}
+static method main() → dynamic {
+  self::E|get#property<dynamic>( block {
+    final core::Set<dynamic> #t1 = new _co::_Set::•<dynamic>();
+  } =>#t1);
+  self::E|set#property<dynamic>( block {
+    final core::Set<dynamic> #t2 = new _co::_Set::•<dynamic>();
+  } =>#t2, 0);
+  self::E|get#method<dynamic>( block {
+    final core::Set<dynamic> #t3 = new _co::_Set::•<dynamic>();
+  } =>#t3);
+  self::E|method<dynamic>( block {
+    final core::Set<dynamic> #t4 = new _co::_Set::•<dynamic>();
+  } =>#t4);
+  let final core::Set<dynamic> #t5 = block {
+    final core::Set<dynamic> #t6 = new _co::_Set::•<dynamic>();
+  } =>#t6 in self::E|set#property<dynamic>(#t5, self::E|get#property<dynamic>(#t5).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<dynamic> #t7 = block {
+    final core::Set<dynamic> #t8 = new _co::_Set::•<dynamic>();
+  } =>#t8 in self::E|get#property<dynamic>(#t7) == null ?{core::int?} self::E|set#property<dynamic>(#t7, 0) : null;
+  self::E|[]<dynamic>( block {
+    final core::Set<dynamic> #t9 = new _co::_Set::•<dynamic>();
+  } =>#t9, 0);
+  self::E|[]=<dynamic>( block {
+    final core::Set<dynamic> #t10 = new _co::_Set::•<dynamic>();
+  } =>#t10, 0, 0);
+  let final core::Set<dynamic> #t11 = block {
+    final core::Set<dynamic> #t12 = new _co::_Set::•<dynamic>();
+  } =>#t12 in let final core::int #t13 = 0 in self::E|[]=<dynamic>(#t11, #t13, self::E|[]<dynamic>(#t11, #t13).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<dynamic> #t14 = block {
+    final core::Set<dynamic> #t15 = new _co::_Set::•<dynamic>();
+  } =>#t15 in let final core::int #t16 = 0 in self::E|[]<dynamic>(#t14, #t16) == null ?{core::int?} self::E|[]=<dynamic>(#t14, #t16, 0) : null;
+  let final core::Set<dynamic> #t17 = block {
+    final core::Set<dynamic> #t18 = new _co::_Set::•<dynamic>();
+  } =>#t18 in #t17 == null ?{core::int?} null : self::E|get#property<dynamic>(#t17);
+  let final core::Set<dynamic> #t19 = block {
+    final core::Set<dynamic> #t20 = new _co::_Set::•<dynamic>();
+  } =>#t20 in #t19 == null ?{core::int?} null : self::E|set#property<dynamic>(#t19, 0);
+  let final core::Set<dynamic> #t21 = block {
+    final core::Set<dynamic> #t22 = new _co::_Set::•<dynamic>();
+  } =>#t22 in #t21 == null ?{() →? core::int} null : self::E|get#method<dynamic>(#t21);
+  let final core::Set<dynamic> #t23 = block {
+    final core::Set<dynamic> #t24 = new _co::_Set::•<dynamic>();
+  } =>#t24 in #t23 == null ?{core::int?} null : self::E|method<dynamic>(#t23);
+  let final core::Set<dynamic> #t25 = block {
+    final core::Set<dynamic> #t26 = new _co::_Set::•<dynamic>();
+  } =>#t26 in #t25 == null ?{core::int?} null : self::E|set#property<dynamic>(#t25, self::E|get#property<dynamic>(#t25).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<dynamic> #t27 = block {
+    final core::Set<dynamic> #t28 = new _co::_Set::•<dynamic>();
+  } =>#t28 in #t27 == null ?{core::int?} null : self::E|get#property<dynamic>(#t27) == null ?{core::int?} self::E|set#property<dynamic>(#t27, 0) : null;
+  let final core::Set<dynamic> #t29 = block {
+    final core::Set<dynamic> #t30 = new _co::_Set::•<dynamic>();
+  } =>#t30 in #t29 == null ?{core::int?} null : self::E|[]<dynamic>(#t29, 0);
+  let final core::Set<dynamic> #t31 = block {
+    final core::Set<dynamic> #t32 = new _co::_Set::•<dynamic>();
+  } =>#t32 in #t31 == null ?{core::int?} null : self::E|[]=<dynamic>(#t31, 0, 0);
+  let final core::Set<dynamic> #t33 = block {
+    final core::Set<dynamic> #t34 = new _co::_Set::•<dynamic>();
+  } =>#t34 in #t33 == null ?{core::int?} null : let final core::int #t35 = 0 in self::E|[]=<dynamic>(#t33, #t35, self::E|[]<dynamic>(#t33, #t35).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<dynamic> #t36 = block {
+    final core::Set<dynamic> #t37 = new _co::_Set::•<dynamic>();
+  } =>#t37 in #t36 == null ?{core::int?} null : let final core::int #t38 = 0 in self::E|[]<dynamic>(#t36, #t38) == null ?{core::int?} self::E|[]=<dynamic>(#t36, #t38, 0) : null;
+  self::E|get#property<core::int>( block {
+    final core::Set<core::int> #t39 = new _co::_Set::•<core::int>();
+  } =>#t39);
+  self::E|set#property<core::int>( block {
+    final core::Set<core::int> #t40 = new _co::_Set::•<core::int>();
+  } =>#t40, 0);
+  self::E|get#method<core::int>( block {
+    final core::Set<core::int> #t41 = new _co::_Set::•<core::int>();
+  } =>#t41);
+  self::E|method<core::int>( block {
+    final core::Set<core::int> #t42 = new _co::_Set::•<core::int>();
+  } =>#t42);
+  let final core::Set<core::int> #t43 = block {
+    final core::Set<core::int> #t44 = new _co::_Set::•<core::int>();
+  } =>#t44 in self::E|set#property<core::int>(#t43, self::E|get#property<core::int>(#t43).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<core::int> #t45 = block {
+    final core::Set<core::int> #t46 = new _co::_Set::•<core::int>();
+  } =>#t46 in self::E|get#property<core::int>(#t45) == null ?{core::int?} self::E|set#property<core::int>(#t45, 0) : null;
+  self::E|[]<core::int>( block {
+    final core::Set<core::int> #t47 = new _co::_Set::•<core::int>();
+  } =>#t47, 0);
+  self::E|[]=<core::int>( block {
+    final core::Set<core::int> #t48 = new _co::_Set::•<core::int>();
+  } =>#t48, 0, 0);
+  let final core::Set<core::int> #t49 = block {
+    final core::Set<core::int> #t50 = new _co::_Set::•<core::int>();
+  } =>#t50 in let final core::int #t51 = 0 in self::E|[]=<core::int>(#t49, #t51, self::E|[]<core::int>(#t49, #t51).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<core::int> #t52 = block {
+    final core::Set<core::int> #t53 = new _co::_Set::•<core::int>();
+  } =>#t53 in let final core::int #t54 = 0 in self::E|[]<core::int>(#t52, #t54) == null ?{core::int?} self::E|[]=<core::int>(#t52, #t54, 0) : null;
+  let final core::Set<core::int> #t55 = block {
+    final core::Set<core::int> #t56 = new _co::_Set::•<core::int>();
+  } =>#t56 in #t55 == null ?{core::int?} null : self::E|get#property<core::int>(#t55);
+  let final core::Set<core::int> #t57 = block {
+    final core::Set<core::int> #t58 = new _co::_Set::•<core::int>();
+  } =>#t58 in #t57 == null ?{core::int?} null : self::E|set#property<core::int>(#t57, 0);
+  let final core::Set<core::int> #t59 = block {
+    final core::Set<core::int> #t60 = new _co::_Set::•<core::int>();
+  } =>#t60 in #t59 == null ?{() →? core::int} null : self::E|get#method<core::int>(#t59);
+  let final core::Set<core::int> #t61 = block {
+    final core::Set<core::int> #t62 = new _co::_Set::•<core::int>();
+  } =>#t62 in #t61 == null ?{core::int?} null : self::E|method<core::int>(#t61);
+  let final core::Set<core::int> #t63 = block {
+    final core::Set<core::int> #t64 = new _co::_Set::•<core::int>();
+  } =>#t64 in #t63 == null ?{core::int?} null : self::E|set#property<core::int>(#t63, self::E|get#property<core::int>(#t63).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<core::int> #t65 = block {
+    final core::Set<core::int> #t66 = new _co::_Set::•<core::int>();
+  } =>#t66 in #t65 == null ?{core::int?} null : self::E|get#property<core::int>(#t65) == null ?{core::int?} self::E|set#property<core::int>(#t65, 0) : null;
+  let final core::Set<core::int> #t67 = block {
+    final core::Set<core::int> #t68 = new _co::_Set::•<core::int>();
+  } =>#t68 in #t67 == null ?{core::int?} null : self::E|[]<core::int>(#t67, 0);
+  let final core::Set<core::int> #t69 = block {
+    final core::Set<core::int> #t70 = new _co::_Set::•<core::int>();
+  } =>#t70 in #t69 == null ?{core::int?} null : self::E|[]=<core::int>(#t69, 0, 0);
+  let final core::Set<core::int> #t71 = block {
+    final core::Set<core::int> #t72 = new _co::_Set::•<core::int>();
+  } =>#t72 in #t71 == null ?{core::int?} null : let final core::int #t73 = 0 in self::E|[]=<core::int>(#t71, #t73, self::E|[]<core::int>(#t71, #t73).{core::num::+}(0){(core::num) → core::int});
+  let final core::Set<core::int> #t74 = block {
+    final core::Set<core::int> #t75 = new _co::_Set::•<core::int>();
+  } =>#t75 in #t74 == null ?{core::int?} null : let final core::int #t76 = 0 in self::E|[]<core::int>(#t74, #t76) == null ?{core::int?} self::E|[]=<core::int>(#t74, #t76, 0) : null;
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:22:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:22:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:23:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:23:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:33:10 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:33:10 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:34:10 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:34:10 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:44:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:44:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:45:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:45:14 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:55:15 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:55:15 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:56:15 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_context.dart:56:15 -> IntConstant(0)
+Extra constant evaluation: evaluated: 359, effectively constant: 16

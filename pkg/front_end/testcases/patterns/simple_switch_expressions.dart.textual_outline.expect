@@ -1,0 +1,7 @@
+test1(dynamic x) {}
+
+test2(String x) {}
+
+main() {}
+
+expectEquals(x, y) {}

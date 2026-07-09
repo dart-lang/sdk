@@ -1,0 +1,5 @@
+extension type Foo(String x) {
+  @x2
+  int? a, b;
+  int x2 = 42;
+}

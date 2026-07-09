@@ -1,0 +1,8 @@
+Map<C<String>, int> foo() => throw 0;
+
+class C<T> {
+  const C(this.t);
+  final T t;
+}
+
+test() {}

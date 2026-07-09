@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class SuperClass extends core::Object {
+  synthetic constructor •() → self::SuperClass
+    ;
+  set setter(core::int o) → void
+    ;
+}
+abstract class Class extends self::SuperClass {
+  synthetic constructor •() → self::Class
+    ;
+  abstract set setter(core::Object o) → void;
+}
+class SubClass extends self::Class {
+  synthetic constructor •() → self::SubClass
+    ;
+  set setter(core::Object o) → void
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

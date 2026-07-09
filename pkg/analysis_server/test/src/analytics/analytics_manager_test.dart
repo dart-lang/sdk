@@ -1,0 +1,819 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:convert';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:http/src/response.dart' as http;
+import 'package:linter/src/rules.dart';
+import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:unified_analytics/src/constants.dart';
+import 'package:unified_analytics/src/enums.dart';
+import 'package:unified_analytics/unified_analytics.dart';
+
+import '../../mocks.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalyticsManagerTest);
+  });
+}
+
+@reflectiveTest
+class AnalyticsManagerTest with ResourceProviderMixin {
+  final analytics = _MockAnalytics();
+  late final manager = AnalyticsManager(analytics);
+
+  Folder get testPackageRoot => getFolder('/home/package');
+
+  String get testPackageRootPath => testPackageRoot.path;
+
+  DateTime get _startUpTime => DateTime.fromMillisecondsSinceEpoch(
+    DateTime.now().millisecondsSinceEpoch - 5,
+  );
+
+  Future<void> test_createAnalysisContexts_lints() async {
+    _createAnalysisOptionsFile(
+      lints: ['avoid_dynamic_calls', 'await_only_futures', 'unawaited_futures'],
+    );
+    // Add a second set of options so we can validate usage counts for multiple
+    // options files.
+    _createAnalysisOptionsFile(
+      path: '$testPackageRootPath/sub/analysis_options.yaml',
+      lints: [
+        // A duplicate.
+        'avoid_dynamic_calls',
+        // And a new lint.
+        'void_checks',
+      ],
+    );
+    var collection = _createContexts();
+    _defaultStartup();
+    manager.createdAnalysisContexts(collection.contexts);
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.lintUsageCount(
+        eventData: {'count': 2, 'name': 'avoid_dynamic_calls'},
+      ),
+      _ExpectedEvent.lintUsageCount(
+        eventData: {'count': 1, 'name': 'void_checks'},
+      ),
+      _ExpectedEvent.lintUsageCount(
+        eventData: {'count': 1, 'name': 'await_only_futures'},
+      ),
+      _ExpectedEvent.lintUsageCount(
+        eventData: {'count': 1, 'name': 'unawaited_futures'},
+      ),
+    ]);
+  }
+
+  Future<void> test_createAnalysisContexts_severityAdjustments() async {
+    _createAnalysisOptionsFile(
+      errors: {'avoid_dynamic_calls': 'error', 'await_only_futures': 'ignore'},
+    );
+    var collection = _createContexts();
+    _defaultStartup();
+    manager.createdAnalysisContexts(collection.contexts);
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.severityAdjustment(
+        eventData: {
+          'diagnostic': 'avoid_dynamic_calls',
+          'adjustments': '{"ERROR":1}',
+        },
+      ),
+      _ExpectedEvent.severityAdjustment(
+        eventData: {
+          'diagnostic': 'await_only_futures',
+          'adjustments': '{"ignore":1}',
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_plugin_request() async {
+    _defaultStartup();
+    PluginManager.pluginResponseTimes[_pluginIsolate('a')] = {
+      'analysis.getNavigation': PercentileCalculator(),
+    };
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.pluginRequest(
+        eventData: {
+          'pluginId': 'a',
+          'method': 'analysis.getNavigation',
+          'duration': _IsPercentiles(),
+        },
+      ),
+    ]);
+    PluginManager.pluginResponseTimes.clear();
+  }
+
+  Future<void> test_sendPeriodicData_sendsSessionAndAnalysisDataOnce() async {
+    _defaultStartup();
+
+    analytics.assertNoEvents();
+
+    // The first time periodic data is sent (no analysis complete yet), session data is not sent.
+    await manager.sendPeriodicData();
+    analytics.assertNoEvents();
+
+    // Now analysis completes.
+    manager.analysisComplete(
+      immediateFileCount: 1,
+      immediateFileLineCount: 1,
+      transitiveFileCount: 3,
+      transitiveFileLineCount: 20,
+      transitiveFileUniqueCount: 2,
+      transitiveFileUniqueLineCount: 15,
+      libraryCycleLibraryCounts: [],
+      libraryCycleLineCounts: [],
+      numberOfContexts: 3,
+      contextWorkspaceType: [0, 1, 2],
+      numberOfPackagesInWorkspace: [1, 3, 4],
+    );
+
+    // Sending periodic data again sends both session and analysis data.
+    await manager.sendPeriodicData();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.contextStructure(
+        eventData: {
+          'immediateFileCount': 1,
+          'immediateFileLineCount': 1,
+          'transitiveFileCount': 3,
+          'transitiveFileLineCount': 20,
+          'transitiveFileUniqueCount': 2,
+          'transitiveFileUniqueLineCount': 15,
+          'libraryCycleLibraryCounts': _IsPercentiles(),
+          'libraryCycleLineCounts': _IsPercentiles(),
+          'numberOfContexts': 3,
+          'contextWorkspaceType': '[0, 1, 2]',
+          'numberOfPackagesInWorkspace': _IsPercentiles(),
+        },
+      ),
+    ]);
+
+    // Subsequent periodic data sends or shutdown do not send them again.
+    await manager.sendPeriodicData();
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.contextStructure(
+        eventData: {
+          'immediateFileCount': 1,
+          'immediateFileLineCount': 1,
+          'transitiveFileCount': 3,
+          'transitiveFileLineCount': 20,
+          'transitiveFileUniqueCount': 2,
+          'transitiveFileUniqueLineCount': 15,
+          'libraryCycleLibraryCounts': _IsPercentiles(),
+          'libraryCycleLineCounts': _IsPercentiles(),
+          'numberOfContexts': 3,
+          'contextWorkspaceType': '[0, 1, 2]',
+          'numberOfPackagesInWorkspace': _IsPercentiles(),
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_contextStructure() async {
+    _defaultStartup();
+
+    // Record a brief working period.
+    manager.analysisComplete(
+      immediateFileCount: 1,
+      immediateFileLineCount: 1,
+      transitiveFileCount: 3,
+      transitiveFileLineCount: 20,
+      transitiveFileUniqueCount: 2,
+      transitiveFileUniqueLineCount: 15,
+      libraryCycleLibraryCounts: [],
+      libraryCycleLineCounts: [],
+      numberOfContexts: 3,
+      contextWorkspaceType: [0, 1, 2],
+      numberOfPackagesInWorkspace: [1, 3, 4],
+    );
+
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.contextStructure(
+        eventData: {
+          'immediateFileCount': 1,
+          'immediateFileLineCount': 1,
+          'transitiveFileCount': 3,
+          'transitiveFileLineCount': 20,
+          'transitiveFileUniqueCount': 2,
+          'transitiveFileUniqueLineCount': 15,
+          'libraryCycleLibraryCounts': _IsPercentiles(),
+          'libraryCycleLineCounts': _IsPercentiles(),
+          'numberOfContexts': 3,
+          'contextWorkspaceType': '[0, 1, 2]',
+          'numberOfPackagesInWorkspace': _IsPercentiles(),
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_notification() async {
+    _defaultStartup();
+    manager.handledNotificationMessage(
+      notification: NotificationMessage(
+        clientRequestTime: 2,
+        jsonrpc: '',
+        method: Method.workspace_didCreateFiles,
+      ),
+      startTime: _now(),
+      endTime: _now(),
+    );
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.notification(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': Method.workspace_didCreateFiles.toString(),
+          'duration': _IsPercentiles(),
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_notification_analysisStatistics() async {
+    _defaultStartup();
+
+    // Record a brief working period.
+    manager.analysisStatusChanged(isWorking: true, statistics: null);
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    manager.analysisStatusChanged(
+      isWorking: false,
+      statistics: AnalysisStatusWorkingStatistics(
+        withFineDependencies: true,
+        changedFiles: {},
+        removedFiles: {},
+        fileCounts: FileCountsStatistics(),
+      ),
+    );
+
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.analysisStatistics(
+        eventData: {'workingDuration': _IsPercentiles()},
+      ),
+    ]);
+  }
+
+  Future<void> test_server_request_analysisDidChangeWorkspaceFolders() async {
+    _defaultStartup();
+    var params = DidChangeWorkspaceFoldersParams(
+      event: WorkspaceFoldersChangeEvent(added: [], removed: []),
+    );
+    var request = RequestMessage(
+      jsonrpc: '',
+      id: Either2.t1(1),
+      method: Method.workspace_didChangeWorkspaceFolders,
+      params: params.toJson(),
+    );
+    manager.startedRequestMessage(request: request, startTime: _now());
+    manager.changedWorkspaceFolders(
+      added: ['a', 'b', 'c'],
+      removed: ['d', 'e'],
+    );
+    manager.sentResponseMessage(
+      response: ResponseMessage(jsonrpc: '', id: Either2.t1(1)),
+    );
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.request(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': Method.workspace_didChangeWorkspaceFolders.toString(),
+          'duration': _IsPercentiles(),
+          'added': '{"count":1,"percentiles":[3,3,3,3,3]}',
+          'removed': '{"count":1,"percentiles":[2,2,2,2,2]}',
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_request_analysisSetAnalysisRoots() async {
+    _defaultStartup();
+    var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
+    var request = Request(
+      '1',
+      analysisRequestSetAnalysisRoots,
+      params.toJson(clientUriConverter: null),
+    );
+    manager.startedRequest(request: request, startTime: _now());
+    manager.startedSetAnalysisRoots(params);
+    manager.sentResponse(response: Response('1'));
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.request(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': analysisRequestSetAnalysisRoots,
+          'duration': _IsPercentiles(),
+          analysisRequestSetAnalysisRootsIncluded:
+              '{"count":1,"percentiles":[3,3,3,3,3]}',
+          analysisRequestSetAnalysisRootsExcluded:
+              '{"count":1,"percentiles":[2,2,2,2,2]}',
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_request_analysisSetPriorityFiles() async {
+    _defaultStartup();
+    var params = AnalysisSetPriorityFilesParams(['a']);
+    var request = Request(
+      '1',
+      analysisRequestSetPriorityFiles,
+      params.toJson(clientUriConverter: null),
+    );
+    manager.startedRequest(request: request, startTime: _now());
+    manager.startedSetPriorityFiles(params);
+    manager.sentResponse(response: Response('1'));
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.request(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': analysisRequestSetPriorityFiles,
+          'duration': _IsPercentiles(),
+          analysisRequestSetPriorityFilesFiles:
+              '{"count":1,"percentiles":[1,1,1,1,1]}',
+        },
+      ),
+    ]);
+  }
+
+  @FailingTest(reason: 'We are currently unable to send refactoring events')
+  Future<void> test_server_request_editGetRefactoring() async {
+    _defaultStartup();
+    var params = EditGetRefactoringParams(
+      RefactoringKind.RENAME,
+      '',
+      0,
+      0,
+      true,
+    );
+    var request = Request(
+      '1',
+      editRequestGetRefactoring,
+      params.toJson(clientUriConverter: null),
+    );
+    manager.startedRequest(request: request, startTime: _now());
+    manager.startedGetRefactoring(params);
+    manager.sentResponse(response: Response('1'));
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.request(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': editRequestGetRefactoring,
+          'duration': _IsPercentiles(),
+          editRequestGetRefactoringKind: '{"RENAME":1}',
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_request_initialize() async {
+    _defaultStartup();
+    var params = InitializeParams(
+      capabilities: ClientCapabilities(),
+      initializationOptions: {
+        'closingLabels': true,
+        'notAnOption': true,
+        'onlyAnalyzeProjectsWithOpenFiles': true,
+      },
+    );
+    manager.initialize(params);
+    _completeAnalysis();
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(
+        eventData: {
+          'parameters': 'closingLabels,onlyAnalyzeProjectsWithOpenFiles,suggestFromUnimportedLibraries',
+        },
+      ),
+      _ExpectedEvent.contextStructure(),
+    ]);
+  }
+
+  Future<void> test_server_request_initialized() async {
+    _defaultStartup();
+    var params = InitializedParams();
+    var request = RequestMessage(
+      jsonrpc: '',
+      id: Either2.t1(1),
+      method: Method.initialized,
+      params: params.toJson(),
+    );
+    manager.startedRequestMessage(request: request, startTime: _now());
+    manager.initialized(openWorkspacePaths: ['a', 'b', 'c']);
+    manager.sentResponseMessage(
+      response: ResponseMessage(jsonrpc: '', id: Either2.t1(1)),
+    );
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.request(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': Method.initialized.toString(),
+          'duration': _IsPercentiles(),
+          'openWorkspacePaths': '{"count":1,"percentiles":[3,3,3,3,3]}',
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_request_noAdditional() async {
+    _defaultStartup();
+    manager.startedRequest(
+      request: Request('1', serverRequestShutdown),
+      startTime: _now(),
+    );
+    manager.sentResponse(response: Response('1'));
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.request(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': serverRequestShutdown,
+          'duration': _IsPercentiles(),
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_request_workspaceExecuteCommand() async {
+    _defaultStartup();
+    var params = ExecuteCommandParams(command: 'doIt');
+    var request = RequestMessage(
+      jsonrpc: '',
+      id: Either2.t1(1),
+      method: Method.workspace_executeCommand,
+      params: params.toJson(),
+    );
+    manager.startedRequestMessage(request: request, startTime: _now());
+    manager.executedCommand('doIt');
+    manager.executedCommand('doIt');
+    manager.sentResponseMessage(
+      response: ResponseMessage(jsonrpc: '', id: Either2.t1(1)),
+    );
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.request(
+        eventData: {
+          'latency': _IsPercentiles(),
+          'method': Method.workspace_executeCommand.toString(),
+          'duration': _IsPercentiles(),
+        },
+      ),
+      _ExpectedEvent.commandExecuted(eventData: {'name': 'doIt', 'count': 2}),
+    ]);
+  }
+
+  Future<void> test_shutdownWithoutStartup() async {
+    await manager.shutdown();
+    analytics.assertNoEvents();
+  }
+
+  Future<void> test_startup_withoutVersion() async {
+    var arguments = ['a', 'b'];
+    var clientId = 'clientId';
+    manager.startUp(
+      time: _startUpTime,
+      arguments: arguments,
+      clientId: clientId,
+      clientVersion: null,
+    );
+    _completeAnalysis();
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(
+        eventData: {
+          'flags': arguments.join(','),
+          'clientId': clientId,
+          'clientVersion': '',
+          'duration': 0,
+        },
+      ),
+      _ExpectedEvent.contextStructure(),
+    ]);
+  }
+
+  Future<void> test_startup_withPlugins() async {
+    _defaultStartup();
+    await manager.changedPlugins(
+      TestPluginManager()
+        ..pluginIsolates.addAll([_pluginIsolate('a'), _pluginIsolate('b')]),
+    );
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.pluginUse(
+        eventData: {'count': 1, 'pluginId': 'a', 'enabled': _IsPercentiles()},
+      ),
+      _ExpectedEvent.pluginUse(
+        eventData: {'count': 1, 'pluginId': 'b', 'enabled': _IsPercentiles()},
+      ),
+    ]);
+  }
+
+  Future<void> test_startup_withVersion() async {
+    var arguments = ['a', 'b'];
+    var clientId = 'clientId';
+    var clientVersion = 'clientVersion';
+    manager.startUp(
+      time: _startUpTime,
+      arguments: arguments,
+      clientId: clientId,
+      clientVersion: clientVersion,
+    );
+    _completeAnalysis();
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(
+        eventData: {
+          'flags': arguments.join(','),
+          'clientId': clientId,
+          'clientVersion': clientVersion,
+          'duration': 0,
+        },
+      ),
+      _ExpectedEvent.contextStructure(),
+    ]);
+  }
+
+  void _completeAnalysis() {
+    manager.analysisComplete(
+      immediateFileCount: 1,
+      immediateFileLineCount: 1,
+      transitiveFileCount: 1,
+      transitiveFileLineCount: 1,
+      transitiveFileUniqueCount: 1,
+      transitiveFileUniqueLineCount: 1,
+      libraryCycleLibraryCounts: [],
+      libraryCycleLineCounts: [],
+      numberOfContexts: 1,
+      contextWorkspaceType: [0],
+      numberOfPackagesInWorkspace: [1],
+    );
+  }
+
+  /// Create an analysis options file based on the given arguments.
+  void _createAnalysisOptionsFile({
+    String? path,
+    Map<String, String>? errors,
+    List<String>? experiments,
+    List<String>? lints,
+  }) {
+    path ??= '$testPackageRootPath/analysis_options.yaml';
+    var buffer = StringBuffer();
+
+    if (errors != null || experiments != null) {
+      buffer.writeln('analyzer:');
+    }
+
+    if (errors != null) {
+      buffer.writeln('  errors:');
+      for (var entry in errors.entries) {
+        buffer.writeln('    ${entry.key}: ${entry.value}');
+      }
+    }
+
+    if (experiments != null) {
+      buffer.writeln('  enable-experiment:');
+      for (var experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+
+    if (lints != null) {
+      buffer.writeln('linter:');
+      buffer.writeln('  rules:');
+      for (var lint in lints) {
+        buffer.writeln('    - $lint');
+      }
+    }
+
+    newFile(path, buffer.toString());
+  }
+
+  AnalysisContextCollection _createContexts() {
+    var sdkRoot = getFolder('/sdk');
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+    registerLintRules();
+    return AnalysisContextCollection(
+      resourceProvider: resourceProvider,
+      includedPaths: [testPackageRootPath],
+      sdkPath: sdkRoot.path,
+    );
+  }
+
+  void _defaultStartup() {
+    manager.startUp(
+      time: DateTime.now(),
+      arguments: [],
+      clientId: '',
+      clientVersion: null,
+    );
+  }
+
+  DateTime _now() => DateTime.now();
+
+  PluginIsolate _pluginIsolate(String name) => PluginIsolate(
+    path.join('.pub-cache', 'pub.dev', name, 'tools', 'analyzer_plugin'),
+    '/some/execution/path',
+    '/some/packages/path',
+    TestNotificationManager(),
+    InstrumentationService.NULL_SERVICE,
+    SessionLogger(),
+    isLegacy: true,
+  );
+}
+
+/// A record of an event that was reported to analytics.
+class _ExpectedEvent {
+  final DashEvent eventName;
+  final Map<String, Object?>? eventData;
+
+  new(this.eventName, this.eventData);
+
+  new analysisStatistics({Map<String, Object?>? eventData})
+    : this(DashEvent.analysisStatistics, eventData);
+
+  new commandExecuted({Map<String, Object?>? eventData})
+    : this(DashEvent.commandExecuted, eventData);
+
+  new contextStructure({Map<String, Object?>? eventData})
+    : this(DashEvent.contextStructure, eventData);
+
+  new lintUsageCount({Map<String, Object?>? eventData})
+    : this(DashEvent.lintUsageCount, eventData);
+
+  new notification({Map<String, Object?>? eventData})
+    : this(DashEvent.clientNotification, eventData);
+
+  new pluginRequest({Map<String, Object?>? eventData})
+    : this(DashEvent.pluginRequest, eventData);
+
+  new pluginUse({Map<String, Object?>? eventData})
+    : this(DashEvent.pluginUse, eventData);
+
+  new request({Map<String, Object?>? eventData})
+    : this(DashEvent.clientRequest, eventData);
+
+  new session({Map<String, Object?>? eventData})
+    : this(DashEvent.serverSession, eventData);
+
+  new severityAdjustment({Map<String, Object?>? eventData})
+    : this(DashEvent.severityAdjustment, eventData);
+
+  /// Compare the expected event with the [actual] event, failing if the actual
+  /// doesn't match the expected.
+  void matches(Event actual) {
+    expect(actual.eventName, eventName);
+    var actualData = actual.eventData;
+    var expectedData = eventData;
+    if (expectedData != null) {
+      for (var expectedKey in expectedData.keys) {
+        var actualValue = actualData[expectedKey];
+        var expectedValue = expectedData[expectedKey];
+        if (!(actualValue == expectedValue ||
+            (expectedValue is Matcher &&
+                expectedValue.matches(actualValue, {})))) {
+          var buffer = StringBuffer();
+          buffer.writeln('Incorrect event data.');
+          buffer.writeln('Expected:');
+          writeMap(buffer, expectedData);
+          buffer.writeln('Actual:');
+          writeMap(buffer, actualData);
+          fail(buffer.toString());
+        }
+        expect(actualValue, expectedValue, reason: 'For key $expectedKey');
+      }
+    }
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    buffer.write('eventData: ');
+    buffer.writeln(eventData);
+    var data = eventData;
+    if (data != null) {
+      for (var entry in data.entries) {
+        buffer.write('value: ');
+        buffer.writeln('${entry.key}: ${entry.value}');
+      }
+    }
+    return buffer.toString();
+  }
+
+  void writeMap(StringBuffer buffer, Map<String, Object?> map) {
+    for (var entry in map.entries) {
+      buffer.write('  ');
+      buffer.write(entry.key);
+      buffer.write(': ');
+      buffer.writeln(entry.value);
+    }
+  }
+}
+
+/// A matcher for strings containing positive integer values.
+class _IsPercentiles extends Matcher {
+  const new();
+
+  @override
+  Description describe(Description description) =>
+      description.add('percentiles');
+
+  @override
+  bool matches(Object? item, Map<Object?, Object?> matchState) {
+    if (item is! String) {
+      return false;
+    }
+    var map = json.decode(item);
+    if (map is! Map || map.length != 2) {
+      return false;
+    }
+    if (map['count'] is! int) {
+      return false;
+    }
+    var percentiles = map['percentiles'];
+    if (percentiles is! List || percentiles.length != 5) {
+      return false;
+    }
+    return !percentiles.any((element) => element is! int);
+  }
+}
+
+/// An implementation of [Analytics] specialized for testing.
+class _MockAnalytics implements NoOpAnalytics {
+  List<Event> events = [];
+
+  new();
+
+  @override
+  Map<String, ToolInfo> get parsedTools => throw UnimplementedError();
+
+  @override
+  bool get shouldShowMessage => false;
+
+  @override
+  bool get telemetryEnabled => false;
+
+  void assertEvents(List<_ExpectedEvent> expectedEvents) {
+    var expectedCount = expectedEvents.length;
+    expect(events, hasLength(expectedCount));
+    for (int i = 0; i < expectedCount; i++) {
+      expectedEvents[i].matches(events[i]);
+    }
+  }
+
+  void assertNoEvents() {
+    expect(events, isEmpty);
+  }
+
+  @override
+  Future<void> close({int delayDuration = kDelayDuration}) async {
+    // Ignored
+  }
+
+  @override
+  LogFileStats? logFileStats() {
+    throw UnimplementedError();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<http.Response>? send(Event event) async {
+    events.add(event);
+    return http.Response('', 200);
+  }
+
+  @override
+  void suppressTelemetry() {}
+}

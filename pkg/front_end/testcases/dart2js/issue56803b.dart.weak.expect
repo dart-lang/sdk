@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Ext extends core::Object /*hasConstConstructor*/  {
+  final field core::String _;
+  const constructor •() → self::Ext
+    : assert(!(#C5 == null), "Must not be null"), self::Ext::_ = "OK", super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::Ext
+    return new self::Ext::•();
+}
+static const field core::String? maybe = #C5;
+static method main() → void {
+  self::Ext c = #C10;
+  core::print(c);
+}
+
+constants  {
+  #C1 = "not there"
+  #C2 = eval /* from org-dartlang-testcase:///issue56803b.dart */ const core::bool::fromEnvironment(#C1)
+  #C3 = "string"
+  #C4 = null
+  #C5 = eval /* from org-dartlang-testcase:///issue56803b.dart */ #C2 ?{core::String?} #C3 : #C4
+  #C6 = "OK"
+  #C7 = eval /* from org-dartlang-testcase:///issue56803b.dart */ #C5 == null
+  #C8 = eval /* from org-dartlang-testcase:///issue56803b.dart */!#C7
+  #C9 = "Must not be null"
+  #C10 = eval /* from org-dartlang-testcase:///issue56803b.dart */ self::Ext{_:#C6, assert(#C8, #C9)}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue56803b.dart:
+- Ext. (from org-dartlang-testcase:///issue56803b.dart:10:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

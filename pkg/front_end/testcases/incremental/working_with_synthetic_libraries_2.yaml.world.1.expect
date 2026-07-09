@@ -1,0 +1,20 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:8: Error: Dart library 'dart:foo/nonexisting.dart' is not available on this platform.
+// import "dart:foo/nonexisting.dart";
+//        ^
+// Context: The unavailable library 'dart:foo/nonexisting.dart' is imported through these paths:
+//
+//     main.dart => dart:foo/nonexisting.dart
+//
+//
+
+  import "dart:foo/nonexisting.dart";
+
+}
+
+And 1 platform libraries:
+ - dart:foo/nonexisting.dart

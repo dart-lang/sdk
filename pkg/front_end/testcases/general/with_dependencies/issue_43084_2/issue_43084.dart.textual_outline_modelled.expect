@@ -1,0 +1,5 @@
+import "issue_43084_lib.dart";
+
+main() {}
+
+test() {}

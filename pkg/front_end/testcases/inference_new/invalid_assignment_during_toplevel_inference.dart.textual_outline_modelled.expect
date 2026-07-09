@@ -1,0 +1,7 @@
+String s = '';
+
+int i = 0;
+
+main() {}
+
+var x = i = s;

@@ -1,0 +1,26 @@
+class Class {
+  late Class lateInstanceFieldThis = this;
+  late final Class lateFinalInstanceFieldThis = this;
+  late final int lateFinalInstanceField1;
+  late final int lateFinalInstanceField2;
+  late final int lateFinalInstanceFieldWithInit = 0;
+  late int lateInstanceField;
+  method() {}
+  methodWithErrors() {}
+  static late final int lateFinalStaticField1;
+  static late final int lateFinalStaticField2;
+  static late final int lateFinalStaticFieldWithInit = 0;
+  static late int lateStaticField;
+}
+
+errors() {}
+
+late final int lateFinalTopLevelField;
+
+late final int lateFinalTopLevelFieldWithInit = 0;
+
+late int lateTopLevelField;
+
+main() {}
+
+noErrors() {}

@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef IntFn = (core::int) → core::int;
+typedef TFn = <T extends core::Object? = dynamic>(T%) → T%;
+abstract class CompareBase extends core::Object {
+  synthetic constructor •() → self::CompareBase
+    ;
+  abstract operator <((core::int) → core::int f) → dynamic;
+}
+class Compare extends self::CompareBase {
+  synthetic constructor •() → self::Compare
+    ;
+  @core::override
+  operator <(core::Object f) → dynamic
+    ;
+}
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  ;
+static method test1(self::CompareBase x) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///issue51871.dart:15:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

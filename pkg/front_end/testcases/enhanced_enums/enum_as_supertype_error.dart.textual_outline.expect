@@ -1,0 +1,25 @@
+class A extends Enum {
+  int get foo => index;
+}
+
+class B implements Enum {
+  int get foo => index;
+}
+
+abstract class EnumInterface implements Enum {}
+
+class EnumClass extends EnumInterface {
+  int get index => 0;
+}
+
+abstract class AbstractEnumClass extends EnumInterface {}
+
+class EnumClass2 extends AbstractEnumClass {}
+
+mixin EnumMixin on Enum {}
+
+abstract class AbstractEnumClass2 with EnumMixin {}
+
+class EnumClass3 extends AbstractEnumClass2 {}
+
+main() {}

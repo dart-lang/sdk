@@ -1,0 +1,33 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:package1/lib1.dart";
+  import "package:package1/lib2.dart";
+  import "package:package1/lib3.dart";
+
+  static method main() → dynamic {
+    lib1::lib1();
+    lib2::lib2();
+    lib3::lib3();
+  }
+}
+library from "package:package1/lib1.dart" as lib1 {
+
+  static method lib1() → dynamic {
+    return 42;
+  }
+}
+library from "package:package1/lib2.dart" as lib2 {
+
+  static method lib2() → dynamic {
+    return 42;
+  }
+}
+library from "package:package1/lib3.dart" as lib3 {
+
+  import "package:package1/lib1.dart";
+
+  static method lib3() → dynamic {
+    return lib1::lib1();
+  }
+}

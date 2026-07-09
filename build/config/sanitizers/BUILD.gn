@@ -1,0 +1,28 @@
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/sanitizers/sanitizers.gni")
+
+# Contains the dependencies needed for sanitizers to link into executables and
+# shared_libraries. Unconditionally depend upon this target as it is empty if
+# |using_sanitizer| is false.
+group("deps") {
+  if (using_sanitizer) {
+    public_configs = [ ":sanitizer_options_link_helper" ]
+    deps = [ ":options_sources" ]
+  }
+}
+
+config("sanitizer_options_link_helper") {
+  ldflags = [ "-Wl,-u,_sanitizer_options_link_helper" ]
+}
+
+source_set("options_sources") {
+  visibility = [
+    ":deps",
+    "//:gn_visibility",
+  ]
+  include_dirs = [ "../../../runtime" ]
+  sources = [ "//build/sanitizers/sanitizer_options.cc" ]
+}

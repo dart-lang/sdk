@@ -1,0 +1,9 @@
+library test;
+
+import 'dart:async';
+
+foo(Future<List<A>> f1, Future<List<A>> f2) async {}
+
+class A {}
+
+main() {}

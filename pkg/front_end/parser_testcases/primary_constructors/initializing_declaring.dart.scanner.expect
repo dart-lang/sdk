@@ -1,0 +1,13 @@
+class C(var this.str);
+class C(final this.str);
+class C(const this.str);
+class C(var super.str);
+class C(final super.str);
+class C(const super.str);
+
+class[KeywordToken] C[StringToken]([BeginToken]var[KeywordToken] this[KeywordToken].[SimpleToken]str[StringToken])[SimpleToken];[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]final[KeywordToken] this[KeywordToken].[SimpleToken]str[StringToken])[SimpleToken];[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]const[KeywordToken] this[KeywordToken].[SimpleToken]str[StringToken])[SimpleToken];[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]var[KeywordToken] super[KeywordToken].[SimpleToken]str[StringToken])[SimpleToken];[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]final[KeywordToken] super[KeywordToken].[SimpleToken]str[StringToken])[SimpleToken];[SimpleToken]
+class[KeywordToken] C[StringToken]([BeginToken]const[KeywordToken] super[KeywordToken].[SimpleToken]str[StringToken])[SimpleToken];[SimpleToken][SimpleToken]

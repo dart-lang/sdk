@@ -1,0 +1,76 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/computer/computer_signature.dart';
+import 'package:analysis_server/src/computer/computer_type_arguments_signature.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+
+class CiderSignatureHelpComputer {
+  final FileResolver _fileResolver;
+
+  new(this._fileResolver);
+
+  Future<SignatureHelpResponse?> compute2(
+    String filePath,
+    int line,
+    int column,
+  ) async {
+    var resolvedUnit = await _fileResolver.resolve(path: filePath);
+    var lineInfo = resolvedUnit.lineInfo;
+    var offset = lineInfo.getOffsetOfLine(line) + column;
+    var formats = <MarkupKind>{MarkupKind.Markdown};
+
+    var dartDocInfo = DartdocDirectiveInfo();
+    var typeArgsComputer = DartTypeArgumentsSignatureComputer(
+      dartDocInfo,
+      resolvedUnit.unit,
+      offset,
+      preferredFormats: formats,
+      clientSupportsNullActiveParameter: false,
+    );
+    if (typeArgsComputer.offsetIsValid) {
+      var typeSignature = typeArgsComputer.compute();
+
+      if (typeSignature != null) {
+        return SignatureHelpResponse(
+          typeSignature,
+          lineInfo.getLocation(typeArgsComputer.argumentList.offset + 1),
+        );
+      }
+    }
+
+    var computer = DartUnitSignatureComputer(
+      dartDocInfo,
+      resolvedUnit.unit,
+      offset,
+    );
+    if (computer.offsetIsValid) {
+      var signature = computer.compute();
+      if (signature != null) {
+        return SignatureHelpResponse(
+          toSignatureHelp(
+            signature,
+            preferredFormats: formats,
+            clientSupportsNullActiveParameter: false,
+          ),
+          lineInfo.getLocation(signature.argumentList.offset + 1),
+        );
+      }
+    }
+    return null;
+  }
+}
+
+class SignatureHelpResponse {
+  final SignatureHelp signatureHelp;
+
+  /// The location of the left parenthesis.
+  final CharacterLocation callStart;
+
+  new(this.signatureHelp, this.callStart);
+}

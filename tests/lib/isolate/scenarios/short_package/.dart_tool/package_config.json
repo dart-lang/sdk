@@ -1,0 +1,10 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flu",
+      "rootUri": "../flu_package",
+      "languageVersion": "2.12"
+    }
+  ]
+}

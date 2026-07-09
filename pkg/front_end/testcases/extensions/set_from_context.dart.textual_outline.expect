@@ -1,0 +1,9 @@
+void f<T>(Set<T> s) {}
+
+extension E<T> on Set<T> {
+  method() {}
+}
+
+Set<int> set = {};
+
+void main() {}

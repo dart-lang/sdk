@@ -1,0 +1,9 @@
+List<T> foo<T>(void Function(T) f) => throw 0;
+
+class A {
+  int get foo => 0;
+}
+
+test1() {}
+
+test2() {}

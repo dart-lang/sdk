@@ -1,0 +1,16 @@
+final a = A(b: .redirect(c: .f(0)));
+
+class A {
+  final B b;
+  const A({required this.b});
+}
+
+class B {
+  final C c;
+  const B({required this.c});
+  factory B.redirect({required C c}) = B;
+}
+
+class C {
+  C.f(num n);
+}

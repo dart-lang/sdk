@@ -1,0 +1,190 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../generated/test_analysis_context.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(FromEnvironmentEvaluatorTest);
+  });
+}
+
+@reflectiveTest
+class FromEnvironmentEvaluatorTest with ResourceProviderMixin {
+  late final TypeProviderImpl typeProvider;
+  late final TypeSystemImpl typeSystem;
+
+  DartObjectImpl get _boolValueFalse {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.boolType,
+      BoolState.FALSE_STATE,
+    );
+  }
+
+  DartObjectImpl get _boolValueTrue {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.boolType,
+      BoolState.TRUE_STATE,
+    );
+  }
+
+  DartObjectImpl get _nullValue {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.nullType,
+      NullState.NULL_STATE,
+    );
+  }
+
+  void setUp() {
+    var analysisContext = TestAnalysisContext(this);
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
+  }
+
+  void test_getBool_default() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({}),
+    );
+    var object = _getBool(variables, name, _boolValueFalse);
+    expect(object, _boolValueFalse);
+  }
+
+  void test_getBool_false() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({name: 'false'}),
+    );
+    var object = _getBool(variables, name, _boolValueFalse);
+    expect(object, _boolValueFalse);
+  }
+
+  void test_getBool_invalid() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({name: 'not bool'}),
+    );
+    var object = _getBool(variables, name, _boolValueFalse);
+    expect(object, _boolValueFalse);
+  }
+
+  void test_getBool_true() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({name: 'true'}),
+    );
+    var object = _getBool(variables, name, _boolValueFalse);
+    expect(object, _boolValueTrue);
+  }
+
+  void test_getInt_invalid() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({name: 'four score and seven years'}),
+    );
+    var object = _getInt(variables, name, _intValue(0));
+    expect(object, _intValue(0));
+  }
+
+  void test_getInt_undefined_defaultNull() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(typeSystem, DeclaredVariables());
+    var object = _getInt(variables, name, _nullValue);
+    expect(object, _nullValue);
+  }
+
+  void test_getInt_undefined_defaultZero() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(typeSystem, DeclaredVariables());
+    var object = _getInt(variables, name, _intValue(0));
+    expect(object, _intValue(0));
+  }
+
+  void test_getInt_valid() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({name: '23'}),
+    );
+    var object = _getInt(variables, name, _intValue(0));
+    expect(object, _intValue(23));
+  }
+
+  void test_getString_defined() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({name: 'bar'}),
+    );
+    var object = _getString(variables, name, _nullValue);
+    expect(object, _stringValue('bar'));
+  }
+
+  void test_getString_undefined_defaultEmpty() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(typeSystem, DeclaredVariables());
+    var object = _getString(variables, name, _stringValue(''));
+    expect(object, _stringValue(''));
+  }
+
+  void test_getString_undefined_defaultNull() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(typeSystem, DeclaredVariables());
+    var object = _getString(variables, name, _nullValue);
+    expect(object, _nullValue);
+  }
+
+  DartObjectImpl _getBool(
+    FromEnvironmentEvaluator variables,
+    String name,
+    DartObjectImpl? defaultValue,
+  ) {
+    return variables.getBool(name, defaultValue);
+  }
+
+  DartObjectImpl _getInt(
+    FromEnvironmentEvaluator variables,
+    String name,
+    DartObjectImpl? defaultValue,
+  ) {
+    return variables.getInt(name, defaultValue);
+  }
+
+  DartObjectImpl _getString(
+    FromEnvironmentEvaluator variables,
+    String name,
+    DartObjectImpl? defaultValue,
+  ) {
+    return variables.getString(name, defaultValue);
+  }
+
+  DartObjectImpl _intValue(int value) {
+    return DartObjectImpl(typeSystem, typeProvider.intType, IntState(value));
+  }
+
+  DartObjectImpl _stringValue(String value) {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.stringType,
+      StringState(value),
+    );
+  }
+}

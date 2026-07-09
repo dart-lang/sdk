@@ -1,0 +1,9 @@
+library test;
+
+String g({int? x}) => '';
+
+int f({int? x}) => 0;
+
+main() {}
+
+var v = [f, g];

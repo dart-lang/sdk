@@ -1,0 +1,5 @@
+extension type Foo(int foo) {
+  Foo([foo = foo]) => 42;
+  Foo.tester1(String s) : foo = s.length;
+  Foo.tester2(this.foo);
+}

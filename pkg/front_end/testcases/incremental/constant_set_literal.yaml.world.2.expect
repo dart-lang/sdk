@@ -1,0 +1,20 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  static const field dart.core::Set<dart.core::int> bar = #C2;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static const field dart.core::Set<dart.core::String> foo = #C3;
+  static method main() → dynamic {
+    dart.core::print(#C3);
+    dart.core::print(#C2);
+  }
+}
+constants  {
+  #C1 = 42
+  #C2 = <dart.core::int>{#C1}
+  #C3 = <dart.core::String>{}
+}

@@ -1,0 +1,44 @@
+Problems reported:
+
+parser/error_recovery/issue_42229_prime_3.crash:1:17: Expected an identifier, but got ''.
+Stream<List<x>> 
+                ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/error_recovery/issue_42229_prime_3.crash:1:17: Expected an identifier, but got ''.
+Stream<List<x>> 
+                ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/error_recovery/issue_42229_prime_3.crash:1:15: Expected ';' after this.
+Stream<List<x>> 
+              ^
+
+beginCompilationUnit(Stream)
+  beginMetadataStar(Stream)
+  endMetadataStar(0)
+  beginTopLevelMember(Stream)
+    handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+    // WARNING: Reporting at eof for .
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, )
+      handleIdentifier(Stream, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(List, typeReference)
+        beginTypeArguments(<)
+          handleIdentifier(x, typeReference)
+          handleNoTypeArguments(>)
+          handleType(x, null)
+        endTypeArguments(1, <, >)
+        handleType(List, null)
+      endTypeArguments(1, <, >)
+      handleType(Stream, null)
+      handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+      // WARNING: Reporting at eof for .
+      handleIdentifier(, topLevelVariableDeclaration)
+      handleNoFieldInitializer()
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], >, >)
+    endTopLevelFields(null, null, null, null, null, null, null, 1, Stream, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(1, )

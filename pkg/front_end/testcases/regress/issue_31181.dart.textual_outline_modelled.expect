@@ -1,0 +1,5 @@
+Foo x = throw '';
+
+main() {}
+
+typedef Foo<T> = T Function<T>(T a);

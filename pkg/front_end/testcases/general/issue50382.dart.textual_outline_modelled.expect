@@ -1,0 +1,17 @@
+class A extends B {
+  A({required super.field});
+}
+
+class B {
+  B.named({required int this.field});
+  final int field;
+}
+
+class C extends D {
+  C({required int super.field});
+}
+
+class D {
+  D.named({required this.field});
+  final int field;
+}

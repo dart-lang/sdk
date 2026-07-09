@@ -1,0 +1,22 @@
+name: async_helper
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+description: >-
+ Async_helper is used for asynchronous tests that do not want to make use of
+ the Dart unittest library - for example, the core language tests. Third
+ parties are discouraged from using this, and should use the facilities
+ provided in package:test.
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  expect: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any

@@ -1,0 +1,39 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == ddc ]
+convert/chunked_conversion_utf88_test: Slow, Pass
+convert/json_utf8_chunk_test: Slow, Pass
+convert/streamed_conversion_utf8_decode_test: Slow, Pass # Issue 29922
+convert/utf85_test: Slow, Pass
+html/callback_list_test: Skip # Test requires user interaction to accept permissions.
+html/custom/entered_left_view/*: Skip # Issue 31577
+html/fileapi_*: SkipByDesign # Issue 53864
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
+isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
+js/js_util/js_prefix_test: SkipByDesign # JS$ prefix not implemented on ddc.
+mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+typed_data/int64_list_load_store_test: SkipByDesign # ddc does not support Int64List
+typed_data/typed_data_hierarchy_int64_test: SkipByDesign # ddc does not support Int64List
+
+[ $compiler == ddc && $runtime == chrome ]
+html/canvasrendering/draw_image_video_element_test: SkipByDesign # Issue #53985: video is not played on Chrome inactive tabs
+html/js_dispatch_property_test: Skip # Timeout Issue 31030
+html/request_animation_frame_test: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs
+html/transition_event_test: SkipByDesign # Issue #53985: css transitions are not executed on Chrome inactive tabs
+
+[ $compiler == ddc && $runtime == d8 ]
+html/*: SkipByDesign # Browser tests
+
+[ $compiler == ddc && $runtime == ff ]
+html/mediadevices_test: SkipByDesign # Not supported on FF, likely requires user-interaction that causes timeout
+
+[ $compiler == ddc && $system == linux ]
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
+
+[ $compiler == ddc && $system == macos ]
+html/interactive_media_test: Skip # Requires interactive camera, microphone permissions.
+
+[ $compiler == ddc && $system == windows ]
+html/xhr_test: Skip # Times out. Issue 21527

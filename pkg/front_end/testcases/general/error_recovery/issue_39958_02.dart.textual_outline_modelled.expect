@@ -1,0 +1,1 @@
+dynamic<int> f() {}

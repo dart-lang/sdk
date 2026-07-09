@@ -1,0 +1,25 @@
+main = sec::main;
+library from "org-dartlang-test:///first.dart" as fir {
+
+  import "org-dartlang-test:///second.dart";
+
+  static method main() → dynamic {
+    fir::method1();
+    sec::method2();
+  }
+  static method method1() → dynamic {
+    dart.core::print("method1");
+  }
+}
+library from "org-dartlang-test:///second.dart" as sec {
+
+  import "org-dartlang-test:///first.dart";
+
+  static method main() → dynamic {
+    fir::method1();
+    sec::method2();
+  }
+  static method method2() → dynamic {
+    dart.core::print("method2");
+  }
+}

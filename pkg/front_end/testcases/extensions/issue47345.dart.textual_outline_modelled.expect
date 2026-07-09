@@ -1,0 +1,8 @@
+class Foo {}
+
+extension on Foo {
+  static const bar = 1;
+  static const doubleBar = bar * 2;
+}
+
+void main() {}

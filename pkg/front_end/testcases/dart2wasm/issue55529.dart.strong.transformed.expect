@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  final field core::Object? a;
+  constructor •({required final initializing-formal core::Object? a}) → self::A1
+    : self::A1::a = a, super core::Object::•()
+    ;
+}
+class B1 extends self::A1 {
+  constructor •({final super-initializing-formal core::Object? a = #C1}) → self::B1
+    : super self::A1::•(a: a) {}
+}
+class A2 extends core::Object {
+  final field core::Object? a;
+  constructor •(final initializing-formal core::Object? a) → self::A2
+    : self::A2::a = a, super core::Object::•()
+    ;
+}
+class B2 extends self::A2 {
+  constructor •([final super-initializing-formal core::Object? a = #C1]) → self::B2
+    : super self::A2::•(a)
+    ;
+}
+static method main() → void {
+  final ({a: core::Object?}) → self::B1 f1 = #C2;
+  final ([core::Object?]) → self::B2 f2 = #C3;
+}
+
+constants  {
+  #C1 = null
+  #C2 = constructor-tearoff self::B1::•
+  #C3 = constructor-tearoff self::B2::•
+}

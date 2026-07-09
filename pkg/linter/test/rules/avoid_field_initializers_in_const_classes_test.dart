@@ -1,0 +1,91 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AvoidFieldInitializersInConstClassesTest);
+  });
+}
+
+@reflectiveTest
+class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
+
+  test_constClass_constructorInitializer() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  final a;
+  const C() : [!a = const []!];
+}
+''');
+  }
+
+  test_constClass_constructorInitializer_explicitThis() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  final a;
+  const C(int a) : [!this.a = 0!];
+}
+''');
+  }
+
+  test_constClass_constructorInitializer_primary() async {
+    await assertDiagnosticsFromMarkup(r'''
+class const C(int a) {
+  final a;
+  this : [!this.a = 0!];
+}
+''');
+  }
+
+  test_constClass_constructorInitializer_usingParameter() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final a;
+  const C(b) : a = b;
+}
+''');
+  }
+
+  test_constClass_fieldFormalParameter() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final a;
+  const C(this.a);
+}
+''');
+  }
+
+  test_constClass_fieldInitiailizer() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  final [!a = const []!];
+  const C();
+}
+''');
+  }
+
+  test_constClass_multipleConstructors() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final a;
+  const C.c1() : a = const [];
+  const C.c2() : a = const {};
+}
+''');
+  }
+
+  test_mixin() async {
+    await assertNoDiagnostics(r'''
+mixin M {
+  final a = const [];
+}
+''');
+  }
+}

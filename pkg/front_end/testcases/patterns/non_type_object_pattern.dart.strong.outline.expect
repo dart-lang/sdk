@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///non_type_object_pattern.dart" as prefix;
+
+extension Extension on core::int {
+}
+static field core::int NonType;
+static method testUnresolved(dynamic o) → dynamic
+  ;
+static method testNonType(dynamic o) → dynamic
+  ;
+static method testExtension(dynamic o) → dynamic
+  ;
+static method testPrefixedUnresolved(dynamic o) → dynamic
+  ;
+static method testPrefixedNonType(dynamic o) → dynamic
+  ;
+static method testPrefixedExtension(dynamic o) → dynamic
+  ;
+static method testUnresolvedPrefix(dynamic o) → dynamic
+  ;
+static method testMemberAccess(dynamic o) → dynamic
+  ;

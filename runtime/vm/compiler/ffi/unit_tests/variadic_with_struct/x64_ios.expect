@@ -1,0 +1,5 @@
+xmm0 double
+S+0 Struct(size: 20)
+xmm1 double
+=>
+xmm0 double

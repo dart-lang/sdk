@@ -1,0 +1,11 @@
+class GenericClass<T> {}
+
+extension GenericExtension<T> on GenericClass<T> {
+  set setter(T? value) {}
+}
+
+main() {}
+
+error() {}
+
+expect(expected, actual) {}

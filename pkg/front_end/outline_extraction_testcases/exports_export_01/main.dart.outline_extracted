@@ -1,0 +1,22 @@
+org-dartlang-testcase:///main.dart:
+import "test8.dart";
+ClassFromImportsExportsExport? zyx____xyz;
+
+
+
+
+org-dartlang-testcase:///test8.dart:
+export "test9.dart";
+
+
+
+
+org-dartlang-testcase:///test9.dart:
+export "test10.dart";
+
+
+
+
+org-dartlang-testcase:///test10.dart:
+export "dart:async";
+class ClassFromImportsExportsExport {}

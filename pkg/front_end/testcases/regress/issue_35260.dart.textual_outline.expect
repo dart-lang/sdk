@@ -1,0 +1,10 @@
+class Supertype {
+  factory Supertype() = X;
+  factory Supertype() = X;
+}
+
+class X implements Supertype {
+  X();
+}
+
+main() {}

@@ -1,0 +1,8 @@
+typedef A<X> = B<X, Function(X)>;
+
+class B<T, Invariance extends Function(T)> {
+  B(_);
+  B() : this._(1);
+}
+
+test() {}

@@ -1,0 +1,91 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  List<Gamepad$NULLABLE> getGamepads() {
+    var gamepadList = _getGamepads();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', gamepadList);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', gamepadList);
+    }
+
+    applyExtension('GamepadList', gamepadList);
+    return gamepadList;
+  }
+
+  String get language => JS('String', '#.language || #.userLanguage', this,
+      this);
+
+  /**
+   * Gets a stream (video and or audio) from the local computer.
+   *
+   * Use [MediaStream.supported] to check if this is supported by the current
+   * platform. The arguments `audio` and `video` default to `false` (stream does
+   * not use audio or video, respectively).
+   *
+   * Simple example usage:
+   *
+   *     window.navigator.getUserMedia(audio: true, video: true).then((stream) {
+   *       var video = new VideoElement()
+   *         ..autoplay = true
+   *         ..src = Url.createObjectUrlFromStream(stream);
+   *       document.body.append(video);
+   *     });
+   *
+   * The user can also pass in Maps to the audio or video parameters to specify
+   * mandatory and optional constraints for the media stream. Not passing in a
+   * map, but passing in `true` will provide a MediaStream with audio or
+   * video capabilities, but without any additional constraints. The particular
+   * constraint names for audio and video are still in flux, but as of this
+   * writing, here is an example providing more constraints.
+   *
+   *     window.navigator.getUserMedia(
+   *         audio: true,
+   *         video: {'mandatory':
+   *                    { 'minAspectRatio': 1.333, 'maxAspectRatio': 1.334 },
+   *                 'optional':
+   *                    [{ 'minFrameRate': 60 },
+   *                     { 'maxWidth': 640 }]
+   *     });
+   *
+   * See also:
+   * * [MediaStream.supported]
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  Future<MediaStream> getUserMedia({audio = false, video = false}) {
+    var completer = new Completer<MediaStream>();
+    var options = {
+      'audio': audio,
+      'video': video
+    };
+    _ensureGetUserMedia();
+    this._getUserMedia(convertDartToNative_SerializedScriptValue(options),
+      (stream) {
+        completer.complete(stream);
+      },
+      (error) {
+        completer.completeError(error);
+      });
+    return completer.future;
+  }
+
+  _ensureGetUserMedia() {
+    if (JS('bool', '!(#.getUserMedia)', this)) {
+      JS('void', '#.getUserMedia = '
+          '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
+          '#.msGetUserMedia)', this, this, this, this, this);
+    }
+  }
+
+  @JSName('getUserMedia')
+  void _getUserMedia(options, _NavigatorUserMediaSuccessCallback success,
+      _NavigatorUserMediaErrorCallback error) native;
+
+$!MEMBERS
+}

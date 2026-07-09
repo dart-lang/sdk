@@ -1,0 +1,5 @@
+package: dart/benchmarks/fficall
+description: Dynamic libaries for running the benchmarks/FfiCall.
+install_mode: copy
+data:
+  - dir: out/

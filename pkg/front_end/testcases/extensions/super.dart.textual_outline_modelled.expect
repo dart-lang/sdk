@@ -1,0 +1,9 @@
+class A1 {
+  method1() {}
+}
+
+extension A2 on A1 {
+  method2() {}
+}
+
+main() {}

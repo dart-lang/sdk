@@ -1,0 +1,68 @@
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This header file defines the "sysroot" variable which is the absolute path
+# of the sysroot. If no sysroot applies, the variable will be an empty string.
+
+declare_args() {
+  # The absolute path of the sysroot that is applied when compiling using
+  # the target toolchain.
+  target_sysroot = ""
+
+  # The type of sysroot to be used. Empty string means no sysroot.
+  # Supported sysroots: ["alpine","debian"]
+  dart_sysroot = ""
+}
+
+if (is_linux) {
+  if (dart_sysroot == "alpine") {
+    if (current_cpu == "x86") {
+      target_sysroot =
+          rebase_path("//buildtools/sysroot/alpine-linux-x86", root_build_dir)
+    } else if (current_cpu == "x64") {
+      target_sysroot = rebase_path("//buildtools/sysroot/alpine-linux-x86_64",
+                                   root_build_dir)
+    } else if (current_cpu == "arm") {
+      target_sysroot =
+          rebase_path("//buildtools/sysroot/alpine-linux-armv7", root_build_dir)
+    } else if (current_cpu == "arm64") {
+      target_sysroot = rebase_path("//buildtools/sysroot/alpine-linux-aarch64",
+                                   root_build_dir)
+    } else if (current_cpu == "riscv64") {
+      target_sysroot = rebase_path("//buildtools/sysroot/alpine-linux-riscv64",
+                                   root_build_dir)
+    } else {
+      print("There is no $dart_sysroot sysroot present for $current_cpu")
+      assert(false)
+    }
+  } else if (dart_sysroot == "debian") {
+    if (current_cpu == "riscv64") {
+      target_sysroot = rebase_path("//buildtools/sysroot/focal", root_build_dir)
+    } else {
+      # Updating to focal would increase the required libc from 2.17 to 2.28.
+      target_sysroot = rebase_path("//buildtools/sysroot/linux", root_build_dir)
+    }
+  } else if (dart_sysroot != "") {
+    print("There is no $dart_sysroot sysroot support")
+    assert(false)
+  }
+}
+
+if ((current_toolchain == host_toolchain ||
+     current_toolchain == default_toolchain ||
+     current_toolchain == "${default_toolchain}_shared" ||
+     current_toolchain == "${default_toolchain}_asan" ||
+     current_toolchain == "${default_toolchain}_msan" ||
+     current_toolchain == "${default_toolchain}_tsan") &&
+    target_sysroot != "") {
+  sysroot = target_sysroot
+} else if (is_android) {
+  import("//build/config/android/config.gni")
+  sysroot = rebase_path("$android_toolchain_root/sysroot", root_build_dir)
+} else if (is_mac) {
+  import("//build/config/mac/mac_sdk.gni")
+  sysroot = mac_sdk_path
+} else {
+  sysroot = ""
+}

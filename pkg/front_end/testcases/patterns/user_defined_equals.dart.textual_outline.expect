@@ -1,0 +1,21 @@
+class Class1 {
+  const Class1();
+  bool operator ==(Object other) {}
+}
+
+const Class1 c1 = const Class1();
+
+test1(o) {}
+
+class Class2 {
+  const Class2();
+  bool operator ==(Object other) {}
+}
+
+const Class2 c2 = const Class2();
+
+test2(o) {}
+
+main() {}
+
+expect(expected, actual) {}

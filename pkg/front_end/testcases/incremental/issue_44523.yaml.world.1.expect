@@ -1,0 +1,35 @@
+main = <No Member>;
+library from "org-dartlang-test:///app/main.dart" as main {
+
+  import "package:flutter/lib1.dart";
+
+  class _Bar extends lib1::RestorableProperty {
+    synthetic constructor •() → main::_Bar
+      : super lib1::RestorableProperty::•()
+      ;
+  }
+}
+library from "package:flutter/lib1.dart" as lib1 {
+
+  import "package:flutter/lib2.dart";
+
+  abstract class RestorableProperty extends lib2::ChangeNotifier {
+    synthetic constructor •() → lib1::RestorableProperty
+      : super lib2::ChangeNotifier::•()
+      ;
+    method _debugAssertNotDisposed() → dart.core::bool {
+      return true;
+    }
+  }
+}
+library from "package:flutter/lib2.dart" as lib2 {
+
+  class ChangeNotifier extends dart.core::Object {
+    synthetic constructor •() → lib2::ChangeNotifier
+      : super dart.core::Object::•()
+      ;
+    method _debugAssertNotDisposed() → dart.core::bool {
+      return true;
+    }
+  }
+}

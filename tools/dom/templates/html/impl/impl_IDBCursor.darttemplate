@@ -1,0 +1,33 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  Future delete() {
+   try {
+      return _completeRequest(_delete());
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future update(value) {
+   try {
+      return _completeRequest(_update(value));
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  @JSName('continue')
+  void next([Object$NULLABLE key]) {
+    if (key == null) {
+      JS('void', '#.continue()', this);
+    } else {
+      JS('void', '#.continue(#)', this, key);
+    }
+  }
+  $!MEMBERS
+}

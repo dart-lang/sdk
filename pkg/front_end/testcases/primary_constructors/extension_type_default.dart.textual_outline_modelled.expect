@@ -1,0 +1,11 @@
+abstract class A {
+  A get name;
+}
+
+extension type ET1(name) implements A {}
+
+extension type ET2(int? _) {
+  int? get name => 0;
+}
+
+extension type ET3(name) implements ET2 {}

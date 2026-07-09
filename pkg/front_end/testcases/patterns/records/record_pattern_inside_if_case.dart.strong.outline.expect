@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::Record x) → dynamic
+  ;
+static method test2((core::int, core::int) x) → dynamic
+  ;
+static method test3((core::int, {required a: core::int}) x) → dynamic
+  ;
+static method test4(({required a: core::int, required b: core::int}) x) → dynamic
+  ;
+static method test5((core::int, core::double, {required bar: dynamic, required foo: core::String}) x) → dynamic
+  ;

@@ -1,0 +1,3 @@
+.sconsign.dblite
+run_tests
+*.o

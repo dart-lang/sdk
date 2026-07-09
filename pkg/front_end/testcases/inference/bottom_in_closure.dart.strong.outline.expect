@@ -1,0 +1,6 @@
+library test;
+import self as self;
+
+static field () → Null v;
+static method main() → dynamic
+  ;

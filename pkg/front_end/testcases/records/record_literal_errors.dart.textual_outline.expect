@@ -1,0 +1,15 @@
+dynamic duplicateNamedFields = (a: 0, a: 1);
+
+dynamic duplicateNamedFields2 = (a: 0, a: 1, a: 2, b: 3, b: 4);
+
+dynamic missingNamedElement = (0, a:);
+
+dynamic keywordElement = (0, in);
+
+dynamic keywordProperty = (0, 1.in);
+
+void method() {}
+
+class Class {
+  void method() {}
+}

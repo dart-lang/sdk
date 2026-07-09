@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Other extends core::Object {
+  field core::String text;
+  synthetic constructor •() → self::Other
+    ;
+}
+class Inner extends core::Object {
+  field self::Other? other;
+  synthetic constructor •() → self::Inner
+    ;
+}
+abstract sealed class Wrapper extends core::Object {
+  synthetic constructor •() → self::Wrapper
+    ;
+}
+class WrapperA extends self::Wrapper {
+  field self::Inner inner;
+  synthetic constructor •() → self::WrapperA
+    ;
+}
+class WrapperB extends self::Wrapper {
+  field self::Inner inner;
+  synthetic constructor •() → self::WrapperB
+    ;
+}
+static field self::Wrapper obj;
+static method main() → void
+  ;
+static method foo(self::Wrapper wrapper) → void
+  ;

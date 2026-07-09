@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "issue41436c_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41436c_lib.dart";
+
+class C extends iss::B {
+  synthetic constructor •() → self::C
+    : super iss::B::•()
+    ;
+}
+static method main() → dynamic {
+  new self::C::•();
+}

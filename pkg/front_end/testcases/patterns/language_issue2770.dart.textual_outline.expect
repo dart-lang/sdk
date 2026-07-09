@@ -1,0 +1,8 @@
+class Class<T extends Object> {
+  T field;
+  Class(this.field);
+}
+
+method1(Object object) {}
+
+main() {}

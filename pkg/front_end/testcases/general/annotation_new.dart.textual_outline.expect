@@ -1,0 +1,33 @@
+import 'annotation_new.dart' as self;
+
+const field = 1;
+
+void method() {}
+
+class Class {
+  const Class();
+  static const field = 1;
+  static void method() {}
+}
+
+class GenericClass<X, Y> {
+  const GenericClass();
+}
+
+@Class.new()
+@GenericClass.new()
+@GenericClass<int, String>.new()
+@self.Class.new()
+@self.GenericClass.new()
+@self.GenericClass<int, String>.new()
+@field
+@self.field
+@method
+@self.method
+@Class.field
+@Class.method
+@Class.new
+@self.Class.field
+@self.Class.method
+@self.Class.new
+main() {}

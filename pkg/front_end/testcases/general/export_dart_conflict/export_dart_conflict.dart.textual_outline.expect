@@ -1,0 +1,5 @@
+import 'export_dart_conflict_lib1.dart';
+
+Random random = new Random();
+
+int i = new int();

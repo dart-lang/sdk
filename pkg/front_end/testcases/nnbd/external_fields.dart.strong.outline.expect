@@ -1,0 +1,149 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Annotation extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Annotation
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  @self::Annotation::•()
+  external get instanceField() → core::int;
+  @self::Annotation::•()
+  external set instanceField(synthesized core::int #externalFieldValue) → void;
+  @self::Annotation::•()
+  external get finalInstanceField() → core::int;
+  @self::Annotation::•()
+  external get covariantInstanceField() → core::num;
+  @self::Annotation::•()
+  external set covariantInstanceField(covariant-by-declaration synthesized core::num #externalFieldValue) → void;
+  @self::Annotation::•()
+  external static get staticField() → core::int;
+  @self::Annotation::•()
+  external static set staticField(synthesized core::int #externalFieldValue) → void;
+  @self::Annotation::•()
+  external static get finalStaticField() → core::int;
+  external get untypedInstanceField() → dynamic;
+  external set untypedInstanceField(synthesized dynamic #externalFieldValue) → void;
+  external get untypedFinalInstanceField() → dynamic;
+  external get untypedCovariantInstanceField() → dynamic;
+  external set untypedCovariantInstanceField(covariant-by-declaration synthesized dynamic #externalFieldValue) → void;
+  external static get untypedStaticField() → dynamic;
+  external static set untypedStaticField(synthesized dynamic #externalFieldValue) → void;
+  external static get untypedFinalStaticField() → dynamic;
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  @self::Annotation::•()
+  external get instanceField() → core::int;
+  @self::Annotation::•()
+  external set instanceField(synthesized core::int #externalFieldValue) → void;
+  @self::Annotation::•()
+  external get finalInstanceField() → core::int;
+  @self::Annotation::•()
+  external get covariantInstanceField() → core::num;
+  @self::Annotation::•()
+  external set covariantInstanceField(covariant-by-declaration synthesized core::num #externalFieldValue) → void;
+  @self::Annotation::•()
+  external static get staticField() → core::int;
+  @self::Annotation::•()
+  external static set staticField(synthesized core::int #externalFieldValue) → void;
+  @self::Annotation::•()
+  external static get finalStaticField() → core::int;
+  external get untypedInstanceField() → dynamic;
+  external set untypedInstanceField(synthesized dynamic #externalFieldValue) → void;
+  external get untypedFinalInstanceField() → dynamic;
+  external get untypedCovariantInstanceField() → dynamic;
+  external set untypedCovariantInstanceField(covariant-by-declaration synthesized dynamic #externalFieldValue) → void;
+  external static get untypedStaticField() → dynamic;
+  external static set untypedStaticField(synthesized dynamic #externalFieldValue) → void;
+  external static get untypedFinalStaticField() → dynamic;
+}
+class C extends core::Object implements self::A {
+  synthetic constructor •() → self::C
+    ;
+  external get instanceField() → core::int;
+  external set instanceField(synthesized core::int #externalFieldValue) → void;
+  external get finalInstanceField() → core::int;
+  external get covariantInstanceField() → core::num;
+  external set covariantInstanceField(covariant-by-declaration synthesized core::num #externalFieldValue) → void;
+  external get untypedInstanceField() → dynamic;
+  external set untypedInstanceField(synthesized dynamic #externalFieldValue) → void;
+  external get untypedFinalInstanceField() → dynamic;
+  external get untypedCovariantInstanceField() → dynamic;
+  external set untypedCovariantInstanceField(covariant-by-declaration synthesized dynamic #externalFieldValue) → void;
+}
+extension Extension on self::A {
+  get extensionInstanceField = self::Extension|get#extensionInstanceField;
+  set extensionInstanceField = self::Extension|set#extensionInstanceField;
+  get finalExtensionInstanceField = self::Extension|get#finalExtensionInstanceField;
+  static get extensionStaticField = get self::Extension|extensionStaticField;
+  static set extensionStaticField = set self::Extension|extensionStaticField;
+  static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
+  get untypedExtensionInstanceField = self::Extension|get#untypedExtensionInstanceField;
+  set untypedExtensionInstanceField = self::Extension|set#untypedExtensionInstanceField;
+  get untypedFinalExtensionInstanceField = self::Extension|get#untypedFinalExtensionInstanceField;
+  static get untypedExtensionStaticField = get self::Extension|untypedExtensionStaticField;
+  static set untypedExtensionStaticField = set self::Extension|untypedExtensionStaticField;
+  static get untypedFinalExtensionStaticField = get self::Extension|untypedFinalExtensionStaticField;
+}
+@self::Annotation::•()
+external static get topLevelField() → core::int;
+@self::Annotation::•()
+external static set topLevelField(synthesized core::int #externalFieldValue) → void;
+@self::Annotation::•()
+external static get finalTopLevelField() → core::int;
+external static get untypedTopLevelField() → dynamic;
+external static set untypedTopLevelField(synthesized dynamic #externalFieldValue) → void;
+external static get untypedFinalTopLevelField() → dynamic;
+@self::Annotation::•()
+external static extension-member method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
+@self::Annotation::•()
+external static extension-member method Extension|set#extensionInstanceField(lowered self::A #this, synthesized core::int #externalFieldValue) → void;
+@self::Annotation::•()
+external static extension-member method Extension|get#finalExtensionInstanceField(lowered self::A #this) → core::int;
+@self::Annotation::•()
+external static extension-member get Extension|extensionStaticField() → core::int;
+@self::Annotation::•()
+external static extension-member set Extension|extensionStaticField(synthesized core::int #externalFieldValue) → void;
+@self::Annotation::•()
+external static extension-member get Extension|finalExtensionStaticField() → core::int;
+external static extension-member method Extension|get#untypedExtensionInstanceField(lowered self::A #this) → dynamic;
+external static extension-member method Extension|set#untypedExtensionInstanceField(lowered self::A #this, synthesized dynamic #externalFieldValue) → void;
+external static extension-member method Extension|get#untypedFinalExtensionInstanceField(lowered self::A #this) → dynamic;
+external static extension-member get Extension|untypedExtensionStaticField() → dynamic;
+external static extension-member set Extension|untypedExtensionStaticField(synthesized dynamic #externalFieldValue) → void;
+external static extension-member get Extension|untypedFinalExtensionStaticField() → dynamic;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:20:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:20:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:23:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:26:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:26:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:29:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:29:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:32:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:47:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:47:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:50:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:53:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:53:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:56:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:56:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:59:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:9:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:9:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:12:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:74:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:74:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:77:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:80:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:80:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:83:4 -> InstanceConstant(const Annotation{})
+Extra constant evaluation: evaluated: 25, effectively constant: 25

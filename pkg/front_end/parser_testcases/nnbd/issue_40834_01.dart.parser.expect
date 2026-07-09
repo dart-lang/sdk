@@ -1,0 +1,23 @@
+class Foo {
+String? x;
+int y;
+
+Foo(Object? o) : x = o as String?, y = 0;
+Foo.a(dynamic o) : y = o is String ? o.length : null, x = null;
+Foo.b(dynamic o) : y = o is String? ? o.length : null, x = null;
+Foo.c(dynamic o) : y = o as String ? o.length : null, x = null;
+Foo.d(dynamic o) : y = o as String? ? o.length : null, x = null;
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+String[StringToken]?[SimpleToken] x[StringToken];[SimpleToken]
+int[StringToken] y[StringToken];[SimpleToken]
+
+Foo[StringToken]([BeginToken]Object[StringToken]?[SimpleToken] o[StringToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] o[StringToken] as[KeywordToken] String[StringToken]?[SimpleToken],[SimpleToken] y[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+Foo[StringToken].[SimpleToken]a[StringToken]([BeginToken]dynamic[KeywordToken] o[StringToken])[SimpleToken] :[SimpleToken] y[StringToken] =[SimpleToken] o[StringToken] is[KeywordToken] String[StringToken] ?[SimpleToken] o[StringToken].[SimpleToken]length[StringToken] :[SimpleToken] null[KeywordToken],[SimpleToken] x[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+Foo[StringToken].[SimpleToken]b[StringToken]([BeginToken]dynamic[KeywordToken] o[StringToken])[SimpleToken] :[SimpleToken] y[StringToken] =[SimpleToken] o[StringToken] is[KeywordToken] String[StringToken]?[SimpleToken] ?[SimpleToken] o[StringToken].[SimpleToken]length[StringToken] :[SimpleToken] null[KeywordToken],[SimpleToken] x[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+Foo[StringToken].[SimpleToken]c[StringToken]([BeginToken]dynamic[KeywordToken] o[StringToken])[SimpleToken] :[SimpleToken] y[StringToken] =[SimpleToken] o[StringToken] as[KeywordToken] String[StringToken] ?[SimpleToken] o[StringToken].[SimpleToken]length[StringToken] :[SimpleToken] null[KeywordToken],[SimpleToken] x[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+Foo[StringToken].[SimpleToken]d[StringToken]([BeginToken]dynamic[KeywordToken] o[StringToken])[SimpleToken] :[SimpleToken] y[StringToken] =[SimpleToken] o[StringToken] as[KeywordToken] String[StringToken]?[SimpleToken] ?[SimpleToken] o[StringToken].[SimpleToken]length[StringToken] :[SimpleToken] null[KeywordToken],[SimpleToken] x[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

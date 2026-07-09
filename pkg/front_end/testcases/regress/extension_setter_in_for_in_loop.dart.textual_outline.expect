@@ -1,0 +1,4 @@
+extension on String {
+  set foo(int value) {}
+  bar(List<int> input) {}
+}

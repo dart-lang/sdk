@@ -1,0 +1,777 @@
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# =============================================================================
+# PLATFORM SELECTION
+# =============================================================================
+#
+# There are two main things to set: "os" and "cpu". The "toolchain" is the name
+# of the GN thing that encodes combinations of these things.
+#
+# Users typically only set the variables "target_os" and "target_cpu" in "gn
+# args", the rest are set up by our build and internal to GN.
+#
+# There are three different types of each of these things: The "host"
+# represents the computer doing the compile and never changes. The "target"
+# represents the main thing we're trying to build. The "current" represents
+# which configuration is currently being defined, which can be either the
+# host, the target, or something completely different (like nacl). GN will
+# run the same build file multiple times for the different required
+# configuration in the same build.
+#
+# This gives the following variables:
+#  - host_os, host_cpu, host_toolchain
+#  - target_os, target_cpu, default_toolchain
+#  - current_os, current_cpu, current_toolchain.
+#
+# Note the default_toolchain isn't symmetrical (you would expect
+# target_toolchain). This is because the "default" toolchain is a GN built-in
+# concept, and "target" is something our build sets up that's symmetrical with
+# its GYP counterpart. Potentially the built-in default_toolchain variable
+# could be renamed in the future.
+#
+# When writing build files, to do something only for the host:
+#   if (current_toolchain == host_toolchain) { ...
+
+if (target_os == "") {
+  target_os = host_os
+}
+
+assert(host_cpu != "")
+assert(target_cpu != "")
+
+if (current_cpu == "") {
+  current_cpu = target_cpu
+}
+if (current_os == "") {
+  current_os = target_os
+}
+
+# =============================================================================
+# BUILD FLAGS
+# =============================================================================
+#
+# This block lists input arguments to the build, along with their default
+# values.
+#
+# If a value is specified on the command line, it will overwrite the defaults
+# given in a declare_args block, otherwise the default will be used.
+#
+# YOU SHOULD ALMOST NEVER NEED TO ADD FLAGS TO THIS FILE. GN allows any file in
+# the build to declare build flags. If you need a flag for a single component,
+# you can just declare it in the corresponding BUILD.gn file. If you need a
+# flag in multiple components, there are a few options:
+#
+# - If your feature is a single target, say //components/foo, and the targets
+#   depending on foo need to have some define set if foo is enabled: (1) Write
+#   a declare_args block in foo's BUILD.gn file listing your enable_foo build
+#   flag. (2) Write a config in that file listing the define, and list that
+#   config in foo's public_configs. This will propagate that define to all the
+#   targets depending on foo. (3) When foo is not enabled, just make it expand
+#   to an empty group (or whatever's appropriate for the "off" state of your
+#   feature.
+#
+# - If a semi-random set of targets need to know about a define: (1) In the
+#   lowest level of the build that knows about this feature, add a declare_args
+#   block in the build file for your enable flag. (2) Write a config that adds
+#   a define conditionally based on that build flags. (3) Manually add that
+#   config to the "configs" applying to the targets that need the define.
+#
+# - If a semi-random set of targets need to know about the build flag (to do
+#   file inclusion or exclusion, more than just defines): (1) Write a .gni file
+#   in the lowest-level directory that knows about the feature. (2) Put the
+#   declare_args block with your build flag in that .gni file. (3) Import that
+#   .gni file from the BUILD.gn files that need the flag.
+#
+# Other advice:
+#
+# - Use boolean values when possible. If you need a default value that expands
+#   to some complex thing in the default case (like the location of the
+#   compiler which would be computed by a script), use a default value of -1 or
+#   the empty string. Outside of the declare_args block, conditionally expand
+#   the default value as necessary.
+#
+# - Use a name like "use_foo" or "is_foo" (whatever is more appropriate for
+#   your feature) rather than just "foo".
+#
+# - Write good comments directly above the declaration with no blank line.
+#   These comments will appear as documentation in "gn args --list".
+#
+# - Don't call exec_script inside declare_args. This will execute the script
+#   even if the value is overridden, which is wasteful. See first bullet.
+
+# There is no component build for the Dart VM, but build files in some
+# dependencies check this.
+is_component_build = false
+
+declare_args() {
+  # Debug build.
+  is_debug = true
+
+  # Release build.
+  is_release = false
+
+  # Product build.
+  is_product = false
+
+  # Set to true when compiling with the Clang compiler. Typically this is used
+  # to configure warnings.
+  is_clang = current_os == "mac" || current_os == "linux"
+
+  # Compile for Address Sanitizer to find memory bugs.
+  is_asan = false
+
+  # Compile with HWAddress Sanitizer to find memory bugs.
+  # Requires ARM64 hardware
+  is_hwasan = false
+
+  # Compile for Leak Sanitizer to find leaks.
+  is_lsan = false
+
+  # Compile for Memory Sanitizer to find uninitialized reads.
+  is_msan = false
+
+  # Compile for Thread Sanitizer to find threading bugs.
+  is_tsan = false
+
+  # Compile for Undefined Behavior Sanitizer to find reliance on undefined behavior.
+  is_ubsan = false
+
+  # Compile for execution in user-mode QEMU.
+  is_qemu = false
+
+  # protobuf-gn fails to build if this argument isn't defined. This should never
+  # be set to true, becuase we never build within the Fuchsia tree.
+  is_fuchsia_tree = false
+
+  # Set to true when compiling in a _shared toolchain, used for
+  # building shared libraries.
+  is_shared_library = false
+}
+
+# =============================================================================
+# OS DEFINITIONS
+# =============================================================================
+#
+# We set these various is_FOO booleans for convenience in writing OS-based
+# conditions.
+#
+# - is_android, is_chromeos, is_ios, and is_win should be obvious.
+# - is_mac is set only for desktop Mac. It is not set on iOS.
+# - is_posix is true for mac and any Unix-like system (basically everything
+#   except Windows).
+# - is_linux is true for desktop Linux and ChromeOS, but not Android (which is
+#   generally too different despite being based on the Linux kernel).
+#
+# Do not add more is_* variants here for random lesser-used Unix systems like
+# aix or one of the BSDs. If you need to check these, just check the
+# current_os value directly.
+
+if (current_os == "win") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+  is_ios = false
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = false
+  is_watchos = false
+  is_win = true
+} else if (current_os == "mac") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+  is_ios = false
+  is_linux = false
+  is_mac = true
+  is_nacl = false
+  is_posix = true
+  is_watchos = false
+  is_win = false
+} else if (current_os == "android") {
+  is_android = true
+  is_chromeos = false
+  is_fuchsia = false
+  is_ios = false
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_watchos = false
+  is_win = false
+} else if (current_os == "linux") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+  is_ios = false
+  is_linux = true
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_watchos = false
+  is_win = false
+} else if (current_os == "fuchsia") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = true
+  is_ios = false
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_watchos = false
+  is_win = false
+} else if (current_os == "ios") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+  is_ios = true
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_watchos = false
+  is_win = false
+} else if (current_os == "watchos") {
+  is_android = false
+  is_chromeos = false
+  is_fuchsia = false
+
+  # watchOS and iOS are similar enough, so almost all codepaths in
+  # BUILD files are the same for watchOS and iOS. Additionally,
+  # BUILD.gn zlib file doesn't support `is_watchos`, but works fine
+  # with `is_ios`.
+  is_ios = true
+  is_linux = false
+  is_mac = false
+  is_nacl = false
+  is_posix = true
+  is_watchos = true
+  is_win = false
+}
+
+# =============================================================================
+# BUILD OPTIONS
+# =============================================================================
+
+use_flutter_cxx = is_clang && (((is_asan || is_ubsan) && is_mac) || is_msan ||
+                               is_tsan || is_ios || is_android)
+
+using_sanitizer = !is_win && (is_asan || is_hwasan || is_lsan || is_msan ||
+                              is_tsan || is_ubsan)
+
+# =============================================================================
+# TARGET DEFAULTS
+# =============================================================================
+#
+# Set up the default configuration for every build target of the given type.
+# The values configured here will be automatically set on the scope of the
+# corresponding target. Target definitions can add or remove to the settings
+# here as needed.
+
+# Holds all configs used for making native executables and libraries, to avoid
+# duplication in each target below.
+_native_compiler_configs = [
+  "//build/config/compiler:compiler",
+  "//build/config/compiler:cxx_version_default",
+  "//build/config/compiler:clang_stackrealign",
+  "//build/config/compiler:compiler_arm_fpu",
+  "//build/config/compiler:compiler_arm_thumb",
+  "//build/config/compiler:chromium_code",
+  "//build/config/compiler:default_include_dirs",
+  "//build/config/compiler:no_rtti",
+  "//build/config/compiler:runtime_library",
+]
+
+if (use_flutter_cxx) {
+  _native_compiler_configs += [
+    "//third_party/libcxxabi:libcxxabi_config",
+    "//third_party/libcxx:libcxx_config",
+  ]
+}
+
+if (is_shared_library) {
+  # Always enable DART_EXPORT in shared toolchain.
+  _native_compiler_configs += [ "//build/config/compiler:dart_shared_lib" ]
+}
+
+if (is_win) {
+  _native_compiler_configs += [
+    "//build/config/win:lean_and_mean",
+    "//build/config/win:nominmax",
+    "//build/config/win:sdk",
+    "//build/config/win:unicode",
+    "//build/config/win:winver",
+  ]
+  if (is_clang) {
+    _native_compiler_configs += [
+      "//build/config/win:relative_paths",
+      "//build/config/win:deterministic_builds",
+    ]
+  }
+}
+if (is_posix) {
+  _native_compiler_configs += [
+    "//build/config/gcc:relative_paths",
+    "//build/config/gcc:symbol_visibility_hidden",
+  ]
+}
+if (is_fuchsia) {
+  _native_compiler_configs += [
+    "//third_party/fuchsia/gn-sdk/src/config:compiler",
+    "//third_party/fuchsia/gn-sdk/src/config:runtime_library",
+  ]
+}
+
+if (is_linux) {
+  _native_compiler_configs += [ "//build/config/linux:sdk" ]
+} else if (is_mac) {
+  _native_compiler_configs += [ "//build/config/mac:sdk" ]
+} else if (is_ios) {
+  _native_compiler_configs += [ "//build/config/ios:sdk" ]
+} else if (is_android) {
+  _native_compiler_configs += [ "//build/config/android:sdk" ]
+}
+
+if (is_clang) {
+  _native_compiler_configs += [ "//build/config/clang:extra_warnings" ]
+}
+
+# Optimizations and debug checking.
+if (is_debug) {
+  _native_compiler_configs += [ "//build/config:debug" ]
+  _default_optimization_config = "//build/config/compiler:no_optimize"
+} else if (is_release) {
+  _native_compiler_configs += [ "//build/config:release" ]
+  _default_optimization_config = "//build/config/compiler:optimize"
+} else {
+  assert(is_product)
+  _native_compiler_configs += [ "//build/config:product" ]
+  _default_optimization_config = "//build/config/compiler:optimize"
+}
+_native_compiler_configs += [ _default_optimization_config ]
+
+# zlib's BUILD.gn expects to have this config among default configs.
+_native_compiler_configs += [ "//build/config/compiler:default_optimization" ]
+
+# Symbol setup.
+_default_symbols_config = "//build/config/compiler:symbols"
+_native_compiler_configs += [ _default_symbols_config ]
+
+# Windows linker setup for EXEs and DLLs.
+if (is_win) {
+  _windows_linker_configs = [
+    "//build/config/win:default_incremental_linking",
+    "//build/config/win:sdk_link",
+    "//build/config/win:common_linker_setup",
+
+    # Default to console-mode apps. Most of our targets are tests and such
+    # that shouldn't use the windows subsystem.
+    "//build/config/win:console",
+  ]
+}
+
+# Executable defaults.
+_executable_configs = _native_compiler_configs
+if (is_win) {
+  _executable_configs += _windows_linker_configs
+} else if (is_mac) {
+  _executable_configs += [
+    "//build/config/mac:mac_dynamic_flags",
+    "//build/config/mac:mac_executable_flags",
+  ]
+} else if (is_linux) {
+  _executable_configs += [
+    "//build/config/gcc:executable_ldconfig",
+    "//build/config/linux:executable_config",
+  ]
+} else if (is_android) {
+  _executable_configs += [
+    "//build/config/gcc:executable_ldconfig",
+    "//build/config/android:executable_config",
+  ]
+}
+set_defaults("executable") {
+  configs = _executable_configs
+}
+
+# Static library defaults.
+set_defaults("static_library") {
+  configs = _native_compiler_configs
+}
+
+# Shared library defaults (also for components in component mode).
+_shared_library_configs =
+    _native_compiler_configs + [ "//build/config:shared_library_config" ]
+if (is_win) {
+  _shared_library_configs += _windows_linker_configs
+} else if (is_mac) {
+  _shared_library_configs += [ "//build/config/mac:mac_dynamic_flags" ]
+}
+set_defaults("shared_library") {
+  configs = _shared_library_configs
+}
+set_defaults("loadable_module") {
+  configs = _shared_library_configs
+}
+
+# Source set defaults (also for components in non-component mode).
+set_defaults("source_set") {
+  configs = _native_compiler_configs
+}
+set_defaults("component") {
+  configs = _native_compiler_configs
+}
+
+# ==============================================================================
+# TOOLCHAIN SETUP
+# ==============================================================================
+#
+# Here we set the default toolchain, as well as the variable host_toolchain
+# which will identify the toolchain corresponding to the local system when
+# doing cross-compiles. When not cross-compiling, this will be the same as the
+# default toolchain.
+
+if (is_win) {
+  if (is_clang) {
+    host_toolchain = "//build/toolchain/win:clang_$host_cpu"
+    set_default_toolchain("//build/toolchain/win:clang_$current_cpu")
+  } else {
+    host_toolchain = "//build/toolchain/win:$host_cpu"
+    set_default_toolchain("//build/toolchain/win:$current_cpu")
+  }
+} else if (is_android) {
+  if (host_os == "linux") {
+    if (host_cpu == "x86" || host_cpu == "x64") {
+      host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
+    } else {
+      host_toolchain = "//build/toolchain/linux:$host_cpu"
+    }
+  } else if (host_os == "mac") {
+    host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
+  } else {
+    assert(false, "Unknown host for android cross compile")
+  }
+  if (is_clang) {
+    set_default_toolchain("//build/toolchain/android:clang_$current_cpu")
+  } else {
+    set_default_toolchain("//build/toolchain/android:$current_cpu")
+  }
+} else if (is_linux) {
+  if (is_clang) {
+    host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
+    set_default_toolchain("//build/toolchain/linux:clang_$current_cpu")
+  } else {
+    host_toolchain = "//build/toolchain/linux:$host_cpu"
+    set_default_toolchain("//build/toolchain/linux:$current_cpu")
+  }
+} else if (is_mac) {
+  host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
+  set_default_toolchain("//build/toolchain/mac:clang_$current_cpu")
+} else if (is_ios) {
+  import("//build/config/ios/ios_sdk.gni")  # For use_simulator
+  host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
+  toolchain_target = "clang"
+  if (is_watchos) {
+    toolchain_target = "watchos_$toolchain_target"
+  } else {
+    toolchain_target = "ios_$toolchain_target"
+  }
+  toolchain_target = "${toolchain_target}_$target_cpu"
+  if (use_simulator) {
+    toolchain_target = "${toolchain_target}_sim"
+  }
+  set_default_toolchain("//build/toolchain/mac:$toolchain_target")
+} else if (is_fuchsia) {
+  assert(host_cpu == "x64")
+  if (host_os == "linux") {
+    host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
+    set_default_toolchain("//build/toolchain/fuchsia")
+  } else if (host_os == "mac") {
+    host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
+    set_default_toolchain("//build/toolchain/fuchsia")
+  } else {
+    assert(false, "Unknown host for fuchsia cross compile")
+  }
+}
+
+# Sets default dependencies for executable and loadable_module targets.
+#
+# Variables
+#   no_default_deps: If true, no standard dependencies will be added.
+foreach(_target_type,
+        [
+          "executable",
+          "loadable_module",
+        ]) {
+  if (!is_shared_library) {
+    template(_target_type) {
+      target(_target_type, target_name) {
+        forward_variables_from(invoker, "*", [ "no_default_deps" ])
+        if (!defined(deps)) {
+          deps = []
+        }
+        if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+          deps += [ "//build/config/sanitizers:deps" ]
+          if (use_flutter_cxx) {
+            deps += [ "//third_party/libcxx" ]
+          }
+          if (is_fuchsia) {
+            deps += [
+              "//build/fuchsia/config/clang:c++-runtime-deps",
+              "//third_party/fuchsia/gn-sdk/src/config:runtime_library_group",
+            ]
+          }
+        }
+        if (is_win && (is_asan || is_ubsan)) {
+          if (!defined(data_deps)) {
+            data_deps = []
+          }
+          data_deps += [ "//build/config/compiler:copy_sanitizer_runtime" ]
+        }
+      }
+    }
+  } else {
+    # Forward to the main toolchain so that
+    #   shared_libary("foo") {
+    #     deps = [ ":bar" ]
+    #   }
+    #   executable("bar") {}
+    # doesn't create an extra copy of bar.
+    template(_target_type) {
+      group(target_name) {
+        forward_variables_from(invoker,
+                               [
+                                 "testonly",
+                                 "visibility",
+                               ])
+        not_needed(invoker, "*")
+        main_toolchain = string_replace(current_toolchain, "_shared", "")
+        public_deps = [ ":$target_name($main_toolchain)" ]
+      }
+    }
+  }
+}
+
+if (!is_shared_library) {
+  # In the main toolchain, shared_library defined as a group with two targets:
+  #
+  # - same library in the _shared toolcahin
+  # - copy of the built library from a toolchain output folder into
+  #   the main output folder
+  template("shared_library") {
+    original_target_name = target_name
+    copy_target_name = "${target_name}_copy"
+    shared_toolchain_target_name =
+        "${original_target_name}(${current_toolchain}_shared)"
+
+    copy(copy_target_name) {
+      forward_variables_from(invoker,
+                             [
+                               "testonly",
+                               "visibility",
+                             ])
+      if (defined(visibility)) {
+        visibility += [ ":$original_target_name" ]
+      }
+
+      deps = [ ":$shared_toolchain_target_name" ]
+
+      # Calculate an output file name produced by an shared library.
+      # Inspired by Fuchsia build config
+      # https://cs.opensource.google/fuchsia/fuchsia/+/main:build/config/BUILDCONFIG.gn;l=3183;drc=86dcff138700c76441db8592b39de7b3997a0050
+      output_name = original_target_name
+      if (defined(invoker.output_name)) {
+        output_name = invoker.output_name
+      }
+
+      output_prefix = "lib"
+      if (!defined(output_extension)) {
+        if (current_os == "mac" || current_os == "ios" ||
+            current_os == "watchos") {
+          output_extension = "dylib"
+        } else if (current_os == "win") {
+          output_extension = "dll"
+          output_prefix = ""
+        } else if (current_os == "unknown" && current_cpu == "wasm32") {
+          output_extension = "wasm"
+        } else {
+          output_extension = "so"
+        }
+      }
+
+      output_file_name = "$output_prefix$output_name"
+      if (output_extension != "") {
+        output_file_name += ".$output_extension"
+      }
+
+      local_out_dir = root_out_dir
+      shared_out_dir = get_label_info(deps[0], "root_out_dir")
+      if (defined(invoker.output_dir)) {
+        local_out_dir = invoker.output_dir
+
+        # If invoker.output_dir is not root_build_dir, assume it is a
+        # sub-directory of root_out_dir, and adjust the source path accordingly
+        # (e.g. "<toolchain>/foo" -> "<toolchain>-<variant>/foo").
+        if (local_out_dir != root_build_dir) {
+          relative_dir =
+              rebase_path(local_out_dir, root_out_dir, root_build_dir)
+          shared_out_dir = "$shared_out_dir/$relative_dir"
+        }
+      }
+
+      sources = [ "$shared_out_dir/$output_file_name" ]
+      outputs = [ "$local_out_dir/$output_file_name" ]
+    }
+
+    group(target_name) {
+      public_deps = [
+        ":$copy_target_name",
+        ":$shared_toolchain_target_name",
+      ]
+    }
+    not_needed(invoker, "*")
+  }
+} else {
+  # In the -shared toolchain, shared_library is just its normal self,
+  # but if the invoker constrained the visibility, we must make sure
+  # the dependency from the main toolchain is still allowed.
+  template("shared_library") {
+    shared_library(target_name) {
+      # original_target_name = target_name
+      forward_variables_from(invoker, [ "visibility" ])
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "no_default_deps",
+                               "visibility",
+                             ])
+      if (!defined(output_dir)) {
+        output_dir = root_out_dir
+      }
+      if (!defined(output_name)) {
+        output_name = target_name
+      }
+
+      # target_name = original_target_name
+      if (defined(visibility)) {
+        visibility += [ ":$target_name" ]
+      }
+      if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+        if (!defined(deps)) {
+          deps = []
+        }
+        deps += [ "//build/config/sanitizers:deps" ]
+        if (use_flutter_cxx) {
+          deps += [ "//third_party/libcxx" ]
+        }
+        if (is_fuchsia) {
+          deps += [
+            "//build/fuchsia/config/clang:c++-runtime-deps",
+            "//third_party/fuchsia/gn-sdk/src/config:runtime_library_group",
+          ]
+        }
+      }
+    }
+  }
+}
+
+# ==============================================================================
+# COMPONENT SETUP
+# ==============================================================================
+
+# Don't try to do component builds for the standalone Dart VM.
+assert(!is_component_build)
+component_mode = "source_set"
+
+template("component") {
+  source_set(target_name) {
+    # See above.
+    configs = []  # Prevent list overwriting warning.
+    configs = invoker.configs
+
+    if (defined(invoker.all_dependent_configs)) {
+      all_dependent_configs = invoker.all_dependent_configs
+    }
+    if (defined(invoker.allow_circular_includes_from)) {
+      allow_circular_includes_from = invoker.allow_circular_includes_from
+    }
+    if (defined(invoker.cflags)) {
+      cflags = invoker.cflags
+    }
+    if (defined(invoker.cflags_c)) {
+      cflags_c = invoker.cflags_c
+    }
+    if (defined(invoker.cflags_cc)) {
+      cflags_cc = invoker.cflags_cc
+    }
+    if (defined(invoker.cflags_objc)) {
+      cflags_objc = invoker.cflags_objc
+    }
+    if (defined(invoker.cflags_objcc)) {
+      cflags_objcc = invoker.cflags_objcc
+    }
+    if (defined(invoker.check_includes)) {
+      check_includes = invoker.check_includes
+    }
+    if (defined(invoker.data)) {
+      data = invoker.data
+    }
+    if (defined(invoker.data_deps)) {
+      data_deps = invoker.data_deps
+    }
+    if (defined(invoker.datadeps)) {
+      datadeps = invoker.datadeps
+    }
+    if (defined(invoker.defines)) {
+      defines = invoker.defines
+    }
+    if (defined(invoker.deps)) {
+      deps = invoker.deps
+    }
+    if (defined(invoker.direct_dependent_configs)) {
+      direct_dependent_configs = invoker.direct_dependent_configs
+    }
+    if (defined(invoker.forward_dependent_configs_from)) {
+      forward_dependent_configs_from = invoker.forward_dependent_configs_from
+    }
+    if (defined(invoker.include_dirs)) {
+      include_dirs = invoker.include_dirs
+    }
+    if (defined(invoker.ldflags)) {
+      ldflags = invoker.ldflags
+    }
+    if (defined(invoker.lib_dirs)) {
+      lib_dirs = invoker.lib_dirs
+    }
+    if (defined(invoker.libs)) {
+      libs = invoker.libs
+    }
+    if (defined(invoker.output_extension)) {
+      output_extension = invoker.output_extension
+    }
+    if (defined(invoker.output_name)) {
+      output_name = invoker.output_name
+    }
+    if (defined(invoker.public)) {
+      public = invoker.public
+    }
+    if (defined(invoker.public_configs)) {
+      public_configs = invoker.public_configs
+    }
+    if (defined(invoker.public_deps)) {
+      public_deps = invoker.public_deps
+    }
+    if (defined(invoker.sources)) {
+      sources = invoker.sources
+    }
+    if (defined(invoker.testonly)) {
+      testonly = invoker.testonly
+    }
+    if (defined(invoker.visibility)) {
+      visibility = invoker.visibility
+    }
+  }
+}

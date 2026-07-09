@@ -1,0 +1,19 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+// We implement EventTarget and have stubs for its methods because it's tricky to
+// convince the scripts to make our instance methods abstract, and the bodies that
+// get generated require `this` to be an EventTarget.
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME implements EventTarget {
+
+  void addEventListener(String type, dynamic listener(Event event)$NULLABLE,
+      [bool$NULLABLE useCapture]);
+  bool dispatchEvent(Event event);
+  void removeEventListener(String type, dynamic listener(Event event)$NULLABLE,
+      [bool$NULLABLE useCapture]);
+  Events get on;
+
+$!MEMBERS}

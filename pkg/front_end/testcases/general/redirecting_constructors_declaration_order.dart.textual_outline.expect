@@ -1,0 +1,12 @@
+class C {
+  List<A> field;
+  C({this.field = const [A.redir()]});
+}
+
+abstract class A {
+  const factory A.redir() = B;
+}
+
+class B<X> implements A {
+  const B();
+}

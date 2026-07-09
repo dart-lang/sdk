@@ -1,0 +1,64 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Compile an application with a .dart_tool/package_config.json file.
+# Then change which file should be the package_config.json file to
+# use, and everything should now be relative to the new
+# package_config.json file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      package_0.1.0/a.dart: |
+        a() {
+          la1();
+        }
+        la1() {
+          print("v0.1.0");
+        }
+      package_0.1.0/b.dart: |
+        import "a.dart";
+        b() {
+          a();
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../package_0.1.0"
+            }
+          ]
+        }
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    sources:
+      package_0.1.1/b.dart: |
+        b() {
+          print("hello from v0.1.1");
+        }
+      .dart_tool/package_config2.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../package_0.1.1"
+            }
+          ]
+        }
+    packageConfigFile: .dart_tool/package_config2.json
+    expectedLibraryCount: 2
+    advancedInvalidation: packageUpdate

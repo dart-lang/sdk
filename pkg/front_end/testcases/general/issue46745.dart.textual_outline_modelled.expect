@@ -1,0 +1,7 @@
+class A {
+  A._();
+  A.foo();
+  factory A.foo() => A._();
+}
+
+main() {}

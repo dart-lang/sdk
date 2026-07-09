@@ -1,0 +1,46 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:16:20: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_prefix_pp = (++new B().a);
+//                    ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:17:20: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_prefix_mm = (--new B().a);
+//                    ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:18:30: Error: A value of type 'int' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_postfix_pp = (new B().a++);
+//                              ^
+//
+// pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart:19:30: Error: A value of type 'double' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/infer_assign_to_property_custom.dart'.
+// var v_postfix_mm = (new B().a--);
+//                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  operator +(dynamic other) → core::int
+    ;
+  operator -(dynamic other) → core::double
+    ;
+}
+class B extends core::Object {
+  field self::A a;
+  synthetic constructor •() → self::B
+    ;
+}
+static field core::int v_prefix_pp;
+static field core::double v_prefix_mm;
+static field self::A v_postfix_pp;
+static field self::A v_postfix_mm;
+static method main() → dynamic
+  ;

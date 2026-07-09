@@ -1,0 +1,9 @@
+typedef void Func();
+
+class C<T> {
+  test() {}
+}
+
+use(x) {}
+
+main() {}

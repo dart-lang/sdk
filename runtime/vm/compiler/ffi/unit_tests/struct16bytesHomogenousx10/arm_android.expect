@@ -1,0 +1,15 @@
+M(r1 uint32, r2 uint32, r3 uint32, S+0 uint32) Struct(size: 16)
+S+4 float
+M(S+8 uint32, S+12 uint32, S+16 uint32, S+20 uint32) Struct(size: 16)
+M(S+24 uint32, S+28 uint32, S+32 uint32, S+36 uint32) Struct(size: 16)
+M(S+40 uint32, S+44 uint32, S+48 uint32, S+52 uint32) Struct(size: 16)
+M(S+56 uint32, S+60 uint32, S+64 uint32, S+68 uint32) Struct(size: 16)
+M(S+72 uint32, S+76 uint32, S+80 uint32, S+84 uint32) Struct(size: 16)
+M(S+88 uint32, S+92 uint32, S+96 uint32, S+100 uint32) Struct(size: 16)
+M(S+104 uint32, S+108 uint32, S+112 uint32, S+116 uint32) Struct(size: 16)
+M(S+120 uint32, S+124 uint32, S+128 uint32, S+132 uint32) Struct(size: 16)
+S+136 float
+S+140 int32[int8]
+M(S+144 uint32, S+148 uint32, S+152 uint32, S+156 uint32) Struct(size: 16)
+=>
+P(r0 uint32) Struct(size: 16)

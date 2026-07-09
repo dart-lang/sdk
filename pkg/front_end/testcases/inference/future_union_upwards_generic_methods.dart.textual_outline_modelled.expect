@@ -1,0 +1,11 @@
+library test;
+
+import 'dart:async';
+
+class A {}
+
+class B extends A {}
+
+class C extends A {}
+
+main() async {}

@@ -1,0 +1,9 @@
+augment class Class {}
+abstract augment class Class {}
+augment class Class = Object with Mixin;
+abstract augment class Class = Object with Mixin;
+
+augment[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+abstract[KeywordToken] augment[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+augment[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
+abstract[KeywordToken] augment[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]

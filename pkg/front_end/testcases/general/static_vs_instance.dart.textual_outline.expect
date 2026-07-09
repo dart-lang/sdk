@@ -1,0 +1,4 @@
+class C {
+  set s5(int v) {}
+  static int s5 = 1;
+}

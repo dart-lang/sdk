@@ -1,0 +1,27 @@
+name: analysis_server_client
+description:
+  A client wrapper over analysis_server. Instances of the class Server manage a
+  connection to a server process, and facilitate communication to and from the
+  server.
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server_client
+
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+# Note: this package was previously published (last published as `2.0.1`).
+publish_to: none
+
+environment:
+  sdk: '^3.13.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  collection: any
+  path: any
+  pub_semver: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  analyzer: any
+  lints: any
+  test: any

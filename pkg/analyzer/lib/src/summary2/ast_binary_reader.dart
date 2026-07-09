@@ -1,0 +1,1546 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary2/ast_binary_flags.dart';
+import 'package:analyzer/src/summary2/ast_binary_tag.dart';
+import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/unlinked_token_type.dart';
+
+/// Deserializer of ASTs.
+class AstBinaryReader {
+  final ResolutionReader _reader;
+
+  AstBinaryReader({required ResolutionReader reader}) : _reader = reader;
+
+  AstNode readNode() {
+    var node = _readNode();
+    if (node is AstNodeImpl) {
+      AstNodeImpl.linkNodeTokens(node);
+    }
+    return node;
+  }
+
+  void _bindFormalParameterFragment(
+    FormalParameterImpl node,
+    FormalParameterFragmentImpl fragment,
+  ) {
+    fragment.constantInitializer = node.defaultClause?.value;
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      for (var parameter in functionTypedSuffix.formalParameters.parameters) {
+        parameter.declaredFragment!.initElement();
+      }
+    }
+    node.declaredFragment = fragment;
+  }
+
+  IntegerLiteral _createIntegerLiteral(String lexeme, int value) {
+    var node = IntegerLiteralImpl(
+      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
+      literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  AdjacentStrings _readAdjacentStrings() {
+    var components = _readNodeList<StringLiteralImpl>();
+    var node = AdjacentStringsImpl(strings: components);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  Annotation _readAnnotation() {
+    var name = _readNode() as IdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var arguments = _readOptionalNode() as ArgumentListImpl?;
+    var node = AnnotationImpl(
+      atSign: Tokens.at(),
+      name: name,
+      typeArguments: typeArguments,
+      period: constructorName != null ? Tokens.period() : null,
+      constructorName: constructorName,
+      arguments: arguments,
+    );
+    node.element = _reader.readElement();
+    if (arguments != null) {
+      _resolveArguments(node.element, arguments);
+    }
+    return node;
+  }
+
+  ArgumentList _readArgumentList() {
+    var arguments = _readNodeList<ArgumentImpl>();
+
+    return ArgumentListImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      arguments: arguments,
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
+  }
+
+  AsExpression _readAsExpression() {
+    var expression = _readNode() as ExpressionImpl;
+    var type = _readNode() as TypeAnnotationImpl;
+    var node = AsExpressionImpl(
+      expression: expression,
+      asOperator: Tokens.as_(),
+      type: type,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  AssertInitializer _readAssertInitializer() {
+    var condition = _readNode() as ExpressionImpl;
+    var message = _readOptionalNode() as ExpressionImpl?;
+    return AssertInitializerImpl(
+      assertKeyword: Tokens.assert_(),
+      leftParenthesis: Tokens.openParenthesis(),
+      condition: condition,
+      comma: message != null ? Tokens.comma() : null,
+      message: message,
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
+  }
+
+  AssignmentExpression _readAssignmentExpression() {
+    var leftHandSide = _readNode() as ExpressionImpl;
+    var rightHandSide = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var node = AssignmentExpressionImpl(
+      leftHandSide: leftHandSide,
+      operator: Tokens.fromType(operatorType),
+      rightHandSide: rightHandSide,
+    );
+    node.element = _reader.readElement() as InternalMethodElement?;
+    node.readElement = _reader.readElement();
+    node.readType = _reader.readType();
+    node.writeElement = _reader.readElement();
+    node.writeType = _reader.readType();
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  AwaitExpression _readAwaitExpression() {
+    var expression = _readNode() as ExpressionImpl;
+    return AwaitExpressionImpl(
+      awaitKeyword: Tokens.await_(),
+      expression: expression,
+    );
+  }
+
+  BinaryExpression _readBinaryExpression() {
+    var leftOperand = _readNode() as ExpressionImpl;
+    var rightOperand = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var node = BinaryExpressionImpl(
+      leftOperand: leftOperand,
+      operator: Tokens.fromType(operatorType),
+      rightOperand: rightOperand,
+    );
+    node.element = _reader.readElement() as MethodElement?;
+    node.staticInvokeType = _reader.readOptionalFunctionType();
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  BooleanLiteral _readBooleanLiteral() {
+    var value = _readByte() == 1;
+    var node = BooleanLiteralImpl(
+      literal: value ? Tokens.true_() : Tokens.false_(),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  int _readByte() {
+    return _reader.readByte();
+  }
+
+  CascadeExpression _readCascadeExpression() {
+    var target = _readNode() as ExpressionImpl;
+    var sections = _readNodeList<ExpressionImpl>();
+    var node = CascadeExpressionImpl(target: target, cascadeSections: sections);
+    node.setPseudoExpressionStaticType(target.staticType);
+    return node;
+  }
+
+  ConditionalExpression _readConditionalExpression() {
+    var condition = _readNode() as ExpressionImpl;
+    var thenExpression = _readNode() as ExpressionImpl;
+    var elseExpression = _readNode() as ExpressionImpl;
+    var node = ConditionalExpressionImpl(
+      condition: condition,
+      question: Tokens.question(),
+      thenExpression: thenExpression,
+      colon: Tokens.colon(),
+      elseExpression: elseExpression,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ConstructorFieldInitializer _readConstructorFieldInitializer() {
+    var flags = _readByte();
+    var fieldName = _readNode() as SimpleIdentifierImpl;
+    var expression = _readNode() as ExpressionImpl;
+    var hasThis = AstBinaryFlags.hasThis(flags);
+    return ConstructorFieldInitializerImpl(
+      thisKeyword: hasThis ? Tokens.this_() : null,
+      period: hasThis ? Tokens.period() : null,
+      fieldName: fieldName,
+      equals: Tokens.eq(),
+      expression: expression,
+    );
+  }
+
+  ConstructorName _readConstructorName() {
+    var type = _readNode() as NamedTypeImpl;
+    var name = _readOptionalNode() as SimpleIdentifierImpl?;
+
+    var node = ConstructorNameImpl(
+      type: type,
+      period: name != null ? Tokens.period() : null,
+      name: name,
+    );
+    node.element = _reader.readElement() as InternalConstructorElement?;
+    return node;
+  }
+
+  ConstructorReference _readConstructorReference() {
+    var constructorName = _readNode() as ConstructorNameImpl;
+    var node = ConstructorReferenceImpl(constructorName: constructorName);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  Token _readDeclarationName() {
+    var name = _reader.readStringReference();
+    return StringToken(TokenType.STRING, name, -1);
+  }
+
+  DeclaredIdentifier _readDeclaredIdentifier() {
+    var flags = _readByte();
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var name = _readDeclarationName();
+    var metadata = _readNodeList<AnnotationImpl>();
+    return DeclaredIdentifierImpl(
+      comment: null,
+      metadata: metadata,
+      keyword: Tokens.choose(
+        AstBinaryFlags.isConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.isFinal(flags),
+        Tokens.final_(),
+        AstBinaryFlags.isVar(flags),
+        Tokens.var_(),
+      ),
+      type: type,
+      name: name,
+    );
+  }
+
+  DotShorthandConstructorInvocation _readDotShorthandConstructorInvocation() {
+    var flags = _readByte();
+    var constructorName = _readNode() as SimpleIdentifierImpl;
+    var argumentList = _readNode() as ArgumentListImpl;
+
+    var node = DotShorthandConstructorInvocationImpl(
+      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
+      period: Tokens.period(),
+      constructorName: constructorName,
+      typeArguments: null,
+      argumentList: argumentList,
+    )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
+    _readExpressionResolution(node);
+    _resolveArguments(node.constructorName.element, node.argumentList);
+    return node;
+  }
+
+  DotShorthandInvocation _readDotShorthandInvocation() {
+    var flags = _readByte();
+    var memberName = _readNode() as SimpleIdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = _readNode() as ArgumentListImpl;
+    var node = DotShorthandInvocationImpl(
+      period: Tokens.period(),
+      memberName: memberName,
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
+    _readInvocationExpression(node);
+    return node;
+  }
+
+  DotShorthandPropertyAccess _readDotShorthandPropertyAccess() {
+    var flags = _readByte();
+    var propertyName = _readNode() as SimpleIdentifierImpl;
+    var node = DotShorthandPropertyAccessImpl(
+      period: Tokens.period(),
+      propertyName: propertyName,
+    )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  DottedName _readDottedName() {
+    var count = _readUint32();
+    var tokens = <Token>[];
+    for (var i = 0; i < count; i++) {
+      var lexeme = _readStringReference();
+      var type = lexeme == '.' ? TokenType.PERIOD : TokenType.IDENTIFIER;
+      tokens.add(TokenFactory.tokenFromTypeAndString(type, lexeme));
+    }
+    return DottedNameImpl(tokens: tokens);
+  }
+
+  DoubleLiteral _readDoubleLiteral() {
+    var value = _reader.readDouble();
+    var node = DoubleLiteralImpl(
+      literal: StringToken(
+        TokenType.STRING,
+        considerCanonicalizeString('$value'),
+        -1,
+      ),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  void _readExpressionResolution(ExpressionImpl node) {
+    node.setPseudoExpressionStaticType(_reader.readType());
+  }
+
+  ExtensionOverride _readExtensionOverride() {
+    var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
+    var extensionName = _readStringReference();
+    var element = _reader.readElement() as ExtensionElementImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var argumentList = _readNode() as ArgumentListImpl;
+    var node = ExtensionOverrideImpl(
+      importPrefix: importPrefix,
+      name: StringToken(TokenType.STRING, extensionName, -1),
+      element: element,
+      argumentList: argumentList,
+      typeArguments: typeArguments,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  FieldFormalParameter _readFieldFormalParameter() {
+    var functionTypeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var functionFormalParameters = _readOptionalFormalParameterList();
+    var flags = _readByte();
+    var metadata = _readNodeList<AnnotationImpl>();
+    var name = _readDeclarationName();
+    var kind = _readFormalParameterKind(flags);
+    var functionTypedSuffix = functionFormalParameters == null
+        ? null
+        : FunctionTypedFormalParameterSuffixImpl(
+            typeParameters: functionTypeParameters,
+            formalParameters: functionFormalParameters,
+            question: AstBinaryFlags.formalParameterHasQuestion(flags)
+                ? Tokens.question()
+                : null,
+          );
+    var node = FieldFormalParameterImpl(
+      comment: null,
+      metadata: metadata,
+      kind: kind,
+      covariantKeyword: AstBinaryFlags.formalParameterIsCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
+      requiredKeyword: _readFormalParameterRequiredKeyword(flags, kind),
+      constFinalOrVarKeyword: Tokens.choose(
+        AstBinaryFlags.formalParameterIsConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.formalParameterIsFinal(flags),
+        Tokens.final_(),
+        AstBinaryFlags.formalParameterIsVar(flags),
+        Tokens.var_(),
+      ),
+      type: type,
+      thisKeyword: Tokens.this_(),
+      period: Tokens.period(),
+      name: name,
+      functionTypedSuffix: functionTypedSuffix,
+      defaultClause: _readFormalParameterDefaultClause(flags),
+    );
+    var fragment = FieldFormalParameterFragmentImpl(
+      name: name.lexeme,
+      nameOffset: null,
+      parameterKind: kind,
+      privateName: null,
+    );
+    _bindFormalParameterFragment(node, fragment);
+    return node;
+  }
+
+  ForEachPartsWithDeclaration _readForEachPartsWithDeclaration() {
+    var loopVariable = _readNode() as DeclaredIdentifierImpl;
+    var iterable = _readNode() as ExpressionImpl;
+    return ForEachPartsWithDeclarationImpl(
+      inKeyword: Tokens.in_(),
+      iterable: iterable,
+      loopVariable: loopVariable,
+    );
+  }
+
+  ForElement _readForElement() {
+    var flags = _readByte();
+    var forLoopParts = _readNode() as ForLoopPartsImpl;
+    var body = _readNode() as CollectionElementImpl;
+    return ForElementImpl(
+      awaitKeyword: AstBinaryFlags.hasAwait(flags) ? Tokens.await_() : null,
+      body: body,
+      forKeyword: Tokens.for_(),
+      forLoopParts: forLoopParts,
+      leftParenthesis: Tokens.openParenthesis(),
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
+  }
+
+  FormalParameterDefaultClauseImpl? _readFormalParameterDefaultClause(
+    int flags,
+  ) {
+    if (!AstBinaryFlags.formalParameterHasInitializer(flags)) {
+      return null;
+    }
+    return FormalParameterDefaultClauseImpl(
+      separator: Tokens.colon(),
+      value: _readNode() as ExpressionImpl,
+    );
+  }
+
+  ParameterKind _readFormalParameterKind(int flags) {
+    if (AstBinaryFlags.formalParameterIsPositional(flags)) {
+      return AstBinaryFlags.formalParameterIsRequired(flags)
+          ? ParameterKind.REQUIRED
+          : ParameterKind.POSITIONAL;
+    } else {
+      return AstBinaryFlags.formalParameterIsRequired(flags)
+          ? ParameterKind.NAMED_REQUIRED
+          : ParameterKind.NAMED;
+    }
+  }
+
+  FormalParameterListImpl _readFormalParameterList() {
+    var flags = _readByte();
+    var parameters = _readNodeList<FormalParameterImpl>();
+
+    return FormalParameterListImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      parameters: parameters,
+      leftDelimiter: Tokens.choose(
+        AstBinaryFlags.isDelimiterCurly(flags),
+        Tokens.openCurlyBracket(),
+        AstBinaryFlags.isDelimiterSquare(flags),
+        Tokens.openSquareBracket(),
+      ),
+      rightDelimiter: Tokens.choose(
+        AstBinaryFlags.isDelimiterCurly(flags),
+        Tokens.closeCurlyBracket(),
+        AstBinaryFlags.isDelimiterSquare(flags),
+        Tokens.closeSquareBracket(),
+      ),
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
+  }
+
+  void _readFormalParameterListResolution(FormalParameterListImpl node) {
+    for (var parameter in node.parameters) {
+      var fragment = parameter.declaredFragment!;
+      assert(fragment.nextFragment == null);
+      fragment.element.type = _reader.readRequiredType();
+      if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
+        _readFormalParameterListResolution(
+          functionTypedSuffix.formalParameters,
+        );
+      }
+    }
+  }
+
+  Token? _readFormalParameterRequiredKeyword(int flags, ParameterKind kind) {
+    return !kind.isPositional && AstBinaryFlags.formalParameterIsRequired(flags)
+        ? Tokens.required_()
+        : null;
+  }
+
+  ForPartsWithDeclarations _readForPartsWithDeclarations() {
+    var variables = _readNode() as VariableDeclarationListImpl;
+    var condition = _readOptionalNode() as ExpressionImpl?;
+    var updaters = _readNodeList<ExpressionImpl>();
+    return ForPartsWithDeclarationsImpl(
+      variables: variables,
+      condition: condition,
+      leftSeparator: Tokens.semicolon(),
+      rightSeparator: Tokens.semicolon(),
+      updaters: updaters,
+    );
+  }
+
+  ForPartsWithExpression _readForPartsWithExpression() {
+    var initialization = _readOptionalNode() as ExpressionImpl?;
+    var condition = _readOptionalNode() as ExpressionImpl?;
+    var updaters = _readNodeList<ExpressionImpl>();
+    return ForPartsWithExpressionImpl(
+      condition: condition,
+      initialization: initialization,
+      leftSeparator: Tokens.semicolon(),
+      rightSeparator: Tokens.semicolon(),
+      updaters: updaters,
+    );
+  }
+
+  FunctionExpressionInvocation _readFunctionExpressionInvocation() {
+    var function = _readNode() as ExpressionImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = _readNode() as ArgumentListImpl;
+    var node = FunctionExpressionInvocationImpl(
+      function: function,
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    );
+    _readInvocationExpression(node);
+    return node;
+  }
+
+  FunctionReference _readFunctionReference() {
+    var function = _readNode() as ExpressionImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+
+    var node = FunctionReferenceImpl(
+      function: function,
+      typeArguments: typeArguments,
+    );
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  GenericFunctionType _readGenericFunctionType() {
+    var flags = _readByte();
+    // TODO(scheglov): add type parameters to locals
+    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var returnType = _readOptionalNode() as TypeAnnotationImpl?;
+    var formalParameters = _readRequiredFormalParameterList();
+    var node = GenericFunctionTypeImpl(
+      returnType: returnType,
+      functionKeyword: Tokens.function(),
+      typeParameters: typeParameters,
+      parameters: formalParameters,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+    );
+    var type = _reader.readRequiredType() as FunctionTypeImpl;
+    node.type = type;
+
+    var fragment = GenericFunctionTypeFragmentImpl();
+    fragment.formalParameters = formalParameters.parameters
+        .map((parameter) => parameter.declaredFragment!)
+        .toList();
+    node.declaredFragment = fragment;
+    _reader.currentLibraryFragment.encloseElement(fragment);
+
+    var element = GenericFunctionTypeElementImpl(fragment);
+    element.returnType = type.returnType;
+    element.type = type;
+    _readFormalParameterListResolution(formalParameters);
+
+    return node;
+  }
+
+  IfElement _readIfElement() {
+    var expression = _readNode() as ExpressionImpl;
+    var thenElement = _readNode() as CollectionElementImpl;
+    var elseElement = _readOptionalNode() as CollectionElementImpl?;
+    return IfElementImpl(
+      expression: expression,
+      caseClause: null,
+      elseElement: elseElement,
+      elseKeyword: elseElement != null ? Tokens.else_() : null,
+      ifKeyword: Tokens.if_(),
+      leftParenthesis: Tokens.openParenthesis(),
+      rightParenthesis: Tokens.closeParenthesis(),
+      thenElement: thenElement,
+    );
+  }
+
+  ImplicitCallReference _readImplicitCallReference() {
+    var expression = _readNode() as ExpressionImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var typeArgumentTypes = _reader.readOptionalTypeList()!;
+    var staticElement = _reader.readElement() as MethodElementImpl;
+
+    var node = ImplicitCallReferenceImpl(
+      expression: expression,
+      element: staticElement,
+      typeArguments: typeArguments,
+      typeArgumentTypes: typeArgumentTypes,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ImportPrefixReferenceImpl _readImportPrefixReference() {
+    var name = _readStringReference();
+
+    var node = ImportPrefixReferenceImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+      period: Tokens.period(),
+    );
+    node.element = _reader.readElement();
+    return node;
+  }
+
+  IndexExpression _readIndexExpression() {
+    var flags = _readByte();
+    var target = _readOptionalNode() as ExpressionImpl?;
+    var index = _readNode() as ExpressionImpl;
+    var node = IndexExpressionImpl(
+      target: target,
+      period: AstBinaryFlags.hasPeriod(flags) ? Tokens.periodPeriod() : null,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.element = _reader.readElement() as MethodElement?;
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  InstanceCreationExpression _readInstanceCreationExpression() {
+    var flags = _readByte();
+    var constructorName = _readNode() as ConstructorNameImpl;
+    var argumentList = _readNode() as ArgumentListImpl;
+
+    var node = InstanceCreationExpressionImpl(
+      keyword: Tokens.choose(
+        AstBinaryFlags.isConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.isNew(flags),
+        Tokens.new_(),
+      ),
+      constructorName: constructorName,
+      argumentList: argumentList,
+      typeArguments: null,
+    );
+    _readExpressionResolution(node);
+    _resolveArguments(node.constructorName.element, node.argumentList);
+    return node;
+  }
+
+  IntegerLiteral _readIntegerLiteralNegative() {
+    var lexeme = _readStringReference();
+    var value = (_readUint32() << 32) | _readUint32();
+    return _createIntegerLiteral(lexeme, -value);
+  }
+
+  IntegerLiteral _readIntegerLiteralNegative1() {
+    var lexeme = _readStringReference();
+    var value = _readByte();
+    return _createIntegerLiteral(lexeme, -value);
+  }
+
+  IntegerLiteral _readIntegerLiteralNull() {
+    var lexeme = _readStringReference();
+    var node = IntegerLiteralImpl(
+      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
+      literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
+      value: null,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  IntegerLiteral _readIntegerLiteralPositive() {
+    var lexeme = _readStringReference();
+    var value = (_readUint32() << 32) | _readUint32();
+    return _createIntegerLiteral(lexeme, value);
+  }
+
+  IntegerLiteral _readIntegerLiteralPositive1() {
+    var lexeme = _readStringReference();
+    var value = _readByte();
+    return _createIntegerLiteral(lexeme, value);
+  }
+
+  InterpolationExpression _readInterpolationExpression() {
+    var flags = _readByte();
+    var expression = _readNode() as ExpressionImpl;
+    var isIdentifier = AstBinaryFlags.isStringInterpolationIdentifier(flags);
+    return InterpolationExpressionImpl(
+      leftBracket: isIdentifier
+          ? Tokens.stringInterpolationIdentifier()
+          : Tokens.stringInterpolationExpression(),
+      expression: expression,
+      rightBracket: isIdentifier ? null : Tokens.closeCurlyBracket(),
+    );
+  }
+
+  InterpolationString _readInterpolationString() {
+    var lexeme = _readStringReference();
+    var value = _readStringReference();
+    return InterpolationStringImpl(
+      contents: TokenFactory.tokenFromString(lexeme),
+      value: value,
+    );
+  }
+
+  void _readInvocationExpression(InvocationExpressionImpl node) {
+    node.staticInvokeType = _reader.readType();
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    _readExpressionResolution(node);
+  }
+
+  IsExpression _readIsExpression() {
+    var flags = _readByte();
+    var expression = _readNode() as ExpressionImpl;
+    var type = _readNode() as TypeAnnotationImpl;
+    var node = IsExpressionImpl(
+      expression: expression,
+      isOperator: Tokens.is_(),
+      notOperator: AstBinaryFlags.hasNot(flags) ? Tokens.bang() : null,
+      type: type,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ListLiteral _readListLiteral() {
+    var flags = _readByte();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var elements = _readNodeList<CollectionElementImpl>();
+
+    var node = ListLiteralImpl(
+      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
+      typeArguments: typeArguments,
+      leftBracket: Tokens.openSquareBracket(),
+      elements: elements,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  MapLiteralEntry _readMapLiteralEntry() {
+    var keyFlags = _readByte();
+    var key = _readNode() as ExpressionImpl;
+    var valueFlags = _readByte();
+    var value = _readNode() as ExpressionImpl;
+    return MapLiteralEntryImpl(
+      keyQuestion: AstBinaryFlags.hasQuestion(keyFlags)
+          ? Tokens.question()
+          : null,
+      key: key,
+      separator: Tokens.colon(),
+      valueQuestion: AstBinaryFlags.hasQuestion(valueFlags)
+          ? Tokens.question()
+          : null,
+      value: value,
+    );
+  }
+
+  MethodInvocation _readMethodInvocation() {
+    var flags = _readByte();
+    var target = _readOptionalNode() as ExpressionImpl?;
+    var methodName = _readNode() as SimpleIdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = _readNode() as ArgumentListImpl;
+
+    Token? operator;
+    if (AstBinaryFlags.hasQuestion(flags)) {
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.questionPeriod()
+          : Tokens.questionPeriodPeriod();
+    } else if (AstBinaryFlags.hasPeriod(flags)) {
+      operator = Tokens.period();
+    } else if (AstBinaryFlags.hasPeriod2(flags)) {
+      operator = Tokens.periodPeriod();
+    }
+
+    var node = MethodInvocationImpl(
+      target: target,
+      operator: operator,
+      methodName: methodName,
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    );
+    _readInvocationExpression(node);
+    return node;
+  }
+
+  NamedArgument _readNamedArgument() {
+    var name = _readStringReference();
+    var argumentExpression = _readNode() as ExpressionImpl;
+    return NamedArgumentImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+      colon: Tokens.colon(),
+      argumentExpression: argumentExpression,
+    );
+  }
+
+  NamedType _readNamedType() {
+    var flags = _readByte();
+    var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
+    var name = _readStringReference();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+
+    var node = NamedTypeImpl(
+      importPrefix: importPrefix,
+      name: StringToken(TokenType.STRING, name, -1),
+      typeArguments: typeArguments,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+    );
+    node.element = _reader.readElement();
+    node.type = _reader.readType();
+    return node;
+  }
+
+  AstNode _readNode() {
+    var tag = _readByte();
+    switch (tag) {
+      case Tag.AdjacentStrings:
+        return _readAdjacentStrings();
+      case Tag.Annotation:
+        return _readAnnotation();
+      case Tag.ArgumentList:
+        return _readArgumentList();
+      case Tag.AsExpression:
+        return _readAsExpression();
+      case Tag.AssertInitializer:
+        return _readAssertInitializer();
+      case Tag.AssignmentExpression:
+        return _readAssignmentExpression();
+      case Tag.AwaitExpression:
+        return _readAwaitExpression();
+      case Tag.BinaryExpression:
+        return _readBinaryExpression();
+      case Tag.BooleanLiteral:
+        return _readBooleanLiteral();
+      case Tag.CascadeExpression:
+        return _readCascadeExpression();
+      case Tag.ConditionalExpression:
+        return _readConditionalExpression();
+      case Tag.ConstructorFieldInitializer:
+        return _readConstructorFieldInitializer();
+      case Tag.ConstructorName:
+        return _readConstructorName();
+      case Tag.ConstructorReference:
+        return _readConstructorReference();
+      case Tag.DeclaredIdentifier:
+        return _readDeclaredIdentifier();
+      case Tag.DotShorthandConstructorInvocation:
+        return _readDotShorthandConstructorInvocation();
+      case Tag.DotShorthandInvocation:
+        return _readDotShorthandInvocation();
+      case Tag.DotShorthandPropertyAccess:
+        return _readDotShorthandPropertyAccess();
+      case Tag.DottedName:
+        return _readDottedName();
+      case Tag.DoubleLiteral:
+        return _readDoubleLiteral();
+      case Tag.ExtensionOverride:
+        return _readExtensionOverride();
+      case Tag.ForEachPartsWithDeclaration:
+        return _readForEachPartsWithDeclaration();
+      case Tag.ForElement:
+        return _readForElement();
+      case Tag.ForPartsWithDeclarations:
+        return _readForPartsWithDeclarations();
+      case Tag.ForPartsWithExpression:
+        return _readForPartsWithExpression();
+      case Tag.FieldFormalParameter:
+        return _readFieldFormalParameter();
+      case Tag.FormalParameterList:
+        return _readFormalParameterList();
+      case Tag.FunctionExpressionInvocation:
+        return _readFunctionExpressionInvocation();
+      case Tag.FunctionReference:
+        return _readFunctionReference();
+      case Tag.GenericFunctionType:
+        return _readGenericFunctionType();
+      case Tag.RegularFormalParameter:
+        return _readRegularFormalParameter();
+      case Tag.IfElement:
+        return _readIfElement();
+      case Tag.ImplicitCallReference:
+        return _readImplicitCallReference();
+      case Tag.ImportPrefixReference:
+        return _readImportPrefixReference();
+      case Tag.IndexExpression:
+        return _readIndexExpression();
+      case Tag.IntegerLiteralNegative1:
+        return _readIntegerLiteralNegative1();
+      case Tag.IntegerLiteralNull:
+        return _readIntegerLiteralNull();
+      case Tag.IntegerLiteralPositive1:
+        return _readIntegerLiteralPositive1();
+      case Tag.IntegerLiteralPositive:
+        return _readIntegerLiteralPositive();
+      case Tag.IntegerLiteralNegative:
+        return _readIntegerLiteralNegative();
+      case Tag.InterpolationExpression:
+        return _readInterpolationExpression();
+      case Tag.InterpolationString:
+        return _readInterpolationString();
+      case Tag.IsExpression:
+        return _readIsExpression();
+      case Tag.ListLiteral:
+        return _readListLiteral();
+      case Tag.MapLiteralEntry:
+        return _readMapLiteralEntry();
+      case Tag.MethodInvocation:
+        return _readMethodInvocation();
+      case Tag.NamedArgument:
+        return _readNamedArgument();
+      case Tag.NullAwareElement:
+        return _readNullAwareElement();
+      case Tag.NullLiteral:
+        return _readNullLiteral();
+      case Tag.InstanceCreationExpression:
+        return _readInstanceCreationExpression();
+      case Tag.ParenthesizedExpression:
+        return _readParenthesizedExpression();
+      case Tag.PostfixExpression:
+        return _readPostfixExpression();
+      case Tag.PrefixExpression:
+        return _readPrefixExpression();
+      case Tag.PrefixedIdentifier:
+        return _readPrefixedIdentifier();
+      case Tag.PropertyAccess:
+        return _readPropertyAccess();
+      case Tag.RecordLiteral:
+        return _readRecordLiteral();
+      case Tag.RecordLiteralNamedField:
+        return _readRecordLiteralNamedField();
+      case Tag.RecordTypeAnnotation:
+        return _readRecordTypeAnnotation();
+      case Tag.RecordTypeAnnotationNamedField:
+        return _readRecordTypeAnnotationNamedField();
+      case Tag.RecordTypeAnnotationNamedFields:
+        return _readRecordTypeAnnotationNamedFields();
+      case Tag.RecordTypeAnnotationPositionalField:
+        return _readRecordTypeAnnotationPositionalField();
+      case Tag.RedirectingConstructorInvocation:
+        return _readRedirectingConstructorInvocation();
+      case Tag.SetOrMapLiteral:
+        return _readSetOrMapLiteral();
+      case Tag.SimpleIdentifier:
+        return _readSimpleIdentifier();
+      case Tag.SimpleStringLiteral:
+        return _readSimpleStringLiteral();
+      case Tag.SpreadElement:
+        return _readSpreadElement();
+      case Tag.StringInterpolation:
+        return _readStringInterpolation();
+      case Tag.SuperConstructorInvocation:
+        return _readSuperConstructorInvocation();
+      case Tag.SuperExpression:
+        return _readSuperExpression();
+      case Tag.SuperFormalParameter:
+        return _readSuperFormalParameter();
+      case Tag.SymbolLiteral:
+        return _readSymbolLiteral();
+      case Tag.ThisExpression:
+        return _readThisExpression();
+      case Tag.ThrowExpression:
+        return _readThrowExpression();
+      case Tag.TypeArgumentList:
+        return _readTypeArgumentList();
+      case Tag.TypeLiteral:
+        return _readTypeLiteral();
+      case Tag.NamedType:
+        return _readNamedType();
+      case Tag.TypeParameter:
+        return _readTypeParameter();
+      case Tag.TypeParameterList:
+        return _readTypeParameterList();
+      case Tag.VariableDeclaration:
+        return _readVariableDeclaration();
+      case Tag.VariableDeclarationList:
+        return _readVariableDeclarationList();
+      default:
+        throw UnimplementedError('Unexpected tag: $tag');
+    }
+  }
+
+  List<T> _readNodeList<T>() {
+    var length = _reader.readUint30();
+    return List.generate(length, (_) => _readNode() as T);
+  }
+
+  NullAwareElement _readNullAwareElement() {
+    var value = _readNode() as ExpressionImpl;
+    return NullAwareElementImpl(question: Tokens.question(), value: value);
+  }
+
+  NullLiteral _readNullLiteral() {
+    var node = NullLiteralImpl(literal: Tokens.null_());
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  FormalParameterListImpl? _readOptionalFormalParameterList() {
+    return _readOptionalNode() as FormalParameterListImpl?;
+  }
+
+  AstNode? _readOptionalNode() {
+    if (_readOptionTag()) {
+      return _readNode();
+    } else {
+      return null;
+    }
+  }
+
+  bool _readOptionTag() {
+    var tag = _readByte();
+    if (tag == Tag.Nothing) {
+      return false;
+    } else if (tag == Tag.Something) {
+      return true;
+    } else {
+      throw UnimplementedError('Unexpected option tag: $tag');
+    }
+  }
+
+  ParenthesizedExpression _readParenthesizedExpression() {
+    var expression = _readNode() as ExpressionImpl;
+    var node = ParenthesizedExpressionImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      expression: expression,
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  PostfixExpression _readPostfixExpression() {
+    var operand = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var node = PostfixExpressionImpl(
+      operand: operand,
+      operator: Tokens.fromType(operatorType),
+    );
+    node.element = _reader.readElement() as MethodElement?;
+    if (node.operator.type.isIncrementOperator) {
+      node.readElement = _reader.readElement();
+      node.readType = _reader.readType();
+      node.writeElement = _reader.readElement();
+      node.writeType = _reader.readType();
+    }
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  PrefixedIdentifierImpl _readPrefixedIdentifier() {
+    var prefix = _readNode() as SimpleIdentifierImpl;
+    var identifier = _readNode() as SimpleIdentifierImpl;
+    var node = PrefixedIdentifierImpl(
+      prefix: prefix,
+      period: Tokens.period(),
+      identifier: identifier,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  PrefixExpression _readPrefixExpression() {
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operand = _readNode() as ExpressionImpl;
+    var node = PrefixExpressionImpl(
+      operator: Tokens.fromType(operatorType),
+      operand: operand,
+    );
+    node.element = _reader.readElement() as MethodElement?;
+    if (node.operator.type.isIncrementOperator) {
+      node.readElement = _reader.readElement();
+      node.readType = _reader.readType();
+      node.writeElement = _reader.readElement();
+      node.writeType = _reader.readType();
+    }
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  PropertyAccess _readPropertyAccess() {
+    var flags = _readByte();
+    var target = _readOptionalNode() as ExpressionImpl?;
+    var propertyName = _readNode() as SimpleIdentifierImpl;
+
+    Token operator;
+    if (AstBinaryFlags.hasQuestion(flags)) {
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.questionPeriod()
+          : Tokens.questionPeriodPeriod();
+    } else {
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.period()
+          : Tokens.periodPeriod();
+    }
+
+    var node = PropertyAccessImpl(
+      target: target,
+      operator: operator,
+      propertyName: propertyName,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  RecordLiteralImpl _readRecordLiteral() {
+    var flags = _readByte();
+    var fields = _readNodeList<RecordLiteralFieldImpl>();
+    var node = RecordLiteralImpl(
+      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
+      leftParenthesis: Tokens.openParenthesis(),
+      fields: fields,
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  RecordLiteralNamedField _readRecordLiteralNamedField() {
+    var name = _readStringReference();
+    var fieldExpression = _readNode() as ExpressionImpl;
+    return RecordLiteralNamedFieldImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+      colon: Tokens.colon(),
+      fieldExpression: fieldExpression,
+    );
+  }
+
+  RecordTypeAnnotationImpl _readRecordTypeAnnotation() {
+    var flags = _readByte();
+    var positionalFields =
+        _readNodeList<RecordTypeAnnotationPositionalFieldImpl>();
+    var namedFields =
+        _readOptionalNode() as RecordTypeAnnotationNamedFieldsImpl?;
+
+    var node = RecordTypeAnnotationImpl(
+      leftParenthesis: Tokens.openParenthesis(),
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      rightParenthesis: Tokens.closeParenthesis(),
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+    );
+    node.type = _reader.readType();
+    return node;
+  }
+
+  RecordTypeAnnotationNamedFieldImpl _readRecordTypeAnnotationNamedField() {
+    var metadata = _readNodeList<AnnotationImpl>();
+    var type = _readNode() as TypeAnnotationImpl;
+
+    var lexeme = _reader.readStringReference();
+    var name = TokenFactory.tokenFromString(lexeme);
+
+    return RecordTypeAnnotationNamedFieldImpl(
+      metadata: metadata,
+      type: type,
+      name: name,
+    );
+  }
+
+  RecordTypeAnnotationNamedFieldsImpl _readRecordTypeAnnotationNamedFields() {
+    var fields = _readNodeList<RecordTypeAnnotationNamedFieldImpl>();
+    return RecordTypeAnnotationNamedFieldsImpl(
+      leftBracket: Tokens.openCurlyBracket(),
+      fields: fields,
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
+  }
+
+  RecordTypeAnnotationPositionalFieldImpl
+  _readRecordTypeAnnotationPositionalField() {
+    var metadata = _readNodeList<AnnotationImpl>();
+    var type = _readNode() as TypeAnnotationImpl;
+
+    var name = _reader.readOptionalObject(() {
+      var lexeme = _reader.readStringReference();
+      return TokenFactory.tokenFromString(lexeme);
+    });
+
+    return RecordTypeAnnotationPositionalFieldImpl(
+      metadata: metadata,
+      type: type,
+      name: name,
+    );
+  }
+
+  RedirectingConstructorInvocation _readRedirectingConstructorInvocation() {
+    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var argumentList = _readNode() as ArgumentListImpl;
+    var node = RedirectingConstructorInvocationImpl(
+      thisKeyword: Tokens.this_(),
+      period: constructorName != null ? Tokens.period() : null,
+      constructorName: constructorName,
+      argumentList: argumentList,
+    );
+    node.element = _reader.readElement() as ConstructorElementImpl?;
+    _resolveArguments(node.element, node.argumentList);
+    return node;
+  }
+
+  RegularFormalParameter _readRegularFormalParameter() {
+    var functionTypeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var functionFormalParameters = _readOptionalFormalParameterList();
+    var flags = _readByte();
+    var metadata = _readNodeList<AnnotationImpl>();
+    var name = AstBinaryFlags.formalParameterHasName(flags)
+        ? _readDeclarationName()
+        : null;
+    var kind = _readFormalParameterKind(flags);
+    var functionTypedSuffix = functionFormalParameters == null
+        ? null
+        : FunctionTypedFormalParameterSuffixImpl(
+            typeParameters: functionTypeParameters,
+            formalParameters: functionFormalParameters,
+            question: AstBinaryFlags.formalParameterHasQuestion(flags)
+                ? Tokens.question()
+                : null,
+          );
+
+    var node = RegularFormalParameterImpl(
+      comment: null,
+      metadata: metadata,
+      kind: kind,
+      covariantKeyword: AstBinaryFlags.formalParameterIsCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
+      constFinalOrVarKeyword: Tokens.choose(
+        AstBinaryFlags.formalParameterIsConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.formalParameterIsFinal(flags),
+        Tokens.final_(),
+        AstBinaryFlags.formalParameterIsVar(flags),
+        Tokens.var_(),
+      ),
+      type: type,
+      name: name,
+      functionTypedSuffix: functionTypedSuffix,
+      defaultClause: _readFormalParameterDefaultClause(flags),
+      requiredKeyword: _readFormalParameterRequiredKeyword(flags, kind),
+    );
+    var fragment = FormalParameterFragmentImpl(
+      name: name?.lexeme,
+      nameOffset: null,
+      parameterKind: kind,
+    );
+    _bindFormalParameterFragment(node, fragment);
+
+    return node;
+  }
+
+  FormalParameterListImpl _readRequiredFormalParameterList() {
+    return _readNode() as FormalParameterListImpl;
+  }
+
+  SetOrMapLiteral _readSetOrMapLiteral() {
+    var flags = _readByte();
+    var isMapOrSetBits = _readByte();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var elements = _readNodeList<CollectionElementImpl>();
+    var node = SetOrMapLiteralImpl(
+      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
+      elements: elements,
+      leftBracket: Tokens.openCurlyBracket(),
+      typeArguments: typeArguments,
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
+
+    const isMapBit = 1 << 0;
+    const isSetBit = 1 << 1;
+    if ((isMapOrSetBits & isMapBit) != 0) {
+      node.becomeMap();
+    } else if ((isMapOrSetBits & isSetBit) != 0) {
+      node.becomeSet();
+    }
+
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  SimpleIdentifier _readSimpleIdentifier() {
+    var name = _readStringReference();
+    var node = SimpleIdentifierImpl(
+      token: StringToken(TokenType.STRING, name, -1),
+    );
+    node.element = _reader.readElement();
+    node.tearOffTypeArgumentTypes = _reader.readOptionalTypeList();
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  SimpleStringLiteral _readSimpleStringLiteral() {
+    var lexeme = _readStringReference();
+    var value = _readStringReference();
+
+    var node = SimpleStringLiteralImpl(
+      literal: TokenFactory.tokenFromString(lexeme),
+      value: value,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  SpreadElement _readSpreadElement() {
+    var flags = _readByte();
+    var expression = _readNode() as ExpressionImpl;
+    return SpreadElementImpl(
+      spreadOperator: AstBinaryFlags.hasQuestion(flags)
+          ? Tokens.periodPeriodPeriodQuestion()
+          : Tokens.periodPeriodPeriod(),
+      expression: expression,
+    );
+  }
+
+  StringInterpolation _readStringInterpolation() {
+    var elements = _readNodeList<InterpolationElementImpl>();
+    var node = StringInterpolationImpl(elements: elements);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  String _readStringReference() {
+    return _reader.readStringReference();
+  }
+
+  SuperConstructorInvocation _readSuperConstructorInvocation() {
+    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var argumentList = _readNode() as ArgumentListImpl;
+    var node = SuperConstructorInvocationImpl(
+      superKeyword: Tokens.super_(),
+      period: constructorName != null ? Tokens.period() : null,
+      constructorName: constructorName,
+      argumentList: argumentList,
+    );
+    node.element = _reader.readElement() as InternalConstructorElement?;
+    _resolveArguments(node.element, node.argumentList);
+    return node;
+  }
+
+  SuperExpression _readSuperExpression() {
+    var node = SuperExpressionImpl(superKeyword: Tokens.super_());
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  SuperFormalParameter _readSuperFormalParameter() {
+    var functionTypeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var functionFormalParameters = _readOptionalFormalParameterList();
+    var flags = _readByte();
+    var metadata = _readNodeList<AnnotationImpl>();
+    var name = _readDeclarationName();
+    var kind = _readFormalParameterKind(flags);
+    var functionTypedSuffix = functionFormalParameters == null
+        ? null
+        : FunctionTypedFormalParameterSuffixImpl(
+            typeParameters: functionTypeParameters,
+            formalParameters: functionFormalParameters,
+            question: AstBinaryFlags.formalParameterHasQuestion(flags)
+                ? Tokens.question()
+                : null,
+          );
+
+    var node = SuperFormalParameterImpl(
+      comment: null,
+      metadata: metadata,
+      kind: kind,
+      covariantKeyword: AstBinaryFlags.formalParameterIsCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
+      requiredKeyword: _readFormalParameterRequiredKeyword(flags, kind),
+      constFinalOrVarKeyword: Tokens.choose(
+        AstBinaryFlags.formalParameterIsConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.formalParameterIsFinal(flags),
+        Tokens.final_(),
+        AstBinaryFlags.formalParameterIsVar(flags),
+        Tokens.var_(),
+      ),
+      type: type,
+      superKeyword: Tokens.super_(),
+      period: Tokens.period(),
+      name: name,
+      functionTypedSuffix: functionTypedSuffix,
+      defaultClause: _readFormalParameterDefaultClause(flags),
+    );
+    var fragment = SuperFormalParameterFragmentImpl(
+      name: name.lexeme,
+      nameOffset: null,
+      parameterKind: kind,
+    );
+    _bindFormalParameterFragment(node, fragment);
+
+    return node;
+  }
+
+  SymbolLiteral _readSymbolLiteral() {
+    var components = _reader
+        .readStringReferenceList()
+        .map(TokenFactory.tokenFromString)
+        .toList();
+    var node = SymbolLiteralImpl(
+      poundSign: Tokens.hash(),
+      components: components,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ThisExpression _readThisExpression() {
+    var node = ThisExpressionImpl(thisKeyword: Tokens.this_());
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ThrowExpression _readThrowExpression() {
+    var expression = _readNode() as ExpressionImpl;
+    var node = ThrowExpressionImpl(
+      throwKeyword: Tokens.throw_(),
+      expression: expression,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  TypeArgumentListImpl _readTypeArgumentList() {
+    var arguments = _readNodeList<TypeAnnotationImpl>();
+    return TypeArgumentListImpl(
+      leftBracket: Tokens.lt(),
+      arguments: arguments,
+      rightBracket: Tokens.gt(),
+    );
+  }
+
+  TypeLiteral _readTypeLiteral() {
+    var typeName = _readNode() as NamedTypeImpl;
+    var node = TypeLiteralImpl(type: typeName);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  TypeParameter _readTypeParameter() {
+    var name = _readDeclarationName();
+    var bound = _readOptionalNode() as TypeAnnotationImpl?;
+    var metadata = _readNodeList<AnnotationImpl>();
+
+    var node = TypeParameterImpl(
+      comment: null,
+      metadata: metadata,
+      varianceKeyword: null,
+      name: name,
+      extendsKeyword: bound != null ? Tokens.extends_() : null,
+      bound: bound,
+    );
+
+    return node;
+  }
+
+  TypeParameterList _readTypeParameterList() {
+    var typeParameters = _readNodeList<TypeParameterImpl>();
+    return TypeParameterListImpl(
+      leftBracket: Tokens.lt(),
+      typeParameters: typeParameters,
+      rightBracket: Tokens.gt(),
+    );
+  }
+
+  int _readUint32() {
+    return _reader.readUint32();
+  }
+
+  VariableDeclaration _readVariableDeclaration() {
+    var flags = _readByte();
+    var name = _readDeclarationName();
+    var initializer = _readOptionalNode() as ExpressionImpl?;
+
+    var node = VariableDeclarationImpl(
+      comment: null,
+      metadata: [],
+      name: name,
+      equals: Tokens.eq(),
+      initializer: initializer,
+    );
+
+    node.hasInitializer = AstBinaryFlags.hasInitializer(flags);
+
+    return node;
+  }
+
+  VariableDeclarationList _readVariableDeclarationList() {
+    var flags = _readByte();
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var variables = _readNodeList<VariableDeclarationImpl>();
+    var metadata = _readNodeList<AnnotationImpl>();
+
+    return VariableDeclarationListImpl(
+      comment: null,
+      keyword: Tokens.choose(
+        AstBinaryFlags.isConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.isFinal(flags),
+        Tokens.final_(),
+        AstBinaryFlags.isVar(flags),
+        Tokens.var_(),
+      ),
+      lateKeyword: AstBinaryFlags.isLate(flags) ? Tokens.late_() : null,
+      metadata: metadata,
+      type: type,
+      variables: variables,
+    );
+  }
+
+  void _resolveArguments(Element? executable, ArgumentListImpl argumentList) {
+    if (executable is! InternalExecutableElement) {
+      return;
+    }
+
+    var formalParameters = executable.formalParameters;
+    var positionalParameters = <InternalFormalParameterElement>[];
+    var namedParameters = <String, InternalFormalParameterElement>{};
+    for (var parameter in formalParameters) {
+      if (parameter.isNamed) {
+        namedParameters[parameter.name ?? ''] = parameter;
+      } else {
+        positionalParameters.add(parameter);
+      }
+    }
+
+    var resolved = List<InternalFormalParameterElement?>.filled(
+      argumentList.arguments.length,
+      null,
+    );
+    var positionalIndex = 0;
+    for (var i = 0; i < argumentList.arguments.length; i++) {
+      var argument = argumentList.arguments[i];
+      if (argument is NamedArgumentImpl) {
+        resolved[i] = namedParameters[argument.name.lexeme];
+      } else if (positionalIndex < positionalParameters.length) {
+        resolved[i] = positionalParameters[positionalIndex++];
+      }
+    }
+    argumentList.correspondingStaticParameters = resolved;
+  }
+}

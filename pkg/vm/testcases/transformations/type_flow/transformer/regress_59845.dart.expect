@@ -1,0 +1,22 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::repro();
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method repro() → void {
+  core::print(true);
+  {
+    core::print(#C1);
+    core::print(_in::unsafeCast<core::double>(#C1));
+  }
+}
+constants  {
+  #C1 = 1.0
+}

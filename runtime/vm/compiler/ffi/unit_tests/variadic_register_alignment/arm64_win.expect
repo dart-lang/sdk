@@ -1,0 +1,6 @@
+r0 int64[double]
+r1 int64[double]
+P(r2 int64) Struct(size: 32)
+r3 int64[double]
+=>
+v0 double

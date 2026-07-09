@@ -1,0 +1,114 @@
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Watchlist Rules
+# Refer: http://dev.chromium.org/developers/contributing-code/watchlists
+
+{
+  'WATCHLIST_DEFINITIONS': {
+    '_fe_analyzer_shared': {
+      'filepath': '^pkg/_fe_analyzer_shared'
+    },
+    'analyzer': {
+      'filepath': (
+        '^pkg/analysis_server|'
+        '^pkg/analysis_server_client|'
+        '^pkg/analyzer|'
+        '^pkg/analyzer_cli|'
+        '^pkg/analyzer_plugin|'
+        '^pkg/analyzer_utilities|'
+        '^pkg/linter|'
+        '^pkg/meta'
+      )
+    },
+    'build': {
+      'filepath': (
+        '.*gyp$|'
+        '.*gypi$|'
+        '.*gn$|'
+        '.*gni$|'
+        '^tools/.*py$|'
+        '^build/|'
+        '^tools/buildtools/'
+      )
+    },
+    'experimental_features': {
+      'filepath': 'tools/experimental_features\\.yaml',
+    },
+    'front_end': {
+      'filepath': '^pkg/front_end',
+    },
+    'kernel': {
+      'filepath': '^pkg/kernel',
+    },
+    'dart2js': {
+      'filepath': (
+        '^pkg/compiler|'
+        '^sdk/lib/_internal/js_runtime|'
+        '^tests/web'
+      )
+    },
+    'dart2wasm': {
+      'filepath': (
+        '^pkg/dart2wasm|'
+        '^pkg/wasm_builder|'
+        '^sdk/lib/_internal/vm_shared|'
+        '^sdk/lib/_internal/wasm'
+      )
+    },
+    'dartdevc': {
+      'filepath': (
+        '^pkg/dev_compiler|'
+        '^sdk/lib/_internal/js_dev_runtime|'
+        '^tests/dartdevc'
+      )
+    },
+    'package_vm': {
+      'filepath': '^pkg/vm/',
+    },
+    'messages_review': {
+      'filepath': (
+        '^('
+        'pkg/front_end/messages\\.yaml|'
+        'pkg/compiler/lib/src/diagnostics/messages\\.dart|'
+        'pkg/analyzer/lib/src/analysis_options/error/option_codes\\.dart|'
+        'pkg/analyzer/lib/src/dart/error/hint_codes\\.dart|'
+        'pkg/analyzer/lib/src/dart/error/lint_codes\\.dart|'
+        'pkg/analyzer/lib/src/dart/error/todo_codes\\.dart|'
+        'pkg/analyzer/lib/src/html/error/html_codes\\.dart'
+        ')$'
+      )
+    },
+    'observatory': {
+      'filepath': (
+        '^runtime/bin/vmservice/|'
+        '^runtime/bin/vmservice*|'
+        '^runtime/observatory/|'
+        '^runtime/vm/service/|'
+        '^runtime/vm/service*'
+      )
+    },
+    'runtime': {
+      'filepath': '^runtime/',
+    },
+    'vm_compiler': {
+      'filepath': '^runtime/(vm|docs)/compiler/',
+    },
+  },
+
+  'WATCHLISTS': {
+    'analyzer': [ 'dart-analysis-team-log@google.com' ],
+    'dart2js': [ 'dart2js-team+reviews@google.com' ],
+    'dart2wasm': [ 'dart2wasm-team+reviews@google.com' ],
+    'dartdevc': [ 'dart-dc-team+reviews@google.com' ],
+    'experimental_features': [ 'scheglov@google.com' ],
+    'front_end': [ 'dart-fe-team+reviews@google.com' ],
+    'kernel': [ 'jensj@google.com', 'alexmarkov@google.com' ],
+    'messages_review': [ 'dart-uxr+reviews@google.com' ],
+    'observatory': [ 'bkonyi@google.com' ],
+    'package_vm': [ 'alexmarkov@google.com' ],
+    'runtime': [ 'vm-dev@dartlang.org' ],
+    'vm_compiler': [ 'dart-vm-compiler-team+reviews@google.com' ],
+  },
+}

@@ -1,0 +1,7 @@
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    - comment_references
+    - directives_ordering
+    - prefer_single_quotes

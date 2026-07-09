@@ -1,0 +1,391 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+ /**
+  * A client-side XHR request for getting data from a URL,
+  * formally known as XMLHttpRequest.
+  *
+  * **Note:** You should avoid directly using `HttpRequest` to make HTTP
+  * requests. You can use `HttpRequest` indirectly through the
+  * [`BrowserClient`](https://pub.dev/documentation/http/latest/browser_client/BrowserClient-class.html)
+  * adapter in [`package:http`](https://pub.dev/packages/http).
+  *
+  * Using a higher-level library, like
+  * [`package:http`](https://pub.dev/packages/http), allows you to switch
+  * implementations with minimal changes to your code. For example,
+  * `package:http`
+  * [`Client`](https://pub.dev/documentation/http/latest/http/Client-class.html)
+  * has implementations for the browser and implementations that use
+  * platform native HTTP clients on Android and iOS.
+  *
+  * HttpRequest can be used to obtain data from HTTP and FTP protocols,
+  * and is useful for AJAX-style page updates.
+  *
+  * The simplest way to get the contents of a text file, such as a
+  * JSON-formatted file, is with [getString].
+  * For example, the following code gets the contents of a JSON file
+  * and prints its length:
+  *
+  *     var path = 'myData.json';
+  *     HttpRequest.getString(path).then((String fileContents) {
+  *       print(fileContents.length);
+  *     }).catchError((error) {
+  *       print(error.toString());
+  *     });
+  *
+  * ## Fetching data from other servers
+  *
+  * For security reasons, browsers impose restrictions on requests
+  * made by embedded apps.
+  * With the default behavior of this class,
+  * the code making the request must be served from the same origin
+  * (domain name, port, and application layer protocol)
+  * as the requested resource.
+  * In the example above, the myData.json file must be co-located with the
+  * app that uses it.
+  *
+  * ## Other resources
+  *
+  * * [Fetch data dynamically](https://dart.dev/tutorials/web/fetch-data/),
+  * a tutorial shows how to load data from a static file or from a server.
+  * * [Dart article on using HttpRequests](https://dart.dev/guides/libraries/library-tour#using-http-resources-with-httprequest)
+  * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
+  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
+ */
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  /**
+   * Creates a GET request for the specified [url].
+   *
+   * This is similar to [request] but specialized for HTTP GET requests which
+   * return text content.
+   *
+   * To add query parameters, append them to the [url] following a `?`,
+   * joining each key to its value with `=` and separating key-value pairs with
+   * `&`.
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.getString('users.json?name=$name&id=$id')
+   *       .then((String resp) {
+   *         // Do something with the response.
+   *     });
+   *
+   * See also:
+   *
+   * * [request]
+   */
+  static Future<String> getString(String url,
+      {bool$NULLABLE withCredentials, void onProgress(ProgressEvent e)$NULLABLE}) {
+    return request(url, withCredentials: withCredentials,
+        onProgress: onProgress).then(
+            (HttpRequest xhr) => xhr.responseText$NULLASSERT);
+  }
+
+  /**
+   * Makes a server POST request with the specified data encoded as form data.
+   *
+   * This is roughly the POST equivalent of [getString]. This method is similar
+   * to sending a [FormData] object with broader browser support but limited to
+   * String values.
+   *
+   * If [data] is supplied, the key/value pairs are URI encoded with
+   * [Uri.encodeQueryComponent] and converted into an HTTP query string.
+   *
+   * Unless otherwise specified, this method appends the following header:
+   *
+   *     Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+   *
+   * Here's an example of using this method:
+   *
+   *     var data = { 'firstName' : 'John', 'lastName' : 'Doe' };
+   *     HttpRequest.postFormData('/send', data).then((HttpRequest resp) {
+   *       // Do something with the response.
+   *     });
+   *
+   * See also:
+   *
+   * * [request]
+   */
+  static Future<HttpRequest> postFormData(String url, Map<String, String> data,
+      {bool$NULLABLE withCredentials, String$NULLABLE responseType,
+      Map<String, String>$NULLABLE requestHeaders,
+      void onProgress(ProgressEvent e)$NULLABLE}) {
+
+    var parts = [];
+    data.forEach((key, value) {
+      parts.add('${Uri.encodeQueryComponent(key)}='
+          '${Uri.encodeQueryComponent(value)}');
+    });
+    var formData = parts.join('&');
+
+    if (requestHeaders == null) {
+      requestHeaders = <String, String>{};
+    }
+    requestHeaders.putIfAbsent('Content-Type',
+        () => 'application/x-www-form-urlencoded; charset=UTF-8');
+
+    return request(url, method: 'POST', withCredentials: withCredentials,
+        responseType: responseType,
+        requestHeaders: requestHeaders, sendData: formData,
+        onProgress: onProgress);
+  }
+
+  /**
+   * Creates and sends a URL request for the specified [url].
+   *
+   * By default `request` will perform an HTTP GET request, but a different
+   * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST`
+   * requests only.
+   *
+   * The Future is completed when the response is available.
+   *
+   * If specified, `sendData` will send data in the form of a [ByteBuffer],
+   * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
+   *
+   * If specified, [responseType] sets the desired response format for the
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob',
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType]
+   * for more information.
+   *
+   * The [withCredentials] parameter specified that credentials such as a cookie
+   * (already) set in the header or
+   * [authorization headers](http://tools.ietf.org/html/rfc1945#section-10.2)
+   * should be specified for the request. Details to keep in mind when using
+   * credentials:
+   *
+   * * Using credentials is only useful for cross-origin requests.
+   * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
+   * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
+   * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllResponseHeaders].
+   *
+   * The following is equivalent to the [getString] sample above:
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.request('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
+   * Here's an example of submitting an entire form with [FormData].
+   *
+   *     var myForm = querySelector('form#myForm');
+   *     var data = new FormData(myForm);
+   *     HttpRequest.request('/submit', method: 'POST', sendData: data)
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
+   * Note that requests for file:// URIs are only supported by Chrome extensions
+   * with appropriate permissions in their manifest. Requests to file:// URIs
+   * will also never fail- the Future will always complete successfully, even
+   * when the file cannot be found.
+   *
+   * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
+   */
+  static Future<HttpRequest> request(String url,
+      {String$NULLABLE method, bool$NULLABLE withCredentials,
+      String$NULLABLE responseType, String$NULLABLE mimeType,
+      Map<String, String>$NULLABLE requestHeaders, sendData,
+      void onProgress(ProgressEvent e)$NULLABLE}) {
+    var completer = new Completer<HttpRequest>();
+
+    var xhr = new HttpRequest();
+    if (method == null) {
+      method = 'GET';
+    }
+    xhr.open(method, url, async: true);
+
+    if (withCredentials != null) {
+      xhr.withCredentials = withCredentials;
+    }
+
+    if (responseType != null) {
+      xhr.responseType = responseType;
+    }
+
+    if (mimeType != null) {
+      xhr.overrideMimeType(mimeType);
+    }
+
+    if (requestHeaders != null) {
+      requestHeaders.forEach((header, value) {
+        xhr.setRequestHeader(header, value);
+      });
+    }
+
+    if (onProgress != null) {
+      xhr.onProgress.listen(onProgress);
+    }
+
+    xhr.onLoad.listen((e) {
+      var status = xhr.status$NULLASSERT;
+      var accepted = status >= 200 && status < 300;
+      var fileUri = status == 0; // file:// URIs have status of 0.
+      var notModified = status == 304;
+      // Redirect status is specified up to 307, but others have been used in
+      // practice. Notably Google Drive uses 308 Resume Incomplete for
+      // resumable uploads, and it's also been used as a redirect. The
+      // redirect case will be handled by the browser before it gets to us,
+      // so if we see it we should pass it through to the user.
+      var unknownRedirect = status > 307 && status < 400;
+
+      if (accepted || fileUri || notModified || unknownRedirect) {
+        completer.complete(xhr);
+      } else {
+        completer.completeError(e);
+      }
+    });
+
+    xhr.onError.listen(completer.completeError);
+
+    if (sendData != null) {
+      xhr.send(sendData);
+    } else {
+      xhr.send();
+    }
+
+    return completer.future;
+  }
+
+  /**
+   * Checks to see if the Progress event is supported on the current platform.
+   */
+  static bool get supportsProgressEvent {
+    var xhr = new HttpRequest();
+    return JS('bool', '("onprogress" in #)', xhr);
+  }
+
+  /**
+   * Checks to see if the current platform supports making cross origin
+   * requests.
+   *
+   * Note that even if cross origin requests are supported, they still may fail
+   * if the destination server does not support CORS requests.
+   */
+  static bool get supportsCrossOrigin {
+    var xhr = new HttpRequest();
+    return JS('bool', '("withCredentials" in #)', xhr);
+  }
+
+  /**
+   * Checks to see if the LoadEnd event is supported on the current platform.
+   */
+  static bool get supportsLoadEndEvent {
+    var xhr = new HttpRequest();
+    return JS('bool', '("onloadend" in #)', xhr);
+  }
+
+  /**
+   * Checks to see if the overrideMimeType method is supported on the current
+   * platform.
+   */
+  static bool get supportsOverrideMimeType {
+    var xhr = new HttpRequest();
+    return JS('bool', '("overrideMimeType" in #)', xhr);
+  }
+
+  /**
+   * Makes a cross-origin request to the specified URL.
+   *
+   * This API provides a subset of [request] which works on IE9. If IE9
+   * cross-origin support is not required then [request] should be used instead.
+   */
+  static Future<String> requestCrossOrigin(String url,
+      {String$NULLABLE method, String$NULLABLE sendData}) {
+    if (supportsCrossOrigin) {
+      return request(url, method: method, sendData: sendData).then((xhr) {
+        return xhr.responseText$NULLASSERT;
+      });
+    }
+    var completer = new Completer<String>();
+    if (method == null) {
+      method = 'GET';
+    }
+    var xhr = JS('var', 'new XDomainRequest()');
+    JS('', '#.open(#, #)', xhr, method, url);
+    JS('', '#.onload = #', xhr, convertDartClosureToJS((e) {
+      var response = JS('String', '#.responseText', xhr);
+      completer.complete(response $#NULLSAFECAST(as FutureOr<String>$NULLABLE));
+    }, 1));
+    JS('', '#.onerror = #', xhr, convertDartClosureToJS((e) {
+      completer.completeError(e);
+    }, 1));
+
+    // IE9 RTM - XDomainRequest issued requests may abort if all event handlers
+    // not specified
+    // http://social.msdn.microsoft.com/Forums/ie/en-US/30ef3add-767c-4436-b8a9-f1ca19b4812e/ie9-rtm-xdomainrequest-issued-requests-may-abort-if-all-event-handlers-not-specified
+    JS('', '#.onprogress = {}', xhr);
+    JS('', '#.ontimeout = {}', xhr);
+    JS('', '#.timeout = Number.MAX_VALUE', xhr);
+
+    if (sendData != null) {
+      JS('', '#.send(#)', xhr, sendData);
+    } else {
+      JS('', '#.send()', xhr);
+    }
+
+    return completer.future;
+  }
+
+  /**
+   * Returns all response headers as a key-value map.
+   *
+   * Multiple values for the same header key can be combined into one,
+   * separated by a comma and a space.
+   *
+   * See: http://www.w3.org/TR/XMLHttpRequest/#the-getresponseheader()-method
+   */
+  Map<String, String> get responseHeaders {
+    // from Closure's goog.net.Xhrio.getResponseHeaders.
+    var headers = <String, String>{};
+    var headersString = this.getAllResponseHeaders();
+    if (headersString == null) {
+      return headers;
+    }
+    var headersList = headersString.split('\r\n');
+    for (var header in headersList) {
+      if (header.isEmpty) {
+        continue;
+      }
+
+      var splitIdx = header.indexOf(': ');
+      if (splitIdx == -1) {
+        continue;
+      }
+      var key = header.substring(0, splitIdx).toLowerCase();
+      var value = header.substring(splitIdx + 2);
+      if (headers.containsKey(key)) {
+        headers[key] = '${headers[key]}, $value';
+      } else {
+        headers[key] = value;
+      }
+    }
+    return headers;
+  }
+
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asynchronously, with no user or password
+   * authentication information. If `async` is false, the request will be sent
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling [abort].
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complex HTTP requests where
+   * finer-grained control is needed.
+   */
+  void open(String method, String url, {bool$NULLABLE async,
+      String$NULLABLE user, String$NULLABLE password}) native;
+
+$!MEMBERS
+}

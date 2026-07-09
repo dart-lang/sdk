@@ -1,0 +1,82 @@
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+
+const _desc = r'Separate the control structure expression from its statement.';
+
+class AlwaysPutControlBodyOnNewLine extends AnalysisRule {
+  new()
+    : super(
+        name: LintNames.always_put_control_body_on_new_line,
+        description: _desc,
+      );
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.alwaysPutControlBodyOnNewLine;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+    registry.addDoStatement(this, visitor);
+    registry.addForStatement(this, visitor);
+    registry.addIfStatement(this, visitor);
+    registry.addWhileStatement(this, visitor);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    _checkNodeOnNextLine(node.body, node.doKeyword.end);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
+  }
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    _checkNodeOnNextLine(node.thenStatement, node.rightParenthesis.end);
+    var elseKeyword = node.elseKeyword;
+    var elseStatement = node.elseStatement;
+    if (elseKeyword != null && elseStatement is! IfStatement) {
+      _checkNodeOnNextLine(elseStatement, elseKeyword.end);
+    }
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    _checkNodeOnNextLine(node.body, node.rightParenthesis.end);
+  }
+
+  void _checkNodeOnNextLine(AstNode? node, int controlEnd) {
+    if (node == null || node is Block && node.statements.isEmpty) return;
+
+    var unit = node.root as CompilationUnit;
+    var offsetFirstStatement = node is Block
+        ? node.statements.first.offset
+        : node.offset;
+    var lineInfo = unit.lineInfo;
+    if (lineInfo.onSameLine(controlEnd, offsetFirstStatement)) {
+      rule.reportAtToken(node.beginToken);
+    }
+  }
+}

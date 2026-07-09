@@ -1,0 +1,11 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # ~40 violations in test/.
+    strict_top_level_inference: ignore
+
+linter:
+  rules:
+    - directives_ordering
+    - prefer_relative_imports

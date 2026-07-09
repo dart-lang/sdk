@@ -1,0 +1,7 @@
+library test;
+
+var x = () => y;
+
+var y = () => x;
+
+main() {}

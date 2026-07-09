@@ -1,0 +1,19 @@
+dynamic g(num? i) {
+Map<int?, int> m = {0: 1};
+m[(i as int?)];
+
+var list = [(i as int?), (i as int?), (i as int?)];
+var list2 = [(i is int?), (i is int?), (i is int?)];
+return [list.first, list2.first];
+}
+
+
+dynamic[KeywordToken] g[StringToken]([BeginToken]num[StringToken]?[SimpleToken] i[StringToken])[SimpleToken] {[BeginToken]
+Map[StringToken]<[BeginToken]int[StringToken]?[SimpleToken],[SimpleToken] int[StringToken]>[SimpleToken] m[StringToken] =[SimpleToken] {[BeginToken]0[StringToken]:[SimpleToken] 1[StringToken]}[SimpleToken];[SimpleToken]
+m[StringToken][[BeginToken]([BeginToken]i[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken]][SimpleToken];[SimpleToken]
+
+var[KeywordToken] list[StringToken] =[SimpleToken] [[BeginToken]([BeginToken]i[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken] ([BeginToken]i[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken] ([BeginToken]i[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken]][SimpleToken];[SimpleToken]
+var[KeywordToken] list2[StringToken] =[SimpleToken] [[BeginToken]([BeginToken]i[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken] ([BeginToken]i[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken] ([BeginToken]i[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken]][SimpleToken];[SimpleToken]
+return[KeywordToken] [[BeginToken]list[StringToken].[SimpleToken]first[StringToken],[SimpleToken] list2[StringToken].[SimpleToken]first[StringToken]][SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

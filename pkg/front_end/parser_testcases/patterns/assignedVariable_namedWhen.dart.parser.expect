@@ -1,0 +1,11 @@
+void f(x) {
+dynamic when;
+(when) = x;
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+dynamic[KeywordToken] when[KeywordToken];[SimpleToken]
+([BeginToken]when[KeywordToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

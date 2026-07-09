@@ -1,0 +1,14 @@
+library;
+import self as self;
+
+part nested_part_declarations_part1.dart;
+part nested_part_declarations_part3.dart;
+part nested_part_declarations_part2.dart;
+static method declaredInMain() → void
+  ;
+static method /* from org-dartlang-testcase:///nested_part_declarations_part1.dart */ declaredInPart1() → void
+  ;
+static method /* from org-dartlang-testcase:///nested_part_declarations_part2.dart */ declaredInPart2() → void
+  ;
+static method /* from org-dartlang-testcase:///nested_part_declarations_part3.dart */ declaredInPart3() → void
+  ;

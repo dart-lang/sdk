@@ -1,0 +1,54 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  List<TableSectionElement> get tBodies =>
+  new _WrappedList<TableSectionElement>(_tBodies);
+
+  List<TableRowElement> get rows =>
+      new _WrappedList<TableRowElement>(_rows);
+
+  TableRowElement addRow() {
+    return insertRow(-1);
+  }
+
+  TableCaptionElement createCaption() => _createCaption();
+  TableSectionElement createTBody() => _createTBody();
+  TableSectionElement createTFoot() => _createTFoot();
+  TableSectionElement createTHead() => _createTHead();
+  TableRowElement insertRow(int index) => _insertRow(index);
+
+  TableSectionElement _createTBody() {
+    if (JS('bool', '!!#.createTBody', this)) {
+      return this._nativeCreateTBody();
+    }
+    var tbody = new Element.tag('tbody');
+    this.children.add(tbody);
+    return tbody $#NULLSAFECAST(as TableSectionElement);
+  }
+
+  @JSName('createTBody')
+  TableSectionElement _nativeCreateTBody() native;
+
+  DocumentFragment createFragment(String$NULLABLE html,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    if (Range.supportsCreateContextualFragment) {
+      return super.createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer);
+    }
+    // IE9 workaround which does not support innerHTML on Table elements.
+    var contextualHtml = '<table>$html</table>';
+    var table = new Element.html(contextualHtml, validator: validator,
+        treeSanitizer: treeSanitizer);
+    var fragment = new DocumentFragment();
+    fragment.nodes.addAll(table.nodes);
+
+    return fragment;
+  }
+
+$!MEMBERS}

@@ -1,0 +1,10 @@
+void foo() {
+  x
+  a<
+    B<
+      B<
+        // Triple shift.
+        B<B>>>,
+    B
+  >();
+}

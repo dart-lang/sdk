@@ -1,0 +1,88 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+
+const _desc = r'Prefer using `null`-aware operators.';
+
+class PreferNullAwareOperators extends AnalysisRule {
+  new()
+    : super(name: LintNames.prefer_null_aware_operators, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.preferNullAwareOperators;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+    registry.addConditionalExpression(this, visitor);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    var condition = node.condition;
+    if (condition is! BinaryExpression) {
+      return;
+    }
+
+    // Ensure the condition is a null check.
+    String conditionText;
+    if (condition.leftOperand is NullLiteral) {
+      conditionText = condition.rightOperand.toString();
+    } else if (condition.rightOperand is NullLiteral) {
+      conditionText = condition.leftOperand.toString();
+    } else {
+      return;
+    }
+
+    Expression? resultExpression;
+    if (condition.operator.type == TokenType.EQ_EQ) {
+      // Ensure the expression is `x == null ? null : y`.
+      if (node.thenExpression is! NullLiteral) return;
+
+      resultExpression = node.elseExpression;
+    } else if (condition.operator.type == TokenType.BANG_EQ) {
+      // Ensure the expression is `x != null ? y : null`.
+      if (node.elseExpression is! NullLiteral) return;
+
+      resultExpression = node.thenExpression;
+    } else {
+      return;
+    }
+
+    while (resultExpression != null) {
+      resultExpression = switch (resultExpression) {
+        PrefixedIdentifier() => resultExpression.prefix,
+        MethodInvocation() => resultExpression.target,
+        PostfixExpression()
+            when resultExpression.operator.type == TokenType.BANG =>
+          resultExpression.operand,
+        PropertyAccess() => resultExpression.target,
+        _ => null,
+      };
+      if (resultExpression.toString() == conditionText) {
+        rule.reportAtNode(node);
+        return;
+      }
+    }
+  }
+}

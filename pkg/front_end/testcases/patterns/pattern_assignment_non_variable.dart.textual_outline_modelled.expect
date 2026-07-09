@@ -1,0 +1,11 @@
+class Class extends Super {
+  method(o, parameter) {}
+  static var staticField;
+  var instanceField;
+}
+
+class Super {
+  var superField;
+}
+
+var global;

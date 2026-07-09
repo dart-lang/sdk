@@ -1,0 +1,23 @@
+class A {
+operator [](int index) => index;
+}
+
+main() {
+A? a = null;
+a!?.toString();
+a!?.[42];
+a!?[42];
+a! ? [42];
+}
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+operator[KeywordToken] [][SimpleToken]([BeginToken]int[StringToken] index[StringToken])[SimpleToken] =>[SimpleToken] index[StringToken];[SimpleToken]
+}[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+A[StringToken]?[SimpleToken] a[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+a[StringToken]![SimpleToken]?.[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+a[StringToken]![SimpleToken]?.[SimpleToken][[BeginToken]42[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken]![SimpleToken]?[SimpleToken][[BeginToken]42[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken]![SimpleToken] ?[SimpleToken] [[BeginToken]42[StringToken]][SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

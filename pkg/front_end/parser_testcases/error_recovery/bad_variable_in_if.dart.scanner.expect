@@ -1,0 +1,11 @@
+foo() {
+if(true)
+final <int> f = [42];
+}
+
+
+foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+if[KeywordToken]([BeginToken]true[KeywordToken])[SimpleToken]
+final[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken] f[StringToken] =[SimpleToken] [[BeginToken]42[StringToken]][SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

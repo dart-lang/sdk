@@ -1,0 +1,2 @@
+--target=dart2js
+--no-defines

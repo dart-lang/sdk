@@ -1,0 +1,127 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:16: Error: Undefined name 'm1'.
+//   Map m1 = {...m1}; // Error
+//                ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:16: Error: Local variable 'm1' can't be referenced before it is declared.
+//   Map m1 = {...m1}; // Error
+//                ^^
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:7: Context: This is the declaration of the variable 'm1'.
+//   Map m1 = {...m1}; // Error
+//       ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: Undefined name 'm2'.
+//   Map m2 = {...{...m2}};  // Error
+//                    ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: Local variable 'm2' can't be referenced before it is declared.
+//   Map m2 = {...{...m2}};  // Error
+//                    ^^
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:7: Context: This is the declaration of the variable 'm2'.
+//   Map m2 = {...{...m2}};  // Error
+//       ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:17: Error: Undefined name 'm3'.
+//   Map m3 = {...{m3}}; // Error
+//                 ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:17: Error: Local variable 'm3' can't be referenced before it is declared.
+//   Map m3 = {...{m3}}; // Error
+//                 ^^
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:7: Context: This is the declaration of the variable 'm3'.
+//   Map m3 = {...{m3}}; // Error
+//       ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:17: Error: Undefined name 'm4'.
+//   Map m4 = {...?m4}; // Error
+//                 ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:17: Error: Local variable 'm4' can't be referenced before it is declared.
+//   Map m4 = {...?m4}; // Error
+//                 ^^
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:7: Context: This is the declaration of the variable 'm4'.
+//   Map m4 = {...?m4}; // Error
+//       ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:14:21: Error: Undefined name 'm5'.
+//   Map m5 = {...{...?m5}}; // Error
+//                     ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:14:21: Error: Local variable 'm5' can't be referenced before it is declared.
+//   Map m5 = {...{...?m5}}; // Error
+//                     ^^
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:14:7: Context: This is the declaration of the variable 'm5'.
+//   Map m5 = {...{...?m5}}; // Error
+//       ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:17: Error: This requires the experimental 'null-aware-elements' language feature to be enabled.
+// Try passing the '--enable-experiment=null-aware-elements' command line option.
+//   Map m6 = {...{?m6}}; // Error
+//                 ^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:18: Error: Undefined name 'm6'.
+//   Map m6 = {...{?m6}}; // Error
+//                  ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:18: Error: Local variable 'm6' can't be referenced before it is declared.
+//   Map m6 = {...{?m6}}; // Error
+//                  ^^
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:7: Context: This is the declaration of the variable 'm6'.
+//   Map m6 = {...{?m6}}; // Error
+//       ^^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:16: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+//   Map m1 = {...m1}; // Error
+//                ^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+//   Map m2 = {...{...m2}};  // Error
+//                    ^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+//   Map m3 = {...{m3}}; // Error
+//            ^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:17: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+//   Map m4 = {...?m4}; // Error
+//                 ^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:14:21: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+//   Map m5 = {...{...?m5}}; // Error
+//                     ^
+//
+// pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+//   Map m6 = {...{?m6}}; // Error
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method foo() → void {
+  core::Map<dynamic, dynamic> m1 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:10:16: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+  Map m1 = {...m1}; // Error
+               ^": null};
+  core::Map<dynamic, dynamic> m2 = block {
+    final core::Map<dynamic, dynamic> #t1 = col::LinkedHashMap::of<dynamic, dynamic>(<dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:11:20: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+  Map m2 = {...{...m2}};  // Error
+                   ^": null});
+  } =>#t1;
+  core::Map<dynamic, dynamic> m3 = invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:12:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+  Map m3 = {...{m3}}; // Error
+           ^";
+  core::Map<dynamic, dynamic> m4 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:13:17: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+  Map m4 = {...?m4}; // Error
+                ^": null};
+  core::Map<dynamic, dynamic> m5 = block {
+    final core::Map<dynamic, dynamic> #t2 = col::LinkedHashMap::of<dynamic, dynamic>(<dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:14:21: Error: Unexpected type 'invalid-type' of a map spread entry.  Expected 'dynamic' or a Map.
+  Map m5 = {...{...?m5}}; // Error
+                    ^": null});
+  } =>#t2;
+  core::Map<dynamic, dynamic> m6 = invalid-expression "pkg/front_end/testcases/coverage/from_co19/spread_StaticSemantic_A12_t05.dart:15:12: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+  Map m6 = {...{?m6}}; // Error
+           ^";
+}

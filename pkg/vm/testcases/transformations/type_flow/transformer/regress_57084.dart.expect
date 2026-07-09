@@ -1,0 +1,20 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+}
+class C<T extends core::Object? = dynamic> extends core::Object implements self::A<self::C::T%> /*hasConstConstructor*/  {
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.closure-id=1]
+static method main() → void {
+  core::print(#C1);
+  [@vm.direct-call.metadata=closure 1 in #lib::main] [@vm.inferred-type.metadata=? (receiver not int)]([@vm.closure-id=1]() → Null {
+    core::print(#C1);
+  })(){() → Null};
+}
+constants  {
+  #C1 = self::C<core::String> {}
+}

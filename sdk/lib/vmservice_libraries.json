@@ -1,0 +1,14 @@
+{
+  "comment:0": "NOTE: THIS FILE IS GENERATED. DO NOT EDIT.",
+  "comment:1": "Instead modify 'sdk/lib/vmservice_libraries.yaml' and follow the instructions therein.",
+  "vm": {
+    "libraries": {
+      "_vmservice": {
+        "uri": "vmservice/vmservice.dart"
+      },
+      "vmservice_io": {
+        "uri": "_internal/vm/bin/vmservice_io.dart"
+      }
+    }
+  }
+}

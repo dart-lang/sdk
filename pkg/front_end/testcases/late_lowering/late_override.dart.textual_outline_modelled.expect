@@ -1,0 +1,10 @@
+class Class implements Interface {
+  int get implementedLateFieldDeclaredGetterSetter => 0;
+  void set implementedLateFieldDeclaredGetterSetter(int value) {}
+}
+
+class Interface {
+  late int implementedLateFieldDeclaredGetterSetter;
+}
+
+main() {}

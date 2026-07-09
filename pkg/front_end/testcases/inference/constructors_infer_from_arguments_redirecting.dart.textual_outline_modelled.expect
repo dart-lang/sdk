@@ -1,0 +1,9 @@
+library test;
+
+class C<T> {
+  C(this.t);
+  C.named(List<T> t) : this(t[0]);
+  T t;
+}
+
+main() {}

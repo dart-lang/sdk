@@ -1,0 +1,11 @@
+library test;
+
+class A {
+  void set x(int i) {}
+}
+
+class B extends A {
+  set x(Object o) {}
+}
+
+main() {}

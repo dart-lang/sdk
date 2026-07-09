@@ -1,0 +1,15 @@
+class C {}
+
+sealed class B<X> {
+  final C? Function()? foo;
+  const B({required this.foo});
+  const factory B.redir({C? Function()? foo}) = A;
+}
+
+mixin M {}
+
+final class A<X> extends B<X> with M {
+  const A({super.foo = null}) : super();
+}
+
+main() {}

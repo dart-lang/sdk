@@ -1,0 +1,13 @@
+import 'dart:collection';
+
+class A with ListMixin<int> {
+  int count = 0;
+  int operator [](int index) {}
+  void operator []=(int index, int value) {}
+  int get length => 2;
+  void set length(int value) {}
+}
+
+main() {}
+
+expectEquals(x, y) {}

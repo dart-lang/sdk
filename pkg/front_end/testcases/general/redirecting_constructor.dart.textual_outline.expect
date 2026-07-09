@@ -1,0 +1,8 @@
+class A {
+  A();
+  factory A.fisk() = B;
+}
+
+class B extends A {}
+
+main() {}

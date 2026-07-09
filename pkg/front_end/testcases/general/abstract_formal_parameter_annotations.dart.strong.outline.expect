@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  abstract method method(core::int id) → dynamic;
+}
+static const field core::Object annotation = const core::Object::•();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///abstract_formal_parameter_annotations.dart:5:26 -> InstanceConstant(const Object{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

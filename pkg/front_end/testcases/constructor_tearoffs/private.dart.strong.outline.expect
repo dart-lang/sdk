@@ -1,0 +1,68 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "private_lib.dart" as pri;
+
+import "org-dartlang-testcase:///private_lib.dart";
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+class D = pri::A with self::M {
+  synthetic constructor pri::_() → self::D
+    : super pri::A::_()
+    ;
+}
+class E = pri::B with self::M {
+  synthetic constructor •() → self::E
+    ;
+}
+class F = pri::C with self::M {
+  synthetic constructor named() → self::F
+    : super pri::C::named()
+    ;
+  synthetic constructor pri::_() → self::F
+    : super pri::C::_()
+    ;
+}
+
+library;
+import self as pri;
+import "dart:core" as core;
+import "private.dart" as self;
+
+import "org-dartlang-testcase:///private.dart";
+
+class A extends core::Object {
+  constructor _() → pri::A
+    ;
+}
+class B extends core::Object {
+  static factory _() → pri::B /* redirection-target: pri::_B::• */
+    return new pri::_B::•();
+}
+class _B extends core::Object implements pri::B {
+  synthetic constructor •() → pri::_B
+    ;
+}
+class C extends core::Object {
+  constructor named() → pri::C
+    ;
+  constructor _() → pri::C
+    ;
+}
+class G extends self::D {
+  constructor _() → pri::G
+    ;
+}
+class H extends self::E {
+  constructor _() → pri::H
+    ;
+}
+class I extends self::F {
+  constructor named() → pri::I
+    ;
+  constructor _() → pri::I
+    ;
+}
+static method method() → dynamic
+  ;

@@ -1,0 +1,8 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+  errors:
+    # Ignore this lint (triggered by the annotation definitions in lib/js.dart).
+    library_private_types_in_public_api: ignore

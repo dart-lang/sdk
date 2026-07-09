@@ -1,0 +1,24 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef RUNTIME_VM_OS_THREAD_FUCHSIA_H_
+#define RUNTIME_VM_OS_THREAD_FUCHSIA_H_
+
+#if !defined(RUNTIME_VM_OS_THREAD_H_)
+#error Do not include os_thread_fuchsia.h directly; use os_thread.h instead.
+#endif
+
+#include <pthread.h>
+#include <zircon/syscalls/object.h>
+
+#include "platform/assert.h"
+#include "platform/globals.h"
+
+namespace dart {
+
+typedef pthread_t ThreadJoinId;
+
+}  // namespace dart
+
+#endif  // RUNTIME_VM_OS_THREAD_FUCHSIA_H_

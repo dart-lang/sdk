@@ -1,0 +1,11 @@
+foo1() => Record();
+
+foo2() => R();
+
+foo3() => RR();
+
+main() {}
+
+typedef R = Record;
+
+typedef RR = R;

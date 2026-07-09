@@ -1,0 +1,32 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class Foo extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  self::Foo? :foo:finalizableValue;
+  function #foo#initializer() → self::Foo
+    return :foo:finalizableValue = new self::Foo::•();
+  late final self::Foo foo = #foo#initializer(){() → self::Foo};
+  (() → Null {
+    core::print(foo);
+    _in::reachabilityFence(:foo:finalizableValue);
+  })(){() → Null};
+  self::Foo? :foo2:finalizableValue;
+  function #foo2#initializer() → self::Foo
+    return :foo2:finalizableValue = new self::Foo::•();
+  late final self::Foo foo2 = #foo2#initializer(){() → self::Foo};
+  if(new core::DateTime::now().{core::DateTime::millisecond}{core::int}.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
+    core::print(foo2);
+  }
+  _in::reachabilityFence(:foo:finalizableValue);
+  _in::reachabilityFence(:foo2:finalizableValue);
+}

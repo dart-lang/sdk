@@ -1,0 +1,17 @@
+class A {}
+
+class C extends A {}
+
+extension on C {
+static addChild(covariant A child) {}
+}
+
+
+class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
+
+class[KeywordToken] C[StringToken] extends[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
+
+extension[KeywordToken] on[KeywordToken] C[StringToken] {[BeginToken]
+static[KeywordToken] addChild[StringToken]([BeginToken]covariant[KeywordToken] A[StringToken] child[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

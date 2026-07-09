@@ -1,0 +1,21 @@
+{
+  "": "Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file",
+  "": "for details. All rights reserved. Use of this source code is governed by a",
+  "": "BSD-style license that can be found in the LICENSE file.",
+  "packages": "../../../.dart_tool/package_config.json",
+  "analyze": {
+    "options": "analysis_options.yaml",
+    "uris": [
+      "."
+    ],
+    "exclude": [
+      "^pkg/compiler/test/.*/inference_data/.*",
+      "^pkg/compiler/test/.*/data/.*",
+      "^pkg/compiler/test/.*/emission/.*",
+      "^pkg/compiler/test/.*/model_data/.*",
+      "^pkg/compiler/test/codesize/swarm/.*",
+      "^pkg/compiler/test/deferred_loading/libs/.*",
+      "^pkg/compiler/test/sourcemaps/stacktrace/extension_method.dart"
+    ]
+  }
+}

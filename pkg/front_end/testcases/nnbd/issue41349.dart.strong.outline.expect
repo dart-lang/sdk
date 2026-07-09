@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method foo() → dynamic
+    ;
+}
+extension B on self::A? {
+  method foo = self::B|foo;
+  method tearoff foo = self::B|get#foo;
+  method bar = self::B|bar;
+  method tearoff bar = self::B|get#bar;
+}
+extension C on self::A {
+  method bar = self::C|bar;
+  method tearoff bar = self::C|get#bar;
+}
+extension D on () →? core::int {
+  method call = self::D|call;
+  method tearoff call = self::D|get#call;
+}
+static extension-member method B|foo(lowered final self::A? #this) → dynamic
+  ;
+static extension-member method B|get#foo(lowered final self::A? #this) → () → dynamic
+  return () → dynamic => self::B|foo(#this);
+static extension-member method B|bar(lowered final self::A? #this) → dynamic
+  ;
+static extension-member method B|get#bar(lowered final self::A? #this) → () → dynamic
+  return () → dynamic => self::B|bar(#this);
+static extension-member method C|bar(lowered final self::A #this) → dynamic
+  ;
+static extension-member method C|get#bar(lowered final self::A #this) → () → dynamic
+  return () → dynamic => self::C|bar(#this);
+static extension-member method D|call(lowered final () →? core::int #this) → core::int
+  ;
+static extension-member method D|get#call(lowered final () →? core::int #this) → () → core::int
+  return () → core::int => self::D|call(#this);
+static method main() → dynamic
+  ;
+static method testA(self::A? a) → dynamic
+  ;
+static method testFunction(() →? core::int f) → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

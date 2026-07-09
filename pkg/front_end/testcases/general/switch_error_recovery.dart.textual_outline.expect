@@ -1,0 +1,3 @@
+class C<X, Y> {}
+
+void main() {}

@@ -1,0 +1,162 @@
+--- example1
+B0 = EntryBlock() dominates:(B10, B12, B9)
+  v6 = Constant(0)
+  v20 = Constant(1)
+  v32 = Constant(2)
+  v39 = Constant(3)
+  v50 = Constant(4)
+  v76 = Constant(null)
+  v1 = Parameter(c1)
+  v2 = Parameter(c2)
+  v3 = Parameter(c3)
+  v4 = Parameter(c4)
+  v5 = Parameter(c5)
+  Branch(v1, true: B9, false: B10)
+B9 = TargetBlock() idom:B0 dominates:(B16, B22, B15)
+  Branch(v2, true: B15, false: B16)
+B15 = TargetBlock() idom:B9
+  DirectCall print(v6)
+  Goto(B22)
+B16 = TargetBlock() idom:B9 dominates:(B26, B28, B25)
+  Branch(v3, true: B25, false: B26)
+B25 = TargetBlock() idom:B16
+  DirectCall print(v6)
+  Goto(B28)
+B26 = TargetBlock() idom:B16
+  Goto(B28)
+B28 = JoinBlock(B26, B25) idom:B16
+  v87 = Phi(v6, v32)
+  Goto(B22)
+B22 = JoinBlock(B28, B15) idom:B9
+  v85 = Phi(v87, v20)
+  Goto(B12)
+B10 = TargetBlock() idom:B0
+  Goto(B12)
+B12 = JoinBlock(B10, B22) idom:B0 dominates:(B43, B45, B42)
+  v86 = Phi(v6, v85)
+  DirectCall print(v86)
+  Branch(v4, true: B42, false: B43)
+B42 = TargetBlock() idom:B12 dominates:(B47)
+  Goto(B47)
+B47 = JoinBlock(B42, B61) idom:B42 dominates:(B53, B52) loop-header (depth:1 body:(B47, B52, B55, B61, B60, B70) back-edges:(B61))
+  v89 = Phi(v39, v80)
+  v51 = Comparison int <(v89, v50)
+  Branch(v51, true: B52, false: B53)
+B52 = TargetBlock() idom:B47 dominates:(B55) in-loop:B47
+  Goto(B55)
+B55 = JoinBlock(B52, B70) idom:B52 dominates:(B61, B60) loop-header (depth:2 body:(B55, B60, B70) back-edges:(B70))
+  v88 = Phi(v89, v66)
+  v58 = BinaryIntOp %(v88, v32)
+  v59 = Comparison int ==(v58, v6)
+  Branch(v59, true: B60, false: B61)
+B60 = TargetBlock() idom:B55 dominates:(B70, B69) in-loop:B55
+  DirectCall print(v88)
+  v66 = BinaryIntOp +(v88, v32)
+  Branch(v5, true: B69, false: B70)
+B69 = TargetBlock() idom:B60
+  DirectCall print(v66)
+  Return(v76)
+B70 = TargetBlock() idom:B60 in-loop:B55
+  Goto(B55)
+B61 = TargetBlock() idom:B55 in-loop:B47
+  v80 = BinaryIntOp +(v88, v39)
+  Goto(B47)
+B53 = TargetBlock() idom:B47
+  Goto(B45)
+B43 = TargetBlock() idom:B12
+  Goto(B45)
+B45 = JoinBlock(B43, B53) idom:B12
+  Return(v76)
+
+--- example2
+B0 = EntryBlock() dominates:(B3)
+  v6 = Constant(1)
+  v17 = Constant(2)
+  v19 = Constant(0)
+  v28 = Constant(null)
+  v40 = Constant(10)
+  v1 = Parameter(i)
+  v2 = Parameter(j)
+  Goto(B3)
+B3 = JoinBlock(B0, B42) idom:B0 dominates:(B9) loop-header (depth:1 body:(B3, B9, B22, B34, B42, B33) back-edges:(B42))
+  v48 = Phi(v2, v12)
+  v47 = Phi(v1, v7)
+  v7 = BinaryIntOp +(v47, v6)
+  Goto(B9)
+B9 = JoinBlock(B3, B33) idom:B3 dominates:(B22, B21) loop-header (depth:2 body:(B9, B22, B33) back-edges:(B33))
+  v49 = Phi(v48, v12)
+  v12 = BinaryIntOp +(v49, v6)
+  DirectCall print(v7)
+  v18 = BinaryIntOp %(v12, v17)
+  v20 = Comparison int ==(v18, v19)
+  Branch(v20, true: B21, false: B22)
+B21 = TargetBlock() idom:B9
+  DirectCall print(v12)
+  Return(v28)
+B22 = TargetBlock() idom:B9 dominates:(B34, B33) in-loop:B9
+  v32 = Comparison int <(v12, v7)
+  Branch(v32, true: B33, false: B34)
+B33 = TargetBlock() idom:B22 in-loop:B9
+  Goto(B9)
+B34 = TargetBlock() idom:B22 dominates:(B43, B42) in-loop:B3
+  v39 = BinaryIntOp +(v7, v12)
+  v41 = Comparison int <(v39, v40)
+  Branch(v41, true: B42, false: B43)
+B42 = TargetBlock() idom:B34 in-loop:B3
+  Goto(B3)
+B43 = TargetBlock() idom:B34
+  Return(v28)
+
+--- example3
+B0 = EntryBlock() dominates:(B4, B3)
+  v1 = Constant(1)
+  v6 = Constant(2)
+  v12 = Constant(3)
+  v17 = Constant(4)
+  v32 = Constant(5)
+  v56 = Constant(6)
+  v58 = Constant(null)
+  DirectCall print(v1)
+  TryEntry(try-body: B3, catch-block: B4)
+B3 = TargetBlock() exception-handler:B4 idom:B0 dominates:(B8)
+  DirectCall print(v6)
+  Goto(B8)
+B8 = JoinBlock(B3) idom:B3 dominates:(B39, B42, B38)
+  DirectCall print(v12)
+  TryEntry(try-body: B38, catch-block: B39)
+B38 = TargetBlock() exception-handler:B39 idom:B8
+  DirectCall print(v17)
+  Goto(B42)
+B39 = CatchBlock() idom:B8
+  v44 = Parameter(#exception)
+  v45 = Parameter(#stackTrace)
+  DirectCall print(v44)
+  DirectCall print(v45)
+  Goto(B42)
+B42 = JoinBlock(B39, B38) idom:B8
+  DirectCall print(v32)
+  DirectCall print(v56)
+  Return(v58)
+B4 = CatchBlock() idom:B0 dominates:(B15, B19, B14)
+  v10 = Parameter(#exception)
+  v11 = Parameter(#stackTrace)
+  DirectCall print(v12)
+  TryEntry(try-body: B14, catch-block: B15)
+B14 = TargetBlock() exception-handler:B15 idom:B4
+  DirectCall print(v17)
+  Goto(B19)
+B15 = CatchBlock() idom:B4
+  v21 = Parameter(#exception)
+  v22 = Parameter(#stackTrace)
+  DirectCall print(v21)
+  DirectCall print(v22)
+  Goto(B19)
+B19 = JoinBlock(B15, B14) idom:B4
+  DirectCall print(v32)
+  Throw(v10, v11)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

@@ -1,0 +1,734 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
+import 'package:cfg/ir/flow_graph.dart';
+import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/local_variable.dart';
+import 'package:cfg/ir/source_position.dart';
+import 'package:cfg/ir/types.dart';
+import 'package:kernel/ast.dart'
+    as ast
+    show DartType, Name, TypeLiteralConstant, Variable;
+
+/// Helper class to create IR instructions and populate [FlowGraph].
+///
+/// Maintains current basic block and appends newly created
+/// instructions to the end of the current block.
+///
+/// Simulates expression stack. When creating IR instructions,
+/// their inputs are populated from the expression stack.
+///
+/// Keeps current source position which is used for all
+/// created IR instructions.
+///
+/// Maintains a stack of entered try-blocks (exception handlers).
+/// All newly created basic blocks get a top exception handler.
+///
+/// All other attributes and optional inputs are passed explicitly
+/// when creating IR instructions.
+class FlowGraphBuilder {
+  /// Current graph being constructed.
+  final FlowGraph graph;
+
+  /// Source position for the new instructions.
+  SourcePosition currentSourcePosition = noPosition;
+
+  /// Simulated expression stack.
+  final List<Definition> stack = [];
+
+  /// Last instruction in the current block.
+  Instruction? _last;
+
+  /// Stack of the exception handlers.
+  List<CatchBlock> _exceptionHandlers = [];
+
+  FlowGraphBuilder(CFunction function) : graph = FlowGraph(function) {
+    _last = graph.entryBlock;
+  }
+
+  /// Finish building CFG.
+  FlowGraph done() {
+    assert(!hasOpenBlock);
+    graph.discoverBlocks();
+    return graph;
+  }
+
+  /// Start filling [block] with instructions.
+  void startBlock(Block block) {
+    _last = block;
+    if (_exceptionHandlers.isNotEmpty) {
+      block.exceptionHandler = _exceptionHandlers.last;
+    }
+  }
+
+  /// Append [instr] to the current block.
+  void appendInstruction(Instruction instr) {
+    _last!.appendInstruction(instr);
+    _last = instr;
+  }
+
+  /// End the current block.
+  void endBlock() {
+    _last = null;
+  }
+
+  /// Returns `true` if there is an unfinished basic block being built.
+  bool get hasOpenBlock => _last != null;
+
+  /// Push result of [def] into the expression stack.
+  void push(Definition def) {
+    stack.add(def);
+  }
+
+  /// Pop and return value from the top of the expression stack.
+  Definition pop() => stack.removeLast();
+
+  /// Returns value from the top of the expression stack without removing it.
+  Definition get stackTop => stack.last;
+
+  /// Pop [count] values from the expression stack and
+  /// use them as `first ... first + count - 1` inputs of [instr]
+  /// (in the reverse order).
+  void popInputs(Instruction instr, int first, int count) {
+    for (int i = count - 1; i >= 0; --i) {
+      instr.setInputAt(first + i, pop());
+    }
+  }
+
+  /// Pop [count] values from the expression stack.
+  void drop(int count) {
+    stack.removeRange(stack.length - count, stack.length);
+  }
+
+  /// Create a new [JoinBlock].
+  JoinBlock newJoinBlock() => JoinBlock(graph, currentSourcePosition);
+
+  /// Create a new [TargetBlock].
+  TargetBlock newTargetBlock() => TargetBlock(graph, currentSourcePosition);
+
+  /// Create a new [CatchBlock].
+  CatchBlock newCatchBlock(
+    List<ast.DartType> guardTypes, {
+    required bool isSynthetic,
+  }) => CatchBlock(
+    graph,
+    currentSourcePosition,
+    guardTypes,
+    isSynthetic: isSynthetic,
+  );
+
+  /// Append [Goto] to the graph. Ends current block.
+  void addGoto(Block target) {
+    final instr = Goto(graph, currentSourcePosition);
+    appendInstruction(instr);
+    final currentBlock = instr.block!;
+    assert(currentBlock.successors.isEmpty);
+    currentBlock.successors.add(target);
+    endBlock();
+  }
+
+  /// Append [Branch] to the graph. Ends current block.
+  void addBranch(TargetBlock trueSuccessor, TargetBlock falseSuccessor) {
+    final instr = Branch(graph, currentSourcePosition, pop());
+    appendInstruction(instr);
+    final currentBlock = instr.block!;
+    assert(currentBlock.successors.isEmpty);
+    currentBlock.successors.add(trueSuccessor);
+    currentBlock.successors.add(falseSuccessor);
+    endBlock();
+  }
+
+  /// Append [TryEntry] to the graph. Ends current block.
+  void addTryEntry(TargetBlock tryBody, CatchBlock catchBlock) {
+    final instr = TryEntry(graph, currentSourcePosition);
+    appendInstruction(instr);
+    final currentBlock = instr.block!;
+    assert(currentBlock.successors.isEmpty);
+    currentBlock.successors.add(tryBody);
+    currentBlock.successors.add(catchBlock);
+    endBlock();
+  }
+
+  /// Enter try-block with given [exceptionHandler].
+  void enterTryBlock(CatchBlock exceptionHandler) {
+    _exceptionHandlers.add(exceptionHandler);
+  }
+
+  /// Leave the last entered try-block.
+  void leaveTryBlock() {
+    _exceptionHandlers.removeLast();
+  }
+
+  /// Append [Return] to the graph. Ends current block.
+  void addReturn() {
+    final value = pop();
+    final instr = Return(graph, currentSourcePosition, value);
+    appendInstruction(instr);
+    endBlock();
+  }
+
+  /// Append [Unreachable] to the graph. Ends current block.
+  void addUnreachable(String message) {
+    final instr = Unreachable(graph, currentSourcePosition, message);
+    appendInstruction(instr);
+    endBlock();
+  }
+
+  /// Append [Comparison] to the graph.
+  Comparison addComparison(ComparisonOpcode op) {
+    final right = pop();
+    final left = pop();
+    final instr = Comparison(graph, currentSourcePosition, op, left, right);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [Constant] to the entry block of the graph.
+  Constant addConstant(ConstantValue value) {
+    final instr = graph.getConstant(value);
+    if (instr.previous == _last) {
+      _last = instr;
+    }
+    push(instr);
+    return instr;
+  }
+
+  /// Append `null` [Constant].
+  Constant addNullConstant() => addConstant(ConstantValue.fromNull());
+
+  /// Append `int` [Constant] with given [value].
+  Constant addIntConstant(int value) =>
+      addConstant(ConstantValue.fromInt(value));
+
+  /// Append `bool` [Constant] with given [value].
+  Constant addBoolConstant(bool value) =>
+      addConstant(ConstantValue.fromBool(value));
+
+  /// Append uninitialized sentinel [Constant].
+  Constant addSentinelConstant() =>
+      addConstant(ConstantValue(SentinelConstant()));
+
+  /// Append [DirectCall] to the graph.
+  DirectCall addDirectCall(
+    CFunction target,
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
+    final instr = DirectCall(
+      graph,
+      currentSourcePosition,
+      target,
+      type,
+      inputCount: inputCount,
+      argumentsShape: argumentsShape,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [InterfaceCall] to the graph.
+  InterfaceCall addInterfaceCall(
+    CFunction interfaceTarget,
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
+    final instr = InterfaceCall(
+      graph,
+      currentSourcePosition,
+      interfaceTarget,
+      type,
+      inputCount: inputCount,
+      argumentsShape: argumentsShape,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [ClosureCall] to the graph.
+  ClosureCall addClosureCall(
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
+    final instr = ClosureCall(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+      argumentsShape: argumentsShape,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [DynamicCall] to the graph.
+  DynamicCall addDynamicCall(
+    ast.Name selector,
+    DynamicCallKind kind,
+    int inputCount,
+    ArgumentsShape argumentsShape,
+  ) {
+    final instr = DynamicCall(
+      graph,
+      currentSourcePosition,
+      selector,
+      kind,
+      inputCount: inputCount,
+      argumentsShape: argumentsShape,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Add [LocalVariable] to the graph.
+  LocalVariable declareLocalVariable(
+    String name,
+    ast.Variable? declaration,
+    CType type,
+  ) {
+    final v = LocalVariable(
+      name,
+      declaration,
+      graph.localVariables.length,
+      type,
+    );
+    graph.localVariables.add(v);
+    return v;
+  }
+
+  /// Append [Parameter] instruction to the graph.
+  Parameter addParameter(LocalVariable variable) {
+    final instr = Parameter(graph, currentSourcePosition, variable);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [LoadLocal] to the graph.
+  LoadLocal addLoadLocal(LocalVariable variable) {
+    final instr = LoadLocal(graph, currentSourcePosition, variable);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StoreLocal] to the graph.
+  void addStoreLocal(LocalVariable variable) {
+    final value = pop();
+    final instr = StoreLocal(graph, currentSourcePosition, variable, value);
+    appendInstruction(instr);
+  }
+
+  /// Append [LoadInstanceField] to the graph.
+  LoadInstanceField addLoadInstanceField(
+    CField field, {
+    bool checkInitialized = false,
+  }) {
+    final object = pop();
+    final instr = LoadInstanceField(
+      graph,
+      currentSourcePosition,
+      field,
+      object,
+      checkInitialized: checkInitialized,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StoreInstanceField] to the graph.
+  StoreInstanceField addStoreInstanceField(
+    CField field, {
+    bool checkNotInitialized = false,
+  }) {
+    final value = pop();
+    final object = pop();
+    final instr = StoreInstanceField(
+      graph,
+      currentSourcePosition,
+      field,
+      object,
+      value,
+      checkNotInitialized: checkNotInitialized,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [LoadStaticField] to the graph.
+  LoadStaticField addLoadStaticField(
+    CField field, {
+    bool checkInitialized = false,
+  }) {
+    final instr = LoadStaticField(
+      graph,
+      currentSourcePosition,
+      field,
+      checkInitialized: checkInitialized,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StoreStaticField] to the graph.
+  StoreStaticField addStoreStaticField(
+    CField field, {
+    bool checkNotInitialized = false,
+  }) {
+    final value = pop();
+    final instr = StoreStaticField(
+      graph,
+      currentSourcePosition,
+      field,
+      value,
+      checkNotInitialized: checkNotInitialized,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [Throw] to the graph.
+  /// Ends current block.
+  void addThrow(ThrowKind kind, int inputCount) {
+    final instr = Throw(
+      graph,
+      currentSourcePosition,
+      kind,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    appendInstruction(instr);
+    endBlock();
+  }
+
+  /// Append [NullCheck] to the graph.
+  NullCheck addNullCheck() {
+    final object = pop();
+    final instr = NullCheck(graph, currentSourcePosition, object);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [TypeParameters] to the graph.
+  TypeParameters addTypeParameters(TypeParametersKind kind, int inputCount) {
+    final instr = TypeParameters(
+      graph,
+      currentSourcePosition,
+      kind,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [TypeCast] to the graph.
+  ///
+  /// Optional [typeParameters] input should be passed if tested type
+  /// depends on type parameters (not fully instantiated).
+  ///
+  /// Optional [isChecked] argument indicates if this type cast involves
+  /// check at runtime.
+  TypeCast addTypeCast(
+    CType testedType, {
+    List<Definition> typeParameters = const [],
+    bool isChecked = true,
+  }) {
+    final object = pop();
+    final instr = TypeCast(
+      graph,
+      currentSourcePosition,
+      object,
+      testedType,
+      inputCount: 1 + typeParameters.length,
+      isChecked: isChecked,
+    );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(1 + i, typeParameters[i]);
+    }
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [TypeTest] to the graph.
+  ///
+  /// Optional [typeParameters] input should be passed if tested type
+  /// depends on type parameters (not fully instantiated).
+  TypeTest addTypeTest(
+    CType testedType, {
+    List<Definition> typeParameters = const [],
+  }) {
+    final object = pop();
+    final instr = TypeTest(
+      graph,
+      currentSourcePosition,
+      object,
+      testedType,
+      inputCount: 1 + typeParameters.length,
+    );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(1 + i, typeParameters[i]);
+    }
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append either [TypeArguments] or [Constant] representing type arguments
+  /// to the graph.
+  ///
+  /// Optional [typeParameters] input should be passed if type arguments
+  /// depend on type parameters (not fully instantiated).
+  void addTypeArguments(
+    List<ast.DartType> types, {
+    List<Definition> typeParameters = const [],
+  }) {
+    if (typeParameters.isEmpty) {
+      addConstant(ConstantValue(TypeArgumentsConstant(types)));
+      return;
+    }
+    final instr = TypeArguments(
+      graph,
+      currentSourcePosition,
+      types,
+      inputCount: typeParameters.length,
+    );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
+    push(instr);
+    appendInstruction(instr);
+  }
+
+  /// Append [TypeLiteral] or [Constant] representing type to the graph.
+  void addTypeLiteral(
+    ast.DartType type, {
+    required List<Definition> typeParameters,
+  }) {
+    if (typeParameters.isEmpty) {
+      addConstant(ConstantValue(ast.TypeLiteralConstant(type)));
+      return;
+    }
+    final instr = TypeLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: typeParameters.length,
+    );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
+    push(instr);
+    appendInstruction(instr);
+  }
+
+  /// Append [AllocateObject] to the graph.
+  ///
+  /// Optional [typeArguments] input should be passed if allocating
+  /// an instance of a generic class.
+  AllocateObject addAllocateObject(CType type, {Definition? typeArguments}) {
+    final instr = AllocateObject(
+      graph,
+      currentSourcePosition,
+      type,
+      typeArguments,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateClosure] to the graph.
+  AllocateClosure addAllocateClosure(
+    ClosureFunction function,
+    ClosureLayout closureLayout,
+    CType type,
+  ) {
+    final instr = AllocateClosure(
+      graph,
+      currentSourcePosition,
+      function,
+      closureLayout,
+      type,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateContext] to the graph.
+  /// Does not push result onto the stack.
+  AllocateContext addAllocateContext(int length) {
+    final instr = AllocateContext(graph, currentSourcePosition, length);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateListLiteral] to the graph.
+  /// Takes type arguments and elements from the stack as inputs.
+  AllocateListLiteral addAllocateListLiteral(CType type, int inputCount) {
+    final instr = AllocateListLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateMapLiteral] to the graph.
+  /// Takes type arguments and key/value pairs from the stack as inputs.
+  AllocateMapLiteral addAllocateMapLiteral(CType type, int inputCount) {
+    final instr = AllocateMapLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateRecordLiteral] to the graph.
+  /// Takes elements from the stack as inputs.
+  AllocateRecordLiteral addAllocateRecordLiteral(RecordType type) {
+    final inputCount = type.numFields;
+    final instr = AllocateRecordLiteral(
+      graph,
+      currentSourcePosition,
+      type,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StringInterpolation] to the graph.
+  StringInterpolation addStringInterpolation(int inputCount) {
+    final instr = StringInterpolation(
+      graph,
+      currentSourcePosition,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [InstantiateClosure] to the graph.
+  InstantiateClosure addInstantiateClosure(CType type) {
+    final closure = pop();
+    final typeArguments = pop();
+    final instr = InstantiateClosure(
+      graph,
+      currentSourcePosition,
+      typeArguments,
+      closure,
+      type,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [EnterSuspendableFunction] to the graph.
+  void addEnterSuspendableFunction() {
+    final typeArguments = pop();
+    final instr = EnterSuspendableFunction(
+      graph,
+      currentSourcePosition,
+      typeArguments,
+    );
+    appendInstruction(instr);
+  }
+
+  /// Append [Suspend] to the graph.
+  Suspend addSuspend(SuspendOpcode op, CType type) {
+    final typeArguments = (op == .awaitWithTypeCheck) ? pop() : null;
+    final operand = pop();
+    final instr = Suspend(
+      graph,
+      currentSourcePosition,
+      op,
+      type,
+      operand,
+      typeArguments: typeArguments,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [BinaryIntOp] to the graph.
+  BinaryIntOp addBinaryIntOp(BinaryIntOpcode op) {
+    final right = pop();
+    final left = pop();
+    final instr = BinaryIntOp(graph, currentSourcePosition, op, left, right);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [UnaryIntOp] to the graph.
+  UnaryIntOp addUnaryIntOp(UnaryIntOpcode op) {
+    final operand = pop();
+    final instr = UnaryIntOp(graph, currentSourcePosition, op, operand);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [BinaryDoubleOp] to the graph.
+  BinaryDoubleOp addBinaryDoubleOp(BinaryDoubleOpcode op) {
+    final right = pop();
+    final left = pop();
+    final instr = BinaryDoubleOp(graph, currentSourcePosition, op, left, right);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [UnaryDoubleOp] to the graph.
+  UnaryDoubleOp addUnaryDoubleOp(UnaryDoubleOpcode op) {
+    final operand = pop();
+    final instr = UnaryDoubleOp(graph, currentSourcePosition, op, operand);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [UnaryBoolOp] to the graph.
+  UnaryBoolOp addUnaryBoolOp(UnaryBoolOpcode op) {
+    final operand = pop();
+    final instr = UnaryBoolOp(graph, currentSourcePosition, op, operand);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+}

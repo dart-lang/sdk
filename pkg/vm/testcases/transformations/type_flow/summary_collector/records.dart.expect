@@ -1,0 +1,22 @@
+------------ recordLiteral ------------
+%x = _Parameter #0 [_T ANY?]
+%y = _Parameter #1 [_T ANY?]
+%z = _Parameter #2 [_T ANY?]
+t3 = _Call direct set [$1] (_T (dart.core::Record)+, %x)
+t4 = _Call direct set [$2] (_T (dart.core::Record)+, %y)
+t5 = _Call direct set [bar] (_T (dart.core::Record)+, %z)
+RESULT: _T (dart.core::Record)+
+------------ recordFieldAccess1 ------------
+%rec = _Parameter #0 [_T (dart.core::Record)+]
+t1* = _Call direct get [$2] (%rec)
+RESULT: t1
+------------ recordFieldAccess2 ------------
+%rec = _Parameter #0 [_T (dart.core::Record)+]
+t1* = _Call direct get [b] (%rec)
+RESULT: t1
+------------ main ------------
+
+RESULT: _T {}?
+------------ recordConstant ------------
+
+RESULT: _T (dart.core::Record)+

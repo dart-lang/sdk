@@ -1,0 +1,11 @@
+library test;
+
+T f<T>() => throw '';
+
+class C<T> {
+  const C();
+}
+
+void test(C<int> x) {}
+
+main() {}

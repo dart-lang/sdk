@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29976.dart:9:14: Error: The non-ASCII character 'é' (U+00E9) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+//     "x${x*"'"é'}x
+//              ^
+//
+// pkg/front_end/testcases/regress/issue_29976.dart:9:15: Error: String starting with ' must end with '.
+//     "x${x*"'"é'}x
+//               ^^^
+//
+// pkg/front_end/testcases/regress/issue_29976.dart:9:7: Error: Can't find '}' to match '${'.
+//     "x${x*"'"é'}x
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_29976.dart:9:5: Error: String starting with " must end with ".
+//     "x${x*"'"é'}x
+//     ^^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/regress/issue_29976.dart:12:1: Error: Expected a declaration, but got ''.
+//
+import self as self;
+
+static get x() → dynamic
+  ;
+static method main() → void
+  ;

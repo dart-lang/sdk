@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/closure/closure_test.dart
+prod=pkg/compiler/test/closure/closure_test.dart

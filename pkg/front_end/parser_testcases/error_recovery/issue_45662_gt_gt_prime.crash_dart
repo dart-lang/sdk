@@ -1,0 +1,3 @@
+class A {
+  List<List<int.> > p; // added dot!
+}

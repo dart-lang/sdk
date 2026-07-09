@@ -1,0 +1,205 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SuperConstructorInvocationResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class SuperConstructorInvocationResolutionTest
+    extends PubPackageResolutionTest {
+  test_named() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int a);
+}
+
+class B extends A {
+  B() : super.named(0);
+}
+''');
+
+    var node = result.findNode.singleSuperConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+SuperConstructorInvocation
+  superKeyword: super
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibrary>::@class::A::@constructor::named
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_named_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B() : super.named(0);
+//      ^^^^^^^^^^^^^^
+// [diag.undefinedConstructorInInitializer] The class 'A' doesn't have a constructor named 'named'.
+}
+''');
+
+    var node = result.findNode.singleSuperConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+SuperConstructorInvocation
+  superKeyword: super
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+''');
+  }
+
+  test_named_unresolved_hasFormalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B(int named) : super.named(0);
+//               ^^^^^^^^^^^^^^
+// [diag.undefinedConstructorInInitializer] The class 'A' doesn't have a constructor named 'named'.
+}
+''');
+
+    var node = result.findNode.singleSuperConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+SuperConstructorInvocation
+  superKeyword: super
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+''');
+  }
+
+  test_nonConst_fromConst() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  final a;
+  A(this.a);
+}
+
+class B extends A {
+  const B() : super(5);
+//            ^^^^^^^^
+// [diag.constConstructorWithNonConstSuper] A constant constructor can't call a non-constant super constructor of 'A'.
+}
+''');
+
+    var node = result.findNode.singleSuperConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+SuperConstructorInvocation
+  superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 5
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_unnamed() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B() : super(0);
+}
+''');
+
+    var node = result.findNode.singleSuperConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+SuperConstructorInvocation
+  superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_unnamed_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int a);
+}
+
+class B extends A {
+  B() : super(0);
+//      ^^^^^^^^
+// [diag.undefinedConstructorInInitializerDefault] The class 'A' doesn't have an unnamed constructor.
+}
+''');
+
+    var node = result.findNode.singleSuperConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+SuperConstructorInvocation
+  superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+''');
+  }
+}

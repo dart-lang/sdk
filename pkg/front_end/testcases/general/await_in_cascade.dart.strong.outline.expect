@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  method m() → asy::Future<core::List<core::int>> async 
+    ;
+  method _m() → asy::Future<core::int> async 
+    ;
+}
+static method main() → dynamic async 
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

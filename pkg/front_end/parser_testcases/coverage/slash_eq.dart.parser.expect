@@ -1,0 +1,9 @@
+dynamic foo(dynamic bar) {
+return bar /= 2;
+}
+
+
+dynamic[KeywordToken] foo[StringToken]([BeginToken]dynamic[KeywordToken] bar[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] bar[StringToken] /=[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

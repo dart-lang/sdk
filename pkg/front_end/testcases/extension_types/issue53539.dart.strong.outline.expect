@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ET(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  set id = self::ET|set#id;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static extension-type-member method ET|constructor#(initializing-formal core::int id) → self::ET% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int id) → self::ET% /* erasure=core::int, declared=! */
+  return self::ET|constructor#(id);
+static extension-type-member method ET|set#id(lowered final self::ET% /* erasure=core::int, declared=! */ #this, core::String i) → void
+  ;

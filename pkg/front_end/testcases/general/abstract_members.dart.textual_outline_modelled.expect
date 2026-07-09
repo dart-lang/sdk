@@ -1,0 +1,80 @@
+abstract class A implements Interface1, Interface2, Interface3 {
+  aMethod() {}
+  abstractMethod();
+  void set property1(_);
+  void set property2(_);
+  void set property3(_);
+}
+
+abstract class B extends A {
+  aMethod() {}
+  bMethod() {}
+  final property1 = null;
+}
+
+abstract class D extends C implements Interface2 {}
+
+abstract class F extends E implements Interface1 {}
+
+abstract class H extends G implements Foo {}
+
+abstract class J extends I implements Bar {}
+
+class Bar {
+  Object get foo => null;
+}
+
+class C {
+  void interfaceMethod1(_) {}
+}
+
+class E {
+  void set interfaceMethod1(_) {}
+}
+
+class Foo {
+  void foo() {}
+}
+
+class G {
+  Object get foo => null;
+}
+
+class I {
+  Object foo() {}
+}
+
+class Interface1 {
+  void interfaceMethod1() {}
+}
+
+class Interface2 {
+  var interfaceMethod1;
+  void interfaceMethod2() {}
+}
+
+class Interface3 {
+  void interfaceMethod3() {}
+}
+
+class MyClass extends B {
+  aMethod() {}
+  aaMethod() {}
+  bMethod() {}
+  cMethod() {}
+  var property2;
+}
+
+class MyMock1 extends B {
+  noSuchMethod(_) => null;
+}
+
+class MyMock2 extends MyMock1 {
+  noSuchMethod(_);
+}
+
+class MyMock3 extends B {
+  noSuchMethod(_);
+}
+
+main() {}

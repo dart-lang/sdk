@@ -1,0 +1,35 @@
+NOTICE: Stream was rewritten by parser!
+
+class C {
+C() : assert (*synthetic*)= *synthetic*;0;
+}
+
+class C {
+C() : *synthetic*=*synthetic*{}null operator= (){}0;
+}
+
+class C {
+C() : super = 0;
+}
+
+class C {
+C() : *synthetic*=this .*synthetic*= 0;
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] assert[KeywordToken] ([SyntheticBeginToken][SyntheticStringToken])[SyntheticToken]=[SimpleToken] [SyntheticStringToken];[SyntheticToken]0[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]null[KeywordToken] operator[SyntheticKeywordToken]=[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken]0[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] super[KeywordToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] [SyntheticStringToken]=[SyntheticToken]this[KeywordToken] .[SyntheticToken][SyntheticStringToken]=[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

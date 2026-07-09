@@ -1,0 +1,29 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+
+  /**
+   * An override to place the contents into content rather than as child nodes.
+   *
+   * See also:
+   *
+   * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
+   */
+  void setInnerHtml(String$NULLABLE html,
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    text = null;
+    content$NULLASSERT.nodes.clear();
+    var fragment = createFragment(html, validator: validator,
+        treeSanitizer: treeSanitizer);
+
+    content$NULLASSERT.append(fragment);
+  }
+}

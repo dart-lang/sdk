@@ -1,0 +1,354 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../utils/aot_snapshot.gni")
+import("../../utils/application_snapshot.gni")
+
+_dart_root = get_path_info("../..", "abspath")
+
+# All samples.
+group("all") {
+  deps = [
+    ":aot",
+    ":kernel",
+  ]
+}
+
+group("aot") {
+  deps = [
+    ":run_main_aot",
+    ":run_main_aot_static",
+    ":run_timer_aot",
+    ":run_timer_aot_static",
+    ":run_timer_async_aot",
+    ":run_timer_async_aot_static",
+    ":run_two_programs_aot",
+    ":run_two_programs_aot_static",
+  ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [
+      ":run_futures_aot",
+      ":run_futures_aot_static",
+    ]
+  }
+}
+
+group("kernel") {
+  deps = [
+    ":run_main_kernel",
+    ":run_main_kernel_static",
+    ":run_timer_async_kernel",
+    ":run_timer_async_kernel_static",
+    ":run_timer_kernel",
+    ":run_timer_kernel_static",
+    ":run_two_programs_kernel",
+    ":run_two_programs_kernel_static",
+  ]
+
+  # FFI can't execute on the VM's simulator
+  if (dart_target_arch == host_cpu) {
+    deps += [
+      ":run_futures_kernel",
+      ":run_futures_kernel_static",
+    ]
+  }
+}
+
+_all_configs = [
+  {
+    suffix = "_kernel"
+    dart_shared_lib = "../../runtime/engine:dart_engine_jit_shared"
+    dart_static_lib = "../../runtime/engine:dart_engine_jit_static"
+    dart_snapshot_kind = "kernel"
+    gen_kernel_args = [ "--link-platform" ]
+    snapshot_target = "application_snapshot"
+    training_args = []  # Not used
+  },
+  {
+    suffix = "_aot"
+    dart_shared_lib = "../../runtime/engine:dart_engine_aot_shared"
+    dart_static_lib = "../../runtime/engine:dart_engine_aot_static"
+    snapshot_target = "aot_snapshot"
+  },
+]
+
+template("sample") {
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  foreach(conf, _all_configs) {
+    executable("${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+
+      # Otherwise build with --no-clang (jit) or MSAN (aot) fails.
+      if (is_linux) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,--allow-shlib-undefined" ]
+      }
+      deps = [ conf.dart_shared_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}" ]
+      }
+      deps += extra_deps
+
+      # Can't be added by tool("link"), but make sure changes to entitlements
+      # trigger re-links.
+      if (is_mac) {
+        inputs = [
+          "$_dart_root/runtime/tools/dart_codesign.py",
+          "$_dart_root/runtime/tools/entitlements/${target_name}_aot.plist",
+        ]
+      }
+    }
+
+    executable("${target_name}${conf.suffix}_static") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+
+      # Otherwise build with --no-clang (jit) or MSAN (aot) fails.
+      if (is_linux) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,--allow-shlib-undefined" ]
+      }
+      deps = [ conf.dart_static_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}_static" ]
+      }
+      deps += extra_deps
+
+      # Can't be added by tool("link"), but make sure changes to entitlements
+      # trigger re-links.
+      if (is_mac) {
+        inputs = [
+          "$_dart_root/runtime/tools/dart_codesign.py",
+          "$_dart_root/runtime/tools/entitlements/${target_name}_aot_static.plist",
+        ]
+      }
+    }
+  }
+}
+
+template("snapshots") {
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+  foreach(conf, _all_configs) {
+    snapshot_target_name = "${target_name}${conf.suffix}"
+    target(conf.snapshot_target, snapshot_target_name) {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (defined(conf.dart_snapshot_kind)) {
+        dart_snapshot_kind = conf.dart_snapshot_kind
+      }
+      if (defined(conf.training_args)) {
+        training_args = conf.training_args
+      }
+      if (defined(conf.gen_kernel_args)) {
+        gen_kernel_args = conf.gen_kernel_args
+      }
+      if (defined(conf.as_shared_library)) {
+        as_shared_library = conf.as_shared_library
+      }
+      deps = []
+      foreach(dep, configurable_deps) {
+        deps += [ "${dep}${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+    group("${snapshot_target_name}_static") {
+      deps = [ ":${snapshot_target_name}" ]
+    }
+  }
+}
+
+template("shims") {
+  name = target_name
+  if (defined(invoker.name)) {
+    name = invoker.name
+  }
+  configurable_deps = []
+  if (defined(invoker.configurable_deps)) {
+    configurable_deps += invoker.configurable_deps
+  }
+  extra_deps = []
+  if (defined(invoker.extra_deps)) {
+    extra_deps += invoker.extra_deps
+  }
+
+  foreach(conf, _all_configs) {
+    shared_library("${target_name}${conf.suffix}") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "name",
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      output_name = "${name}${conf.suffix}"
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+      if (is_mac) {
+        if (!defined(ldflags)) {
+          ldflags = []
+        }
+        ldflags += [ "-Wl,-install_name,@rpath/lib${output_name}.dylib" ]
+      }
+      sources = [
+        "$name.cc",
+        "$name.h",
+      ]
+      public = [ "$name.h" ]
+      deps = [ conf.dart_shared_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "$dep${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+
+    static_library("${target_name}${conf.suffix}_static") {
+      forward_variables_from(invoker,
+                             "*",
+                             [
+                               "name",
+                               "extra_deps",
+                               "configurable_deps",
+                             ])
+      if (!defined(include_dirs)) {
+        include_dirs = []
+      }
+      include_dirs += [
+        ".",
+        "../../runtime",
+        "../../runtime/engine",
+      ]
+
+      sources = [
+        "$name.cc",
+        "$name.h",
+      ]
+      public = [ "$name.h" ]
+      deps = [ conf.dart_static_lib ]
+      foreach(dep, configurable_deps) {
+        deps += [ "$dep${conf.suffix}" ]
+      }
+      deps += extra_deps
+    }
+  }
+}
+
+# Sample binary to run given kernel snapshot.
+sample("run_main") {
+  sources = [ "run_main.cc" ]
+  configurable_deps = [ ":hello" ]
+}
+
+snapshots("hello") {
+  main_dart = "hello.dart"
+}
+
+# Sample binary to run two snapshots simultaneously.
+sample("run_two_programs") {
+  sources = [ "run_two_programs.cc" ]
+  configurable_deps = [
+    ":program1",
+    ":program2",
+  ]
+}
+
+snapshots("program1") {
+  main_dart = "program1.dart"
+}
+
+snapshots("program2") {
+  main_dart = "program2.dart"
+}
+
+snapshots("timer") {
+  main_dart = "timer.dart"
+}
+
+shims("timer_library") {
+  name = "timer"
+}
+
+sample("run_timer") {
+  sources = [ "run_timer.cc" ]
+  configurable_deps = [
+    ":timer",
+    ":timer_library",
+  ]
+}
+
+sample("run_timer_async") {
+  sources = [ "run_timer_async.cc" ]
+  configurable_deps = [
+    ":timer",
+    ":timer_library",
+  ]
+}
+
+# FFI can't execute on the VM's simulator
+if (dart_target_arch == host_cpu) {
+  snapshots("futures") {
+    main_dart = "futures.dart"
+  }
+
+  sample("run_futures") {
+    sources = [ "run_futures.cc" ]
+    configurable_deps = [ ":futures" ]
+  }
+}

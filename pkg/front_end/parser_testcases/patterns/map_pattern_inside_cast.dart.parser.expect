@@ -1,0 +1,15 @@
+test(dynamic x) {
+switch (x) {
+case {'a': 1} as Object:
+break;
+}
+}
+
+
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] {[BeginToken]'a'[StringToken]:[SimpleToken] 1[StringToken]}[SimpleToken] as[KeywordToken] Object[StringToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

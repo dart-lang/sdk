@@ -1,0 +1,135 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  factory WheelEvent(String type,
+      {Window$NULLABLE view, num deltaX = 0, num deltaY = 0, num deltaZ = 0,
+      int deltaMode = 0,
+      int detail = 0, int screenX = 0, int screenY = 0, int clientX = 0,
+      int clientY = 0, int button = 0, bool canBubble = true,
+      bool cancelable = true, bool ctrlKey = false, bool altKey = false,
+      bool shiftKey = false, bool metaKey = false,
+      EventTarget$NULLABLE relatedTarget}) {
+
+    var options = {
+      'view': view,
+      'deltaMode': deltaMode,
+      'deltaX': deltaX,
+      'deltaY': deltaY,
+      'deltaZ': deltaZ,
+      'detail': detail,
+      'screenX': screenX,
+      'screenY': screenY,
+      'clientX': clientX,
+      'clientY': clientY,
+      'button': button,
+      'bubbles': canBubble,
+      'cancelable': cancelable,
+      'ctrlKey': ctrlKey,
+      'altKey': altKey,
+      'shiftKey': shiftKey,
+      'metaKey': metaKey,
+      'relatedTarget': relatedTarget,
+    };
+
+    if (view == null) {
+      view = window;
+    }
+
+    return JS('WheelEvent', 'new WheelEvent(#, #)',
+        type, convertDartToNative_Dictionary(options));
+
+  }
+
+$!MEMBERS
+
+  /**
+   * The amount that is expected to scroll vertically, in units determined by
+   * [deltaMode].
+   *
+   * See also:
+   *
+   * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
+   */
+  num get deltaY {
+    // deltaY may be missing or undefined.
+    num? value = JS('', '#.deltaY', this);
+    if (value != null) return value;
+    throw new UnsupportedError('deltaY is not supported');
+  }
+
+  /**
+   * The amount that is expected to scroll horizontally, in units determined by
+   * [deltaMode].
+   *
+   * See also:
+   *
+   * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
+   */
+  num get deltaX {
+    // deltaX may be missing or undefined.
+    num? value = JS('', '#.deltaX', this);
+    if (value != null) return value;
+    throw new UnsupportedError('deltaX is not supported');
+  }
+
+  int get deltaMode {
+    if (JS('bool', '!!(#.deltaMode)', this)) {
+      return JS('int', '#.deltaMode', this);
+    }
+    // If not available then we're poly-filling and doing pixel scroll.
+    return 0;
+  }
+
+  num get _wheelDelta => JS('num', '#.wheelDelta', this);
+  num get _wheelDeltaX => JS('num', '#.wheelDeltaX', this);
+  num get _detail => JS('num', '#.detail', this);
+
+  bool get _hasInitMouseScrollEvent =>
+      JS('bool', '!!(#.initMouseScrollEvent)', this);
+
+  @JSName('initMouseScrollEvent')
+  void _initMouseScrollEvent(
+      String type,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      bool ctrlKey,
+      bool altKey,
+      bool shiftKey,
+      bool metaKey,
+      int button,
+      EventTarget relatedTarget,
+      int axis) native;
+
+  bool get _hasInitWheelEvent =>
+      JS('bool', '!!(#.initWheelEvent)', this);
+  @JSName('initWheelEvent')
+  void _initWheelEvent(
+      String eventType,
+      bool canBubble,
+      bool cancelable,
+      Window view,
+      int detail,
+      int screenX,
+      int screenY,
+      int clientX,
+      int clientY,
+      int button,
+      EventTarget relatedTarget,
+      String modifiersList,
+      int deltaX,
+      int deltaY,
+      int deltaZ,
+      int deltaMode) native;
+
+}

@@ -1,0 +1,9 @@
+class A {
+  var foo = 42;
+}
+
+class B extends A {
+  foo() => 42;
+}
+
+main() {}

@@ -1,0 +1,12 @@
+rcx int8
+rdx int8
+r8 int8
+r9 int8
+S+0 int8
+S+8 int8
+S+16 int8
+S+24 int8
+S+32 int8
+S+40 int8
+=>
+rax int8

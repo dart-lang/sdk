@@ -1,0 +1,515 @@
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../../../client/completion_driver_test.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DotShorthandInvocationTest);
+  });
+}
+
+@reflectiveTest
+class DotShorthandInvocationTest extends AbstractCompletionDriverTest
+    with DotShorthandInvocationTestCases {}
+
+mixin DotShorthandInvocationTestCases on AbstractCompletionDriverTest {
+  Future<void> test_constructor_class_named() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+class C {
+  C.named();
+}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_class_named_equality_withPrefix() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+class C {
+  C.named();
+}
+void f() {
+  print(C.named() == .n^);
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_class_unnamed() async {
+    allowedIdentifiers = {'new'};
+    await computeSuggestions('''
+class C {}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_class_unnamed_equality() async {
+    allowedIdentifiers = {'new'};
+    await computeSuggestions('''
+class C {}
+void f() {
+  print(C() == .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_class_withParentheses() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+class C {
+  C.named();
+}
+void f() {
+  C c = .^()
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_class_withPrefix() async {
+    allowedIdentifiers = {'named', 'new'};
+    await computeSuggestions('''
+class C {
+  C.named();
+}
+void f() {
+  C c = .n^()
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_constantContext() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  const C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_constantContext_withPrefix() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  const C c = .n^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_constantContext_withPrefix_parentheses() async {
+    allowedIdentifiers = {'named', 'notConstant'};
+    await computeSuggestions('''
+class C {
+  const C.named();
+  C.notConstant();
+}
+void f() {
+  const C c = .n^()
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_extensionType_named() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+extension type C(int x) {
+  C.named(this.x);
+}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_extensionType_unnamed() async {
+    allowedIdentifiers = {'new'};
+    await computeSuggestions('''
+extension type C(int x) {}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_extensionType_unnamed_equality() async {
+    allowedIdentifiers = {'new'};
+    await computeSuggestions('''
+extension type C(int x) {}
+void f() {
+  print(C() == .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_extensionType_withPrefix_named() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+extension type C(int x) {
+  C.named(this.x);
+}
+void f() {
+  C c = .n^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_extensionType_withPrefix_unnamed() async {
+    allowedIdentifiers = {'new'};
+    await computeSuggestions('''
+extension type C(int x) {}
+void f() {
+  C c = .n^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  new
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_invalid_type() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  _C._();
+  // ignore: unused_element
+  static _C method() => _C._();
+}
+
+void foo(_C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(.m^());
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void> test_invalid_type_typedef() async {
+    // https://github.com/dart-lang/language/issues/4606#issuecomment-3753427148
+    newFile(join(testPackageLibPath, 'private.dart'), '''
+class _C {
+  _C._();
+  // ignore: unused_element
+  static _C method() => _C._();
+}
+
+typedef C = _C;
+
+void foo(C c) {}
+''');
+    await computeSuggestions('''
+import 'private.dart';
+
+void f() {
+  foo(.m^());
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void> test_method_class() async {
+    allowedIdentifiers = {'method', 'notStatic'};
+    await computeSuggestions('''
+class C {
+  static C method() => C();
+  C notStatic() => C();
+}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_class_chain() async {
+    allowedIdentifiers = {'method', 'anotherMethod', 'notStatic'};
+    await computeSuggestions('''
+class C {
+  static C method() => C();
+  static C anotherMethod() => C();
+  C notStatic() => C();
+}
+void f() {
+  C c = .anotherMethod().^
+}
+''');
+    assertResponse(r'''
+suggestions
+  notStatic
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_class_chain_withPrefix() async {
+    allowedIdentifiers = {
+      'method',
+      'anotherMethod',
+      'notStatic',
+      'alsoInstance',
+    };
+    await computeSuggestions('''
+class C {
+  static C method() => C();
+  static C anotherMethod() => C();
+  C notStatic() => C();
+  C alsoInstance() => C();
+}
+void f() {
+  C c = .anotherMethod().no^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  notStatic
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_class_equality() async {
+    allowedIdentifiers = {'method', 'notStatic'};
+    await computeSuggestions('''
+class C {
+  static C method() => C();
+  C notStatic() => C();
+}
+void f() {
+  print(C() == .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_class_withParentheses() async {
+    allowedIdentifiers = {'method', 'notStatic'};
+    await computeSuggestions('''
+class C {
+  static C method() => C();
+  C notStatic() => C();
+}
+void f() {
+  C c = .^()
+}
+''');
+    assertResponse(r'''
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_class_withPrefix() async {
+    allowedIdentifiers = {'method', 'anotherMethod', 'notStatic'};
+    await computeSuggestions('''
+class C {
+  static C method() => C();
+  static C anotherMethod() => C();
+  C notStatic() => C();
+}
+void f() {
+  C c = .a^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  anotherMethod
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_extensionType() async {
+    allowedIdentifiers = {'method', 'notStatic'};
+    await computeSuggestions('''
+extension type C(int x) {
+  static C method() => C(1);
+  C notStatic() => C(1);
+}
+void f() {
+  C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_extensionType_equality() async {
+    allowedIdentifiers = {'method', 'notStatic'};
+    await computeSuggestions('''
+extension type C(int x) {
+  static C method() => C(1);
+  C notStatic() => C(1);
+}
+void f() {
+  print(C(1) == .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_extensionType_withPrefix() async {
+    allowedIdentifiers = {'method', 'anotherMethod', 'notStatic'};
+    await computeSuggestions('''
+extension type C(int x) {
+  static C method() => C(1);
+  static C anotherMethod() => C(1);
+  C notStatic() => C(1);
+}
+void f() {
+  C c = .a^
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  anotherMethod
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_invocation_noDotShorthands() async {
+    // We still added `named` so we can be sure we are replacing it correctly.
+    allowedIdentifiers = {'named', 'C'};
+    await computeSuggestions('''
+// @dart=3.9
+class C {
+  static C named() => C();
+}
+void f() {
+  C c = .^()
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  C
+    kind: constructorInvocation
+  C.named
+    kind: methodInvocation
+''');
+  }
+}

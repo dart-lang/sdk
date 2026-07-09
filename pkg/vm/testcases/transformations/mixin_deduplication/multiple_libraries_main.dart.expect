@@ -1,0 +1,84 @@
+library #lib;
+import self as self;
+import "multiple_libraries_helper1.dart" as mul;
+import "multiple_libraries_helper2.dart" as mul2;
+
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_helper1.dart";
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_helper2.dart";
+
+static method main() → dynamic {
+  new mul::SA1::•();
+  new mul2::SA2::•();
+}
+
+
+library;
+import self as self;
+import "dart:mixin_deduplication" as mix;
+
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_shared_helper.dart";
+import "dart:mixin_deduplication";
+
+class SA1 extends mix::_MixinApplication0&B1&M1 {
+  constructor •() → self::SA1
+    : super mix::_MixinApplication0&B1&M1::•() {
+    super.{mix::_MixinApplication0&B1&M1::foo}();
+  }
+}
+class SA3 extends mix::_MixinApplication1&B1&M1 {
+  constructor •() → self::SA3
+    : super mix::_MixinApplication1&B1&M1::•() {
+    super.{mix::_MixinApplication1&B1&M1::foo}();
+  }
+}
+
+
+library;
+import self as self;
+import "dart:mixin_deduplication" as mix;
+
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_shared_helper.dart";
+import "dart:mixin_deduplication";
+
+class SA2 extends mix::_MixinApplication0&B1&M1 {
+  constructor •() → self::SA2
+    : super mix::_MixinApplication0&B1&M1::•() {
+    super.{mix::_MixinApplication0&B1&M1::foo}();
+  }
+}
+
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class B1 extends core::Object {
+  synthetic constructor •() → self::B1
+    : super core::Object::•()
+    ;
+}
+abstract class M1<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  method foo() → void {}
+}
+
+
+library /*!conditionalImportSupported*/;
+import self as self;
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_shared_helper.dart" as mul;
+import "dart:core" as core;
+
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_shared_helper.dart";
+import "dart:core";
+
+abstract class _MixinApplication0&B1&M1 extends mul::B1 implements mul::M1<core::int> /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_helper1.dart
+  synthetic constructor •() → self::_MixinApplication0&B1&M1
+    : super mul::B1::•()
+    ;
+  method /* from file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_shared_helper.dart */ foo() → void {}
+}
+abstract class _MixinApplication1&B1&M1 extends mul::B1 implements mul::M1<core::String> /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_helper1.dart
+  synthetic constructor •() → self::_MixinApplication1&B1&M1
+    : super mul::B1::•()
+    ;
+  method /* from file:pkg/vm/testcases/transformations/mixin_deduplication/multiple_libraries_shared_helper.dart */ foo() → void {}
+}

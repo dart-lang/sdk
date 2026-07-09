@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_redirection.dart:6:9: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   Foo() = Bar;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → self::Foo
+    ;
+}
+class Bar extends self::Foo {
+  static factory •() → self::Bar
+    ;
+}
+static method main() → dynamic
+  ;

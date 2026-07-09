@@ -1,0 +1,4 @@
+class A {
+  final int x;
+  const A.a4(String this.x);
+}

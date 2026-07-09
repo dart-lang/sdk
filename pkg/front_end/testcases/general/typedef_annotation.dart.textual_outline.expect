@@ -1,0 +1,11 @@
+class A {
+  const A();
+}
+
+@A()
+typedef F = void Function();
+
+@A()
+typedef void G();
+
+main() {}

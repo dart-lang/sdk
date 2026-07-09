@@ -1,0 +1,782 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/annotation_target.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta_meta.dart';
+
+/// Helper for verifying the validity of annotations.
+class AnnotationVerifier {
+  final DiagnosticReporter _diagnosticReporter;
+
+  /// The current library.
+  final LibraryElement _currentLibrary;
+
+  /// The [WorkspacePackageImpl] in which [_currentLibrary] is declared.
+  final WorkspacePackageImpl? _workspacePackage;
+
+  /// Whether [_currentLibrary] is part of its containing package's public API.
+  late final bool _inPackagePublicApi =
+      _workspacePackage != null &&
+      _workspacePackage.sourceIsInPublicApi(
+        _currentLibrary.firstFragment.source,
+      );
+
+  AnnotationVerifier(
+    this._diagnosticReporter,
+    this._currentLibrary,
+    this._workspacePackage,
+  );
+
+  void checkAnnotation(Annotation node) {
+    var element = node.elementAnnotation;
+    if (element == null) {
+      return;
+    }
+    var parent = node.parent;
+    if (element.isAwaitNotRequired) {
+      _checkAwaitNotRequired(node);
+    } else if (element.isDeprecated) {
+      _checkDeprecated(node);
+    } else if (element.isFactory) {
+      _checkFactory(node);
+    } else if (element.isInternal) {
+      _checkInternal(node);
+    } else if (element.isLiteral) {
+      _checkLiteral(node);
+    } else if (element.isNonVirtual) {
+      _checkNonVirtual(node);
+    } else if (element.isReopen) {
+      _checkReopen(node);
+    } else if (element.isRedeclare) {
+      _checkRedeclare(node);
+    } else if (element.isUseResult) {
+      _checkUseResult(node, element);
+    } else if (element.isVisibleForTemplate ||
+        element.isVisibleForTesting ||
+        element.isVisibleForOverriding) {
+      _checkVisibility(node, element);
+    } else if (element.isVisibleOutsideTemplate) {
+      _checkVisibility(node, element);
+      _checkVisibleOutsideTemplate(node);
+    }
+
+    _checkKinds(node, parent, element);
+  }
+
+  void _checkAwaitNotRequired(Annotation node) {
+    void checkType(DartType? type, {AstNode? errorNode}) {
+      if (type == null || type.isDartAsyncFuture || type.isDartAsyncFutureOr) {
+        return;
+      }
+
+      var element = type.element;
+      if (element is InterfaceElement &&
+          element.allSupertypes.any((t) => t.isDartAsyncFuture)) {
+        return;
+      }
+
+      _diagnosticReporter.report(
+        diag.invalidAwaitNotRequiredAnnotation.at(errorNode ?? node.name),
+      );
+    }
+
+    var parent = node.parent;
+    if (parent
+        case MethodDeclaration(:var declaredFragment) ||
+            FunctionDeclaration(:var declaredFragment)) {
+      var type = declaredFragment?.element.type;
+      if (type is FunctionType) {
+        checkType(type.returnType);
+      }
+    } else if (parent case FieldDeclaration(:var fields)) {
+      for (var field in fields.variables) {
+        checkType(field.declaredFieldElement.type, errorNode: field);
+      }
+    } else if (parent case TopLevelVariableDeclaration(:var variables)) {
+      for (var variable in variables.variables) {
+        checkType(
+          variable.declaredTopLevelVariableElement.type,
+          errorNode: variable,
+        );
+      }
+    } else if (parent case GenericTypeAlias(functionType: var type?)) {
+      checkType(type.returnType?.type);
+    } else {
+      // Warning reported by `_checkKinds`.
+    }
+  }
+
+  void _checkDeprecated(Annotation node) {
+    var element = node.elementAnnotation;
+    if (element == null) return;
+    assert(element.isDeprecated);
+    switch (element.deprecationKind) {
+      case 'extend':
+        _checkDeprecatedExtend(node);
+      case 'implement':
+        _checkDeprecatedImplement(node);
+      case 'instantiate':
+        _checkDeprecatedInstantiate(node);
+      case 'mixin':
+        _checkDeprecatedMixin(node);
+      case 'optional':
+        _checkDeprecatedOptional(node);
+      case 'subclass':
+        _checkDeprecatedSubclass(node);
+    }
+  }
+
+  void _checkDeprecatedExtend(Annotation node) {
+    Element? declaredElement;
+    if (node.parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      declaredElement = declaredFragment!.element;
+    } else if (node.parent case GenericTypeAlias parent) {
+      declaredElement = parent.type.type?.element;
+    }
+
+    if (declaredElement is ClassElement) {
+      if (declaredElement.isPublic &&
+          declaredElement.isExtendableOutside &&
+          declaredElement.hasGenerativeConstructor) {
+        return;
+      }
+    }
+
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedExtendAnnotation.at(node.name),
+    );
+  }
+
+  void _checkDeprecatedImplement(Annotation node) {
+    Element? declaredElement;
+    if (node.parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      declaredElement = declaredFragment!.element;
+    } else if (node.parent case MixinDeclaration parent) {
+      declaredElement = parent.declaredFragment!.element;
+    } else if (node.parent case GenericTypeAlias parent) {
+      declaredElement = parent.type.type?.element;
+    }
+
+    if (declaredElement is ClassElement &&
+        declaredElement.isPublic &&
+        declaredElement.isImplementableOutside) {
+      return;
+    } else if (declaredElement is MixinElement &&
+        declaredElement.isPublic &&
+        declaredElement.isImplementableOutside) {
+      return;
+    }
+
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedImplementAnnotation.at(node.name),
+    );
+  }
+
+  void _checkDeprecatedInstantiate(Annotation node) {
+    Element? declaredElement;
+    if (node.parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      declaredElement = declaredFragment!.element;
+    } else if (node.parent case GenericTypeAlias parent) {
+      declaredElement = parent.type.type?.element;
+    }
+
+    if (declaredElement is ClassElement &&
+        declaredElement.isPublic &&
+        !declaredElement.isAbstract &&
+        declaredElement.hasGenerativeConstructor) {
+      return;
+    }
+
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedInstantiateAnnotation.at(node.name),
+    );
+  }
+
+  void _checkDeprecatedMixin(Annotation node) {
+    var parent = node.parent;
+    if (parent is ClassDeclaration &&
+        parent.declaredFragment!.element.isPublic &&
+        parent.mixinKeyword != null) {
+      return;
+    }
+
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedMixinAnnotation.at(node.name),
+    );
+  }
+
+  void _checkDeprecatedOptional(Annotation node) {
+    var parent = node.parent;
+    if (parent is FormalParameter) {
+      if (parent.parent is! FormalParameterList) {
+        // We shouldn't get here; if we do, don't report the annotation.
+        return;
+      }
+      var parameterList = parent.parent as FormalParameterList;
+
+      // This annotation is only valid on method declarations, constructor
+      // declarations, and top-level function declarations.
+      var isValidFunction =
+          parameterList.parent is MethodDeclaration ||
+          parameterList.parent is ConstructorDeclaration ||
+          (parameterList.parent is FunctionExpression &&
+              parameterList.parent?.parent is FunctionDeclaration &&
+              parameterList.parent?.parent?.parent is CompilationUnit);
+
+      if (parent.isOptional && isValidFunction) return;
+    }
+
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedOptionalAnnotation.at(node.name),
+    );
+  }
+
+  void _checkDeprecatedSubclass(Annotation node) {
+    Element? declaredElement;
+    if (node.parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      declaredElement = declaredFragment!.element;
+    } else if (node.parent case MixinDeclaration parent) {
+      declaredElement = parent.declaredFragment!.element;
+    } else if (node.parent case GenericTypeAlias parent) {
+      declaredElement = parent.type.type?.element;
+    }
+
+    if (declaredElement is ClassElement &&
+        declaredElement.isPublic &&
+        (declaredElement.isImplementableOutside ||
+            declaredElement.isExtendableOutside)) {
+      return;
+    } else if (declaredElement is MixinElement &&
+        declaredElement.isPublic &&
+        declaredElement.isImplementableOutside) {
+      return;
+    }
+
+    _diagnosticReporter.report(
+      diag.invalidDeprecatedSubclassAnnotation.at(node.name),
+    );
+  }
+
+  /// Reports a warning at [node] if its parent is not a valid target for a
+  /// `@factory` annotation.
+  void _checkFactory(Annotation node) {
+    var parent = node.parent;
+    if (parent is! MethodDeclaration) {
+      // Warning reported by `_checkKinds`.
+      return;
+    }
+    var returnType = parent.returnType?.type;
+    if (returnType is VoidType) {
+      _diagnosticReporter.report(
+        diag.invalidFactoryMethodDecl
+            .withArguments(name: parent.name.lexeme)
+            .at(parent.name),
+      );
+      return;
+    }
+
+    FunctionBody body = parent.body;
+    if (body is EmptyFunctionBody) {
+      // Abstract methods are OK.
+      return;
+    }
+
+    // Returns `true` for expressions like `new Foo()` or `null`.
+    bool factoryExpression(Expression? expression) =>
+        expression is InstanceCreationExpression || expression is NullLiteral;
+
+    if (body is ExpressionFunctionBody && factoryExpression(body.expression)) {
+      return;
+    } else if (body is BlockFunctionBody) {
+      NodeList<Statement> statements = body.block.statements;
+      if (statements.isNotEmpty) {
+        Statement last = statements.last;
+        if (last is ReturnStatement && factoryExpression(last.expression)) {
+          return;
+        }
+      }
+    }
+
+    _diagnosticReporter.report(
+      diag.invalidFactoryMethodImpl
+          .withArguments(name: parent.name.lexeme)
+          .at(parent.name),
+    );
+  }
+
+  /// Reports a warning at [node] if its parent is not a valid target for an
+  /// `@internal` annotation.
+  void _checkInternal(Annotation node) {
+    var parent = node.parent;
+    var parentElement = parent
+        .tryCast<Declaration>()
+        ?.declaredFragment
+        ?.element;
+    var parentElementIsPrivate = parentElement?.isPrivate ?? false;
+    if (parent is TopLevelVariableDeclaration) {
+      for (var variable in parent.variables.variables) {
+        var element = variable.declaredTopLevelVariableElement;
+        if (element.isPrivate) {
+          _diagnosticReporter.report(
+            diag.invalidInternalAnnotation.at(variable),
+          );
+        }
+      }
+    } else if (parent is FieldDeclaration) {
+      for (var variable in parent.fields.variables) {
+        var element = variable.declaredFieldElement;
+        if (element.isPrivate) {
+          _diagnosticReporter.report(
+            diag.invalidInternalAnnotation.at(variable),
+          );
+        }
+      }
+    } else if (parent is ConstructorDeclaration) {
+      var element = parent.declaredFragment!.element;
+      if (element.isPrivate || element.enclosingElement.isPrivate) {
+        _diagnosticReporter.report(
+          diag.invalidInternalAnnotation.at(node.name),
+        );
+      }
+    } else if (parent is PrimaryConstructorBody) {
+      var element = parent.declaration?.declaredFragment?.element;
+      if (element != null) {
+        if (element.isPrivate || element.enclosingElement.isPrivate) {
+          _diagnosticReporter.report(
+            diag.invalidInternalAnnotation.at(node.name),
+          );
+        }
+      }
+    } else if (parentElementIsPrivate) {
+      _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));
+    } else if (_inPackagePublicApi) {
+      _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));
+    }
+  }
+
+  void _checkKinds(Annotation node, AstNode parent, ElementAnnotation element) {
+    var kinds = element.targetKinds;
+    if (kinds != null && kinds.isNotEmpty) {
+      if (!_isValidTarget(parent, kinds)) {
+        var invokedElement = element.element!;
+        var name = invokedElement.name;
+        if (invokedElement is ConstructorElement) {
+          var className = invokedElement.enclosingElement.name;
+          if (name!.isEmpty) {
+            name = className;
+          } else {
+            name = '$className.$name';
+          }
+        }
+        var kindNames = kinds.map((kind) => kind.displayString).toList()
+          ..sort();
+        var validKinds = kindNames.commaSeparatedWithOr;
+        _diagnosticReporter.report(
+          diag.invalidAnnotationTarget
+              .withArguments(annotationName: name!, validTargets: validKinds)
+              .at(node.name),
+        );
+        return;
+      }
+    }
+  }
+
+  /// Reports a warning if at [node] if its parent is not a valid target for a
+  /// `@literal` annotation.
+  void _checkLiteral(Annotation node) {
+    var parent = node.parent;
+    if (parent is ConstructorDeclaration) {
+      if (parent.constKeyword == null) {
+        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+      }
+    } else if (parent is PrimaryConstructorBody) {
+      if (parent.declaration?.constKeyword == null) {
+        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+      }
+    }
+  }
+
+  /// Reports a warning at [node] if its parent is not a valid target for a
+  /// `@nonVirtual` annotation.
+  void _checkNonVirtual(Annotation node) {
+    var parent = node.parent;
+    if (parent is MethodDeclaration) {
+      if (parent.parent?.parent is ExtensionTypeDeclaration ||
+          !parent.isComplete) {
+        _diagnosticReporter.report(
+          diag.invalidNonVirtualAnnotation.at(node.name),
+        );
+      }
+    }
+  }
+
+  /// Reports a warning at [node] if its parent is not a valid target for a
+  /// `@redeclare` annotation.
+  void _checkRedeclare(Annotation node) {
+    var parent = node.parent;
+    var parent2 = parent.parent;
+    var parent3 = parent2?.parent;
+    if (parent2 is! BlockClassBody ||
+        parent3 is! ExtensionTypeDeclaration ||
+        parent is MethodDeclaration && parent.isStatic) {
+      _diagnosticReporter.report(
+        diag.invalidAnnotationTarget
+            .withArguments(
+              annotationName: node.name.name,
+              validTargets: 'instance members of extension types',
+            )
+            .at(node.name),
+      );
+    }
+  }
+
+  /// Reports a warning at [node] if its parent is not a valid target for a
+  /// `@reopen` annotation.
+  void _checkReopen(Annotation node) {
+    ClassElement? classElement;
+    InterfaceElement? superElement;
+
+    var parent = node.parent;
+    if (parent is ClassDeclaration) {
+      classElement = parent.declaredFragment?.element;
+      superElement = classElement?.supertype?.element;
+    } else if (parent is ClassTypeAlias) {
+      classElement = parent.declaredFragment?.element;
+      superElement = classElement?.supertype?.element;
+    } else {
+      // If `parent` is neither of the above types, then `_checkKinds` will
+      // report a warning.
+      return;
+    }
+
+    if (classElement == null) {
+      return;
+    }
+    if (superElement is! ClassElement) {
+      return;
+    }
+    if (classElement.isFinal ||
+        classElement.isMixinClass ||
+        classElement.isSealed) {
+      _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+      return;
+    }
+    if (classElement.library != superElement.library) {
+      _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+      return;
+    }
+    if (classElement.isBase) {
+      if (!superElement.isFinal && !superElement.isInterface) {
+        _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+        return;
+      }
+    } else if (!classElement.isBase &&
+        !classElement.isFinal &&
+        !classElement.isInterface &&
+        !classElement.isSealed) {
+      if (!superElement.isInterface) {
+        _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+        return;
+      }
+    }
+  }
+
+  /// Reports a warning if [node], a `@UseResult` annotation, references an
+  /// unknown parameter as an argument to 'unless'.
+  void _checkUseResult(Annotation node, ElementAnnotation element) {
+    var parent = node.parent;
+    var undefinedParameter = _findUndefinedUseResultParameter(
+      element,
+      node,
+      parent,
+    );
+    if (undefinedParameter != null) {
+      String? name;
+      if (parent is FunctionDeclaration) {
+        name = parent.name.lexeme;
+      } else if (parent is MethodDeclaration) {
+        name = parent.name.lexeme;
+      }
+      if (name != null) {
+        var parameterName = undefinedParameter is SimpleStringLiteral
+            ? undefinedParameter.value
+            : undefinedParameter.correspondingParameter?.name;
+        _diagnosticReporter.report(
+          diag.undefinedReferencedParameter
+              .withArguments(
+                undefinedParameterName:
+                    parameterName ?? undefinedParameter.toString(),
+                targetedMemberName: name,
+              )
+              .at(undefinedParameter),
+        );
+      }
+    }
+  }
+
+  /// Reports a warning at [node] if it is not a valid target for a visibility
+  /// (`visibleForTemplate`, `visibleOutsideTemplate`, `visibleForTesting`,
+  /// `visibleForOverride`) annotation.
+  void _checkVisibility(Annotation node, ElementAnnotation element) {
+    var parent = node.parent;
+    if (parent is! Declaration) {
+      // This is reported by `_checkKinds`.
+      return;
+    }
+
+    void reportInvalidAnnotation(String name) {
+      // This method is only called on named elements, so it is safe to
+      // assume that `declaredElement.name` is non-`null`.
+      _diagnosticReporter.report(
+        diag.invalidVisibilityAnnotation
+            .withArguments(memberName: name, annotationName: node.name.name)
+            .at(node.name),
+      );
+    }
+
+    if (parent is TopLevelVariableDeclaration) {
+      for (VariableDeclaration variable in parent.variables.variables) {
+        var variableElement = variable.declaredTopLevelVariableElement;
+
+        var variableName = variableElement.name;
+        if (variableName != null && Identifier.isPrivateName(variableName)) {
+          reportInvalidAnnotation(variableName);
+        }
+      }
+    } else if (parent is FieldDeclaration) {
+      for (VariableDeclaration variable in parent.fields.variables) {
+        var fieldElement = variable.declaredFieldElement;
+        if (parent.isStatic && element.isVisibleForOverriding) {
+          // This is reported by `_checkKinds`.
+          return;
+        }
+
+        var fieldName = fieldElement.name;
+        if (fieldName != null && Identifier.isPrivateName(fieldName)) {
+          reportInvalidAnnotation(fieldName);
+        }
+      }
+    } else {
+      Element? declaredElement;
+      if (parent is PrimaryConstructorBody) {
+        declaredElement = parent.declaration?.declaredFragment?.element;
+      } else {
+        declaredElement = parent.declaredFragment?.element;
+      }
+
+      if (declaredElement != null) {
+        if (element.isVisibleForOverriding &&
+            (!declaredElement.isInstanceMember ||
+                declaredElement.enclosingElement is ExtensionTypeElement)) {
+          // This is reported by `_checkKinds`.
+          return;
+        }
+
+        var name = declaredElement.name;
+        if (name != null && Identifier.isPrivateName(name)) {
+          reportInvalidAnnotation(name);
+        }
+      }
+    }
+  }
+
+  /// Reports a warning at [node] if its parent is not a valid target for an
+  /// `@visibleOutsideTemplate` annotation.
+  void _checkVisibleOutsideTemplate(Annotation node) {
+    void reportError() {
+      _diagnosticReporter.report(
+        diag.invalidVisibleOutsideTemplateAnnotation.at(node.name),
+      );
+    }
+
+    AstNode? containedDeclaration;
+    switch (node.parent) {
+      case ConstructorDeclaration constructorDeclaration:
+        containedDeclaration = constructorDeclaration;
+      case EnumConstantDeclaration enumConstant:
+        containedDeclaration = enumConstant;
+      case FieldDeclaration fieldDeclaration:
+        containedDeclaration = fieldDeclaration;
+      case MethodDeclaration methodDeclaration:
+        containedDeclaration = methodDeclaration;
+      default:
+        reportError();
+        return;
+    }
+
+    InterfaceElement? declaredElement;
+    switch (containedDeclaration.parent?.parent) {
+      case ClassDeclaration classDeclaration:
+        declaredElement = classDeclaration.declaredFragment?.element;
+      case EnumDeclaration enumDeclaration:
+        declaredElement = enumDeclaration.declaredFragment?.element;
+      case MixinDeclaration mixinDeclaration:
+        declaredElement = mixinDeclaration.declaredFragment?.element;
+      default:
+        reportError();
+        return;
+    }
+
+    if (declaredElement == null) {
+      reportError();
+      return;
+    }
+
+    for (var annotation in declaredElement.metadata.annotations) {
+      if (annotation.isVisibleForTemplate) {
+        return;
+      }
+    }
+
+    reportError();
+  }
+
+  /// Returns an expression (for error-reporting purposes) associated with a
+  /// `@useResult` `unless` argument, if the associated parameter is undefined.
+  Expression? _findUndefinedUseResultParameter(
+    ElementAnnotation element,
+    Annotation node,
+    AstNode parent,
+  ) {
+    var constructorName = node.name;
+    if (constructorName is! PrefixedIdentifier ||
+        constructorName.identifier.name != 'unless') {
+      return null;
+    }
+
+    var unlessParam = element
+        .computeConstantValue()
+        ?.getField('parameterDefined')
+        ?.toStringValue();
+    if (unlessParam == null) {
+      return null;
+    }
+
+    Expression? checkParams(FormalParameterList? parameterList) {
+      if (parameterList == null) {
+        return null;
+      }
+
+      for (var parameter in parameterList.parameters) {
+        if (parameter.name?.lexeme == unlessParam) {
+          return null;
+        }
+      }
+
+      // Find and return the parameter value node.
+      var arguments = node.arguments?.arguments;
+      if (arguments == null) {
+        return null;
+      }
+
+      for (var arg in arguments) {
+        if (arg is NamedArgument && arg.name.lexeme == 'parameterDefined') {
+          return arg.argumentExpression;
+        }
+      }
+
+      return null;
+    }
+
+    if (parent is FunctionDeclarationImpl) {
+      return checkParams(parent.functionExpression.parameters);
+    }
+    if (parent is MethodDeclarationImpl) {
+      return checkParams(parent.parameters);
+    }
+
+    return null;
+  }
+
+  /// Returns whether it is valid to have an annotation on the given [target]
+  /// when the annotation is marked as being valid for the given [kinds] of
+  /// targets.
+  bool _isValidTarget(AstNode target, Set<TargetKind> kinds) {
+    // Handle the case of the deprecated `TargetKind.directive` before handling
+    // the Directive subclasses below.
+    // ignore: deprecated_member_use
+    if (kinds.contains(TargetKind.directive) && target is Directive) {
+      return true;
+    }
+
+    // To support Dart language versions where unnamed libraries did not exist,
+    // we allow annotating the first directive, if the annotation is intended for
+    // a library directive.
+    if (kinds.contains(TargetKind.library)) {
+      if (target is Directive &&
+          (target.parent as CompilationUnit).directives.first == target) {
+        return true;
+      }
+    }
+
+    for (var element in _targetElements(target)) {
+      if (isValidAnnotationTargetElement(element, kinds)) {
+        return true;
+      }
+    }
+
+    return switch (target) {
+      ExportDirective() => kinds.contains(TargetKind.exportDirective),
+      ImportDirective() => kinds.contains(TargetKind.importDirective),
+      PartOfDirective() => kinds.contains(TargetKind.partOfDirective),
+      _ => false,
+    };
+  }
+
+  /// Maps the syntax where an annotation is written to the element targets it
+  /// can be understood to annotate.
+  ///
+  /// Usually this is a single declared element, but some syntax, such as a
+  /// field declaration with multiple variables or a declaring formal parameter,
+  /// can correspond to multiple element targets.
+  List<Element> _targetElements(AstNode target) {
+    switch (target) {
+      case FieldDeclaration(:var fields):
+        return [
+          for (var variable in fields.variables)
+            ?variable.declaredFragment?.element,
+        ];
+      case FormalParameter():
+        var element = target.declaredFragment?.element;
+        if (element is FieldFormalParameterElement && element.isDeclaring) {
+          return [element, ?element.field];
+        }
+        return [?element];
+      case PrimaryConstructorBody(:var declaration):
+        return [?declaration?.declaredFragment?.element];
+      case TopLevelVariableDeclaration(:var variables):
+        return [
+          for (var variable in variables.variables)
+            ?variable.declaredFragment?.element,
+        ];
+      case Declaration(:var declaredFragment):
+        return [?declaredFragment?.element];
+      default:
+        return const [];
+    }
+  }
+}
+
+extension on ClassElement {
+  bool get hasGenerativeConstructor =>
+      constructors.any((c) => c.isPublic && c.isGenerative);
+}

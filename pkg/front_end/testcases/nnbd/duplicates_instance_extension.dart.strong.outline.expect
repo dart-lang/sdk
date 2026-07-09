@@ -1,0 +1,218 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:16:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceField = 1;
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:17:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceField = 2;
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:19:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceFieldAndSetter1 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:23:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceFieldAndSetter2 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:25:18: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final int instanceLateFinalFieldAndSetter1;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:29:18: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final int instanceLateFinalFieldAndSetter2;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:31:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:32:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:35:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceFieldAndDuplicateSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:40:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndDuplicateSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:41:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndDuplicateSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:7:7: Error: 'instanceMethod' is already declared in this scope.
+//   int instanceMethod() => 2;
+//       ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:6:7: Context: Previous declaration of 'instanceMethod'.
+//   int instanceMethod() => 1;
+//       ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:10:11: Error: 'instanceGetter' is already declared in this scope.
+//   int get instanceGetter => 2;
+//           ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:9:11: Context: Previous declaration of 'instanceGetter'.
+//   int get instanceGetter => 1;
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:14:12: Error: 'instanceSetter' is already declared in this scope.
+//   void set instanceSetter(value) {}
+//            ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:12:12: Context: Previous declaration of 'instanceSetter'.
+//   void set instanceSetter(value) {}
+//            ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:17:7: Error: 'instanceField' is already declared in this scope.
+//   int instanceField = 2;
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:16:7: Context: Previous declaration of 'instanceField'.
+//   int instanceField = 1;
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:20:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter1'.
+//   void set instanceFieldAndSetter1(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:19:7: Context: Field 'instanceFieldAndSetter1' with the implicit setter.
+//   int instanceFieldAndSetter1 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:23:7: Error: The declaration conflicts with setter 'instanceFieldAndSetter2'.
+//   int instanceFieldAndSetter2 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:22:12: Context: Conflicting setter 'instanceFieldAndSetter2'.
+//   void set instanceFieldAndSetter2(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:26:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter1'.
+//   void set instanceLateFinalFieldAndSetter1(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:25:18: Context: Field 'instanceLateFinalFieldAndSetter1' with the implicit setter.
+//   late final int instanceLateFinalFieldAndSetter1;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:29:18: Error: The declaration conflicts with setter 'instanceLateFinalFieldAndSetter2'.
+//   late final int instanceLateFinalFieldAndSetter2;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:28:12: Context: Conflicting setter 'instanceLateFinalFieldAndSetter2'.
+//   void set instanceLateFinalFieldAndSetter2(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:32:13: Error: 'instanceDuplicateFieldAndSetter' is already declared in this scope.
+//   final int instanceDuplicateFieldAndSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:31:13: Context: Previous declaration of 'instanceDuplicateFieldAndSetter'.
+//   final int instanceDuplicateFieldAndSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:38:12: Error: 'instanceFieldAndDuplicateSetter' is already declared in this scope.
+//   void set instanceFieldAndDuplicateSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:36:12: Context: Previous declaration of 'instanceFieldAndDuplicateSetter'.
+//   void set instanceFieldAndDuplicateSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:41:13: Error: 'instanceDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+//   final int instanceDuplicateFieldAndDuplicateSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:40:13: Context: Previous declaration of 'instanceDuplicateFieldAndDuplicateSetter'.
+//   final int instanceDuplicateFieldAndDuplicateSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:44:12: Error: 'instanceDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+//   void set instanceDuplicateFieldAndDuplicateSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:42:12: Context: Previous declaration of 'instanceDuplicateFieldAndDuplicateSetter'.
+//   void set instanceDuplicateFieldAndDuplicateSetter(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:47:12: Error: The setter conflicts with declaration 'instanceMethodAndSetter1'.
+//   void set instanceMethodAndSetter1(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:46:7: Context: Conflicting declaration 'instanceMethodAndSetter1'.
+//   int instanceMethodAndSetter1() => 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:50:7: Error: The declaration conflicts with setter 'instanceMethodAndSetter2'.
+//   int instanceMethodAndSetter2() => 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:49:12: Context: Conflicting setter 'instanceMethodAndSetter2'.
+//   void set instanceMethodAndSetter2(int value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::int {
+  method instanceMethod = self::Extension|instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
+  get instanceGetter = self::Extension|get#instanceGetter;
+  set instanceSetter = self::Extension|set#instanceSetter;
+  get instanceField = self::Extension|get#instanceField;
+  set instanceField = self::Extension|set#instanceField;
+  get instanceFieldAndSetter1 = self::Extension|get#instanceFieldAndSetter1;
+  set instanceFieldAndSetter1 = self::Extension|set#instanceFieldAndSetter1;
+  set instanceFieldAndSetter2 = self::Extension|set#instanceFieldAndSetter2;
+  get instanceLateFinalFieldAndSetter1 = self::Extension|get#instanceLateFinalFieldAndSetter1;
+  set instanceLateFinalFieldAndSetter1 = self::Extension|set#instanceLateFinalFieldAndSetter1;
+  set instanceLateFinalFieldAndSetter2 = self::Extension|set#instanceLateFinalFieldAndSetter2;
+  get instanceDuplicateFieldAndSetter = self::Extension|get#instanceDuplicateFieldAndSetter;
+  set instanceDuplicateFieldAndSetter = self::Extension|set#instanceDuplicateFieldAndSetter;
+  get instanceFieldAndDuplicateSetter = self::Extension|get#instanceFieldAndDuplicateSetter;
+  set instanceFieldAndDuplicateSetter = self::Extension|set#instanceFieldAndDuplicateSetter;
+  get instanceDuplicateFieldAndDuplicateSetter = self::Extension|get#instanceDuplicateFieldAndDuplicateSetter;
+  set instanceDuplicateFieldAndDuplicateSetter = self::Extension|set#instanceDuplicateFieldAndDuplicateSetter;
+  method instanceMethodAndSetter1 = self::Extension|instanceMethodAndSetter1;
+  method tearoff instanceMethodAndSetter1 = self::Extension|get#instanceMethodAndSetter1;
+  set instanceMethodAndSetter2 = self::Extension|set#instanceMethodAndSetter2;
+}
+static extension-member method Extension|instanceMethod(lowered final core::int #this) → core::int
+  ;
+static extension-member method Extension|get#instanceMethod(lowered final core::int #this) → () → core::int
+  return () → core::int => self::Extension|instanceMethod(#this);
+static extension-member method Extension|get#instanceGetter(lowered final core::int #this) → core::int
+  ;
+static extension-member method Extension|set#instanceSetter(lowered final core::int #this, dynamic value) → void
+  ;
+static abstract extension-member method Extension|get#instanceField(lowered core::int #this) → core::int;
+static abstract extension-member method Extension|set#instanceField(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
+static abstract extension-member method Extension|get#instanceFieldAndSetter1(lowered core::int #this) → core::int;
+static abstract extension-member method Extension|set#instanceFieldAndSetter1(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
+static extension-member method Extension|set#instanceFieldAndSetter2(lowered final core::int #this, core::int value) → void
+  ;
+static abstract extension-member method Extension|get#instanceLateFinalFieldAndSetter1(lowered core::int #this) → core::int;
+static abstract extension-member method Extension|set#instanceLateFinalFieldAndSetter1(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
+static extension-member method Extension|set#instanceLateFinalFieldAndSetter2(lowered final core::int #this, core::int value) → void
+  ;
+static abstract extension-member method Extension|get#instanceDuplicateFieldAndSetter(lowered core::int #this) → core::int;
+static extension-member method Extension|set#instanceDuplicateFieldAndSetter(lowered final core::int #this, core::int value) → void
+  ;
+static abstract extension-member method Extension|get#instanceFieldAndDuplicateSetter(lowered core::int #this) → core::int;
+static extension-member method Extension|set#instanceFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
+  ;
+static abstract extension-member method Extension|get#instanceDuplicateFieldAndDuplicateSetter(lowered core::int #this) → core::int;
+static extension-member method Extension|set#instanceDuplicateFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
+  ;
+static extension-member method Extension|instanceMethodAndSetter1(lowered final core::int #this) → core::int
+  ;
+static extension-member method Extension|get#instanceMethodAndSetter1(lowered final core::int #this) → () → core::int
+  return () → core::int => self::Extension|instanceMethodAndSetter1(#this);
+static extension-member method Extension|set#instanceMethodAndSetter2(lowered final core::int #this, core::int value) → void
+  ;
+static method test() → dynamic
+  ;

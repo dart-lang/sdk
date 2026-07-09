@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/pattern_variable_const.dart:7:7: Error: Can't assign to the const variable 'j'.
+//   (_, j) = r;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method method((core::int, core::int) r) → dynamic {
+  const core::int j = #C1;
+  {
+    final synthesized(core::int, core::int) #0#0 = r;
+    if(!invalid-expression "pkg/front_end/testcases/patterns/pattern_variable_const.dart:7:7: Error: Can't assign to the const variable 'j'.
+  (_, j) = r;
+      ^")
+      throw{for-error-handling} new core::StateError::•("Pattern matching error");
+  }
+}
+
+constants  {
+  #C1 = 0
+}

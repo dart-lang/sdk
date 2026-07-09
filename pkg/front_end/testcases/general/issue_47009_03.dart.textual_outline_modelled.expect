@@ -1,0 +1,3 @@
+main() {}
+
+void a(bool x, bool y, bool z1, int z2) {}

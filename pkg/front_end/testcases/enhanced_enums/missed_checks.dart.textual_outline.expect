@@ -1,0 +1,37 @@
+enum E1 { element.new(); }
+
+enum E2<values> { element; }
+
+enum E3<element> { element; }
+
+enum values { element; }
+
+abstract class SuperclassWithEquals {
+  bool operator ==(Object other) => true;
+}
+
+abstract class SuperclassWithHashCode {
+  int get hashCode => 0;
+}
+
+abstract class SuperclassWithValues {
+  Never get values => throw 0;
+}
+
+abstract class A1 extends SuperclassWithEquals implements Enum {}
+
+abstract class A2 extends SuperclassWithHashCode implements Enum {}
+
+abstract class A3 extends SuperclassWithValues implements Enum {}
+
+enum E4 { E4 }
+
+enum E5 { a; get E5 => null; }
+
+enum E6 { a; set E6(_) {} }
+
+enum E7 { a; E7() {} }
+
+enum E8 { a; factory E8.values() => a; }
+
+main() {}

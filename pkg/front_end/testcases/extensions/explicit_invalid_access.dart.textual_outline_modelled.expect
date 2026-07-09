@@ -1,0 +1,7 @@
+class Class {}
+
+errors(Class c) {}
+
+extension Extension on Class {}
+
+main() {}

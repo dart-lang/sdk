@@ -1,0 +1,7 @@
+class Color {
+  final int x;
+  const Color.red(this.x);
+  const factory Color.red2(int x) = Color.red;
+}
+
+void main() {}

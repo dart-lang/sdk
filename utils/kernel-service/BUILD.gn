@@ -1,0 +1,145 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../build/dart/dart_action.gni")
+import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
+import("../aot_snapshot.gni")
+import("../application_snapshot.gni")
+import("../create_timestamp.gni")
+
+_dart_root = get_path_info("../..", "abspath")
+_is_dart = _dart_root == get_path_info("//", "abspath")
+
+if (dart_dynamic_modules) {
+  _kernel_service_script = "pkg/dart2bytecode/bin/kernel_service.dart"
+} else {
+  _kernel_service_script = "pkg/vm/bin/kernel_service.dart"
+}
+
+group("kernel-service") {
+  if (dart_snapshot_kind == "app-jit") {
+    deps = [ ":copy_kernel-service_snapshot" ]
+  } else {
+    deps = [ ":kernel_service_dill" ]
+  }
+}
+
+application_snapshot("kernel-service_snapshot") {
+  main_dart = "../../$_kernel_service_script"
+  training_args = [
+    "--train",
+    rebase_path("../../$_kernel_service_script", root_build_dir),
+  ]
+  output = "$root_gen_dir/kernel-service.dart.snapshot"
+}
+
+copy("copy_kernel-service_snapshot") {
+  deps = [ ":kernel-service_snapshot" ]
+  sources = [ "$root_gen_dir/kernel-service.dart.snapshot" ]
+  outputs = [ "$root_out_dir/kernel-service.dart.snapshot" ]
+}
+
+create_timestamp_file("frontend_server_files_stamp") {
+  path = rebase_path("../../pkg/frontend_server/lib")
+  output = "$target_gen_dir/frontend_server_files.stamp"
+}
+
+create_timestamp_file("ddc_files_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/lib")
+  output = "$target_gen_dir/ddc_files.stamp"
+}
+
+application_snapshot("frontend_server") {
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
+  deps = [
+    ":ddc_files_stamp",
+    ":frontend_server_files_stamp",
+    "../../runtime/vm:kernel_platform_files($host_toolchain)",
+  ]
+  sdk_root = rebase_path("$root_out_dir")
+  training_args = [
+    "--train",
+    "--sdk-root=$sdk_root/",
+    "--platform=$sdk_root/vm_platform.dill",
+    rebase_path(main_dart),
+  ]
+  output = "$root_out_dir/frontend_server.dart.snapshot"
+}
+
+aot_snapshot("frontend_server_aot") {
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
+  name = "frontend_server_aot"
+  output = "$root_out_dir/frontend_server_aot.dart.snapshot"
+}
+
+aot_snapshot("frontend_server_aot_product") {
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
+  name = "frontend_server_aot_product"
+  output = "$root_out_dir/frontend_server_aot_product.dart.snapshot"
+
+  # dartaotruntime in the dart sdk has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product sdks, and is built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and frontend_server aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}
+
+template("kernel_service_dill") {
+  action("kernel_service" + target_name + "_dill") {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    } else if (_is_dart) {
+      pool = "//build/toolchain:local_action_pool($host_toolchain)"
+    } else {
+      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
+    }
+
+    gen_kernel_tool =
+        "$_dart_root/utils:bootstrap_gen_kernel.exe($host_toolchain)"
+    kernel_service_script = "../../$_kernel_service_script"
+
+    deps = [
+      "../../runtime/vm:vm_platform",
+      gen_kernel_tool,
+    ]
+    inputs = [
+      kernel_service_script,
+      "$root_out_dir/vm_platform.dill",
+    ]
+    output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
+    outputs = [ output ]
+    depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
+
+    scheme = "org-dartlang-kernel-service"
+
+    script = "$_dart_root/build/gn_run_binary.py"
+    args = [ rebase_path(get_label_info(gen_kernel_tool, "root_out_dir") +
+                             "/bootstrap_gen_kernel.exe",
+                         root_build_dir) ]
+    args += invoker.extra_args
+    args += [
+      "--depfile=" + rebase_path(depfile, root_build_dir),
+
+      # Ensure the compiled kernel-service will use this SDK hash when
+      # consuming/producing kernel.
+      "-Dsdk_hash=$sdk_hash",
+      "--packages=" + scheme + ":///.dart_tool/package_config.json",
+      "--platform=" +
+          rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
+      "--filesystem-root=" + rebase_path("../../", root_build_dir),
+      "--filesystem-scheme=" + scheme,
+      "--no-aot",
+      "--no-embed-sources",
+      "--output=" + rebase_path(output, root_build_dir),
+      scheme + ":///$_kernel_service_script",
+    ]
+  }
+}
+
+kernel_service_dill("") {
+  extra_args = []
+}

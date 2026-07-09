@@ -1,0 +1,12 @@
+class B<X, Y> {
+  B(this.x);
+  X x;
+}
+
+class C<X, Y> = B<X, Y> with Mixin;
+
+mixin Mixin {}
+
+typedef A<T> = C<T, int>;
+
+var field = A((a, b) => 42);

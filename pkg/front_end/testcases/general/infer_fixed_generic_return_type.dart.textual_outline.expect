@@ -1,0 +1,27 @@
+abstract class Base {}
+
+mixin MixinA<T> {
+  T method(Object t);
+}
+
+abstract class Class extends Base with MixinA {
+  method(t) {}
+}
+
+abstract class YamlNode {}
+
+abstract class Map<K, V> {
+  V operator [](Object key);
+}
+
+mixin MapMixin<K, V> implements Map<K, V> {
+  V operator [](Object key);
+}
+
+mixin UnmodifiableMapMixin<K, V> implements Map<K, V> {}
+
+class YamlMap extends YamlNode with MapMixin, UnmodifiableMapMixin {
+  operator [](key) {}
+}
+
+main() {}

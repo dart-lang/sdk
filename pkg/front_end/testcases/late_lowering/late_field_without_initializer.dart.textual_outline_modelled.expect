@@ -1,0 +1,22 @@
+class Class<T> {
+  instanceMethod(T value) {}
+  late T lateGenericInstanceField;
+  late int lateInstanceField;
+  static late int lateStaticField1;
+  static late int lateStaticField2;
+  static staticMethod() {}
+}
+
+expect(expected, actual) {}
+
+extension Extension<T> on Class<T> {
+  static late int lateExtensionField1;
+  static late int lateExtensionField2;
+  static staticMethod() {}
+}
+
+late int lateTopLevelField;
+
+main() {}
+
+throws(f(), String message) {}

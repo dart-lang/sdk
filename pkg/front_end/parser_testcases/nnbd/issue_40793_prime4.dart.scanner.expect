@@ -1,0 +1,9 @@
+void f(dynamic e) {
+e.x < 10;
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]dynamic[KeywordToken] e[StringToken])[SimpleToken] {[BeginToken]
+e[StringToken].[SimpleToken]x[StringToken] <[BeginToken] 10[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

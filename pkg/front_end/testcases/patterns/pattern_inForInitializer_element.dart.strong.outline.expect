@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static method f(dynamic x) → void
+  ;
+static method g(dynamic x) → void
+  ;
+static method h(dynamic x) → void
+  ;

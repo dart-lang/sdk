@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef R = core::Record;
+typedef RR = core::Record;
+static method foo1() → dynamic
+  ;
+static method foo2() → dynamic
+  ;
+static method foo3() → dynamic
+  ;
+static method main() → dynamic
+  ;

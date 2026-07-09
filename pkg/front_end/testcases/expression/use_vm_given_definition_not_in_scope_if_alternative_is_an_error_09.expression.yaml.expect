@@ -1,0 +1,25 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered dart.core::String #this, dart.core::_Smi baz) → dynamic
+  return (() → Null {
+    baz;
+    #this{dynamic}.baz;
+    baz{dynamic}();
+    #this{dynamic}.baz();
+    baz{dynamic}.[](0);
+    #this{dynamic}.baz{dynamic}.[](0);
+    baz.{dart.core::_IntegerImplementation::unary-}(){() → dart.core::int};
+    #this{dynamic}.baz{dynamic}.unary-();
+    let final dart.core::String #t1 = #this in baz = baz.{dart.core::_IntegerImplementation::-}(1){(dart.core::num) → dart.core::num};
+    let final dart.core::String #t2 = #this in #t2.{dynamic}baz = #t2{dynamic}.baz{dynamic}.-(1);
+    let final dart.core::String #t3 = #this in baz = baz.{dart.core::_IntegerImplementation::+}(1){(dart.core::num) → dart.core::num};
+    let final dart.core::String #t4 = #this in #t4.{dynamic}baz = #t4{dynamic}.baz{dynamic}.+(1);
+    let final dart.core::String #t5 = #this in baz = baz.{dart.core::_IntegerImplementation::-}(1){(dart.core::num) → dart.core::num};
+    let final dart.core::String #t6 = #this in #t6.{dynamic}baz = #t6{dynamic}.baz{dynamic}.-(1);
+    let final dart.core::String #t7 = #this in baz = baz.{dart.core::_IntegerImplementation::+}(1){(dart.core::num) → dart.core::num};
+    let final dart.core::String #t8 = #this in #t8.{dynamic}baz = #t8{dynamic}.baz{dynamic}.+(1);
+    baz{dynamic}.call();
+    #this{dynamic}.baz{dynamic}.call();
+    baz = 42;
+    #this.{dynamic}baz = 42;
+  })(){() → Null};

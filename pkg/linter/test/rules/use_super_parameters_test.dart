@@ -1,0 +1,548 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UseSuperParametersTest);
+  });
+}
+
+@reflectiveTest
+class UseSuperParametersTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.use_super_parameters;
+
+  test_functionTypedFormalParameter() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int f(int i));
+}
+class B extends A {
+  [!B!](int f(int i)) : super(f);
+}
+''');
+  }
+
+  test_named() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A({int? x, int? y});
+}
+class B extends A {
+  const [!B!]({int? x, int? y}) : super(x: x, y: y);
+}
+''');
+  }
+
+  Future<void> test_named_oneWithNameChange() async {
+    await assertDiagnosticsFromMarkup('''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  [!B!]({int? x, int? z}) : super(x: x, y: z);
+}
+''');
+  }
+
+  void test_named_primaryConstructor() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A({int? x, int? y});
+}
+class [!const!] B({int? x, int? y}) extends A {
+  this : super(x: x, y: y);
+}
+''');
+  }
+
+  test_named_someReferencedInBody() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  B({int? x, int? y}) : super(x: x, y: y) {
+    print(x);
+  }
+}
+''',
+      [
+        lint(
+          57,
+          1,
+          messageContainsAll: ["Parameter 'y' could be a super parameter."],
+        ),
+      ],
+    );
+  }
+
+  test_named_someReferencedInBody_primaryConstructor() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({int? x, int? y});
+}
+class B({int? x, int? y}) extends A {
+  this : super(x: x, y: y) {
+    print(x);
+  }
+}
+''',
+      [
+        lint(
+          41,
+          1,
+          messageContainsAll: ["Parameter 'y' could be a super parameter."],
+        ),
+      ],
+    );
+  }
+
+  test_named_thisParameter() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A({int? x, int? y});
+}
+class B extends A {
+  int? x;
+  B({this.x, int? y}) : super(x: x, y: y);
+}
+''',
+      [
+        lint(
+          67,
+          1,
+          messageContainsAll: ["Parameter 'y' could be a super parameter."],
+        ),
+      ],
+    );
+  }
+
+  test_newSyntax() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  [!new!](int x) : super(x);
+}
+''');
+  }
+
+  test_noLint_forwardedOutOfOrder() async {
+    await assertNoDiagnostics(r'''
+class B {
+  final int x;
+  final int y;
+  B(this.x, this.y);
+}
+class C extends B {
+  C(int x, int y) : super(y, x);
+}
+''');
+  }
+
+  Future<void> test_noLint_named_nameChange() async {
+    await assertNoDiagnostics('''
+class A {
+  A({int? x});
+}
+class B extends A {
+  B({int? y}) : super(x: y);
+}
+''');
+  }
+
+  test_noLint_named_noSuperInvocation() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int x = 0});
+}
+class B extends A {
+  B({int x = 1});
+}
+''');
+  }
+
+  test_noLint_named_noSuperInvocation_primaryConstructor() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int x = 0});
+}
+class B({int x = 1}) extends A;
+''');
+  }
+
+  test_noLint_named_notGenerative() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int x});
+}
+class B extends A {
+  static List<B> instances = [];
+  factory B({required int x}) => instances[x];
+}
+''');
+  }
+
+  test_noLint_named_notPassed_unreferenced() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int x = 0});
+}
+class B extends A {
+  B({int x = 0}) : super(x: 0);
+}
+''');
+  }
+
+  test_noLint_named_notPassed_usedInExpression() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({String x = ''});
+}
+class B extends A {
+  B({required Object x}) : super(x: x.toString());
+}
+''');
+  }
+
+  test_noLint_named_passedAsPositional() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(String x);
+}
+class B extends A {
+  B({required String x}) : super(x);
+}
+''');
+  }
+
+  test_noLint_nonSimpleIdentifierArg() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x, int y, [int? z]);
+}
+class B extends A {
+  B(int a, int b) : super(a, 2, b);
+}
+''');
+  }
+
+  test_noLint_notAllForwarded() async {
+    await assertNoDiagnostics(r'''
+class B {
+  final int x;
+  final int y;
+  B(this.x, this.y);
+}
+class C extends B {
+  C(int x) : super(x, 0);
+}
+''');
+  }
+
+  test_noLint_positionalReferencedInBody() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A.a(int x, int? y);
+}
+class B extends A {
+  B(int x, int? y) : super.a(x, y) {
+    print(x);
+  }
+}
+''');
+  }
+
+  test_noLint_positionalThisParameter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x, int y);
+}
+class B extends A {
+  int x;
+  B(this.x, int y) : super(x, y);
+}
+''');
+  }
+
+  test_noLint_referencedInBody_multiple() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A.a(int x, {int? y});
+}
+class B extends A {
+  B(int x, {int? y}) : super.a(x, y: y) {
+    print(x);
+    print(y);
+  }
+}
+''');
+  }
+
+  test_noLint_referencedInBody_named() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int? x});
+}
+class B extends A {
+  B({int? x}) : super(x: x) {
+    print(x);
+  }
+}
+''');
+  }
+
+  test_noLint_referencedInBody_positional() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x;
+  A(this.x);
+}
+class B extends A {
+  int y;
+  B(this.y) : super(y);
+}
+''');
+  }
+
+  test_noLint_referencedInBody_single() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(int x) : super(x) {
+    print(x);
+  }
+}
+''');
+  }
+
+  test_noLint_requiredPositional_namedInSuper() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({int? x});
+}
+class B extends A {
+  B(int x) : super(x: x);
+}
+''');
+  }
+
+  test_noLint_requiredPositional_noSuperInvocation() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A();
+}
+class B extends A {
+  B(int x);
+}
+''');
+  }
+
+  test_noLint_requiredPositional_notGenerative() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  static List<B> instances = [];
+  factory B(int x) => instances[x];
+}
+''');
+  }
+
+  test_noLint_requiredPositional_notPassed_unreferenced() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  B(int x) : super(0);
+}
+''');
+  }
+
+  test_noLint_requiredPositional_notPassed_usedInExpression() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A(String x);
+}
+class B extends A {
+  B(Object x) : super(x.toString());
+}
+''');
+  }
+
+  test_nonForwardingNamed() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, {int? foo});
+}
+class B extends A {
+  [!B!](int x, {int? foo}) : super(x, foo: 0);
+}
+''');
+  }
+
+  test_optionalPositional_inSuper() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, [int? y]);
+}
+class B extends A {
+  [!B!](int x) : super(x);
+}
+''');
+  }
+
+  test_optionalPositional_singleSuperParameter() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x);
+}
+class B extends A {
+  [!B!]([int x = 0]) : super(x);
+}
+''');
+  }
+
+  test_primaryConstructor() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A(int x);
+class [!B!](int x) extends A {
+  this : super(x);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/3569
+  test_repeatedParam() async {
+    await assertNoDiagnostics(r'''
+class Rect {
+  Rect(this.width, this.height);
+
+  final double width;
+  final double height;
+}
+
+class Square extends Rect {
+  Square(double dimension) : super(dimension, dimension);
+}
+''');
+  }
+
+  test_requiredPositional_allConvertible() async {
+    await assertDiagnosticsFromMarkup(r'''
+class B {
+  final int foo;
+  final int bar;
+  B(this.foo, this.bar);
+}
+class C extends B {
+  [!C!](int foo, int bar) : super(foo, bar);
+}
+''');
+  }
+
+  test_requiredPositional_fieldFormal_withNamed() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](this.z, {int? y}) : super(z, y: y);
+  int z;
+}
+''');
+  }
+
+  test_requiredPositional_forwardedOutOfOrder_withNamed() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, int y, {int? z});
+}
+class B extends A {
+  [!B!](int x, int y, {int? z}) : super(y, x, z: z);
+}
+''');
+  }
+
+  test_requiredPositional_mixedSuperParameters() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](int x, int y) : super(x, y: y);
+}
+''');
+  }
+
+  test_requiredPositional_nonConvertible_withNamed() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](int x, {int? y}) : super(1, y: y);
+}
+''');
+  }
+
+  test_requiredPositional_primaryConstructor() async {
+    await assertDiagnosticsFromMarkup(r'''
+class B(final int foo, final int bar);
+class [!C!](int foo, int bar) extends B {
+  this : super(foo, bar);
+}
+''');
+  }
+
+  test_requiredPositional_someConvertible() async {
+    await assertDiagnosticsFromMarkup(r'''
+class B {
+  final int foo;
+  final int bar;
+  B(this.foo, this.bar);
+}
+class C extends B {
+  [!C!](int baz, int foo, int bar) : super(foo, bar);
+}
+''');
+  }
+
+  test_requiredPositional_usedInBody_withNamed() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](int z, {int? y}) : super(z, y: y) {
+    print(z);
+  }
+}
+''');
+  }
+
+  test_requiredPositional_withNamed() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  [!B!](int x, {int? y}) : super(x, y: y);
+}
+''');
+  }
+}

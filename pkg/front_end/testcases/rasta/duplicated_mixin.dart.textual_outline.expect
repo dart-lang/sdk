@@ -1,0 +1,5 @@
+mixin Mixin {
+  var field;
+}
+
+class A extends Object with Mixin, Mixin {}

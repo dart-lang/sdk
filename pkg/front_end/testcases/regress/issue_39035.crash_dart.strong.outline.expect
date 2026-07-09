@@ -1,0 +1,30 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_39035.crash_dart:5:4: Error: Can't find '}' to match '${'.
+// M("${)=
+//    ^
+//
+// pkg/front_end/testcases/regress/issue_39035.crash_dart:5:6: Error: String starting with " must end with ".
+// M("${)=
+//      ^^
+//
+// pkg/front_end/testcases/regress/issue_39035.crash_dart:5:3: Error: Expected an identifier, but got '"'.
+// Try inserting an identifier before '"'.
+// M("${)=
+//   ^
+//
+// pkg/front_end/testcases/regress/issue_39035.crash_dart:5:4: Error: Expected ')' before this.
+// M("${)=
+//    ^^
+//
+// pkg/front_end/testcases/regress/issue_39035.crash_dart:5:7: Error: Expected a function body or '=>'.
+// Try adding {}.
+// M("${)=
+//       ^
+//
+import self as self;
+
+static method M() → dynamic
+  ;

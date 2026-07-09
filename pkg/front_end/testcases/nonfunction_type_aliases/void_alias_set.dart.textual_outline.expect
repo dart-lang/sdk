@@ -1,0 +1,29 @@
+Void set setter1(value) {}
+
+int set setter2(value) {}
+
+class Class1 {
+  Void set setter(value) {}
+}
+
+class Class2 {
+  int set setter(value) {}
+}
+
+extension Extension1 on int {
+  Void set setter(value) {}
+}
+
+extension Extension2 on int {
+  int set setter(value) {}
+}
+
+extension type ExtensionType1(int it) {
+  Void set setter(value) {}
+}
+
+extension type ExtensionType2(int it) {
+  int set setter(value) {}
+}
+
+typedef Void = void;

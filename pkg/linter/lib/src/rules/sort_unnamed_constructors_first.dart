@@ -1,0 +1,74 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+
+const _desc = r'Sort unnamed constructor declarations first.';
+
+class SortUnnamedConstructorsFirst extends AnalysisRule {
+  new()
+    : super(
+        name: LintNames.sort_unnamed_constructors_first,
+        description: _desc,
+      );
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.sortUnnamedConstructorsFirst;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
+    registry.addEnumDeclaration(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  void check(NodeList<ClassMember> members) {
+    var seenNamedConstructor = false;
+    // Members are sorted by source position in the AST.
+    for (var member in members) {
+      if (member is ConstructorDeclaration) {
+        if (member.declaredFragment!.element.name == 'new') {
+          if (seenNamedConstructor) {
+            rule.reportAtSourceRange(member.errorRange);
+          }
+        } else {
+          seenNamedConstructor = true;
+        }
+      }
+    }
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    check(node.body.members);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    check(node.body.members);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    check(node.body.members);
+  }
+}

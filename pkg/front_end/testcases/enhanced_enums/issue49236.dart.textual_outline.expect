@@ -1,0 +1,45 @@
+mixin M {
+  String toString() => "M";
+}
+
+abstract mixin class A {
+  String toString() => "A";
+}
+
+abstract class B implements Enum {
+  String toString() => "B";
+}
+
+enum E1 with M { element }
+
+enum E2 with M {
+  element;
+
+  String toString() => "E2";
+}
+
+enum E3 {
+  element;
+
+  String toString() => "E3";
+}
+
+enum E4 implements B { element }
+
+enum E5 implements B {
+  element;
+
+  String toString() => "E5";
+}
+
+enum E6 with A { element }
+
+enum E7 with A {
+  element;
+
+  String toString() => "E7";
+}
+
+checkEqual(x, y) {}
+
+main() {}

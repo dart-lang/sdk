@@ -1,0 +1,21 @@
+class A {
+  A.new();
+  factory A.redirectingFactory() = A.new;
+  factory A.redirectingFactoryChild() = B.new;
+  A.redirecting() : this.new();
+}
+
+class B extends A {}
+
+class C {
+  final int x;
+  const C.new(this.x);
+}
+
+class D extends C {
+  D(int x) : super.new(x * 2);
+}
+
+test() {}
+
+main() {}

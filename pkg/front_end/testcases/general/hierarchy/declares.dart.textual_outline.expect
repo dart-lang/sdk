@@ -1,0 +1,34 @@
+class Super {
+  void extendedConcreteDeclaredConcreteMethod() {}
+  void extendedAbstractDeclaredConcreteMethod();
+  void extendedConcreteDeclaredAbstractMethod() {}
+  void extendedAbstractDeclaredAbstractMethod();
+  void extendedConcreteImplementedDeclaredConcreteMethod() {}
+  void extendedAbstractImplementedDeclaredConcreteMethod();
+  void extendedConcreteImplementedDeclaredAbstractMethod() {}
+  void extendedAbstractImplementedDeclaredAbstractMethod();
+}
+
+class Interface {
+  void implementedDeclaredConcreteMethod() {}
+  void implementedDeclaredAbstractMethod() {}
+  void extendedConcreteImplementedDeclaredConcreteMethod() {}
+  void extendedAbstractImplementedDeclaredConcreteMethod() {}
+  void extendedConcreteImplementedDeclaredAbstractMethod() {}
+  void extendedAbstractImplementedDeclaredAbstractMethod() {}
+}
+
+class Class extends Super implements Interface {
+  void extendedConcreteDeclaredConcreteMethod() {}
+  void extendedAbstractDeclaredConcreteMethod() {}
+  void extendedConcreteDeclaredAbstractMethod();
+  void extendedAbstractDeclaredAbstractMethod();
+  void implementedDeclaredConcreteMethod() {}
+  void implementedDeclaredAbstractMethod();
+  void extendedConcreteImplementedDeclaredConcreteMethod() {}
+  void extendedAbstractImplementedDeclaredConcreteMethod() {}
+  void extendedConcreteImplementedDeclaredAbstractMethod();
+  void extendedAbstractImplementedDeclaredAbstractMethod();
+}
+
+main() {}

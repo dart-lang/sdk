@@ -1,0 +1,11 @@
+test1(dynamic x, dynamic another) {}
+
+test2(bool b, dynamic x, dynamic another) {}
+
+test3(dynamic x, dynamic y, dynamic another) {}
+
+main() {}
+
+expectEquals(x, y) {}
+
+mapToString(Map map) {}

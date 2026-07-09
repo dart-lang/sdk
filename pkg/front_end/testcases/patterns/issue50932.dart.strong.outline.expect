@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue50932.dart" as self;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract get foo() → core::int;
+}
+static method test(dynamic x) → dynamic
+  ;

@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method foo1() → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  final core::int c = 3;
+  return c;
+}
+static method foo2() → asy::Future<void> async /* emittedValueType= void */ {
+  final core::int c = 3;
+}
+static method foo3() → dynamic async /* emittedValueType= dynamic */ {
+  return 234;
+}
+static method bar(() → asy::Future<core::int> func) → void {
+  func(){() → asy::Future<core::int>};
+}
+static method foo4() → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  await asy::Future::value<core::int>(2);
+  self::bar(() → asy::Future<core::int> async /* emittedValueType= core::int */ => 3);
+  return true;
+}
+static method foo5(core::bool x) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  if(x)
+    return 123;
+  return 234;
+}
+static method main() → void {
+  self::foo1();
+  self::foo2();
+  self::foo3();
+  self::foo4();
+  self::foo5(true);
+}

@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method method1([has-declared-initializer dynamic a, has-declared-initializer dynamic b]) → void
+  ;
+static method method2({has-declared-initializer dynamic a, has-declared-initializer dynamic b}) → void
+  ;

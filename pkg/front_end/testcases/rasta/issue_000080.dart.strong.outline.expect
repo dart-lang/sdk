@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  field dynamic field;
+  method foo() → dynamic
+    ;
+}
+class Foo extends self::_Foo&Object&Mixin {
+  synthetic constructor •() → self::Foo
+    ;
+  method foo() → dynamic
+    ;
+  method bar() → dynamic
+    ;
+}
+abstract class _Foo&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Foo&Object&Mixin
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub method foo() → dynamic
+    return super.{self::Mixin::foo}();
+  synthetic mixin-super-stub get field() → dynamic
+    return super.{self::Mixin::field};
+  synthetic mixin-super-stub set field(dynamic value) → void
+    return super.{self::Mixin::field} = value;
+}
+static method main() → dynamic
+  ;

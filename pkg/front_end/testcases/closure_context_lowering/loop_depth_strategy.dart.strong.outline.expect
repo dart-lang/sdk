@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo(positional-parameter functions) → dynamic
+  ;
+static method bar(positional-parameter functions) → dynamic
+  ;

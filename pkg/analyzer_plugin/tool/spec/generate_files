@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+#
+# This script generates the following files, based on the contents of
+# spec_input.html:
+#
+# - ../../doc/api.html: The human-readable API spec.
+#
+# - ../../test/integration/protocol_matchers.dart: matchers to be used by
+#   integration tests.
+#
+# - ../../test/integration/integration_test_methods.dart: convenience methods
+#   to be used by integration tests.
+
+set -e
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+SCRIPT_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../.." ; pwd -P)"
+
+if [[ $1 == '--arch' && $2 == 'x64' ]];
+then
+  DART_CONFIGURATION="ReleaseX64"
+elif [ -z "$DART_CONFIGURATION" ];
+then
+  DART_CONFIGURATION="ReleaseIA32"
+fi
+
+if [[ `uname` == 'Darwin' ]];
+then
+  BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
+fi
+
+PKG_FILE="${ROOT_DIR}/.dart_tool/package_config.json"
+if [[ !(-e $PKG_FILE) ]];
+then
+  PKG_FILE="${ROOT_DIR}/.dart_tool/package_config.json"
+fi
+
+DART="${BUILD_DIR}/dart-sdk/bin/dart"
+
+declare -a VM_OPTIONS
+VM_OPTIONS+=("--enable-asserts")
+VM_OPTIONS+=("--packages=${PKG_FILE}")
+
+cd "${SCRIPT_DIR}"
+"${DART}" "${VM_OPTIONS[@]}" "generate_all.dart"

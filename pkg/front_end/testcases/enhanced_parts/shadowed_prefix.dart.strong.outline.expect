@@ -1,0 +1,30 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///shadowed_prefix_lib1.dart" as prefix;
+import "org-dartlang-testcase:///shadowed_prefix_lib2.dart" show prefix;
+import "org-dartlang-testcase:///shadowed_prefix_lib3.dart" as prefix;
+
+part shadowed_prefix_part1.dart;
+part shadowed_prefix_part2.dart;
+static method method1() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///shadowed_prefix_part1.dart */ method2() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///shadowed_prefix_part2.dart */ method3() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static field dynamic x1;
+
+library;
+import self as self3;
+
+static field dynamic prefix;
+
+library;
+import self as self4;
+
+static field dynamic x3;

@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/issue_43431.dart:7:3: Error: Only static fields can be declared as const.
+// Try using 'final' instead of 'const', or adding the keyword 'static'.
+//   const x = Foo();
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/constants/issue_43431.dart:7:13: Error: Constant expression expected.
+// Try inserting 'const'.
+//   const x = Foo();
+//             ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  field self::Foo x = const self::Foo::•();
+  const constructor •({core::bool x = true}) → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;

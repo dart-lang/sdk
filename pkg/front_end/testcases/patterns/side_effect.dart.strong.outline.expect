@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method sideEffect<T extends core::Object? = dynamic>(core::List<self::sideEffect::T%> list) → core::List<self::sideEffect::T%>
+  ;
+static method method() → dynamic
+  ;

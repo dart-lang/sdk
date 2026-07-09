@@ -1,0 +1,46 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Copy of (parts of) pkg/vm_service/test/evaluate_type_arguments_test.dart.
+
+sources:
+  main.dart: |
+    import "dart:developer";
+
+    void testFunction2<E extends String>(List<E> x) {
+      debugger();
+      print('x = $x');
+      () {
+        List<E> y = List<E>.from(["hello"]);
+        x.addAll(y);
+        return x.last;
+      }();
+      print('x = $x');
+      () {
+        List<E> y = [];
+        y.addAll(x);
+        return y.last;
+      }();
+      print('x = $x');
+    }
+
+    void main() {
+      testFunction2<String>(<String>['a', 'b', 'c']);
+    }
+
+definitions: ["x"]
+definition_types: ["dart:core", "_GrowableList", "1", "1", "dart:core", "String", "1", "0"]
+type_definitions: ["E"]
+type_bounds: ["dart:core", "String", "1", "0"]
+type_defaults: ["dart:core", "String", "1", "0"]
+method: "testFunction2"
+static: true
+offset: 78
+scriptUri: main.dart
+expression: |
+  () {
+    List<E> y = List<E>.from(["hello"]);
+    x.addAll(y);
+    return x.last;
+  }()

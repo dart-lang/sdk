@@ -1,0 +1,72 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file contains all C++ sources for the dart:_builtin library and
+# some of the C++ sources for the dart:io library.  The rest are in
+# io_impl_sources.gni.
+
+builtin_impl_sources = [
+  "crypto.cc",
+  "crypto.h",
+  "crypto_fuchsia.cc",
+  "crypto_linux.cc",
+  "crypto_macos.cc",
+  "crypto_win.cc",
+  "dartutils.cc",
+  "dartutils.h",
+  "directory.cc",
+  "directory.h",
+  "directory_fuchsia.cc",
+  "directory_linux.cc",
+  "directory_macos.cc",
+  "directory_win.cc",
+  "exe_utils.cc",
+  "exe_utils.h",
+  "fdutils.h",
+  "fdutils_fuchsia.cc",
+  "fdutils_linux.cc",
+  "fdutils_macos.cc",
+  "file.cc",
+  "file.h",
+  "file_fuchsia.cc",
+  "file_linux.cc",
+  "file_macos.cc",
+  "file_support.cc",
+  "file_win.cc",
+  "file_win.h",
+  "io_buffer.cc",
+  "io_buffer.h",
+  "isolate_data.cc",
+  "isolate_data.h",
+  "lockers.h",
+  "thread.cc",
+  "thread.h",
+  "thread_absl.cc",
+  "thread_fuchsia.cc",
+  "thread_linux.cc",
+  "thread_macos.cc",
+  "thread_win.cc",
+  "uri.cc",
+  "uri.h",
+  "utils.cc",
+  "utils.h",
+  "utils_fuchsia.cc",
+  "utils_linux.cc",
+  "utils_macos.cc",
+  "utils_win.cc",
+  "utils_win.h",
+]
+
+builtin_impl_tests = [
+  "crypto_test.cc",
+  "directory_test.cc",
+  "eventhandler_test.cc",
+  "file_test.cc",
+  "hashmap_test.cc",
+  "list_queue_test.cc",
+  "priority_heap_test.cc",
+  "snapshot_utils_test.cc",
+  "test_utils.cc",
+  "uri_test.cc",
+]

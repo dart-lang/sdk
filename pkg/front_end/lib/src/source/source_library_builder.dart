@@ -1,0 +1,1812 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:convert' show jsonEncode;
+
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show Importability;
+import 'package:front_end/src/codes/diagnostic.dart' as diag;
+import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import '../api_prototype/experimental_flags.dart';
+import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
+import '../base/lookup_result.dart';
+import '../base/messages.dart';
+import '../base/name_space.dart';
+import '../base/problems.dart' show unexpected, unhandled;
+import '../base/scope.dart';
+import '../base/uri_offset.dart';
+import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/property_builder.dart';
+import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
+import '../kernel/kernel_helper.dart';
+import '../kernel/load_library_builder.dart';
+import '../kernel/utils.dart'
+    show
+        compareProcedures,
+        exportDynamicSentinel,
+        exportNeverSentinel,
+        unserializableExportName;
+import 'check_helper.dart';
+import 'name_scheme.dart';
+import 'name_space_builder.dart';
+import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_declaration_builder.dart';
+import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
+import 'source_factory_builder.dart';
+import 'source_loader.dart' show SourceLoader;
+import 'source_member_builder.dart';
+import 'source_property_builder.dart';
+import 'source_type_alias_builder.dart';
+import 'source_type_parameter_builder.dart';
+import 'type_parameter_factory.dart';
+
+/// Enum that define what state a source library is in, in terms of how far
+/// in the compilation it has progressed. This is used to document and assert
+/// the requirements of individual methods within the [SourceLibraryBuilder].
+enum SourceLibraryBuilderState {
+  /// The builder is in its initial state.
+  ///
+  /// The builder is known to be a library and not a part in this state.
+  initial,
+
+  /// The name space has been built for the library.
+  nameSpaceBuilt,
+
+  /// Scopes have been built for the library.
+  scopesBuilt,
+
+  /// Initial export scope derived from the name space has been built.
+  initialExportScopesBuilt,
+
+  /// Full export scope has been built.
+  exportScopesBuilt,
+
+  /// Type in the outline have been resolved.
+  resolvedTypes,
+
+  /// Default types of type parameters have been computed.
+  defaultTypesComputed,
+
+  /// Type parameters have been collected to be checked for cyclic dependencies
+  /// and their nullability to be computed.
+  unboundTypeParametersCollected,
+
+  /// The AST nodes for the outline have been built.
+  outlineNodesBuilt;
+
+  bool operator <(SourceLibraryBuilderState other) => index < other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator <=(SourceLibraryBuilderState other) => index <= other.index;
+
+  // Coverage-ignore(suite): Not run.
+  bool operator >(SourceLibraryBuilderState other) => index > other.index;
+
+  bool operator >=(SourceLibraryBuilderState other) => index >= other.index;
+}
+
+class SourceLibraryBuilder extends LibraryBuilderImpl {
+  SourceLibraryBuilderState _state = SourceLibraryBuilderState.initial;
+
+  final SourceCompilationUnit compilationUnit;
+
+  final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
+
+  LibraryNameSpace? _libraryNameSpace;
+  Extensions? _libraryExtensions;
+
+  late final List<NamedBuilder> _memberBuilders;
+
+  final ComputedMutableNameSpace _exportNameSpace;
+
+  final LookupScope? _parentScope;
+
+  final ExtensionScope? _parentExtensionScope;
+
+  @override
+  final SourceLoader loader;
+
+  final List<SourceCompilationUnit> _parts = [];
+
+  @override
+  final Uri fileUri;
+
+  final Uri? _packageUri;
+
+  // Coverage-ignore(suite): Not run.
+  Uri? get packageUriForTesting => _packageUri;
+
+  @override
+  LibraryBuilder? get partOfLibrary => compilationUnit.partOfLibrary;
+
+  @override
+  final Library library;
+
+  @override
+  final LibraryName libraryName;
+
+  final List<PendingBoundsCheck> _pendingBoundsChecks = [];
+  final List<GenericFunctionTypeCheck> _pendingGenericFunctionTypeChecks = [];
+
+  // A list of alternating forwarders and the procedures they were generated
+  // for.  Note that it may not include a forwarder-origin pair in cases when
+  // the former does not need to be updated after the body of the latter was
+  // built.
+  final List<Procedure> forwardersOrigins = <Procedure>[];
+
+  // A library to use for Names generated when compiling code in this library.
+  // This allows code generated in one library to use the private namespace of
+  // another, for example during expression compilation (debugging).
+  Library get nameOrigin =>
+      _nameOrigin
+          // Coverage-ignore(suite): Not run.
+          ?.library ??
+      library;
+
+  @override
+  LibraryBuilder get nameOriginBuilder => _nameOrigin ?? this;
+  final LibraryBuilder? _nameOrigin;
+
+  /// Index of the library we use references for.
+  IndexedLibrary? get indexedLibrary => compilationUnit.indexedLibrary;
+
+  /// Exports that can't be serialized.
+  ///
+  /// The key is the name of the exported member.
+  ///
+  /// If the name is `dynamic` or `Never`, this library reexports the
+  /// corresponding type from `dart:core`, and the value is the sentinel values
+  /// [exportDynamicSentinel] or [exportNeverSentinel], respectively.
+  ///
+  /// Otherwise, this represents an error (an ambiguous export). In this case,
+  /// the error message is the corresponding value in the map.
+  Map<String, String>? unserializableExports;
+
+  /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
+  /// yet, or field promotion is disabled for this library.  If not `null`,
+  /// Information about which fields are promotable in this library, or `null`
+  /// if [SourceLoader.computeFieldPromotability] hasn't been called.
+  FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
+
+  /// Redirecting factory builders defined in the library. They should be
+  /// collected as they are built, so that we can build the outline expressions
+  /// in the right order.
+  ///
+  /// See [SourceLoader.buildOutlineExpressions] for details.
+  List<SourceFactoryBuilder>? redirectingFactoryBuilders;
+
+  factory({
+    required SourceCompilationUnit compilationUnit,
+    required Uri importUri,
+    required Uri fileUri,
+    Uri? packageUri,
+    required Uri originImportUri,
+    required LanguageVersion packageLanguageVersion,
+    required SourceLoader loader,
+    LookupScope? parentScope,
+    ExtensionScope? parentExtensionScope,
+    Library? target,
+    LibraryBuilder? nameOrigin,
+    IndexedLibrary? indexedLibrary,
+    bool? referenceIsPartOwner,
+    required bool conditionalImportSupported,
+    required bool isAugmentation,
+    required bool isPatch,
+    required NameSpace importNameSpace,
+    required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+  }) {
+    Library library =
+        target ??
+              new Library(
+                importUri,
+                fileUri: fileUri,
+                reference: referenceIsPartOwner == true
+                    ? null
+                    : indexedLibrary?.library.reference,
+              )
+          ..setLanguageVersion(packageLanguageVersion.version);
+    LibraryName libraryName = new LibraryName(library.reference);
+    ComputedMutableNameSpace exportNameSpace = new ComputedMutableNameSpace();
+    return new SourceLibraryBuilder._(
+      compilationUnit: compilationUnit,
+      loader: loader,
+      importUri: importUri,
+      fileUri: fileUri,
+      packageUri: packageUri,
+      originImportUri: originImportUri,
+      packageLanguageVersion: packageLanguageVersion,
+      libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+      exportNameSpace: exportNameSpace,
+      parentScope: parentScope,
+      parentExtensionScope: parentExtensionScope,
+      library: library,
+      libraryName: libraryName,
+      nameOrigin: nameOrigin,
+      indexedLibrary: indexedLibrary,
+      conditionalImportSupported: conditionalImportSupported,
+      isAugmentation: isAugmentation,
+      isPatch: isPatch,
+    );
+  }
+
+  new _({
+    required this.loader,
+    required this.compilationUnit,
+    required this.importUri,
+    required this.fileUri,
+    required Uri? packageUri,
+    required Uri originImportUri,
+    required LanguageVersion packageLanguageVersion,
+    required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+    required ComputedMutableNameSpace exportNameSpace,
+    required LookupScope? parentScope,
+    required ExtensionScope? parentExtensionScope,
+    required this.library,
+    required this.libraryName,
+    required LibraryBuilder? nameOrigin,
+    required IndexedLibrary? indexedLibrary,
+    required bool conditionalImportSupported,
+    required bool isAugmentation,
+    required bool isPatch,
+  }) : _packageUri = packageUri,
+       _nameOrigin = nameOrigin,
+       _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
+       _exportNameSpace = exportNameSpace,
+       _parentScope = parentScope,
+       _parentExtensionScope = parentExtensionScope,
+       super(fileUri) {
+    assert(
+      _packageUri == null ||
+          !importUri.isScheme('package') ||
+          // Coverage-ignore(suite): Not run.
+          importUri.path.startsWith(_packageUri.path),
+      "Foreign package uri '$_packageUri' set on library with import uri "
+      "'${importUri}'.",
+    );
+    assert(
+      !importUri.isScheme('dart') || _packageUri == null,
+      "Package uri '$_packageUri' set on dart: library with import uri "
+      "'${importUri}'.",
+    );
+  }
+
+  SourceLibraryBuilderState get state => _state;
+
+  void set state(SourceLibraryBuilderState value) {
+    assert(
+      _state < value,
+      "State $value has already been reached at $_state in $this.",
+    );
+    assert(
+      _state.index + 1 == value.index,
+      _state.index + 1 < SourceLibraryBuilderState.values.length
+          ? "Expected state "
+                "${SourceLibraryBuilderState.values[_state.index + 1]} "
+                "to follow from $_state, trying to set next state to $value "
+                "in $this."
+          : "No more states expected to follow from $_state, trying to set "
+                "next state to $value in $this.",
+    );
+    _state = value;
+  }
+
+  bool checkState({
+    List<SourceLibraryBuilderState>? required,
+    List<SourceLibraryBuilderState>? pending,
+  }) {
+    if (required != null) {
+      for (SourceLibraryBuilderState requiredState in required) {
+        assert(
+          state >= requiredState,
+          "State $requiredState required, but found $state in $this.",
+        );
+      }
+    }
+    if (pending != null) {
+      for (SourceLibraryBuilderState pendingState in pending) {
+        assert(
+          state < pendingState,
+          "State $pendingState must not have been reached, "
+          "but found $state in $this.",
+        );
+      }
+    }
+    return true;
+  }
+
+  @override
+  bool get mayImplementRestrictedTypes =>
+      compilationUnit.mayImplementRestrictedTypes;
+
+  // Coverage-ignore(suite): Not run.
+  /// `true` if this is an augmentation library.
+  bool get isAugmentationLibrary => compilationUnit.isAugmenting;
+
+  // Coverage-ignore(suite): Not run.
+  /// `true` if this is a patch library.
+  bool get isPatchLibrary => compilationUnit.forPatchLibrary;
+
+  @override
+  bool get conditionalImportSupported =>
+      compilationUnit.conditionalImportSupported;
+
+  @override
+  Importability get importability => compilationUnit.importability;
+
+  /// Returns the state of the experimental features within this library.
+  LibraryFeatures get libraryFeatures => compilationUnit.libraryFeatures;
+
+  /// Reports that [feature] is not enabled, using [charOffset] and
+  /// [length] for the location of the message.
+  ///
+  /// Return the primary message.
+  Message reportFeatureNotEnabled(
+    LibraryFeature feature,
+    Uri fileUri,
+    int charOffset,
+    int length,
+  ) {
+    return compilationUnit.reportFeatureNotEnabled(
+      feature,
+      fileUri,
+      charOffset,
+      length,
+    );
+  }
+
+  LookupScope? get parentScope => _parentScope;
+
+  ExtensionScope? get parentExtensionScope => _parentExtensionScope;
+
+  @override
+  NameSpace get libraryNameSpace {
+    assert(
+      _libraryNameSpace != null,
+      "Name space has not being computed for $this.",
+    );
+    return _libraryNameSpace!;
+  }
+
+  @override
+  Extensions get libraryExtensions {
+    assert(
+      _libraryExtensions != null,
+      "Name space has not being computed for $this.",
+    );
+    return _libraryExtensions!;
+  }
+
+  @override
+  ComputedNameSpace get exportNameSpace => _exportNameSpace;
+
+  /// Returns true if the export scope was modified.
+  bool addToExportScope(
+    String name,
+    NamedBuilder member, {
+    required UriOffset uriOffset,
+  }) {
+    if (name.startsWith("_")) return false;
+    if (member is PrefixBuilder) return false;
+    bool isSetter = isMappedAsSetter(member);
+    LookupResult? result = exportNameSpace.lookup(name);
+    NamedBuilder? existing = isSetter ? result?.setable : result?.getable;
+    if (existing == member) {
+      return false;
+    } else {
+      if (existing != null) {
+        NamedBuilder result = _computeAmbiguousDeclarationForExport(
+          name,
+          existing,
+          member,
+          uriOffset: uriOffset,
+        );
+        _exportNameSpace.replaceLocalMember(name, result, setter: isSetter);
+        return result != existing;
+      } else {
+        _exportNameSpace.addLocalMember(name, member, setter: isSetter);
+        return true;
+      }
+    }
+  }
+
+  /// Computes a builder for the export collision between [declaration] and
+  /// [other]. If [declaration] is declared in [libraryNameSpace] then this is
+  /// returned instead of reporting a collision.
+  NamedBuilder _computeAmbiguousDeclarationForExport(
+    String name,
+    NamedBuilder declaration,
+    NamedBuilder other, {
+    required UriOffsetLength uriOffset,
+  }) {
+    // Prefix builders and load library builders are not part of an export
+    // scope.
+    assert(
+      declaration is! PrefixBuilder,
+      "Unexpected prefix builder $declaration.",
+    );
+    assert(other is! PrefixBuilder, "Unexpected prefix builder $other.");
+    assert(
+      declaration is! LoadLibraryBuilder,
+      "Unexpected load library builder $declaration.",
+    );
+    assert(
+      other is! LoadLibraryBuilder,
+      "Unexpected load library builder $other.",
+    );
+
+    if (declaration == other) return declaration;
+    if (declaration is InvalidBuilder) return declaration;
+    if (other is InvalidBuilder) return other;
+    NamedBuilder? preferred;
+    Uri? uri;
+    Uri? otherUri;
+    if (libraryNameSpace.lookup(name)?.getable == declaration) {
+      return declaration;
+    } else {
+      uri = computeLibraryUri(declaration);
+      otherUri = computeLibraryUri(other);
+      if (otherUri.isScheme("dart") && !uri.isScheme("dart")) {
+        preferred = declaration;
+      } else if (uri.isScheme("dart") && !otherUri.isScheme("dart")) {
+        preferred = other;
+      }
+    }
+    if (preferred != null) {
+      return preferred;
+    }
+
+    Uri firstUri = uri;
+    Uri secondUri = otherUri;
+    if (firstUri.toString().compareTo(secondUri.toString()) > 0) {
+      firstUri = secondUri;
+      secondUri = uri;
+    }
+
+    // TODO(ahe): We should probably use a context object here
+    // instead of including URIs in this message.
+    Message message = diag.duplicatedExport.withArguments(
+      name: name,
+      uri: firstUri,
+      uri2: secondUri,
+    );
+    addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
+    // We report the error lazily (setting errorHasBeenReported to false)
+    // because the spec 18.1 states that 'It is not an error if N is introduced
+    // by two or more imports but never referred to.'
+    return new InvalidBuilder(
+      name,
+      message.withLocation(
+        uriOffset.fileUri,
+        uriOffset.fileOffset,
+        name.length,
+      ),
+      errorHasBeenReported: false,
+    );
+  }
+
+  Iterable<SourceCompilationUnit> get parts => _parts;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isPart => compilationUnit.isPart;
+
+  @override
+  List<Export> get exporters => compilationUnit.exporters;
+
+  @override
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>({
+    required bool includeDuplicates,
+  }) => new FilteredIterator<T>(
+    _memberBuilders.iterator,
+    includeDuplicates: includeDuplicates,
+  );
+
+  /// Returns an iterator of all members (typedefs, classes and members)
+  /// declared in this library, including duplicate declarations.
+  Iterator<NamedBuilder> get unfilteredMembersIterator {
+    return _memberBuilders.iterator;
+  }
+
+  @override
+  bool get isSynthetic => compilationUnit.isSynthetic;
+
+  bool get isInferenceUpdate1Enabled =>
+      libraryFeatures.inferenceUpdate1.isSupported &&
+      _languageVersion.version >=
+          libraryFeatures.inferenceUpdate1.enabledVersion;
+
+  @override
+  Version get languageVersion => _languageVersion.version;
+
+  LanguageVersion get _languageVersion => compilationUnit.languageVersion;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Uri> get dependencies sync* {
+    yield* compilationUnit.dependencies;
+    for (SourceCompilationUnit part in parts) {
+      yield part.importUri;
+      yield* part.dependencies;
+    }
+  }
+
+  void computeSupertypes() {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+    List<SourceClassBuilder> sourceClasses =
+        filteredMembersIterator<SourceClassBuilder>(includeDuplicates: true)
+            .toList();
+    for (SourceClassBuilder sourceClassBuilder in sourceClasses) {
+      _computeSupertypeBuilderForClass(sourceClassBuilder);
+    }
+  }
+
+  /// Builds the core AST structure of this library as needed for the outline.
+  Library buildOutlineNodes(LibraryBuilder coreLibrary) {
+    assert(
+      checkState(
+        required: [SourceLibraryBuilderState.unboundTypeParametersCollected],
+      ),
+    );
+    library.setLanguageVersion(_languageVersion.version);
+    compilationUnit.buildOutlineNode(library);
+    for (SourceCompilationUnit part in parts) {
+      part.buildOutlineNode(library);
+    }
+
+    Iterator<Builder> iterator = unfilteredMembersIterator;
+    while (iterator.moveNext()) {
+      _buildOutlineNodes(iterator.current, coreLibrary);
+    }
+    state = SourceLibraryBuilderState.outlineNodesBuilt;
+
+    library.isSynthetic = isSynthetic;
+    library.conditionalImportSupported = conditionalImportSupported;
+    library.importability = importability;
+    addDependencies(library, new Set<SourceCompilationUnit>());
+
+    library.name = compilationUnit.libraryDirective?.name;
+    library.procedures.sort(compareProcedures);
+
+    if (unserializableExports != null) {
+      Name fieldName = new Name(unserializableExportName, library);
+      Reference? fieldReference = indexedLibrary
+          // Coverage-ignore(suite): Not run.
+          ?.lookupFieldReference(fieldName);
+      Reference? getterReference = indexedLibrary
+          // Coverage-ignore(suite): Not run.
+          ?.lookupGetterReference(fieldName);
+      library.addField(
+        new Field.immutable(
+          fieldName,
+          initializer: new StringLiteral(jsonEncode(unserializableExports)),
+          isStatic: true,
+          isConst: true,
+          fieldReference: fieldReference,
+          getterReference: getterReference,
+          fileUri: library.fileUri,
+        ),
+      );
+    }
+
+    return library;
+  }
+
+  void includeParts(Set<Uri> usedParts) {
+    compilationUnit.includeParts(_parts, usedParts);
+  }
+
+  void buildInitialScopes() {
+    assert(checkState(required: [SourceLibraryBuilderState.scopesBuilt]));
+
+    Iterator<NamedBuilder> iterator = filteredMembersIterator(
+      includeDuplicates: false,
+    );
+    UriOffset uriOffset = new UriOffset(fileUri, TreeNode.noOffset);
+    while (iterator.moveNext()) {
+      NamedBuilder builder = iterator.current;
+      addToExportScope(builder.name, builder, uriOffset: uriOffset);
+    }
+
+    state = SourceLibraryBuilderState.initialExportScopesBuilt;
+  }
+
+  void addImportsToScope() {
+    assert(
+      checkState(
+        required: [SourceLibraryBuilderState.initialExportScopesBuilt],
+      ),
+    );
+
+    compilationUnit.addImportsToScope();
+    for (SourceCompilationUnit part in parts) {
+      part.addImportsToScope();
+    }
+
+    Iterator<NamedBuilder> iterator = _exportNameSpace.filteredIterator();
+    while (iterator.moveNext()) {
+      NamedBuilder builder = iterator.current;
+      String name = builder.name;
+      if (builder.parent != this) {
+        if (builder is TypeDeclarationBuilder) {
+          switch (builder) {
+            case ClassBuilder():
+              library.additionalExports.add(builder.cls.reference);
+            case TypeAliasBuilder():
+              library.additionalExports.add(builder.reference);
+            case ExtensionBuilder():
+              library.additionalExports.add(builder.reference);
+            case ExtensionTypeDeclarationBuilder():
+              library.additionalExports.add(
+                builder.extensionTypeDeclaration.reference,
+              );
+            case InvalidBuilder():
+              (unserializableExports ??= {})[name] =
+                  builder.message.problemMessage;
+            case BuiltinTypeDeclarationBuilder():
+              if (builder is DynamicTypeDeclarationBuilder) {
+                assert(
+                  name == 'dynamic',
+                  "Unexpected export name for 'dynamic': '$name'",
+                );
+                (unserializableExports ??= {})[name] = exportDynamicSentinel;
+              } else if (builder is NeverTypeDeclarationBuilder) {
+                assert(
+                  name == 'Never',
+                  "Unexpected export name for 'Never': '$name'",
+                );
+                (unserializableExports ??= // Coverage-ignore(suite): Not run.
+                        {})[name] =
+                    exportNeverSentinel;
+              }
+            // Coverage-ignore(suite): Not run.
+            case NominalParameterBuilder():
+            case StructuralParameterBuilder():
+              unhandled(
+                'member',
+                'exportScope',
+                builder.fileOffset,
+                builder.fileUri,
+              );
+          }
+        } else if (builder is MemberBuilder) {
+          library.additionalExports.addAll(builder.exportedMemberReferences);
+        } else {
+          unhandled(
+            'member',
+            'exportScope',
+            builder.fileOffset,
+            builder.fileUri,
+          );
+        }
+      }
+    }
+
+    state = SourceLibraryBuilderState.exportScopesBuilt;
+  }
+
+  void buildNameSpace() {
+    assert(checkState(required: [SourceLibraryBuilderState.initial]));
+
+    assert(
+      _libraryNameSpace == null,
+      "Name space has already being computed for $this.",
+    );
+
+    assert(
+      _mixinApplications != null,
+      "Late registration of mixin application.",
+    );
+
+    _memberBuilders = [];
+    var (
+      LibraryNameSpace libraryNameSpace,
+      LibraryExtensions libraryExtensions,
+    ) = _libraryNameSpaceBuilder.toNameSpace(
+      problemReporting: this,
+      enclosingLibraryBuilder: this,
+      mixinApplications: _mixinApplications!,
+      typeParameterFactory: typeParameterFactory,
+      indexedLibrary: indexedLibrary,
+      memberBuilders: _memberBuilders,
+    );
+    _libraryNameSpace = libraryNameSpace;
+    _libraryExtensions = libraryExtensions;
+
+    state = SourceLibraryBuilderState.nameSpaceBuilt;
+  }
+
+  void _computeSupertypeBuilderForClass(SourceClassBuilder classBuilder) {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+    assert(
+      _mixinApplications != null,
+      "Late registration of mixin application.",
+    );
+    classBuilder.computeSupertypeBuilder(
+      loader: loader,
+      problemReporting: this,
+      typeParameterFactory: typeParameterFactory,
+      indexedLibrary: indexedLibrary,
+      mixinApplications: _mixinApplications!,
+      addAnonymousMixinClassBuilder: (SourceClassBuilder classBuilder) {
+        _memberBuilders.add(classBuilder);
+        _computeSupertypeBuilderForClass(classBuilder);
+      },
+    );
+  }
+
+  void buildScopes(LibraryBuilder coreLibrary) {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+
+    Iterator<Builder> iterator = unfilteredMembersIterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceDeclarationBuilder) {
+        builder.buildScopes(coreLibrary);
+      }
+    }
+
+    state = SourceLibraryBuilderState.scopesBuilt;
+  }
+
+  /// Resolves all unresolved types in [unresolvedNamedTypes]. The list of types
+  /// is cleared when done.
+  int resolveTypes() {
+    assert(checkState(required: [SourceLibraryBuilderState.exportScopesBuilt]));
+    int typeCount = 0;
+
+    typeCount += compilationUnit.resolveTypes(this);
+    for (SourceCompilationUnit part in parts) {
+      typeCount += part.resolveTypes(this);
+    }
+
+    state = SourceLibraryBuilderState.resolvedTypes;
+    return typeCount;
+  }
+
+  void installDefaultSupertypes(
+    ClassBuilder objectClassBuilder,
+    Class objectClass,
+  ) {
+    Iterator<SourceClassBuilder> iterator = filteredMembersIterator(
+      includeDuplicates: true,
+    );
+    while (iterator.moveNext()) {
+      SourceClassBuilder declaration = iterator.current;
+      declaration.installDefaultSupertypes(objectClassBuilder, objectClass);
+    }
+  }
+
+  void collectSourceDeclarations(
+    List<SourceClassBuilder> sourceClasses,
+    List<SourceExtensionBuilder>? sourceExtensions,
+    List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes,
+  ) {
+    Iterator<Builder> iterator = unfilteredMembersIterator;
+    while (iterator.moveNext()) {
+      Builder member = iterator.current;
+      if (member is SourceClassBuilder) {
+        sourceClasses.add(member);
+      } else if (member is SourceExtensionBuilder) {
+        sourceExtensions?.add(member);
+      } else if (member is SourceExtensionTypeDeclarationBuilder) {
+        sourceExtensionTypes.add(member);
+      }
+    }
+  }
+
+  /// Resolve constructors (lookup names in scope) recorded in this builder and
+  /// return the number of constructors resolved.
+  int resolveConstructors() {
+    int count = 0;
+    Iterator<SourceDeclarationBuilder> iterator = filteredMembersIterator(
+      includeDuplicates: true,
+    );
+    while (iterator.moveNext()) {
+      SourceDeclarationBuilder builder = iterator.current;
+      count += builder.resolveConstructors(this);
+    }
+    return count;
+  }
+
+  /// Sets [fieldNonPromotabilityInfo] based on the contents of this library.
+  void computeFieldPromotability() {
+    _FieldPromotability fieldPromotability = new _FieldPromotability();
+    Map<Member, PropertyNonPromotabilityReason> individualPropertyReasons = {};
+
+    // Iterate through all the classes, enums, and mixins in the library,
+    // recording the non-synthetic instance fields and getters of each.
+    Iterator<SourceClassBuilder> classIterator = filteredMembersIterator(
+      includeDuplicates: true,
+    );
+    while (classIterator.moveNext()) {
+      SourceClassBuilder classBuilder = classIterator.current;
+      ClassInfo<Class> classInfo = fieldPromotability.addClass(
+        classBuilder.cls,
+        isAbstract: classBuilder.isAbstract,
+      );
+      Iterator<SourcePropertyBuilder> memberIterator = classBuilder
+          .filteredMembersIterator(includeDuplicates: false);
+      while (memberIterator.moveNext()) {
+        SourcePropertyBuilder member = memberIterator.current;
+        if (member.isStatic) continue;
+        if (member.hasField) {
+          if (member.isSynthesized) continue;
+          PropertyNonPromotabilityReason? reason = fieldPromotability.addField(
+            classInfo,
+            member,
+            member.name,
+            isFinal: member.isFinal,
+            isAbstract: member.hasAbstractField,
+            isExternal: member.hasExternalField,
+          );
+          if (reason != null) {
+            individualPropertyReasons[member.readTarget!] = reason;
+          }
+        } else if (member.hasGetter) {
+          if (member.isSynthetic) continue;
+          PropertyNonPromotabilityReason? reason = fieldPromotability.addGetter(
+            classInfo,
+            member,
+            member.name,
+            isAbstract: member.hasAbstractGetter,
+          );
+          if (reason != null) {
+            individualPropertyReasons[member.readTarget!] = reason;
+          }
+        }
+      }
+    }
+
+    // And for each getter in an extension or extension type, make a note of why
+    // it's not promotable.
+    Iterator<SourceExtensionBuilder> extensionIterator =
+        filteredMembersIterator(includeDuplicates: true);
+    while (extensionIterator.moveNext()) {
+      SourceExtensionBuilder extension_ = extensionIterator.current;
+      Iterator<SourcePropertyBuilder> iterator = extension_
+          .filteredMembersIterator(includeDuplicates: false);
+      while (iterator.moveNext()) {
+        SourcePropertyBuilder member = iterator.current;
+        if (!member.isStatic && member.hasExplicitGetter) {
+          individualPropertyReasons[member.readTarget!] =
+              member.memberName.isPrivate
+              ? PropertyNonPromotabilityReason.isNotField
+              : PropertyNonPromotabilityReason.isNotPrivate;
+        }
+      }
+    }
+    Iterator<SourceExtensionTypeDeclarationBuilder> extensionTypeIterator =
+        filteredMembersIterator(includeDuplicates: true);
+    while (extensionTypeIterator.moveNext()) {
+      SourceExtensionTypeDeclarationBuilder extensionType =
+          extensionTypeIterator.current;
+      Member? representationGetter =
+          extensionType.representationFieldBuilder?.readTarget;
+      if (representationGetter != null &&
+          !representationGetter.name.isPrivate) {
+        individualPropertyReasons[representationGetter] =
+            PropertyNonPromotabilityReason.isNotPrivate;
+      }
+      Iterator<SourcePropertyBuilder> iterator = extensionType
+          .filteredMembersIterator(includeDuplicates: false);
+      while (iterator.moveNext()) {
+        SourcePropertyBuilder member = iterator.current;
+        if (!member.isStatic && member.hasExplicitGetter) {
+          individualPropertyReasons[member.readTarget!] =
+              member.memberName.isPrivate
+              ? PropertyNonPromotabilityReason.isNotField
+              : PropertyNonPromotabilityReason.isNotPrivate;
+        }
+      }
+    }
+
+    // Compute information about field non-promotability.
+    fieldNonPromotabilityInfo = new FieldNonPromotabilityInfo(
+      fieldNameInfo: fieldPromotability.computeNonPromotabilityInfo(),
+      individualPropertyReasons: individualPropertyReasons,
+    );
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String get fullNameForErrors {
+    // TODO(ahe): Consider if we should use relativizeUri here. The downside to
+    // doing that is that this URI may be used in an error message. Ideally, we
+    // should create a class that represents qualified names that we can
+    // relativize when printing a message, but still store the full URI in
+    // .dill files.
+    return "<library '$importUri'>";
+  }
+
+  @override
+  final Uri importUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void becomeCoreLibrary() {
+    assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
+
+    if (libraryNameSpace.lookup("dynamic")?.getable == null) {
+      DynamicTypeDeclarationBuilder builder = new DynamicTypeDeclarationBuilder(
+        const DynamicType(),
+        this,
+        -1,
+      );
+      _libraryNameSpace!.addLocalMember("dynamic", builder);
+      _memberBuilders.add(builder);
+    }
+    if (libraryNameSpace.lookup("Never")?.getable == null) {
+      NeverTypeDeclarationBuilder builder = new NeverTypeDeclarationBuilder(
+        const NeverType.nonNullable(),
+        this,
+        -1,
+      );
+      _libraryNameSpace!.addLocalMember("Never", builder);
+      _memberBuilders.add(builder);
+    }
+    assert(
+      libraryNameSpace.lookup("Null")?.getable != null,
+      "No class 'Null' found in dart:core.",
+    );
+  }
+
+  @override
+  FormattedMessage? addProblem(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  }) {
+    FormattedMessage? formattedMessage = super.addProblem(
+      message,
+      charOffset,
+      length,
+      fileUri,
+      wasHandled: wasHandled,
+      context: context,
+      severity: severity,
+      problemOnLibrary: true,
+    );
+    if (formattedMessage != null) {
+      library.problemsAsJson ??= <String>[];
+      library.problemsAsJson!.add(formattedMessage.toJsonString());
+    }
+    return formattedMessage;
+  }
+
+  /// Map from mixin application classes to their mixin types.
+  ///
+  /// This is used to check that super access in mixin declarations have a
+  /// concrete target.
+  Map<SourceClassBuilder, TypeBuilder>? _mixinApplications = {};
+
+  void takeMixinApplications(
+    Map<SourceClassBuilder, TypeBuilder> mixinApplications,
+  ) {
+    assert(
+      _mixinApplications != null,
+      "Mixin applications have already been processed.",
+    );
+    mixinApplications.addAll(_mixinApplications!);
+    _mixinApplications = null;
+  }
+
+  BodyBuilderContext createBodyBuilderContext() {
+    return new LibraryBodyBuilderContext(this);
+  }
+
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
+    compilationUnit.buildOutlineExpressions(
+      annotatable: library,
+      annotatableFileUri: library.fileUri,
+      bodyBuilderContext: createBodyBuilderContext(),
+    );
+
+    Iterator<Builder> iterator = unfilteredMembersIterator;
+    while (iterator.moveNext()) {
+      Builder declaration = iterator.current;
+      if (declaration is SourceClassBuilder) {
+        declaration.buildOutlineExpressions(
+          classHierarchy,
+          delayedDefaultValueCloners,
+        );
+      } else if (declaration is SourceExtensionBuilder) {
+        declaration.buildOutlineExpressions(
+          classHierarchy,
+          delayedDefaultValueCloners,
+        );
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
+        declaration.buildOutlineExpressions(
+          classHierarchy,
+          delayedDefaultValueCloners,
+        );
+      } else if (declaration is SourceMemberBuilder) {
+        declaration.buildOutlineExpressions(
+          classHierarchy,
+          delayedDefaultValueCloners,
+        );
+      } else if (declaration is SourceTypeAliasBuilder) {
+        declaration.buildOutlineExpressions(
+          classHierarchy,
+          delayedDefaultValueCloners,
+        );
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        assert(
+          declaration is PrefixBuilder ||
+              declaration is DynamicTypeDeclarationBuilder ||
+              declaration is NeverTypeDeclarationBuilder,
+          "Unexpected builder in library: ${declaration} "
+          "(${declaration.runtimeType}",
+        );
+      }
+    }
+  }
+
+  /// Builds the core AST structures for [declaration] needed for the outline.
+  void _buildOutlineNodes(Builder declaration, LibraryBuilder coreLibrary) {
+    if (declaration is SourceClassBuilder) {
+      Class cls = declaration.build(coreLibrary);
+      if (!declaration.isAugmentation) {
+        if (declaration.isDuplicate) {
+          cls.name =
+              '${cls.name}'
+              '#${declaration.duplicateIndex}';
+        }
+      } else {
+        // The following is a recovery to prevent cascading errors.
+        int nameIndex = 0;
+        String baseName = cls.name;
+        String? nameOfErroneousAugmentation;
+        while (nameOfErroneousAugmentation == null) {
+          nameOfErroneousAugmentation =
+              "_#${baseName}#augmentationWithoutOrigin${nameIndex}";
+          for (Class class_ in library.classes) {
+            if (class_.name == nameOfErroneousAugmentation) {
+              nameOfErroneousAugmentation = null;
+              break;
+            }
+          }
+          nameIndex++;
+        }
+        cls.name = nameOfErroneousAugmentation;
+      }
+      library.addClass(cls);
+    } else if (declaration is SourceExtensionBuilder) {
+      Extension extension = declaration.build(
+        coreLibrary,
+        addMembersToLibrary: !declaration.isDuplicate,
+      );
+      if (!declaration.isDuplicate) {
+        if (declaration.isUnnamedExtension) {
+          declaration.extensionName.name =
+              '${NameScheme.unnamedExtensionNamePrefix}'
+              '${library.extensions.length}';
+        }
+        library.addExtension(extension);
+      }
+    } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
+      ExtensionTypeDeclaration extensionTypeDeclaration = declaration.build(
+        coreLibrary,
+        addMembersToLibrary: !declaration.isDuplicate,
+      );
+      if (!declaration.isDuplicate) {
+        library.addExtensionTypeDeclaration(extensionTypeDeclaration);
+      } else if (declaration.isDuplicate) {
+        // Set parent so an `enclosingLibrary` call won't crash.
+        extensionTypeDeclaration.parent = library;
+      }
+    } else if (declaration is SourceMemberBuilder) {
+      declaration.buildOutlineNodes(({
+        required Member member,
+        Member? tearOff,
+        required BuiltMemberKind kind,
+      }) {
+        _addMemberToLibrary(declaration, member);
+        if (tearOff != null) {
+          // Coverage-ignore-block(suite): Not run.
+          _addMemberToLibrary(declaration, tearOff);
+        }
+      });
+    } else if (declaration is SourceTypeAliasBuilder) {
+      Typedef typedef = declaration.build();
+      if (!declaration.isDuplicate) {
+        library.addTypedef(typedef);
+      }
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (declaration is PrefixBuilder) {
+      // Ignored. Kernel doesn't represent prefixes.
+      return;
+    } else if (declaration is BuiltinTypeDeclarationBuilder) {
+      // Nothing needed.
+      return;
+    } else {
+      unhandled(
+        "${declaration.runtimeType}",
+        "buildBuilder",
+        declaration.fileOffset,
+        declaration.fileUri,
+      );
+    }
+  }
+
+  void _addMemberToLibrary(SourceMemberBuilder declaration, Member member) {
+    if (member is Field) {
+      member.isStatic = true;
+      if (!declaration.isDuplicate) {
+        library.addField(member);
+      }
+    } else if (member is Procedure) {
+      member.isStatic = true;
+      if (!declaration.isDuplicate) {
+        library.addProcedure(member);
+      }
+    } else {
+      unhandled(
+        "${member.runtimeType}",
+        "_buildMember",
+        declaration.fileOffset,
+        declaration.fileUri,
+      );
+    }
+  }
+
+  void addDependencies(Library library, Set<SourceCompilationUnit> seen) {
+    assert(checkState(required: [SourceLibraryBuilderState.outlineNodesBuilt]));
+    Map<String, int> deferredNames = {};
+    compilationUnit.addDependencies(
+      library: library,
+      seen: seen,
+      deferredNames: deferredNames,
+    );
+    for (SourceCompilationUnit part in parts) {
+      part.addDependencies(
+        library: library,
+        seen: seen,
+        deferredNames: deferredNames,
+      );
+    }
+  }
+
+  int finishDeferredLoadTearOffs() {
+    int total = compilationUnit.finishDeferredLoadTearOffs(library);
+    for (SourceCompilationUnit part in parts) {
+      total += part.finishDeferredLoadTearOffs(library);
+    }
+    return total;
+  }
+
+  int finishForwarders() {
+    int count = 0;
+    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
+    for (int i = 0; i < forwardersOrigins.length; i += 2) {
+      Procedure forwarder = forwardersOrigins[i];
+      Procedure origin = forwardersOrigins[i + 1];
+
+      int positionalCount = origin.function.positionalParameters.length;
+      if (forwarder.function.positionalParameters.length != positionalCount) {
+        return unexpected(
+          "$positionalCount",
+          "${forwarder.function.positionalParameters.length}",
+          origin.fileOffset,
+          origin.fileUri,
+        );
+      }
+      for (int j = 0; j < positionalCount; ++j) {
+        PositionalParameter forwarderParameter =
+            forwarder.function.positionalParameters[j];
+        PositionalParameter originParameter =
+            origin.function.positionalParameters[j];
+        if (originParameter.defaultValue != null) {
+          forwarderParameter.defaultValue = cloner.clone(
+            originParameter.defaultValue!,
+          );
+          forwarderParameter.defaultValue!.parent = forwarderParameter;
+        }
+      }
+
+      Map<String, NamedParameter> originNamedMap = {};
+      for (NamedParameter originNamed in origin.function.namedParameters) {
+        originNamedMap[originNamed.parameterName] = originNamed;
+      }
+      for (NamedParameter forwarderNamed
+          in forwarder.function.namedParameters) {
+        NamedParameter? originNamed =
+            originNamedMap[forwarderNamed.parameterName];
+        if (originNamed == null) {
+          return unhandled(
+            "null",
+            forwarder.name.text,
+            origin.fileOffset,
+            origin.fileUri,
+          );
+        }
+        if (originNamed.defaultValue == null) continue;
+        forwarderNamed.defaultValue = cloner.clone(originNamed.defaultValue!);
+        forwarderNamed.defaultValue!.parent = forwarderNamed;
+      }
+
+      ++count;
+    }
+    forwardersOrigins.clear();
+    return count;
+  }
+
+  int finishNativeMethods(SourceLoader loader) {
+    int count = compilationUnit.finishNativeMethods(loader);
+    for (SourceCompilationUnit part in parts) {
+      count += part.finishNativeMethods(loader);
+    }
+
+    return count;
+  }
+
+  final TypeParameterFactory typeParameterFactory = new TypeParameterFactory();
+
+  /// Adds all unbound nominal parameters to [nominalParameters] and unbound
+  /// structural parameters to [structuralParameters], mapping them to this
+  /// library.
+  ///
+  /// This is used to compute the bounds of type parameter while taking the
+  /// bound dependencies, which might span multiple libraries, into account.
+  void collectUnboundTypeParameters(
+    Map<TypeParameterBuilder, SourceLibraryBuilder> typeParameterBuilders,
+  ) {
+    for (TypeParameterBuilder builder
+        in compilationUnit.collectUnboundTypeParameters()) {
+      typeParameterBuilders[builder] = this;
+    }
+    for (SourceCompilationUnit part in parts) {
+      for (TypeParameterBuilder builder
+          in part.collectUnboundTypeParameters()) {
+        typeParameterBuilders[builder] = this;
+      }
+    }
+    for (TypeParameterBuilder builder
+        in typeParameterFactory.collectTypeParameters()) {
+      typeParameterBuilders[builder] = this;
+    }
+
+    state = SourceLibraryBuilderState.unboundTypeParametersCollected;
+  }
+
+  /// Computes variances of type parameters on typedefs.
+  ///
+  /// The variance property of type parameters on typedefs is computed from the
+  /// use of the parameters in the right-hand side of the typedef definition.
+  int computeVariances() {
+    int count = compilationUnit.computeVariances();
+    return count;
+  }
+
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type parameters
+  /// that were instantiated in this library.
+  int computeDefaultTypes(
+    TypeBuilder dynamicType,
+    TypeBuilder nullType,
+    TypeBuilder bottomType,
+    ClassBuilder objectClass,
+  ) {
+    assert(
+      checkState(
+        required: [SourceLibraryBuilderState.resolvedTypes],
+        pending: [SourceLibraryBuilderState.unboundTypeParametersCollected],
+      ),
+    );
+    int count = compilationUnit.computeDefaultTypes(
+      dynamicType,
+      nullType,
+      bottomType,
+      objectClass,
+    );
+    state = SourceLibraryBuilderState.defaultTypesComputed;
+    return count;
+  }
+
+  /// Builds the AST nodes needed for the full compilation.
+  ///
+  /// This includes augmenting member bodies and adding augmented members.
+  int buildBodyNodes() {
+    int count = 0;
+    Iterator<Builder> iterator = unfilteredMembersIterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceMemberBuilder) {
+        count += builder.buildBodyNodes(
+          // Coverage-ignore(suite): Not run.
+          ({
+            required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind,
+          }) {
+            _addMemberToLibrary(builder, member);
+            if (tearOff != null) {
+              _addMemberToLibrary(builder, tearOff);
+            }
+          },
+        );
+      } else if (builder is SourceClassBuilder) {
+        count += builder.buildBodyNodes();
+      } else if (builder is SourceExtensionBuilder) {
+        count += builder.buildBodyNodes(
+          addMembersToLibrary: !builder.isDuplicate,
+        );
+      } else if (builder is SourceExtensionTypeDeclarationBuilder) {
+        count += builder.buildBodyNodes(
+          addMembersToLibrary: !builder.isDuplicate,
+        );
+      } else if (builder is SourceClassBuilder) {
+        // Coverage-ignore-block(suite): Not run.
+        count += builder.buildBodyNodes();
+      } else if (builder is SourceTypeAliasBuilder) {
+        // Do nothing.
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (builder is PrefixBuilder) {
+        // Ignored. Kernel doesn't represent prefixes.
+      } else if (builder is BuiltinTypeDeclarationBuilder) {
+        // Nothing needed.
+      } else {
+        unhandled(
+          "${builder.runtimeType}",
+          "buildBodyNodes",
+          builder.fileOffset,
+          builder.fileUri,
+        );
+      }
+    }
+    return count;
+  }
+
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    ProblemReporting problemReporting = this;
+
+    Iterator<Builder> iterator = unfilteredMembersIterator;
+    while (iterator.moveNext()) {
+      Builder declaration = iterator.current;
+      if (declaration is SourceMemberBuilder) {
+        declaration.checkTypes(
+          problemReporting,
+          libraryFeatures,
+          libraryNameSpace,
+          typeEnvironment,
+        );
+      } else if (declaration is SourceClassBuilder) {
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
+        if (typeParameters != null && typeParameters.isNotEmpty) {
+          checkTypeParameterDependencies(this, typeParameters);
+        }
+        declaration.checkTypesInOutline(typeEnvironment);
+      } else if (declaration is SourceExtensionBuilder) {
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
+        if (typeParameters != null && typeParameters.isNotEmpty) {
+          checkTypeParameterDependencies(this, typeParameters);
+        }
+        declaration.checkTypesInOutline(typeEnvironment);
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
+        if (typeParameters != null && typeParameters.isNotEmpty) {
+          checkTypeParameterDependencies(this, typeParameters);
+        }
+        declaration.checkTypesInOutline(typeEnvironment);
+      } else if (declaration is SourceTypeAliasBuilder) {
+        List<SourceNominalParameterBuilder>? typeParameters =
+            declaration.typeParameters;
+        if (typeParameters != null && typeParameters.isNotEmpty) {
+          checkTypeParameterDependencies(this, typeParameters);
+        }
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        assert(
+          declaration is! TypeDeclarationBuilder ||
+              declaration is BuiltinTypeDeclarationBuilder,
+          "Unexpected declaration ${declaration.runtimeType}",
+        );
+      }
+    }
+    checkPendingBoundsChecks(typeEnvironment);
+  }
+
+  void registerBoundsCheck(
+    DartType type,
+    Uri fileUri,
+    int charOffset,
+    TypeUse typeUse, {
+    required bool inferred,
+  }) {
+    _pendingBoundsChecks.add(
+      new PendingBoundsCheck(
+        type,
+        fileUri,
+        charOffset,
+        typeUse,
+        inferred: inferred,
+      ),
+    );
+  }
+
+  void registerGenericFunctionTypeCheck(
+    TypedefType type,
+    Uri fileUri,
+    int charOffset,
+  ) {
+    _pendingGenericFunctionTypeChecks.add(
+      new GenericFunctionTypeCheck(type, fileUri, charOffset),
+    );
+  }
+
+  /// Performs delayed bounds checks.
+  void checkPendingBoundsChecks(TypeEnvironment typeEnvironment) {
+    for (PendingBoundsCheck pendingBoundsCheck in _pendingBoundsChecks) {
+      switch (pendingBoundsCheck.typeUse) {
+        case TypeUse.literalTypeArgument:
+        case TypeUse.variableType:
+        case TypeUse.typeParameterBound:
+        case TypeUse.parameterType:
+        case TypeUse.recordEntryType:
+        case TypeUse.fieldType:
+        case TypeUse.returnType:
+        case TypeUse.isType:
+        case TypeUse.asType:
+        case TypeUse.objectPatternType:
+        case TypeUse.catchType:
+        case TypeUse.constructorTypeArgument:
+        case TypeUse.redirectionTypeArgument:
+        case TypeUse.tearOffTypeArgument:
+        case TypeUse.invocationTypeArgument:
+        case TypeUse.typeLiteral:
+        case TypeUse.extensionOnType:
+        case TypeUse.extensionTypeRepresentationType:
+        case TypeUse.typeArgument:
+          checkBoundsInType(
+            libraryFeatures: libraryFeatures,
+            type: pendingBoundsCheck.type,
+            typeEnvironment: typeEnvironment,
+            fileUri: pendingBoundsCheck.fileUri,
+            fileOffset: pendingBoundsCheck.charOffset,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
+            allowSuperBounded: true,
+          );
+          break;
+        case TypeUse.typedefAlias:
+        case TypeUse.classExtendsType:
+        case TypeUse.classImplementsType:
+        // TODO(johnniwinther): Is this a correct handling wrt well-boundedness
+        //  for mixin on clause?
+        case TypeUse.mixinOnType:
+        case TypeUse.extensionTypeImplementsType:
+        case TypeUse.classWithType:
+          checkBoundsInType(
+            libraryFeatures: libraryFeatures,
+            type: pendingBoundsCheck.type,
+            typeEnvironment: typeEnvironment,
+            fileUri: pendingBoundsCheck.fileUri,
+            fileOffset: pendingBoundsCheck.charOffset,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
+            allowSuperBounded: false,
+          );
+          break;
+        case TypeUse.instantiation:
+          // TODO(johnniwinther): Should we allow super bounded tear offs of
+          // non-proper renames?
+          checkBoundsInType(
+            libraryFeatures: libraryFeatures,
+            type: pendingBoundsCheck.type,
+            typeEnvironment: typeEnvironment,
+            fileUri: pendingBoundsCheck.fileUri,
+            fileOffset: pendingBoundsCheck.charOffset,
+            hasInferredTypeArguments: pendingBoundsCheck.inferred,
+            allowSuperBounded: true,
+          );
+          break;
+        case TypeUse.enumSelfType:
+          // TODO(johnniwinther): Check/create this type as regular bounded i2b.
+          /*
+            checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
+                pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
+                inferred: pendingBoundsCheck.inferred,
+                allowSuperBounded: false);
+          */
+          break;
+        case TypeUse.typeParameterDefaultType:
+        case TypeUse.defaultTypeAsTypeArgument:
+        // Coverage-ignore(suite): Not run.
+        case TypeUse.deferredTypeError:
+          break;
+      }
+    }
+    _pendingBoundsChecks.clear();
+
+    for (GenericFunctionTypeCheck genericFunctionTypeCheck
+        in _pendingGenericFunctionTypeChecks) {
+      checkGenericFunctionTypeAsTypeArgumentThroughTypedef(
+        libraryFeatures: libraryFeatures,
+        type: genericFunctionTypeCheck.type,
+        fileUri: genericFunctionTypeCheck.fileUri,
+        fileOffset: genericFunctionTypeCheck.charOffset,
+      );
+    }
+    _pendingGenericFunctionTypeChecks.clear();
+  }
+
+  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
+    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
+    Iterator<SourceTypeAliasBuilder> iterator = filteredMembersIterator(
+      includeDuplicates: true,
+    );
+    while (iterator.moveNext()) {
+      SourceTypeAliasBuilder declaration = iterator.current;
+      DelayedDefaultValueCloner? delayedDefaultValueCloner = declaration
+          .buildTypedefTearOffs(this, (Procedure procedure) {
+            procedure.isStatic = true;
+            if (!declaration.isDuplicate) {
+              library.addProcedure(procedure);
+            }
+          });
+      if (delayedDefaultValueCloner != null) {
+        (delayedDefaultValueCloners ??= []).add(delayedDefaultValueCloner);
+      }
+    }
+
+    return delayedDefaultValueCloners;
+  }
+}
+
+/// This class examines all the [Class]es in a library and determines which
+/// fields are promotable within that library.
+class _FieldPromotability
+    extends
+        FieldPromotability<Class, SourceMemberBuilder, SourceMemberBuilder> {
+  @override
+  Iterable<Class> getSuperclasses(
+    Class class_, {
+    required bool ignoreImplements,
+  }) {
+    List<Class> result = [];
+    Class? superclass = class_.superclass;
+    if (superclass != null) {
+      result.add(superclass);
+    }
+    Class? mixedInClass = class_.mixedInClass;
+    if (mixedInClass != null) {
+      result.add(mixedInClass);
+    }
+    if (!ignoreImplements) {
+      for (Supertype interface in class_.implementedTypes) {
+        result.add(interface.classNode);
+      }
+      if (class_.isMixinDeclaration) {
+        for (Supertype supertype in class_.onClause) {
+          result.add(supertype.classNode);
+        }
+      }
+    }
+    return result;
+  }
+}
+
+/// Information about which fields are promotable in a given library.
+class FieldNonPromotabilityInfo {
+  /// Map whose keys are private field names for which promotion is blocked, and
+  /// whose values are [FieldNameNonPromotabilityInfo] objects containing
+  /// information about why promotion is blocked for the given name.
+  ///
+  /// This map is the final arbiter on whether a given property access is
+  /// considered promotable, but since it is keyed on the field name, it doesn't
+  /// always provide the most specific information about *why* a given property
+  /// isn't promotable; for more detailed information about a specific property,
+  /// see [individualPropertyReasons].
+  final Map<
+    String,
+    FieldNameNonPromotabilityInfo<
+      Class,
+      SourceMemberBuilder,
+      SourceMemberBuilder
+    >
+  >
+  fieldNameInfo;
+
+  /// Map whose keys are the members that a property get might resolve to, and
+  /// whose values are the reasons why the given property couldn't be promoted.
+  final Map<Member, PropertyNonPromotabilityReason> individualPropertyReasons;
+
+  new({required this.fieldNameInfo, required this.individualPropertyReasons});
+}
+
+Uri computeLibraryUri(Builder declaration) {
+  Builder? current = declaration;
+  while (current != null) {
+    if (current is LibraryBuilder) return current.importUri;
+    current = current.parent;
+  }
+  return unhandled(
+    "no library parent",
+    "${declaration.runtimeType}",
+    declaration.fileOffset,
+    declaration.fileUri,
+  );
+}
+
+class PostponedProblem {
+  final Message message;
+  final int charOffset;
+  final int length;
+  final Uri fileUri;
+
+  new(this.message, this.charOffset, this.length, this.fileUri);
+}
+
+class LanguageVersion {
+  final Version version;
+  final Uri? fileUri;
+  final int charOffset;
+  final int charCount;
+  bool isFinal = false;
+
+  new(this.version, this.fileUri, this.charOffset, this.charCount);
+
+  bool get isExplicit => true;
+
+  bool get valid => true;
+
+  @override
+  int get hashCode => version.hashCode * 13 + isExplicit.hashCode * 19;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LanguageVersion &&
+        version == other.version &&
+        isExplicit == other.isExplicit;
+  }
+
+  @override
+  String toString() {
+    return 'LanguageVersion(version=$version,isExplicit=$isExplicit,'
+        'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
+  }
+}
+
+class InvalidLanguageVersion implements LanguageVersion {
+  @override
+  final Uri fileUri;
+  @override
+  final int charOffset;
+  @override
+  final int charCount;
+  @override
+  final Version version;
+  @override
+  final bool isExplicit;
+  @override
+  bool isFinal = false;
+
+  new(
+    this.fileUri,
+    this.charOffset,
+    this.charCount,
+    this.version,
+    this.isExplicit,
+  );
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get valid => false;
+
+  @override
+  int get hashCode => isExplicit.hashCode * 19;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is InvalidLanguageVersion && isExplicit == other.isExplicit;
+  }
+
+  @override
+  String toString() {
+    return 'InvalidLanguageVersion(isExplicit=$isExplicit,'
+        'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
+  }
+}
+
+class ImplicitLanguageVersion implements LanguageVersion {
+  @override
+  final Version version;
+  @override
+  bool isFinal = false;
+
+  new(this.version);
+
+  @override
+  bool get valid => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri? get fileUri => null;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => -1;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charCount => noLength;
+
+  @override
+  bool get isExplicit => false;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is ImplicitLanguageVersion && version == other.version;
+  }
+
+  @override
+  String toString() {
+    return 'ImplicitLanguageVersion(version=$version)';
+  }
+}
+
+class PendingBoundsCheck {
+  final DartType type;
+  final Uri fileUri;
+  final int charOffset;
+  final TypeUse typeUse;
+  final bool inferred;
+
+  new(
+    this.type,
+    this.fileUri,
+    this.charOffset,
+    this.typeUse, {
+    required this.inferred,
+  });
+}
+
+class GenericFunctionTypeCheck {
+  final TypedefType type;
+  final Uri fileUri;
+  final int charOffset;
+
+  new(this.type, this.fileUri, this.charOffset);
+}
+
+class LibraryAccess {
+  final CompilationUnit accessor;
+  final Uri fileUri;
+  final int charOffset;
+  final int length;
+
+  new(this.accessor, this.fileUri, this.charOffset, this.length);
+}

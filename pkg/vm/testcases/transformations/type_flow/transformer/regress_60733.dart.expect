@@ -1,0 +1,53 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class Widget extends core::Object {
+}
+class W1 extends core::Object implements self::Widget {
+  synthetic constructor •() → self::W1
+    : super core::Object::•()
+    ;
+}
+class W2 extends core::Object implements self::Widget {
+  synthetic constructor •() → self::W2
+    : super core::Object::•()
+    ;
+}
+class W3 extends core::Object implements self::Widget {
+  synthetic constructor •() → self::W3
+    : super core::Object::•()
+    ;
+}
+class W4 extends core::Object implements self::Widget {
+  synthetic constructor •() → self::W4
+    : super core::Object::•()
+    ;
+}
+class W5 extends core::Object implements self::Widget {
+  synthetic constructor •() → self::W5
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Widget>]
+static final field core::List<self::Widget> widgets = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Widget>] core::_GrowableList::_literal5<self::Widget>(new self::W1::•(), new self::W2::•(), new self::W3::•(), new self::W4::•(), new self::W5::•());
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method _getObjectCreationLocation() → core::Object? {
+  return _in::unsafeCast<core::Object?>(null);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  {
+    synthesized core::Iterator<self::Widget> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::Widget>] [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Widget>] self::widgets.{core::Iterable::iterator}{core::Iterator<self::Widget>};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      self::Widget w = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::Widget};
+      {
+        core::print([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::_getObjectCreationLocation());
+      }
+    }
+  }
+}

@@ -1,0 +1,151 @@
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+class AttributeClassSet extends CssClassSetImpl {
+  final Element _element;
+
+  AttributeClassSet(this._element);
+
+  Set<String> readClasses() {
+    var classname = _element.attributes['class'];
+    if (classname is AnimatedString) {
+      classname = (classname as AnimatedString).baseVal;
+    }
+
+    Set<String> s = new LinkedHashSet<String>();
+    if (classname == null) {
+      return s;
+    }
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set s) {
+    _element.setAttribute('class', s.join(' '));
+  }
+}
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
+
+  factory $CLASSNAME.tag(String tag) =>
+      document.createElementNS("http://www.w3.org/2000/svg", tag) $#NULLSAFECAST(as $CLASSNAME);
+  factory $CLASSNAME.svg(String svg,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+
+    if (validator == null && treeSanitizer == null) {
+      validator = new NodeValidatorBuilder.common()..allowSvg();
+    }
+
+    final match = _START_TAG_REGEXP.firstMatch(svg);
+    Element parentElement;
+    if (match != null && match.group(1)$NULLASSERT.toLowerCase() == 'svg') {
+      parentElement = document.body!;
+    } else {
+      parentElement = new SvgSvgElement();
+    }
+    var fragment = parentElement.createFragment(svg, validator: validator,
+        treeSanitizer: treeSanitizer);
+    return fragment.nodes.where((e) => e is SvgElement).single as SvgElement;
+  }
+
+  CssClassSet get classes => new AttributeClassSet(this);
+
+  List<Element> get children => new FilteredElementList(this);
+
+  set children(List<Element> value) {
+    final children = this.children;
+    children.clear();
+    children.addAll(value);
+  }
+
+  String$NULLABLE get outerHtml {
+    final container = new DivElement();
+    final SvgElement cloned = this.clone(true) $#NULLSAFECAST(as SvgElement);
+    container.children.add(cloned);
+    return container.innerHtml;
+  }
+
+  String$NULLABLE get innerHtml {
+    final container = new DivElement();
+    final SvgElement cloned = this.clone(true) $#NULLSAFECAST(as SvgElement);
+    container.children.addAll(cloned.children);
+    return container.innerHtml;
+  }
+
+  set innerHtml(String$NULLABLE value) {
+    this.setInnerHtml(value);
+  }
+
+  DocumentFragment createFragment(String$NULLABLE svg,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+
+    if (treeSanitizer == null) {
+      if (validator == null) {
+        validator = new NodeValidatorBuilder.common()
+          ..allowSvg();
+      }
+      treeSanitizer = new NodeTreeSanitizer(validator);
+    }
+
+    // We create a fragment which will parse in the HTML parser
+    var html = '<svg version="1.1">$svg</svg>';
+    var fragment = document.body$NULLASSERT.createFragment(html,
+        treeSanitizer: treeSanitizer);
+
+    var svgFragment = new DocumentFragment();
+    // The root is the <svg/> element, need to pull out the contents.
+    var root = fragment.nodes.single;
+    while (root.firstChild != null) {
+      svgFragment.append(root.firstChild$NULLASSERT);
+    }
+    return svgFragment;
+  }
+
+  // Unsupported methods inherited from Element.
+
+  void insertAdjacentText(String where, String text) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentText on SVG.");
+  }
+
+  void insertAdjacentHtml(String where, String text,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
+  }
+
+  Element insertAdjacentElement(String where, Element element) {
+    throw new UnsupportedError("Cannot invoke insertAdjacentElement on SVG.");
+  }
+
+  HtmlCollection get _children {
+    throw new UnsupportedError("Cannot get _children on SVG.");
+  }
+
+  bool get isContentEditable => false;
+  void click() {
+    throw new UnsupportedError("Cannot invoke click SVG.");
+  }
+
+  /**
+   * Checks to see if the SVG element type is supported by the current platform.
+   *
+   * The tag should be a valid SVG element tag name.
+   */
+  static bool isTagSupported(String tag) {
+    var e = new $CLASSNAME.tag(tag);
+    return e is $CLASSNAME && !(e is UnknownElement);
+  }
+
+$!MEMBERS
+}

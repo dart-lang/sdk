@@ -1,0 +1,33 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class A extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::A? :a:finalizableValue;
+  final hoisted has-declared-initializer self::A a;
+  {
+    final synthesized(self::A, core::bool) #0#0 = [@vm.inferred-type.metadata=dart.core::_Record] self::b();
+    :a:finalizableValue = a = block {
+      final synthesized self::A :expressionValueWrappedFinalizable = #0#0.$1{self::A};
+      _in::reachabilityFence(:a:finalizableValue);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  core::print(a);
+  _in::reachabilityFence(:a:finalizableValue);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Record]
+[@vm.unboxing-info.metadata=()->r<2>]
+static method b() → (self::A, core::bool)
+  return (new self::A::•(), true);

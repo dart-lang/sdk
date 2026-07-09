@@ -1,0 +1,12 @@
+M(a0 uint64) Struct(size: 8)
+M(a1 uint64) Struct(size: 8)
+M(a2 uint64) Struct(size: 8)
+M(t3 uint64) Struct(size: 8)
+M(t4 uint64) Struct(size: 8)
+M(t5 uint64) Struct(size: 8)
+M(a6 uint64) Struct(size: 8)
+M(a7 uint64) Struct(size: 8)
+M(S+0 uint64) Struct(size: 8)
+M(S+8 uint64) Struct(size: 8)
+=>
+M(a0 uint64) Struct(size: 8)

@@ -1,0 +1,110 @@
+@#C2
+library;
+import self as self;
+import "dart:js_interop" as js_;
+import "dart:core" as core;
+
+import "dart:js_interop";
+
+extension type CustomJSAny(js_::JSAny /* erasure=core::Object */ _) implements js_::JSAny /* erasure=core::Object */ {
+  abstract extension-type-member representation-field get _() → js_::JSAny /* erasure=core::Object */;
+  constructor • = self::CustomJSAny|constructor#;
+  constructor tearoff • = self::CustomJSAny|constructor#_#new#tearOff;
+}
+extension type CustomJSObject(js_::JSObject /* erasure=_interceptors::JSObject */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSObject /* erasure=_interceptors::JSObject */;
+  constructor • = self::CustomJSObject|constructor#;
+  constructor tearoff • = self::CustomJSObject|constructor#_#new#tearOff;
+}
+extension type CustomTypedArray(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */;
+  constructor • = self::CustomTypedArray|constructor#;
+  constructor tearoff • = self::CustomTypedArray|constructor#_#new#tearOff;
+}
+@#C4
+extension type CustomJSArray(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get _() → js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */;
+  constructor • = self::CustomJSArray|constructor#;
+  constructor tearoff • = self::CustomJSArray|constructor#_#new#tearOff;
+}
+static extension-type-member method CustomJSAny|constructor#(wildcard initializing-formal js_::JSAny /* erasure=core::Object */ _#wc0#formal) → self::CustomJSAny /* erasure=core::Object */ {
+  lowered final self::CustomJSAny /* erasure=core::Object */ #this = _#wc0#formal;
+  return #this;
+}
+static extension-type-member synthetic method CustomJSAny|constructor#_#new#tearOff(js_::JSAny /* erasure=core::Object */ _#wc0#formal) → self::CustomJSAny /* erasure=core::Object */
+  return self::CustomJSAny|constructor#(_#wc0#formal);
+static extension-type-member method CustomJSObject|constructor#(wildcard initializing-formal js_::JSObject /* erasure=_interceptors::JSObject */ _#wc1#formal) → self::CustomJSObject /* erasure=_interceptors::JSObject */ {
+  lowered final self::CustomJSObject /* erasure=_interceptors::JSObject */ #this = _#wc1#formal;
+  return #this;
+}
+static extension-type-member synthetic method CustomJSObject|constructor#_#new#tearOff(js_::JSObject /* erasure=_interceptors::JSObject */ _#wc1#formal) → self::CustomJSObject /* erasure=_interceptors::JSObject */
+  return self::CustomJSObject|constructor#(_#wc1#formal);
+static extension-type-member method CustomTypedArray|constructor#(wildcard initializing-formal js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _#wc2#formal) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ {
+  lowered final self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ #this = _#wc2#formal;
+  return #this;
+}
+static extension-type-member synthetic method CustomTypedArray|constructor#_#new#tearOff(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _#wc2#formal) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */
+  return self::CustomTypedArray|constructor#(_#wc2#formal);
+static extension-type-member method CustomJSArray|constructor#(wildcard initializing-formal js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _#wc3#formal) → self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */ {
+  lowered final self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */ #this = _#wc3#formal;
+  return #this;
+}
+static extension-type-member synthetic method CustomJSArray|constructor#_#new#tearOff(js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _#wc3#formal) → self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */
+  return self::CustomJSArray|constructor#(_#wc3#formal);
+static method test(js_::JSAny /* erasure=core::Object */ any, js_::JSAny? /* erasure=core::Object? */ nullableAny, core::Object obj, core::Object? nullableObj) → void {
+  js_::_isJSAny(any);
+  js_::_isNullableJSAny(any);
+  js_::_isJSAny(nullableAny);
+  js_::_isNullableJSAny(nullableAny);
+  js_::_isJSAny(obj);
+  js_::_isNullableJSAny(obj);
+  js_::_isJSAny(nullableObj);
+  js_::_isNullableJSAny(nullableObj);
+  !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "string");
+  any == null || js_::JSAnyUtilityExtension|typeofEquals(any, "string");
+  !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "number");
+  !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "boolean");
+  !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "symbol");
+  !(any == null) && js_::JSAnyUtilityExtension|typeofEquals(any, "bigint");
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|typeofEquals(obj as js_::JSAny? /* erasure=core::Object? */, "string"));
+  obj == null || js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|typeofEquals(obj as js_::JSAny? /* erasure=core::Object? */, "string");
+  js_::_isJSObject(any);
+  js_::_isNullableJSObject(any);
+  js_::_isJSObject(obj);
+  js_::_isNullableJSObject(obj);
+  !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "Array");
+  obj == null || js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "Array");
+  js_::_isJSTypedArray(any);
+  js_::_isJSBoxedDartObject(any);
+  js_::_isJSExportedDartFunction<core::Function>(any);
+  js_::_isJSExportedDartFunction<(core::int, [core::String?]) → js_::JSArray<js_::JSString /* erasure=core::String */> /* erasure=_interceptors::JSArray<core::Object?> */>(any);
+  js_::_isJSTypedArray(obj);
+  js_::_isJSBoxedDartObject(obj);
+  js_::_isJSExportedDartFunction<core::Function>(obj);
+  js_::_isNullableJSExportedDartFunction<(core::int, [core::String?]) → js_::JSArray<js_::JSString /* erasure=core::String */> /* erasure=_interceptors::JSArray<core::Object?> */>(obj);
+  !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSAny");
+  !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSObject");
+  !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomTypedArray");
+  !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.RenamedJSArray");
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.CustomJSAny"));
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.CustomJSObject"));
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.CustomTypedArray"));
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "library1.RenamedJSArray"));
+  let final js_::JSAny? /* erasure=core::Object? */ #t1 = (() → js_::JSAny /* erasure=core::Object */ {
+    return any;
+  })(){() → js_::JSAny /* erasure=core::Object */} in js_::_isJSAny(#t1);
+}
+static method main() → void {}
+
+constants  {
+  #C1 = "library1"
+  #C2 = js_::JS {name:#C1}
+  #C3 = "RenamedJSArray"
+  #C4 = js_::JS {name:#C3}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///isa.dart:
+- JS. (from org-dartlang-sdk:///lib/js_interop/js_interop.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

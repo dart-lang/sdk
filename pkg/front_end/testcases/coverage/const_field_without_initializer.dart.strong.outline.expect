@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/const_field_without_initializer.dart:8:7: Error: The const variable 'F1' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+// const F1; // Error
+//       ^^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::int F0 = 42;
+static const field dynamic F1;

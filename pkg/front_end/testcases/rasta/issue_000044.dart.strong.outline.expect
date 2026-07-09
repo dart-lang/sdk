@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:8: Error: Expected a function body or '=>'.
+// Try adding {}.
+// a b(c) = d;
+//        ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:14:29: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   C.missingFactoryKeyword() = C.constant;
+//                             ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:28: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   C notEvenAConstructor(a) = h;
+//                            ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:1: Error: Type 'a' not found.
+// a b(c) = d;
+// ^
+//
+// pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: Couldn't find constructor 'h'.
+//   C notEvenAConstructor(a) = h;
+//                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor constant() → self::C
+    : super core::Object::•()
+    ;
+  constructor missingFactoryKeyword() → self::C
+    ;
+  static const factory good() → self::C /* redirection-target: self::C::constant */
+    return new self::C::constant();
+  method notEvenAConstructor(dynamic a) → self::C
+    ;
+}
+static method b(dynamic c) → invalid-type
+  ;
+static method main() → dynamic
+  ;

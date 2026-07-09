@@ -1,0 +1,137 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:linter/src/rules/avoid_web_libraries_in_flutter.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AvoidWebLibrariesInFlutterTest);
+  });
+}
+
+@reflectiveTest
+class AvoidWebLibrariesInFlutterTest extends LintRuleTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
+  @override
+  String get lintRule => LintNames.avoid_web_libraries_in_flutter;
+
+  @override
+  void setUp() {
+    super.setUp();
+    // This cache needs to be cleared between test cases.
+    AvoidWebLibrariesInFlutter.clearCache();
+  }
+
+  test_nonFlutterPackage() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: non_flutter_app
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+''');
+    await assertNoDiagnostics(r'''
+// ignore: unused_import
+import 'dart:html';
+''');
+  }
+
+  test_nonWebApp() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: sample_project
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+''');
+    await assertDiagnosticsFromMarkup(r'''
+// ignore: unused_import
+[!import 'dart:html';!]
+''');
+  }
+
+  test_noPubspec() async {
+    await assertNoDiagnostics(r'''
+// ignore: unused_import
+import 'dart:html';
+''');
+  }
+
+  test_webApp() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: sample_project
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+''');
+    newFile('$testPackageRootPath/web/README', 'Placeholder.');
+    // Even in a package with a `web/` directory, do not use web libraries.
+    // Note(srawlins): This seems weird to me, but this is the expectation
+    // from the previous version of this test.
+    await assertDiagnosticsFromMarkup(r'''
+// ignore: unused_import
+[!import 'dart:html';!]
+''');
+  }
+
+  test_webPlugin() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: sample_project
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      web:
+        pluginClass: SamplePlugin
+        fileName: main.dart
+''');
+    await assertNoDiagnostics(r'''
+// ignore: unused_import
+import 'dart:html';
+''');
+  }
+}

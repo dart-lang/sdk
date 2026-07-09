@@ -1,0 +1,10 @@
+library test;
+
+class Foo {
+  const Foo(List<String> l);
+}
+
+main() {}
+
+@Foo(const [])
+typedef void F();

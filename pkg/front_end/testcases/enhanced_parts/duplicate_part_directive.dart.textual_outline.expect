@@ -1,0 +1,5 @@
+part 'duplicate_part_directive_part1.dart';
+
+part 'duplicate_part_directive_part3.dart';
+
+part 'duplicate_part_directive_part3.dart';

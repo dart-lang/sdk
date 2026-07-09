@@ -1,0 +1,7 @@
+test1(dynamic x) => [1, if (x case int y) 2 else y, 3];
+
+test2(dynamic x) => <int>{1, if (x case int y) 2 else y, 3};
+
+test3(dynamic x) => <int, int>{1: 1, if (x case int y) 2: 2 else 2: y, 3: 3};
+
+main() {}

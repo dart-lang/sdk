@@ -1,0 +1,1847 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UnusedResultTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class UnusedResultTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
+  test_as() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {}
+class B extends A {}
+
+B createB() {
+  return createA() as B;
+}
+
+@UseResult('')
+A createA() {
+  return B();
+}
+''');
+  }
+
+  test_as_without_usage() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {}
+class B extends A {}
+
+void test() {
+  createA() as B;
+//^^^^^^^
+// [diag.unusedResult] The value of 'createA' should be used.
+}
+
+@UseResult('')
+A createA() {
+  return B();
+}
+''');
+  }
+
+  test_callable() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+
+  @useResult
+  int call() => 1;
+}
+
+void f(A a) {
+  a();
+//^
+// [diag.unusedResult] The value of 'a' should be used.
+}
+''');
+  }
+
+  test_callable_method() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B b() => B();
+}
+class B {
+  @useResult
+  int call(int i) => i;
+}
+
+void f(A a) {
+  a.b()(5);
+//  ^
+// [diag.unusedResult] The value of 'b' should be used.
+}
+''');
+  }
+
+  test_callable_propertyAccess() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B get b => B();
+}
+class B {
+  @useResult
+  int call() => 1;
+}
+
+void f(A a) {
+  a.b();
+//  ^
+// [diag.unusedResult] The value of 'b' should be used.
+}
+''');
+  }
+
+  test_callable_recursive() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B call(List l) => B();
+}
+class B {
+  C call() => C();
+}
+class C {
+  @useResult
+  int call(String s) => 1;
+}
+void f(A a) {
+  a([])()('');
+//^
+// [diag.unusedResult] The value of 'a' should be used.
+}
+''');
+  }
+
+  test_constructor_primary_result_notUsed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A() {
+  @useResult
+  this;
+}
+
+void f() {
+  A();
+//^^^
+// [diag.unusedResult] The value of 'A' should be used.
+}
+''');
+  }
+
+  test_constructor_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A();
+}
+
+void f() {
+  var bar = A();
+  print(bar);
+}
+''');
+  }
+
+  test_constructor_result_notUsed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A();
+}
+
+void f() {
+  A();
+//^^^
+// [diag.unusedResult] The value of 'A' should be used.
+}
+''');
+  }
+
+  test_field_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  var bar = A().foo; // OK
+  print(bar);
+}
+''');
+  }
+
+  test_field_result_assigned_conditional_else() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void f(bool b) {
+  var bar = b ? 0 : A().foo; // OK
+  print(bar);
+}
+''');
+  }
+
+  test_field_result_assigned_conditional_if() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void f(bool b) {
+  var bar = b ? A().foo : 0; // OK
+  print(bar);
+}
+''');
+  }
+
+  test_field_result_assigned_conditional_if_parens() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void f(bool b) {
+  var c = b ? (A().foo) : 0;
+  print(c);
+}
+''');
+  }
+
+  test_field_result_assigned_parenthesized() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  var bar = ((A().foo)); // OK
+  print(bar);
+}
+''');
+  }
+
+  test_field_result_functionExpression_unused() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  Function foo = () {};
+}
+
+void main() {
+  A().foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_field_result_functionExpression_used() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  Function foo = () {};
+}
+
+void main() {
+  A().foo();
+}
+''');
+  }
+
+  test_field_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+int f() => A().foo;
+int f2() {
+  return A().foo;
+}
+''');
+  }
+
+  test_field_result_targetedMethod() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  String foo = '';
+}
+
+void main() {
+  A().foo.toString(); // OK
+}
+''');
+  }
+
+  test_field_result_targetedProperty() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  String foo = '';
+}
+
+void main() {
+  A().foo.hashCode; // OK
+}
+''');
+  }
+
+  test_field_result_unassigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  A().foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_field_result_unassigned_conditional_if() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void f(bool b) {
+  b ? A().foo : 0;
+//        ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_field_result_unassigned_conditional_if_parens() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void f(bool b) {
+  b ? (A().foo) : 0;
+//         ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_field_result_unassigned_in_closure() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void f(Function g) { }
+
+void main() {
+  f(() {
+    A().foo;
+//      ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+  });
+}
+''');
+  }
+
+  test_field_result_unassigned_originPrimaryConstructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A(@useResult var int foo);
+
+void f(A a) {
+  a.foo;
+//  ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_field_result_used_conditional_if_parens() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void f(bool b) {
+  (b ? A().foo : 0).toString();
+}
+''');
+  }
+
+  test_field_result_used_listLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  var l = [ A().foo ]; // OK
+  print(l);
+  [ A().foo ]; // Also OK
+}
+''');
+  }
+
+  test_field_result_used_mapLiteral_key() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  var m = { A().foo : 'baz'}; // OK
+  print(m);
+}
+''');
+  }
+
+  test_field_result_used_mapLiteral_value() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  var m = { 'baz': A().foo }; // OK
+  print(m);
+}
+''');
+  }
+
+  test_field_result_used_setLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  var s = { A().foo }; // OK
+  print(s);
+}
+''');
+  }
+
+  test_field_result_usedAsArgument_positional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  print(A().foo); // OK
+}
+''');
+  }
+
+  test_field_static_result_unassigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static int foo = 0;
+}
+
+void main() {
+  A.foo;
+//  ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_expressionStatement_id_dotResult_dotId() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo.isEven;
+}
+''');
+  }
+
+  test_getter_expressionStatement_result() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo;
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_expressionStatement_result_dotId() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo.isEven;
+}
+''');
+  }
+
+  test_getter_expressionStatement_result_dotId_dotId() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo.isEven.hashCode;
+}
+''');
+  }
+
+  test_getter_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+int f() => A().foo;
+int f2() {
+  return A().foo;
+}
+''');
+  }
+
+  test_getter_result_targetedMethod() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  String get foo =>  '';
+}
+
+void main() {
+  A().foo.toString(); // OK
+}
+''');
+  }
+
+  test_getter_result_targetedProperty() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  String get foo => '';
+}
+
+void main() {
+  A().foo.hashCode; // OK
+}
+''');
+  }
+
+  test_getter_result_unassigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void main() {
+  A().foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_usedAsArgument_positional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void main() {
+  print(A().foo); // OK
+}
+''');
+  }
+
+  test_import_hide() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+
+bool bar() => true;
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' hide foo;
+
+bool f() {
+  return bar();
+}
+''');
+  }
+
+  test_import_show() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' show foo;
+
+bool f() {
+  return foo();
+}
+''');
+  }
+
+  test_interpolationExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String get f => '';
+
+String g() => '$f';
+''');
+  }
+
+  test_method_result_assertInitializer() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  B(A a) :
+    assert(a.foo() != 7);
+}
+''');
+  }
+
+  test_method_result_assertStatement() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  assert(a.foo() != 7);
+}
+''');
+  }
+
+  test_method_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void f(int bar) {
+  bar = A().foo();
+}
+''');
+  }
+
+  test_method_result_assigned_wildcard_unused() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  var _ = A().foo();
+}
+''');
+  }
+
+  test_method_result_assigned_wildcard_unused_preWildcards() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.4
+// (pre wildcard-variables)
+
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  var _ = A().foo();
+}
+''');
+  }
+
+  test_method_result_assignedInDeclaration() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void f(A a) {
+  var bar = a.foo();
+  print(bar);
+}
+''');
+  }
+
+  test_method_result_assignedInDeclarationPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  (int, int) foo() => (0, 0);
+}
+
+void f(A a) {
+  var (bar, baz) = a.foo();
+  print(bar + baz);
+}
+''');
+  }
+
+  test_method_result_assignedInPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  (int, int) foo() => (0, 0);
+}
+
+void f(A a, int bar, int baz) {
+  (bar, baz) = a.foo();
+}
+''');
+  }
+
+  test_method_result_binaryExpression() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  1 + a.foo();
+}
+''');
+  }
+
+  test_method_result_conditional() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  if (a.foo()) {}
+}
+''');
+  }
+
+  test_method_result_constructorCall() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  B(int i);
+}
+
+void f(A a) {
+  new B(a.foo());
+}
+''');
+  }
+
+  test_method_result_doWhile() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  do {}
+  while (a.foo());
+}
+''');
+  }
+
+  test_method_result_fieldInitializer() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  int i;
+  B(A a) : i = a.foo();
+}
+''');
+  }
+
+  test_method_result_for() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  for (var i = 1; i < a.foo(); i++) {}
+}
+''');
+  }
+
+  test_method_result_for_updaters() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a) {
+  for (var i = 1; i < 7; a.foo()) {}
+//                         ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_method_result_forElement() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  List<int> foo() => [];
+}
+
+void f(A a) {
+  // Note that the list literal is unused, but we unconditionally consider use
+  // within a list literal to be "use of result."
+  [
+    for (var e in a.foo()) e,
+  ];
+}
+''');
+  }
+
+  test_method_result_forIn() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  List<int> foo() => [];
+}
+
+void f(A a) {
+  for (var _ in a.foo()) {}
+}
+''');
+  }
+
+  test_method_result_ifElement() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  // Note that the list literal is unused, but we unconditionally consider use
+  // within a list literal to be "use of result."
+  [
+    if (a.foo()) 1,
+  ];
+}
+''');
+  }
+
+  test_method_result_ifNull() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int? foo() => 1;
+}
+
+int f(A a) {
+  return a.foo() ?? 7;
+}
+''');
+  }
+
+  test_method_result_indexExpression() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+void f(A a, List<int> list) {
+  list[a.foo()];
+}
+''');
+  }
+
+  test_method_result_listPattern_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  var [a] = g();
+  print(a);
+}
+
+@useResult
+List<String> g() => [];
+''');
+  }
+
+  test_method_result_mapPattern_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  var {'a' : a} = g();
+  print(a);
+}
+
+@useResult
+Map<String, String> g() => {};
+''');
+  }
+
+  test_method_result_nullCheck_isUsed() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int? foo() => 1;
+}
+
+int f(A a) {
+  return a.foo()!;
+}
+''');
+  }
+
+  test_method_result_nullCheck_notUsed() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int? foo() => 1;
+}
+
+void f(A a) {
+  a.foo()!;
+//  ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_method_result_objectPattern_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  var A(a: b) = g();
+  print(b);
+}
+
+@useResult
+A g() => A(1);
+''');
+  }
+
+  test_method_result_recordPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  g();
+//^
+// [diag.unusedResult] The value of 'g' should be used.
+}
+
+@useResult
+(int, int) g() => (0, 0);
+''');
+  }
+
+  test_method_result_recordPattern_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  var (x, y) = g();
+  print('$x$y');
+}
+
+@useResult
+(int, int) g() => (0, 0);
+''');
+  }
+
+  test_method_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+int f() => A().foo();
+int f2() {
+  return A().foo();
+}
+''');
+  }
+
+  test_method_result_spread() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  List<int> foo() => [];
+}
+
+void f(A a) {
+  // Note that the list literal is unused, but we unconditionally consider use
+  // within a list literal to be "use of result."
+  [...a.foo()];
+}
+''');
+  }
+
+  test_method_result_superInitializer() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+class B {
+  B(int i);
+}
+
+class C extends B {
+  C(A a) : super(a.foo());
+}
+''');
+  }
+
+  test_method_result_switchCondition() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  switch (a.foo()) {
+    default:
+  }
+}
+''');
+  }
+
+  test_method_result_switchCondition_language219() async {
+    await resolveTestCodeWithDiagnostics('''
+// @dart = 2.19
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  switch (a.foo()) {}
+}
+''');
+  }
+
+  test_method_result_targetedMethod() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+class A {
+  @useResult
+  String foo() => '';
+}
+void main() {
+  A().foo().toString(); // OK
+}
+''');
+  }
+
+  test_method_result_targetedProperty() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  String foo() => '';
+}
+
+void main() {
+  A().foo().hashCode; // OK
+}
+''');
+  }
+
+  test_method_result_thrown() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  throw a.foo();
+}
+''');
+  }
+
+  test_method_result_unassigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  A().foo();
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_method_result_unassigned_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @useResult
+  C m1() => throw '';
+
+  C m2() => throw '';
+
+  void m3() {
+    m2()..m1();
+//        ^^
+// [diag.unusedResult] The value of 'm1' should be used.
+  }
+}
+''');
+  }
+
+  test_method_result_unassigned_parameterDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'value')
+  int foo([int? value]) => value ?? 0;
+}
+
+void main() {
+  A().foo(3);
+}
+''');
+  }
+
+  test_method_result_unassigned_parameterNotDefinedAndCascaded() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'value')
+  int foo([int? value]) => value ?? 0;
+}
+
+void main() {
+  A().foo()..toString();
+}
+''');
+  }
+
+  test_method_result_usedAsArgument_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int m() => 1;
+}
+
+void g({int? i}) {}
+
+void f() {
+  g(i: A().m());
+}
+''');
+  }
+
+  test_method_result_usedAsArgument_positional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  print(A().foo()); // OK
+}
+''');
+  }
+
+  test_method_result_while() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+void f(A a) {
+  while (a.foo()) {}
+}
+''');
+  }
+
+  test_method_result_yield() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 1;
+}
+
+Stream<int> f(A a) async* {
+  yield a.foo();
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47181
+  test_prefixed_classMember() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool b() => true;
+}
+
+/// [A.b].
+const a = 'a';
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47181
+  test_prefixed_importedMember() async {
+    newFile('$testPackageLibPath/c.dart', '''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool b() => true;
+}
+ ''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'c.dart' as c;
+
+/// [c.A.b].
+const a = 'a';
+''');
+  }
+
+  test_recordLiteral_namedField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  ({bool ok, bool value}) m() {
+    return (ok: true, value: methodWithAnnotation());
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+
+  test_recordLiteral_positionalField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  (bool, bool) m() {
+    return (true, methodWithAnnotation());
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+
+  test_switchExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+void main() {
+  print(switch (methodWithAnnotation()) {
+    true => true,
+    _ => false,
+  });
+}
+
+@useResult
+bool methodWithAnnotation() => true;
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/52314
+  test_switchExpressionCase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  bool m(Object o) {
+    return switch (o) {
+      String() => methodWithAnnotation(),
+      _ => false,
+    };
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_bang() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+bool foo() => true;
+
+bool f() {
+  return !foo();
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_decrement() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 1;
+
+int f() {
+  return --foo;
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_increment() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 1;
+
+int f() {
+  return ++foo;
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_minus() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 1;
+
+int f() {
+  return -foo();
+}
+''');
+  }
+
+  test_topLevelFunction_prefixExpression_tilde() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 1;
+
+int f() {
+  return ~foo();
+}
+''');
+  }
+
+  test_topLevelFunction_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  var x = foo(); // OK
+  print(x);
+}
+''');
+  }
+
+  test_topLevelFunction_result_assigned_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  var x = foo()..toString(); // OK
+  print(x);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47473
+  test_topLevelFunction_result_assigned_if() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String foo() => '';
+
+String f(bool b) {
+  var f = '';
+  if (b) f = foo();
+  return f;
+}
+''');
+  }
+
+  test_topLevelFunction_result_awaited_future_usedAsArgument_positional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+Future<List<String>> load() async => [];
+
+void f() async {
+  var l = [];
+  l.add(await load());
+}
+''');
+  }
+
+  test_topLevelFunction_result_optionNamedParam_unassigned_parameterDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo({int? value}) => value ?? 0;
+
+void main() {
+  foo(value: 3);
+}
+''');
+  }
+
+  test_topLevelFunction_result_targetedMethod() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String foo() => '';
+
+void main() {
+  foo().toString();
+}
+''');
+  }
+
+  test_topLevelFunction_result_targetedProperty() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String foo() => '';
+
+void main() {
+  foo().length;
+}
+''');
+  }
+
+  test_topLevelFunction_result_unassigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+void bar() {}
+int baz() => 0;
+
+void main() {
+  foo();
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+  bar(); // OK
+  baz(); // OK
+}
+''');
+  }
+
+  test_topLevelFunction_result_unassigned_parameterDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([int? value]) => value ?? 0;
+
+void main() {
+  foo(3);
+}
+''');
+  }
+
+  test_topLevelFunction_result_unassigned_parameterUnDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([int? value]) => value ?? 0;
+
+void main() {
+  foo();
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_topLevelFunction_result_unassigned_parameterUnDefined2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([String? msg, int? value]) => value ?? 0;
+
+void main() {
+  foo('none');
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_topLevelFunction_result_used_in_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  foo()..toString();
+}
+''');
+  }
+
+  test_topLevelFunction_result_usedAsArgument_positional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  print(foo()); // OK
+}
+''');
+  }
+
+  test_topLevelVariable_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 0;
+
+void main() {
+  var bar = foo; // OK
+  print(bar);
+}
+''');
+  }
+
+  test_topLevelVariable_result_unusedInDoc() async {
+    // https://github.com/dart-lang/sdk/issues/47181
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get f => 1;
+
+/// I love [f].
+int g = 1;
+''');
+  }
+
+  test_topLevelVariable_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 0;
+
+int bar() => foo; // OK
+int baz() {
+  return foo; // OK
+}
+''');
+  }
+
+  test_topLevelVariable_unused() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 0;
+
+void main() {
+  foo;
+//^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_topLevelVariable_usedAsArgument_positional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 0;
+
+void main() {
+  print(foo); // OK
+}
+''');
+  }
+
+  test_whenClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  void m(Object o) {
+    if (o case String() when methodWithAnnotation()) print(o);
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+}

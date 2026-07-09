@@ -1,0 +1,6 @@
+fa0 double
+a0 int64[double]
+P(a1 int64) Struct(size: 32)
+a2 int64[double]
+=>
+fa0 double

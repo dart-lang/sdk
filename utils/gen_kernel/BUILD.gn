@@ -1,0 +1,20 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../runtime/runtime_args.gni")
+import("../aot_snapshot.gni")
+
+aot_snapshot("gen_kernel") {
+  main_dart = "../../pkg/vm/bin/gen_kernel.dart"
+  deps = [ "../../runtime/vm:vm_platform" ]
+  output = "$root_gen_dir/gen_kernel_aot.dart.snapshot"
+
+  # dartaotruntime has dart_product_config applied to it,
+  # so it is built in # product mode in both release and
+  # product builds, and is only built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and gen_kernel_aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}

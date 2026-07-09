@@ -1,0 +1,47 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class Foo extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+extension /* unnamed */ _extension#0 on ffi::Finalizable {
+  method bar = self::_extension#0|bar;
+}
+extension /* unnamed */ _extension#1 on core::Object {
+  method baz = self::_extension#1|baz;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final self::Foo foo = new self::Foo::•();
+  self::_extension#0|bar(foo);
+  let final core::Object #t1 = new core::Object::•() in self::_extension#1|baz(foo);
+  _in::reachabilityFence(foo);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 4)]
+[@vm.unboxing-info.metadata=(b)->i]
+static extension-member method _extension#0|bar([@vm.inferred-arg-type.metadata=#lib::Foo] lowered final ffi::Finalizable #this) → core::int {
+  core::print("123");
+  return block {
+    final synthesized core::int :expressionValueWrappedFinalizable = 4;
+    _in::reachabilityFence(#this);
+  } =>:expressionValueWrappedFinalizable;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 5)]
+[@vm.unboxing-info.metadata=(b)->i]
+static extension-member method _extension#1|baz([@vm.inferred-arg-type.metadata=#lib::Foo] self::Foo foo) → core::int {
+  core::print("456");
+  return block {
+    final synthesized core::int :expressionValueWrappedFinalizable = 5;
+    _in::reachabilityFence(foo);
+  } =>:expressionValueWrappedFinalizable;
+}

@@ -1,0 +1,5 @@
+import 'main_lib.dart';
+
+class SubClass extends Class {}
+
+main() {}

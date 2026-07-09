@@ -1,0 +1,93 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Derived from language/variance/variance_in_method_error_test.dart
+
+typedef Inv<T> = void Function<X extends T>();
+typedef Cov<T> = T Function();
+typedef Contra<T> = void Function(T);
+class Covariant<out T> {}
+class Contravariant<in T> {}
+class Invariant<inout T> {}
+class A<in T> {
+  T method1() => throw "uncalled";
+  void method2(Contra<T> x) {}
+  Cov<T> method3() {
+    return () => throw "uncalled";
+  }
+  void method4(Contra<Cov<T>> x) {}
+  void method5(Cov<Contra<T>> x) {}
+  Contra<Contra<T>> method6() => (Contra<T> x) {};
+  Cov<Cov<T>> method7() {
+    return () {
+      return () => throw "uncalled";
+    };
+  }
+  Inv<T> method8() => throw "uncalled";
+  void method9(Inv<T> x) {}
+  Covariant<T> method10() => throw "uncalled";
+  void method11(Contravariant<T> x) {}
+  Invariant<T> method12() => throw "uncalled";
+  void method13(Invariant<T> x) {}
+  void method14(Contravariant<Covariant<T>> x) {}
+  void method15(Covariant<Contravariant<T>> x) {}
+  Contravariant<Contravariant<T>> method16() =>
+      Contravariant<Contravariant<T>>();
+  Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
+  void method18<X extends T>() {}
+  void method19<X extends Cov<T>>() {}
+  void method20<X extends Covariant<T>>() {}
+  void method21({required Contra<T> x}) {}
+  void method22({required Contravariant<T> x}) {}
+  void method23({required Covariant<T> x, required Contravariant<T> y}) {}
+  void method24<X extends Contra<T>>() {}
+  void method25<X extends Contravariant<T>>() {}
+}
+mixin BMixin<in T> {
+  T method1() => throw "uncalled";
+  void method2(Contra<T> x) {}
+  Cov<T> method3() {
+  return () => throw "uncalled";
+  }
+  void method4(Contra<Cov<T>> x) {}
+  void method5(Cov<Contra<T>> x) {}
+  Contra<Contra<T>> method6() => (Contra<T> x) {};
+  Cov<Cov<T>> method7() {
+  return () {
+    return () => throw "uncalled";
+    };
+  }
+  Inv<T> method8() => throw "uncalled";
+  void method9(Inv<T> x) {}
+  Covariant<T> method10() => throw "uncalled";
+  void method11(Contravariant<T> x) {}
+  Invariant<T> method12() => throw "uncalled";
+  void method13(Invariant<T> x) {}
+  void method14(Contravariant<Covariant<T>> x) {}
+  void method15(Covariant<Contravariant<T>> x) {}
+  Contravariant<Contravariant<T>> method16() =>
+      Contravariant<Contravariant<T>>();
+  Covariant<Covariant<T>> method17() => Covariant<Covariant<T>>();
+  void method18<X extends T>() {}
+  void method19<X extends Cov<T>>() {}
+  void method20<X extends Covariant<T>>() {}
+  void method21({required Contra<T> x}) {}
+  void method22({required Contravariant<T> x}) {}
+  void method23({required Covariant<T> x, required Contravariant<T> y}) {}
+  void method24<X extends Contra<T>>() {}
+  void method25<X extends Contravariant<T>>() {}
+}
+class B<in T> {
+  void method1(A<T> x) {}
+  Contra<A<T>> method2() {
+    throw "uncalled";
+  }
+}
+class C<T> {
+  void method(T x) {}
+}
+class D<in T> extends C<void Function(T)> {
+  @override
+  void method(void Function(T) x) {}
+}

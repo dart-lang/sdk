@@ -1,0 +1,23 @@
+Object? foo(int i) => "42";
+Object? bar<T>(T t) => 42;
+
+main() {
+Function? f1 = foo;
+f1!(42);
+
+Function f2 = bar;
+f2!<int>(42);
+}
+
+
+Object[StringToken]?[SimpleToken] foo[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] =>[SimpleToken] "42"[StringToken];[SimpleToken]
+Object[StringToken]?[SimpleToken] bar[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]T[StringToken] t[StringToken])[SimpleToken] =>[SimpleToken] 42[StringToken];[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+Function[KeywordToken]?[SimpleToken] f1[StringToken] =[SimpleToken] foo[StringToken];[SimpleToken]
+f1[StringToken]![SimpleToken]([BeginToken]42[StringToken])[SimpleToken];[SimpleToken]
+
+Function[KeywordToken] f2[StringToken] =[SimpleToken] bar[StringToken];[SimpleToken]
+f2[StringToken]![SimpleToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]42[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

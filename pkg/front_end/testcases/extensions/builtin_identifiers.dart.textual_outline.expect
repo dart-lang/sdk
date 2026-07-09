@@ -1,0 +1,7 @@
+extension mixin on int {}
+
+extension extension on int {}
+
+extension as on int {}
+
+void main() {}

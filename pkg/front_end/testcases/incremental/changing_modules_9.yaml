@@ -1,0 +1,103 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Compile an application with a number of modules.
+# Recompile the same thing again and make sure the calculated dependencies are
+# the same.
+
+type: newworld
+modules:
+  moduleA:
+    moduleA/a.dart: |
+      export 'package:moduleB/b.dart';
+
+      class A { }
+    moduleA/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleA",
+            "rootUri": ".."
+          },
+          {
+            "name": "moduleB",
+            "rootUri": "../../moduleB"
+          }
+        ]
+      }
+  moduleB:
+    moduleB/b.dart: |
+      class B {
+        int foo = 42;
+      }
+    moduleB/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleB",
+            "rootUri": ".."
+          }
+        ]
+      }
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        import "package:moduleA/a.dart";
+
+        main() {
+          A a = new A();
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "moduleA",
+              "rootUri": "../moduleA"
+            },
+            {
+              "name": "moduleB",
+              "rootUri": "../moduleB"
+            }
+          ]
+        }
+    modules:
+      - moduleA
+      - moduleB
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:moduleA/a.dart
+      - package:moduleB/b.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:moduleA/a.dart:
+        - Class A
+      package:moduleB/b.dart:
+        - Class B
+    advancedInvalidation: modulesToLoad
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    # Nothing actually updated, as such everything is expected as before.
+    modules:
+      - moduleA
+      - moduleB
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:moduleA/a.dart
+      - package:moduleB/b.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:moduleA/a.dart:
+        - Class A
+      package:moduleB/b.dart:
+        - Class B
+    advancedInvalidation: modulesToLoad

@@ -1,0 +1,13 @@
+library test;
+
+import 'dart:async';
+
+T f<T>() => throw '';
+
+class A {}
+
+class B extends A {}
+
+main() {}
+
+test(Iterable<B> iterable, Stream<B> stream, A a, B b, int i) async {}

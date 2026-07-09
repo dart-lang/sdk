@@ -1,0 +1,7 @@
+// @dart = 2.19
+
+class A with Comparable<int> {
+  int compareTo(int x) => 0;
+}
+
+class B with Error {}

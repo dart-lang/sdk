@@ -1,0 +1,600 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library test_helper;
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io' as io;
+
+import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
+
+import 'service_test_common.dart';
+
+export 'service_test_common.dart' show IsolateTest, VMTest;
+
+const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
+const Map<String, String> _TESTEE_SPAWN_ENV = {_TESTEE_ENV_KEY: 'true'};
+bool _isTestee() {
+  return io.Platform.environment.containsKey(_TESTEE_ENV_KEY);
+}
+
+/// The extra arguments to use
+const List<String> extraDebuggingArgs = [];
+
+/// Will be set to the http address of the VM's service protocol before
+/// any tests are invoked.
+late String serviceHttpAddress;
+late String serviceWebsocketAddress;
+
+Uri _getTestUri(String script) {
+  if (io.Platform.script.isScheme('data')) {
+    // If running from pub we can assume that we're in the root of the package
+    // directory.
+    return Uri.parse('test/$script');
+  } else {
+    return io.Platform.script;
+  }
+}
+
+class _ServiceTesteeRunner {
+  Future<void> run({
+    Function()? testeeBefore,
+    Function()? testeeConcurrent,
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+  }) async {
+    if (!pauseOnStart) {
+      if (testeeBefore != null) {
+        final result = testeeBefore();
+        if (result is Future) {
+          await result;
+        }
+      }
+      print(''); // Print blank line to signal that testeeBefore has run.
+    }
+    if (testeeConcurrent != null) {
+      final result = testeeConcurrent();
+      if (result is Future) {
+        await result;
+      }
+    }
+    if (!pauseOnExit) {
+      // Wait around for the process to be killed.
+      await io.stdin.first.then((_) => io.exit(0));
+    }
+  }
+
+  void runSync({
+    void Function()? testeeBeforeSync,
+    void Function()? testeeConcurrentSync,
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+  }) {
+    if (!pauseOnStart) {
+      if (testeeBeforeSync != null) {
+        testeeBeforeSync();
+      }
+      print(''); // Print blank line to signal that testeeBefore has run.
+    }
+    if (testeeConcurrentSync != null) {
+      testeeConcurrentSync();
+    }
+    if (!pauseOnExit) {
+      // Wait around for the process to be killed.
+      io.stdin.first.then((_) => io.exit(0));
+    }
+  }
+}
+
+class _ServiceTesteeLauncher {
+  io.Process? process;
+  List<String> args;
+
+  bool killedByTester = false;
+  final _exitCodeCompleter = Completer<int>();
+
+  _ServiceTesteeLauncher(String script)
+      : args = [_getTestUri(script).toFilePath()];
+
+  Future<int> get exitCode => _exitCodeCompleter.future;
+
+  // Spawn the testee process.
+  Future<io.Process> _spawnProcess(
+    bool pauseOnStart,
+    bool pauseOnExit,
+    bool pauseOnUnhandledExceptions,
+    bool testeeControlsServer,
+    bool useAuthToken,
+
+    /// If non-null, any compilation requests sent from the testee VM will be
+    /// sent to the resident frontend compiler associated with
+    /// [residentCompilerInfoFilePath] rather than the testee VM's kernel
+    /// isolate. If null, then those requests will be sent to the testee VM's
+    /// kernel isolate.
+    String? residentCompilerInfoFilePath,
+    List<String>? experiments,
+    List<String>? extraArgs,
+    Map<String, String>? testeeEnvironment,
+  ) {
+    return _spawnDartProcess(
+      pauseOnStart,
+      pauseOnExit,
+      pauseOnUnhandledExceptions,
+      testeeControlsServer,
+      useAuthToken,
+      residentCompilerInfoFilePath,
+      experiments,
+      extraArgs,
+      testeeEnvironment,
+    );
+  }
+
+  Future<io.Process> _spawnDartProcess(
+    bool pauseOnStart,
+    bool pauseOnExit,
+    bool pauseOnUnhandledExceptions,
+    bool testeeControlsServer,
+    bool useAuthToken,
+
+    /// If non-null, any compilation requests sent from the testee VM will be
+    /// sent to the resident frontend compiler associated with
+    /// [residentCompilerInfoFilePath] rather than the testee VM's kernel
+    /// isolate. If null, then those requests will be sent to the testee VM's
+    /// kernel isolate.
+    String? residentCompilerInfoFilePath,
+    List<String>? experiments,
+    List<String>? extraArgs,
+    Map<String, String>? testeeEnvironment,
+  ) {
+    final String dartExecutable = io.Platform.executable;
+
+    final fullArgs = <String>[];
+    final environment = <String, String>{...?testeeEnvironment};
+    if (pauseOnStart) {
+      fullArgs.add('--pause-isolates-on-start');
+      environment['PAUSE_ON_START'] = 'true';
+    }
+    if (pauseOnExit) {
+      fullArgs.add('--pause-isolates-on-exit');
+      environment['PAUSE_ON_EXIT'] = 'true';
+    }
+    if (!useAuthToken) {
+      fullArgs.add('--disable-service-auth-codes');
+    }
+    if (pauseOnUnhandledExceptions) {
+      fullArgs.add('--pause-isolates-on-unhandled-exceptions');
+    }
+    fullArgs.add('--profiler');
+    if (experiments != null) {
+      fullArgs.addAll(experiments.map((e) => '--enable-experiment=$e'));
+    }
+    if (extraArgs != null) {
+      fullArgs.addAll(extraArgs);
+    }
+
+    fullArgs.addAll(io.Platform.executableArguments);
+    if (!testeeControlsServer) {
+      fullArgs.add('--enable-vm-service:0');
+    }
+
+    if (residentCompilerInfoFilePath != null) {
+      fullArgs.addAll([
+        'run',
+        '--resident',
+        '--resident-compiler-info-file=$residentCompilerInfoFilePath',
+      ]);
+    }
+    fullArgs.addAll(args);
+
+    return _spawnCommon(dartExecutable, fullArgs, environment);
+  }
+
+  Future<io.Process> _spawnCommon(
+    String executable,
+    List<String> arguments,
+    Map<String, String> dartEnvironment,
+  ) {
+    final environment = _TESTEE_SPAWN_ENV;
+    final bashEnvironment = StringBuffer();
+    environment.forEach((k, v) => bashEnvironment.write('$k=$v '));
+    dartEnvironment.forEach((k, v) {
+      arguments.insert(0, '-D$k=$v');
+    });
+    print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
+    return io.Process.start(
+      executable,
+      arguments,
+      environment: environment,
+    );
+  }
+
+  Future<Uri> launch(
+    bool pauseOnStart,
+    bool pauseOnExit,
+    bool pauseOnUnhandledExceptions,
+    bool testeeControlsServer,
+    bool useAuthToken,
+
+    /// If non-null, any compilation requests sent from the testee VM will be
+    /// sent to the resident frontend compiler associated with
+    /// [residentCompilerInfoFilePath] rather than the testee VM's kernel
+    /// isolate. If null, then those requests will be sent to the testee VM's
+    /// kernel isolate.
+    String? residentCompilerInfoFilePath,
+    List<String>? experiments,
+    List<String>? extraArgs,
+    Map<String, String>? testeeEnvironment,
+  ) {
+    return _spawnProcess(
+      pauseOnStart,
+      pauseOnExit,
+      pauseOnUnhandledExceptions,
+      testeeControlsServer,
+      useAuthToken,
+      residentCompilerInfoFilePath,
+      experiments,
+      extraArgs,
+      testeeEnvironment,
+    ).then((p) {
+      final Completer<Uri> completer = Completer<Uri>();
+      process = p;
+      Uri? uri;
+      bool blank = false;
+      var first = true;
+      process!.stdout
+          .transform(utf8.decoder)
+          .transform(LineSplitter())
+          .listen((line) {
+        const kDartVMServiceListening = 'The Dart VM service is listening on ';
+        if (line.startsWith(kDartVMServiceListening)) {
+          uri = Uri.parse(line.substring(kDartVMServiceListening.length));
+        }
+        if (pauseOnStart || line == '') {
+          // Received blank line.
+          blank = true;
+        }
+        if ((uri != null) && (blank == true) && (first == true)) {
+          completer.complete(uri!);
+          // Stop repeat completions.
+          first = false;
+          print('** Signaled to run test queries on $uri');
+        }
+        io.stdout.write('>testee>out> $line\n');
+      });
+      process!.stderr
+          .transform(utf8.decoder)
+          .transform(LineSplitter())
+          .listen((line) {
+        io.stdout.write('>testee>err> $line\n');
+      });
+      process!.exitCode.then(_exitCodeCompleter.complete);
+      return completer.future;
+    });
+  }
+
+  void requestExit() {
+    if (process != null) {
+      print('** Killing script');
+      if (process!.kill()) {
+        killedByTester = true;
+      }
+    }
+  }
+}
+
+void setupAddresses(Uri serverAddress) {
+  serviceWebsocketAddress = serverAddress.replace(
+    scheme: 'ws',
+    pathSegments: [...serverAddress.pathSegments, 'ws'],
+  ).toString();
+  serviceHttpAddress = serverAddress.replace(scheme: 'http').toString();
+}
+
+class _ServiceTesterRunner {
+  Future<void> run({
+    List<String>? mainArgs,
+    List<String>? extraArgs,
+    List<String>? experiments,
+    List<VMTest>? vmTests,
+    List<IsolateTest>? isolateTests,
+    Map<String, String>? testeeEnvironment,
+    required String scriptName,
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+    bool verboseVm = false,
+    bool pauseOnUnhandledExceptions = false,
+    bool testeeControlsServer = false,
+    bool useAuthToken = false,
+    bool launchTesteeWithDartRunResident = false,
+    bool allowForNonZeroExitCode = false,
+    VmServiceFactory serviceFactory = VmService.defaultFactory,
+  }) async {
+    final tempDir = io.Directory.systemTemp.createTempSync();
+    final String? residentCompilerInfoFilePath;
+    if (launchTesteeWithDartRunResident) {
+      residentCompilerInfoFilePath =
+          '${tempDir.path}${io.Platform.pathSeparator}'
+          'resident_compiler_info.txt';
+    } else {
+      residentCompilerInfoFilePath = null;
+    }
+
+    final process = _ServiceTesteeLauncher(scriptName);
+    late VmService vm;
+    late IsolateRef isolate;
+    setUp(() async {
+      await process
+          .launch(
+        pauseOnStart,
+        pauseOnExit,
+        pauseOnUnhandledExceptions,
+        testeeControlsServer,
+        useAuthToken,
+        residentCompilerInfoFilePath,
+        experiments,
+        extraArgs,
+        testeeEnvironment,
+      )
+          .then((Uri serverAddress) async {
+        if (mainArgs!.contains('--gdb')) {
+          final pid = process.process!.pid;
+          final wait = Duration(seconds: 10);
+          print('Testee has pid $pid, waiting $wait before continuing');
+          io.sleep(wait);
+        }
+        setupAddresses(serverAddress);
+        vm = await vmServiceConnectUriWithFactory(
+          serviceWebsocketAddress,
+          vmServiceFactory: serviceFactory,
+        );
+        print('Done loading VM');
+        isolate = await getFirstIsolate(vm);
+      });
+    });
+
+    final name = _getTestUri(scriptName).pathSegments.last;
+
+    test(
+      name,
+      () async {
+        // Run vm tests.
+        if (vmTests != null) {
+          var testIndex = 1;
+          final totalTests = vmTests.length;
+          for (var t in vmTests) {
+            print('$name [$testIndex/$totalTests]');
+            await t(vm);
+            testIndex++;
+          }
+        }
+
+        // Run isolate tests.
+        if (isolateTests != null) {
+          var testIndex = 1;
+          final totalTests = isolateTests.length;
+          for (var t in isolateTests) {
+            print('$name [$testIndex/$totalTests]');
+            await t(vm, isolate);
+            testIndex++;
+          }
+        }
+      },
+      retry: 0,
+      timeout: Timeout.none,
+    );
+
+    tearDown(() async {
+      print('All service tests completed successfully.');
+      try {
+        await vm.dispose();
+      } catch (e, st) {
+        print('''
+Ignoring exception during vm-service connection shutdown:
+$e
+$st
+''');
+      }
+      process.requestExit();
+    });
+
+    final exitCode = await process.exitCode;
+    if (launchTesteeWithDartRunResident) {
+      print(
+        '** Shutting down resident frontend compiler associated with '
+        '$residentCompilerInfoFilePath that was used by VM '
+        'Service tests',
+      );
+      await io.Process.run(
+        io.Platform.executable,
+        [
+          'compilation-server',
+          'shutdown',
+          '--resident-compiler-info-file=$residentCompilerInfoFilePath',
+        ],
+      );
+      tempDir.deleteSync(recursive: true);
+    }
+    if (exitCode != 0) {
+      if (!(process.killedByTester || allowForNonZeroExitCode)) {
+        throw 'Testee exited with unexpected exitCode: $exitCode';
+      }
+    }
+    print('** Process exited: $exitCode');
+  }
+
+  Future<IsolateRef> getFirstIsolate(VmService service) async {
+    var vm = await service.getVM();
+    final vmIsolates = vm.isolates!;
+    if (vmIsolates.isNotEmpty) {
+      return vmIsolates.first;
+    }
+    Completer<dynamic>? completer = Completer();
+    late StreamSubscription subscription;
+    subscription = service.onIsolateEvent.listen((Event event) async {
+      if (completer == null) {
+        await subscription.cancel();
+        return;
+      }
+      if (event.kind == EventKind.kIsolateRunnable) {
+        vm = await service.getVM();
+        await subscription.cancel();
+        await service.streamCancel(EventStreams.kIsolate);
+        completer!.complete(event.isolate!);
+        completer = null;
+      }
+    });
+    await service.streamListen(EventStreams.kIsolate);
+
+    // The isolate may have started before we subscribed.
+    vm = await service.getVM();
+    if (vmIsolates.isNotEmpty) {
+      await subscription.cancel();
+      completer!.complete(vmIsolates.first);
+      completer = null;
+    }
+    return (await completer!.future) as IsolateRef;
+  }
+}
+
+Future<void> startServiceTest({
+  Function()? testeeBefore,
+  Function()? testeeConcurrent,
+}) async {
+  final pauseOnStart = bool.fromEnvironment('PAUSE_ON_START');
+  final pauseOnExit = bool.fromEnvironment('PAUSE_ON_EXIT');
+  await _ServiceTesteeRunner().run(
+    testeeBefore: testeeBefore,
+    testeeConcurrent: testeeConcurrent,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+  );
+}
+
+void enterIsolateTestSync({
+  Function()? testeeBefore,
+  Function()? testeeConcurrent,
+  bool pauseOnStart = false,
+  bool pauseOnExit = false,
+}) {
+  _ServiceTesteeRunner().runSync(
+    testeeBeforeSync: testeeBefore,
+    testeeConcurrentSync: testeeConcurrent,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+  );
+}
+
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invocation of the script.
+Future<void> runIsolateTests(
+  List<String> mainArgs,
+  List<IsolateTest> tests,
+  String scriptName, {
+  bool pauseOnStart = false,
+  bool pauseOnExit = false,
+  bool verboseVm = false,
+  bool pauseOnUnhandledExceptions = false,
+  bool testeeControlsServer = false,
+  bool useAuthToken = false,
+  required Future<void> Function(List<String> args) testeeMain,
+
+  /// If [true], `dart run --resident` will be used to launch the testee.
+  bool launchTesteeWithDartRunResident = false,
+  bool allowForNonZeroExitCode = false,
+  List<String>? experiments,
+  List<String>? extraArgs,
+  Map<String, String>? testeeEnvironment,
+}) async {
+  if (_isTestee()) {
+    return testeeMain(mainArgs);
+  }
+  await _ServiceTesterRunner().run(
+    mainArgs: mainArgs,
+    scriptName: scriptName,
+    extraArgs: extraArgs,
+    testeeEnvironment: testeeEnvironment,
+    isolateTests: tests,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+    verboseVm: verboseVm,
+    experiments: experiments,
+    pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+    testeeControlsServer: testeeControlsServer,
+    useAuthToken: useAuthToken,
+    launchTesteeWithDartRunResident: launchTesteeWithDartRunResident,
+    allowForNonZeroExitCode: allowForNonZeroExitCode,
+  );
+}
+
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invocation of the script.
+///
+/// This is a special version of this test harness specifically for the
+/// pause_on_unhandled_exceptions_test, which cannot properly function
+/// in an async context (because exceptions are *always* handled in async
+/// functions).
+void runIsolateTestsSynchronous(
+  List<String> mainArgs,
+  List<IsolateTest> tests,
+  String scriptName, {
+  bool pauseOnStart = false,
+  bool pauseOnExit = false,
+  bool verboseVm = false,
+  bool pauseOnUnhandledExceptions = false,
+  List<String>? extraArgs,
+  required void Function(List<String> args) testeeMain,
+}) {
+  if (_isTestee()) {
+    return testeeMain(mainArgs);
+  }
+  _ServiceTesterRunner().run(
+    mainArgs: mainArgs,
+    scriptName: scriptName,
+    extraArgs: extraArgs,
+    isolateTests: tests,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+    verboseVm: verboseVm,
+    pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+  );
+}
+
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invocation of the script.
+Future<void> runVMTests(
+  List<String> mainArgs,
+  List<VMTest> tests,
+  String scriptName, {
+  bool pauseOnStart = false,
+  bool pauseOnExit = false,
+  bool verboseVm = false,
+  bool pauseOnUnhandledExceptions = false,
+  List<String>? extraArgs,
+  VmServiceFactory serviceFactory = VmService.defaultFactory,
+  required Future<void> Function(List<String> args) testeeMain,
+}) async {
+  if (_isTestee()) {
+    return testeeMain(mainArgs);
+  }
+  await _ServiceTesterRunner().run(
+    mainArgs: mainArgs,
+    scriptName: scriptName,
+    extraArgs: extraArgs,
+    vmTests: tests,
+    pauseOnStart: pauseOnStart,
+    pauseOnExit: pauseOnExit,
+    verboseVm: verboseVm,
+    pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+    serviceFactory: serviceFactory,
+  );
+}

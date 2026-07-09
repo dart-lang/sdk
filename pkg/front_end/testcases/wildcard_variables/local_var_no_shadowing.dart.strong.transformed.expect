@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::int _ = 100;
+static method main() → dynamic {
+  1;
+  2;
+  self::_ = 3;
+}

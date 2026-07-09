@@ -1,0 +1,5 @@
+bar(d) async* {}
+
+foo() {}
+
+main() {}

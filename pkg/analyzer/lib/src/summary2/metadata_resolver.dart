@@ -1,0 +1,296 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
+import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
+
+class MetadataResolver extends ThrowingAstVisitor<void> {
+  final Linker _linker;
+  final Scope _containerScope;
+  final LibraryBuilder _libraryBuilder;
+  final LibraryFragmentImpl _libraryFragment;
+  late Scope _scope;
+
+  MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
+    : _containerScope = _libraryFragment.scope {
+    _scope = _containerScope;
+  }
+
+  @override
+  void visitAnnotation(covariant AnnotationImpl node) {
+    var annotationElement = node.elementAnnotation;
+    if (annotationElement is ElementAnnotationImpl) {
+      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
+      var astResolver = AstResolver(
+        _linker,
+        _libraryFragment,
+        _scope,
+        analysisOptions,
+      );
+      astResolver.resolveAnnotation(node);
+    }
+  }
+
+  @override
+  void visitBlockClassBody(BlockClassBody node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+    node.metadata.accept(this);
+    node.namePart.typeParameters?.accept(this);
+
+    _scope = node.bodyScope!;
+    try {
+      node.namePart
+          .tryCast<PrimaryConstructorDeclaration>()
+          ?.formalParameters
+          .accept(this);
+      node.body.accept(this);
+    } finally {
+      _scope = _containerScope;
+    }
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    node.directives.accept(this);
+    node.declarations.accept(this);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    node.metadata.accept(this);
+    node.parameters.accept(this);
+  }
+
+  @override
+  void visitEmptyClassBody(EmptyClassBody node) {}
+
+  @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+    node.metadata.accept(this);
+    node.namePart.typeParameters?.accept(this);
+
+    _scope = node.bodyScope!;
+    try {
+      node.namePart
+          .tryCast<PrimaryConstructorDeclaration>()
+          ?.formalParameters
+          .accept(this);
+      node.body.accept(this);
+    } finally {
+      _scope = _containerScope;
+    }
+  }
+
+  @override
+  void visitExportDirective(covariant ExportDirectiveImpl node) {
+    node.metadata.accept(this);
+
+    // We access export directive metadata while building scopes.
+    // But for the current library cycle the metadata was not resolved yet.
+    // Now that we resolved it, reset the cache.
+    node.libraryExport!.metadata.resetCache();
+  }
+
+  @override
+  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+
+    _scope = node.bodyScope!;
+    try {
+      node.body.accept(this);
+    } finally {
+      _scope = _containerScope;
+    }
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    node.metadata.accept(this);
+    node.namePart.typeParameters?.accept(this);
+
+    _scope = node.bodyScope!;
+    try {
+      node.namePart
+          .tryCast<PrimaryConstructorDeclaration>()
+          ?.formalParameters
+          .accept(this);
+      node.body.accept(this);
+    } finally {
+      _scope = _containerScope;
+    }
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    node.metadata.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      functionTypedSuffix.formalParameters.accept(this);
+    }
+  }
+
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    node.parameters.accept(this);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    node.metadata.accept(this);
+    node.functionExpression.accept(this);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    // TODO(eernst): Extend this visitor to visit types.
+    // E.g., `List<Function<@m X>()> Function()` is not included now.
+    var type = node.type;
+    if (type is GenericFunctionType) type.accept(this);
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitLibraryDirective(LibraryDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+
+    _scope = node.bodyScope!;
+    try {
+      node.body.accept(this);
+    } finally {
+      _scope = _containerScope;
+    }
+  }
+
+  @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    node.typeParameters?.accept(this);
+  }
+
+  @override
+  void visitPartDirective(PartDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitPartOfDirective(PartOfDirective node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    node.typeParameters?.accept(this);
+    node.formalParameters.accept(this);
+  }
+
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    node.metadata.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      functionTypedSuffix.typeParameters?.accept(this);
+      functionTypedSuffix.formalParameters.accept(this);
+    }
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    node.metadata.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      functionTypedSuffix.formalParameters.accept(this);
+    }
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    node.metadata.accept(this);
+  }
+
+  @override
+  void visitTypeParameterList(TypeParameterList node) {
+    node.typeParameters.accept(this);
+  }
+}

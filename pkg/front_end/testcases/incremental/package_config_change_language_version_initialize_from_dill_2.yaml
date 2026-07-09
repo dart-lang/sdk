@@ -1,0 +1,64 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Write code that's supported in the language version used.
+# Change only the package config to change the language version and initialize
+# from the first dill.
+
+type: newworld
+worlds:
+  - entry: package:foo/a.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib",
+              "languageVersion": "3.13"
+            }
+          ]
+        }
+      foo/lib/a.dart: |
+        class A {
+          new() {
+            print("A");
+          }
+        }
+        void main() {
+          A();
+        }
+    expectedLibraryCount: 1
+
+  - entry: package:foo/a.dart
+    expectInitializeFromDill: true
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib",
+              "languageVersion": "3.12"
+            }
+          ]
+        }
+      foo/lib/a.dart: |
+        class A {
+          new() {
+            print("A");
+          }
+        }
+        void main() {
+          A();
+        }
+    # Ideally .dart_tool/package_config.json should be invalidated, but it
+    # isn't.
+    expectedLibraryCount: 1
+    advancedInvalidation: packageUpdate
+    errors: true

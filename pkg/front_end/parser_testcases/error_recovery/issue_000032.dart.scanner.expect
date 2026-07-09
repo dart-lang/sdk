@@ -1,0 +1,17 @@
+class C {
+C<
+}
+
+main() {
+C<
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]<[BeginToken]
+}[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+C[StringToken]<[BeginToken]
+}[SimpleToken]
+[SimpleToken]

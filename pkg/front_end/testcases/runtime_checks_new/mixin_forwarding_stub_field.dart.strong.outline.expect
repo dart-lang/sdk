@@ -1,0 +1,63 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:50:7: Error: The mixin application class 'C' introduces an erroneous override of 'y'.
+// class C = B with M implements I<int>;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:47:7: Context: The field 'M.y' has type 'int', which does not match the corresponding type, 'Object', in the overridden setter, 'I.y'.
+//  - 'Object' is from 'dart:core'.
+//   int y = 0;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:42:12: Context: This is the overridden method ('y').
+//   void set y(covariant Object value);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  get x() → core::int
+    ;
+  set x(core::int value) → void
+    ;
+  get y() → core::int
+    ;
+  set y(core::int value) → void
+    ;
+}
+abstract class I<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T%>
+    ;
+  abstract get x() → self::I::T%;
+  abstract set x(covariant-by-class self::I::T% value) → void;
+  abstract get y() → core::Object;
+  abstract set y(covariant-by-declaration core::Object value) → void;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  field core::int x;
+  field core::int y;
+}
+class C = self::B with self::M implements self::I<core::int> {
+  synthetic constructor •() → self::C
+    : super self::B::•()
+    ;
+  synthetic mixin-super-stub get x() → core::int
+    return super.{self::M::x};
+  forwarding-stub synthetic set x(covariant-by-class core::int value) → void
+    return super.{self::M::x} = value;
+  synthetic erroneous mixin-super-stub get y() → core::int
+    return super.{self::M::y};
+  forwarding-stub synthetic erroneous set y(covariant-by-declaration core::int value) → void
+    return super.{self::M::y} = value;
+}
+static method expectTypeError(() → void callback) → void
+  ;
+static method expect(core::Object value, core::Object expected) → void
+  ;
+static method test(self::I<core::Object> i) → void
+  ;
+static method main() → void
+  ;

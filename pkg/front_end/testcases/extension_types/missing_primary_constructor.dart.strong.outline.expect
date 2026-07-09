@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/missing_primary_constructor.dart:5:16: Error: An extension type declaration must have a primary constructor declaration.
+// Try adding a primary constructor to the extension type declaration.
+// extension type ET {}
+//                ^^
+//
+import self as self;
+
+extension type ET(invalid-type #) {
+}
+static method test() → dynamic
+  ;

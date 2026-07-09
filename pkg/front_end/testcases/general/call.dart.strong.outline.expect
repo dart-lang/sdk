@@ -1,0 +1,92 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var string5 = callableGetter(1);
+//                             ^
+//
+// pkg/front_end/testcases/general/call.dart:68:23: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing1 = closure();
+//                       ^
+//
+// pkg/front_end/testcases/general/call.dart:69:28: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing2 = closure.call();
+//                            ^
+//
+// pkg/front_end/testcases/general/call.dart:70:33: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing3 = closure.call.call();
+//                                 ^
+//
+// pkg/front_end/testcases/general/call.dart:71:38: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing4 = closure.call.call.call();
+//                                      ^
+//
+// pkg/front_end/testcases/general/call.dart:73:24: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing5 = callable();
+//                        ^
+//
+// pkg/front_end/testcases/general/call.dart:74:29: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing6 = callable.call();
+//                             ^
+//
+// pkg/front_end/testcases/general/call.dart:75:34: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing7 = callable.call.call();
+//                                  ^
+//
+// pkg/front_end/testcases/general/call.dart:76:39: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing8 = callable.call.call.call();
+//                                       ^
+//
+// pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var nothing9 = callableGetter();
+//                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Callable extends core::Object {
+  synthetic constructor •() → self::Callable
+    ;
+  method call(dynamic x) → dynamic
+    ;
+}
+class CallableGetter extends core::Object {
+  synthetic constructor •() → self::CallableGetter
+    ;
+  get call() → dynamic
+    ;
+}
+static field (dynamic) → dynamic closure;
+static field dynamic int1;
+static field dynamic int2;
+static field dynamic int3;
+static field dynamic int4;
+static field self::Callable callable;
+static field dynamic string1;
+static field dynamic string2;
+static field dynamic string3;
+static field dynamic string4;
+static field self::CallableGetter callableGetter;
+static field invalid-type string5;
+static field dynamic string6;
+static field dynamic string7;
+static field dynamic string8;
+static field invalid-type nothing1;
+static field invalid-type nothing2;
+static field invalid-type nothing3;
+static field invalid-type nothing4;
+static field invalid-type nothing5;
+static field invalid-type nothing6;
+static field invalid-type nothing7;
+static field invalid-type nothing8;
+static field invalid-type nothing9;
+static field dynamic nothing10;
+static field dynamic nothing11;
+static field dynamic nothing12;
+static method main() → dynamic
+  ;

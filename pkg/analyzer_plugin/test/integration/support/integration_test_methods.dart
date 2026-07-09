@@ -1,0 +1,874 @@
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// This file has been automatically generated. Please do not edit it manually.
+// To regenerate the file, use the script
+// "pkg/analyzer_plugin/tool/spec/generate_all.dart".
+
+// ignore_for_file: unnecessary_ignore, duplicate_ignore
+// ignore_for_file: unnecessary_type_name_in_constructor
+
+/// Convenience methods for running integration tests.
+library;
+
+import 'dart:async';
+
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:test/test.dart';
+
+import 'integration_tests.dart';
+import 'protocol_matchers.dart';
+
+/// Convenience methods for running integration tests.
+abstract class IntegrationTestMixin {
+  Server get server;
+
+  /// Used to request that the plugin perform a version check to confirm that
+  /// it works with the version of the analysis server that is executing it.
+  ///
+  /// Parameters
+  ///
+  /// * `byteStorePath: FilePath`
+  ///
+  ///   The path to the directory containing the on-disk byte store that is to
+  ///   be used by any analysis drivers that are created.
+  ///
+  /// * `sdkPath: FilePath`
+  ///
+  ///   The path to the directory containing the SDK that is to be used by any
+  ///   analysis drivers that are created.
+  ///
+  /// * `version: String`
+  ///
+  ///   The version number of the plugin spec supported by the analysis server
+  ///   that is executing the plugin.
+  ///
+  /// Returns
+  ///
+  /// * `isCompatible: bool`
+  ///
+  ///   A flag indicating whether the plugin supports the same version of the
+  ///   plugin spec as the analysis server. If the value is `false`, then the
+  ///   plugin is expected to shutdown after returning the response.
+  ///
+  /// * `name: String`
+  ///
+  ///   The name of the plugin. This value is only used when the server needs
+  ///   to identify the plugin, either to the user or for debugging purposes.
+  ///
+  /// * `version: String`
+  ///
+  ///   The version of the plugin. This value is only used when the server
+  ///   needs to identify the plugin, either to the user or for debugging
+  ///   purposes.
+  ///
+  /// * `contactInfo: String (optional)`
+  ///
+  ///   Information that the user can use to use to contact the maintainers of
+  ///   the plugin when there is a problem.
+  ///
+  /// * `interestingFiles: List<String>`
+  ///
+  ///   The glob patterns of the files for which the plugin will provide
+  ///   information. This value is ignored if the `isCompatible` field is
+  ///   `false`. Otherwise, it will be used to identify the files for which the
+  ///   plugin should be notified of changes.
+  Future<PluginVersionCheckResult> sendPluginVersionCheck(
+    String byteStorePath,
+    String sdkPath,
+    String version,
+  ) async {
+    var params = PluginVersionCheckParams(
+      byteStorePath,
+      sdkPath,
+      version,
+    ).toJson();
+    var result = await server.send('plugin.versionCheck', params);
+    var decoder = ResponseDecoder(null);
+    return PluginVersionCheckResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Details regarding the registered plugins, for analytics-reporting and
+  /// insights-reporting purposes.
+  ///
+  /// Returns
+  ///
+  /// * `plugins: List<PluginDetails>`
+  ///
+  ///   A list of the details of all registered plugins.
+  Future<PluginDetailsResult> sendPluginDetails() async {
+    var result = await server.send('plugin.details', null);
+    var decoder = ResponseDecoder(null);
+    return PluginDetailsResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Used to request that the plugin exit. The server will not send any other
+  /// requests after this request. The plugin should not send any responses or
+  /// notifications after sending the response to this request.
+  Future sendPluginShutdown() async {
+    var result = await server.send('plugin.shutdown', null);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /// Used to report that an unexpected error has occurred while executing the
+  /// plugin. This notification is not used for problems with specific requests
+  /// (which should be returned as part of the response) but is used for
+  /// exceptions that occur while performing other tasks, such as analysis or
+  /// preparing notifications.
+  ///
+  /// Parameters
+  ///
+  /// * `isFatal: bool`
+  ///
+  ///   A flag indicating whether the error is a fatal error, meaning that the
+  ///   plugin will shutdown automatically after sending this notification. If
+  ///   `true`, the server will not expect any other responses or notifications
+  ///   from the plugin.
+  ///
+  /// * `message: String`
+  ///
+  ///   The error message indicating what kind of error was encountered.
+  ///
+  /// * `stackTrace: String`
+  ///
+  ///   The stack trace associated with the generation of the error, used for
+  ///   debugging the plugin.
+  late Stream<PluginErrorParams> onPluginError;
+
+  /// Stream controller for [onPluginError].
+  late StreamController<PluginErrorParams> _onPluginError;
+
+  /// Contains a message printed by a plugin.
+  ///
+  /// Parameters
+  ///
+  /// * `pluginPrint: PluginPrint`
+  ///
+  ///   Information about the message being printed.
+  late Stream<PluginPrintParams> onPluginPrint;
+
+  /// Stream controller for [onPluginPrint].
+  late StreamController<PluginPrintParams> _onPluginPrint;
+
+  /// Reports the current status of the plugin. Parameters are omitted if there
+  /// has been no change in the status represented by that parameter.
+  ///
+  /// Only used for "new" analyzer plugins. Legacy plugins should not use this
+  /// type.
+  ///
+  /// Parameters
+  ///
+  /// * `analysis: AnalysisStatus (optional)`
+  ///
+  ///   The current status of analysis (whether analysis is being performed).
+  late Stream<PluginStatusParams> onPluginStatus;
+
+  /// Stream controller for [onPluginStatus].
+  late StreamController<PluginStatusParams> _onPluginStatus;
+
+  /// Return the navigation information associated with the given region of the
+  /// given file. If the navigation information for the given file has not yet
+  /// been computed, or the most recently computed navigation information for
+  /// the given file is out of date, then the response for this request will be
+  /// delayed until it has been computed. If the content of the file changes
+  /// after this request was received but before a response could be sent, then
+  /// an error of type `CONTENT_MODIFIED` will be generated.
+  ///
+  /// If a navigation region overlaps (but extends either before or after) the
+  /// given region of the file it will be included in the result. This means
+  /// that it is theoretically possible to get the same navigation region in
+  /// response to multiple requests. Clients can avoid this by always choosing
+  /// a region that starts at the beginning of a line and ends at the end of a
+  /// (possibly different) line in the file.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file in which navigation information is being requested.
+  ///
+  /// * `offset: int`
+  ///
+  ///   The offset of the region for which navigation information is being
+  ///   requested.
+  ///
+  /// * `length: int`
+  ///
+  ///   The length of the region for which navigation information is being
+  ///   requested.
+  ///
+  /// Returns
+  ///
+  /// * `files: List<FilePath>`
+  ///
+  ///   A list of the paths of files that are referenced by the navigation
+  ///   targets.
+  ///
+  /// * `targets: List<NavigationTarget>`
+  ///
+  ///   A list of the navigation targets that are referenced by the navigation
+  ///   regions.
+  ///
+  /// * `regions: List<NavigationRegion>`
+  ///
+  ///   A list of the navigation regions within the requested region of the
+  ///   file.
+  Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(
+    String file,
+    int offset,
+    int length,
+  ) async {
+    var params = AnalysisGetNavigationParams(file, offset, length).toJson();
+    var result = await server.send('analysis.getNavigation', params);
+    var decoder = ResponseDecoder(null);
+    return AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Used to inform the plugin of changes to files in the file system. Only
+  /// events associated with files that match the `interestingFiles` glob
+  /// patterns will be forwarded to the plugin.
+  ///
+  /// Parameters
+  ///
+  /// * `events: List<WatchEvent>`
+  ///
+  ///   The watch events that the plugin should handle.
+  Future sendAnalysisHandleWatchEvents(List<WatchEvent> events) async {
+    var params = AnalysisHandleWatchEventsParams(events).toJson();
+    var result = await server.send('analysis.handleWatchEvents', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /// Sets the root paths used to determine which files to analyze. The set of
+  /// files to be analyzed are all of the files in one of the root paths that
+  /// are not excluded (explicitly or implicitly). A file is explicitly
+  /// excluded if it is in one of the excluded paths. A file is implicitly
+  /// excluded if it is in a subdirectory of one of the root paths where the
+  /// name of the subdirectory starts with a period (that is, a hidden
+  /// directory).
+  ///
+  /// Note that this request determines the set of requested analysis roots.
+  /// The actual set of analysis roots at any given time is the intersection of
+  /// this set with the set of files and directories actually present on the
+  /// filesystem. When the filesystem changes, the actual set of analysis roots
+  /// is automatically updated, but the set of requested analysis roots is
+  /// unchanged. This means that if the client sets an analysis root before the
+  /// root becomes visible to the server in the filesystem, there is no error;
+  /// once the server sees the root in the filesystem it will start analyzing
+  /// it. Similarly, the server will stop analyzing files that are removed from
+  /// the file system but they will remain in the set of requested roots.
+  ///
+  /// If an included path represents a file, then the server will look in the
+  /// directory containing the file for a pubspec.yaml file. If none is found,
+  /// then the parents of the directory will be searched until such a file is
+  /// found or the root of the file system is reached. If such a file is found,
+  /// it will be used to resolve "package:" URI's within the file.
+  ///
+  /// Parameters
+  ///
+  /// * `included: List<FilePath>`
+  ///
+  ///   A list of the files and directories that should be analyzed.
+  ///
+  /// * `excluded: List<FilePath>`
+  ///
+  ///   A list of the files and directories within the included directories
+  ///   that should not be analyzed.
+  Future sendAnalysisSetAnalysisRoots(
+    List<String> included,
+    List<String> excluded,
+  ) async {
+    var params = AnalysisSetAnalysisRootsParams(included, excluded).toJson();
+    var result = await server.send('analysis.setAnalysisRoots', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /// Set the list of context roots that should be analyzed.
+  ///
+  /// Parameters
+  ///
+  /// * `roots: List<ContextRoot>`
+  ///
+  ///   A list of the context roots that should be analyzed.
+  Future sendAnalysisSetContextRoots(List<ContextRoot> roots) async {
+    var params = AnalysisSetContextRootsParams(roots).toJson();
+    var result = await server.send('analysis.setContextRoots', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /// Used to set the priority files to the files in the given list. A priority
+  /// file is a file that should be given priority when scheduling which
+  /// analysis work to do first. The list typically contains those files that
+  /// are visible to the user and those for which analysis results will have
+  /// the biggest impact on the user experience. The order of the files within
+  /// the list is significant: the first file will be given higher priority
+  /// than the second, the second higher priority than the third, and so on.
+  ///
+  /// Parameters
+  ///
+  /// * `files: List<FilePath>`
+  ///
+  ///   The files that are to be a priority for analysis.
+  Future sendAnalysisSetPriorityFiles(List<String> files) async {
+    var params = AnalysisSetPriorityFilesParams(files).toJson();
+    var result = await server.send('analysis.setPriorityFiles', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /// Used to subscribe for services that are specific to individual files. All
+  /// previous subscriptions should be replaced by the current set of
+  /// subscriptions. If a given service is not included as a key in the map
+  /// then no files should be subscribed to the service, exactly as if the
+  /// service had been included in the map with an explicit empty list of
+  /// files.
+  ///
+  /// Parameters
+  ///
+  /// * `subscriptions: Map<AnalysisService, List<FilePath>>`
+  ///
+  ///   A table mapping services to a list of the files being subscribed to the
+  ///   service.
+  Future sendAnalysisSetSubscriptions(
+    Map<AnalysisService, List<String>> subscriptions,
+  ) async {
+    var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
+    var result = await server.send('analysis.setSubscriptions', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /// Used to update the content of one or more files. Files that were
+  /// previously updated but not included in this update remain unchanged. This
+  /// effectively represents an overlay of the filesystem. The files whose
+  /// content is overridden are therefore seen by the plugin as being files
+  /// with the given content, even if the files do not exist on the filesystem
+  /// or if the file path represents the path to a directory on the filesystem.
+  ///
+  /// Parameters
+  ///
+  /// * `files: Map<FilePath, AddContentOverlay | ChangeContentOverlay |
+  /// RemoveContentOverlay>`
+  ///
+  ///   A table mapping the files whose content has changed to a description of
+  ///   the content change.
+  Future sendAnalysisUpdateContent(Map<String, Object> files) async {
+    var params = AnalysisUpdateContentParams(files).toJson();
+    var result = await server.send('analysis.updateContent', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
+  /// Used to report the errors associated with a given file. The set of errors
+  /// included in the notification is always a complete list that supersedes
+  /// any previously reported errors.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the errors.
+  ///
+  /// * `errors: List<AnalysisError>`
+  ///
+  ///   The errors contained in the file.
+  late Stream<AnalysisErrorsParams> onAnalysisErrors;
+
+  /// Stream controller for [onAnalysisErrors].
+  late StreamController<AnalysisErrorsParams> _onAnalysisErrors;
+
+  /// Used to report the folding regions associated with a given file. Folding
+  /// regions can be nested, but cannot be overlapping. Nesting occurs when a
+  /// foldable element, such as a method, is nested inside another foldable
+  /// element such as a class.
+  ///
+  /// Folding regions that overlap a folding region computed by the server, or
+  /// by one of the other plugins that are currently running, might be dropped
+  /// by the server in order to present a consistent view to the client.
+  ///
+  /// This notification should only be sent if the server has subscribed to it
+  /// by including the value `"FOLDING"` in the list of services passed in an
+  /// analysis.setSubscriptions request.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the folding regions.
+  ///
+  /// * `regions: List<FoldingRegion>`
+  ///
+  ///   The folding regions contained in the file.
+  late Stream<AnalysisFoldingParams> onAnalysisFolding;
+
+  /// Stream controller for [onAnalysisFolding].
+  late StreamController<AnalysisFoldingParams> _onAnalysisFolding;
+
+  /// Used to report the highlight regions associated with a given file. Each
+  /// highlight region represents a particular syntactic or semantic meaning
+  /// associated with some range. Note that the highlight regions that are
+  /// returned can overlap other highlight regions if there is more than one
+  /// meaning associated with a particular region.
+  ///
+  /// This notification should only be sent if the server has subscribed to it
+  /// by including the value `"HIGHLIGHTS"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the highlight regions.
+  ///
+  /// * `regions: List<HighlightRegion>`
+  ///
+  ///   The highlight regions contained in the file.
+  late Stream<AnalysisHighlightsParams> onAnalysisHighlights;
+
+  /// Stream controller for [onAnalysisHighlights].
+  late StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
+
+  /// Used to report the navigation regions associated with a given file. Each
+  /// navigation region represents a list of targets associated with some
+  /// range. The lists will usually contain a single target, but can contain
+  /// more in the case of a part that is included in multiple libraries or in
+  /// Dart code that is compiled against multiple versions of a package. Note
+  /// that the navigation regions that are returned should not overlap other
+  /// navigation regions.
+  ///
+  /// Navigation regions that overlap a navigation region computed by the
+  /// server, or by one of the other plugins that are currently running, might
+  /// be dropped or modified by the server in order to present a consistent
+  /// view to the client.
+  ///
+  /// This notification should only be sent if the server has subscribed to it
+  /// by including the value `"NAVIGATION"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the navigation regions.
+  ///
+  /// * `regions: List<NavigationRegion>`
+  ///
+  ///   The navigation regions contained in the file.
+  ///
+  /// * `targets: List<NavigationTarget>`
+  ///
+  ///   The navigation targets referenced in the file. They are referenced by
+  ///   NavigationRegions by their index in this array.
+  ///
+  /// * `files: List<FilePath>`
+  ///
+  ///   The files containing navigation targets referenced in the file. They
+  ///   are referenced by NavigationTargets by their index in this array.
+  late Stream<AnalysisNavigationParams> onAnalysisNavigation;
+
+  /// Stream controller for [onAnalysisNavigation].
+  late StreamController<AnalysisNavigationParams> _onAnalysisNavigation;
+
+  /// Used to report the occurrences of references to elements within a single
+  /// file. None of the occurrence regions should overlap.
+  ///
+  /// Occurrence regions that overlap an occurrence region computed by the
+  /// server, or by one of the other plugins that are currently running, might
+  /// be dropped or modified by the server in order to present a consistent
+  /// view to the client.
+  ///
+  /// This notification should only be sent if the server has subscribed to it
+  /// by including the value `"OCCURRENCES"` in the list of services passed in
+  /// an analysis.setSubscriptions request.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file in which the references occur.
+  ///
+  /// * `occurrences: List<Occurrences>`
+  ///
+  ///   The occurrences of references to elements within the file.
+  late Stream<AnalysisOccurrencesParams> onAnalysisOccurrences;
+
+  /// Stream controller for [onAnalysisOccurrences].
+  late StreamController<AnalysisOccurrencesParams> _onAnalysisOccurrences;
+
+  /// Used to report the outline fragments associated with a single file.
+  ///
+  /// The outline fragments will be merged with any outline produced by the
+  /// server and with any fragments produced by other plugins. If the server
+  /// cannot create a coherent outline, some fragments might be dropped.
+  ///
+  /// This notification should only be sent if the server has subscribed to it
+  /// by including the value `"OUTLINE"` in the list of services passed in an
+  /// analysis.setSubscriptions request.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file with which the outline is associated.
+  ///
+  /// * `outline: List<Outline>`
+  ///
+  ///   The outline fragments associated with the file.
+  late Stream<AnalysisOutlineParams> onAnalysisOutline;
+
+  /// Stream controller for [onAnalysisOutline].
+  late StreamController<AnalysisOutlineParams> _onAnalysisOutline;
+
+  /// Deprecated - no longer supported.
+  ///
+  /// Used to request that completion suggestions for the given offset in the
+  /// given file be returned.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the point at which suggestions are to be made.
+  ///
+  /// * `offset: int`
+  ///
+  ///   The offset within the file at which suggestions are to be made.
+  ///
+  /// Returns
+  ///
+  /// * `replacementOffset: int`
+  ///
+  ///   The offset of the start of the text to be replaced. This will be
+  ///   different than the offset used to request the completion suggestions if
+  ///   there was a portion of an identifier before the original offset. In
+  ///   particular, the replacementOffset will be the offset of the beginning
+  ///   of said identifier.
+  ///
+  /// * `replacementLength: int`
+  ///
+  ///   The length of the text to be replaced if the remainder of the
+  ///   identifier containing the cursor is to be replaced when the suggestion
+  ///   is applied (that is, the number of characters in the existing
+  ///   identifier).
+  ///
+  /// * `results: List<CompletionSuggestion>`
+  ///
+  ///   The completion suggestions being reported. The notification contains
+  ///   all possible completions at the requested cursor position, even those
+  ///   that do not match the characters the user has already typed. This
+  ///   allows the client to respond to further keystrokes from the user
+  ///   without having to make additional requests.
+  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
+    String file,
+    int offset,
+  ) async {
+    var params = CompletionGetSuggestionsParams(file, offset).toJson();
+    var result = await server.send('completion.getSuggestions', params);
+    var decoder = ResponseDecoder(null);
+    return CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Used to request the set of assists that are available at the given
+  /// location. An assist is distinguished from a refactoring primarily by the
+  /// fact that it affects a single file and does not require user input in
+  /// order to be performed.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the code for which assists are being requested.
+  ///
+  /// * `offset: int`
+  ///
+  ///   The offset of the code for which assists are being requested.
+  ///
+  /// * `length: int`
+  ///
+  ///   The length of the code for which assists are being requested.
+  ///
+  /// Returns
+  ///
+  /// * `assists: List<PrioritizedSourceChange>`
+  ///
+  ///   The assists that are available at the given location.
+  Future<EditGetAssistsResult> sendEditGetAssists(
+    String file,
+    int offset,
+    int length,
+  ) async {
+    var params = EditGetAssistsParams(file, offset, length).toJson();
+    var result = await server.send('edit.getAssists', params);
+    var decoder = ResponseDecoder(null);
+    return EditGetAssistsResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Used to request a list of the kinds of refactorings that are valid for
+  /// the given selection in the given file.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the code on which the refactoring would be based.
+  ///
+  /// * `offset: int`
+  ///
+  ///   The offset of the code on which the refactoring would be based.
+  ///
+  /// * `length: int`
+  ///
+  ///   The length of the code on which the refactoring would be based.
+  ///
+  /// Returns
+  ///
+  /// * `kinds: List<RefactoringKind>`
+  ///
+  ///   The kinds of refactorings that are valid for the given selection.
+  ///
+  ///   The list of refactoring kinds is currently limited to those defined by
+  ///   the server API, preventing plugins from adding their own refactorings.
+  ///   However, plugins can support pre-defined refactorings, such as a rename
+  ///   refactoring, at locations not supported by server.
+  Future<EditGetAvailableRefactoringsResult> sendEditGetAvailableRefactorings(
+    String file,
+    int offset,
+    int length,
+  ) async {
+    var params = EditGetAvailableRefactoringsParams(
+      file,
+      offset,
+      length,
+    ).toJson();
+    var result = await server.send('edit.getAvailableRefactorings', params);
+    var decoder = ResponseDecoder(null);
+    return EditGetAvailableRefactoringsResult.fromJson(
+      decoder,
+      'result',
+      result,
+    );
+  }
+
+  /// Used to request the set of fixes that are available for the errors at a
+  /// given offset in a given file.
+  ///
+  /// Parameters
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the errors for which fixes are being requested.
+  ///
+  /// * `offset: int`
+  ///
+  ///   The offset used to select the errors for which fixes will be returned.
+  ///
+  /// Returns
+  ///
+  /// * `fixes: List<AnalysisErrorFixes>`
+  ///
+  ///   The fixes that are available for the errors at the given offset.
+  Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) async {
+    var params = EditGetFixesParams(file, offset).toJson();
+    var result = await server.send('edit.getFixes', params);
+    var decoder = ResponseDecoder(null);
+    return EditGetFixesResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Used to request the changes required to perform a refactoring.
+  ///
+  /// Parameters
+  ///
+  /// * `kind: RefactoringKind`
+  ///
+  ///   The kind of refactoring to be performed.
+  ///
+  /// * `file: FilePath`
+  ///
+  ///   The file containing the code involved in the refactoring.
+  ///
+  /// * `offset: int`
+  ///
+  ///   The offset of the region involved in the refactoring.
+  ///
+  /// * `length: int`
+  ///
+  ///   The length of the region involved in the refactoring.
+  ///
+  /// * `validateOnly: bool`
+  ///
+  ///   True if the client is only requesting that the values of the options be
+  ///   validated and no change be generated.
+  ///
+  /// * `options: RefactoringOptions (optional)`
+  ///
+  ///   Data used to provide values provided by the user. The structure of the
+  ///   data is dependent on the kind of refactoring being performed. The data
+  ///   that is expected is documented in the section titled Refactorings,
+  ///   labeled as "Options". This field can be omitted if the refactoring does
+  ///   not require any options or if the values of those options are not
+  ///   known.
+  ///
+  /// Returns
+  ///
+  /// * `initialProblems: List<RefactoringProblem>`
+  ///
+  ///   The initial status of the refactoring, that is, problems related to the
+  ///   context in which the refactoring is requested. The list should be empty
+  ///   if there are no known problems.
+  ///
+  /// * `optionsProblems: List<RefactoringProblem>`
+  ///
+  ///   The options validation status, that is, problems in the given options,
+  ///   such as light-weight validation of a new name, flags compatibility,
+  ///   etc. The list should be empty if there are no known problems.
+  ///
+  /// * `finalProblems: List<RefactoringProblem>`
+  ///
+  ///   The final status of the refactoring, that is, problems identified in
+  ///   the result of a full, potentially expensive validation and / or change
+  ///   creation. The list should be empty if there are no known problems.
+  ///
+  /// * `feedback: RefactoringFeedback (optional)`
+  ///
+  ///   Data used to provide feedback to the user. The structure of the data is
+  ///   dependent on the kind of refactoring being created. The data that is
+  ///   returned is documented in the section titled Refactorings, labeled as
+  ///   "Feedback".
+  ///
+  /// * `change: SourceChange (optional)`
+  ///
+  ///   The changes that are to be applied to affect the refactoring. This
+  ///   field can be omitted if there are problems that prevent a set of
+  ///   changes from being computed, such as having no options specified for a
+  ///   refactoring that requires them, or if only validation was requested.
+  ///
+  /// * `potentialEdits: List<String> (optional)`
+  ///
+  ///   The ids of source edits that are not known to be valid. An edit is not
+  ///   known to be valid if there was insufficient type information for the
+  ///   plugin to be able to determine whether or not the code needs to be
+  ///   modified, such as when a member is being renamed and there is a
+  ///   reference to a member from an unknown type. This field can be omitted
+  ///   if the change field is omitted or if there are no potential edits for
+  ///   the refactoring.
+  Future<EditGetRefactoringResult> sendEditGetRefactoring(
+    RefactoringKind kind,
+    String file,
+    int offset,
+    int length,
+    bool validateOnly, {
+    RefactoringOptions? options,
+  }) async {
+    var params = EditGetRefactoringParams(
+      kind,
+      file,
+      offset,
+      length,
+      validateOnly,
+      options: options,
+    ).toJson();
+    var result = await server.send('edit.getRefactoring', params);
+    var decoder = ResponseDecoder(kind);
+    return EditGetRefactoringResult.fromJson(decoder, 'result', result);
+  }
+
+  /// Initialize the fields in InttestMixin, and ensure that notifications will
+  /// be handled.
+  void initializeInttestMixin() {
+    _onPluginError = StreamController<PluginErrorParams>(sync: true);
+    onPluginError = _onPluginError.stream.asBroadcastStream();
+    _onPluginPrint = StreamController<PluginPrintParams>(sync: true);
+    onPluginPrint = _onPluginPrint.stream.asBroadcastStream();
+    _onPluginStatus = StreamController<PluginStatusParams>(sync: true);
+    onPluginStatus = _onPluginStatus.stream.asBroadcastStream();
+    _onAnalysisErrors = StreamController<AnalysisErrorsParams>(sync: true);
+    onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
+    _onAnalysisFolding = StreamController<AnalysisFoldingParams>(sync: true);
+    onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
+    _onAnalysisHighlights = StreamController<AnalysisHighlightsParams>(
+      sync: true,
+    );
+    onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
+    _onAnalysisNavigation = StreamController<AnalysisNavigationParams>(
+      sync: true,
+    );
+    onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
+    _onAnalysisOccurrences = StreamController<AnalysisOccurrencesParams>(
+      sync: true,
+    );
+    onAnalysisOccurrences = _onAnalysisOccurrences.stream.asBroadcastStream();
+    _onAnalysisOutline = StreamController<AnalysisOutlineParams>(sync: true);
+    onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
+  }
+
+  /// Dispatch the notification named [event], and containing parameters
+  /// [params], to the appropriate stream.
+  void dispatchNotification(String event, params) {
+    var decoder = ResponseDecoder(null);
+    switch (event) {
+      case 'plugin.error':
+        outOfTestExpect(params, isPluginErrorParams);
+        _onPluginError.add(
+          PluginErrorParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'plugin.print':
+        outOfTestExpect(params, isPluginPrintParams);
+        _onPluginPrint.add(
+          PluginPrintParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'plugin.status':
+        outOfTestExpect(params, isPluginStatusParams);
+        _onPluginStatus.add(
+          PluginStatusParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'analysis.errors':
+        outOfTestExpect(params, isAnalysisErrorsParams);
+        _onAnalysisErrors.add(
+          AnalysisErrorsParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'analysis.folding':
+        outOfTestExpect(params, isAnalysisFoldingParams);
+        _onAnalysisFolding.add(
+          AnalysisFoldingParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'analysis.highlights':
+        outOfTestExpect(params, isAnalysisHighlightsParams);
+        _onAnalysisHighlights.add(
+          AnalysisHighlightsParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'analysis.navigation':
+        outOfTestExpect(params, isAnalysisNavigationParams);
+        _onAnalysisNavigation.add(
+          AnalysisNavigationParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'analysis.occurrences':
+        outOfTestExpect(params, isAnalysisOccurrencesParams);
+        _onAnalysisOccurrences.add(
+          AnalysisOccurrencesParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      case 'analysis.outline':
+        outOfTestExpect(params, isAnalysisOutlineParams);
+        _onAnalysisOutline.add(
+          AnalysisOutlineParams.fromJson(decoder, 'params', params),
+        );
+        break;
+      default:
+        fail('Unexpected notification: $event');
+    }
+  }
+}

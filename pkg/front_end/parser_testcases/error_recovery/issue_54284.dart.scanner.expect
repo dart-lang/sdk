@@ -1,0 +1,51 @@
+var x = throw 0..isEven;
+
+void foo() {
+var x;
+print(x = throw 0..isEven);
+}
+
+class A {
+var x;
+A() : x = throw 1.isEven;
+A() : this.x = throw 2.isEven;
+}
+
+class A {
+var x;
+A() : x = (throw 3..isEven);
+A() : this.x = (throw 4..isEven);
+}
+
+class A {
+var x;
+A() : x = throw 5..isEven;
+A() : this.x = throw 6..isEven;
+}
+
+
+var[KeywordToken] x[StringToken] =[SimpleToken] throw[KeywordToken] 0[StringToken]..[SimpleToken]isEven[StringToken];[SimpleToken]
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+var[KeywordToken] x[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]x[StringToken] =[SimpleToken] throw[KeywordToken] 0[StringToken]..[SimpleToken]isEven[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+var[KeywordToken] x[StringToken];[SimpleToken]
+A[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] throw[KeywordToken] 1[StringToken].[SimpleToken]isEven[StringToken];[SimpleToken]
+A[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken] =[SimpleToken] throw[KeywordToken] 2[StringToken].[SimpleToken]isEven[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+var[KeywordToken] x[StringToken];[SimpleToken]
+A[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]throw[KeywordToken] 3[StringToken]..[SimpleToken]isEven[StringToken])[SimpleToken];[SimpleToken]
+A[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken] =[SimpleToken] ([BeginToken]throw[KeywordToken] 4[StringToken]..[SimpleToken]isEven[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+var[KeywordToken] x[StringToken];[SimpleToken]
+A[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] throw[KeywordToken] 5[StringToken]..[SimpleToken]isEven[StringToken];[SimpleToken]
+A[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken] =[SimpleToken] throw[KeywordToken] 6[StringToken]..[SimpleToken]isEven[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

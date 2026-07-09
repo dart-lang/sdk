@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void
+  ;
+static method split<A extends core::Object? = dynamic>(core::Iterable<self::split::A%> it) → core::Iterable<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)>
+  ;

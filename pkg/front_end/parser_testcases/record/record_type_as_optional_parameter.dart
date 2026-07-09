@@ -1,0 +1,6 @@
+void foo([(int, int) foo1, (int, int) foo2]) {
+}
+void bar([(int, int) foo1 = (42, 42), (int, int) foo2 = (42, 42)]) {
+}
+void baz([(int, int)? foo1, (int, int)? foo2]) {
+}

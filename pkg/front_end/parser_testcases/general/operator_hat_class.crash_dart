@@ -1,0 +1,3 @@
+class operator {
+  operator^(int x) {}
+}

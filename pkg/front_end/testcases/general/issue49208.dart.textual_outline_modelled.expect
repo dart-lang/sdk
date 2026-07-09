@@ -1,0 +1,24 @@
+class MyModel<T> {
+  MyModel(this.data);
+  final T data;
+}
+
+class MyWidget extends StatefulWidget {}
+
+class MyWidgetState1 extends State<MyWidget> with MyMixin<String, MyWidget> {
+  void doSomething() {}
+}
+
+class MyWidgetState2 extends State<MyWidget> with MyMixinTypedef {
+  void doSomething() {}
+}
+
+class State<T extends StatefulWidget> {}
+
+class StatefulWidget {}
+
+mixin MyMixin<T, W extends StatefulWidget> on State<W> {
+  void listenToEvents(Stream<MyModel<T>> stream) {}
+}
+
+typedef MyMixinTypedef = MyMixin<String, MyWidget>;

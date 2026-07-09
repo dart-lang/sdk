@@ -1,0 +1,99 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i = null;
+static method main() → void {
+  let core::int? #t1 = self::i in #t1 == null ?{Null} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t2 = #t1 in #t2 == null ?{core::int} #t2 as core::int : #t2{core::int};
+    Null #t3;
+    #L1:
+    {
+      1;
+      {
+        #t3 = null;
+        break #L1;
+      }
+    }
+  } =>#t3;
+  let core::int? #t4 = self::i in #t4 == null ?{Null} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t5 = #t4 in #t5 == null ?{core::int} #t5 as core::int : #t5{core::int};
+    Null #t6;
+    #L2:
+    {
+      anonymous#this;
+      {
+        #t6 = null;
+        break #L2;
+      }
+    }
+  } =>#t6;
+  let core::int? #t7 = self::i in #t7 == null ?{Null} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t8 = #t7 in #t8 == null ?{core::int} #t8 as core::int : #t8{core::int};
+    Null #t9;
+    #L3:
+    {
+      anonymous#this.{core::int::isEven}{core::bool};
+      {
+        #t9 = null;
+        break #L3;
+      }
+    }
+  } =>#t9;
+  let core::int? #t10 = self::i in #t10 == null ?{Null} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t11 = #t10 in #t11 == null ?{core::int} #t11 as core::int : #t11{core::int};
+    Null #t12;
+    #L4:
+    {
+      anonymous#this.{core::int::isEven}{core::bool};
+      {
+        #t12 = null;
+        break #L4;
+      }
+    }
+  } =>#t12;
+  let core::int? #t13 = self::i in #t13 == null ?{core::int?} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t14 = #t13 in #t14 == null ?{core::int} #t14 as core::int : #t14{core::int};
+    core::int #t15;
+    #L5:
+    {
+      {
+        #t15 = 1;
+        break #L5;
+      }
+    }
+  } =>#t15;
+  let core::int? #t16 = self::i in #t16 == null ?{core::int?} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t17 = #t16 in #t17 == null ?{core::int} #t17 as core::int : #t17{core::int};
+    core::int #t18;
+    #L6:
+    {
+      {
+        #t18 = anonymous#this;
+        break #L6;
+      }
+    }
+  } =>#t18;
+  let core::int? #t19 = self::i in #t19 == null ?{core::bool?} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t20 = #t19 in #t20 == null ?{core::int} #t20 as core::int : #t20{core::int};
+    core::bool #t21;
+    #L7:
+    {
+      {
+        #t21 = anonymous#this.{core::int::isEven}{core::bool};
+        break #L7;
+      }
+    }
+  } =>#t21;
+  let core::int? #t22 = self::i in #t22 == null ?{core::bool?} null : block {
+    final synthesized core::int anonymous#this = let core::int? #t23 = #t22 in #t23 == null ?{core::int} #t23 as core::int : #t23{core::int};
+    core::bool #t24;
+    #L8:
+    {
+      {
+        #t24 = anonymous#this.{core::int::isEven}{core::bool};
+        break #L8;
+      }
+    }
+  } =>#t24;
+}

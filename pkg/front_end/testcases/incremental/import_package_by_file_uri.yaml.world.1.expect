@@ -1,0 +1,16 @@
+main = <No Member>;
+library from "package:foo/lib.dart" as lib {
+
+  import "org-dartlang-test:///foo/main.dart";
+
+}
+library from "package:foo/main.dart" as main {
+
+  import "package:foo/lib.dart";
+
+}
+library from "org-dartlang-test:///foo/main.dart" as main2 {
+
+  import "package:foo/lib.dart";
+
+}

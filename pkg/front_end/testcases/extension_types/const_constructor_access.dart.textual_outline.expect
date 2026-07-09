@@ -1,0 +1,31 @@
+extension type ExtensionType1(int i) {}
+
+const implicitConst1 = ExtensionType1(0);
+
+var explicitConst1 = const ExtensionType1(0);
+
+const newConst1 = new ExtensionType1(0);
+
+typedef Typedef1<X> = ExtensionType1;
+
+const implicitConstAliased1 = Typedef1(0);
+
+var explicitConstAliased1 = const Typedef1(0);
+
+const newConstAliased1 = new Typedef1(0);
+
+extension type const ExtensionType2(int i) {}
+
+const implicitConst2 = ExtensionType2(0);
+
+var explicitConst2 = const ExtensionType2(0);
+
+const newConst2 = new ExtensionType2(0);
+
+typedef Typedef2<X> = ExtensionType2;
+
+const implicitConstAliased2 = Typedef2(0);
+
+var explicitConstAliased2 = const Typedef2(0);
+
+const newConstAliased2 = new Typedef2(0);

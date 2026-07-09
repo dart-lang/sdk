@@ -1,0 +1,5 @@
+{
+  "expectedErrors": {
+    "1": "Const class cannot become non-const: Library:'hot-reload-test:///main.dart' Class: A"
+  }
+}

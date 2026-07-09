@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return this.{dart.core::num::clamp}(42, 42){(dart.core::num, dart.core::num) → dart.core::num};

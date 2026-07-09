@@ -1,0 +1,8 @@
+// @dart = 2.18
+
+abstract class C {
+  final int? _privateFinalField;
+  C(int? i) : _privateFinalField = i;
+}
+
+void testPrivateFinalField(C c) {}

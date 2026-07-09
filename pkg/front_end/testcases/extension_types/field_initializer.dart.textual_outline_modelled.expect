@@ -1,0 +1,11 @@
+extension type ET1(int id) {
+  int id = 0;
+}
+
+extension type ET2(int id) {
+  int x = 0;
+}
+
+extension type ET3(int id) {
+  final int x = 0;
+}

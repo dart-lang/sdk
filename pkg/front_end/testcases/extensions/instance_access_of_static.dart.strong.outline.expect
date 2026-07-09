@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+}
+extension Extension1 on self::Class1 {
+  static method staticMethod = self::Extension1|staticMethod;
+  static get staticProperty = get self::Extension1|staticProperty;
+  static set staticProperty = set self::Extension1|staticProperty;
+  static field staticField = self::Extension1|staticField;
+}
+static field core::int Extension1|staticField;
+static extension-member method Extension1|staticMethod() → dynamic
+  ;
+static extension-member get Extension1|staticProperty() → core::int
+  ;
+static extension-member set Extension1|staticProperty(core::int value) → void
+  ;
+static method main() → dynamic
+  ;

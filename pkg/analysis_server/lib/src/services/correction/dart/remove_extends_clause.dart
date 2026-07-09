@@ -1,0 +1,48 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
+
+class RemoveExtendsClause extends ResolvedCorrectionProducer {
+  new({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
+  FixKind get fixKind => DartFixKind.removeExtendsClause;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.removeExtendsClauseMulti;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (classDeclaration == null) return;
+
+    var extendsClause = classDeclaration.extendsClause;
+    if (extendsClause == null) return;
+
+    await builder.addDartFileEdit(file, (builder) {
+      switch (classDeclaration.body) {
+        case BlockClassBody body:
+          // Delete the keyword `extends`, through `{`.
+          builder.addDeletion(
+            range.startStart(extendsClause, body.leftBracket),
+          );
+        case EmptyClassBody body:
+          // Delete the whitespace before `extends`, through `;`.
+          builder.addDeletion(
+            range.endStart(extendsClause.beginToken.previous!, body.semicolon),
+          );
+      }
+    });
+  }
+}

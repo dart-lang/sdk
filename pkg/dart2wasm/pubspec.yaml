@@ -1,0 +1,31 @@
+name: dart2wasm
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  _fe_analyzer_shared: any
+  _js_interop_checks: any
+  analyzer: any
+  args: any
+  build_integration: any
+  collection: any
+  compiler: any
+  front_end: any
+  kernel: any
+  linter: any
+  vm: any
+  wasm_builder: any
+  path: any
+  pool: any
+  record_use: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  expect: any
+  js: any
+  lints: any

@@ -1,0 +1,66 @@
+NOTICE: Stream was rewritten by parser!
+
+String foo(dynamic bar) {
+return "æble $bar";
+}
+
+String bar() {
+return "æble"
+;}
+
+String baz() {
+return "$*synthetic*1"
+;}
+
+String qux() {
+return r"æble$"
+;}
+
+String quux() {
+return r"æble$"
+;}
+
+String corge() {
+
+return r"æble";}
+
+[UnterminatedString]
+
+
+
+[UnterminatedToken]
+
+
+
+
+
+
+
+[UnterminatedString]
+
+
+
+
+[UnterminatedString][UnmatchedToken]String[StringToken] foo[StringToken]([BeginToken]dynamic[KeywordToken] bar[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] "æble [StringToken]$[SimpleToken]bar[StringToken]"[StringToken];[SimpleToken]
+}[SimpleToken]
+
+String[StringToken] bar[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] "æble"[SyntheticStringToken]
+;[SyntheticToken]}[SimpleToken]
+
+String[StringToken] baz[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] "[StringToken]$[SimpleToken][SyntheticStringToken]1"[StringToken]
+;[SyntheticToken]}[SimpleToken]
+
+String[StringToken] qux[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] r"æble$"[StringToken]
+;[SyntheticToken]}[SimpleToken]
+
+String[StringToken] quux[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] r"æble$"[SyntheticStringToken]
+;[SyntheticToken]}[SimpleToken]
+
+String[StringToken] corge[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+return[KeywordToken] r"æble"[SyntheticStringToken];[SyntheticToken]}[SyntheticToken][SimpleToken]

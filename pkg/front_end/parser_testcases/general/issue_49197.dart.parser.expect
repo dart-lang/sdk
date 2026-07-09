@@ -1,0 +1,5 @@
+import "Function.dart" as Function;
+
+
+import[KeywordToken] "Function.dart"[StringToken] as[KeywordToken] Function[KeywordToken];[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,29 @@
+method({int a = 42, required int b, required int c}) {}
+
+class Class {
+  method({int a = 42, required int b, required covariant int c}) {}
+}
+
+typedef Typedef1 = Function({int a, required int b});
+
+typedef Typedef2({int a, required int b});
+
+Function({int a, required int b}) field = ({int a = 42, required int b}) {};
+
+abstract class A {
+  foo({int x});
+}
+
+class B extends A {
+  foo({x}) {}
+}
+
+class C extends A {
+  foo({x = 42}) {}
+}
+
+ok() {}
+
+error() {}
+
+main() {}

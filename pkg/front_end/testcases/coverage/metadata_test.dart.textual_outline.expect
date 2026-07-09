@@ -1,0 +1,13 @@
+// @dart = 2.12
+
+class C<T> {
+  const C();
+}
+
+@C()
+
+@C<dynamic>()
+
+@C<int>()
+
+void foo() {}

@@ -1,0 +1,17 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<!-- TODO(jimhug): Care about appearance. -->
+<html>
+<body>
+  <h1>Run the official app <a href='swarm-js.html'>swarm-js.html</a></h1>
+
+  <h2>Or pick an experimental version from below</h2>
+  {% for file in files %}
+  <div><a href="{{file.filename}}">{{file.filename}}</a>
+    uploaded on {{file.date}} by {{file.author.nickname}}</div>
+  {% endfor %}
+  <p>If you want to upload your own fake feed, click <a href="/upload">here</a>.
+</body>
+</html>

@@ -1,0 +1,8 @@
+import 'main_lib.dart';
+
+final a = A(bExt: .f(c: .f(0)));
+
+class A {
+  final BExt bExt;
+  const A({required this.bExt});
+}

@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  abstract get _f1() → core::int?;
+  abstract get _f2() → core::int?;
+  abstract set _f2(synthesized core::int? #externalFieldValue) → void;
+}
+class D extends core::Object {
+  final field core::int? _f1;
+  final field core::int? _f2;
+  constructor •(core::int i) → self::D
+    ;
+}
+static method acceptsInt(core::int x) → void
+  ;
+static method testAbstractFinalFieldIsPromotable(self::C c) → void
+  ;
+static method testAbstractNonFinalFieldIsNotPromotable(self::C c) → void
+  ;
+static method testAbstractFinalFieldDoesNotBlockPromotionElsewhere(self::D d) → void
+  ;
+static method testAbstractNonFinalFieldBlocksPromotionElsewhere(self::D d) → void
+  ;
+static method main() → dynamic
+  ;

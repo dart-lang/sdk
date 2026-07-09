@@ -1,0 +1,7 @@
+typedef A = Function()?;
+
+mixin B {}
+
+class C = A with B;
+
+main() {}

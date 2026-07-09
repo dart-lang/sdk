@@ -1,0 +1,49 @@
+Problems reported:
+
+parser/nnbd/issue_44477:1:15: Expected an identifier, but got ''.
+Future<List<>>
+              ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/nnbd/issue_44477:1:13: Expected a type, but got '>>'.
+Future<List<>>
+            ^^
+
+parser/nnbd/issue_44477:1:15: Expected an identifier, but got ''.
+Future<List<>>
+              ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/nnbd/issue_44477:1:14: Expected ';' after this.
+Future<List<>>
+             ^
+
+beginCompilationUnit(Future)
+  beginMetadataStar(Future)
+  endMetadataStar(0)
+  beginTopLevelMember(Future)
+    handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+    // WARNING: Reporting at eof for .
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, )
+      handleIdentifier(Future, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(List, typeReference)
+        beginTypeArguments(<)
+          handleRecoverableError(Message[Template(ExpectedType), Expected a type, but got '>>'., null, {lexeme: >>}], >>, >>)
+          handleIdentifier(, typeReference)
+          handleNoTypeArguments(>>)
+          handleType(, null)
+        endTypeArguments(1, <, >)
+        handleType(List, null)
+      endTypeArguments(1, <, >)
+      handleType(Future, null)
+      handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+      // WARNING: Reporting at eof for .
+      handleIdentifier(, topLevelVariableDeclaration)
+      handleNoFieldInitializer()
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], >, >)
+    endTopLevelFields(null, null, null, null, null, null, null, 1, Future, ;)
+  endTopLevelDeclaration(;)
+endCompilationUnit(1, )

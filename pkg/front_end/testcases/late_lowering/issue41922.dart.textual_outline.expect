@@ -1,0 +1,13 @@
+bool _called = false;
+
+String init(String val) {}
+
+class C {
+  static late String? s = init("lateValue");
+}
+
+main() {}
+
+expect(expected, actual) {}
+
+throws(void Function() f) {}

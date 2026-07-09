@@ -1,0 +1,9 @@
+class Super {
+  final int field1;
+  const Super(this.field1);
+}
+
+class Class extends Super {
+  final int field2;
+  const Class(super.field1, this.field2);
+}

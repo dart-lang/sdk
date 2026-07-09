@@ -1,0 +1,93 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'fix_processor.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(MakeFieldNotFinalTest);
+  });
+}
+
+@reflectiveTest
+class MakeFieldNotFinalTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.makeFieldNotFinal;
+
+  Future<void> test_declaringParameter_hasType() async {
+    await resolveTestCode('''
+class C(final int x) {}
+
+void f(C c) {
+  c.x = 3;
+}
+''');
+    await assertHasFix('''
+class C(var int x) {}
+
+void f(C c) {
+  c.x = 3;
+}
+''');
+  }
+
+  Future<void> test_declaringParameter_noType() async {
+    await resolveTestCode('''
+class C(final x) {}
+
+void f(C c) {
+  c.x = 3;
+}
+''');
+    await assertHasFix('''
+class C(var x) {}
+
+void f(C c) {
+  c.x = 3;
+}
+''');
+  }
+
+  Future<void> test_hasType() async {
+    await resolveTestCode('''
+class C {
+  final int fff = 1;
+  void f() {
+    fff = 2;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  int fff = 1;
+  void f() {
+    fff = 2;
+  }
+}
+''');
+  }
+
+  Future<void> test_noType() async {
+    await resolveTestCode('''
+class C {
+  final fff = 1;
+  void f() {
+    fff = 2;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  var fff = 1;
+  void f() {
+    fff = 2;
+  }
+}
+''');
+  }
+}

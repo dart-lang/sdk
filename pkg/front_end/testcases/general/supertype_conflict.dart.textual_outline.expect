@@ -1,0 +1,11 @@
+class A<T> {}
+
+mixin class B<T> implements A<T> {}
+
+class C<T> implements A<T> {}
+
+class D implements B<String>, C<int> {}
+
+class E<T> extends B<T> implements C<int> {}
+
+class F<T> with B<String> implements C<T> {}

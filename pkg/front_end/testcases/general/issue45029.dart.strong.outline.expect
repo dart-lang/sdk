@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field () → Never d;
+  field () → Never e;
+  synthetic constructor •() → self::C
+    ;
+}
+static field () → Never c;
+static method test() → void
+  ;

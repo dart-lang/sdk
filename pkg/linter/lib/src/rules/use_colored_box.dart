@@ -1,0 +1,79 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+import '../util/flutter_utils.dart';
+
+const _desc = r'Use `ColoredBox`.';
+
+class UseColoredBox extends AnalysisRule {
+  new() : super(name: LintNames.use_colored_box, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.useColoredBox;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+
+    registry.addInstanceCreationExpression(this, visitor);
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (!node.isWidgetTypeContainer) return;
+
+    if (_shouldReportForArguments(node.argumentList)) {
+      rule.reportAtNode(node.constructorName);
+    }
+  }
+
+  /// Determine if the lint [rule] should be reported for
+  /// the specified [argumentList].
+  static bool _shouldReportForArguments(ArgumentList argumentList) {
+    var hasChild = false;
+    var hasColor = false;
+
+    for (var argument in argumentList.arguments) {
+      if (argument is! NamedArgument) {
+        // Positional arguments are not supported.
+        return false;
+      }
+      switch (argument.name.lexeme) {
+        case 'child':
+          hasChild = true;
+        case 'color'
+            when argument.argumentExpression.staticType?.nullabilitySuffix !=
+                NullabilitySuffix.question:
+          hasColor = true;
+        case 'key':
+          // Ignore 'key' as both ColoredBox and Container have it.
+          break;
+        case _:
+          // Other named arguments are not supported.
+          return false;
+      }
+    }
+
+    return hasChild && hasColor;
+  }
+}

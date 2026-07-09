@@ -1,0 +1,7 @@
+f(x
+class C {}
+)
+
+[UnmatchedToken]f[StringToken]([BeginToken]x[StringToken]
+class[KeywordToken] C[StringToken] {[BeginToken]}[SimpleToken]
+)[SyntheticToken][SimpleToken]

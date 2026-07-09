@@ -1,0 +1,19 @@
+class X {
+late x1;
+static late x2;
+covariant late x3;
+late x4 = 0;
+static late x5 = 0;
+covariant late x6 = 0;
+}
+
+
+class[KeywordToken] X[StringToken] {[BeginToken]
+late[KeywordToken] x1[StringToken];[SimpleToken]
+static[KeywordToken] late[KeywordToken] x2[StringToken];[SimpleToken]
+covariant[KeywordToken] late[KeywordToken] x3[StringToken];[SimpleToken]
+late[KeywordToken] x4[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+static[KeywordToken] late[KeywordToken] x5[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+covariant[KeywordToken] late[KeywordToken] x6[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,14 @@
+name: smith
+description: Shared code for working with the Dart SDK's tests and test runner.
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.13.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  expect: any
+  lints: any

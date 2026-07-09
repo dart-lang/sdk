@@ -1,0 +1,20 @@
+class A {}
+
+class B extends A {}
+
+late List<B> xs;
+
+late List<List<B>> xss;
+
+class Class<T extends A> {
+  void method1a(T t) {}
+  void method1b(T t) {}
+  void method2a(T t) {}
+  void method2b(T t) {}
+}
+
+void main() {}
+
+void errors() {}
+
+void throws(void Function() f) {}

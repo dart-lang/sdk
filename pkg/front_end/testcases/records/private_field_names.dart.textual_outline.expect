@@ -1,0 +1,7 @@
+(int _foo,) foo1() => throw 0;
+
+({int _foo}) foo2() => throw 0;
+
+foo3() => (_foo: 1);
+
+main() {}

@@ -1,0 +1,16 @@
+import 'const_patterns.dart' as prefix;
+
+class Class {
+  call() {}
+  const Class([a]);
+  const Class.named();
+  test(o) async {}
+}
+
+class GenericClass<T> {
+  const GenericClass({a});
+}
+
+const int value = 42;
+
+void func() {}

@@ -1,0 +1,15 @@
+S+4 Struct(size: 16)
+S+20 float
+S+24 Struct(size: 16)
+S+40 Struct(size: 16)
+S+56 Struct(size: 16)
+S+72 Struct(size: 16)
+S+88 Struct(size: 16)
+S+104 Struct(size: 16)
+S+120 Struct(size: 16)
+S+136 Struct(size: 16)
+S+152 float
+S+156 int32[int8]
+S+160 Struct(size: 16)
+=>
+P(S+0 uint32, ret:eax uint32) Struct(size: 16)

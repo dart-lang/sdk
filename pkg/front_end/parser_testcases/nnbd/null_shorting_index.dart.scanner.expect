@@ -1,0 +1,35 @@
+class Class1 {
+int operator [](int index) => index;
+void operator []=(int index, int value) {}
+}
+
+main() {
+Class1? c1;
+c1?.[0];
+c1?.[0] = 1;
+
+c1?[0];
+c1?[0] = 1;
+
+c1 ? [0];
+c1 ? [0] = 1;
+}
+
+
+class[KeywordToken] Class1[StringToken] {[BeginToken]
+int[StringToken] operator[KeywordToken] [][SimpleToken]([BeginToken]int[StringToken] index[StringToken])[SimpleToken] =>[SimpleToken] index[StringToken];[SimpleToken]
+void[KeywordToken] operator[KeywordToken] []=[SimpleToken]([BeginToken]int[StringToken] index[StringToken],[SimpleToken] int[StringToken] value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+Class1[StringToken]?[SimpleToken] c1[StringToken];[SimpleToken]
+c1[StringToken]?.[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+c1[StringToken]?.[SimpleToken][[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+
+c1[StringToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+c1[StringToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+
+c1[StringToken] ?[SimpleToken] [[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+c1[StringToken] ?[SimpleToken] [[BeginToken]0[StringToken]][SimpleToken] =[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

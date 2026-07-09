@@ -1,0 +1,3 @@
+void set setter(Never n) {}
+
+method() {}

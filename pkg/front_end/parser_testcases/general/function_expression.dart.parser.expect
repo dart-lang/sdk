@@ -1,0 +1,9 @@
+main() {
+() {};
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

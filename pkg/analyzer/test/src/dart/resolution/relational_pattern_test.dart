@@ -1,0 +1,500 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(RelationalPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class RelationalPatternResolutionTest extends PubPackageResolutionTest {
+  test_equal_ofClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case == 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::==
+  matchedValueType: A
+''');
+  }
+
+  test_equal_ofObject() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case == 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: dart:core::@class::Object::@method::==
+  matchedValueType: A
+''');
+  }
+
+  test_greaterThan_ofClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator >(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case > 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::>
+  matchedValueType: A
+''');
+  }
+
+  test_greaterThan_ofExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+extension E on A {
+  bool operator >(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case > 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::>
+  matchedValueType: A
+''');
+  }
+
+  test_greaterThan_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case > 0:
+//       ^
+// [diag.undefinedOperator] The operator '>' isn't defined for the type 'A'.
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
+  matchedValueType: A
+''');
+  }
+
+  test_greaterThanOrEqualTo_ofClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator >=(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case >= 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::>=
+  matchedValueType: A
+''');
+  }
+
+  test_greaterThanOrEqualTo_ofExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+extension E on A {
+  bool operator >=(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case >= 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::>=
+  matchedValueType: A
+''');
+  }
+
+  test_greaterThanOrEqualTo_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case >= 0:
+//       ^^
+// [diag.undefinedOperator] The operator '>=' isn't defined for the type 'A'.
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: >=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
+  matchedValueType: A
+''');
+  }
+
+  test_ifCase() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
+  if (x case == 0) {}
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::==
+  matchedValueType: A
+''');
+  }
+
+  test_lessThan_ofClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator <(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case < 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::<
+  matchedValueType: A
+''');
+  }
+
+  test_lessThan_ofExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+extension E on A {
+  bool operator <(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case < 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::<
+  matchedValueType: A
+''');
+  }
+
+  test_lessThan_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case < 0:
+//       ^
+// [diag.undefinedOperator] The operator '<' isn't defined for the type 'A'.
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
+  matchedValueType: A
+''');
+  }
+
+  test_lessThanOrEqualTo_ofClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator <=(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case <= 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::<=
+  matchedValueType: A
+''');
+  }
+
+  test_lessThanOrEqualTo_ofExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+extension E on A {
+  bool operator <=(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case <= 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@extension::E::@method::<=
+  matchedValueType: A
+''');
+  }
+
+  test_lessThanOrEqualTo_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case <= 0:
+//       ^^
+// [diag.undefinedOperator] The operator '<=' isn't defined for the type 'A'.
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: <=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <null>
+  matchedValueType: A
+''');
+  }
+
+  test_notEqual_ofClass() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case != 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: !=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::==
+  matchedValueType: A
+''');
+  }
+
+  test_notEqual_ofObject() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A x) {
+  switch (x) {
+    case != 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: !=
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: dart:core::@class::Object::@method::==
+  matchedValueType: A
+''');
+  }
+
+  test_rewrite_operand() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x, int Function() a) {
+  switch (x) {
+    case == a():
+//          ^^^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: FunctionExpressionInvocation
+    function: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    element: <null>
+    staticInvokeType: int Function()
+    staticType: int
+  element: dart:core::@class::Object::@method::==
+  matchedValueType: dynamic
+''');
+  }
+
+  test_switchCase() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool operator ==(_) => true;
+}
+
+void f(A x) {
+  switch (x) {
+    case == 0:
+      break;
+  }
+}
+''');
+    var node = result.findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RelationalPattern
+  operator: ==
+  operand: IntegerLiteral
+    literal: 0
+    staticType: int
+  element: <testLibrary>::@class::A::@method::==
+  matchedValueType: A
+''');
+  }
+}

@@ -1,0 +1,7 @@
+var a = () {
+  g f() {
+    return;
+  }
+};
+
+main() {}

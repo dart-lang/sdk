@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+void f(Object? x) {
+switch (x) {
+case (_, *synthetic*if):
+};
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]Object[StringToken]?[SimpleToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] ([BeginToken]_[StringToken],[SimpleToken] [SyntheticStringToken]if[KeywordToken])[SimpleToken]:[SimpleToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

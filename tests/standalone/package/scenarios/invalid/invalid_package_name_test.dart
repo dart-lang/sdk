@@ -1,0 +1,20 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Packages=invalid_package_name.packages
+
+// The formatter puts a blank line above the static error marker.
+// dart format off
+
+library invalid_package_name_test;
+
+import 'package:foo/foo.dart' as foo;
+//     ^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.URI_DOES_NOT_EXIST
+
+main() {
+  if (foo.foo != 'foo') {
+    throw new Exception('package "foo" was not resolved correctly');
+  }
+}

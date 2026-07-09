@@ -1,0 +1,50 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:8:1: Error: The return type can't be 'var'.
+// Try removing the keyword 'var', or replacing it with the name of the return type.
+// var get a; // Error
+// ^^^
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:8:10: Error: Expected a function body or '=>'.
+// Try adding {}.
+// var get a; // Error
+//          ^
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:9:1: Error: The return type can't be 'var'.
+// Try removing the keyword 'var', or replacing it with the name of the return type.
+// var get b, c; // Error
+// ^^^
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:9:10: Error: Expected '{' before this.
+// var get b, c; // Error
+//          ^
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:9:10: Error: Expected a declaration, but got ','.
+// var get b, c; // Error
+//          ^
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:9:12: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// var get b, c; // Error
+//            ^
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:9:10: Error: Expected a function body, but got ','.
+// var get b, c; // Error
+//          ^
+//
+// pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:9:10: Error: Expected a function body, but got '{'.
+// var get b, c; // Error
+//          ^
+//
+import self as self;
+
+static field dynamic get;
+static field dynamic c;
+static abstract get a() → dynamic;
+static get b() → dynamic {
+  invalid-expression "pkg/front_end/testcases/coverage/syntax_get_set_syntax_test.dart:9:10: Error: Expected a function body, but got '{'.
+var get b, c; // Error
+         ^";
+}

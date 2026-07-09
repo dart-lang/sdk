@@ -1,0 +1,33 @@
+Problems reported:
+
+parser/general/missing_end_bracket:1:8: Can't find '}' to match '{'.
+main() {
+       ^
+
+beginCompilationUnit(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(UnmatchedToken({), null, null)
+      handleNoType(UnmatchedToken({))
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        handleIdentifier(print, expression)
+        handleNoTypeArguments(()
+        beginArguments(()
+          beginLiteralString("Hello, World!")
+          endLiteralString(0, "Hello, World!")
+          handlePositionalArgument("Hello, World!")
+        endArguments(1, (, ))
+        handleSend(print, ))
+        handleExpressionStatement(print, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration(})
+  handleErrorToken(UnmatchedToken({))
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '}' to match '{'., null, {expected: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+endCompilationUnit(1, )

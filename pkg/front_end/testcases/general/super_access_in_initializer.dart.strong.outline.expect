@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor •(core::bool value) → self::Super
+    ;
+  get property() → core::bool
+    ;
+}
+class Class extends self::Super {
+  field core::bool field;
+  constructor •(core::bool value) → self::Class
+    ;
+  constructor redirect() → self::Class
+    ;
+}
+static method main() → dynamic
+  ;

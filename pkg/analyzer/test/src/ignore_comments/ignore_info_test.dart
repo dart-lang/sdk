@@ -1,0 +1,295 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(IgnoreInfoTest);
+  });
+}
+
+@reflectiveTest
+class IgnoreInfoTest extends PubPackageResolutionTest {
+  test_allows_several_slashes_and_spaces() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '///////    ignore: type =lint',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 19,
+      length: 10,
+    );
+  }
+
+  test_ignore_for_file() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore_for_file: type =lint',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 20,
+      length: 10,
+    );
+  }
+
+  test_ignore_for_file_several_spaces() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore_for_file:    type =lint',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 23,
+      length: 10,
+    );
+  }
+
+  test_ignore_in_file_needs_exactly_two_slashes() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '/// ignore_on_file: type =lint',
+    );
+    if (ignoredElements.length == 1) {
+      print((ignoredElements[0] as dynamic).st);
+    }
+    expect(ignoredElements, hasLength(0));
+  }
+
+  test_name_multiple() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo, bar');
+    expect(ignoredElements, hasLength(2));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+    _expectIgnoredName(ignoredElements[1], name: 'bar', offset: 16);
+  }
+
+  test_name_withExtraCharacters() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore: http://google.com',
+    );
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_noIgnores() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore:');
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_noIgnores_trailingSlash() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: /');
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_noIgnores_trailingWhitespace() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: ');
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_noWhitespaceAfterColon() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore:foo');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 10);
+  }
+
+  test_noWhitespaceAfterComma() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo,bar');
+    expect(ignoredElements, hasLength(2));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+    _expectIgnoredName(ignoredElements[1], name: 'bar', offset: 15);
+  }
+
+  test_noWhitespaceBeforeIgnore() async {
+    var ignoredElements = await _parseIgnoredElements('//ignore: foo');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 10);
+  }
+
+  test_pluginName() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore: plugin_one/foo',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(
+      ignoredElements[0],
+      name: 'foo',
+      offset: 11,
+      pluginName: 'plugin_one',
+    );
+  }
+
+  test_pluginName_multiple() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore: plugin_one/foo, plugin_two/bar',
+    );
+    expect(ignoredElements, hasLength(2));
+    _expectIgnoredName(
+      ignoredElements[0],
+      name: 'foo',
+      offset: 11,
+      pluginName: 'plugin_one',
+    );
+    _expectIgnoredName(
+      ignoredElements[1],
+      name: 'bar',
+      offset: 27,
+      pluginName: 'plugin_two',
+    );
+  }
+
+  test_pluginName_starts_with_underscore() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore: _plugin_one/foo',
+    );
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(
+      ignoredElements[0],
+      name: 'foo',
+      offset: 11,
+      pluginName: '_plugin_one',
+    );
+  }
+
+  test_trailingComma() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo,');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+  }
+
+  test_trailingCommas() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo,,');
+    expect(ignoredElements, hasLength(2));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+    expect(ignoredElements[1], isA<IgnoredDiagnosticComment>());
+  }
+
+  test_trailingCommaSpace() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo, ');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+  }
+
+  test_trailingSlash() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo/');
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_trailingSlashAndSpace() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo/ ');
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_trailingSpace() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo ');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+  }
+
+  test_trailingText() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: foo because');
+    expect(ignoredElements, hasLength(2));
+    _expectIgnoredName(ignoredElements[0], name: 'foo', offset: 11);
+    expect(ignoredElements[1], isA<IgnoredDiagnosticComment>());
+  }
+
+  test_type() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: type=lint');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(ignoredElements[0], type: 'lint', offset: 11, length: 9);
+  }
+
+  test_type_multiple() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore: type=lint, type=warning',
+    );
+    expect(ignoredElements, hasLength(2));
+    _expectIgnoredType(ignoredElements[0], type: 'lint', offset: 11, length: 9);
+    _expectIgnoredType(
+      ignoredElements[1],
+      type: 'warning',
+      offset: 22,
+      length: 12,
+    );
+  }
+
+  test_type_nameWithExtraCharacters() async {
+    var ignoredElements = await _parseIgnoredElements(
+      '// ignore: type=http://google.com',
+    );
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_type_nonIdentifierName() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: type=!!');
+    expect(ignoredElements, isEmpty);
+  }
+
+  test_type_spaceAfterEqual() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: type= lint');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 11,
+      length: 10,
+    );
+  }
+
+  test_type_spaceBeforeEqual() async {
+    var ignoredElements = await _parseIgnoredElements('// ignore: type =lint');
+    expect(ignoredElements, hasLength(1));
+    _expectIgnoredType(
+      ignoredElements[0],
+      type: 'lint',
+      offset: 11,
+      length: 10,
+    );
+  }
+
+  void _expectIgnoredName(
+    IgnoredElement element, {
+    required String name,
+    required int offset,
+    String? pluginName,
+  }) => expect(
+    element,
+    isA<IgnoredDiagnosticName>()
+        .having((e) => e.name, 'name', name)
+        .having((e) => e.offset, 'offset', offset)
+        .having((e) => e.pluginName, 'pluginName', pluginName),
+  );
+
+  void _expectIgnoredType(
+    IgnoredElement element, {
+    required String type,
+    required int offset,
+    required int length,
+  }) => expect(
+    element,
+    isA<IgnoredDiagnosticType>()
+        .having((e) => e.type, 'type', type)
+        .having((e) => e.offset, 'offset', offset)
+        .having((e) => e.length, 'length', length),
+  );
+
+  Future<List<IgnoredElement>> _parseIgnoredElements(String comment) async {
+    var result = await resolveTestCodeWithDiagnostics('''
+$comment
+int x = 1;
+''');
+    // This corresponds roughly to what happens in `IgnoreInfo.forDart`.
+    List<IgnoredElement> ignoreResult = [];
+    for (var comment in result.unit.ignoreComments) {
+      ignoreResult.addAll(comment.ignoredElements);
+    }
+    return ignoreResult;
+  }
+}

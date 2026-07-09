@@ -1,0 +1,5 @@
+extension const Extension on int {}
+
+
+extension[KeywordToken] const[KeywordToken] Extension[StringToken] on[KeywordToken] int[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

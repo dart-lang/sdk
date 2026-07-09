@@ -1,0 +1,111 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+import '../extensions.dart';
+
+const _desc = r'Avoid field initializers in const classes.';
+
+class AvoidFieldInitializersInConstClasses extends AnalysisRule {
+  new()
+    : super(
+        name: LintNames.avoid_field_initializers_in_const_classes,
+        description: _desc,
+      );
+
+  @override
+  DiagnosticCode get diagnosticCode =>
+      diag.avoidFieldInitializersInConstClasses;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+    registry.addFieldDeclaration(this, visitor);
+    registry.addConstructorFieldInitializer(this, visitor);
+  }
+}
+
+class HasParameterReferenceVisitor extends RecursiveAstVisitor<void> {
+  Iterable<FormalParameterElement> parameters;
+
+  bool useParameter = false;
+
+  new(this.parameters);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (parameters.contains(node.element)) {
+      useParameter = true;
+    } else {
+      super.visitSimpleIdentifier(node);
+    }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    var declaration = node.parent;
+    var constructorElement = switch (declaration) {
+      ConstructorDeclaration() => declaration.declaredFragment?.element,
+      PrimaryConstructorBody() =>
+        declaration.declaration?.declaredFragment?.element,
+      _ => null,
+    };
+    if (constructorElement == null) return;
+    if (!constructorElement.isConst) return;
+
+    var classElement = constructorElement.enclosingElement;
+    if (classElement is! ClassElement) return;
+
+    // No lint if several constructors.
+    if (classElement.constructors.length > 1) return;
+
+    var visitor = HasParameterReferenceVisitor(
+      constructorElement.formalParameters,
+    );
+    node.expression.accept(visitor);
+    if (!visitor.useParameter) {
+      rule.reportAtNode(node);
+    }
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isAugmentation) return;
+    if (node.isStatic) return;
+    if (!node.fields.isFinal) return;
+    // only const class
+    var parent = node.parent?.parent;
+    if (parent is ClassDeclaration) {
+      var declaredElement = parent.declaredFragment?.element;
+      if (declaredElement == null) return;
+
+      if (declaredElement.constructors.every((e) => !e.isConst)) {
+        return;
+      }
+      for (var variable in node.fields.variables) {
+        if (variable.initializer != null) {
+          rule.reportAtNode(variable);
+        }
+      }
+    }
+  }
+}

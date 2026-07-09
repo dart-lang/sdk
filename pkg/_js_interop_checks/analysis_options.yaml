@@ -1,0 +1,6 @@
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    - directives_ordering
+    - sort_pub_dependencies

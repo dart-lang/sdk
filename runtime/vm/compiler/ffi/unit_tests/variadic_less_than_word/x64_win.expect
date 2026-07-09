@@ -1,0 +1,14 @@
+rcx int32
+rdx int32
+r8 int32
+r9 int32
+S+0 int32
+S+8 int32
+S+16 int32
+S+24 int32
+S+32 int32
+S+40 int32
+S+48 int32
+S+56 int32
+=>
+rax int32

@@ -1,0 +1,109 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:12:7: Error: Method not found: 'method2'.
+//   foo.method2(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:13:7: Error: Method not found: 'method3'.
+//   foo.method3(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:16:7: Error: Method not found: 'method2'.
+//   bar.method2(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:17:7: Error: Method not found: 'method3'.
+//   bar.method3(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part1.dart:14:7: Error: Method not found: 'method3'.
+//   foo.method3(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part1.dart:17:7: Error: Method not found: 'method2'.
+//   bar.method2(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part1.dart:18:7: Error: Method not found: 'method3'.
+//   bar.method3(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part2.dart:12:7: Error: Method not found: 'method3'.
+//   foo.method3(); // Error
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part2.dart:15:7: Error: Method not found: 'method2'.
+//   bar.method2(); // Error
+//       ^^^^^^^
+//
+import self as self;
+import "part_with_prefix_expanded_lib1.dart" as par;
+import "part_with_prefix_expanded_lib2.dart" as par2;
+import "part_with_prefix_expanded_lib3.dart" as par3;
+
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib1.dart" as foo;
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib1.dart" as bar;
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib2.dart" as foo;
+import "org-dartlang-testcase:///part_with_prefix_expanded_lib3.dart" as bar;
+
+part part_with_prefix_expanded_part1.dart;
+part part_with_prefix_expanded_part2.dart;
+static method method1() → dynamic {
+  par::method1();
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:12:7: Error: Method not found: 'method2'.
+  foo.method2(); // Error
+      ^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:13:7: Error: Method not found: 'method3'.
+  foo.method3(); // Error
+      ^^^^^^^";
+  par::method1();
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:16:7: Error: Method not found: 'method2'.
+  bar.method2(); // Error
+      ^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded.dart:17:7: Error: Method not found: 'method3'.
+  bar.method3(); // Error
+      ^^^^^^^";
+}
+static method /* from org-dartlang-testcase:///part_with_prefix_expanded_part1.dart */ method2() → dynamic {
+  par::method1();
+  par2::method2();
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part1.dart:14:7: Error: Method not found: 'method3'.
+  foo.method3(); // Error
+      ^^^^^^^";
+  par::method1();
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part1.dart:17:7: Error: Method not found: 'method2'.
+  bar.method2(); // Error
+      ^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part1.dart:18:7: Error: Method not found: 'method3'.
+  bar.method3(); // Error
+      ^^^^^^^";
+}
+static method /* from org-dartlang-testcase:///part_with_prefix_expanded_part2.dart */ method3() → dynamic {
+  par::method1();
+  par2::method2();
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part2.dart:12:7: Error: Method not found: 'method3'.
+  foo.method3(); // Error
+      ^^^^^^^";
+  par::method1();
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/part_with_prefix_expanded_part2.dart:15:7: Error: Method not found: 'method2'.
+  bar.method2(); // Error
+      ^^^^^^^";
+  par3::method3();
+}
+
+library;
+import self as par;
+
+static method method1() → dynamic {}
+
+library;
+import self as par2;
+
+static method method2() → dynamic {}
+
+library;
+import self as par3;
+
+static method method3() → dynamic {}

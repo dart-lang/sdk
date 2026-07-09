@@ -1,0 +1,39 @@
+class Foo {
+String? x;
+int y;
+
+Foo(Object? o) : x = o != null ? o as String? : null, y = 0;
+
+void foo(dynamic x) {
+if (x is String? ? 4 : 2 == 4) {
+print("hello");
+}
+}
+
+void bar(dynamic x) {
+if (x is String ? 4 : 2 == 4) {
+print("hello");
+}
+}
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+String[StringToken]?[SimpleToken] x[StringToken];[SimpleToken]
+int[StringToken] y[StringToken];[SimpleToken]
+
+Foo[StringToken]([BeginToken]Object[StringToken]?[SimpleToken] o[StringToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] o[StringToken] !=[SimpleToken] null[KeywordToken] ?[SimpleToken] o[StringToken] as[KeywordToken] String[StringToken]?[SimpleToken] :[SimpleToken] null[KeywordToken],[SimpleToken] y[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+
+void[KeywordToken] foo[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] is[KeywordToken] String[StringToken]?[SimpleToken] ?[SimpleToken] 4[StringToken] :[SimpleToken] 2[StringToken] ==[SimpleToken] 4[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] bar[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] is[KeywordToken] String[StringToken] ?[SimpleToken] 4[StringToken] :[SimpleToken] 2[StringToken] ==[SimpleToken] 4[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

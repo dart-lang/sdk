@@ -1,0 +1,15 @@
+class A<S> {
+  void method<T extends S>(S s) {}
+}
+
+class B<S> {
+  void method<T extends S>(covariant S s) {}
+}
+
+class C<S> extends A<S> implements B<S> {
+  void method<T extends S>(S s);
+}
+
+class D<S> extends A<S> implements B<S> {}
+
+main() {}

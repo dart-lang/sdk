@@ -1,0 +1,3 @@
+typedef = int;
+
+typedef[KeywordToken] =[SimpleToken] int[StringToken];[SimpleToken][SimpleToken]

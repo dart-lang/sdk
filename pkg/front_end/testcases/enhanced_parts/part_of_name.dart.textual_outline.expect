@@ -1,0 +1,3 @@
+library lib;
+
+part 'part_of_name_part.dart';

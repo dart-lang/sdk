@@ -1,0 +1,89 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///widget.dart";
+
+  class MyWidget extends wid::Widget /*hasConstConstructor*/  {
+    final field wid::Widget? child;
+    const constructor •({initializing-formal wid::Widget? child = #C1, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C1}) → main::MyWidget
+      : main::MyWidget::child = child, super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static synthetic method _#new#tearOff({wid::Widget? child = #C1}) → main::MyWidget
+      return new main::MyWidget::•(child: child, $creationLocationd_0dea112b090073317d4: #C6);
+    synthetic no-such-method-forwarder set dart.developer::_location(dart.developer::CreationLocation? value) → void
+      return throw{for-error-handling} dart.core::NoSuchMethodError::withInvocation(this, new dart.core::_Invocation::setter(#C7, value));
+  }
+  static method main() → void {
+    main::MyWidget w1 = new main::MyWidget::•(child: new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: #C11), $creationLocationd_0dea112b090073317d4: #C13);
+    const main::MyWidget w2 = #C20;
+    const main::MyWidget w3 = #C22;
+  }
+}
+library from "org-dartlang-test:///widget.dart" as wid {
+
+  @#C24
+  abstract class Widget extends dart.core::Object implements dart.developer::_HasCreationLocation /*hasConstConstructor*/  {
+    final field dart.developer::CreationLocation? dart.developer::_location;
+    const constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C1}) → wid::Widget
+      : super dart.core::Object::•(), wid::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+  class StandardWidget extends wid::Widget /*hasConstConstructor*/  {
+    const constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C1}) → wid::StandardWidget
+      : super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    const constructor named(dart.core::String name, {dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C1}) → wid::StandardWidget
+      : super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static synthetic method _#new#tearOff() → wid::StandardWidget
+      return new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: #C27);
+    static synthetic method _#named#tearOff(dart.core::String name) → wid::StandardWidget
+      return new wid::StandardWidget::named(name, $creationLocationd_0dea112b090073317d4: #C29);
+  }
+}
+constants  {
+  #C1 = null
+  #C2 = "org-dartlang-test:///main.dart"
+  #C3 = 4.0
+  #C4 = 9.0
+  #C5 = "MyWidget"
+  #C6 = dart.developer::CreationLocation {file:#C2, line:#C3, column:#C4, name:#C5}
+  #C7 = #org-dartlang-test:///main.dart::_location=
+  #C8 = 10.0
+  #C9 = 28.0
+  #C10 = "StandardWidget"
+  #C11 = dart.developer::CreationLocation {file:#C2, line:#C8, column:#C9, name:#C10}
+  #C12 = 12.0
+  #C13 = dart.developer::CreationLocation {file:#C2, line:#C8, column:#C12, name:#C5}
+  #C14 = 11.0
+  #C15 = 45.0
+  #C16 = dart.developer::CreationLocation {file:#C2, line:#C14, column:#C15, name:#C10}
+  #C17 = wid::StandardWidget {_location:#C16}
+  #C18 = 14.0
+  #C19 = dart.developer::CreationLocation {file:#C2, line:#C14, column:#C18, name:#C5}
+  #C20 = main::MyWidget {child:#C17, _location:#C19}
+  #C21 = dart.developer::CreationLocation {file:#C2, line:#C12, column:#C18, name:#C5}
+  #C22 = main::MyWidget {child:#C20, _location:#C21}
+  #C23 = "track-creation-locations"
+  #C24 = dart.core::pragma {name:#C23, options:#C1}
+  #C25 = "org-dartlang-test:///widget.dart"
+  #C26 = 7.0
+  #C27 = dart.developer::CreationLocation {file:#C25, line:#C26, column:#C4, name:#C10}
+  #C28 = 8.0
+  #C29 = dart.developer::CreationLocation {file:#C25, line:#C28, column:#C4, name:#C10}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///widget.dart:
+- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+
+org-dartlang-test:///main.dart:
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+- StandardWidget.named (from org-dartlang-test:///widget.dart:8:9)
+- Widget. (from org-dartlang-test:///widget.dart:3:9)
+- MyWidget. (from org-dartlang-test:///main.dart:4:9)
+

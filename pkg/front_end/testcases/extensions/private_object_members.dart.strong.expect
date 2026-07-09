@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  get _identityHashCode = self::E|get#_identityHashCode;
+  method _instanceOf = self::E|_instanceOf;
+  method tearoff _instanceOf = self::E|get#_instanceOf;
+  method _simpleInstanceOf = self::E|_simpleInstanceOf;
+  method tearoff _simpleInstanceOf = self::E|get#_simpleInstanceOf;
+  method _simpleInstanceOfTrue = self::E|_simpleInstanceOfTrue;
+  method tearoff _simpleInstanceOfTrue = self::E|get#_simpleInstanceOfTrue;
+  method _simpleInstanceOfFalse = self::E|_simpleInstanceOfFalse;
+  method tearoff _simpleInstanceOfFalse = self::E|get#_simpleInstanceOfFalse;
+}
+static extension-member method E|get#_identityHashCode(lowered final core::int #this) → core::int
+  return 42;
+static extension-member method E|_instanceOf(lowered final core::int #this, dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool {
+  return false;
+}
+static extension-member method E|get#_instanceOf(lowered final core::int #this) → (dynamic, dynamic, dynamic) → core::bool
+  return (dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool => self::E|_instanceOf(#this, instantiatorTypeArguments, functionTypeArguments, type);
+static extension-member method E|_simpleInstanceOf(lowered final core::int #this, dynamic type) → core::bool {
+  return false;
+}
+static extension-member method E|get#_simpleInstanceOf(lowered final core::int #this) → (dynamic) → core::bool
+  return (dynamic type) → core::bool => self::E|_simpleInstanceOf(#this, type);
+static extension-member method E|_simpleInstanceOfTrue(lowered final core::int #this, dynamic type) → core::bool {
+  return false;
+}
+static extension-member method E|get#_simpleInstanceOfTrue(lowered final core::int #this) → (dynamic) → core::bool
+  return (dynamic type) → core::bool => self::E|_simpleInstanceOfTrue(#this, type);
+static extension-member method E|_simpleInstanceOfFalse(lowered final core::int #this, dynamic type) → core::bool {
+  return false;
+}
+static extension-member method E|get#_simpleInstanceOfFalse(lowered final core::int #this) → (dynamic) → core::bool
+  return (dynamic type) → core::bool => self::E|_simpleInstanceOfFalse(#this, type);

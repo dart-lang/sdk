@@ -1,0 +1,22 @@
+class A {
+  int foo;
+  A(this.foo);
+}
+
+typedef B = A;
+
+class C<X, Y> {
+  X x;
+  Y y;
+  C(this.x, this.y);
+}
+
+typedef D<X> = C<X, X>;
+
+test1(dynamic x) {}
+
+test2(dynamic x) {}
+
+main() {}
+
+expectEquals(x, y) {}

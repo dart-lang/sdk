@@ -1,0 +1,27 @@
+abstract class Interface2 {
+  int get field;
+}
+
+class Class1 {
+  Class1(this.field);
+  int field;
+}
+
+class Class2 implements Interface2 {
+  Class2(this.field);
+  final field;
+}
+
+expect(expected, actual) {}
+
+final bool inSoundMode = <int?>[] is! List<int>;
+
+main() {}
+
+testInferred() {}
+
+throws(Function() f, {bool inSoundModeOnly = false}) {}
+
+var Class1_new = Class1.new;
+
+var Class2_new = Class2.new;

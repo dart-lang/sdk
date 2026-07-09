@@ -1,0 +1,11 @@
+class A {
+  A.n1() : x = 42.{ return this; };
+  A.n2() : x = 'abc'.{ return this.length; };
+  A.n3() : x = f.{ return this(); };
+  A.n4() : x = 'def'.{ return this.toString().length; };
+  final int x;
+}
+
+int f() => 5;
+
+void main() {}

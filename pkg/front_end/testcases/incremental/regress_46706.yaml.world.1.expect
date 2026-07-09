@@ -1,0 +1,37 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+//
+// Problems in library:
+//
+// org-dartlang-test:///lib.dart:1:1: Error: Can't import 'org-dartlang-test:///part.dart', because it has a 'part of' declaration.
+// Try removing the 'part of' declaration, or using 'org-dartlang-test:///part.dart' as a part.
+// import 'part.dart';
+// ^
+//
+// org-dartlang-test:///lib.dart:2:1: Error: Can't import 'org-dartlang-test:///part.dart', because it has a 'part of' declaration.
+// Try removing the 'part of' declaration, or using 'org-dartlang-test:///part.dart' as a part.
+// import 'part.dart';
+// ^
+//
+// org-dartlang-test:///lib.dart:3:1: Error: Can't import 'org-dartlang-test:///part.dart', because it has a 'part of' declaration.
+// Try removing the 'part of' declaration, or using 'org-dartlang-test:///part.dart' as a part.
+// import 'part.dart';
+// ^
+//
+
+  import "org-dartlang-test:///main.dart";
+  import "org-dartlang-test:///main.dart";
+  import "org-dartlang-test:///main.dart";
+
+  static method libMethod() → void {
+    main::partMethod();
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  part part.dart;
+  static method main() → void {}
+  static method /* from org-dartlang-test:///part.dart */ partMethod() → void {}
+}

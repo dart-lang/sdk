@@ -1,0 +1,16 @@
+class Class1 {
+  Class2? get field => null;
+  int operator [](int index) => index;
+  void operator []=(int index, int value) {}
+}
+
+class Class2 {
+  int field = 42;
+}
+
+extension Extension on Class2 {
+  int operator [](int index) => field;
+  void operator []=(int index, int value) {}
+}
+
+main() {}

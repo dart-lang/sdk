@@ -1,0 +1,363 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide.dart:14:3: Error: Undefined name 'y1'.
+//   y1; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide.dart:15:3: Error: Undefined name 'z1'.
+//   z1; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide.dart:17:3: Error: Undefined name 'y2'.
+//   y2; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide.dart:20:7: Error: Undefined name 'y1'.
+//   lib.y1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide.dart:21:7: Error: Undefined name 'z1'.
+//   lib.z1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide.dart:23:7: Error: Undefined name 'y2'.
+//   lib.y2; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:16:3: Error: Undefined name 'y1'.
+//   y1; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:17:3: Error: Undefined name 'z1'.
+//   z1; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:19:3: Error: Undefined name 'y2'.
+//   y2; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:22:7: Error: Undefined name 'y1'.
+//   lib.y1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:23:7: Error: Undefined name 'z1'.
+//   lib.z1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:25:7: Error: Undefined name 'y2'.
+//   lib.y2; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:29:3: Error: Undefined name 'y3'.
+//   y3; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:30:3: Error: Undefined name 'z3'.
+//   z3; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:32:3: Error: Undefined name 'y4'.
+//   y4; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:35:7: Error: Undefined name 'y3'.
+//   lib.y3; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:36:7: Error: Undefined name 'z3'.
+//   lib.z3; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:38:7: Error: Undefined name 'y4'.
+//   lib.y4; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:14:3: Error: Undefined name 'y1'.
+//   y1; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:15:3: Error: Undefined name 'z1'.
+//   z1; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:17:3: Error: Undefined name 'y2'.
+//   y2; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:20:7: Error: Undefined name 'y1'.
+//   lib.y1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:21:7: Error: Undefined name 'z1'.
+//   lib.z1; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:23:7: Error: Undefined name 'y2'.
+//   lib.y2; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:27:3: Error: Undefined name 'y3'.
+//   y3; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:28:3: Error: Undefined name 'z3'.
+//   z3; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:30:3: Error: Undefined name 'y4'.
+//   y4; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:33:7: Error: Undefined name 'y3'.
+//   lib.y3; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:34:7: Error: Undefined name 'z3'.
+//   lib.z3; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:36:7: Error: Undefined name 'y4'.
+//   lib.y4; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:40:3: Error: Undefined name 'y5'.
+//   y5; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:41:3: Error: Undefined name 'z5'.
+//   z5; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:43:3: Error: Undefined name 'y6'.
+//   y6; // Error
+//   ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:46:7: Error: Undefined name 'y5'.
+//   lib.y5; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:47:7: Error: Undefined name 'z5'.
+//   lib.z5; // Error
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:49:7: Error: Undefined name 'y6'.
+//   lib.y6; // Error
+//       ^^
+//
+import self as self;
+import "show_hide_lib1.dart" as sho;
+import "show_hide_lib2.dart" as sho2;
+import "show_hide_lib3.dart" as sho3;
+import "show_hide_lib4.dart" as sho4;
+import "show_hide_lib5.dart" as sho5;
+import "show_hide_lib6.dart" as sho6;
+
+import "org-dartlang-testcase:///show_hide_lib1.dart" show x1;
+import "org-dartlang-testcase:///show_hide_lib1.dart" as lib show x1;
+import "org-dartlang-testcase:///show_hide_lib2.dart" hide y2;
+import "org-dartlang-testcase:///show_hide_lib2.dart" as lib hide y2;
+import "org-dartlang-testcase:///show_hide_lib3.dart" show x3;
+import "org-dartlang-testcase:///show_hide_lib3.dart" as lib show x3;
+import "org-dartlang-testcase:///show_hide_lib4.dart" hide y4;
+import "org-dartlang-testcase:///show_hide_lib4.dart" as lib hide y4;
+import "org-dartlang-testcase:///show_hide_lib5.dart" show x5;
+import "org-dartlang-testcase:///show_hide_lib5.dart" as lib show x5;
+import "org-dartlang-testcase:///show_hide_lib6.dart" hide y6;
+import "org-dartlang-testcase:///show_hide_lib6.dart" as lib hide y6;
+
+part show_hide_part1.dart;
+part show_hide_part2.dart;
+static method method1() → dynamic {
+  sho::x1;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide.dart:14:3: Error: Undefined name 'y1'.
+  y1; // Error
+  ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide.dart:15:3: Error: Undefined name 'z1'.
+  z1; // Error
+  ^^";
+  sho2::x2;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide.dart:17:3: Error: Undefined name 'y2'.
+  y2; // Error
+  ^^";
+  sho2::z2;
+  sho::x1;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide.dart:20:7: Error: Undefined name 'y1'.
+  lib.y1; // Error
+      ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide.dart:21:7: Error: Undefined name 'z1'.
+  lib.z1; // Error
+      ^^";
+  sho2::x2;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide.dart:23:7: Error: Undefined name 'y2'.
+  lib.y2; // Error
+      ^^";
+  sho2::z2;
+}
+static method /* from org-dartlang-testcase:///show_hide_part1.dart */ method2() → dynamic {
+  sho::x1;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:16:3: Error: Undefined name 'y1'.
+  y1; // Error
+  ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:17:3: Error: Undefined name 'z1'.
+  z1; // Error
+  ^^";
+  sho2::x2;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:19:3: Error: Undefined name 'y2'.
+  y2; // Error
+  ^^";
+  sho2::z2;
+  sho::x1;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:22:7: Error: Undefined name 'y1'.
+  lib.y1; // Error
+      ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:23:7: Error: Undefined name 'z1'.
+  lib.z1; // Error
+      ^^";
+  sho2::x2;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:25:7: Error: Undefined name 'y2'.
+  lib.y2; // Error
+      ^^";
+  sho2::z2;
+  sho3::x3;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:29:3: Error: Undefined name 'y3'.
+  y3; // Error
+  ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:30:3: Error: Undefined name 'z3'.
+  z3; // Error
+  ^^";
+  sho4::x4;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:32:3: Error: Undefined name 'y4'.
+  y4; // Error
+  ^^";
+  sho4::z4;
+  sho3::x3;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:35:7: Error: Undefined name 'y3'.
+  lib.y3; // Error
+      ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:36:7: Error: Undefined name 'z3'.
+  lib.z3; // Error
+      ^^";
+  sho4::x4;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part1.dart:38:7: Error: Undefined name 'y4'.
+  lib.y4; // Error
+      ^^";
+  sho4::z4;
+}
+static method /* from org-dartlang-testcase:///show_hide_part2.dart */ method3() → dynamic {
+  sho::x1;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:14:3: Error: Undefined name 'y1'.
+  y1; // Error
+  ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:15:3: Error: Undefined name 'z1'.
+  z1; // Error
+  ^^";
+  sho2::x2;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:17:3: Error: Undefined name 'y2'.
+  y2; // Error
+  ^^";
+  sho2::z2;
+  sho::x1;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:20:7: Error: Undefined name 'y1'.
+  lib.y1; // Error
+      ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:21:7: Error: Undefined name 'z1'.
+  lib.z1; // Error
+      ^^";
+  sho2::x2;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:23:7: Error: Undefined name 'y2'.
+  lib.y2; // Error
+      ^^";
+  sho2::z2;
+  sho3::x3;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:27:3: Error: Undefined name 'y3'.
+  y3; // Error
+  ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:28:3: Error: Undefined name 'z3'.
+  z3; // Error
+  ^^";
+  sho4::x4;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:30:3: Error: Undefined name 'y4'.
+  y4; // Error
+  ^^";
+  sho4::z4;
+  sho3::x3;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:33:7: Error: Undefined name 'y3'.
+  lib.y3; // Error
+      ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:34:7: Error: Undefined name 'z3'.
+  lib.z3; // Error
+      ^^";
+  sho4::x4;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:36:7: Error: Undefined name 'y4'.
+  lib.y4; // Error
+      ^^";
+  sho4::z4;
+  sho5::x5;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:40:3: Error: Undefined name 'y5'.
+  y5; // Error
+  ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:41:3: Error: Undefined name 'z5'.
+  z5; // Error
+  ^^";
+  sho6::x6;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:43:3: Error: Undefined name 'y6'.
+  y6; // Error
+  ^^";
+  sho6::z6;
+  sho5::x5;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:46:7: Error: Undefined name 'y5'.
+  lib.y5; // Error
+      ^^";
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:47:7: Error: Undefined name 'z5'.
+  lib.z5; // Error
+      ^^";
+  sho6::x6;
+  invalid-expression "pkg/front_end/testcases/enhanced_parts/show_hide_part2.dart:49:7: Error: Undefined name 'y6'.
+  lib.y6; // Error
+      ^^";
+  sho6::z6;
+}
+
+library;
+import self as sho;
+
+static field dynamic x1;
+static field dynamic y1;
+static field dynamic z1;
+
+library;
+import self as sho2;
+
+static field dynamic x2;
+static field dynamic y2;
+static field dynamic z2;
+
+library;
+import self as sho3;
+
+static field dynamic x3;
+static field dynamic y3;
+static field dynamic z3;
+
+library;
+import self as sho4;
+
+static field dynamic x4;
+static field dynamic y4;
+static field dynamic z4;
+
+library;
+import self as sho5;
+
+static field dynamic x5;
+static field dynamic y5;
+static field dynamic z5;
+
+library;
+import self as sho6;
+
+static field dynamic x6;
+static field dynamic y6;
+static field dynamic z6;

@@ -1,0 +1,59 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  factory $CLASSNAME(Map rtcIceServers, [Map$NULLABLE mediaConstraints]) {
+    var constructorName =
+        JS('RtcPeerConnection', 'window[#]', 'RTCPeerConnection');
+    if (mediaConstraints != null) {
+      return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers),
+          convertDartToNative_SerializedScriptValue(mediaConstraints));
+    } else {
+      return JS('RtcPeerConnection', 'new #(#)', constructorName,
+          convertDartToNative_SerializedScriptValue(rtcIceServers));
+    }
+  }
+
+  /**
+   * Checks if Real Time Communication (RTC) APIs are supported and enabled on
+   * the current platform.
+   */
+  static bool get supported {
+    // Currently in Firefox some of the RTC elements are defined but throw an
+    // error unless the user has specifically enabled them in their
+    // about:config. So we have to construct an element to actually test if RTC
+    // is supported at the given time.
+    try {
+      new RtcPeerConnection(
+          {"iceServers": [ {"url":"stun:localhost"}]});
+      return true;
+    } catch (_) { return false;}
+    return false;
+  }
+
+  /**
+  * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
+  * new getStats API.
+  */
+  Future<RtcStatsResponse>
+      getLegacyStats([MediaStreamTrack$NULLABLE selector]) {
+    var completer = new Completer<RtcStatsResponse>();
+    _getStats((value) {
+      completer.complete(value);
+    }, selector);
+    return completer.future;
+  }
+  @JSName('getStats')
+  Future _getStats(
+      [RtcStatsCallback$NULLABLE successCallback,
+       MediaStreamTrack$NULLABLE selector]) native;
+
+  static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
+      JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
+
+$!MEMBERS
+}

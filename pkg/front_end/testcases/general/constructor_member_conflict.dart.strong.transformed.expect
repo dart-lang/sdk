@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field dynamic constructorAndField = null;
+  field dynamic factoryAndField = null;
+  field dynamic redirectingFactoryAndField = null;
+  constructor constructorAndMethod() → self::Class
+    : super core::Object::•()
+    ;
+  constructor constructorAndField() → self::Class
+    : super core::Object::•()
+    ;
+  constructor constructorAndGetter() → self::Class
+    : super core::Object::•()
+    ;
+  constructor constructorAndSetter() → self::Class
+    : super core::Object::•()
+    ;
+  method constructorAndMethod() → void {}
+  static factory factoryAndMethod() → self::Class
+    return new self::Class::constructorAndMethod();
+  method factoryAndMethod() → void {}
+  static factory redirectingFactoryAndMethod() → self::Class /* redirection-target: self::Class::constructorAndMethod */
+    return new self::Class::constructorAndMethod();
+  method redirectingFactoryAndMethod() → void {}
+  static factory factoryAndField() → self::Class
+    return new self::Class::constructorAndField();
+  static factory redirectingFactoryAndField() → self::Class /* redirection-target: self::Class::constructorAndField */
+    return new self::Class::constructorAndField();
+  get constructorAndGetter() → dynamic
+    return null;
+  static factory factoryAndGetter() → self::Class
+    return new self::Class::constructorAndGetter();
+  get factoryAndGetter() → dynamic
+    return null;
+  static factory redirectingFactoryAndGetter() → self::Class /* redirection-target: self::Class::constructorAndGetter */
+    return new self::Class::constructorAndGetter();
+  get redirectingFactoryAndGetter() → dynamic
+    return null;
+  set constructorAndSetter(dynamic value) → void {}
+  static factory factoryAndSetter() → self::Class
+    return new self::Class::constructorAndSetter();
+  set factoryAndSetter(dynamic value) → void {}
+  static factory redirectingFactoryAndSetter() → self::Class /* redirection-target: self::Class::constructorAndSetter */
+    return new self::Class::constructorAndSetter();
+  set redirectingFactoryAndSetter(dynamic value) → void {}
+}

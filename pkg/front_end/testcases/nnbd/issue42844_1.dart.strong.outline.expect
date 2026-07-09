@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field Never n;
+  static factory •(Never n) → self::C /* redirection-target: self::D::• */
+    return new self::D::•(n);
+}
+class D extends core::Object implements self::C {
+  field Never n;
+  constructor •(initializing-formal Never n) → self::D
+    ;
+}
+static method main() → dynamic
+  ;

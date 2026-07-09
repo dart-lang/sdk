@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class C extends core::Object {
+  final field core::int? _privateFinalField;
+  constructor •(core::int? i) → self::C
+    ;
+}
+static method testPrivateFinalField(self::C c) → void
+  ;

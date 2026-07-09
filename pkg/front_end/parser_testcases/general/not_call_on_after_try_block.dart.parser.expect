@@ -1,0 +1,47 @@
+void main() {
+try {
+;
+} catch (e) {
+;
+} on Foo {
+;
+}
+
+
+
+
+on() {
+;
+} on(a, b) {
+;
+} on(a, b, c) {
+;
+}
+}
+
+void on([a, b, c]) {}
+
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] catch[KeywordToken] ([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] on[KeywordToken] Foo[StringToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken]
+
+
+
+
+on[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] on[KeywordToken]([BeginToken]a[StringToken],[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] on[KeywordToken]([BeginToken]a[StringToken],[SimpleToken] b[StringToken],[SimpleToken] c[StringToken])[SimpleToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] on[KeywordToken]([BeginToken][[BeginToken]a[StringToken],[SimpleToken] b[StringToken],[SimpleToken] c[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

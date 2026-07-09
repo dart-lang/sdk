@@ -1,0 +1,59 @@
+class F {
+
+final List<Undefined> foo1 = new List<List<int>>[];
+
+
+final List<Undefined> foo2 = new <List<int>>[];
+
+
+final List<Undefined> foo3 = new List[];
+
+
+final List<Undefined> foo4 = new List<List<int>>();
+
+
+final List<Undefined> foo5 = new List();
+
+
+final List<Undefined> foo6 = new List<List<int>>[null];
+
+
+
+final List<Undefined> foo7 = new List[null];
+
+
+final List<Undefined> foo8 = new <List<int>>[null];
+
+
+final List<Undefined> foo9 = new [null];
+}
+
+class[KeywordToken] F[StringToken] {[BeginToken]
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo1[StringToken] =[SimpleToken] new[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>>[SimpleToken][][SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo2[StringToken] =[SimpleToken] new[KeywordToken] <[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>>[SimpleToken][][SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo3[StringToken] =[SimpleToken] new[KeywordToken] List[StringToken][][SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo4[StringToken] =[SimpleToken] new[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo5[StringToken] =[SimpleToken] new[KeywordToken] List[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo6[StringToken] =[SimpleToken] new[KeywordToken] List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>>[SimpleToken][[BeginToken]null[KeywordToken]][SimpleToken];[SimpleToken]
+
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo7[StringToken] =[SimpleToken] new[KeywordToken] List[StringToken][[BeginToken]null[KeywordToken]][SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo8[StringToken] =[SimpleToken] new[KeywordToken] <[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>>[SimpleToken][[BeginToken]null[KeywordToken]][SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] List[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo9[StringToken] =[SimpleToken] new[KeywordToken] [[BeginToken]null[KeywordToken]][SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

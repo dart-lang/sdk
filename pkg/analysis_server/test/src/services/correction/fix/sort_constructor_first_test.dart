@@ -1,0 +1,302 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'fix_processor.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SortConstructorFirstBulkTest);
+    defineReflectiveTests(SortConstructorFirstTest);
+  });
+}
+
+@reflectiveTest
+class SortConstructorFirstBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.sort_constructors_first;
+
+  Future<void> test_multiple_classes() async {
+    await resolveTestCode('''
+class A {
+  X() {}
+  A();
+}
+
+class B {
+  Y() {}
+  B();
+}
+''');
+    await assertHasFix('''
+class A {
+  A();
+  X() {}
+}
+
+class B {
+  B();
+  Y() {}
+}
+''');
+  }
+
+  Future<void> test_multiple_enums() async {
+    await resolveTestCode('''
+enum A {
+  a;
+  void m() {}
+  A();
+}
+
+enum B {
+  b;
+  void n() {}
+  B();
+}
+''');
+    await assertHasFix('''
+enum A {
+  a;
+  A();
+  void m() {}
+}
+
+enum B {
+  b;
+  B();
+  void n() {}
+}
+''');
+  }
+
+  Future<void> test_single_class() async {
+    await resolveTestCode('''
+class A {
+  X() {}
+
+  A();
+
+  Y() {}
+
+  A._();
+}
+''');
+    await assertHasFix('''
+class A {
+
+  A();
+
+  A._();
+  X() {}
+
+  Y() {}
+}
+''');
+  }
+}
+
+@reflectiveTest
+class SortConstructorFirstTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.sortConstructorFirst;
+
+  @override
+  String get lintCode => LintNames.sort_constructors_first;
+
+  Future<void> test_enum_constHead() async {
+    await resolveTestCode('''
+enum E {
+  a;
+  void m() {}
+  new();
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+  new();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_enum_named() async {
+    await resolveTestCode('''
+enum E {
+  a.named();
+  void m() {}
+  E.named();
+}
+''');
+    await assertHasFix('''
+enum E {
+  a.named();
+  E.named();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_enum_noConstants() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+enum E {
+  ;
+  void m() {}
+  E();
+}
+''');
+    await assertHasFix('''
+enum E {
+  ;
+  E();
+  void m() {}
+}
+''', filter: lintNameFilter(lintCode));
+  }
+
+  Future<void> test_enum_simple() async {
+    await resolveTestCode('''
+enum E {
+  a;
+  void m() {}
+  E();
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+  E();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_hasComment() async {
+    await resolveTestCode('''
+class A {
+  void foo() {}
+  /// comment
+  A();
+}
+''');
+    await assertHasFix('''
+class A {
+  /// comment
+  A();
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_hasComment_hasMetadata_afterComment() async {
+    await resolveTestCode('''
+const a = 0;
+
+class A {
+  void foo() {}
+  /// comment
+  @a
+  A();
+}
+''');
+    await assertHasFix('''
+const a = 0;
+
+class A {
+  /// comment
+  @a
+  A();
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_hasComment_hasMetadata_beforeComment() async {
+    await resolveTestCode('''
+const a = 0;
+
+class A {
+  void foo() {}
+  @a
+  /// comment
+  A();
+}
+''');
+    await assertHasFix('''
+const a = 0;
+
+class A {
+  @a
+  /// comment
+  A();
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_named() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  A.named();
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_newHead_named() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  new named();
+}
+''');
+    await assertHasFix('''
+class A {
+  new named();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_newHead_unnamed() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  new();
+}
+''');
+    await assertHasFix('''
+class A {
+  new();
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_unnamed() async {
+    await resolveTestCode('''
+class A {
+  void m() {}
+  A();
+}
+''');
+    await assertHasFix('''
+class A {
+  A();
+  void m() {}
+}
+''');
+  }
+}

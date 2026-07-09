@@ -1,0 +1,2 @@
+spec=pkg/compiler/test/annotations/annotations_test.dart
+prod=pkg/compiler/test/annotations/annotations_test.dart

@@ -1,0 +1,5 @@
+T test() => throw '';
+
+main() {}
+
+typedef void T(C<C>);

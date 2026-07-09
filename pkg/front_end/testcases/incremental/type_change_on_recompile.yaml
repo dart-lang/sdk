@@ -1,0 +1,48 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce a inconsistency on recompile.
+# Currently the first compile produces
+#
+#   abstract class _A&B&C&D extends main::_A&B&C implements main::D /*isAnonymousMixin,isEliminatedMixin*/  {
+#     synthetic constructor named(dynamic _field) → main::_A&B&C&D*
+#       : super main::_A&B&C::named(_field)
+#       ;
+#   }
+#
+# and the second compile produces
+#   abstract class _A&B&C&D extends main::_A&B&C implements main::D /*isAnonymousMixin,isEliminatedMixin*/  {
+#     synthetic constructor named(lib::E* _field) → main::_A&B&C&D*
+#       : super main::_A&B&C::named(_field)
+#       ;
+#   }
+#
+# i.e. the `field` goes from type `dynamic` to type `lib::E*`.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class A extends B with C, D {
+            A(E parameter) : super.named(parameter);
+        }
+        mixin C { }
+        mixin D { }
+      lib.dart: |
+        class E {}
+        abstract class B {
+          final E _field;
+          B.named(this._field);
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

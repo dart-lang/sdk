@@ -1,0 +1,70 @@
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/win/visual_studio_version.gni")
+import("//build/toolchain/rbe.gni")
+import("//build/toolchain/toolchain_suite.gni")
+
+template("msvc_toolchain_suite") {
+  toolchain_suite(target_name) {
+    toolchain_template = "msvc_toolchain"
+    forward_variables_from(invoker, "*")
+  }
+}
+
+template("win_toolchains") {
+  assert(defined(invoker.toolchain_arch))
+  toolchain_arch = invoker.toolchain_arch
+
+  win_toolchain_data = exec_script("setup_toolchain.py",
+                                   [
+                                     visual_studio_path,
+                                     windows_sdk_path,
+                                     visual_studio_runtime_dirs,
+                                     "win",
+                                     toolchain_arch,
+                                     "environment." + toolchain_arch,
+                                   ],
+                                   "scope")
+
+  msvc_toolchain_suite(target_name) {
+    environment = "environment." + toolchain_arch
+    cl = "${compiler_prefix}\"${win_toolchain_data.vc_bin_dir}/cl.exe\""
+    toolchain_args = {
+      if (defined(invoker.toolchain_args)) {
+        forward_variables_from(invoker.toolchain_args, "*")
+      }
+      current_cpu = toolchain_arch
+      is_clang = false
+    }
+  }
+  msvc_toolchain_suite("clang_" + target_name) {
+    environment = "environment." + toolchain_arch
+    prefix = rebase_path("$clang_base_path/bin", root_build_dir)
+    cl = "${compiler_prefix}$prefix/clang-cl.exe"
+    if (toolchain_arch == "x86") {
+      cl = "${cl} --target=i686-pc-windows-msvc"
+    } else if (toolchain_arch == "x64") {
+      cl = "${cl} --target=x86_64-pc-windows-msvc"
+    } else if (toolchain_arch == "arm64") {
+      cl = "${cl} --target=aarch64-pc-windows-msvc"
+    }
+    toolchain_args = {
+      if (defined(invoker.toolchain_args)) {
+        forward_variables_from(invoker.toolchain_args, "*")
+      }
+      current_cpu = toolchain_arch
+      is_clang = true
+    }
+  }
+}
+
+win_toolchains(target_cpu) {
+  toolchain_arch = target_cpu
+}
+if (host_cpu != target_cpu) {
+  win_toolchains(host_cpu) {
+    toolchain_arch = host_cpu
+  }
+}

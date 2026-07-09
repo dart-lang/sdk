@@ -1,0 +1,7 @@
+class C {}
+
+extension E on C {
+  void f(String b) {}
+}
+
+void main() {}

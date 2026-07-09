@@ -1,0 +1,94 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  Future<int> count([key_OR_range]) {
+   try {
+      var request = _count(key_OR_range);
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future get(key) {
+    try {
+      var request = _get(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future getKey(key) {
+    try {
+      var request = _getKey(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * See also:
+   *
+   * * [ObjectStore.openCursor]
+   */
+  Stream<CursorWithValue> openCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+    var request;
+    if (direction == null) {
+      // FIXME: Passing in "next" should be unnecessary.
+      request = _openCursor(key_OR_range, "next");
+    } else {
+      request = _openCursor(key_OR_range, direction);
+    }
+    return ObjectStore._cursorStreamFromResult(request, autoAdvance);
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * See also:
+   *
+   * * [ObjectStore.openCursor]
+   */
+  Stream<Cursor> openKeyCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+    var request;
+    if (direction == null) {
+      // FIXME: Passing in "next" should be unnecessary.
+      request = _openKeyCursor(key_OR_range, "next");
+    } else {
+      request = _openKeyCursor(key_OR_range, direction);
+    }
+    return ObjectStore._cursorStreamFromResult(request, autoAdvance);
+  }
+
+  $!MEMBERS
+}

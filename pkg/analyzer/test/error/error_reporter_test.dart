@@ -1,0 +1,287 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
+import 'package:source_span/source_span.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../src/dart/resolution/context_collection_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ErrorReporterTest);
+  });
+}
+
+@reflectiveTest
+class ErrorReporterTest extends PubPackageResolutionTest {
+  final RecordingDiagnosticListener listener = RecordingDiagnosticListener();
+
+  test_atElement_named() async {
+    var result = await resolveTestCode('class A {}');
+    var element = result.findElement.class_('A');
+    var firstFragment = element.firstFragment;
+    var reporter = DiagnosticReporter(
+      listener,
+      firstFragment.libraryFragment.source,
+    );
+    reporter.atElement2(element, diag.castToNonType, arguments: ['A']);
+
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.offset, firstFragment.nameOffset);
+  }
+
+  test_atElement_unnamed() async {
+    var result = await resolveTestCode(r'''
+// comment to prevent expected offset being 0
+extension on int {}
+''');
+    var element = result.findElement.unnamedExtension();
+
+    var firstFragment = element.firstFragment;
+    var reporter = DiagnosticReporter(
+      listener,
+      firstFragment.libraryFragment.source,
+    );
+    reporter.atElement2(element, diag.castToNonType, arguments: ['A']);
+
+    var diagnostic = listener.diagnostics[0];
+    // No name, so expect offset of declaration.
+    expect(diagnostic.offset, firstFragment.offset);
+  }
+
+  test_atNode_types_differentNames() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', 'class B {}');
+    var result = await resolveTestCode(r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+main() {
+  x;
+}
+''');
+    var aImport = result.findElement.importFind('package:test/a.dart');
+    var bImport = result.findElement.importFind('package:test/b.dart');
+
+    var firstType = aImport
+        .class_('A')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+    var secondType = bImport
+        .class_('B')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+
+    var reporter = DiagnosticReporter(
+      listener,
+      firstType.element.firstFragment.libraryFragment.source,
+    );
+
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(result.findNode.simple('x')),
+    );
+
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, isNot(contains('(')));
+  }
+
+  test_atNode_types_sameName() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', 'class A {}');
+    var result = await resolveTestCode(r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+main() {
+  x;
+}
+''');
+    var aImport = result.findElement.importFind('package:test/a.dart');
+    var bImport = result.findElement.importFind('package:test/b.dart');
+
+    var firstType = aImport
+        .class_('A')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+    var secondType = bImport
+        .class_('A')
+        .instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+
+    var reporter = DiagnosticReporter(
+      listener,
+      firstType.element.firstFragment.libraryFragment.source,
+    );
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: firstType,
+            expectedStaticType: secondType,
+            additionalInfo: '',
+          )
+          .at(result.findNode.simple('x')),
+    );
+
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, contains('('));
+  }
+
+  test_atNode_types_sameName_functionType() async {
+    newFile('$testPackageLibPath/a.dart', 'class A{}');
+    newFile('$testPackageLibPath/b.dart', 'class A{}');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as a;
+import 'b.dart' as b;
+
+a.A Function() fa;
+b.A Function() fb;
+
+main() {
+  x;
+}
+''');
+    var fa = result.findNode.topLevelVariableDeclaration('fa');
+    var fb = result.findNode.topLevelVariableDeclaration('fb');
+
+    var source = result.unit.declaredFragment!.source;
+    var reporter = DiagnosticReporter(listener, source);
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: fa.variables.type!.type!,
+            expectedStaticType: fb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(result.findNode.simple('x')),
+    );
+
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, contains('a.dart'));
+    expect(diagnostic.message, contains('b.dart'));
+  }
+
+  test_atNode_types_sameName_nested() async {
+    newFile('$testPackageLibPath/a.dart', 'class A{}');
+    newFile('$testPackageLibPath/b.dart', 'class A{}');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as a;
+import 'b.dart' as b;
+
+B<a.A> ba;
+B<b.A> bb;
+class B<T> {}
+
+main() {
+  x;
+}
+''');
+    var ba = result.findNode.topLevelVariableDeclaration('ba');
+    var bb = result.findNode.topLevelVariableDeclaration('bb');
+
+    var source = result.unit.declaredFragment!.source;
+    var reporter = DiagnosticReporter(listener, source);
+    reporter.report(
+      diag.argumentTypeNotAssignable
+          .withArguments(
+            actualStaticType: ba.variables.type!.type!,
+            expectedStaticType: bb.variables.type!.type!,
+            additionalInfo: '',
+          )
+          .at(result.findNode.simple('x')),
+    );
+
+    var diagnostic = listener.diagnostics[0];
+    expect(diagnostic.message, contains('a.dart'));
+    expect(diagnostic.message, contains('b.dart'));
+  }
+
+  test_atSourceSpan() async {
+    var source = FileSource(newFile('/test.dart', ''));
+    var reporter = DiagnosticReporter(listener, source);
+
+    var text = '''
+foo: bar
+zap: baz
+''';
+
+    var offset = text.indexOf('baz');
+    var length = 'baz'.length;
+
+    var span = SourceSpanBase(
+      SourceLocation(offset),
+      SourceLocation(offset + length),
+      'baz',
+    );
+
+    reporter.report(
+      diag.unsupportedOptionWithLegalValue
+          .withArguments(
+            sectionName: 'test',
+            optionKey: 'zip',
+            legalValue: 'zap',
+          )
+          .atSourceSpan(span),
+    );
+    expect(listener.diagnostics, hasLength(1));
+    expect(listener.diagnostics.first.offset, offset);
+    expect(listener.diagnostics.first.length, length);
+  }
+
+  test_atSourceSpan_trimsTrailingLineTerminators() async {
+    var source = FileSource(newFile('/test.dart', ''));
+    var reporter = DiagnosticReporter(listener, source);
+
+    var text = 'foo: bar\r\nzap: baz\r\n';
+    var offset = text.indexOf('baz');
+
+    var span = SourceSpanBase(
+      SourceLocation(offset),
+      SourceLocation(offset + 'baz\r\n'.length),
+      'baz\r\n',
+    );
+
+    reporter.report(
+      diag.unsupportedOptionWithLegalValue
+          .withArguments(
+            sectionName: 'test',
+            optionKey: 'zip',
+            legalValue: 'zap',
+          )
+          .atSourceSpan(span),
+    );
+    reporter.report(diag.abstractClassMember.atSourceSpan(span));
+
+    expect(listener.diagnostics, hasLength(2));
+    for (var diagnostic in listener.diagnostics) {
+      expect(diagnostic.offset, offset);
+      expect(diagnostic.length, 'baz'.length);
+    }
+  }
+
+  test_creation() async {
+    var source = FileSource(newFile('/test.dart', ''));
+    var reporter = DiagnosticReporter(listener, source);
+    expect(reporter, isNotNull);
+  }
+}

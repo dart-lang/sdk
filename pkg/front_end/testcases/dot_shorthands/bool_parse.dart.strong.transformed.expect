@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method fn(core::bool b) → void {}
+static method main() → void {
+  self::fn(core::bool::parse("true") || false);
+  core::bool b = false || core::bool::parse("false");
+}

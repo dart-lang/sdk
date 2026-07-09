@@ -1,0 +1,3 @@
+extension on int {
+  int bar({int baz = this}) => 42;
+}

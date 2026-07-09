@@ -1,0 +1,16 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of web_audio;
+
+$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+  void connectNode(AudioNode destination, [int output = 0, int input = 0]) {
+    _connect(destination, output, input);
+  }
+
+  void connectParam(AudioParam destination, [int output = 0]) {
+    _connect(destination, output);
+  }
+}

@@ -1,0 +1,32 @@
+library test;
+
+class A {
+  final I1 a = throw '';
+}
+
+class B {
+  final I2 a = throw '';
+}
+
+class C1 implements A, B {
+  I3 get a => throw '';
+}
+
+class C2 implements A, B {
+  get a => throw '';
+}
+
+class I1 {
+  int x = 0;
+}
+
+class I2 {
+  int y = 0;
+}
+
+class I3 implements I1, I2 {
+  int x = 0;
+  int y = 0;
+}
+
+main() {}

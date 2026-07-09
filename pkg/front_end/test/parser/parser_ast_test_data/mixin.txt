@@ -1,0 +1,15 @@
+mixin B {
+  static int staticField = 0;
+  void foo() {
+    // empty
+  }
+
+  // Mixins cannot have constructors (or members with same name as mixin).
+  factory B() {
+    // empty
+  }
+
+  B.foo() {
+    // empty
+  }
+}

@@ -1,0 +1,65 @@
+NOTICE: Stream was rewritten by parser!
+
+void f(x) {
+switch (x) {
+case [...== null]:
+case [...!= null]:
+case [...< 0]:
+case [...> 0]:
+case [...<= 0]:
+case [...>= 0]:
+case [...0]:
+case [...0.0]:
+case [...0x0]:
+case [...null]:
+case [...false]:
+case [...true]:
+case [...'foo']:
+case [...x]:
+case [...const List()]:
+case [...var x]:
+case [...final x]:
+case [...List x]:
+case [..._]:
+case [...(_)]:
+case [...[_]]:
+case [...[]]:
+case [...<int>[]]:
+case [...{}]:
+case [...List()]:
+break;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]==[SimpleToken] null[KeywordToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]!=[SimpleToken] null[KeywordToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]<[BeginToken] 0[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]>[SimpleToken] 0[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]<=[SimpleToken] 0[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]>=[SimpleToken] 0[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]0[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]0.0[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]0x0[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]null[KeywordToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]false[KeywordToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]true[KeywordToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]'foo'[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]x[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]const[KeywordToken] List[StringToken]([BeginToken])[SimpleToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]var[KeywordToken] x[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]final[KeywordToken] x[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]List[StringToken] x[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]_[StringToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]([BeginToken]_[StringToken])[SimpleToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken][[BeginToken]_[StringToken]][SimpleToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken][[BeginToken]][SimpleToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]<[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]][SimpleToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]{[BeginToken]}[SimpleToken]][SimpleToken]:[SimpleToken]
+case[KeywordToken] [[BeginToken]...[SimpleToken]List[StringToken]([BeginToken])[SimpleToken]][SimpleToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

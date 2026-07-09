@@ -1,0 +1,5 @@
+library test;
+
+void test(List<num> nums) {}
+
+main() {}

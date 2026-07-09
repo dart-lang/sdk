@@ -1,0 +1,200 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+
+/// Helper for resolving [YieldStatement]s.
+class YieldStatementResolver {
+  final ResolverVisitor _resolver;
+
+  YieldStatementResolver({required ResolverVisitor resolver})
+    : _resolver = resolver;
+
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+
+  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
+
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+
+  void resolve(YieldStatementImpl node) {
+    var bodyContext = _resolver.bodyContext;
+    if (bodyContext != null && bodyContext.isGenerator) {
+      _resolve_generator(bodyContext, node);
+    } else {
+      _resolve_notGenerator(node);
+    }
+  }
+
+  /// Check for situations where the result of a method or function is used, when
+  /// it returns 'void'. Or, in rare cases, when other types of expressions are
+  /// void, such as identifiers.
+  ///
+  /// See [diag.useOfVoidResult].
+  ///
+  // TODO(scheglov): This is duplicate
+  // TODO(scheglov): Also in [BoolExpressionVerifier]
+  bool _checkForUseOfVoidResult(Expression expression) {
+    if (expression.staticType is! VoidTypeImpl) {
+      return false;
+    }
+
+    if (expression is MethodInvocation) {
+      _diagnosticReporter.report(
+        diag.useOfVoidResult.at(expression.methodName),
+      );
+    } else {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
+    }
+
+    return true;
+  }
+
+  /// Check for a type mis-match between the yielded type and the declared
+  /// return type of a generator function.
+  ///
+  /// This method should only be called in generator functions.
+  void _checkForYieldOfInvalidType(
+    BodyInferenceContext bodyContext,
+    YieldStatement node, {
+    required bool isYieldEach,
+  }) {
+    var expression = node.expression;
+    var expressionType = expression.typeOrThrow;
+
+    TypeImpl impliedReturnType;
+    if (isYieldEach) {
+      impliedReturnType = expressionType;
+    } else if (bodyContext.isSync) {
+      impliedReturnType = _typeProvider.iterableType(expressionType);
+    } else {
+      impliedReturnType = _typeProvider.streamType(expressionType);
+    }
+
+    var imposedReturnType = bodyContext.imposedType;
+    if (imposedReturnType != null) {
+      imposedReturnType = _typeSystem.unionFreeType(imposedReturnType);
+      if (isYieldEach) {
+        if (!_typeSystem.isAssignableTo(
+          impliedReturnType,
+          imposedReturnType,
+          strictCasts: _resolver.analysisOptions.strictCasts,
+        )) {
+          _diagnosticReporter.report(
+            diag.yieldEachOfInvalidType
+                .withArguments(
+                  actualType: impliedReturnType,
+                  expectedType: imposedReturnType,
+                )
+                .at(expression),
+          );
+          return;
+        }
+      } else {
+        var imposedSequenceType = imposedReturnType.asInstanceOf(
+          bodyContext.isSync
+              ? _typeProvider.iterableElement
+              : _typeProvider.streamElement,
+        );
+        if (imposedSequenceType != null) {
+          var imposedValueType = imposedSequenceType.typeArguments[0];
+          if (!_typeSystem.isAssignableTo(
+            expressionType,
+            imposedValueType,
+            strictCasts: _resolver.analysisOptions.strictCasts,
+          )) {
+            _diagnosticReporter.report(
+              diag.yieldOfInvalidType
+                  .withArguments(
+                    actualType: expressionType,
+                    expectedType: imposedValueType,
+                  )
+                  .at(expression),
+            );
+            return;
+          }
+        }
+      }
+    }
+
+    if (isYieldEach) {
+      // Since the declared return type might have been "dynamic", we need to
+      // also check that the implied return type is assignable to generic
+      // Iterable/Stream.
+      TypeImpl requiredReturnType;
+      if (bodyContext.isSync) {
+        requiredReturnType = _typeProvider.iterableDynamicType;
+      } else {
+        requiredReturnType = _typeProvider.streamDynamicType;
+      }
+
+      if (!_typeSystem.isAssignableTo(
+        impliedReturnType,
+        requiredReturnType,
+        strictCasts: _resolver.analysisOptions.strictCasts,
+      )) {
+        _diagnosticReporter.report(
+          diag.yieldEachOfInvalidType
+              .withArguments(
+                actualType: impliedReturnType,
+                expectedType: requiredReturnType,
+              )
+              .at(expression),
+        );
+      }
+    }
+  }
+
+  void _resolve_generator(
+    BodyInferenceContext bodyContext,
+    YieldStatementImpl node,
+  ) {
+    _resolver.analyzeYieldStatement(
+      node,
+      node.expression,
+      isYieldStar: node.star != null,
+    );
+    _resolver.popRewrite();
+
+    if (node.star != null) {
+      _resolver.nullableDereferenceVerifier.expression(
+        diag.uncheckedUseOfNullableValueInYieldEach,
+        node.expression,
+      );
+    }
+
+    bodyContext.addYield(node);
+
+    _checkForYieldOfInvalidType(
+      bodyContext,
+      node,
+      isYieldEach: node.star != null,
+    );
+    _checkForUseOfVoidResult(node.expression);
+  }
+
+  void _resolve_notGenerator(YieldStatementImpl node) {
+    _resolver.analyzeExpression(
+      node.expression,
+      _resolver.operations.unknownType,
+    );
+    _resolver.popRewrite();
+
+    _diagnosticReporter.report(
+      (node.star != null
+              ? diag.yieldEachInNonGenerator
+              : diag.yieldInNonGenerator)
+          .at(node),
+    );
+
+    _checkForUseOfVoidResult(node.expression);
+  }
+}

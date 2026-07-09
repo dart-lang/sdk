@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29982.dart:7:15: Error: The non-ASCII character 'é' (U+00E9) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+//   print('${eh[éh']}');
+//               ^
+//
+// pkg/front_end/testcases/regress/issue_29982.dart:7:14: Error: Can't find ']' to match '['.
+//   print('${eh[éh']}');
+//              ^
+//
+// pkg/front_end/testcases/regress/issue_29982.dart:7:10: Error: Can't find '}' to match '${'.
+//   print('${eh[éh']}');
+//          ^
+//
+// pkg/front_end/testcases/regress/issue_29982.dart:7:11: Error: String starting with ' must end with '.
+//   print('${eh[éh']}');
+//           ^^^^^^^^^^^^^...
+//
+// pkg/front_end/testcases/regress/issue_29982.dart:9:1: Error: Expected a declaration, but got ''.
+//
+import self as self;
+
+static method main() → dynamic
+  ;

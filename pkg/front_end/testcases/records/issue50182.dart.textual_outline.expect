@@ -1,0 +1,13 @@
+void main() {}
+
+class MyClass<T> {
+  MyClass(this.myField);
+  final Value<Hello<T>>? Function() myField;
+}
+
+class Value<T> {
+  Value(this.value);
+  final T value;
+}
+
+typedef Hello<T> = (T, {T name});

@@ -1,0 +1,9 @@
+import 'dart:collection';
+
+class A<X extends LinkedListEntry> {}
+
+extension B<X extends LinkedListEntry> on int {}
+
+main() {}
+
+typedef C<X extends LinkedListEntry> = int;

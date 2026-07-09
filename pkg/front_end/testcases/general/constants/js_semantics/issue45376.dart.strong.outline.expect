@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class MyClass extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(dynamic i1, dynamic i2) → self::MyClass
+    : self::MyClass::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic} core::int, self::MyClass::b = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic} core::int, super core::Object::•()
+    ;
+  static synthetic method _#new#tearOff(dynamic i1, dynamic i2) → self::MyClass
+    return new self::MyClass::•(i1, i2);
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

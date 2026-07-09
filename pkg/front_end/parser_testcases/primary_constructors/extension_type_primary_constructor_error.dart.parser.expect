@@ -1,0 +1,35 @@
+NOTICE: Stream was rewritten by parser!
+
+extension type E( {*synthetic*}
+extension type E) {}
+extension type E. *synthetic*{}
+extension type E.*synthetic*() {}
+extension type const E {}
+extension type E<T>( {*synthetic*}
+extension type E<T>) {}
+extension type const E<T> {}
+extension type E<T>. *synthetic*{}
+extension type E<T>.*synthetic*() {}
+extension type const E<T>. *synthetic*{}
+extension type const E<T>.*synthetic*() {}
+extension type E<T>.named {}
+extension type E<T>.named() {}
+extension type const E<T>.named {}
+
+
+extension[KeywordToken] type[StringToken] E[StringToken]([BeginToken] {[BeginToken][SyntheticStringToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken].[SimpleToken] [SyntheticStringToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken].[SimpleToken][SyntheticStringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken] {[BeginToken][SyntheticStringToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken] [SyntheticStringToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken][SyntheticStringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken] [SyntheticStringToken]{[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken][SyntheticStringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

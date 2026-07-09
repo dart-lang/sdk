@@ -1,0 +1,9 @@
+void foo() {
+return """
+æbler"""
+}
+
+[UnterminatedString][UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] """
+æbler"""[SyntheticStringToken]
+}[SyntheticToken][SimpleToken]

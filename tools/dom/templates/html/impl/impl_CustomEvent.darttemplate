@@ -1,0 +1,43 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+    @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  var _dartDetail;
+
+  factory $CLASSNAME(String type,
+      {bool canBubble = true, bool cancelable = true, Object$NULLABLE detail}) {
+
+    final CustomEvent e = document._createEvent('CustomEvent') $#NULLSAFECAST(as CustomEvent);
+
+    e._dartDetail = detail;
+
+    // Only try setting the detail if it's one of these types to avoid
+    // first-chance exceptions. Can expand this list in the future as needed.
+    if (detail is List || detail is Map || detail is String || detail is num) {
+      try {
+        detail = convertDartToNative_SerializedScriptValue(detail);
+        e._initCustomEvent(type, canBubble, cancelable, detail);
+      } catch(_) {
+        e._initCustomEvent(type, canBubble, cancelable, null);
+      }
+    } else {
+      e._initCustomEvent(type, canBubble, cancelable, null);
+    }
+
+    return e;
+  }
+
+  get detail {
+    if (_dartDetail != null) {
+      return _dartDetail;
+    }
+    return _detail;
+  }
+$!MEMBERS
+}

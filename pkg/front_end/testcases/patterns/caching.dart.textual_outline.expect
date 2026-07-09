@@ -1,0 +1,20 @@
+class Class {
+  int field;
+  final int finalField;
+  int get getter => finalField;
+  Class(this.field, this.finalField);
+}
+
+int ifCase(o) {}
+
+int ifCaseElse(o) {}
+
+int switchStatement(o) {}
+
+int switchExpression(o) {}
+
+test(expected, value) {}
+
+main() {}
+
+expect(expected, actual) {}

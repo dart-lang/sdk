@@ -1,0 +1,32 @@
+// @dart = 3.10
+
+enum E7 {
+  a(0),
+  b.named(1);
+
+  final int? c;
+  E7(this.c);
+  const E7.named(int? c) : this(c);
+  const factory E7.fact(int? c) => E7(c);
+  const factory E7.redirect(int? c) = E7;
+}
+
+enum E8 {
+  a(0),
+  b.named(1);
+
+  final int? c;
+  const E8(this.c);
+  E8.named(int? c) : this(c);
+  factory E8.fact(int? c) => E8(c);
+  factory E8.redirect(int? c) = E8;
+}
+
+enum E9 {
+  a(0),
+  b.named(1);
+
+  final int? c;
+  const E9(this.c) {}
+  E9.named(this.c) {}
+}

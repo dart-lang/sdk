@@ -1,0 +1,39 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Standing in the body we can't access the super initializing formal.
+
+sources: |
+  void main() {
+    new Foo(1, 42);
+  }
+
+  class Foo extends Bar {
+    int j;
+
+    Foo(int super.i, int x) : j = i * x {
+      print(i);
+    }
+  }
+
+  class Bar {
+    final num i;
+    Bar(this.i);
+  }
+
+# We pretend like the VM sends over "i" too. It currently doesn't though.
+definitions: ["i", "x"]
+# We pretend to VM doesn't send over information so we can see a difference in
+# the output when we find the actual type (i.e. when we find it to be in scope).
+definition_types: ["null", "null"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "Foo"
+position: "#Foo"
+static: false
+offset: 119 # on the "i" in "print" in the body.
+scriptUri: main.dart
+expression: |
+  i.isEven

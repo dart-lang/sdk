@@ -1,0 +1,9 @@
+library test;
+
+D<T> f<T>() => throw '';
+
+class D<T> {}
+
+var g = f<int>();
+
+test() {}

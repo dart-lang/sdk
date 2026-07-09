@@ -1,0 +1,3 @@
+typedef F = void Function<X extends F>() Function();
+
+void main() {}

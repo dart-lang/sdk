@@ -1,0 +1,35 @@
+NOTICE: Stream was rewritten by parser!
+
+enum E( {*synthetic*}
+enum E) {}
+enum E. *synthetic*{}
+enum E.*synthetic*() {}
+enum const E {}
+enum E<T>( {*synthetic*}
+enum E<T>) {}
+enum const E<T> {}
+enum E<T>. *synthetic*{}
+enum E<T>.*synthetic*() {}
+enum const E<T>. *synthetic*{}
+enum const E<T>.*synthetic*() {}
+enum E<T>.named {}
+enum E<T>.named() {}
+enum const E<T>.named {}
+
+
+enum[KeywordToken] E[StringToken]([BeginToken] {[BeginToken][SyntheticStringToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken].[SimpleToken] [SyntheticStringToken]{[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken].[SimpleToken][SyntheticStringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken] {[BeginToken][SyntheticStringToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken] [SyntheticStringToken]{[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken][SyntheticStringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken] [SyntheticStringToken]{[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken][SyntheticStringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

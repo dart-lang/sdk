@@ -1,0 +1,35 @@
+library test;
+
+Asserter<DartType> _isInt = throw '';
+
+Asserter<DartType> _isString = throw '';
+
+AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf = throw '';
+
+AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf => throw '';
+
+abstract class C {
+  AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf = throw '';
+  AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf => throw '';
+  method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {}
+  static AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf =
+      throw '';
+  static AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf =>
+      throw '';
+}
+
+abstract class G<T> {
+  AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf = throw '';
+  AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf => throw '';
+  method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {}
+}
+
+class DartType {}
+
+main() {}
+
+test() {}
+
+typedef Asserter<T> AsserterBuilder<S, T>(S arg);
+
+typedef void Asserter<T>(T type);

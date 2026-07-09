@@ -1,0 +1,16 @@
+class C0 {
+  C0(int a, this.b, this.c) : d = a, e = b, f = c;
+  final int c;
+  int b;
+  int d;
+  int e;
+  int f;
+  int g = 42;
+}
+
+class C1(int a, var int b, final int c) {
+  int d = a;
+  int e = b;
+  int f = c;
+  int g = 42;
+}

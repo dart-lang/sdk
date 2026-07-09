@@ -1,0 +1,9 @@
+library test;
+
+class C {
+  final x = y;
+}
+
+int get y => throw '';
+
+main() {}

@@ -1,0 +1,2 @@
+--force-late-lowering
+--overwrite-current-sdk-version=3.9999

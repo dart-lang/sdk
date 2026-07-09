@@ -1,0 +1,41 @@
+class DynamicClass<T extends dynamic, S extends T> {
+  T field1;
+  T field2;
+  DynamicClass(this.field1, this.field2);
+  method() => field1 * field2;
+}
+
+class NumClass<T extends num, S extends T> {
+  T field1;
+  S field2;
+  NumClass(this.field1, this.field2);
+  num method1() => field1 * field2;
+  num method2() => field1 + field2.length;
+}
+
+class Class<
+  X5 extends X4,
+  X4 extends X3,
+  X3 extends X2,
+  X2 extends X1,
+  X1 extends X0,
+  X0 extends int
+> {
+  X0 field0;
+  X1 field1;
+  X2 field2;
+  X3 field3;
+  X4 field4;
+  X5 field5;
+  Class(
+    this.field0,
+    this.field1,
+    this.field2,
+    this.field3,
+    this.field4,
+    this.field5,
+  );
+  method() {}
+}
+
+main() {}

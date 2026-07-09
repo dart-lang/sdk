@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "extension_from_dill_lib2.dart" as ext;
+
+import "org-dartlang-testcase:///extension_from_dill_lib.dart";
+
+static method main() → dynamic {
+  ext::Extension|foo("");
+}

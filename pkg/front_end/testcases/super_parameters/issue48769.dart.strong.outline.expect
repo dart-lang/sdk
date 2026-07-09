@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class NumProperty extends self::DiagnosticsProperty {
+  constructor •({super-initializing-formal core::bool showName = true}) → self::NumProperty
+    ;
+  constructor lazy({super-initializing-formal core::bool showName = true}) → self::NumProperty
+    ;
+}
+class DiagnosticsProperty extends self::DiagnosticsNode {
+  constructor •({super-initializing-formal core::bool showName = true}) → self::DiagnosticsProperty
+    ;
+  constructor lazy({super-initializing-formal core::bool showName = true}) → self::DiagnosticsProperty
+    ;
+}
+abstract class DiagnosticsNode extends core::Object {
+  final field core::bool showName;
+  constructor •({initializing-formal core::bool showName = true}) → self::DiagnosticsNode
+    ;
+}
+static method main() → void
+  ;

@@ -1,0 +1,17 @@
+abstract class A<T> {
+  factory A(T value) = _A;
+}
+
+abstract class B<T> {
+  factory B(int value) = _B;
+}
+
+class _A<T> implements A<T> {
+  _A(T value);
+}
+
+class _B<T> implements B<T> {
+  _B(int value);
+}
+
+main() {}

@@ -1,0 +1,4148 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../../dart/resolution/node_text_expectations.dart';
+import '../../../diagnostics/parser_diagnostics.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConstructorTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class ConstructorTest extends ParserDiagnosticsTest {
+  void test_constructor_colon_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : @annotation var f;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+//             ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} @annotation var f;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {}}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} var f;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} const f = 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} final f = 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} int get a => 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} int a(b) => 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} void a(b) {}}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_block_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : {} set a(b) {}}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() :}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+//            ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : var f;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+//             ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f @annotation var f;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, @annotation var f;}
+//                  ^
+// [diag.missingInitializer] Expected an initializer.
+//                    ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0,}
+//                  ^
+// [diag.missingInitializer] Expected an initializer.
+//                   ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, var f;}
+//                  ^
+// [diag.missingInitializer] Expected an initializer.
+//                    ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, const f = 0;}
+//                  ^
+// [diag.missingInitializer] Expected an initializer.
+//                    ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, final f = 0;}
+//                  ^
+// [diag.missingInitializer] Expected an initializer.
+//                    ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, int get a => 0;}
+//                    ^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                        ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: int
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, int a(b) => 0;}
+//                    ^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: int
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, void a(b) {}}
+//                  ^
+// [diag.missingInitializer] Expected an initializer.
+//                    ^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_comma_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f = 0, set a(b) {}}
+//                    ^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                        ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: set
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//              ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f var f;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f const f = 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f final f = 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f int get a => 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ @annotation var f;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ var f;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ const f = 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ final f = 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ int get a => 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ int a(b) => 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ void a(b) {}}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_increment_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f++ set a(b) {}}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f int a(b) => 0;}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f void a(b) {}}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_field_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : f set a(b) {}}
+//             ^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//               ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : const f = 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+//             ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : final f = 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+//             ^^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : int get a => 0;}
+//             ^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: int
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : int a(b) => 0;}
+//             ^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: int
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : void a(b) {}}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+//             ^^^^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; @annotation var f;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; var f;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; const f = 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; final f = 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; int get a => 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; int a(b) => 0;}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; void a(b) {}}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_semicolon_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : ; set a(b) {}}
+//           ^
+// [diag.missingInitializer] Expected an initializer.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_colon_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : set a(b) {}}
+//             ^^^
+// [diag.missingAssignmentInInitializer] Expected an assignment after the field name.
+//                 ^
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: set
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super @annotation var f;}
+//                   ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. @annotation var f;}
+//                    ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super.}
+//                   ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. var f;}
+//                    ^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. const f = 0;}
+//             ^^^^^
+// [diag.invalidSuperInInitializer] Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')
+//                    ^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'const' can't be used as an identifier because it's a keyword.
+// [diag.missingIdentifier] Expected an identifier.
+//                          ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.expectedToken] Expected to find ','.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. final f = 0;}
+//                    ^^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. int get a => 0;}
+//                        ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: int
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. int a(b) => 0;}
+//                        ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: int
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. void a(b) {}}
+//                    ^^^^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_dot_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super. set a(b) {}}
+//                        ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: set
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super}
+//                  ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super var f;}
+//                   ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super const f = 0;}
+//                   ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super final f = 0;}
+//                   ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super int get a => 0;}
+//                   ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super int a(b) => 0;}
+//                   ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super void a(b) {}}
+//                   ^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_annotation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. @annotation var f;}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                     ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_eof() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?.}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                    ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_field() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. var f;}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                     ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_fieldConst() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. const f = 0;}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                     ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_fieldFinal() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. final f = 0;}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                     ^^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_getter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. int get a => 0;}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                         ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: int
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_methodNonVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. int a(b) => 0;}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                         ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: int
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_methodVoid() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. void a(b) {}}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                     ^^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_qdot_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super?. set a(b) {}}
+//                  ^^
+// [diag.invalidOperatorQuestionmarkPeriodForSuper] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//                         ^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: set
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+
+  void test_constructor_super_setter() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C {C() : super set a(b) {}}
+//                   ^^^
+// [diag.expectedToken] Expected to find '('.
+// [diag.missingFunctionBody] A function body must be provided.
+''');
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+''');
+  }
+}

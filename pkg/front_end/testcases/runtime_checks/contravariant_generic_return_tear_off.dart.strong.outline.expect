@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<contravariant T extends core::Object? = dynamic> = (T%) → void;
+typedef G<contravariant T extends core::Object? = dynamic> = () → (T%) → void;
+class C<T extends core::Object? = dynamic> extends core::Object {
+  field (self::C::T%) → void _x;
+  constructor •(initializing-formal (self::C::T%) → void _x) → self::C<self::C::T%>
+    ;
+  method f() → (self::C::T%) → void
+    ;
+}
+static method g(self::C<core::num> c) → () → (core::num) → void
+  ;
+static method h(core::int i) → void
+  ;
+static method test() → void
+  ;
+static method main() → void
+  ;

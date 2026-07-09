@@ -1,0 +1,25 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+analyzer:
+  errors:
+    todo: ignore
+    # Allow deprecated calls from within the same package
+    deprecated_member_use_from_same_package: ignore
+    illegal_language_version_override: ignore
+  language:
+    strict-inference: true
+    strict-raw-types: true
+
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_dynamic_calls
+    - deprecated_member_use_from_same_package
+    - directives_ordering
+    - no_default_cases
+    - unnecessary_ignore
+    - unnecessary_statements

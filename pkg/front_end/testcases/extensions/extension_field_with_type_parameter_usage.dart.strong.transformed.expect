@@ -1,0 +1,82 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:6:5: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   U field1 = null;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:7:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? field2 = () {
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:11:12: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   List<U>? field3 = null;
+//            ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:12:18: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   U Function(U)? field4 = null;
+//                  ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:13:30: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   List<U> Function(List<U>)? field5 = null;
+//                              ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:14:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? field6 = <E>() {
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:18:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? field7 = <E>() {
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:22:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   Type field8 = U;
+//        ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension E<U extends core::Object? = dynamic> on core::String {
+  get field1 = self::E|get#field1;
+  set field1 = self::E|set#field1;
+  get field2 = self::E|get#field2;
+  set field2 = self::E|set#field2;
+  get field3 = self::E|get#field3;
+  set field3 = self::E|set#field3;
+  get field4 = self::E|get#field4;
+  set field4 = self::E|set#field4;
+  get field5 = self::E|get#field5;
+  set field5 = self::E|set#field5;
+  get field6 = self::E|get#field6;
+  set field6 = self::E|set#field6;
+  get field7 = self::E|get#field7;
+  set field7 = self::E|set#field7;
+  get field8 = self::E|get#field8;
+  set field8 = self::E|set#field8;
+}
+static abstract extension-member method E|get#field1<U extends core::Object? = dynamic>(lowered core::String #this) → invalid-type;
+static abstract extension-member method E|set#field1<U extends core::Object? = dynamic>(lowered core::String #this, synthesized invalid-type #externalFieldValue) → void;
+static abstract extension-member method E|get#field2<U extends core::Object? = dynamic>(lowered core::String #this) → core::int?;
+static abstract extension-member method E|set#field2<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method E|get#field3<U extends core::Object? = dynamic>(lowered core::String #this) → core::List<invalid-type>?;
+static abstract extension-member method E|set#field3<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::List<invalid-type>? #externalFieldValue) → void;
+static abstract extension-member method E|get#field4<U extends core::Object? = dynamic>(lowered core::String #this) → (invalid-type) →? invalid-type;
+static abstract extension-member method E|set#field4<U extends core::Object? = dynamic>(lowered core::String #this, synthesized (invalid-type) →? invalid-type #externalFieldValue) → void;
+static abstract extension-member method E|get#field5<U extends core::Object? = dynamic>(lowered core::String #this) → (core::List<invalid-type>) →? core::List<invalid-type>;
+static abstract extension-member method E|set#field5<U extends core::Object? = dynamic>(lowered core::String #this, synthesized (core::List<invalid-type>) →? core::List<invalid-type> #externalFieldValue) → void;
+static abstract extension-member method E|get#field6<U extends core::Object? = dynamic>(lowered core::String #this) → core::int?;
+static abstract extension-member method E|set#field6<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method E|get#field7<U extends core::Object? = dynamic>(lowered core::String #this) → core::int?;
+static abstract extension-member method E|set#field7<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::int? #externalFieldValue) → void;
+static abstract extension-member method E|get#field8<U extends core::Object? = dynamic>(lowered core::String #this) → core::Type;
+static abstract extension-member method E|set#field8<U extends core::Object? = dynamic>(lowered core::String #this, synthesized core::Type #externalFieldValue) → void;
+static method main() → dynamic {}

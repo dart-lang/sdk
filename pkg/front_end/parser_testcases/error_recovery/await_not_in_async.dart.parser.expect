@@ -1,0 +1,13 @@
+Future<void> f() => Future.value();
+
+void g() {
+await f();
+}
+
+
+Future[StringToken]<[BeginToken]void[KeywordToken]>[SimpleToken] f[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] Future[StringToken].[SimpleToken]value[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+void[KeywordToken] g[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+await[KeywordToken] f[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

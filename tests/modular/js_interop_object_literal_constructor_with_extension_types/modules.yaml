@@ -1,0 +1,9 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+#
+# Regression test for https://github.com/dart-lang/sdk/issues/57008: Test that
+# we skip generated procedures for object literal constructors when we serialize
+# the codegen. All invocations of such procedures are transformed.
+dependencies:
+  main: def

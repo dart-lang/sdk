@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test0({required core::int a}) → core::int
+  ;
+static method main() → void
+  ;

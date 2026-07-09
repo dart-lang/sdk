@@ -1,0 +1,12 @@
+class Class = Super with Mixin;
+
+class Super {
+  Super(this.field);
+  var field = 42;
+}
+
+error() {}
+
+main() {}
+
+mixin Mixin {}

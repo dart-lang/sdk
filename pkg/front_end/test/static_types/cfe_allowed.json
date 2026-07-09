@@ -1,0 +1,10 @@
+{
+  "pkg/_fe_analyzer_shared/lib/src/util/colors.dart": {
+    "Dynamic invocation of 'split'.": 1
+  },
+  "pkg/_fe_analyzer_shared/lib/src/util/libraries_specification.dart": {
+    "Dynamic invocation of 'toList'.": 1,
+    "Dynamic invocation of 'map'.": 1,
+    "Dynamic invocation of '[]='.": 2
+  }
+}

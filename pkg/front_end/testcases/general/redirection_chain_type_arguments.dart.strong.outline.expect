@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  constructor empty() → self::A<self::A::T%>
+    ;
+  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%> /* redirection-target: self::B::•<self::A::•::T%, core::num>*/
+    return self::B::•<self::A::•::T%, core::num>();
+}
+class B<U extends core::Object? = dynamic, W extends core::Object? = dynamic> extends self::A<self::B::U%> {
+  constructor empty() → self::B<self::B::U%, self::B::W%>
+    ;
+  static factory •<U extends core::Object? = dynamic, W extends core::Object? = dynamic>() → self::B<self::B::•::U%, self::B::•::W%> /* redirection-target: self::C::•<self::B::•::U%, self::B::•::W%, core::String>*/
+    return new self::C::•<self::B::•::U%, self::B::•::W%, core::String>();
+}
+class C<V extends core::Object? = dynamic, S extends core::Object? = dynamic, R extends core::Object? = dynamic> extends self::B<self::C::V%, self::C::S%> {
+  constructor •() → self::C<self::C::V%, self::C::S%, self::C::R%>
+    ;
+  method toString() → core::String
+    ;
+}
+static method main() → dynamic
+  ;

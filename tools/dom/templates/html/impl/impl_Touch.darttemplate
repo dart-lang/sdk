@@ -1,0 +1,35 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+
+// As of Chrome 37, these all changed from long to double.  This code
+// preserves backwards compatibility for the time being.
+  int get __clientX => JS<num>('num', '#.clientX', this).round();
+  int get __clientY => JS<num>('num', '#.clientY', this).round();
+  int get __screenX => JS<num>('num', '#.screenX', this).round();
+  int get __screenY => JS<num>('num', '#.screenY', this).round();
+  int get __pageX => JS<num>('num', '#.pageX', this).round();
+  int get __pageY => JS<num>('num', '#.pageY', this).round();
+  int get __radiusX => JS<num>('num', '#.radiusX', this).round();
+  int get __radiusY => JS<num>('num', '#.radiusY', this).round();
+
+  Point get client => new Point(__clientX, __clientY);
+
+  Point get page => new Point(__pageX, __pageY);
+
+  Point get screen => new Point(__screenX, __screenY);
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  int get radiusX => __radiusX;
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  int get radiusY => __radiusY;
+
+}

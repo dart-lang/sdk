@@ -1,0 +1,45 @@
+class Foo {
+void foo_method1(dynamic input) {
+try {
+
+} catch(e) {
+
+
+}}
+
+void foo_method2() {
+
+}
+}
+
+void toplevel_method1() {
+
+}
+
+void toplevel_method2() {
+
+}
+
+
+[UnmatchedToken]class[KeywordToken] Foo[StringToken] {[BeginToken]
+void[KeywordToken] foo_method1[StringToken]([BeginToken]dynamic[KeywordToken] input[StringToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]
+
+}[SimpleToken] catch[KeywordToken]([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]
+
+
+}[SyntheticToken]}[SimpleToken]
+
+void[KeywordToken] foo_method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] toplevel_method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+
+void[KeywordToken] toplevel_method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+[SimpleToken]

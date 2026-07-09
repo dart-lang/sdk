@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static field core::int counter = 0;
+  final field core::int value;
+  constructor •() → self::A
+    : self::A::value = let final core::int #t1 = self::A::counter in let final void #t2 = self::A::counter = #t1.{core::num::+}(1){(core::num) → core::int} in #t1, super core::Object::•()
+    ;
+}
+extension type View(self::A a) {
+  abstract extension-type-member representation-field get a() → self::A;
+  constructor a = self::View|constructor#a;
+  constructor tearoff a = self::View|constructor#_#a#tearOff;
+  constructor • = self::View|constructor#;
+  constructor tearoff • = self::View|constructor#_#new#tearOff;
+}
+static method main() → dynamic {
+  final self::A a = new self::A::•();
+  final self::View% /* erasure=self::A, declared=! */ v = self::View|constructor#a(a);
+  self::expect(0, (v as{Unchecked} self::A).{self::A::value}{core::int});
+}
+static extension-type-member method View|constructor#(initializing-formal self::A a) → self::View% /* erasure=self::A, declared=! */ {
+  lowered final self::View% /* erasure=self::A, declared=! */ #this = a;
+  return #this;
+}
+static extension-type-member synthetic method View|constructor#_#new#tearOff(self::A a) → self::View% /* erasure=self::A, declared=! */
+  return self::View|constructor#(a);
+static extension-type-member method View|constructor#a(initializing-formal self::A a) → self::View% /* erasure=self::A, declared=! */ {
+  lowered final self::View% /* erasure=self::A, declared=! */ #this = a;
+  {
+    assert((() → core::bool {
+      return true;
+    })(){() → core::bool});
+    return #this;
+  }
+  return #this;
+}
+static extension-type-member synthetic method View|constructor#_#a#tearOff(self::A a) → self::View% /* erasure=self::A, declared=! */
+  return self::View|constructor#a(a);
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+}

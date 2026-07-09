@@ -1,0 +1,11 @@
+library test;
+
+F<num> test(C<num> c) {}
+
+class C<T> {
+  F<T> operator [](int i) => throw '';
+}
+
+main() {}
+
+typedef void F<T>(T x);

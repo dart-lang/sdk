@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+import "dart:async" as async;
+
+static method test(dynamic x) → dynamic
+  ;

@@ -1,0 +1,8 @@
+class A {
+  const A.named();
+}
+
+class B extends A {
+  const B() : super.named();
+  const B.named() : this();
+}

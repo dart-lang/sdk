@@ -1,0 +1,22 @@
+rcx int64
+xmm1 float
+r8 int64
+xmm3 double
+S+0 int64
+S+8 float
+S+16 int64
+S+24 double
+S+32 int64
+S+40 float
+S+48 int64
+S+56 double
+S+64 int64
+S+72 float
+S+80 int64
+S+88 double
+S+96 int64
+S+104 float
+S+112 int64
+S+120 double
+=>
+xmm0 double

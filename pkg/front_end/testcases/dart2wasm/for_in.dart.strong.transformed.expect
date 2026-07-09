@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method method(final core::Iterable<core::int> iterable) → dynamic {
+  {
+    final synthesized core::Iterator<core::int> #forIterator = iterable.{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; #forIterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int i = #forIterator.{core::Iterator::current}{core::int};
+      {
+        core::print(i);
+      }
+    }
+  }
+}
+static method asyncMethod(final asy::Stream<core::int> stream) → dynamic async /* emittedValueType= dynamic */ {
+  core::bool :async_temporary_0;
+  dynamic :async_temporary_1;
+  {
+    final synthesized asy::_StreamIterator<core::int> #forIterator = new asy::_StreamIterator::•<core::int>(stream);
+    synthesized core::bool #jumpSentinel = #C1;
+    {
+      core::int #t1 = 0;
+      core::Object #t2;
+      core::StackTrace #t3;
+      try {
+        #L1:
+        for (; ; ) {
+          :async_temporary_0 = await #forIterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>};
+          if(#jumpSentinel = :async_temporary_0 as dynamic) {
+            final core::int i = #forIterator.{asy::_StreamIterator::current}{core::int};
+            {
+              core::print(i);
+            }
+          }
+          else
+            break #L1;
+        }
+      }
+      finally {
+        if(#jumpSentinel) {
+          :async_temporary_1 = await #forIterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
+          :async_temporary_1;
+        }
+        #t1;
+        #t2;
+        #t3;
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = false
+}

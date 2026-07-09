@@ -1,0 +1,15 @@
+String test1(int value) {}
+
+String test2(int value) {}
+
+String test3(int value) {}
+
+String test4(int value) {}
+
+String test5(int value) {}
+
+String test6(int value) {}
+
+expect(expected, actual) {}
+
+main() {}

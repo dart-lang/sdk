@@ -1,0 +1,5 @@
+library test;
+
+final f = (bool b) => 1;
+
+main() {}

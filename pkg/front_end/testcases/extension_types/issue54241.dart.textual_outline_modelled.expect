@@ -1,0 +1,3 @@
+class A<X extends E> {}
+
+extension type E(Function<Y extends A>() it) {}

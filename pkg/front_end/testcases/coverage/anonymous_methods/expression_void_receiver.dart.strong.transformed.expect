@@ -1,0 +1,74 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:8:3: Error: This expression has type 'void' and can't be used.
+//   v.=> 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:9:3: Error: This expression has type 'void' and can't be used.
+//   v.(p) => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:10:3: Error: This expression has type 'void' and can't be used.
+//   v?.=> 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:11:3: Error: This expression has type 'void' and can't be used.
+//   v?.(p) => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:12:3: Error: This expression has type 'void' and can't be used.
+//   v..=> 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:13:3: Error: This expression has type 'void' and can't be used.
+//   v..(p) => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:14:3: Error: This expression has type 'void' and can't be used.
+//   v?..=> 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:15:3: Error: This expression has type 'void' and can't be used.
+//   v?..(p) => 1; // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field void v = null;
+static method test() → void {
+  let final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:8:3: Error: This expression has type 'void' and can't be used.
+  v.=> 1; // Error
+  ^" in self::v in 1;
+  let void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:9:3: Error: This expression has type 'void' and can't be used.
+  v.(p) => 1; // Error
+  ^" in self::v in 1;
+  let synthesized void anonymous#receiver = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:10:3: Error: This expression has type 'void' and can't be used.
+  v?.=> 1; // Error
+  ^" in self::v in anonymous#receiver == null ?{core::int?} null : let final synthesized void anonymous#this = anonymous#receiver as{Unchecked} void in 1;
+  let synthesized void anonymous#receiver = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:11:3: Error: This expression has type 'void' and can't be used.
+  v?.(p) => 1; // Error
+  ^" in self::v in anonymous#receiver == null ?{core::int?} null : let void p = anonymous#receiver as{Unchecked} void in 1;
+  let final void #t1 = self::v in block {
+    let final synthesized void anonymous#this = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:12:3: Error: This expression has type 'void' and can't be used.
+  v..=> 1; // Error
+  ^" in #t1 in let dynamic #t2 = 1 in anonymous#this;
+  } =>#t1;
+  let final void #t3 = self::v in block {
+    let void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:13:3: Error: This expression has type 'void' and can't be used.
+  v..(p) => 1; // Error
+  ^" in #t3 in let dynamic #t4 = 1 in p;
+  } =>#t3;
+  let final void #t5 = self::v in #t5 == null ?{void} null : block {
+    let synthesized void anonymous#receiver = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:14:3: Error: This expression has type 'void' and can't be used.
+  v?..=> 1; // Error
+  ^" in #t5 in anonymous#receiver == null ?{void} null : let final synthesized void anonymous#this = anonymous#receiver as{Unchecked} void in let dynamic #t6 = 1 in anonymous#this;
+  } =>#t5;
+  let final void #t7 = self::v in #t7 == null ?{void} null : block {
+    let synthesized void anonymous#receiver = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:15:3: Error: This expression has type 'void' and can't be used.
+  v?..(p) => 1; // Error
+  ^" in #t7 in anonymous#receiver == null ?{void} null : let void p = anonymous#receiver as{Unchecked} void in let dynamic #t8 = 1 in p;
+  } =>#t7;
+}

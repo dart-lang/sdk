@@ -1,0 +1,11 @@
+library;
+import self as self;
+
+static method f() → dynamic sync* 
+  ;
+static method g() → dynamic sync* 
+  ;
+static method h() → dynamic sync* 
+  ;
+static method main() → dynamic
+  ;

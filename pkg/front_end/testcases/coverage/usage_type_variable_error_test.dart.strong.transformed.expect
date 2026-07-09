@@ -1,0 +1,36 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/usage_type_variable_error_test.dart:23:15: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
+//   C() : v12 = T(); // Error
+//               ^
+// pkg/front_end/testcases/coverage/usage_type_variable_error_test.dart:16:11: Context: This is the type variable ultimately denoted.
+// typedef T<X extends A> = X;
+//           ^
+//
+// pkg/front_end/testcases/coverage/usage_type_variable_error_test.dart:23:15: Error: Couldn't find constructor 'T'.
+//   C() : v12 = T(); // Error
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef T<X extends self::A> = X;
+class A extends core::Object {
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  constructor named() → self::A
+    : super core::Object::•()
+    ;
+  static method staticMethod<X extends core::Object? = dynamic>() → void {}
+}
+class C extends core::Object {
+  final field self::A v12;
+  constructor •() → self::C
+    : self::C::v12 = invalid-expression "pkg/front_end/testcases/coverage/usage_type_variable_error_test.dart:23:15: Error: Couldn't find constructor 'T'.
+  C() : v12 = T(); // Error
+              ^", super core::Object::•()
+    ;
+}

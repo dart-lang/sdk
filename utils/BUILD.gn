@@ -1,0 +1,99 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../build/dart/dart_action.gni")
+import("../sdk_args.gni")
+
+_dart_root = get_path_info("..", "abspath")
+
+template("kernel_compile_using_prebuilt_sdk") {
+  prebuilt_dart_action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "deps",
+                             "pool",
+                             "testonly",
+                             "visibility",
+                           ])
+    inputs = [
+      invoker.entry_point,
+      invoker.package_config,
+    ]
+
+    outputs = [ invoker.output ]
+
+    depfile = invoker.output + ".d"
+
+    vm_args = [
+      "--snapshot-kind=kernel",
+      "--snapshot=" + rebase_path(invoker.output, root_build_dir),
+      "--depfile=" + rebase_path(depfile, root_build_dir),
+      "--packages=" + rebase_path(invoker.package_config, root_build_dir),
+    ]
+    script = invoker.entry_point
+    args = []
+  }
+}
+
+template("aot_compile_using_prebuilt_sdk") {
+  prebuilt_dart_action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "deps",
+                             "pool",
+                             "testonly",
+                             "visibility",
+                           ])
+    inputs = [
+      invoker.entry_point,
+      invoker.package_config,
+    ]
+
+    outputs = [ invoker.output ]
+
+    depfile = invoker.output + ".d"
+
+    args = [
+      "compile",
+      "exe",
+      "--output",
+      rebase_path(invoker.output, root_build_dir),
+      "--packages",
+      rebase_path(invoker.package_config, root_build_dir),
+      "--depfile",
+      rebase_path(depfile, root_build_dir),
+      rebase_path(invoker.entry_point, root_build_dir),
+    ]
+  }
+}
+
+kernel_compile_using_prebuilt_sdk("bootstrap_compile_platform.dill") {
+  entry_point = "$_dart_root/pkg/front_end/tool/compile_platform.dart"
+  output = "$target_out_dir/bootstrap_compile_platform.dill"
+  package_config = "$_dart_root/.dart_tool/package_config.json"
+}
+
+aot_compile_using_prebuilt_sdk("bootstrap_compile_platform.exe") {
+  entry_point = "$_dart_root/pkg/front_end/tool/compile_platform.dart"
+  output = "$root_out_dir/bootstrap_compile_platform.exe"
+  package_config = "$_dart_root/.dart_tool/package_config.json"
+}
+
+kernel_compile_using_prebuilt_sdk("bootstrap_gen_kernel.dill") {
+  entry_point = "$_dart_root/pkg/vm/bin/gen_kernel.dart"
+  output = "$target_out_dir/bootstrap_gen_kernel.dill"
+  package_config = "$_dart_root/.dart_tool/package_config.json"
+}
+
+aot_compile_using_prebuilt_sdk("bootstrap_gen_kernel.exe") {
+  entry_point = "$_dart_root/pkg/vm/bin/gen_kernel.dart"
+  output = "$root_out_dir/bootstrap_gen_kernel.exe"
+  package_config = "$_dart_root/.dart_tool/package_config.json"
+}
+
+# Does not write to the file if the content is unchanged.
+generated_file("git_version") {
+  outputs = [ "$target_gen_dir/git_version" ]
+  contents = exec_script("../tools/make_version.py", [], "trim string")
+}

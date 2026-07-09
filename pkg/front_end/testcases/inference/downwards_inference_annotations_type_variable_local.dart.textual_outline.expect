@@ -1,0 +1,9 @@
+library test;
+
+class Foo {
+  const Foo(List<String> l);
+}
+
+void test() {}
+
+main() {}

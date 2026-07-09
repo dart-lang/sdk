@@ -1,0 +1,69 @@
+class Foo {
+Foo.foo1(dynamic a, dynamic b)
+: x = (a as int),
+y = (b as int?);
+
+Foo.foo2(dynamic a, dynamic b)
+: x = (a is int),
+y = (b is int?);
+
+Foo.foo3(dynamic a, dynamic b)
+: x = (a as int?),
+y = (b as int);
+
+Foo.foo4(dynamic a, dynamic b)
+: x = (a is int?),
+y = (b is int);
+
+Foo.bar1(dynamic a, dynamic b)
+: x = (a as int),
+y = (b as int?) {}
+
+Foo.bar2(dynamic a, dynamic b)
+: x = (a is int),
+y = (b is int?) {}
+
+Foo.bar3(dynamic a, dynamic b)
+: x = (a as int?),
+y = (b as int) {}
+
+Foo.bar4(dynamic a, dynamic b)
+: x = (a is int?),
+y = (b is int) {}
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+Foo[StringToken].[SimpleToken]foo1[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] as[KeywordToken] int[StringToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken];[SimpleToken]
+
+Foo[StringToken].[SimpleToken]foo2[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] is[KeywordToken] int[StringToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken];[SimpleToken]
+
+Foo[StringToken].[SimpleToken]foo3[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] as[KeywordToken] int[StringToken])[SimpleToken];[SimpleToken]
+
+Foo[StringToken].[SimpleToken]foo4[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] is[KeywordToken] int[StringToken])[SimpleToken];[SimpleToken]
+
+Foo[StringToken].[SimpleToken]bar1[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] as[KeywordToken] int[StringToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+Foo[StringToken].[SimpleToken]bar2[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] is[KeywordToken] int[StringToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+Foo[StringToken].[SimpleToken]bar3[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] as[KeywordToken] int[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+Foo[StringToken].[SimpleToken]bar4[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken],[SimpleToken] dynamic[KeywordToken] b[StringToken])[SimpleToken]
+:[SimpleToken] x[StringToken] =[SimpleToken] ([BeginToken]a[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken])[SimpleToken],[SimpleToken]
+y[StringToken] =[SimpleToken] ([BeginToken]b[StringToken] is[KeywordToken] int[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method topLevel([has-declared-initializer dynamic a]) → dynamic
+  ;
+static method main() → dynamic
+  ;

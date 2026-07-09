@@ -1,0 +1,9 @@
+library test;
+
+class A<T> {
+  A(B<List<T>> b);
+}
+
+class B<T> {}
+
+main() {}

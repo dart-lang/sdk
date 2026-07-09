@@ -1,0 +1,15 @@
+name: bisect_dart
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+dependencies:
+  cli_config: any
+  logging: any
+
+dev_dependencies:
+  dart_flutter_team_lints: any

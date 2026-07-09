@@ -1,0 +1,40 @@
+org-dartlang-testcase:///main.dart:
+import "foo.dart";
+class A {
+  Bar field = new Bar();
+  Bar2 field2 = new Bar2();
+  var field3 = new Bar3(), field4 = new Bar4();
+}
+mixin A2 {
+  Baz field = new Baz();
+  Baz2 field2 = new Baz2();
+  var field3 = new Baz3(), field4 = new Baz4();
+}
+extension A3 on Object {
+  static Foo field = new Foo();
+  static Foo2 field2 = new Foo2();
+  static var field3 = new Foo3(), field4 = new Foo4();
+}
+
+
+
+
+org-dartlang-testcase:///foo.dart:
+export "bar.dart";
+class Baz {}
+class Baz2 {}
+class Baz3 {}
+class Baz4 {}
+class Foo {}
+class Foo2 {}
+
+
+
+
+org-dartlang-testcase:///bar.dart:
+class Bar {}
+class Bar2 {}
+class Bar3 {}
+class Bar4 {}
+class Foo3 {}
+class Foo4 {}

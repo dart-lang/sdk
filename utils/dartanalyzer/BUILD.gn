@@ -1,0 +1,18 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../build/dart/dart_action.gni")
+import("../../sdk_args.gni")
+import("../application_snapshot.gni")
+import("../create_timestamp.gni")
+
+group("dartanalyzer") {
+  deps = [ ":generate_dartanalyzer_snapshot" ]
+}
+
+application_snapshot("generate_dartanalyzer_snapshot") {
+  main_dart = "../../pkg/analyzer_cli/bin/analyzer.dart"
+  training_args = [ "--help" ]
+  name = "dartanalyzer"
+}

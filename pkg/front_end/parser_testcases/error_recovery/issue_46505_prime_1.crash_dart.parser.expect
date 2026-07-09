@@ -1,0 +1,9 @@
+NOTICE: Stream was rewritten by parser!
+
+class A {
+Stream<List<*synthetic*>> x() {}
+}
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken][SyntheticStringToken]>[SimpleToken]>[SimpleToken] x[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken][SimpleToken]

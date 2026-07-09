@@ -1,0 +1,21 @@
+{
+  "subtarget": {
+    "include": [
+      {
+        "path": "../super1_libraries.json",
+        "target": "vm"
+      },
+      { "path": "../../nested_lib_spec/super2_libraries.json",
+        "target": "vm"
+      }
+    ],
+    "libraries": {
+      "sub": {
+        "uri": "sub_lib.dart"
+      },
+      "sub2": {
+        "uri": "../sub2_lib.dart"
+      }
+    }
+  }
+}

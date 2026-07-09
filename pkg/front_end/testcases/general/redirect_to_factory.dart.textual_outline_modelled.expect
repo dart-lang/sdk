@@ -1,0 +1,19 @@
+class C1 {
+  C1.named() : this();
+  factory C1() => throw '';
+}
+
+class C2 {
+  C2() : this.named();
+  factory C2.named() => throw '';
+}
+
+extension type ET1.named(int i) {
+  ET1(int i) : this(i);
+  factory ET1(int i) => throw '';
+}
+
+extension type ET2.other(int i) {
+  ET2(int i) : this.named(i);
+  factory ET2.named(int i) => throw '';
+}

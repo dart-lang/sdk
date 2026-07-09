@@ -1,0 +1,97 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+
+const _desc = r'Property getter recursively returns itself.';
+
+class RecursiveGetters extends AnalysisRule {
+  new() : super(name: LintNames.recursive_getters, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.recursiveGetters;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+    registry.addFunctionDeclaration(this, visitor);
+    registry.addMethodDeclaration(this, visitor);
+  }
+}
+
+class _BodyVisitor extends RecursiveAstVisitor<void> {
+  final AnalysisRule rule;
+  final ExecutableElement element;
+  new(this.element, this.rule);
+
+  bool isSelfReference(SimpleIdentifier node) {
+    if (node.element != element) return false;
+    var parent = node.parent;
+    if (parent is PrefixedIdentifier) return false;
+    if (parent is PropertyAccess && parent.target is! ThisExpression) {
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.isConst) return;
+    return super.visitListLiteral(node);
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isConst) return;
+    return super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (isSelfReference(node)) {
+      rule.reportAtNode(node, arguments: [node.name]);
+    }
+
+    // No need to call super visit (SimpleIdentifiers have no children).
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    // getters have null arguments, methods have parameters, could be empty.
+    if (node.functionExpression.parameters != null) return;
+
+    _verifyElement(node.functionExpression, node.declaredFragment?.element);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    // getters have null arguments, methods have parameters, could be empty.
+    if (node.parameters != null) return;
+
+    _verifyElement(node.body, node.declaredFragment?.element);
+  }
+
+  void _verifyElement(AstNode node, ExecutableElement? element) {
+    if (element == null) return;
+    node.accept(_BodyVisitor(element, rule));
+  }
+}

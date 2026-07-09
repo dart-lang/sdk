@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "issue41436c_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41436c_lib.dart";
+
+class C extends iss::B {
+  synthetic constructor •() → self::C
+    : super iss::B::•()
+    ;
+}
+static method main() → dynamic {
+  new self::C::•();
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class A extends core::Object {
+  field core::int? _#A#x = null;
+  synthetic constructor •() → iss::A
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return let final core::int? #t1 = this.{iss::A::_#A#x}{core::int?} in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::fieldNI("x") : #t1{core::int};
+  set x(core::int x#param) → void
+    this.{iss::A::_#A#x} = x#param;
+}
+class B extends core::Object implements iss::A {
+  field core::int x = 3;
+  synthetic constructor •() → iss::B
+    : super core::Object::•()
+    ;
+}

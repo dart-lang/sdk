@@ -1,0 +1,996 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// ignore_for_file: unused_field
+
+library dart._wasm;
+
+part 'memory.dart';
+
+// A collection a special Dart types that are mapped directly to Wasm types
+// by the dart2wasm compiler. These types have a number of constraints:
+//
+// - They can only be used directly as types of local variables, fields, or
+//   parameter/return of static functions. No other uses of the types are valid.
+// - They are not assignable to or from any ordinary Dart types.
+// - The integer and float types can't be nullable.
+// - Their instance methods cannot be called virtually or dynamically.
+//
+// TODO(askesc): Give an error message if any of these constraints are violated.
+
+@pragma("wasm:entry-point")
+abstract class _WasmBase {
+  const _WasmBase();
+}
+
+/// The Wasm `anyref` type.
+@pragma("wasm:entry-point")
+class WasmAnyRef extends _WasmBase {
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmAnyRef._();
+
+  /// Upcast Dart object to `anyref`.
+  @pragma("wasm:intrinsic")
+  external factory WasmAnyRef.fromObject(Object o);
+
+  /// Whether this reference is a Dart object.
+  external bool get isObject;
+
+  /// Whether this reference is an `i31`.
+  external bool get isI31;
+
+  /// Downcast `anyref` to a Dart object.
+  ///
+  /// Will throw if the reference is not a Dart object.
+  external Object toObject();
+}
+
+extension ExternalizeNonNullable on WasmAnyRef {
+  WasmExternRef externalize() => _externalizeNonNullable(this);
+}
+
+extension ExternalizeNullable on WasmAnyRef? {
+  WasmExternRef? externalize() => _externalizeNullable(this);
+}
+
+/// The Wasm `externref` type.
+@pragma("wasm:entry-point")
+class WasmExternRef extends _WasmBase {
+  // To avoid conflating the null externref with Dart's null, we provide a
+  // special getter for the null externref.
+  @pragma("wasm:intrinsic")
+  external static WasmExternRef? get nullRef;
+}
+
+extension InternalizeNonNullable on WasmExternRef {
+  WasmAnyRef internalize() => _internalizeNonNullable(this);
+}
+
+extension InternalizeNullable on WasmExternRef? {
+  bool get isNull => _wasmExternRefIsNull(this);
+  WasmAnyRef? internalize() => _internalizeNullable(this);
+}
+
+@pragma("wasm:intrinsic")
+external WasmExternRef _externalizeNonNullable(WasmAnyRef ref);
+@pragma("wasm:intrinsic")
+external WasmExternRef? _externalizeNullable(WasmAnyRef? ref);
+@pragma("wasm:intrinsic")
+external WasmAnyRef _internalizeNonNullable(WasmExternRef ref);
+@pragma("wasm:intrinsic")
+external WasmAnyRef? _internalizeNullable(WasmExternRef? ref);
+@pragma("wasm:intrinsic")
+external bool _wasmExternRefIsNull(WasmExternRef? ref);
+
+/// The Wasm `i31ref` type.
+@pragma("wasm:entry-point")
+class WasmI31Ref extends _WasmBase {
+  /// Wasm `i31.new` instruction.
+  @pragma("wasm:intrinsic")
+  external factory WasmI31Ref.fromI32(WasmI32 i);
+}
+
+extension WasmI31RefExtensions on WasmI31Ref {
+  /// Convert a `i31ref` to `externref` with `extern.convert_any`.
+  @pragma("wasm:intrinsic")
+  external WasmExternRef? externalize();
+
+  /// Wasm `i32.get_s` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI32 get_s();
+
+  /// Wasm `i32.get_u` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI32 get_u();
+}
+
+/// The Wasm `funcref` type.
+@pragma("wasm:entry-point")
+class WasmFuncRef extends _WasmBase {
+  /// Upcast typed function reference to `funcref`
+  @pragma("wasm:intrinsic")
+  external factory WasmFuncRef.fromWasmFunction(WasmFunction<Function> fun);
+}
+
+/// The Wasm `eqref` type.
+@pragma("wasm:entry-point")
+class WasmEqRef extends WasmAnyRef {
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmEqRef._() : super._();
+
+  /// Upcast Dart object to `eqref`.
+  @pragma("wasm:intrinsic")
+  external factory WasmEqRef.fromObject(Object o);
+}
+
+/// The Wasm `structref` type.
+@pragma("wasm:entry-point")
+class WasmStructRef extends WasmEqRef {
+  /// Upcast Dart object to `structref`.
+  @pragma("wasm:intrinsic")
+  external factory WasmStructRef.fromObject(Object o);
+}
+
+/// The Wasm `arrayref` type.
+@pragma("wasm:entry-point")
+class WasmArrayRef extends WasmEqRef {
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmArrayRef._() : super._();
+
+  /// Length of array.
+  external int get length;
+}
+
+/// The Wasm `i8` storage type.
+@pragma("wasm:entry-point")
+class WasmI8 extends _WasmBase {}
+
+/// The Wasm `i16` storage type.
+@pragma("wasm:entry-point")
+class WasmI16 extends _WasmBase {}
+
+/// The Wasm `i32` type.
+@pragma("wasm:entry-point")
+class WasmI32 extends _WasmBase {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
+  final int _value;
+
+  /// Constructor for constant instances.
+  const WasmI32(this._value);
+
+  @pragma("wasm:intrinsic")
+  external factory WasmI32.fromInt(int value);
+  @pragma("wasm:intrinsic")
+  external factory WasmI32.int8FromInt(int value);
+  @pragma("wasm:intrinsic")
+  external factory WasmI32.uint8FromInt(int value);
+  @pragma("wasm:intrinsic")
+  external factory WasmI32.int16FromInt(int value);
+  @pragma("wasm:intrinsic")
+  external factory WasmI32.uint16FromInt(int value);
+  @pragma("wasm:intrinsic")
+  external factory WasmI32.fromBool(bool value);
+  external int toIntSigned();
+  external int toIntUnsigned();
+  external bool toBool();
+  external WasmI32 operator -();
+  external bool operator <(WasmI32 other);
+  external bool operator <=(WasmI32 other);
+  external bool operator ==(covariant WasmI32 other);
+  external bool operator >(WasmI32 other);
+  external bool operator >=(WasmI32 other);
+  external WasmI32 operator +(WasmI32 other);
+  external WasmI32 operator -(WasmI32 other);
+  external WasmI32 operator >>(WasmI32 other);
+
+  /// Wasm `i32.le_u` instruction.
+  external bool leU(WasmI32 other);
+
+  /// Wasm `i32.lt_u` instruction.
+  external bool ltU(WasmI32 other);
+
+  /// Wasm `i32.ge_u` instruction.
+  external bool geU(WasmI32 other);
+
+  /// Wasm `i32.gt_u` instruction.
+  external bool gtU(WasmI32 other);
+}
+
+/// The Wasm `i64` type.
+@pragma("wasm:entry-point")
+class WasmI64 extends _WasmBase {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
+  final int _value;
+
+  /// Constructor for constant instances.
+  const WasmI64(this._value);
+
+  @pragma("wasm:intrinsic")
+  external factory WasmI64.fromInt(int value);
+
+  external int toInt();
+
+  /// Wasm `i64.le_u` instruction.
+  external bool leU(WasmI64 other);
+
+  /// Wasm `i64.lt_u` instruction.
+  external bool ltU(WasmI64 other);
+
+  /// Wasm `i64.ge_u` instruction.
+  external bool geU(WasmI64 other);
+
+  /// Wasm `i64.gt_u` instruction.
+  external bool gtU(WasmI64 other);
+
+  /// Wasm `i64.shl` instruction.
+  external WasmI64 shl(WasmI64 shift);
+
+  /// Wasm `i64.shr_s` instruction.
+  external WasmI64 shrS(WasmI64 shift);
+
+  /// Wasm `i64.shr_u` instruction.
+  external WasmI64 shrU(WasmI64 shift);
+
+  /// Wasm `i64.div_s` instruction.
+  external WasmI64 divS(WasmI64 divisor);
+
+  /// Signed minimum via `i64.le_s` and `select`.
+  external WasmI64 minS(WasmI64 other);
+
+  /// Signed maximum via `i64.ge_s` and `select`.
+  external WasmI64 maxS(WasmI64 other);
+}
+
+/// The Wasm `f32` type.
+@pragma("wasm:entry-point")
+class WasmF32 extends _WasmBase {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
+  final double _value;
+
+  /// Constructor for constant instances.
+  const WasmF32(this._value);
+
+  @pragma("wasm:intrinsic")
+  external factory WasmF32.fromDouble(double value);
+
+  external double toDouble();
+}
+
+/// The Wasm `f64` type.
+@pragma("wasm:entry-point")
+class WasmF64 extends _WasmBase {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma('wasm:entry-point')
+  final double _value;
+
+  /// Constructor for constant instances.
+  const WasmF64(this._value);
+
+  @pragma("wasm:intrinsic")
+  external factory WasmF64.fromDouble(double value);
+
+  external double toDouble();
+
+  /// Wasm `i64.trunc_sat_f64_s` instruction.
+  external WasmI64 truncSatS();
+
+  /// Wasm `f64.sqrt` instruction.
+  external WasmF64 sqrt();
+
+  /// Wasm `f64.copysign` instruction.
+  external WasmF64 copysign(WasmF64 other);
+
+  /// Wasm `f64.min` instruction.
+  external WasmF64 min(WasmF64 other);
+
+  /// Wasm `f64.max` instruction.
+  external WasmF64 max(WasmF64 other);
+}
+
+/// The Wasm `v128` type.
+@pragma("wasm:entry-point")
+final class WasmV128 extends _WasmBase {
+  const WasmV128._();
+
+  const factory WasmV128.i8x16(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+    int l8,
+    int l9,
+    int l10,
+    int l11,
+    int l12,
+    int l13,
+    int l14,
+    int l15,
+  ) = _WasmI8x16Impl;
+
+  const factory WasmV128.i16x8(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+  ) = _WasmI16x8Impl;
+
+  const factory WasmV128.i32x4(int l0, int l1, int l2, int l3) = _WasmI32x4Impl;
+
+  const factory WasmV128.i64x2(int l0, int l1) = _WasmI64x2Impl;
+
+  const factory WasmV128.f32x4(double l0, double l1, double l2, double l3) =
+      _WasmF32x4Impl;
+
+  const factory WasmV128.f64x2(double l0, double l1) = _WasmF64x2Impl;
+}
+
+final class _WasmI8x16Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0,
+      l1,
+      l2,
+      l3,
+      l4,
+      l5,
+      l6,
+      l7,
+      l8,
+      l9,
+      l10,
+      l11,
+      l12,
+      l13,
+      l14,
+      l15;
+  const _WasmI8x16Impl(
+    this.l0,
+    this.l1,
+    this.l2,
+    this.l3,
+    this.l4,
+    this.l5,
+    this.l6,
+    this.l7,
+    this.l8,
+    this.l9,
+    this.l10,
+    this.l11,
+    this.l12,
+    this.l13,
+    this.l14,
+    this.l15,
+  ) : super._();
+}
+
+final class _WasmI16x8Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0, l1, l2, l3, l4, l5, l6, l7;
+  const _WasmI16x8Impl(
+    this.l0,
+    this.l1,
+    this.l2,
+    this.l3,
+    this.l4,
+    this.l5,
+    this.l6,
+    this.l7,
+  ) : super._();
+}
+
+final class _WasmI32x4Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0, l1, l2, l3;
+  const _WasmI32x4Impl(this.l0, this.l1, this.l2, this.l3) : super._();
+}
+
+final class _WasmI64x2Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final int l0, l1;
+  const _WasmI64x2Impl(this.l0, this.l1) : super._();
+}
+
+final class _WasmF32x4Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final double l0, l1, l2, l3;
+  const _WasmF32x4Impl(this.l0, this.l1, this.l2, this.l3) : super._();
+}
+
+final class _WasmF64x2Impl extends WasmV128 {
+  @pragma('wasm:entry-point')
+  final double l0, l1;
+  const _WasmF64x2Impl(this.l0, this.l1) : super._();
+}
+
+extension WasmV128Extension on WasmV128 {
+  /// Wasm `v128.not` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator ~();
+
+  /// Wasm `v128.and` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator &(WasmV128 other);
+
+  /// Wasm `v128.or` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator |(WasmV128 other);
+
+  /// Wasm `v128.xor` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 operator ^(WasmV128 other);
+
+  /// Wasm `v128.andnot` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmV128 andNot(WasmV128 other);
+
+  /// Wasm `v128.bitselect` instruction.
+  ///
+  /// Returns `(v1 & mask) | (v2 & ~mask)` where `mask` is this vector.
+  @pragma("wasm:intrinsic")
+  external WasmV128 bitSelect(WasmV128 v1, WasmV128 v2);
+
+  /// Wasm `v128.any_true` instruction.
+  @pragma("wasm:intrinsic")
+  external bool get anyTrue;
+}
+
+extension type const WasmI8x16(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI8x16.fromInts(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+    int l8,
+    int l9,
+    int l10,
+    int l11,
+    int l12,
+    int l13,
+    int l14,
+    int l15,
+  );
+
+  @pragma("wasm:intrinsic")
+  external factory WasmI8x16.splat(WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneSigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneUnsigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 replaceLane(int index, WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 operator +(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 operator -(WasmI8x16 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 eq(WasmI8x16 other);
+}
+
+extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI16x8.fromInts(
+    int l0,
+    int l1,
+    int l2,
+    int l3,
+    int l4,
+    int l5,
+    int l6,
+    int l7,
+  );
+
+  @pragma("wasm:intrinsic")
+  external factory WasmI16x8.splat(WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneSigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLaneUnsigned(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 replaceLane(int index, WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator +(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator -(WasmI16x8 other);
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator *(WasmI16x8 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 dotProduct(WasmI16x8 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI16x8 eq(WasmI16x8 other);
+}
+
+extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI32x4.fromInts(int l0, int l1, int l2, int l3);
+
+  @pragma("wasm:intrinsic")
+  external factory WasmI32x4.splat(WasmI32 value);
+  @pragma("wasm:intrinsic")
+  external WasmI32 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 replaceLane(int index, WasmI32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator +(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator -(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator *(WasmI32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 eq(WasmI32x4 other);
+}
+
+extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmI64x2.fromInts(int l0, int l1);
+
+  @pragma("wasm:intrinsic")
+  external factory WasmI64x2.splat(WasmI64 value);
+  @pragma("wasm:intrinsic")
+  external WasmI64 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 replaceLane(int index, WasmI64 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator +(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator -(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator *(WasmI64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 eq(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external bool get allTrue;
+}
+
+extension type const WasmF32x4(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmF32x4.fromDoubles(
+    double l0,
+    double l1,
+    double l2,
+    double l3,
+  );
+
+  @pragma("wasm:intrinsic")
+  external factory WasmF32x4.fromLaneValues(
+    WasmF32 lane0,
+    WasmF32 lane1,
+    WasmF32 lane2,
+    WasmF32 lane3,
+  );
+  @pragma("wasm:intrinsic")
+  external factory WasmF32x4.splat(WasmF32 value);
+  @pragma("wasm:intrinsic")
+  external WasmF32 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 replaceLane(int index, WasmF32 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator +(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator -(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator *(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator /(WasmF32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 lt(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 le(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 gt(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ge(WasmF32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 abs();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 sqrt();
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 min(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 max(WasmF32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 ceil();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 floor();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 trunc();
+  @pragma("wasm:intrinsic")
+  external WasmF32x4 nearest();
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 eq(WasmF32x4 other);
+}
+
+extension type const WasmF64x2(WasmV128 value) implements WasmV128 {
+  @pragma("wasm:intrinsic")
+  external factory WasmF64x2.fromDoubles(double l0, double l1);
+
+  @pragma("wasm:intrinsic")
+  external factory WasmF64x2.fromLaneValues(WasmF64 lane0, WasmF64 lane1);
+  @pragma("wasm:intrinsic")
+  external factory WasmF64x2.splat(WasmF64 value);
+  @pragma("wasm:intrinsic")
+  external WasmF64 extractLane(int index);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 replaceLane(int index, WasmF64 value);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator +(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator -(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator *(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator /(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 operator -();
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 lt(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 le(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 gt(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 ge(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 abs();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 sqrt();
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 min(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 max(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 pmin(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 pmax(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 ceil();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 floor();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 trunc();
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 nearest();
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 eq(WasmF64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmF64x2 shuffle(WasmF64x2 other, List<int> lanes);
+}
+
+/// A Wasm array.
+///
+/// NOTE: `T` is invariant.
+@pragma("wasm:entry-point")
+class WasmArray<T> extends WasmArrayRef {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma("wasm:entry-point")
+  final List<Object?> _value;
+
+  @pragma("wasm:intrinsic")
+  external factory WasmArray(int length);
+  @pragma("wasm:intrinsic")
+  external factory WasmArray.filled(int length, T value);
+
+  const WasmArray.literal(this._value) : super._();
+}
+
+extension WasmArrayExt<T> on WasmArray<T> {
+  @pragma("wasm:intrinsic")
+  external T operator [](int index);
+  @pragma("wasm:intrinsic")
+  external void operator []=(int index, T value);
+  @pragma("wasm:intrinsic")
+  external void copy(
+    int offset,
+    WasmArray<T> source,
+    int sourceOffset,
+    int size,
+  );
+  @pragma("wasm:intrinsic")
+  external void fill(int offset, T value, int size);
+  @pragma("wasm:intrinsic")
+  external WasmArray<T> clone();
+}
+
+extension I8ArrayExt on WasmArray<WasmI8> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+  @pragma("wasm:intrinsic")
+  external void write(int index, int value);
+}
+
+extension I16ArrayExt on WasmArray<WasmI16> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+  @pragma("wasm:intrinsic")
+  external void write(int index, int value);
+}
+
+extension I32ArrayExt on WasmArray<WasmI32> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+  @pragma("wasm:intrinsic")
+  external void write(int index, int value);
+}
+
+extension I64ArrayExt on WasmArray<WasmI64> {
+  @pragma("wasm:intrinsic")
+  external int read(int index);
+  @pragma("wasm:intrinsic")
+  external void write(int index, int value);
+}
+
+extension F32ArrayExt on WasmArray<WasmF32> {
+  @pragma("wasm:intrinsic")
+  external double read(int index);
+  @pragma("wasm:intrinsic")
+  external void write(int index, double value);
+}
+
+extension F64ArrayExt on WasmArray<WasmF64> {
+  @pragma("wasm:intrinsic")
+  external double read(int index);
+  @pragma("wasm:intrinsic")
+  external void write(int index, double value);
+}
+
+/// A immutable Wasm array.
+///
+/// NOTE: `T` is covariant.
+@pragma("wasm:entry-point")
+class ImmutableWasmArray<T> extends WasmArrayRef {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma("wasm:entry-point")
+  final List<Object?> _value;
+
+  @pragma("wasm:intrinsic")
+  external factory ImmutableWasmArray(int length);
+  @pragma("wasm:intrinsic")
+  external factory ImmutableWasmArray.filled(int length, T value);
+
+  const ImmutableWasmArray.literal(this._value) : super._();
+}
+
+extension ImmutableWasmArrayExt<T> on ImmutableWasmArray<T> {
+  @pragma("wasm:intrinsic")
+  external T operator [](int index);
+}
+
+extension ImmutableI8ArrayExt on ImmutableWasmArray<WasmI8> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI16ArrayExt on ImmutableWasmArray<WasmI16> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI32ArrayExt on ImmutableWasmArray<WasmI32> {
+  @pragma("wasm:intrinsic")
+  external int readSigned(int index);
+  @pragma("wasm:intrinsic")
+  external int readUnsigned(int index);
+}
+
+extension ImmutableI64ArrayExt on ImmutableWasmArray<WasmI64> {
+  @pragma("wasm:intrinsic")
+  external int read(int index);
+}
+
+extension ImmutableF32ArrayExt on ImmutableWasmArray<WasmF32> {
+  @pragma("wasm:intrinsic")
+  external double read(int index);
+}
+
+extension ImmutableF64ArrayExt on ImmutableWasmArray<WasmF64> {
+  @pragma("wasm:intrinsic")
+  external double read(int index);
+}
+
+/// Wasm typed function reference.
+@pragma("wasm:entry-point")
+class WasmFunction<F extends Function> extends WasmFuncRef {
+  /// Create a typed function reference referring to the given function.
+  ///
+  /// The argument must directly name a static function with no optional
+  /// parameters and no type parameters.
+  ///
+  /// The compiler will then assume `f` may be invoked from outside the Dart
+  /// app (e.g. by JS).
+  @pragma("wasm:intrinsic")
+  @pragma("wasm:entry-point")
+  external factory WasmFunction.fromFunction(F f);
+
+  /// Downcast `funcref` to a typed function reference.
+  ///
+  /// Will throw if the reference is not a function with the expected signature.
+  @pragma("wasm:intrinsic")
+  external factory WasmFunction.fromFuncRef(WasmFuncRef ref);
+
+  /// Call the function referred to by this typed function reference.
+  @pragma("wasm:entry-point")
+  external F get call;
+}
+
+/// A marker type for the return type of functions and the type argument to
+/// [WasmFunction] to indicate that the function type should have no outputs.
+@pragma("wasm:entry-point")
+class WasmVoid extends _WasmBase {}
+
+/// A Wasm table.
+@pragma("wasm:entry-point")
+class WasmTable<T> extends _WasmBase {
+  /// Declare a table with the given size.
+  ///
+  /// Must be an initializer for a static field. The [size] argument must be
+  /// either a constant or a reference to a `static` `final` field with a
+  /// constant initializer.
+  external WasmTable(int size);
+
+  /// Read from an entry in the table.
+  external T operator [](WasmI32 index);
+
+  /// Write to an entry in the table.
+  external void operator []=(WasmI32 index, T value);
+
+  /// The size of the table.
+  external WasmI32 get size;
+
+  /// Call a function stored in the table using the `call_indirect` Wasm
+  /// instruction. The function value returned from this method must be
+  /// called directly.
+  @pragma("wasm:entry-point")
+  external F callIndirect<F extends Function>(WasmI32 index);
+}
+
+extension IntWasmInstructions on int {
+  @pragma("wasm:prefer-inline")
+  WasmI32 toWasmI32() => WasmI32.fromInt(this);
+
+  @pragma("wasm:prefer-inline")
+  WasmI64 toWasmI64() => WasmI64.fromInt(this);
+
+  /// Wasm `i64.le_u` instruction.
+  @pragma("wasm:prefer-inline")
+  bool leU(int other) => this.toWasmI64().leU(other.toWasmI64());
+
+  /// Wasm `i64.lt_u` instruction.
+  @pragma("wasm:prefer-inline")
+  bool ltU(int other) => this.toWasmI64().ltU(other.toWasmI64());
+
+  /// Wasm `i64.ge_u` instruction.
+  @pragma("wasm:prefer-inline")
+  bool geU(int other) => this.toWasmI64().geU(other.toWasmI64());
+
+  /// Wasm `i64.gt_u` instruction.
+  @pragma("wasm:prefer-inline")
+  bool gtU(int other) => this.toWasmI64().gtU(other.toWasmI64());
+
+  /// Wasm `i64.shl` instruction.
+  @pragma("wasm:prefer-inline")
+  int shl(int shift) => this.toWasmI64().shl(shift.toWasmI64()).toInt();
+
+  /// Wasm `i64.shr_s` instruction.
+  @pragma("wasm:prefer-inline")
+  int shrS(int shift) => this.toWasmI64().shrS(shift.toWasmI64()).toInt();
+
+  /// Wasm `i64.shr_u` instruction.
+  @pragma("wasm:prefer-inline")
+  int shrU(int shift) => this.toWasmI64().shrU(shift.toWasmI64()).toInt();
+
+  /// Wasm `i64.div_s` instruction.
+  @pragma("wasm:prefer-inline")
+  int divS(int divisor) => this.toWasmI64().divS(divisor.toWasmI64()).toInt();
+
+  /// Signed minimum via `i64.le_s` and `select`.
+  @pragma("wasm:prefer-inline")
+  int minS(int other) => this.toWasmI64().minS(other.toWasmI64()).toInt();
+
+  /// Signed maximum via `i64.ge_s` and `select`.
+  @pragma("wasm:prefer-inline")
+  int maxS(int other) => this.toWasmI64().maxS(other.toWasmI64()).toInt();
+}
+
+extension DoubleWasmInstructions on double {
+  @pragma("wasm:prefer-inline")
+  WasmF32 toWasmF32() => WasmF32.fromDouble(this);
+
+  @pragma("wasm:prefer-inline")
+  WasmF64 toWasmF64() => WasmF64.fromDouble(this);
+
+  /// Wasm `i64.trunc_sat_f64_s` instruction.
+  @pragma("wasm:prefer-inline")
+  int truncSatS() => this.toWasmF64().truncSatS().toInt();
+
+  /// Wasm `f64.copysign` instruction.
+  @pragma("wasm:prefer-inline")
+  double copysign(double other) =>
+      this.toWasmF64().copysign(other.toWasmF64()).toDouble();
+
+  /// Wasm `f64.sqrt` instruction.
+  @pragma("wasm:prefer-inline")
+  double sqrt() => this.toWasmF64().sqrt().toDouble();
+
+  /// Wasm `f64.min` instruction.
+  @pragma("wasm:prefer-inline")
+  double min(double other) =>
+      this.toWasmF64().min(other.toWasmF64()).toDouble();
+
+  /// Wasm `f64.max` instruction.
+  @pragma("wasm:prefer-inline")
+  double max(double other) =>
+      this.toWasmF64().max(other.toWasmF64()).toDouble();
+}
+
+// Tests whether the given object's class is a subclass of T.
+//
+// NOTICE: If the object's class is a subtype of T but not a subclass this will
+// return `false`.
+@pragma("wasm:intrinsic")
+external bool isSubClassOf<T>(Object object);

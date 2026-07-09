@@ -1,0 +1,5 @@
+class A {
+  const A();
+}
+
+test() => const <Record>{const (1, 2, A()), const (1, 2, A())};

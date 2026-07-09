@@ -1,0 +1,9 @@
+class A<TypeX extends A<TypeX>> {}
+
+class B<TypeY extends A, TypeZ extends A> {}
+
+extension C<TypeY extends A, TypeZ extends A> on int {}
+
+main() {}
+
+typedef D<TypeY extends A, TypeZ extends A> = int;

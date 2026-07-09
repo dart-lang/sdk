@@ -1,0 +1,13 @@
+class A {
+  int get n => 1;
+}
+
+class B {
+  double get n => 2.0;
+}
+
+abstract class C implements A, B {}
+
+abstract class D implements C {}
+
+main() {}

@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int length;
+  const constructor •({initializing-formal core::int length = 0}) → self::Class
+    : self::Class::length = length, super core::Object::•()
+    ;
+  method method1a() → dynamic
+    ;
+  method method1b() → dynamic
+    ;
+  method method2a() → dynamic
+    ;
+  method method2b() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

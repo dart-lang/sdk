@@ -1,0 +1,15 @@
+library test;
+
+abstract class I {
+  void set x(int value) {}
+}
+
+class C {
+  set x(int value) {}
+}
+
+class D extends C implements I {
+  set x(value) {}
+}
+
+main() {}

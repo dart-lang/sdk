@@ -1,0 +1,28 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+  factory Blob(List blobParts, [String$NULLABLE type,
+      String$NULLABLE endings]) {
+    // TODO: validate that blobParts is a JS Array and convert if not.
+    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
+    // array to ArrayBuffer if it is a total view.
+    if (type == null && endings == null) {
+      return _create_1(blobParts);
+    }
+    var bag = _create_bag();
+    if (type != null) _bag_set(bag, 'type', type);
+    if (endings != null) _bag_set(bag, 'endings', endings);
+    return _create_2(blobParts, bag);
+  }
+
+  static _create_1(parts) => JS('Blob', 'new self.Blob(#)', parts);
+  static _create_2(parts, bag) => JS('Blob', 'new self.Blob(#, #)', parts, bag);
+
+  static _create_bag() => JS('var', '{}');
+  static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
+}

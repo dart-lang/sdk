@@ -1,0 +1,85 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+  /**
+   * Checks to see if the mutation observer API is supported on the current
+   * platform.
+   */
+  static bool get supported {
+    return JS('bool',
+        '!!(window.MutationObserver || window.WebKitMutationObserver)');
+  }
+
+  /**
+   * Observes the target for the specified changes.
+   *
+   * Some requirements for the optional parameters:
+   *
+   * * Either childList, attributes or characterData must be true.
+   * * If attributeOldValue is true then attributes must also be true.
+   * * If attributeFilter is specified then attributes must be true.
+   * * If characterDataOldValue is true then characterData must be true.
+   */
+  void observe(Node target,
+               {bool$NULLABLE childList,
+                bool$NULLABLE attributes,
+                bool$NULLABLE characterData,
+                bool$NULLABLE subtree,
+                bool$NULLABLE attributeOldValue,
+                bool$NULLABLE characterDataOldValue,
+                List<String>$NULLABLE attributeFilter}) {
+
+    // Parse options into map of known type.
+    var parsedOptions = _createDict();
+
+    // Override options passed in the map with named optional arguments.
+    override(key, value) {
+      if (value != null) _add(parsedOptions, key, value);
+    }
+
+    override('childList', childList);
+    override('attributes', attributes);
+    override('characterData', characterData);
+    override('subtree', subtree);
+    override('attributeOldValue', attributeOldValue);
+    override('characterDataOldValue', characterDataOldValue);
+    if (attributeFilter != null) {
+      override('attributeFilter', _fixupList(attributeFilter));
+    }
+
+    _call(target, parsedOptions);
+  }
+
+   // TODO: Change to a set when const Sets are available.
+  static final _boolKeys =
+    const {'childList': true,
+           'attributes': true,
+           'characterData': true,
+           'subtree': true,
+           'attributeOldValue': true,
+           'characterDataOldValue': true };
+
+
+  static _createDict() => JS('var', '{}');
+  static _add(m, String key, value) { JS('void', '#[#] = #', m, key, value); }
+  static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
+
+  // Call native function with no conversions.
+  @JSName('observe')
+  void _call(target, options) native;
+
+  factory MutationObserver(MutationCallback callback) {
+    // Dummy statement to mark types as instantiated.
+    JS('MutationObserver|MutationRecord', '0');
+
+    return JS('MutationObserver',
+        'new(window.MutationObserver||window.WebKitMutationObserver||'
+        'window.MozMutationObserver)(#)',
+        convertDartClosureToJS(_wrapBinaryZone(callback), 2));
+  }
+}

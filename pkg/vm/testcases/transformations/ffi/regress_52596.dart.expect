@@ -1,0 +1,35 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class A extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  self::A? :a:finalizableValue;
+  self::A a;
+  if(core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1) {
+    :a:finalizableValue = a = block {
+      final synthesized self::A :expressionValueWrappedFinalizable = new self::A::•();
+      _in::reachabilityFence(:a:finalizableValue);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  if(core::int::parse("2") =={core::num::==}{(core::Object) → core::bool} 2) {
+    core::print("hi");
+    {
+      _in::reachabilityFence(:a:finalizableValue);
+      return;
+    }
+  }
+  :a:finalizableValue = a = block {
+    final synthesized self::A :expressionValueWrappedFinalizable = new self::A::•();
+    _in::reachabilityFence(:a:finalizableValue);
+  } =>:expressionValueWrappedFinalizable;
+  _in::reachabilityFence(:a:finalizableValue);
+}

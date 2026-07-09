@@ -1,0 +1,136 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Test that shows that static interop types work with modular/incremental
+# compilation. Unlike dart2js and dart2wasm, we don't use erasure in DDC, which
+# allows us to avoid issues with incompatible erasure among different modules.
+
+type: newworld
+target: dartdevc
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib1.dart';
+        import 'lib2.dart';
+
+        main() {
+          StaticJSClass foo = topLevelMethod();
+          StaticJSClass Function() fooFunction = topLevelMethod;
+          foo = topLevelGetter;
+          topLevelSetter = (StaticJSClass s) {};
+
+          StaticJSClass bar = Class.staticMethod();
+          StaticJSClass Function() barFunction = Class.staticMethod;
+          bar = Class.staticGetter;
+          Class.staticSetter = (StaticJSClass s) {};
+
+          Class c = new Class();
+          StaticJSClass baz = c.instanceMethod();
+          StaticJSClass Function() bazFunction = c.instanceMethod;
+          baz = c.instanceGetter;
+          c.instanceSetter = (StaticJSClass s) {};
+        }
+
+        class Subclass extends Class {
+          void method() {
+            StaticJSClass baz = super.instanceMethod();
+            StaticJSClass Function() bazFunction = super.instanceMethod;
+            baz = super.instanceGetter;
+            super.instanceSetter = (StaticJSClass s) {};
+          }
+        }
+      lib1.dart: |
+        import 'lib2.dart';
+
+        StaticJSClass topLevelMethod() => new StaticJSClass();
+        StaticJSClass get topLevelGetter => new StaticJSClass();
+        void set topLevelSetter(void Function(StaticJSClass) f) {}
+
+        class Class {
+          StaticJSClass instanceMethod() => new StaticJSClass.factory();
+          StaticJSClass get instanceGetter => new StaticJSClass();
+          void set instanceSetter(void Function(StaticJSClass) f) {}
+
+          static StaticJSClass staticMethod() => new StaticJSClass.factory();
+          static StaticJSClass get staticGetter => new StaticJSClass();
+          static void set staticSetter(void Function(StaticJSClass) f) {}
+        }
+      lib2.dart: |
+        @JS()
+        library static_interop;
+
+        import 'package:js/js.dart';
+
+        @JS()
+        external void eval(String code);
+
+        @JS('JSClass')
+        @staticInterop
+        class StaticJSClass {
+          external factory StaticJSClass();
+          factory StaticJSClass.factory() {
+            return StaticJSClass();
+          }
+        }
+
+        void setUp() {
+          eval('''function JSClass() {}''');
+        }
+      js/lib/js.dart: |
+        export 'dart:_js_annotations' show JS, staticInterop;
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "js",
+              "rootUri": "../js",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+    expectedLibraryCount: 4
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib1.dart';
+        import 'lib2.dart';
+
+        main() {
+          StaticJSClass foo = topLevelMethod();
+          StaticJSClass Function() fooFunction = topLevelMethod;
+          foo = topLevelGetter;
+          topLevelSetter = (StaticJSClass s) {};
+
+          StaticJSClass bar = Class.staticMethod();
+          StaticJSClass Function() barFunction = Class.staticMethod;
+          bar = Class.staticGetter;
+          Class.staticSetter = (StaticJSClass s) {};
+
+          Class c = new Class();
+          StaticJSClass baz = c.instanceMethod();
+          StaticJSClass Function() bazFunction = c.instanceMethod;
+          baz = c.instanceGetter;
+          c.instanceSetter = (StaticJSClass s) {};
+
+          print('Hello'); // In-body change.
+        }
+
+        class Subclass extends Class {
+          void method() {
+            StaticJSClass baz = super.instanceMethod();
+            StaticJSClass Function() bazFunction = super.instanceMethod;
+            baz = super.instanceGetter;
+            super.instanceSetter = (StaticJSClass s) {};
+          }
+        }
+    expectedLibraryCount: 4
+    errors: false
+    advancedInvalidation: bodiesOnly

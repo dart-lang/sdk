@@ -1,0 +1,72 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * An event that describes user interaction with the keyboard.
+ *
+ * The [type] of the event identifies what kind of interaction occurred.
+ *
+ * See also:
+ *
+ * * [KeyboardEvent](https://developer.mozilla.org/en/DOM/KeyboardEvent) at MDN.
+ */
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  /**
+   * Programmatically create a KeyboardEvent.
+   *
+   * Due to browser differences, keyCode, charCode, or keyIdentifier values
+   * cannot be specified in this base level constructor. This constructor
+   * enables the user to programmatically create and dispatch a [KeyboardEvent],
+   * but it will not contain any particular key content. For programmatically
+   * creating keyboard events with specific key value contents, see the custom
+   * Event [KeyEvent].
+   */
+  factory $CLASSNAME(String type, {
+      Window$NULLABLE view,
+      bool canBubble = true,
+      bool cancelable = true,
+      int$NULLABLE location,
+      int$NULLABLE keyLocation, // Legacy alias for location
+      bool ctrlKey = false,
+      bool altKey = false,
+      bool shiftKey = false,
+      bool metaKey = false}) {
+    if (view == null) {
+      view = window;
+    }
+    location ??= keyLocation ?? 1;
+    KeyboardEvent e = document._createEvent("KeyboardEvent") $#NULLSAFECAST(as KeyboardEvent);
+    e._initKeyboardEvent(type, canBubble, cancelable, view, "",
+        location, ctrlKey, altKey, shiftKey, metaKey);
+    return e;
+  }
+
+  void _initKeyboardEvent(String type, bool canBubble, bool cancelable,
+      Window$NULLABLE view, String keyIdentifier, int$NULLABLE location,
+      bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) {
+    if (JS('bool', 'typeof(#.initKeyEvent) == "function"', this)) {
+      // initKeyEvent is only in Firefox (instead of initKeyboardEvent). It has
+      // a slightly different signature, and allows you to specify keyCode and
+      // charCode as the last two arguments, but we just set them as the default
+      // since they can't be specified in other browsers.
+      JS('void', '#.initKeyEvent(#, #, #, #, #, #, #, #, 0, 0)', this,
+          type, canBubble, cancelable, view,
+          ctrlKey, altKey, shiftKey, metaKey);
+    } else {
+      // initKeyboardEvent is for all other browsers.
+      JS('void', '#.initKeyboardEvent(#, #, #, #, #, #, #, #, #, #)', this,
+          type, canBubble, cancelable, view, keyIdentifier, location,
+          ctrlKey, altKey, shiftKey, metaKey);
+    }
+  }
+
+  int get keyCode native;
+
+  int get charCode native;
+
+  int$NULLABLE get which => _which;
+$!MEMBERS
+}

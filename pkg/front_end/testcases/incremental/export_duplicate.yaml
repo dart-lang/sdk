@@ -1,0 +1,46 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib1.dart' as prefix;
+        main() {}
+      lib1.dart: |
+        export 'lib2.dart';
+        export 'lib3.dart';
+      lib2.dart: |
+        class Duplicate {}
+      lib3.dart: |
+        // empty
+    expectedLibraryCount: 4
+
+  - entry: main.dart
+    expectInitializeFromDill: false
+    worldType: updated
+    invalidate:
+      - lib3.dart
+    sources:
+      lib3.dart: |
+        class Duplicate {}
+    expectedLibraryCount: 4
+    errors: true
+    advancedInvalidation: outlineChange
+
+  - entry: main.dart
+    expectInitializeFromDill: false
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib1.dart' as prefix;
+        main() {
+          prefix.Duplicate d;
+        }
+    expectedLibraryCount: 4
+    errors: true
+    advancedInvalidation: bodiesOnly

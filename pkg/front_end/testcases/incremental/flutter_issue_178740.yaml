@@ -1,0 +1,41 @@
+# Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/flutter/flutter/issues/178740
+
+type: newworld
+worlds:
+  - entry: foo.dart
+    sources:
+      foo.dart: |
+        class Foo {
+          Foo getThing() { return new Bar(); }
+        }
+        class Bar extends Foo {
+          int _getNum() { return 42; }
+        }
+    expectedLibraryCount: 1
+    expressionCompilation:
+      - uri: foo.dart
+        expression: (new Foo()).getThing()._getNum()
+        errors: false
+  - entry: foo.dart
+    worldType: updated
+    invalidate:
+      - foo.dart
+    expectInitializeFromDill: false
+    advancedInvalidation: bodiesOnly
+    sources:
+      foo.dart: |
+        class Foo {
+          Foo getThing() { return new Bar(); }
+        }
+        class Bar extends Foo {
+          int _getNum() { return 43; }
+        }
+    expectedLibraryCount: 1
+    expressionCompilation:
+      - uri: foo.dart
+        expression: (new Foo()).getThing()._getNum()
+        errors: false

@@ -1,0 +1,12 @@
+a0 int64[int8]
+a1 int64[int8]
+a2 int64[int8]
+t3 int64[int8]
+t4 int64[int8]
+t5 int64[int8]
+a6 int64[int8]
+a7 int64[int8]
+S+0 int64[int8]
+S+8 int64[int8]
+=>
+a0 int64[int8]

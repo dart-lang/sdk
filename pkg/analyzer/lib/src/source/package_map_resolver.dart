@@ -1,0 +1,89 @@
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/generated/source.dart' show UriResolver;
+import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:path/path.dart' as pathos;
+
+/// A [UriResolver] implementation for the `package:` scheme that uses a map of
+/// package names to their directory.
+class PackageMapUriResolver extends UriResolver {
+  /// The name of the `package` scheme.
+  static const String _packageScheme = "package";
+
+  /// A table mapping package names to the path of the directory containing
+  /// the package.
+  final Map<String, Folder> packageMap;
+
+  /// The [ResourceProvider] for this resolver.
+  final ResourceProvider resourceProvider;
+
+  /// Create a new [PackageMapUriResolver].
+  ///
+  /// [packageMap] is a table mapping package names to the path of the
+  /// directory containing the package.
+  PackageMapUriResolver(this.resourceProvider, this.packageMap);
+
+  @override
+  Uri? pathToUri(String path) {
+    // TODO(jensj): There should be an index on this instead of trying all entries.
+    // When analyzing rwf-materials (562 contexts) with a filled cache this
+    // function is called 624,750 times and a combined 39,352,289 iterations
+    // are done in the loop below.
+    // See for instance https://github.com/dart-lang/package_config/pull/117
+    // for inspiration, but also, maybe just use package:package_config?
+    pathos.Context pathContext = resourceProvider.pathContext;
+    Uri? bestUri;
+    int bestLength = -1;
+    for (var packageEntry in packageMap.entries) {
+      String pkgName = packageEntry.key;
+      Folder pkgFolder = packageEntry.value;
+      String pkgFolderPath = pkgFolder.path;
+      if (path.length >= pkgFolderPath.length + pathContext.separator.length &&
+          path.startsWith(pkgFolderPath) &&
+          path.startsWith(pathContext.separator, pkgFolderPath.length)) {
+        if (pkgFolderPath.length > bestLength) {
+          String relPath = path.substring(pkgFolderPath.length + 1);
+          List<String> relPathComponents = pathContext.split(relPath);
+          String relUriPath = pathos.posix.joinAll(relPathComponents);
+          bestUri = uriCache.parse('$_packageScheme:$pkgName/$relUriPath');
+          bestLength = pkgFolderPath.length;
+        }
+      }
+    }
+    return bestUri;
+  }
+
+  @override
+  Source? resolveAbsolute(Uri uri) {
+    if (!isPackageUri(uri)) {
+      return null;
+    }
+
+    var pathSegments = uri.pathSegments;
+    if (pathSegments.length < 2) {
+      return null;
+    }
+
+    // <pkgName>/<relPath>
+    String pkgName = pathSegments[0];
+
+    // If the package is known, return the corresponding file.
+    var packageDir = packageMap[pkgName];
+    if (packageDir != null) {
+      String relPath = pathSegments.skip(1).join('/');
+      File file = packageDir.getFile(relPath);
+      return FileSource(file, uri);
+    }
+    return null;
+  }
+
+  /// Returns `true` if [uri] is a `package` URI.
+  static bool isPackageUri(Uri uri) {
+    return uri.isScheme(_packageScheme);
+  }
+}

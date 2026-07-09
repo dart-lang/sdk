@@ -1,0 +1,14 @@
+class C {
+  String m = "";
+  void set setter(String v) {}
+  void operator []=(int index, String value) {}
+}
+
+extension on C? {
+  void set setter(String v) {}
+  void operator []=(int index, String value) {}
+}
+
+main() {}
+
+expect(expected, actual) {}

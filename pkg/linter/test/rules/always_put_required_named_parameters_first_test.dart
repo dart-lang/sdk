@@ -1,0 +1,148 @@
+// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    // TODO(srawlins): Add tests for super formal parameters.
+    // TODO(srawlins): Add tests for local function parameters.
+    // TODO(srawlins): Add tests for function literal parameters.
+    // TODO(srawlins): Add tests for method parameters.
+    defineReflectiveTests(AlwaysPutRequiredNamedParametersFirstTest);
+  });
+}
+
+@reflectiveTest
+class AlwaysPutRequiredNamedParametersFirstTest extends LintRuleTest {
+  @override
+  bool get addMetaPackageDep => true;
+
+  @override
+  String get lintRule => LintNames.always_put_required_named_parameters_first;
+
+  test_constructor_requiredAfterOptional() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  C.f({
+    int? a,
+    required int? [!b!],
+  });
+}
+''');
+  }
+
+  test_constructor_requiredAfterOptional_fieldFormal() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  C({this.a, required this.[!b!]});
+  int? a;
+  int b;
+}
+''');
+  }
+
+  test_constructor_requiredAfterRequired() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C.f({
+    required int? a,
+    required int? b,
+  });
+}
+''');
+  }
+
+  test_constructor_requiredAnnotationAfterOptional() async {
+    await assertDiagnosticsFromMarkup(r'''
+// ignore_for_file: deprecated_member_use
+import 'package:meta/meta.dart';
+class C {
+  C.f({
+    int? a,
+    @required int? [!b!],
+  });
+}
+''');
+  }
+
+  test_constructor_requiredAnnotationAfterRequiredAnnotation() async {
+    await assertNoDiagnostics(r'''
+// ignore_for_file: deprecated_member_use
+import 'package:meta/meta.dart';
+class C {
+  C.f({
+    @required int? a,
+    @required int? b,
+  });
+}
+''');
+  }
+
+  test_primaryConstructor_requiredAfterOptional() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C({int? a, required int? [!b!]});
+''');
+  }
+
+  test_primaryConstructor_requiredAfterOptional_declaring() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C({final int? a, required var int? [!b!]});
+''');
+  }
+
+  test_primaryConstructor_requiredAfterRequired() async {
+    await assertNoDiagnostics(r'''
+class C({required int? a, required int? b});
+''');
+  }
+
+  test_topLevelFunction_requiredAfterOptional() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f({
+  int? a,
+  required int? [!b!],
+}) {}
+''');
+  }
+
+  test_topLevelFunction_requiredAfterOptional_default() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f({int a = 0, required int? [!b!]}) {}
+''');
+  }
+
+  test_topLevelFunction_requiredAfterRequired() async {
+    await assertNoDiagnostics(r'''
+void f({
+  required int? a,
+  required int? b,
+}) {}
+''');
+  }
+
+  test_topLevelFunction_requiredAnnotationAfterOptional() async {
+    await assertDiagnosticsFromMarkup(r'''
+// ignore_for_file: deprecated_member_use
+import 'package:meta/meta.dart';
+void f({
+  int? a,
+  @required int? [!b!],
+}) {}
+''');
+  }
+
+  test_topLevelFunction_requiredAnnotationAfterRequiredAnnotation() async {
+    await assertNoDiagnostics(r'''
+// ignore_for_file: deprecated_member_use
+import 'package:meta/meta.dart';
+void f({
+  @required int? a,
+  @required int? b,
+}) {}
+''');
+  }
+}

@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  get field() → core::int
+    ;
+  operator >=(self::Class cls) → core::bool
+    ;
+  operator >(core::int i) → self::Class
+    ;
+}
+static method argumentTypeNotAssignable(self::Class cls) → dynamic
+  ;
+static method relationalPatternOperatorReturnTypeNotAssignableToBool(self::Class cls) → dynamic
+  ;
+static method patternTypeMismatchInIrrefutableContext(core::List<core::String> list) → dynamic
+  ;
+static method duplicateAssignmentPatternVariable(core::List<core::String> list) → dynamic
+  ;
+static method duplicateRecordPatternField(dynamic o) → dynamic
+  ;
+static method duplicateRestPattern(dynamic o) → dynamic
+  ;
+static method emptyMapPattern(dynamic o) → dynamic
+  ;
+static method singleRestPatternInMap(dynamic o) → dynamic
+  ;
+static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → dynamic
+  ;
+static method nonBooleanCondition(core::int i) → dynamic
+  ;
+static method refutablePatternInIrrefutableContext(core::int? x) → dynamic
+  ;
+static method restPatternNotLastInMap(dynamic o) → dynamic
+  ;
+static method restPatternWithSubPatternInMap(dynamic o) → dynamic
+  ;

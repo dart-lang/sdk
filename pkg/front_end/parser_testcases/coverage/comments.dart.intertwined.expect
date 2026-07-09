@@ -1,0 +1,8 @@
+parseUnit(UnterminatedToken(UnterminatedComment))
+  skipErrorTokens(UnterminatedToken(UnterminatedComment))
+  listener: beginCompilationUnit()
+  syntheticPreviousToken()
+  reportAllErrorTokens(UnterminatedToken(UnterminatedComment))
+    listener: handleErrorToken(UnterminatedToken(UnterminatedComment))
+    listener: handleRecoverableError(UnterminatedComment, UnterminatedToken(UnterminatedComment), UnterminatedToken(UnterminatedComment))
+  listener: endCompilationUnit(0, )

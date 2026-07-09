@@ -1,0 +1,24 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class I extends core::Object {
+}
+class B extends core::Object implements self::I {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-type.metadata=#lib::B]
+static field self::I ii = new self::B::•();
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method bar() → void {
+  ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main(core::List<core::String> args) → dynamic {
+  let final self::I #t1 = [@vm.inferred-type.metadata=#lib::B] self::ii in self::bar();
+}

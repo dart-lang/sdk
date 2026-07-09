@@ -1,0 +1,6 @@
+class C<T> {
+  List<F> method<F extends T>(List<F> list) => list;
+  foo<E extends T>(List<E> list) {}
+}
+
+main() {}

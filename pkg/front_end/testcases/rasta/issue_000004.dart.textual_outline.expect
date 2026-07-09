@@ -1,0 +1,11 @@
+import 'package:expect/expect.dart';
+
+fact4() {}
+
+fact5() {}
+
+int global = 0;
+
+fact6() {}
+
+main() {}

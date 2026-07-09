@@ -1,0 +1,21 @@
+class C1 {
+  C1();
+  C1();
+  C1.named() : this();
+}
+
+class C2 {
+  C2() : this.named();
+  C2.named();
+  C2.named();
+}
+
+extension type ET1(int i) {
+  ET1(this.i);
+  ET1.named(int i) : this(i);
+}
+
+extension type ET2.named(int i) {
+  ET2(int i) : this.named(i);
+  ET2.named(this.i);
+}

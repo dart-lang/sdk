@@ -1,0 +1,95 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/ast.dart';
+
+import '../../base/local_scope.dart';
+import '../../builder/declaration_builders.dart';
+import '../../builder/formal_parameter_builder.dart';
+import '../../builder/type_builder.dart';
+import '../../kernel/body_builder_context.dart';
+import '../../source/source_library_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
+import '../../type_inference/context_allocation_strategy.dart';
+import '../fragment.dart';
+import 'declaration.dart';
+
+class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
+  final MethodFragment _fragment;
+  final MethodFragmentDeclaration _declaration;
+
+  new(
+    this._fragment,
+    this._declaration,
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder? declarationBuilder, {
+    required bool isDeclarationInstanceMember,
+  }) : super(
+         libraryBuilder,
+         declarationBuilder,
+         isDeclarationInstanceMember: isDeclarationInstanceMember,
+       );
+
+  @override
+  List<FormalParameterBuilder>? get formals => _declaration.formals;
+
+  @override
+  bool get isExternalFunction => _fragment.modifiers.isExternal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get memberNameLength => _fragment.name.length;
+
+  @override
+  int get memberNameOffset => _fragment.nameOffset;
+
+  @override
+  TypeBuilder get returnTypeBuilder => _fragment.returnType;
+
+  @override
+  DartType get returnTypeContext => _declaration.returnTypeContext;
+
+  @override
+  LocalScope computeFormalParameterInitializerScope(LocalScope parent) {
+    /// Initializer formals or super parameters cannot occur in getters so
+    /// we don't need to create a new scope.
+    return parent;
+  }
+
+  @override
+  FunctionParameter? getTearOffParameter(int index) =>
+      _declaration.getTearOffParameter(index);
+
+  @override
+  void registerFunctionBody({
+    required Statement? body,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required AsyncModifier asyncModifier,
+    required DartType? emittedValueType,
+  }) {
+    assert(
+      asyncModifier.kind == _fragment.asyncModifier.kind,
+      "Unexpected change in async modifier on $_fragment from "
+      "${_fragment.asyncModifier} to ${asyncModifier.kind}.",
+    );
+
+    _declaration.registerFunctionBody(
+      body: body,
+      scope: scopeProviderInfo?.scope,
+      asyncModifier: asyncModifier,
+      emittedValueType: emittedValueType,
+      thisVariable: scopeProviderInfo?.thisVariable,
+    );
+  }
+
+  @override
+  bool get isNoSuchMethodForwarder => _declaration.isNoSuchMethodForwarder;
+
+  @override
+  void registerSuperCall() {
+    // TODO(johnniwinther): This should be set on the member built from this
+    // fragment and copied to the origin if necessary.
+    _fragment.builder.invokeTarget.containsSuperCalls = true;
+  }
+}

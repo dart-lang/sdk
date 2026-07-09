@@ -1,0 +1,290 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(IterableOfStringExtensionTest);
+    defineReflectiveTests(StringExtensionTest);
+  });
+}
+
+@reflectiveTest
+class IterableOfStringExtensionTest {
+  void test_commaSeparatedWithAnd_five() {
+    expect(
+      <String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithAnd,
+      'a, b, c, d, and e',
+    );
+  }
+
+  void test_commaSeparatedWithAnd_one() {
+    expect(<String>['a'].commaSeparatedWithAnd, 'a');
+  }
+
+  void test_commaSeparatedWithAnd_three() {
+    expect(<String>['a', 'b', 'c'].commaSeparatedWithAnd, 'a, b, and c');
+  }
+
+  void test_commaSeparatedWithAnd_three_iterable() {
+    expect(
+      <String>['a', 'b', 'c'].reversed.commaSeparatedWithAnd,
+      'c, b, and a',
+    );
+  }
+
+  void test_commaSeparatedWithAnd_two() {
+    expect(<String>['a', 'b'].commaSeparatedWithAnd, 'a and b');
+  }
+
+  void test_commaSeparatedWithAnd_zero() {
+    expect(<String>[].commaSeparatedWithAnd, isEmpty);
+  }
+
+  void test_commaSeparatedWithOr_five() {
+    expect(
+      <String>['a', 'b', 'c', 'd', 'e'].commaSeparatedWithOr,
+      'a, b, c, d, or e',
+    );
+  }
+
+  void test_commaSeparatedWithOr_one() {
+    expect(<String>['a'].commaSeparatedWithOr, 'a');
+  }
+
+  void test_commaSeparatedWithOr_three() {
+    expect(<String>['a', 'b', 'c'].commaSeparatedWithOr, 'a, b, or c');
+  }
+
+  void test_commaSeparatedWithOr_two() {
+    expect(<String>['a', 'b'].commaSeparatedWithOr, 'a or b');
+  }
+
+  void test_commaSeparatedWithOr_zero() {
+    expect(<String>[].commaSeparatedWithOr, isEmpty);
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_one() {
+    expect(<String>['a'].quotedAndCommaSeparatedWithAnd, "'a'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_three() {
+    expect(
+      <String>['a', 'b', 'c'].quotedAndCommaSeparatedWithAnd,
+      "'a', 'b', and 'c'",
+    );
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_two() {
+    expect(<String>['a', 'b'].quotedAndCommaSeparatedWithAnd, "'a' and 'b'");
+  }
+
+  void test_quotedAndCommaSeparatedWithAnd_zero() {
+    expect(<String>[].quotedAndCommaSeparatedWithAnd, isEmpty);
+  }
+
+  void test_quotedAndCommaSeparatedWithOr_one() {
+    expect(<String>['a'].quotedAndCommaSeparatedWithOr, "'a'");
+  }
+
+  void test_quotedAndCommaSeparatedWithOr_three() {
+    expect(
+      <String>['a', 'b', 'c'].quotedAndCommaSeparatedWithOr,
+      "'a', 'b', or 'c'",
+    );
+  }
+
+  void test_quotedAndCommaSeparatedWithOr_two() {
+    expect(<String>['a', 'b'].quotedAndCommaSeparatedWithOr, "'a' or 'b'");
+  }
+
+  void test_quotedAndCommaSeparatedWithOr_zero() {
+    expect(<String>[].quotedAndCommaSeparatedWithOr, isEmpty);
+  }
+}
+
+@reflectiveTest
+class StringExtensionTest {
+  void test_capitalize() {
+    expect(''.capitalize(), '');
+    expect('a'.capitalize(), 'A');
+    expect('abc'.capitalize(), 'Abc');
+    expect('ABC'.capitalize(), 'ABC');
+    expect('проба'.capitalize(), 'Проба');
+    expect('ПРОБА'.capitalize(), 'ПРОБА');
+  }
+
+  void test_elideTo() {
+    expect(''.elideTo(10), '');
+    expect('0'.elideTo(10), '0');
+    expect('012'.elideTo(10), '012');
+    expect('0123456789'.elideTo(10), '0123456789');
+    expect('0123456789abcd'.elideTo(10), '0123...bcd');
+    expect('0123456789abcde'.elideTo(10), '0123...cde');
+    expect('0123456789abcdef'.elideTo(10), '0123...def');
+    expect('0123456789abcdef'.elideTo(11), '0123...cdef');
+    expect('0123456789abcdef'.elideTo(12), '01234...cdef');
+  }
+
+  void test_escapedForSingleQuotes_controlCharacters() {
+    expect('\b'.escapedForSingleQuotes(), r'\b');
+    expect('\t'.escapedForSingleQuotes(), r'\t');
+    expect('\n'.escapedForSingleQuotes(), r'\n');
+    expect('\f'.escapedForSingleQuotes(), r'\f');
+    expect('\r'.escapedForSingleQuotes(), r'\r');
+    expect('\u0000'.escapedForSingleQuotes(), r'\u0000');
+    expect('\u0001'.escapedForSingleQuotes(), r'\u0001');
+    expect('\u001F'.escapedForSingleQuotes(), r'\u001f');
+    expect('\u007F'.escapedForSingleQuotes(), r'\u007f');
+  }
+
+  void test_escapedForSingleQuotes_empty() {
+    expect(''.escapedForSingleQuotes(), '');
+  }
+
+  void test_escapedForSingleQuotes_plainText() {
+    expect('a'.escapedForSingleQuotes(), 'a');
+    expect('abc'.escapedForSingleQuotes(), 'abc');
+    expect('проба'.escapedForSingleQuotes(), 'проба');
+  }
+
+  void test_escapedForSingleQuotes_syntax() {
+    expect(r'$'.escapedForSingleQuotes(), r'\$');
+    expect("'".escapedForSingleQuotes(), r"\'");
+    expect(r'\'.escapedForSingleQuotes(), r'\\');
+  }
+
+  void test_ifEqualThen_equal() {
+    expect('foo'.ifEqualThen('foo', 'bar'), 'bar');
+  }
+
+  void test_ifEqualThen_notEqual() {
+    expect('notFoo'.ifEqualThen('foo', 'bar'), 'notFoo');
+  }
+
+  void test_ifNotEmptyOrElse_empty() {
+    expect(''.ifNotEmptyOrElse('orElse'), 'orElse');
+  }
+
+  void test_ifNotEmptyOrElse_notEmpty() {
+    expect('test'.ifNotEmptyOrElse('orElse'), 'test');
+  }
+
+  void test_isDigit() {
+    for (var c in '0123456789'.codeUnits) {
+      expect(c.isDigit, isTrue);
+    }
+    expect(' '.codeUnitAt(0).isDigit, isFalse);
+    expect('A'.codeUnitAt(0).isDigit, isFalse);
+  }
+
+  void test_isLetter() {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(c.isLetter, isTrue);
+    }
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(c.isLetter, isTrue);
+    }
+    expect(' '.codeUnitAt(0).isLetter, isFalse);
+    expect('0'.codeUnitAt(0).isLetter, isFalse);
+  }
+
+  void test_isLetterOrDigit() {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(c.isLetterOrDigit, isTrue);
+    }
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(c.isLetterOrDigit, isTrue);
+    }
+    for (var c in '0123456789'.codeUnits) {
+      expect(c.isLetterOrDigit, isTrue);
+    }
+    expect(' '.codeUnitAt(0).isLetterOrDigit, isFalse);
+    expect('.'.codeUnitAt(0).isLetterOrDigit, isFalse);
+  }
+
+  void test_isLetterOrDigitOrUnderscore() {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    for (var c in '0123456789'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    expect('_'.codeUnitAt(0).isLetterOrDigitOrUnderscore, isTrue);
+    expect(' '.codeUnitAt(0).isLetterOrDigitOrUnderscore, isFalse);
+    expect('.'.codeUnitAt(0).isLetterOrDigitOrUnderscore, isFalse);
+  }
+
+  void test_isSpace() {
+    expect(' '.codeUnitAt(0).isSpace, isTrue);
+    expect('\t'.codeUnitAt(0).isSpace, isTrue);
+    expect('\r'.codeUnitAt(0).isSpace, isFalse);
+    expect('\n'.codeUnitAt(0).isSpace, isFalse);
+    expect('0'.codeUnitAt(0).isSpace, isFalse);
+    expect('A'.codeUnitAt(0).isSpace, isFalse);
+  }
+
+  void test_isUnderscore() {
+    expect('_'.codeUnitAt(0).isUnderscore, isTrue);
+    expect(' '.codeUnitAt(0).isUnderscore, isFalse);
+    expect('A'.codeUnitAt(0).isUnderscore, isFalse);
+  }
+
+  void test_isWhitespace() {
+    expect(' '.codeUnitAt(0).isWhitespace, isTrue);
+    expect('\t'.codeUnitAt(0).isWhitespace, isTrue);
+    expect('\r'.codeUnitAt(0).isWhitespace, isTrue);
+    expect('\n'.codeUnitAt(0).isWhitespace, isTrue);
+    expect('0'.codeUnitAt(0).isWhitespace, isFalse);
+    expect('A'.codeUnitAt(0).isWhitespace, isFalse);
+  }
+
+  void test_nullIfEmpty() {
+    expect(''.nullIfEmpty, isNull);
+    expect('a'.nullIfEmpty, 'a');
+  }
+
+  void test_pluralized() {
+    expect('cat'.pluralized(0), 'cats');
+    expect('cat'.pluralized(1), 'cat');
+    expect('cat'.pluralized(2), 'cats');
+  }
+
+  void test_removePrefixOrSelf() {
+    expect('abcdef'.removePrefixOrSelf('abc'), 'def');
+    expect('abcdef'.removePrefixOrSelf('xyz'), 'abcdef');
+    expect('abcdef'.removePrefixOrSelf(''), 'abcdef');
+  }
+
+  void test_removeSuffix() {
+    expect('01234'.removeSuffix(''), '01234');
+    expect('01234'.removeSuffix('4'), '0123');
+    expect('01234'.removeSuffix('34'), '012');
+    expect('01234'.removeSuffix('01234'), '');
+    expect('01234'.removeSuffix('012345'), isNull);
+    expect('01234'.removeSuffix('5'), isNull);
+  }
+
+  void test_removeSuffixOrSelf() {
+    expect('01234'.removeSuffixOrSelf(''), '01234');
+    expect('01234'.removeSuffixOrSelf('4'), '0123');
+    expect('01234'.removeSuffixOrSelf('34'), '012');
+    expect('01234'.removeSuffixOrSelf('01234'), '');
+    expect('01234'.removeSuffixOrSelf('012345'), '01234');
+    expect('01234'.removeSuffixOrSelf('5'), '01234');
+  }
+
+  void test_toScreamingSnake() {
+    expect('camelCase'.toScreamingSnake(), 'CAMEL_CASE');
+    expect('HTTPRequest'.toScreamingSnake(), 'HTTP_REQUEST');
+    expect('myURLId2Parser'.toScreamingSnake(), 'MY_URL_ID_2_PARSER');
+    expect('_privateField'.toScreamingSnake(), '_PRIVATE_FIELD');
+  }
+}

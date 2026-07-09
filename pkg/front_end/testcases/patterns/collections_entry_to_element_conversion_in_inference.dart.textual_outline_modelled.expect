@@ -1,0 +1,11 @@
+Iterable<dynamic> test1(dynamic x, dynamic another) {}
+
+Iterable<dynamic> test2(dynamic x, dynamic another) {}
+
+Iterable<dynamic> test3(dynamic x, dynamic another) {}
+
+expectSetEquals(Set x, Set y) {}
+
+expectThrows(void Function() f) {}
+
+main() {}

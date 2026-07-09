@@ -1,0 +1,72 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer_testing/utilities/utilities.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InferenceFailureOnGenericInvocationTest);
+  });
+}
+
+/// Tests of WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION with the
+/// "strict-inference" static analysis option.
+@reflectiveTest
+class InferenceFailureOnGenericInvocationTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(experiments: experiments, strictInference: true),
+    );
+    writeTestPackageConfigWithMeta();
+  }
+
+  test_genericFunctionExpression_downwardsInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int f(T Function<T>()? m, T Function<T>() n) {
+  return (m ?? n)();
+}
+''');
+  }
+
+  test_genericFunctionExpression_explicitTypeArg() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void Function<T>()? m, void Function<T>() n) {
+  (m ?? n)<int>();
+}
+''');
+  }
+
+  test_genericFunctionExpression_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void Function<T>()? m, void Function<T>() n) {
+  (m ?? n)();
+//^^^^^^^^
+// [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'void Function<T>()' can't be inferred.
+}
+''');
+  }
+
+  test_genericFunctionExpression_upwardsInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void Function<T>(T a)? m, void Function<T>(T a) n) {
+  (m ?? n)(1);
+}
+''');
+  }
+
+  test_genericFunctionExpressionLiteral_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  (<T>() {})();
+//^^^^^^^^^^
+// [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'Null Function<T>()' can't be inferred.
+}
+''');
+  }
+}

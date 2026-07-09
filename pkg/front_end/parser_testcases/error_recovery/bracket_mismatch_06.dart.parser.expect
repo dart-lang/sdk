@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+new C(*synthetic*);
+}
+
+
+[UnmatchedToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+new[KeywordToken] C[StringToken]([BeginToken][SyntheticStringToken])[SyntheticToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

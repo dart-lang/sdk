@@ -1,0 +1,17 @@
+abstract mixin class B {}
+
+class AWith with A {}
+
+class BWith with B {}
+
+class CWith with C {}
+
+class MultipleWithAnotherClass with A, B {}
+
+class MultipleWithMixin with A, M {}
+
+mixin M {}
+
+mixin class A {}
+
+mixin class C = Object with M;

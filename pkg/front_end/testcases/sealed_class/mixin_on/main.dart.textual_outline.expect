@@ -1,0 +1,5 @@
+import 'main_lib.dart';
+
+mixin MClass on SealedClass {}
+
+mixin MClassMultiple on SealedClass, SealedClass2 {}

@@ -1,0 +1,31 @@
+typedef a = foo Function(int x);
+typedef b = Function(int x);
+typedef c = foo(int x);
+typedef d = (int x);
+typedef e = foo<F>(int x);
+typedef f = <F>(int x);
+typedef g = foo<F, G, H, I, J>(int x);
+typedef h = <F, G, H, I, J>(int x);
+typedef i = <F, G, H, I, J>;
+
+
+
+typedef j = foo;
+typedef k = List<int>;
+
+
+typedef[KeywordToken] a[StringToken] =[SimpleToken] foo[StringToken] Function[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] b[StringToken] =[SimpleToken] Function[KeywordToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] c[StringToken] =[SimpleToken] foo[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] d[StringToken] =[SimpleToken] ([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] e[StringToken] =[SimpleToken] foo[StringToken]<[BeginToken]F[StringToken]>[SimpleToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] f[StringToken] =[SimpleToken] <[BeginToken]F[StringToken]>[SimpleToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] g[StringToken] =[SimpleToken] foo[StringToken]<[BeginToken]F[StringToken],[SimpleToken] G[StringToken],[SimpleToken] H[StringToken],[SimpleToken] I[StringToken],[SimpleToken] J[StringToken]>[SimpleToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] h[StringToken] =[SimpleToken] <[BeginToken]F[StringToken],[SimpleToken] G[StringToken],[SimpleToken] H[StringToken],[SimpleToken] I[StringToken],[SimpleToken] J[StringToken]>[SimpleToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] i[StringToken] =[SimpleToken] <[BeginToken]F[StringToken],[SimpleToken] G[StringToken],[SimpleToken] H[StringToken],[SimpleToken] I[StringToken],[SimpleToken] J[StringToken]>[SimpleToken];[SimpleToken]
+
+
+
+typedef[KeywordToken] j[StringToken] =[SimpleToken] foo[StringToken];[SimpleToken]
+typedef[KeywordToken] k[StringToken] =[SimpleToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken];[SimpleToken]
+[SimpleToken]

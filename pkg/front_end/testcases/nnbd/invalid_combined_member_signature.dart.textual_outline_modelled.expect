@@ -1,0 +1,15 @@
+abstract class D implements A, B {}
+
+class A {
+  void method1(C c) {}
+  void method2(int a, int b) {}
+}
+
+class B {
+  void method1(Unresolved c) {}
+  void method2(int a) {}
+}
+
+class C {}
+
+main() {}

@@ -1,0 +1,3 @@
+extension type E(Object? it) {}
+
+foo<X extends E>(Function(X) x, Function(E) e) {}

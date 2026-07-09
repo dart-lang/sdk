@@ -1,0 +1,146 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:html library.
+
+/// HTML elements and other resources for web-based applications that need to
+/// interact with the browser and the DOM (Document Object Model).
+///
+/// > [!Note]
+/// > This core library is deprecated, and scheduled for removal in late 2025.
+/// > It has been replaced by [package:web](https://pub.dev/packages/web).
+/// > The [migration guide](https://dart.dev/go/package-web) has more details.
+///
+/// This library includes DOM element types, CSS styling, local storage,
+/// media, speech, events, and more.
+/// To get started,
+/// check out the [Element] class, the base class for many of the HTML
+/// DOM types.
+///
+/// For information on writing web apps with Dart, see https://dart.dev/web.
+///
+/// {@category Web (Legacy)}
+/// {@canonicalFor dart:_internal.HttpStatus}
+@Deprecated('Use package:web and dart:js_interop instead.')
+library dart.dom.html;
+
+import 'dart:async';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
+import 'dart:_internal' hide Symbol;
+import 'dart:html_common';
+import 'dart:indexed_db';
+import "dart:convert";
+import 'dart:math';
+import 'dart:_native_typed_data';
+export 'dart:_native_typed_data' show SharedArrayBuffer;
+import 'dart:typed_data';
+// Not actually used, but imported since dart:html can generate these objects.
+import 'dart:svg' as svg;
+import 'dart:svg' show Matrix;
+import 'dart:svg' show SvgSvgElement;
+import 'dart:web_audio' as web_audio;
+import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
+import 'dart:web_gl' as gl;
+import 'dart:web_gl' show RenderingContext,RenderingContext2;
+import 'dart:_js_helper' show
+    convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
+    JSName, Native, Returns,
+    findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
+    makeLeafDispatchRecord, registerGlobalObject, applyExtension;
+import 'dart:_interceptors' show
+    JavaScriptObject, JavaScriptFunction, JSExtendableArray, JSUInt31,
+    findInterceptorConstructorForType,
+    findConstructorForNativeSubclassType,
+    getNativeInterceptor,
+    setDispatchProperty;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
+import 'dart:js_util' as js_util;
+
+export 'dart:_internal' show HttpStatus;
+export 'dart:html_common' show promiseToFuture;
+export 'dart:math' show Rectangle, Point;
+
+$!GENERATED_DART_FILES
+
+part '$AUXILIARY_DIR/AttributeMap.dart';
+part '$AUXILIARY_DIR/CanvasImageSource.dart';
+part '$AUXILIARY_DIR/CrossFrameTypes.dart';
+part '$AUXILIARY_DIR/CssClassSet.dart';
+part '$AUXILIARY_DIR/CssRectangle.dart';
+part '$AUXILIARY_DIR/dart2js_CssClassSet.dart';
+part '$AUXILIARY_DIR/Dimension.dart';
+part '$AUXILIARY_DIR/EventListener.dart';
+part '$AUXILIARY_DIR/EventStreamProvider.dart';
+part '$AUXILIARY_DIR/Html5NodeValidator.dart';
+part '$AUXILIARY_DIR/ImmutableListMixin.dart';
+part '$AUXILIARY_DIR/KeyCode.dart';
+part '$AUXILIARY_DIR/KeyLocation.dart';
+part '$AUXILIARY_DIR/KeyName.dart';
+part '$AUXILIARY_DIR/KeyboardEventStream.dart';
+part '$AUXILIARY_DIR/NodeValidatorBuilder.dart';
+part '$AUXILIARY_DIR/ReadyState.dart';
+part '$AUXILIARY_DIR/WrappedList.dart';
+part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
+part '$AUXILIARY_DIR/_ListIterators.dart';
+part '$AUXILIARY_DIR/dart2js_Console.dart';
+part '$AUXILIARY_DIR/dart2js_Conversions.dart';
+part '$AUXILIARY_DIR/dart2js_CustomElementSupport.dart';
+part '$AUXILIARY_DIR/dart2js_DOMImplementation.dart';
+part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
+part '$AUXILIARY_DIR/dart2js_Platform.dart';
+part '$AUXILIARY_DIR/dart2js_WrappedEvent.dart';
+part '$AUXILIARY_DIR/shared_html.dart';
+part '$AUXILIARY_DIR/Validators.dart';
+
+
+/**
+ * Top-level container for a web page, which is usually a browser tab or window.
+ *
+ * Each web page loaded in the browser has its own [Window], which is a
+ * container for the web page.
+ *
+ * If the web page has any `<iframe>` elements, then each `<iframe>` has its own
+ * [Window] object, which is accessible only to that `<iframe>`.
+ *
+ * See also:
+ *
+ *   * [Window](https://developer.mozilla.org/en-US/docs/Web/API/window) from MDN.
+ */
+Window get window => JS('Window', 'window');
+
+/**
+ * Root node for all content in a web page.
+ */
+HtmlDocument get document =>
+    JS('returns:HtmlDocument;depends:none;effects:none;gvn:true', 'document');
+
+/// Convert a JS Promise to a Future<Map<String, dynamic>>.
+///
+/// On a successful result the native JS result will be converted to a Dart Map.
+/// See [convertNativeToDart_Dictionary]. On a rejected promise the error is
+/// forwarded without change.
+Future<Map<String, dynamic>$NULLABLE> promiseToFutureAsMap(jsPromise) =>
+  promiseToFuture(jsPromise).then(convertNativeToDart_Dictionary);
+
+// Workaround for tags like <cite> that lack their own Element subclass --
+// Dart issue 1990.
+@Native("HTMLElement")
+class HtmlElement extends Element implements NoncedElement {
+  factory HtmlElement() { throw new UnsupportedError("Not supported"); }
+
+  // From NoncedElement
+  String$NULLABLE get nonce native;
+  set nonce(String$NULLABLE value) native;
+}
+
+/**
+ * Emitted for any setlike IDL entry needs a callback signature.
+ * Today there is only one.
+ */
+typedef void FontFaceSetForEachCallback(
+    FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
+
+WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');

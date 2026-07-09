@@ -1,0 +1,16 @@
+main = main::main;
+library from "org-dartlang-test:///b.dart" as b {
+
+  static method b() → dynamic {
+    dart.core::print("b");
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///b.dart";
+
+  static method main() → dynamic {
+    dart.core::print("Hello no. 0");
+    b::b();
+  }
+}

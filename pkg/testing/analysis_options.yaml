@@ -1,0 +1,19 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Allow having TODOs in the code
+    todo: ignore
+
+linter:
+  rules:
+    - unnecessary_type_name_in_constructor
+    - unnecessary_const_in_enum_constructor
+    - always_declare_return_types
+    - avoid_void_async
+    - lines_longer_than_80_chars
+    - unawaited_futures

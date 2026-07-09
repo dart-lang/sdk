@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor named(core::num x, {core::bool y = #C1, core::String? z = #C2}) → self::Super
+    : super core::Object::•()
+    ;
+}
+class SubNamed extends self::Super {
+  constructor namedAnywhere(core::double x, core::String z, {super-initializing-formal core::bool y = #C1}) → self::SubNamed
+    : final core::bool #t1 = y, final core::String #t2 = z, super self::Super::named(x, y: #t1, z: #t2)
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = false
+  #C2 = null
+}

@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static final field core::bool inSoundMode;
+static method main() → dynamic
+  ;

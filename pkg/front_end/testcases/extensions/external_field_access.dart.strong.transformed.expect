@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension /* unnamed */ _extension#0 on core::int {
+  get field = self::_extension#0|get#field;
+  set field = self::_extension#0|set#field;
+  get getter = self::_extension#0|get#getter;
+  set setter = self::_extension#0|set#setter;
+}
+external static extension-member method _extension#0|get#field(lowered core::int #this) → core::int;
+external static extension-member method _extension#0|set#field(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
+static extension-member method _extension#0|get#getter(lowered final core::int #this) → core::bool {
+  return self::_extension#0|get#field(#this).{core::int::isEven}{core::bool};
+}
+static extension-member method _extension#0|set#setter(lowered final core::int #this, core::bool value) → void {
+  self::_extension#0|set#field(#this, value ?{core::int} 0 : 1);
+}

@@ -1,0 +1,44 @@
+# Currently, front_end API is not stable and users should not
+# depend on semver semantics when depending on this package.
+name: front_end
+
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.13.0-0'
+
+workspace:
+  - testcases
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  _fe_analyzer_shared: any
+  kernel: any
+  package_config: any
+  yaml: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  analyzer: any
+  analyzer_testing: any
+  analyzer_utilities: any
+  args: any
+  build_integration: any
+  compiler: any
+  dart_style: any
+  dart2wasm: any
+  dev_compiler: any
+  expect: any
+  heap_snapshot: any
+  json_rpc_2: any
+  path: any
+  pub_semver: any
+  test_reflective_loader: any
+  test: any
+  testing: any
+  vm_service: any
+  vm: any
+  web_socket_channel: any

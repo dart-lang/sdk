@@ -1,0 +1,7 @@
+import 'dart:collection';
+
+class A {
+  foo() {}
+}
+
+main() {}

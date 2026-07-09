@@ -1,0 +1,59 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/shadowing.dart:13:5: Error: Setter not found: 'getter'.
+//     getter = getter;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/extensions/shadowing.dart:14:14: Error: Getter not found: 'setter'.
+//     setter = setter;
+//              ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get getter() → core::int
+    return 42;
+  set setter(wildcard core::int _#wc1#formal) → void {}
+}
+extension /* unnamed */ _extension#0 on core::int {
+  get getter = self::_extension#0|get#getter;
+  set setter = self::_extension#0|set#setter;
+  method method = self::_extension#0|method;
+  method tearoff method = self::_extension#0|get#method;
+}
+extension /* unnamed */ _extension#1 on self::Class {
+  get getter = self::_extension#1|get#getter;
+  set setter = self::_extension#1|set#setter;
+  method method = self::_extension#1|method;
+  method tearoff method = self::_extension#1|get#method;
+}
+static field core::int getter = 42;
+static field core::int setter = 42;
+static extension-member method _extension#0|get#getter(lowered final core::int #this) → dynamic
+  return 42;
+static extension-member method _extension#0|set#setter(lowered final core::int #this, wildcard dynamic _#wc0#formal) → void {}
+static extension-member method _extension#0|method(lowered final core::int #this) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/shadowing.dart:13:5: Error: Setter not found: 'getter'.
+    getter = getter;
+    ^^^^^^";
+  self::_extension#0|set#setter(#this, invalid-expression "pkg/front_end/testcases/extensions/shadowing.dart:14:14: Error: Getter not found: 'setter'.
+    setter = setter;
+             ^^^^^^");
+}
+static extension-member method _extension#0|get#method(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::_extension#0|method(#this);
+static extension-member method _extension#1|get#getter(lowered final self::Class #this) → core::String
+  return "42";
+static extension-member method _extension#1|set#setter(lowered final self::Class #this, wildcard core::String _#wc2#formal) → void {}
+static extension-member method _extension#1|method(lowered final self::Class #this) → void {
+  core::String value = self::_extension#1|get#getter(#this);
+  self::_extension#1|set#setter(#this, value);
+}
+static extension-member method _extension#1|get#method(lowered final self::Class #this) → () → void
+  return () → void => self::_extension#1|method(#this);

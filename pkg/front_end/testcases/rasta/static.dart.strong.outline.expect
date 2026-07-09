@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  static const field core::int staticConstant = 42;
+  static field core::int staticField;
+  synthetic constructor •() → self::Foo
+    ;
+  static method staticFunction() → dynamic
+    ;
+  static get staticGetter() → dynamic
+    ;
+  static set staticSetter(wildcard dynamic _#wc0#formal) → void
+    ;
+}
+static method use(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;
