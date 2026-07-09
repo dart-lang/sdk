@@ -1427,6 +1427,28 @@ void otherUnrelatedFunction() {}
     expect(loc.targetSelectionRange, equals(rangeOfString(partCode, 'add')));
   }
 
+  Future<void> test_pattern_assignedVariable_multiple() async {
+    var contents = '''
+void f() {
+  int? left, [!right!];
+  (left, rig^ht) = (1, 1);
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_pattern_assignedVariable_single() async {
+    var contents = '''
+void f() {
+  int? [!left!];
+  (le^ft, ) = (1,);
+}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_patternVariable_ifCase_logicalOr() async {
     setLocationLinkSupport();
 
