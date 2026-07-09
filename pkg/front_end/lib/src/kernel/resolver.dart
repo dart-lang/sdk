@@ -1239,14 +1239,15 @@ class Resolver {
         if (formal.isNamed) {
           (superParametersAsArguments ??= []).add(
             new SuperNamedArgument(
-              new NamedExpression(
+              intern.createNamedExpression(
                 formal.name,
                 _createVariableGet(
                   assignedVariables: assignedVariables,
                   variable: formal.variable,
                   fileOffset: formal.fileOffset,
                 ),
-              )..fileOffset = formal.fileOffset,
+                fileOffset: formal.fileOffset,
+              ),
             ),
           );
         } else {

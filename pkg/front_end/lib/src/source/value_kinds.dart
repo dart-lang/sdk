@@ -142,7 +142,7 @@ class ValueKinds {
   static const ValueKind LabelListOrNull =
       const SingleValueKind<List<type.Label>>(NullValues.Labels);
   static const ValueKind MapLiteralEntry =
-      const SingleValueKind<type.MapLiteralEntry>();
+      const SingleValueKind<type.InternalMapLiteralEntry>();
   static const ValueKind MapPatternEntry =
       const SingleValueKind<type.InternalMapPatternEntry>();
   static const ValueKind ParameterList =
@@ -170,7 +170,7 @@ class ValueKinds {
   static const ValueKind Modifiers = const SingleValueKind<type.Modifiers>();
   static const ValueKind Name = const SingleValueKind<type.String>();
   static const ValueKind NamedExpression =
-      const SingleValueKind<type.NamedExpression>();
+      const SingleValueKind<type.InternalNamedExpression>();
   static const ValueKind NameList = const SingleValueKind<List<type.String>>();
   static const ValueKind NameListOrNull =
       const SingleValueKind<List<type.String>>(NullValues.IdentifierList);

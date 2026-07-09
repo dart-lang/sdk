@@ -1,0 +1,27 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/duplicate_named.dart:14:41: Error: Duplicated parameter name 's2'.
+//   C(this.i1, super.s1, {super.s2, super.s2});
+//                                         ^^
+// pkg/front_end/testcases/super_parameters/duplicate_named.dart:14:31: Context: Other parameter named 's2'.
+//   C(this.i1, super.s1, {super.s2, super.s2});
+//                               ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class S extends core::Object {
+  field core::int s1;
+  field core::int s2;
+  constructor •(initializing-formal core::int s1, {initializing-formal core::int s2 = 0}) → self::S
+    ;
+}
+class C extends self::S {
+  field core::int i1;
+  constructor •(initializing-formal core::int i1, super-initializing-formal core::int s1, {super-initializing-formal core::int s2 = 0, super-initializing-formal core::int s2 = 0}) → self::C
+    ;
+}
+static method test() → dynamic
+  ;

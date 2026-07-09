@@ -100,4 +100,36 @@ abstract base class ExpressionEvaluator {
   /// If the expression is evaluated successfully, an [InstanceRef] will be
   /// returned.
   Future<RpcResponse> evaluateInFrame(json_rpc.Parameters parameters);
+
+  /// Builds the compilation parameters map from the scope response.
+  @protected
+  Map<String, Object?> buildCompileParams({
+    required String isolateId,
+    required String expression,
+    required Map<String, Object?> scope,
+  }) {
+    final compileParams = <String, Object?>{
+      'isolateId': isolateId,
+      'expression': expression,
+      'definitions': scope['param_names'],
+      'definitionTypes': scope['param_types'],
+      'typeDefinitions': scope['type_params_names'],
+      'typeBounds': scope['type_params_bounds'],
+      'typeDefaults': scope['type_params_defaults'],
+      'libraryUri': scope['libraryUri'],
+      'method': scope['method'],
+      'tokenPos': scope['tokenPos'],
+      'isStatic': scope['isStatic'],
+    };
+
+    final klass = scope['klass'];
+    if (klass != null) {
+      compileParams['klass'] = klass;
+    }
+    final scriptUri = scope['scriptUri'];
+    if (scriptUri != null) {
+      compileParams['scriptUri'] = scriptUri;
+    }
+    return compileParams;
+  }
 }

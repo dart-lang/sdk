@@ -48,5 +48,10 @@ void main() {
       expect(rootIsolate, isNotNull);
       expect(rootIsolate!.id, equals(2));
     });
+
+    test('exposes state getter on RunningIsolate', () {
+      final isolate = TestRunningIsolate(id: 1, name: 'main');
+      expect(isolate.state, equals(IsolateState.unknown));
+    });
   });
 }

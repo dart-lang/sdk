@@ -13,6 +13,7 @@ import '../base/problems.dart' show getFileUri, unsupported;
 import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
+import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
 import 'internal_ast_helper.dart' as intern;
 
@@ -25,7 +26,7 @@ sealed class ControlFlowElement extends AuxiliaryExpression {
   /// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
   /// [IfMapEntry], respectively.
   // TODO(johnniwinther): Merge this with [convertToMapEntry].
-  MapLiteralEntry? toMapLiteralEntry(
+  InternalMapLiteralEntry? toMapLiteralEntry(
     void onConvertElement(TreeNode from, TreeNode to),
   );
 }
@@ -138,7 +139,7 @@ class NullAwareElement extends ControlFlowElement
 
   @override
   // Coverage-ignore(suite): Not run.
-  MapLiteralEntry? toMapLiteralEntry(
+  InternalMapLiteralEntry? toMapLiteralEntry(
     void Function(TreeNode from, TreeNode to) onConvertElement,
   ) {
     return unsupported("toMapLiteralEntry", fileOffset, getFileUri(this));
@@ -171,17 +172,17 @@ class IfElement extends ControlFlowElement
   }
 
   @override
-  MapLiteralEntry? toMapLiteralEntry(
+  InternalMapLiteralEntry? toMapLiteralEntry(
     void onConvertElement(TreeNode from, TreeNode to),
   ) {
-    MapLiteralEntry? thenEntry;
+    InternalMapLiteralEntry? thenEntry;
     Expression then = this.then;
     if (then is ControlFlowElement) {
       ControlFlowElement thenElement = then;
       thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
     }
     if (thenEntry == null) return null;
-    MapLiteralEntry? otherwiseEntry;
+    InternalMapLiteralEntry? otherwiseEntry;
     Expression? otherwise = this.otherwise;
     if (otherwise != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -244,10 +245,10 @@ class ForElement extends ControlFlowElement
   }
 
   @override
-  MapLiteralEntry? toMapLiteralEntry(
+  InternalMapLiteralEntry? toMapLiteralEntry(
     void onConvertElement(TreeNode from, TreeNode to),
   ) {
-    MapLiteralEntry? bodyEntry;
+    InternalMapLiteralEntry? bodyEntry;
     Expression body = this.body;
     if (body is ControlFlowElement) {
       ControlFlowElement bodyElement = body;
@@ -341,10 +342,10 @@ class ForInElement extends ControlFlowElement
   }
 
   @override
-  MapLiteralEntry? toMapLiteralEntry(
+  InternalMapLiteralEntry? toMapLiteralEntry(
     void Function(TreeNode from, TreeNode to) onConvertElement,
   ) {
-    MapLiteralEntry? bodyEntry;
+    InternalMapLiteralEntry? bodyEntry;
     Expression body = this.body;
     if (body is ControlFlowElement) {
       bodyEntry = body.toMapLiteralEntry(onConvertElement);
@@ -418,17 +419,17 @@ class IfCaseElement extends ControlFlowElementImpl
   }
 
   @override
-  MapLiteralEntry? toMapLiteralEntry(
+  InternalMapLiteralEntry? toMapLiteralEntry(
     void Function(TreeNode from, TreeNode to) onConvertElement,
   ) {
-    MapLiteralEntry? thenEntry;
+    InternalMapLiteralEntry? thenEntry;
     Expression then = this.then;
     if (then is ControlFlowElement) {
       ControlFlowElement thenElement = then;
       thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
     }
     if (thenEntry == null) return null;
-    MapLiteralEntry? otherwiseEntry;
+    InternalMapLiteralEntry? otherwiseEntry;
     Expression? otherwise = this.otherwise;
     if (otherwise != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -540,7 +541,7 @@ class PatternForElement extends ControlFlowElementImpl
   }
 
   @override
-  MapLiteralEntry? toMapLiteralEntry(
+  InternalMapLiteralEntry? toMapLiteralEntry(
     void Function(TreeNode from, TreeNode to) onConvertElement,
   ) {
     throw new UnimplementedError("toMapLiteralEntry");
@@ -553,17 +554,18 @@ class PatternForElement extends ControlFlowElementImpl
 }
 
 /// Base class for all control-flow map entries.
-sealed class ControlFlowMapEntry implements MapLiteralEntry {}
+sealed class ControlFlowMapEntry
+    implements InternalMapLiteralEntry, InferredMapLiteralEntry {}
 
-mixin ControlFlowMapEntryMixin implements MapLiteralEntry {
-  @override
-  Expression get key {
-    throw new UnsupportedError('ControlFlowMapEntry.key getter');
+mixin ControlFlowMapEntryMixin implements InternalMapLiteralEntry {
+  // Coverage-ignore(suite): Not run.
+  MapLiteralEntry convertToMapLiteralEntry() {
+    return extern.createMapLiteralEntry(key, value, fileOffset: fileOffset);
   }
 
   @override
-  void set key(Expression expr) {
-    throw new UnsupportedError('ControlFlowMapEntry.key setter');
+  Expression get key {
+    throw new UnsupportedError('ControlFlowMapEntry.key getter');
   }
 
   @override
@@ -572,18 +574,14 @@ mixin ControlFlowMapEntryMixin implements MapLiteralEntry {
   }
 
   @override
-  void set value(Expression expr) {
-    throw new UnsupportedError('ControlFlowMapEntry.value setter');
+  R accept<R>(TreeVisitor<R> v) {
+    throw new UnsupportedError('ControlFlowMapEntry.accept method');
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) => v.visitMapLiteralEntry(this);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
-      v.visitMapLiteralEntry(this, arg);
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    throw new UnsupportedError('ControlFlowMapEntry.accept1 method');
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -663,8 +661,11 @@ class IfMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   Expression condition;
-  MapLiteralEntry then;
-  MapLiteralEntry? otherwise;
+  final InternalMapLiteralEntry then;
+  final InternalMapLiteralEntry? otherwise;
+
+  late InferredMapLiteralEntry inferredThen;
+  InferredMapLiteralEntry? inferredOtherwise;
 
   new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
@@ -691,17 +692,20 @@ class IfMapEntry extends TreeNode
   }
 }
 
-abstract interface class ForMapEntryBase implements TreeNode, MapLiteralEntry {
+sealed class ForMapEntryBase
+    implements TreeNode, InternalMapLiteralEntry, InferredMapLiteralEntry {
   List<InternalVariableDeclaration> get internalVariables;
 
   abstract Expression? condition;
 
   List<Expression> get updates;
 
-  abstract MapLiteralEntry body;
+  InternalMapLiteralEntry get body;
 
   /// [VariableDeclaration]s computed after inference of [internalVariables].
   abstract List<VariableDeclaration> variables;
+
+  abstract InferredMapLiteralEntry inferredBody;
 }
 
 /// A 'for' element in a map literal.
@@ -719,10 +723,13 @@ class ForMapEntry extends TreeNode
   final List<Expression> updates; // May be empty, but not null.
 
   @override
-  MapLiteralEntry body;
+  final InternalMapLiteralEntry body;
 
   @override
   late List<VariableDeclaration> variables;
+
+  @override
+  late InferredMapLiteralEntry inferredBody;
 
   new(this.internalVariables, this.condition, this.updates, this.body) {
     setParents(internalVariables, this);
@@ -777,7 +784,7 @@ class PatternForMapEntry extends TreeNode
   final List<Expression> updates;
 
   @override
-  MapLiteralEntry body;
+  final InternalMapLiteralEntry body;
 
   /// [PatternVariableDeclaration] computed after inference of
   /// [internalPatternVariableDeclaration].
@@ -785,6 +792,9 @@ class PatternForMapEntry extends TreeNode
 
   @override
   late List<VariableDeclaration> variables;
+
+  @override
+  late InferredMapLiteralEntry inferredBody;
 
   new({
     required this.internalPatternVariableDeclaration,
@@ -832,7 +842,7 @@ class ForInMapEntry extends TreeNode
     implements ControlFlowMapEntry {
   final InternalForInElement element;
   Expression iterable;
-  MapLiteralEntry body;
+  final InternalMapLiteralEntry body;
   final bool isAsync; // True if this is an 'await for' loop.
 
   /// File offset for the `for` keyword.
@@ -847,6 +857,8 @@ class ForInMapEntry extends TreeNode
   late DeclaredVariable variable;
 
   ForInEncoding? encoding;
+
+  late InferredMapLiteralEntry inferredBody;
 
   new(
     this.element,
@@ -878,10 +890,10 @@ class IfCaseMapEntry extends TreeNode
     with InternalTreeNode, ControlFlowMapEntryMixin
     implements ControlFlowMapEntry {
   Expression expression;
-  InternalPatternGuard internalPatternGuard;
-  MapLiteralEntry then;
-  MapLiteralEntry? otherwise;
-  List<Statement> prelude;
+  final InternalPatternGuard internalPatternGuard;
+  final InternalMapLiteralEntry then;
+  final InternalMapLiteralEntry? otherwise;
+  final List<Statement> prelude;
 
   /// The type of the expression against which this pattern is matched.
   ///
@@ -890,6 +902,8 @@ class IfCaseMapEntry extends TreeNode
 
   /// [PatternGuard] computed after inference of [internalPatternGuard].
   late PatternGuard patternGuard;
+  late InferredMapLiteralEntry inferredThen;
+  InferredMapLiteralEntry? inferredOtherwise;
 
   new({
     required this.prelude,
@@ -959,7 +973,7 @@ bool isConvertibleToMapEntry(Expression element) {
 /// [onConvertElement] is called when a [ForElement], [ForInElement], or
 /// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
 /// [IfMapEntry], respectively.
-MapLiteralEntry convertToMapEntry(
+InternalMapLiteralEntry convertToMapEntry(
   Expression element,
   ProblemReporting problemReporting,
   CompilerContext compilerContext,
@@ -1098,7 +1112,7 @@ MapLiteralEntry convertToMapEntry(
   }
 }
 
-MapLiteralEntry _convertToErroneousMapEntry(
+InternalMapLiteralEntry _convertToErroneousMapEntry(
   Expression element,
   ProblemReporting problemReporting,
   CompilerContext compilerContext,
@@ -1119,3 +1133,27 @@ MapLiteralEntry _convertToErroneousMapEntry(
     fileOffset: element.fileOffset,
   );
 }
+
+sealed class InferredMapLiteralEntry {
+  // TODO(johnniwinther): Remove this.
+  MapLiteralEntry convertToMapLiteralEntry();
+  int get fileOffset;
+}
+
+class DirectMapLiteralEntry(
+  final Expression key,
+  final Expression value, {
+  @override required final int fileOffset,
+}) implements InferredMapLiteralEntry {
+  @override
+  MapLiteralEntry convertToMapLiteralEntry() {
+    return extern.createMapLiteralEntry(key, value, fileOffset: fileOffset);
+  }
+}
+
+final InferredMapLiteralEntry dummyMapLiteralEntryResult =
+    new DirectMapLiteralEntry(
+      dummyExpression,
+      dummyExpression,
+      fileOffset: TreeNode.noOffset,
+    );

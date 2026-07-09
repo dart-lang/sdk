@@ -170,7 +170,7 @@ extension CheckHelper on ProblemReporting {
       for (Argument argument in arguments.argumentList) {
         switch (argument) {
           case NamedArgument():
-            NamedExpression namedExpression = argument.namedExpression;
+            InternalNamedExpression namedExpression = argument.namedExpression;
             String name = namedExpression.name;
             argumentNames.add(name);
             if (!parameterNames.contains(name)) {
@@ -248,7 +248,7 @@ extension CheckHelper on ProblemReporting {
       for (Argument argument in arguments.argumentList) {
         switch (argument) {
           case NamedArgument():
-            NamedExpression namedExpression = argument.namedExpression;
+            InternalNamedExpression namedExpression = argument.namedExpression;
             String name = namedExpression.name;
             argumentNames.add(name);
             if (!names.contains(name)) {

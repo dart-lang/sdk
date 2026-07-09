@@ -1911,7 +1911,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (isIdenticalCall) {
           argumentInfo.identicalInfo = getExpressionInfo(result.expression);
         }
-        argument.expression = result.expression;
+        argumentInfo.inferredExpression = result.expression;
         gatherer?.tryConstrainLower(
           formalType,
           inferredType,
@@ -1955,7 +1955,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           if (isIdenticalCall) {
             deferredArgument.identicalInfo = getExpressionInfo(expression);
           }
-          deferredArgument.argument.expression = expression;
+          deferredArgument.inferredExpression = expression;
           gatherer?.tryConstrainLower(
             deferredArgument.formalType,
             inferredType,
@@ -2025,33 +2025,34 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     // Check for and remove duplicated named arguments.
-    Map<String, NamedExpression> seenNames = <String, NamedExpression>{};
+    Map<String, _ArgumentInfo> seenNames = {};
     for (_ArgumentInfo argumentInfo in argumentsInfo) {
       Argument argument = argumentInfo.argument;
       switch (argument) {
         case NamedArgument():
-          NamedExpression namedExpression = argument.namedExpression;
-          String name = namedExpression.name;
+          String name = argument.name;
           if (seenNames.containsKey(name)) {
             argumentInfo.isDuplicateNamed = true;
-            NamedExpression prevNamedExpression = seenNames[name]!;
-            prevNamedExpression
-                .value = extern.createInvalidExpressionFromErrorText(
-              problemReporting.buildProblem(
-                compilerContext: compilerContext,
-                message: diag.duplicatedNamedArgument.withArguments(name: name),
-                fileUri: fileUri,
-                fileOffset: namedExpression.fileOffset,
-                length: name.length,
-              ),
-              expression: _createDuplicateExpression(
-                prevNamedExpression.fileOffset,
-                prevNamedExpression.value,
-                namedExpression.value,
-              ),
-            )..parent = prevNamedExpression;
+            _ArgumentInfo prevNamedArgument = seenNames[name]!;
+            prevNamedArgument.inferredExpression = extern
+                .createInvalidExpressionFromErrorText(
+                  problemReporting.buildProblem(
+                    compilerContext: compilerContext,
+                    message: diag.duplicatedNamedArgument.withArguments(
+                      name: name,
+                    ),
+                    fileUri: fileUri,
+                    fileOffset: argument.fileOffset,
+                    length: name.length,
+                  ),
+                  expression: _createDuplicateExpression(
+                    prevNamedArgument.argument.fileOffset,
+                    prevNamedArgument.inferredExpression,
+                    argumentInfo.inferredExpression,
+                  ),
+                );
           } else {
-            seenNames[name] = namedExpression;
+            seenNames[name] = argumentInfo;
           }
         case PositionalArgument():
           break;
@@ -2065,7 +2066,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     for (_ArgumentInfo paramInfo in argumentsInfo) {
       ExpressionInferenceResult argumentResult = new ExpressionInferenceResult(
         paramInfo.actualType,
-        paramInfo.argument.expression,
+        paramInfo.inferredExpression,
       );
       if (paramInfo.coerceExpression) {
         DartType expectedType = paramInfo.computeInferredFormalType(
@@ -2081,7 +2082,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
         if (coercionResult != null) {
           argumentResult = coercionResult;
-          paramInfo.argument.expression = argumentResult.expression;
+          paramInfo.inferredExpression = argumentResult.expression;
 
           // Feed the coercion result back to the inference.
           gatherer?.tryConstrainLower(
@@ -2166,7 +2167,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           errorTemplate: diag.argumentTypeNotAssignable,
         );
 
-        argumentInfo.argument.expression = argumentResultToCheck.expression;
+        argumentInfo.inferredExpression = argumentResultToCheck.expression;
       }
     }
 
@@ -3098,8 +3099,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             const InvalidType(),
           ),
           interfaceTarget: method!,
-          checkType: result.inferredType,
-          objectNullableType: coreTypes.objectNullableRawType,
+          checkedType: result.inferredType,
+          operandStaticType: coreTypes.objectNullableRawType,
           fileOffset: fileOffset,
         );
       } else {
@@ -3155,8 +3156,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             arguments,
           ),
           functionType: inferredFunctionType as FunctionType,
-          checkType: result.inferredType,
-          objectNullableType: coreTypes.objectNullableRawType,
+          checkedType: result.inferredType,
+          operandStaticType: coreTypes.objectNullableRawType,
           interfaceTarget: method!,
           fileOffset: fileOffset,
         );
@@ -3310,8 +3311,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             kind,
             receiver,
             originalName,
-            checkType: calleeType,
-            objectNullableType: coreTypes.objectNullableRawType,
+            checkedType: calleeType,
+            operandStaticType: coreTypes.objectNullableRawType,
             interfaceTarget: originalTarget,
             fileOffset: fileOffset,
           );
@@ -5415,8 +5416,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               receiver,
               propertyName,
               interfaceTarget: member,
-              checkType: readType,
-              objectNullableType: coreTypes.objectNullableRawType,
+              checkedType: readType,
+              operandStaticType: coreTypes.objectNullableRawType,
               fileOffset: fileOffset,
             );
           } else {
@@ -5436,8 +5437,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               receiver,
               propertyName,
               interfaceTarget: member,
-              checkType: readType,
-              objectNullableType: coreTypes.objectNullableRawType,
+              checkedType: readType,
+              operandStaticType: coreTypes.objectNullableRawType,
               fileOffset: fileOffset,
             );
           } else {
@@ -6165,6 +6166,9 @@ class _ArgumentInfo {
 
   /// Returns `true` if the argument expression should be coerced.
   bool get coerceExpression => !argument.isSuperParameter;
+
+  /// The inferred expression.
+  late Expression inferredExpression;
 }
 
 extension on List<_ArgumentInfo> {
@@ -6183,7 +6187,7 @@ extension on List<_ArgumentInfo> {
       if (index < hoistingEndIndex) {
         ExpressionInferenceResult inferenceResult =
             argumentInfo.argumentInferenceResult!;
-        argument.expression = _hoist(
+        argumentInfo.inferredExpression = _hoist(
           inferenceResult.expression,
           inferenceResult.postCoercionType ?? inferenceResult.inferredType,
           hoistedExpressions,
@@ -6191,9 +6195,15 @@ extension on List<_ArgumentInfo> {
       }
       switch (argument) {
         case PositionalArgument():
-          positional.add(argument.expression);
+          positional.add(argumentInfo.inferredExpression);
         case NamedArgument():
-          named.add(argument.namedExpression);
+          named.add(
+            extern.createNamedExpression(
+              argument.name,
+              argumentInfo.inferredExpression,
+              fileOffset: argument.namedExpression.fileOffset,
+            ),
+          );
       }
     }
     return (positional, named);

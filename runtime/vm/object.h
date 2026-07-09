@@ -839,6 +839,12 @@ class Object {
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
     *const_cast<FieldType*>(addr) = value;
   }
+  template <typename FieldType, typename ValueType>
+  void StoreNonPointerUnaligned(const FieldType* addr, ValueType value) const {
+    // Can't use Contains, as it uses tags_, which is set through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
+    StoreUnaligned(const_cast<FieldType*>(addr), value);
+  }
 
   template <typename FieldType, typename ValueType, std::memory_order order>
   void StoreNonPointer(const FieldType* addr, ValueType value) const {

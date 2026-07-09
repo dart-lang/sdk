@@ -529,9 +529,11 @@ class MatchingExpressionVisitor
             field.resultType!,
             isObjectAccess: false,
             fileOffset: field.fileOffset,
-            typeForCovariantCheck: field.checkReturn ? field.resultType! : null,
-            covarianceCheckedExpressionStaticType: field.checkReturn
-                ? coreTypes.objectNullableRawType
+            covarianceCheckTypes: field.checkReturn
+                ? new CovarianceCheckTypes(
+                    operandStaticType: coreTypes.objectNullableRawType,
+                    checkedType: field.resultType!,
+                  )
                 : null,
           );
           break;

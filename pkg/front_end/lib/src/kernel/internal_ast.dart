@@ -494,7 +494,7 @@ class TypeArguments {
 }
 
 sealed class Argument {
-  TreeNode get node;
+  int get fileOffset;
 
   abstract Expression expression;
 
@@ -511,7 +511,7 @@ class PositionalArgument extends Argument {
 
   @override
   // Coverage-ignore(suite): Not run.
-  TreeNode get node => expression;
+  int get fileOffset => expression.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -531,13 +531,9 @@ class SuperPositionalArgument extends PositionalArgument {
 }
 
 class NamedArgument extends Argument {
-  NamedExpression namedExpression;
+  InternalNamedExpression namedExpression;
 
   new(this.namedExpression);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  TreeNode get node => namedExpression;
 
   String get name => namedExpression.name;
 
@@ -545,6 +541,10 @@ class NamedArgument extends Argument {
   Expression get expression => namedExpression.value;
 
   @override
+  int get fileOffset => namedExpression.fileOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   void set expression(Expression value) {
     namedExpression.value = value..parent = namedExpression;
   }
@@ -5244,10 +5244,7 @@ class ExtensionTypeRedirectingInitializer extends ExternalInitializer
 
   /// Redirecting initializers are encoded as calls to top-level functions.
   /// The type arguments for this call are inferred.
-  List<DartType> inferredTypeArguments = [];
-
-  List<Expression> positional = [];
-  List<NamedExpression> named = [];
+  late Arguments inferredArguments;
 
   new(Procedure target, ActualArguments arguments, {required int fileOffset})
     : this.byReference(
@@ -9202,7 +9199,7 @@ class InternalMapLiteral extends InternalExpression {
   final bool isConst;
   final DartType? keyType;
   final DartType? valueType;
-  final List<MapLiteralEntry> entries;
+  final List<InternalMapLiteralEntry> entries;
 
   new(
     this.entries, {
@@ -9241,7 +9238,7 @@ class InternalMapLiteral extends InternalExpression {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeMapEntry(entries[index]);
+      entries[index].toTextInternal(printer);
     }
     printer.write('}');
   }
@@ -9798,3 +9795,99 @@ class InternalTypeLiteral extends InternalExpression {
     return "$runtimeType(${toStringInternal()})";
   }
 }
+
+class InternalNamedExpression extends TreeNode with InternalTreeNode {
+  final String name;
+
+  Expression value;
+
+  new({required this.name, required this.value, required int fileOffset}) {
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) =>
+      unsupported("${runtimeType}.accept", -1, null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      unsupported("${runtimeType}.accept1", -1, null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write(name);
+    printer.write(': ');
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalMapLiteralEntry extends TreeNode with InternalTreeNode {
+  final Expression key;
+
+  final Expression value;
+
+  new({required this.key, required this.value, required int fileOffset}) {
+    key.parent = this;
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) =>
+      unsupported("${runtimeType}.accept", -1, null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      unsupported("${runtimeType}.accept1", -1, null);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(key);
+    printer.write(': ');
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+final InternalExpression dummyInternalExpression = new InternalNullLiteral(
+  fileOffset: TreeNode.noOffset,
+);
+
+final InternalMapLiteralEntry dummyInternalMapLiteralEntry =
+    new InternalMapLiteralEntry(
+      key: dummyInternalExpression,
+      value: dummyInternalExpression,
+      fileOffset: TreeNode.noOffset,
+    );

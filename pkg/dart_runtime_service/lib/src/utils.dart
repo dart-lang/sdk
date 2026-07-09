@@ -31,7 +31,17 @@ String generateSecret() {
   return base64Url.encode(bytes);
 }
 
-mixin ClientLookup on IterableMixin<Client> {
+/// An unmodifiable view of a [ClientNamedLookup].
+class UnmodifiableClientNamedLookup with IterableMixin<Client> {
+  UnmodifiableClientNamedLookup(this._namedLookup);
+
+  final ClientNamedLookup _namedLookup;
+
+  Client? operator [](String id) => _namedLookup[id];
+
+  String? keyOf(Client e) => _namedLookup.keyOf(e);
+
+  /// Finds the first client that has registered the specified [service].
   Client? findFirstClientThatHandlesService(String service) {
     for (final client in this) {
       if (client.hasService(service)) {
@@ -40,17 +50,6 @@ mixin ClientLookup on IterableMixin<Client> {
     }
     return null;
   }
-}
-
-/// An unmodifiable view of a [ClientNamedLookup].
-class UnmodifiableClientNamedLookup with IterableMixin<Client>, ClientLookup {
-  UnmodifiableClientNamedLookup(this._namedLookup);
-
-  final ClientNamedLookup _namedLookup;
-
-  Client? operator [](String id) => _namedLookup[id];
-
-  String? keyOf(Client e) => _namedLookup.keyOf(e);
 
   @override
   Iterator<Client> get iterator => _namedLookup.iterator;
@@ -60,7 +59,7 @@ class UnmodifiableClientNamedLookup with IterableMixin<Client>, ClientLookup {
 /// items.
 ///
 /// Originally pulled from dart:_vmservice.
-final class ClientNamedLookup extends IterableMixin<Client> with ClientLookup {
+final class ClientNamedLookup extends IterableMixin<Client> {
   ClientNamedLookup({String prefix = ''})
     : _generator = IdGenerator(prefix: prefix);
   final IdGenerator _generator;

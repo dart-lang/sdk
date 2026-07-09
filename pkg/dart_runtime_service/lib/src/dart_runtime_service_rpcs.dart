@@ -100,6 +100,8 @@ final class DartRuntimeServiceRpcs {
             client.logger.info('Response: $response');
           }
           return response;
+        } on RPCError catch (e) {
+          throw json_rpc.RpcException(e.code, e.message, data: e.data);
         } catch (e, st) {
           client.logger.info('Exception thrown when invoking $method: $e\n$st');
           rethrow;
@@ -114,7 +116,15 @@ final class DartRuntimeServiceRpcs {
 
   void registerBackendFallbacks(json_rpc.Peer clientPeer) {
     for (final fallback in _backendFallbacks) {
-      clientPeer.registerFallback(fallback);
+      Future<RpcResponse> callback(json_rpc.Parameters parameters) async {
+        try {
+          return await fallback(parameters);
+        } on RPCError catch (e) {
+          throw json_rpc.RpcException(e.code, e.message, data: e.data);
+        }
+      }
+
+      clientPeer.registerFallback(callback);
     }
   }
 
@@ -236,7 +246,7 @@ final class DartRuntimeServiceRpcs {
   /// response may be returned.
   Future<RpcResponse> streamListen(json_rpc.Parameters parameters) async {
     final stream = parameters[_kStreamId].asString;
-    eventStreamMethods.streamListen(
+    await eventStreamMethods.streamListen(
       client: client,
       streamId: stream,
       params: parameters.asMap.cast<String, Object?>(),
@@ -253,7 +263,7 @@ final class DartRuntimeServiceRpcs {
   /// response may be returned.
   Future<RpcResponse> streamCancel(json_rpc.Parameters parameters) async {
     final streamId = parameters[_kStreamId].asString;
-    eventStreamMethods.streamCancel(client: client, streamId: streamId);
+    await eventStreamMethods.streamCancel(client: client, streamId: streamId);
     return Success().toJson();
   }
 }

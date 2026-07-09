@@ -1274,7 +1274,11 @@ const library test:dummy::Class()''',
   );
 
   Expression positionalArgument = new IntLiteral(0);
-  NamedExpression namedArgument = new NamedExpression('bar', new IntLiteral(1));
+  InternalNamedExpression namedArgument = new InternalNamedExpression(
+    name: 'bar',
+    value: new IntLiteral(1),
+    fileOffset: TreeNode.noOffset,
+  );
 
   testExpression(
     new FactoryConstructorInvocation(
@@ -1369,7 +1373,11 @@ new library test:dummy::Typedef()''',
   );
 
   Expression positionalArgument = new IntLiteral(0);
-  NamedExpression namedArgument = new NamedExpression('bar', new IntLiteral(1));
+  InternalNamedExpression namedArgument = new InternalNamedExpression(
+    name: 'bar',
+    value: new IntLiteral(1),
+    fileOffset: TreeNode.noOffset,
+  );
 
   testExpression(
     new TypeAliasedConstructorInvocation(
@@ -1488,7 +1496,11 @@ new library test:dummy::Typedef()''',
   );
 
   Expression positionalArgument = new IntLiteral(0);
-  NamedExpression namedArgument = new NamedExpression('bar', new IntLiteral(1));
+  InternalNamedExpression namedArgument = new InternalNamedExpression(
+    name: 'bar',
+    value: new IntLiteral(1),
+    fileOffset: TreeNode.noOffset,
+  );
 
   testExpression(
     new TypeAliasedFactoryInvocation(
@@ -1622,13 +1634,15 @@ void _testInternalMethodInvocation() {
   );
 
   Expression positionalArgument = new IntLiteral(1);
-  NamedExpression namedArgument1 = new NamedExpression(
-    'foo',
-    new IntLiteral(2),
+  InternalNamedExpression namedArgument1 = new InternalNamedExpression(
+    name: 'foo',
+    value: new IntLiteral(2),
+    fileOffset: TreeNode.noOffset,
   );
-  NamedExpression namedArgument2 = new NamedExpression(
-    'bar',
-    new IntLiteral(3),
+  InternalNamedExpression namedArgument2 = new InternalNamedExpression(
+    name: 'bar',
+    value: new IntLiteral(3),
+    fileOffset: TreeNode.noOffset,
   );
 
   testExpression(
@@ -1751,13 +1765,15 @@ void _testExpressionInvocation() {
   );
 
   Expression positionalArgument = new IntLiteral(1);
-  NamedExpression namedArgument1 = new NamedExpression(
-    'foo',
-    new IntLiteral(2),
+  InternalNamedExpression namedArgument1 = new InternalNamedExpression(
+    name: 'foo',
+    value: new IntLiteral(2),
+    fileOffset: TreeNode.noOffset,
   );
-  NamedExpression namedArgument2 = new NamedExpression(
-    'bar',
-    new IntLiteral(3),
+  InternalNamedExpression namedArgument2 = new InternalNamedExpression(
+    name: 'bar',
+    value: new IntLiteral(3),
+    fileOffset: TreeNode.noOffset,
   );
 
   testExpression(
