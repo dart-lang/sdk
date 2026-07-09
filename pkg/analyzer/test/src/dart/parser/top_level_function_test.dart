@@ -107,6 +107,28 @@ FunctionDeclaration
 ''');
   }
 
+  test_function_augment_external() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment external void foo();
+''');
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: void
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: EmptyFunctionBody
+      semicolon: ;
+''');
+  }
+
   test_function_augment_language305() {
     var parseResult = parseTestCodeWithDiagnostics('''
 // @dart = 3.5
@@ -163,6 +185,30 @@ void foo();
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
 FunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: EmptyFunctionBody
+      semicolon: ;
+''');
+  }
+
+  test_function_external_augment() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+external augment void foo();
+//       ^^^^^^^
+// [diag.modifierOutOfOrder] The modifier 'augment' should be before the modifier 'external'.
+''');
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
   returnType: NamedType
     name: void
   name: foo
@@ -249,6 +295,26 @@ augment int get foo;
     assertParsedNodeText(node, r'''
 FunctionDeclaration
   augmentKeyword: augment
+  returnType: NamedType
+    name: int
+  propertyKeyword: get
+  name: foo
+  functionExpression: FunctionExpression
+    body: EmptyFunctionBody
+      semicolon: ;
+''');
+  }
+
+  test_getter_augment_external() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment external int get foo;
+''');
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
   returnType: NamedType
     name: int
   propertyKeyword: get
@@ -469,6 +535,31 @@ augment set foo(int _);
     assertParsedNodeText(node, r'''
 FunctionDeclaration
   augmentKeyword: augment
+  propertyKeyword: set
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+      rightParenthesis: )
+    body: EmptyFunctionBody
+      semicolon: ;
+''');
+  }
+
+  test_setter_augment_external() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment external set foo(int _);
+''');
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, r'''
+FunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression

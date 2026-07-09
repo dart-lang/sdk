@@ -1822,6 +1822,29 @@ ClassDeclaration
 ''');
   }
 
+  test_method_augment_external() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment class A {
+  augment external void foo();
+}
+''');
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, r'''
+MethodDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_method_augment_static() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment class A {

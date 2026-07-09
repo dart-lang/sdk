@@ -4,11 +4,7 @@ parser/augmentation/top_level_errors:1:9: The modifier 'augment' was already spe
 augment augment method() {}
         ^^^^^^^
 
-parser/augmentation/top_level_errors:2:9: Members can't be declared to be both 'external' and 'augment'.
-augment external method();
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:3:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:3:10: The modifier 'augment' should be before the modifier 'external'.
 external augment method();
          ^^^^^^^
 
@@ -16,11 +12,7 @@ parser/augmentation/top_level_errors:5:9: The modifier 'augment' was already spe
 augment augment void method() {}
         ^^^^^^^
 
-parser/augmentation/top_level_errors:6:9: Members can't be declared to be both 'external' and 'augment'.
-augment external void method();
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:7:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:7:10: The modifier 'augment' should be before the modifier 'external'.
 external augment void method();
          ^^^^^^^
 
@@ -28,11 +20,7 @@ parser/augmentation/top_level_errors:9:9: The modifier 'augment' was already spe
 augment augment get getter => null;
         ^^^^^^^
 
-parser/augmentation/top_level_errors:10:9: Members can't be declared to be both 'external' and 'augment'.
-augment external get getter;
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:11:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:11:10: The modifier 'augment' should be before the modifier 'external'.
 external augment get getter;
          ^^^^^^^
 
@@ -40,11 +28,7 @@ parser/augmentation/top_level_errors:13:9: The modifier 'augment' was already sp
 augment augment int get getter => 0;
         ^^^^^^^
 
-parser/augmentation/top_level_errors:14:9: Members can't be declared to be both 'external' and 'augment'.
-augment external int get getter;
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:15:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:15:10: The modifier 'augment' should be before the modifier 'external'.
 external augment int get getter;
          ^^^^^^^
 
@@ -52,11 +36,7 @@ parser/augmentation/top_level_errors:17:9: The modifier 'augment' was already sp
 augment augment set setter(value) {}
         ^^^^^^^
 
-parser/augmentation/top_level_errors:18:9: Members can't be declared to be both 'external' and 'augment'.
-augment external set setter(value);
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:19:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:19:10: The modifier 'augment' should be before the modifier 'external'.
 external augment set setter(value);
          ^^^^^^^
 
@@ -64,11 +44,7 @@ parser/augmentation/top_level_errors:21:9: The modifier 'augment' was already sp
 augment augment void set setter(value) {}
         ^^^^^^^
 
-parser/augmentation/top_level_errors:22:9: Members can't be declared to be both 'external' and 'augment'.
-augment external void set setter(value);
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:23:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:23:10: The modifier 'augment' should be before the modifier 'external'.
 external augment void set setter(value);
          ^^^^^^^
 
@@ -76,11 +52,7 @@ parser/augmentation/top_level_errors:25:9: The modifier 'augment' was already sp
 augment augment var field;
         ^^^^^^^
 
-parser/augmentation/top_level_errors:26:9: Members can't be declared to be both 'external' and 'augment'.
-augment external var field;
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:27:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:27:10: The modifier 'augment' should be before the modifier 'external'.
 external augment var field;
          ^^^^^^^
 
@@ -88,11 +60,7 @@ parser/augmentation/top_level_errors:29:9: The modifier 'augment' was already sp
 augment augment int field = 0;
         ^^^^^^^
 
-parser/augmentation/top_level_errors:30:9: Members can't be declared to be both 'external' and 'augment'.
-augment external int field;
-        ^^^^^^^^
-
-parser/augmentation/top_level_errors:31:10: Members can't be declared to be both 'augment' and 'external'.
+parser/augmentation/top_level_errors:31:10: The modifier 'augment' should be before the modifier 'external'.
 external augment int field;
          ^^^^^^^
 
@@ -151,7 +119,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginTopLevelMethod(}, augment, external)
       handleNoType(external)
       handleIdentifier(method, topLevelFunctionDeclaration)
@@ -165,7 +132,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginTopLevelMethod(;, augment, external)
       handleNoType(augment)
       handleIdentifier(method, topLevelFunctionDeclaration)
@@ -194,7 +161,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginTopLevelMethod(}, augment, external)
       handleVoidKeyword(void)
       handleIdentifier(method, topLevelFunctionDeclaration)
@@ -208,7 +174,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginTopLevelMethod(;, augment, external)
       handleVoidKeyword(void)
       handleIdentifier(method, topLevelFunctionDeclaration)
@@ -236,7 +202,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginTopLevelMethod(;, augment, external)
       handleNoType(external)
       handleIdentifier(getter, topLevelFunctionDeclaration)
@@ -249,7 +214,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginTopLevelMethod(;, augment, external)
       handleNoType(augment)
       handleIdentifier(getter, topLevelFunctionDeclaration)
@@ -278,7 +243,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginTopLevelMethod(;, augment, external)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(get)
@@ -293,7 +257,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginTopLevelMethod(;, augment, external)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(get)
@@ -330,7 +294,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginTopLevelMethod(}, augment, external)
       handleNoType(external)
       handleIdentifier(setter, topLevelFunctionDeclaration)
@@ -351,7 +314,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginTopLevelMethod(;, augment, external)
       handleNoType(augment)
       handleIdentifier(setter, topLevelFunctionDeclaration)
@@ -394,7 +357,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginTopLevelMethod(}, augment, external)
       handleVoidKeyword(void)
       handleIdentifier(setter, topLevelFunctionDeclaration)
@@ -415,7 +377,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginTopLevelMethod(;, augment, external)
       handleVoidKeyword(void)
       handleIdentifier(setter, topLevelFunctionDeclaration)
@@ -446,7 +408,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginFields(DeclarationKind.TopLevel, augment, null, external, null, null, null, var, ;)
       handleNoType(var)
       handleIdentifier(field, topLevelVariableDeclaration)
@@ -456,7 +417,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginFields(DeclarationKind.TopLevel, augment, null, external, null, null, null, var, ;)
       handleNoType(var)
       handleIdentifier(field, topLevelVariableDeclaration)
@@ -480,7 +441,6 @@ beginCompilationUnit(augment)
   beginMetadataStar(augment)
   endMetadataStar(0)
   beginTopLevelMember(augment)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'external' and 'augment'., Try removing one of the keywords., {modifier: external, earlierModifier: augment}], external, external)
     beginFields(DeclarationKind.TopLevel, augment, null, external, null, null, null, null, ;)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(field)
@@ -492,7 +452,7 @@ beginCompilationUnit(augment)
   beginMetadataStar(external)
   endMetadataStar(0)
   beginTopLevelMember(external)
-    handleRecoverableError(Message[Template(ConflictingModifiers), Members can't be declared to be both 'augment' and 'external'., Try removing one of the keywords., {modifier: augment, earlierModifier: external}], augment, augment)
+    handleRecoverableError(Message[Template(ModifierOutOfOrder), The modifier 'augment' should be before the modifier 'external'., Try re-ordering the modifiers., {modifier: augment, expectedLaterModifier: external}], augment, augment)
     beginFields(DeclarationKind.TopLevel, augment, null, external, null, null, null, null, ;)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(field)

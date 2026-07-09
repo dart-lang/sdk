@@ -428,7 +428,7 @@ class ModifierContext {
       } else if (staticToken != null) {
         reportModifierOutOfOrder(next, staticToken!.lexeme);
       } else if (externalToken != null) {
-        reportConflictingModifiers(next, externalToken!);
+        reportModifierOutOfOrder(next, externalToken!.lexeme);
       }
       return next;
     }
@@ -519,8 +519,6 @@ class ModifierContext {
         reportModifierOutOfOrder(next, varFinalOrConst!.lexeme);
       } else if (covariantToken != null) {
         reportModifierOutOfOrder(next, covariantToken!.lexeme);
-      } else if (augmentToken != null) {
-        reportConflictingModifiers(next, augmentToken!);
       }
       return next;
     }
