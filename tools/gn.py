@@ -266,7 +266,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     gn_args['is_hwasan'] = sanitizer == 'hwasan'
     gn_args['is_qemu'] = args.use_qemu
 
-    if args.include_experimental_vm_service:
+    if args.include_experimental_vm_service is not None:
         gn_args[
             'include_experimental_vm_service'] = args.include_experimental_vm_service
 
@@ -538,8 +538,15 @@ def AddCommonGnOptionArgs(parser):
     parser.add_argument(
         '--include-experimental-vm-service',
         help='Use the Dart Runtime Service based VM service implementation.',
-        default=False,
+        dest='include_experimental_vm_service',
         action='store_true')
+    parser.add_argument(
+        '--no-include-experimental-vm-service',
+        help=
+        'Do not use the Dart Runtime Service based VM service implementation.',
+        dest='include_experimental_vm_service',
+        action='store_false')
+    parser.set_defaults(include_experimental_vm_service=None)
 
 
 def AddCommonConfigurationArgs(parser):

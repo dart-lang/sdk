@@ -387,7 +387,10 @@ template("dart_action") {
       if (!defined(invoker.deps)) {
         deps = []
       }
-      deps += [ "$_dart_root/utils/kernel-service" ]
+      deps += [
+        "$_dart_root/utils/dart_runtime_service_vm",
+        "$_dart_root/utils/kernel-service",
+      ]
     }
   }
 }
