@@ -8815,6 +8815,11 @@ LinterLintCode:
       where a reference to one of the fields can be mistaken for a reference to
       the other.
 
+      The field in the subclass doesn't replace the field in the superclass,
+      nor does it change the initializer for the superclass field. Code that
+      accesses the superclass field, for example through `super`, still reads
+      or writes the original storage location.
+
       #### Example
 
       The following code produces this diagnostic because the field `f` in `B`
