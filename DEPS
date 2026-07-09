@@ -55,7 +55,7 @@ vars = {
   # choose which SHA to place here is to choose a release from
   # https://dart.dev/get-dart/archive, and then look up the version SHA from
   # the tag. Prefer using the stable channel when possible.
-  "sdk_tag": "version:3.13.0-103.1.beta",
+  "sdk_tag": "version:3.13.0-272.0.dev",
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
@@ -83,7 +83,7 @@ vars = {
   "clang_version": "git_revision:deb6854eec93529b2bd30178d400ad2ee7665cd4",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:b8becbd4f7979f63ab3542524b2b4d8db2ce3b52",
+  "gn_version": "git_revision:d2f537b1e397daa13e02a8085feb32f5ad7c5dec",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -102,7 +102,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "2e508c973d634b3aa51b71db5062bc6b096e5031",
+  "boringssl_rev": "a945a3ea4cdf8cd683a9d3ad3a66bd3f04a514e6",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "12d595649f189f1896722623f72599077f476848",

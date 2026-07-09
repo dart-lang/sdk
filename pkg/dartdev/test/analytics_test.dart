@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:dartdev/dartdev.dart';
+import 'package:dartdev/src/unified_analytics.dart';
 import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -219,6 +220,30 @@ void main() {
       // than 1 second.
       // If it hung, it would take much longer or never finish.
       expect(stopwatch.elapsedMilliseconds, lessThan(1000));
+    });
+  });
+
+  group('unified analytics helpers:', () {
+    test('sanitizeStacktrace strips file paths and compresses whitespace', () {
+      const rawStack =
+          '#0  main (file:///Users/username/project/bin/main.dart:10:5)\n'
+          '#1  helper   (file:///home/user/app/lib/helper.dart:2:1)';
+      final sanitized = sanitizeStacktrace(rawStack, shorten: true);
+      expect(sanitized, isNot(contains('/Users/username/project/bin/')));
+      expect(sanitized, contains('main.dart'));
+      expect(sanitized, contains('helper.dart'));
+    });
+
+    test('getDartStorageDirectory resolves user .dart directory', () {
+      final dir = getDartStorageDirectory();
+      expect(dir, isNotNull);
+      // Ensure the directory exists and its basename is '.dart'.
+      expect(dir!.existsSync(), isTrue);
+      expect(path.basename(dir.path), '.dart');
+    });
+
+    test('isBot function executes without error', () {
+      expect(() => isBot(), returnsNormally);
     });
   });
 }
