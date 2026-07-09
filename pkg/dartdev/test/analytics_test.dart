@@ -241,8 +241,11 @@ void main() {
       expect(dir!.existsSync(), isTrue);
       expect(path.basename(dir.path), '.dart');
     });
+  });
 
+  group('isBot environment detection:', () {
     test('isBot function executes without error', () {
+      // isBot should execute synchronously without throwing
       expect(() => isBot(), returnsNormally);
     });
   });
