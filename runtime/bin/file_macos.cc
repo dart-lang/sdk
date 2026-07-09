@@ -622,7 +622,7 @@ const char* File::LinkTarget(Namespace* namespc,
   // target. The link might have changed before the readlink call.
   const int kBufferSize = 1024;
   char target[kBufferSize];
-  size_t target_size =
+  const int target_size =
       TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
   if (target_size <= 0) {
     return nullptr;
@@ -631,7 +631,7 @@ const char* File::LinkTarget(Namespace* namespc,
     dest = DartUtils::ScopedCString(target_size + 1);
   } else {
     ASSERT(dest_size > 0);
-    if (static_cast<size_t>(dest_size) <= target_size) {
+    if (dest_size <= target_size) {
       return nullptr;
     }
   }
