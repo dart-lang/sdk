@@ -1238,13 +1238,14 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parsePrimaryConstructorBody(Token token) {
+  Token parsePrimaryConstructorBody(Token token, Token? augmentToken) {
     doPrint(
       'parsePrimaryConstructorBody('
-      '$token)',
+      '$token, '
+      '$augmentToken)',
     );
     indent++;
-    var result = super.parsePrimaryConstructorBody(token);
+    var result = super.parsePrimaryConstructorBody(token, augmentToken);
     indent--;
     return result;
   }

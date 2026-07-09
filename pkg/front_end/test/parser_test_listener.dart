@@ -615,11 +615,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {
     seen(token);
+    seen(augmentToken);
     doPrint(
       'beginPrimaryConstructorBody('
-      '$token)',
+      '$token, '
+      '$augmentToken)',
     );
     indent++;
   }

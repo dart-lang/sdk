@@ -3574,6 +3574,23 @@ PrimaryConstructorBody
 ''');
   }
 
+  test_primaryConstructorBody_modifier_augment() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment class A() {
+  augment this;
+}
+''');
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  augmentKeyword: augment
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_primaryConstructorBody_modifier_const() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A() {

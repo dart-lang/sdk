@@ -293,6 +293,8 @@ abstract final class LintNames {
 
   static const String matching_super_parameters = 'matching_super_parameters';
 
+  static const String migrate_design_widgets = 'migrate_design_widgets';
+
   static const String missing_code_block_language_in_doc_comment =
       'missing_code_block_language_in_doc_comment';
 

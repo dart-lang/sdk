@@ -1,3 +1,4 @@
+// @dart = 3.10
 class const C {}
 enum const E {}
 extension type const E {}

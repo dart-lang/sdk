@@ -1,0 +1,9 @@
+@A<int>(0)
+typedef F<@A<int>(0) T> = int Function<@A<int>(0) X>(@A<int>(0) int);
+
+
+
+@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]A[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]0[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+
+[SimpleToken]

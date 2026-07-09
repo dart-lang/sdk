@@ -3866,9 +3866,9 @@ class Parser {
     return token;
   }
 
-  Token parsePrimaryConstructorBody(Token token) {
+  Token parsePrimaryConstructorBody(Token token, Token? augmentToken) {
     Token beginToken = token;
-    listener.beginPrimaryConstructorBody(token);
+    listener.beginPrimaryConstructorBody(token, augmentToken);
 
     Token? beforeInitializers = token;
     token = parseInitializersOpt(beforeInitializers);
@@ -5554,7 +5554,7 @@ class Parser {
           if (lateToken != null) {
             reportRecoverableErrorWithToken(lateToken, diag.extraneousModifier);
           }
-          token = parsePrimaryConstructorBody(next);
+          token = parsePrimaryConstructorBody(next, augmentToken);
           listener.endMember();
           return token;
         }

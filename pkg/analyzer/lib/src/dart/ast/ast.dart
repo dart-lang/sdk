@@ -26773,6 +26773,9 @@ final class PrefixExpressionImpl extends ExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 // TODO(scheglov): This should not be a `Declaration`.
 abstract final class PrimaryConstructorBody implements ClassMember {
+  /// The token for the `augment` keyword.
+  Token? get augmentKeyword;
+
   /// The body of the constructor.
   FunctionBody get body;
 
@@ -26794,6 +26797,7 @@ abstract final class PrimaryConstructorBody implements ClassMember {
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('thisKeyword'),
     GenerateNodeProperty('colon'),
     GenerateNodeProperty('initializers'),
@@ -26802,6 +26806,10 @@ abstract final class PrimaryConstructorBody implements ClassMember {
 )
 final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     implements PrimaryConstructorBody {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
   @generated
   @override
   final Token thisKeyword;
@@ -26824,6 +26832,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   PrimaryConstructorBodyImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.thisKeyword,
     required this.colon,
     required List<ConstructorInitializerImpl> initializers,
@@ -26832,9 +26841,6 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     this.initializers._initialize(this, initializers);
     _becomeParentOf(body);
   }
-
-  @override
-  Token? get augmentKeyword => null;
 
   @generated
   @override
@@ -26871,12 +26877,16 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
     return thisKeyword;
   }
 
   @generated
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('colon', colon)
     ..addNodeList('initializers', initializers)

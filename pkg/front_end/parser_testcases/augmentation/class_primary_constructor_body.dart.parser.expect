@@ -1,0 +1,9 @@
+augment class A() {
+augment this;
+}
+
+
+augment[KeywordToken] class[KeywordToken] A[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+augment[KeywordToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -110,6 +110,7 @@ import 'rules/lines_longer_than_80_chars.dart';
 import 'rules/list_remove_unrelated_type.dart';
 import 'rules/literal_only_boolean_expressions.dart';
 import 'rules/matching_super_parameters.dart';
+import 'rules/migrate_design_widgets.dart';
 import 'rules/missing_code_block_language_in_doc_comment.dart';
 import 'rules/missing_whitespace_between_adjacent_strings.dart';
 import 'rules/no_adjacent_strings_in_list.dart';
@@ -379,6 +380,7 @@ void registerLintRules() {
     ..registerLintRule(listRemoveUnrelatedType)
     ..registerLintRule(LiteralOnlyBooleanExpressions())
     ..registerLintRule(MatchingSuperParameters())
+    ..registerLintRule(MigrateDesignWidgets())
     ..registerLintRule(MissingCodeBlockLanguageInDocComment())
     ..registerLintRule(MissingWhitespaceBetweenAdjacentStrings())
     ..registerLintRule(NoAdjacentStringsInList())

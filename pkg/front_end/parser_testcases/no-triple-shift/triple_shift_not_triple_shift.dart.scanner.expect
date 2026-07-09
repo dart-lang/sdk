@@ -1,3 +1,4 @@
+// @dart = 2.12
 extension on Symbol {
 String operator >(_) => "Greater Than used";
 String call(_) => "Called";

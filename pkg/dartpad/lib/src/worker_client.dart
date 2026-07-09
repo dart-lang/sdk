@@ -14,10 +14,11 @@ import 'shared.dart';
 export 'exceptions.dart' hide rethrowAsDartPadException;
 
 /// Client for talking to `shared_worker.dart`.
-class WorkerClient {
+base class WorkerClient {
   final rpc.Peer _peer;
   final _languageServers = <int, LanguageServer>{};
   final _hotReloadCompilers = <int, HotReloadCompiler>{};
+  final _watchers = <int, Sink<FileChangeEvent>>{};
 
   /// Creates a client that communicates over [channel].
   ///
@@ -26,6 +27,7 @@ class WorkerClient {
   WorkerClient(StreamChannel<String> channel) : _peer = rpc.Peer(channel) {
     _peer.registerMethod('workspace/languageServer/message', _handleLsMessage);
     _peer.registerMethod('workspace/languageServer/exited', _handleLsExited);
+    _peer.registerMethod('workspace/watcher/events', _handleWatchEvent);
     _peer.listen();
   }
 
@@ -64,6 +66,25 @@ class WorkerClient {
     final id = (params['languageServerId'].value as num).toInt();
     _languageServers[id]?._handleExited();
   }
+
+  void _handleWatchEvent(rpc.Parameters params) {
+    final watcherId = (params['watcherId'].value as num).toInt();
+    final events = params['events'].asList;
+    final controller = _watchers[watcherId];
+    if (controller != null) {
+      for (final e in events) {
+        final map = e as Map;
+        final type = map['type'] as String;
+        final uri = Uri.parse(map['uri'] as String);
+        controller.add(switch (type) {
+          'add' => FileAddedEvent(uri),
+          'modify' => FileModifiedEvent(uri),
+          'remove' => FileRemovedEvent(uri),
+          _ => FileModifiedEvent(uri),
+        });
+      }
+    }
+  }
 }
 
 /// Representation of a _workspace_ inside the worker with methods wrapping
@@ -71,7 +92,7 @@ class WorkerClient {
 ///
 /// All URIs and paths passed to methods will be resolved relative to the the
 /// [workspaceFolder].
-class Workspace {
+final class Workspace {
   final WorkerClient _client;
   final int id;
   final Uri workspaceFolder;
@@ -170,6 +191,10 @@ class Workspace {
       return (path: map['path'] as String, type: map['type'] as String);
     }).toList();
   }
+
+  /// Watch a file or directory for changes.
+  WorkspaceWatcher watch(String uri) =>
+      WorkspaceWatcher._(this, Uri.parse(uri));
 
   Future<CompileResult> compile(Uri entrypoint) async {
     final c = await startHotReloadCompiler(entrypoint);
@@ -313,6 +338,93 @@ final class HotReloadCompiler {
   void _cleanup() {
     workspace._client._hotReloadCompilers.remove(id);
   }
+}
+
+final class WorkspaceWatcher {
+  final Workspace workspace;
+
+  /// Folder or file to be watched.
+  final Uri uri;
+
+  var _watcherId = Completer<int>();
+  late final StreamController<FileChangeEvent> _controller;
+
+  WorkspaceWatcher._(this.workspace, this.uri) {
+    _controller = StreamController<FileChangeEvent>.broadcast(
+      onListen: _onListen,
+      onCancel: _onCancel,
+    );
+  }
+
+  /// Broadcast stream with [FileChangeEvent] for [uri].
+  ///
+  /// File changes will only be reported while this stream subscribers.
+  /// When a subscription is made, events prior to [ready] being resolved may
+  /// not be reported.
+  ///
+  /// Generally, you should subscribe to the [changes] stream, and wait for
+  /// [ready] before assuming that events for file changes will arrive.
+  Stream<FileChangeEvent> get changes => _controller.stream;
+
+  /// A [Future] that completes when the watcher is initialized and reporting
+  /// events in [changes].
+  ///
+  /// This future will not complete until a subscription to [changes] has been
+  /// made. This future will change when all subscriptions to [changes] are
+  /// cancelled.
+  Future<void> get ready => _watcherId.future;
+
+  /// True, if watcher is initialized and reporting events in [changes].
+  bool get isReady => _watcherId.isCompleted;
+
+  void _onListen() {
+    assert(!_watcherId.isCompleted);
+    _watcherId.complete(
+      Future(() async {
+        final result = await workspace._request<Map>('workspace/startWatcher', {
+          'uri': uri.toString(),
+        });
+        final watcherId = (result['watcherId'] as num).toInt();
+        workspace._client._watchers[watcherId] = _controller;
+        return watcherId;
+      }),
+    );
+  }
+
+  void _onCancel() {
+    _watcherId.future.then((watcherId) async {
+      try {
+        await workspace._request<Map>('workspace/watcher/stop', {
+          'watcherId': watcherId,
+        });
+      } finally {
+        workspace._client._watchers.remove(watcherId);
+      }
+    }).ignore();
+    _watcherId = Completer();
+  }
+}
+
+/// Represents a change to a file or directory in the workspace.
+sealed class FileChangeEvent {
+  /// Absolute URI of the file or folder.
+  final Uri uri;
+  const FileChangeEvent(this.uri);
+}
+
+/// An event fired when a file or directory is added to the workspace.
+final class FileAddedEvent extends FileChangeEvent {
+  const FileAddedEvent(super.uri);
+}
+
+/// An event fired when a file or directory in the workspace is modified.
+final class FileModifiedEvent extends FileChangeEvent {
+  const FileModifiedEvent(super.uri);
+}
+
+/// An event fired when a file or directory is removed from the workspace.
+final class FileRemovedEvent extends FileChangeEvent {
+  const FileRemovedEvent(super.uri);
 }
 
 extension on rpc.Peer {

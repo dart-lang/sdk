@@ -25,6 +25,7 @@ dependencies:
   stream_channel: any
   tar: any
   unified_analytics: any
+  watcher: any
   web: any
 dev_dependencies:
   checks: any

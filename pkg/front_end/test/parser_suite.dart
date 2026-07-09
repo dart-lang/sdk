@@ -21,7 +21,10 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan,
-        LanguageVersionChanged;
+        scanDirectives,
+        LanguageVersionChanged,
+        Scanner,
+        LanguageVersionToken;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
@@ -122,6 +125,7 @@ class Context extends ChainContext with MatchContext {
 
   @override
   final List<Step> steps = const <Step>[
+    const TokenStep(true, ".scanner.directives.expect", directivesOnly: true),
     const TokenStep(true, ".scanner.expect"),
     const TokenStep(false, ".parser.expect"),
     const ParserAstStep(true),
@@ -367,8 +371,9 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
 class TokenStep extends Step<TestDescription, TestDescription, Context> {
   final bool onlyScanner;
   final String suffix;
+  final bool directivesOnly;
 
-  const new(this.onlyScanner, this.suffix);
+  const new(this.onlyScanner, this.suffix, {this.directivesOnly = false});
 
   @override
   String get name => "token";
@@ -383,14 +388,41 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     ExperimentalFeaturesFromFlags experimentalFeatures =
         new ExperimentalFeaturesFromFlags(explicitExperimentalFlags);
     List<int> lineStarts = <int>[];
+    List<LanguageVersionToken> languageVersionTokensSeen = [];
     Token firstToken = scanUri(
       description.uri,
       experimentalFeatures,
       lineStarts: lineStarts,
-      languageVersionChanged: experimentalFeatures.onLanguageVersionChanged,
+      languageVersionChanged:
+          (Scanner scanner, LanguageVersionToken languageVersion) {
+            languageVersionTokensSeen.add(languageVersion);
+            experimentalFeatures.onLanguageVersionChanged(
+              scanner,
+              languageVersion,
+            );
+          },
+      directivesOnly: directivesOnly,
     );
 
-    StringBuffer beforeParser = tokenStreamToString(firstToken, lineStarts);
+    if (directivesOnly &&
+        firstToken.isEof &&
+        languageVersionTokensSeen.isEmpty) {
+      // Expect no file.
+      return context.match<TestDescription>(
+        suffix,
+        // An empty actual parameter deletes any existing file if asked to
+        // update expectations.
+        "",
+        description.uri,
+        description,
+      );
+    }
+
+    StringBuffer beforeParser = tokenStreamToString(
+      firstToken,
+      lineStarts,
+      languageVersionTokensSeen: languageVersionTokensSeen,
+    );
     StringBuffer beforeParserWithTypes = tokenStreamToString(
       firstToken,
       lineStarts,
@@ -457,9 +489,18 @@ StringBuffer tokenStreamToString(
   Token firstToken,
   List<int> lineStarts, {
   bool addTypes = false,
+  List<LanguageVersionToken>? languageVersionTokensSeen,
 }) {
   StringBuffer sb = new StringBuffer();
   Token? token = firstToken;
+
+  if (languageVersionTokensSeen != null) {
+    for (LanguageVersionToken languageVersion in languageVersionTokensSeen) {
+      sb.writeln(
+        "// @dart = ${languageVersion.major}.${languageVersion.minor}",
+      );
+    }
+  }
 
   Token? process(Token? token, bool errorTokens) {
     bool printed = false;
@@ -539,6 +580,7 @@ Token scanUri(
   ExperimentalFeaturesFromFlags experimentalFeatures, {
   List<int>? lineStarts,
   LanguageVersionChanged? languageVersionChanged,
+  bool directivesOnly = false,
 }) {
   File f = new File.fromUri(uri);
   Uint8List rawBytes = f.readAsBytesSync();
@@ -547,6 +589,7 @@ Token scanUri(
     experimentalFeatures.buildScannerConfiguration(),
     lineStarts,
     languageVersionChanged: languageVersionChanged,
+    directivesOnly: directivesOnly,
   );
 }
 
@@ -555,13 +598,23 @@ Token scanRawBytes(
   ScannerConfiguration config,
   List<int>? lineStarts, {
   LanguageVersionChanged? languageVersionChanged,
+  bool directivesOnly = false,
 }) {
-  ScannerResult scanResult = scan(
-    rawBytes,
-    configuration: config,
-    includeComments: true,
-    languageVersionChanged: languageVersionChanged,
-  );
+  ScannerResult scanResult;
+  if (directivesOnly) {
+    scanResult = scanDirectives(
+      rawBytes,
+      configuration: config,
+      languageVersionChanged: languageVersionChanged,
+    );
+  } else {
+    scanResult = scan(
+      rawBytes,
+      configuration: config,
+      includeComments: true,
+      languageVersionChanged: languageVersionChanged,
+    );
+  }
   Token firstToken = scanResult.tokens;
   if (lineStarts != null) {
     lineStarts.addAll(scanResult.lineStarts);

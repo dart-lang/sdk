@@ -1,0 +1,11 @@
+#!/usr/bin/env dart
+
+typedef Foo1 = List<String>;
+typedef Foo2 = List<String>;
+
+
+#!/usr/bin/env dart[StringToken]
+
+typedef[KeywordToken] Foo1[StringToken] =[SimpleToken] List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken];[SimpleToken]
+typedef[KeywordToken] Foo2[StringToken] =[SimpleToken] List[StringToken]<[BeginToken]String[StringToken]>[SimpleToken];[SimpleToken]
+[SimpleToken]

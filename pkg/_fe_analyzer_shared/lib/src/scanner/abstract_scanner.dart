@@ -983,6 +983,87 @@ abstract class AbstractScanner implements Scanner {
     return firstToken();
   }
 
+  /// Scan directives and as little as possible after the directives.
+  Token tokenizeDirectives() {
+    int next = advance();
+
+    // Scan the header looking for a language version
+    Token oldTail = tail;
+    if (next != $EOF) {
+      next = bigHeaderSwitch(next);
+      if (next != $EOF && tail.kind == SCRIPT_TOKEN) {
+        oldTail = tail;
+        next = bigHeaderSwitch(next);
+      }
+      while (next != $EOF && tail == oldTail) {
+        next = bigHeaderSwitch(next);
+      }
+    }
+
+    // If the first token can't be the start of a directive we can stop now.
+    Token? theFirstToken = tokens.next;
+    if (theFirstToken != null) {
+      if (theFirstToken.kind == SCRIPT_TOKEN) {
+        // OK
+      } else {
+        if (!_isTokenPossibleStartOfDirective(theFirstToken)) {
+          return _tokenizeDirectivesEndHelper(true);
+        }
+      }
+    }
+
+    // If we scanned something after a script token, _that_ has to be the start
+    // of a directive or we can stop now.
+    if (oldTail != tail && oldTail.kind == SCRIPT_TOKEN) {
+      if (!_isTokenPossibleStartOfDirective(oldTail.next)) {
+        return _tokenizeDirectivesEndHelper(true);
+      }
+    }
+
+    while (next != $EOF) {
+      oldTail = tail;
+      next = bigSwitch(next);
+      if (!identical(oldTail, tail)) {
+        if (oldTail.isA(TokenType.SEMICOLON)) {
+          if (!_isTokenPossibleStartOfDirective(oldTail.next)) {
+            return _tokenizeDirectivesEndHelper(true);
+          }
+        }
+      }
+    }
+
+    return _tokenizeDirectivesEndHelper(false);
+  }
+
+  bool _isTokenPossibleStartOfDirective(Token? token) {
+    String? stringValue = token?.stringValue;
+    if (identical("@", stringValue) ||
+        identical("part", stringValue) ||
+        identical("library", stringValue) ||
+        identical("import", stringValue) ||
+        identical("export", stringValue)) {
+      return true;
+    }
+    return false;
+  }
+
+  Token _tokenizeDirectivesEndHelper(bool removeLast) {
+    if (removeLast) {
+      tail = tail.previous!;
+      tail.next = null;
+    }
+
+    // Clear grouping stack to avoid UnmatchedTokens.
+    while (!groupingStack.isEmpty) {
+      groupingStack = groupingStack.tail!;
+    }
+    appendEofToken();
+
+    // We pretend there's a line here.
+    lineStarts.add(stringOffset + 1);
+    return firstToken();
+  }
+
   /// Tokenize a (small) part of the data. Used for recovery "option testing".
   ///
   /// Returns the number of recoveries performed.
