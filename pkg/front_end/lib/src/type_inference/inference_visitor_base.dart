@@ -3098,8 +3098,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             const InvalidType(),
           ),
           interfaceTarget: method!,
-          checkType: result.inferredType,
-          objectNullableType: coreTypes.objectNullableRawType,
+          checkedType: result.inferredType,
+          operandStaticType: coreTypes.objectNullableRawType,
           fileOffset: fileOffset,
         );
       } else {
@@ -3155,8 +3155,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             arguments,
           ),
           functionType: inferredFunctionType as FunctionType,
-          checkType: result.inferredType,
-          objectNullableType: coreTypes.objectNullableRawType,
+          checkedType: result.inferredType,
+          operandStaticType: coreTypes.objectNullableRawType,
           interfaceTarget: method!,
           fileOffset: fileOffset,
         );
@@ -3310,8 +3310,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             kind,
             receiver,
             originalName,
-            checkType: calleeType,
-            objectNullableType: coreTypes.objectNullableRawType,
+            checkedType: calleeType,
+            operandStaticType: coreTypes.objectNullableRawType,
             interfaceTarget: originalTarget,
             fileOffset: fileOffset,
           );
@@ -5415,8 +5415,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               receiver,
               propertyName,
               interfaceTarget: member,
-              checkType: readType,
-              objectNullableType: coreTypes.objectNullableRawType,
+              checkedType: readType,
+              operandStaticType: coreTypes.objectNullableRawType,
               fileOffset: fileOffset,
             );
           } else {
@@ -5436,8 +5436,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               receiver,
               propertyName,
               interfaceTarget: member,
-              checkType: readType,
-              objectNullableType: coreTypes.objectNullableRawType,
+              checkedType: readType,
+              operandStaticType: coreTypes.objectNullableRawType,
               fileOffset: fileOffset,
             );
           } else {

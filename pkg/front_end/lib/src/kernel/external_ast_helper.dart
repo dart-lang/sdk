@@ -330,8 +330,8 @@ AsExpression createCovarianceCheckedInstanceGet(
   Expression receiver,
   Name name, {
   required Member interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -340,9 +340,9 @@ AsExpression createCovarianceCheckedInstanceGet(
         receiver,
         name,
         interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -356,8 +356,8 @@ AsExpression createCovarianceCheckedInstanceInvocation(
   Arguments arguments, {
   required Procedure interfaceTarget,
   required FunctionType functionType,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -368,9 +368,9 @@ AsExpression createCovarianceCheckedInstanceInvocation(
         arguments,
         interfaceTarget: interfaceTarget,
         functionType: functionType,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
@@ -382,8 +382,8 @@ AsExpression createCovarianceCheckedInstanceTearOff(
   Expression receiver,
   Name name, {
   required Procedure interfaceTarget,
-  required DartType checkType,
-  required DartType objectNullableType,
+  required DartType checkedType,
+  required DartType operandStaticType,
   required int fileOffset,
 }) {
   return new AsExpression(
@@ -392,9 +392,9 @@ AsExpression createCovarianceCheckedInstanceTearOff(
         receiver,
         name,
         interfaceTarget: interfaceTarget,
-        resultType: objectNullableType,
+        resultType: operandStaticType,
       )..fileOffset = fileOffset,
-      checkType,
+      checkedType,
     )
     ..isTypeError = true
     ..isCovarianceCheck = true
