@@ -151,6 +151,16 @@ class MigrateHandler
   }
 }
 
+/// The outcome of executing a package migration step.
+enum _ExecutionOutcome {
+  /// The step executed successfully (with or without changes).
+  success,
+
+  /// An exception occurred during execution which was logged to the summary,
+  /// indicating we should skip subsequent steps for this package.
+  exception,
+}
+
 /// An orchestrator that performs package migrations across one or more target
 /// packages.
 ///
@@ -259,41 +269,13 @@ class _MigrationRunner({
         continue;
       }
 
-      var targetVersion = versionBumpEdit.targetVersion;
-      var originalVersionChangeBuilder = await _createBuilder();
-
-      // Run pre-migrations fixes.
-      var preMigrationFixDetails = await _runPreMigrations(
-        context,
-        pubspec,
-        targetVersion,
-        originalVersionChangeBuilder,
+      var outcome = await _executePrepareAndBump(
+        context: context,
+        pubspec: pubspec,
+        versionBumpEdit: versionBumpEdit,
+        bumpedLines: bumpedLines,
       );
-      if (preMigrationFixDetails == null) continue;
-
-      _accumulateFixDetails(
-        preMigrationFixDetails,
-        _preMigrationFixDetailsMap,
-        pubspec,
-      );
-
-      // Bump version constraint.
-      await _bumpPubspecConstraint(
-        pubspecFile,
-        versionBumpEdit,
-        originalVersionChangeBuilder,
-      );
-
-      _applyAndRecordEdits(originalVersionChangeBuilder);
-
-      bumpedLines.add(
-        '- ${pubspec.displayName}: ${versionBumpEdit.originalConstraint} -> '
-        '${versionBumpEdit.replacement}',
-      );
-
-      // Apply the pre-migration and pubspec constraint.
-      await applyOverlays();
-      await server.analysisDriverScheduler.waitForIdle();
+      if (outcome == _ExecutionOutcome.exception) continue;
 
       // Get the updated context.
       var updatedContext = server.contextManager.getContextFor(
@@ -308,24 +290,12 @@ class _MigrationRunner({
         continue;
       }
 
-      // Run post-migration fixes.
-      var targetVersionChangeBuilder = await _createBuilder();
-      // TODO(kallentu): Allow the user to choose which ones.
-      var postMigrationFixDetails = await _runPostMigrations(
-        updatedContext,
-        pubspec,
-        targetVersion,
-        targetVersionChangeBuilder,
+      var cleanupOutcome = await _executeCleanup(
+        context: updatedContext,
+        pubspec: pubspec,
+        targetVersion: versionBumpEdit.targetVersion,
       );
-
-      if (postMigrationFixDetails != null) {
-        _accumulateFixDetails(
-          postMigrationFixDetails,
-          _postMigrationFixDetailsMap,
-          pubspec,
-        );
-        _applyAndRecordEdits(targetVersionChangeBuilder);
-      }
+      if (cleanupOutcome == _ExecutionOutcome.exception) continue;
     }
 
     if (bumpedLines.isEmpty) {
@@ -362,6 +332,86 @@ class _MigrationRunner({
     return ChangeBuilder(
       workspace: DartChangeWorkspace(await server.currentSessions),
     );
+  }
+
+  /// Runs post-migration cleanup fixes for the target SDK [targetVersion].
+  ///
+  /// Applies the cleanup edits to the temporary overlays and records the
+  /// corresponding file edits. Returns [_ExecutionOutcome.exception] if an
+  /// error occurs.
+  Future<_ExecutionOutcome> _executeCleanup({
+    required DriverBasedAnalysisContext context,
+    required _PubspecTarget pubspec,
+    required Version targetVersion,
+  }) async {
+    // Run post-migration fixes.
+    var targetVersionChangeBuilder = await _createBuilder();
+    // TODO(kallentu): Allow the user to choose which ones.
+    var postMigrationFixDetails = await _runPostMigrations(
+      context,
+      pubspec,
+      targetVersion,
+      targetVersionChangeBuilder,
+    );
+
+    if (postMigrationFixDetails == null) {
+      return _ExecutionOutcome.exception;
+    }
+
+    _accumulateFixDetails(
+      postMigrationFixDetails,
+      _postMigrationFixDetailsMap,
+      pubspec,
+    );
+    _applyAndRecordEdits(targetVersionChangeBuilder);
+
+    return _ExecutionOutcome.success;
+  }
+
+  /// Runs pre-migration prepare fixes and bumps the SDK version constraint.
+  ///
+  /// Applies the resulting edits to the temporary overlays and records the
+  /// corresponding file edits. Returns [_ExecutionOutcome.exception] if an
+  /// error occurs.
+  Future<_ExecutionOutcome> _executePrepareAndBump({
+    required DriverBasedAnalysisContext context,
+    required _PubspecTarget pubspec,
+    required PubspecEdit versionBumpEdit,
+    required List<String> bumpedLines,
+  }) async {
+    // Run pre-migrations fixes.
+    var builder = await _createBuilder();
+    var preMigrationFixDetails = await _runPreMigrations(
+      context,
+      pubspec,
+      versionBumpEdit.targetVersion,
+      builder,
+    );
+    if (preMigrationFixDetails == null) {
+      return _ExecutionOutcome.exception;
+    }
+
+    _accumulateFixDetails(
+      preMigrationFixDetails,
+      _preMigrationFixDetailsMap,
+      pubspec,
+    );
+
+    // Bump version constraint.
+    await _bumpPubspecConstraint(pubspec.file, versionBumpEdit, builder);
+
+    _applyAndRecordEdits(builder);
+
+    bumpedLines.add(
+      '- ${pubspec.displayName}: ${versionBumpEdit.originalConstraint} -> '
+      '${versionBumpEdit.replacement}',
+    );
+
+    // Apply the pre-migration and pubspec constraint.
+    await applyOverlays();
+    await server.analysisDriverScheduler.waitForIdle();
+
+    return _ExecutionOutcome.success;
   }
 
   /// Runs bulk fixes for the given [lintCodes] in the specified migration

@@ -13,5 +13,8 @@ vm/*: SkipByDesign # Tests for the VM.
 import/conditional_import_string_test: Skip # Timeout does not work with async module loading.
 import/conditional_import_test: Skip # Timeout does not work with async module loading.
 
+[ $compiler == dart2wasm && $runtime == safari ]
+stack_trace/full1_test: Skip # Unstable on Safari https://dartbug.com/63543
+
 [ $compiler == dart2wasm && $dart2wasm_standalone ]
 deferred/regression_22995_test: SkipByDesign # Standalone does not support --enable-deferred-loading.
