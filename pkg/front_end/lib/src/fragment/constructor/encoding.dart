@@ -869,11 +869,7 @@ class _ExtensionTypeInitializerToStatementConverter
             thisVariableStatement.declaration.variable,
             extern.createStaticInvocation(
               node.target,
-              node.arguments.toArguments(
-                node.inferredTypeArguments,
-                node.positional,
-                node.named,
-              ),
+              node.inferredArguments,
               fileOffset: node.fileOffset,
             ),
             fileOffset: node.fileOffset,

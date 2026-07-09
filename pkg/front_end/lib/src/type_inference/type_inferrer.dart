@@ -382,9 +382,10 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      NamedExpression namedExpression = new NamedExpression(
+      InternalNamedExpression namedExpression = intern.createNamedExpression(
         parameter.cosmeticName!,
         intern.createVariableGet(parameter, fileOffset: parameter.fileOffset),
+        fileOffset: parameter.fileOffset,
       );
 
       arguments.add(new NamedArgument(namedExpression));

@@ -1029,12 +1029,16 @@ Expression createMethodInvocation(
   )..fileOffset = fileOffset;
 }
 
-NamedExpression createNamedExpression(
+InternalNamedExpression createNamedExpression(
   String name,
   Expression value, {
   required int fileOffset,
 }) {
-  return new NamedExpression(name, value)..fileOffset = fileOffset;
+  return new InternalNamedExpression(
+    name: name,
+    value: value,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalNamedParameter createNamedParameter({

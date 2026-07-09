@@ -12949,9 +12949,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
-    node.inferredTypeArguments = inferenceResult.typeArguments;
-    node.positional = inferenceResult.positional;
-    node.named = inferenceResult.named;
+    node.inferredArguments = createArgumentsFromInternalNode(
+      inferenceResult.typeArguments,
+      inferenceResult.positional,
+      inferenceResult.named,
+      node.arguments,
+    );
 
     LocatedMessage? message = problemReporting.checkArgumentsForFunction(
       function: node.target.function,

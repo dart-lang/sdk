@@ -5444,7 +5444,7 @@ class BodyBuilderImpl extends StackListenerImpl
     ];
     if (elements != null) {
       for (Object? element in elements) {
-        if (element is NamedExpression) {
+        if (element is InternalNamedExpression) {
           if (forbiddenObjectMemberNames.contains(element.name)) {
             libraryBuilder.addProblem(
               diag.objectMemberNameUsedForRecordField,
