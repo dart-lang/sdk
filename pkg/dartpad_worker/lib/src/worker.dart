@@ -18,6 +18,7 @@ import 'package:stream_channel/stream_channel.dart';
 import 'resource_provider/resource_provider_ext.dart';
 import 'resource_provider/resource_provider_wrap_cwd.dart';
 import 'shared.dart' hide FileSystemException;
+import 'tools/file_watch.dart';
 import 'tools/hot_reload_compiler.dart' show HotReloadCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
@@ -28,6 +29,7 @@ final class Worker {
   int _nextLanguageServerId = 1;
   int _nextHotReloadCompilerId = 1;
   int _nextWorkspaceId = 1;
+  int _nextWatcherId = 1;
 
   Worker._();
 
@@ -137,6 +139,14 @@ class _Session {
       'workspace/languageServer/stop',
       _forwardToWorkspace((ws) => ws._stopLanguageServer),
     );
+    _rpc.registerMethod(
+      'workspace/startWatcher',
+      _forwardToWorkspace((ws) => ws._watch),
+    );
+    _rpc.registerMethod(
+      'workspace/watcher/stop',
+      _forwardToWorkspace((ws) => ws._unwatch),
+    );
     unawaited(() async {
       await _rpc.listen();
       // Delete all workspaces to cleanup resources
@@ -202,6 +212,7 @@ class _Workspace {
   final ResourceProvider _rp;
   final _languageServers = <int, LanguageServer>{};
   final _hotReloadCompilers = <int, HotReloadCompiler>{};
+  final _fileWatches = <int, FileWatch>{};
 
   _Workspace(
     this._worker,
@@ -543,9 +554,31 @@ class _Workspace {
   Object? _stopLanguageServer(Parameters params) async {
     final languageServerId = params['languageServerId'].asNum.toInt();
     final languageServer = _languageServers.remove(languageServerId);
-    if (languageServer != null) {
-      await languageServer.close();
-    }
+    await languageServer?.close();
+    return <String, Object?>{};
+  }
+
+  Object? _watch(Parameters params) async {
+    final path = _resolvePath(params['uri'].asUri);
+    final watcherId = _worker._nextWatcherId++;
+
+    _fileWatches[watcherId] = await FileWatch.create(_rp, path, (events) {
+      _session._rpc.sendNotification('workspace/watcher/events', {
+        'workspaceId': _workspaceId,
+        'watcherId': watcherId,
+        'events': events
+            .map((e) => {'type': e.event, 'uri': e.uri.toString()})
+            .toList(),
+      });
+    });
+
+    return {'watcherId': watcherId};
+  }
+
+  Object? _unwatch(Parameters params) async {
+    final watcherId = params['watcherId'].asNum.toInt();
+    final fileWatch = _fileWatches.remove(watcherId);
+    await fileWatch?.stop();
     return <String, Object?>{};
   }
 
@@ -554,6 +587,7 @@ class _Workspace {
       await Future.wait([
         ..._languageServers.values.map((ls) => ls.close()),
         ..._hotReloadCompilers.values.map((cs) => cs.close()),
+        ..._fileWatches.values.map((fw) => fw.stop()),
       ]);
     } finally {
       _rp.getFolder(_workspaceFolder).delete();

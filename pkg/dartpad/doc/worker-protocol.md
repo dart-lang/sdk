@@ -451,7 +451,61 @@ Sends an LSP message to a running language server.
 ```
 
 
+### Method `workspace/startWatcher`
+
+Initiates a file system watcher for a given URI.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "uri": ".",
+}
+```
+
+**Result:**
+```js
+{
+  "watcherId": 1
+}
+```
+
+### Method `workspace/watcher/stop`
+
+Terminates an active watcher.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "watcherId": 1
+}
+```
+
+**Result:**
+```js
+{} // empty result
+```
+
 ## Client Notifications
+
+### Notification `workspace/watcher/events`
+
+Sent when changes occur within the watched paths.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "watcherId": 1,
+  "events": [
+    {
+      "type": "add" | "modify" | "remove",
+      "uri": "file:///workspace/pad_42/lib/main.dart"
+    }
+  ]
+}
+```
 
 ### Notification `workspace/languageServer/message`
 Sent by the worker when the language server produces a message.

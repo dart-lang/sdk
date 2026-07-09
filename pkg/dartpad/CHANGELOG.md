@@ -1,3 +1,6 @@
+## v0.0.4-wip
+ - Support for file watching.
+
 ## v0.0.3
  - Embed assets for `package:dartpad` in `web/` folder.
 
