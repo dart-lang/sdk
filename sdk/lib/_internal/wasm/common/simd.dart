@@ -769,13 +769,7 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
       I32x4._wrap((WasmI32x4(_bits) - WasmI32x4((other as I32x4)._bits)).value);
   Int32x4 operator -() => I32x4._wrap((-WasmI32x4(_bits)).value);
 
-  int get signMask {
-    int mx = (x & 0x80000000) >> 31;
-    int my = (y & 0x80000000) >> 31;
-    int mz = (z & 0x80000000) >> 31;
-    int mw = (w & 0x80000000) >> 31;
-    return mx | my << 1 | mz << 2 | mw << 3;
-  }
+  int get signMask => WasmI32x4(_bits).bitmask.toIntUnsigned();
 
   Int32x4 shuffle(int mask) {
     // mask < 0 || mask > 255
