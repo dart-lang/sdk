@@ -366,7 +366,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? constKeyword,
   ) {}
 
-  void beginPrimaryConstructorBody(Token token) {}
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {}
 
   // Handles the `this` body block for a primary constructor. Substructures:
   /// - metadata

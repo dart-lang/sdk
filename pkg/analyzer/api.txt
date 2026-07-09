@@ -1553,6 +1553,7 @@ package:analyzer/dart/ast/ast.dart:
     period (getter: Token)
     prefix (getter: SimpleIdentifier)
   PrimaryConstructorBody (class extends Object implements ClassMember, abstract, final):
+    augmentKeyword (getter: Token?)
     body (getter: FunctionBody)
     colon (getter: Token?)
     declaration (getter: PrimaryConstructorDeclaration?)

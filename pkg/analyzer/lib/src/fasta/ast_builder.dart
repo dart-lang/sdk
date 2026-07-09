@@ -578,8 +578,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token beginToken) {
+  void beginPrimaryConstructorBody(Token beginToken, Token? augmentToken) {
     debugEvent("PrimaryConstructorBody");
+    push(_Modifiers()..augmentKeyword = augmentToken);
   }
 
   @override
@@ -2762,6 +2763,7 @@ class AstBuilder extends StackListener {
     var body = pop() as FunctionBodyImpl;
     var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
     var colon = pop() as Token?;
+    var modifiers = pop() as _Modifiers;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
 
@@ -2769,6 +2771,7 @@ class AstBuilder extends StackListener {
       PrimaryConstructorBodyImpl(
         comment: comment,
         metadata: metadata,
+        augmentKeyword: modifiers.augmentKeyword,
         thisKeyword: beginToken,
         colon: colon,
         initializers: initializers,

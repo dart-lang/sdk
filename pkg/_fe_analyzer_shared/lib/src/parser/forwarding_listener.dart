@@ -2468,8 +2468,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {
-    listener?.beginPrimaryConstructorBody(token);
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {
+    listener?.beginPrimaryConstructorBody(token, augmentToken);
   }
 
   @override
