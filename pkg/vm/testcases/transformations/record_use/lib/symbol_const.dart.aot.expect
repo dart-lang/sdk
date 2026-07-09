@@ -21,7 +21,7 @@ final class C extends core::Object /*hasConstConstructor*/  {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.unboxing-info.metadata=[!regcc]]
 @#C1
-static method staticMethod([@vm.inferred-arg-type.metadata=dart._internal::Symbol] core::Symbol s) → void {}
+static method staticMethod([@vm.inferred-arg-type.metadata=dart._internal::Symbol (value: #anotherSymbol)] core::Symbol s) → void {}
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {

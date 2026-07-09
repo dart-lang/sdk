@@ -1,0 +1,44 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method test0() → void {
+  core::print(#C1);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method test1() → void {
+  core::print(#C2);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method test2() → void {
+  core::print(#C3);
+}
+
+[@vm.inferred-return-type.metadata=dart._internal::Symbol (value: #getterSymbol)]
+static method getSymbol() → core::Symbol
+  return #C4;
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testSymbol() → void {
+  core::print(#C5);
+  core::print([@vm.inferred-type.metadata=dart._internal::Symbol (value: #getterSymbol)] self::getSymbol());
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::test0();
+  self::test1();
+  self::test2();
+  self::testSymbol();
+}
+constants  {
+  #C1 = #foo
+  #C2 = #defaultSymbol
+  #C3 = #namedDefaultSymbol
+  #C4 = #getterSymbol
+  #C5 = #bar
+}
