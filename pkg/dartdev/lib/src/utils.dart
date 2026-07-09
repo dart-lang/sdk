@@ -166,32 +166,58 @@ String wrapText(String text, {int? width}) {
     return text;
   }
 
-  var buffer = StringBuffer();
+  final isAnsi = List<bool>.filled(text.length, false);
+  final matches = _ansiEscapeRegExp.allMatches(text);
+  for (final match in matches) {
+    for (var i = match.start; i < match.end; i++) {
+      isAnsi[i] = true;
+    }
+  }
+
+  final visualBuffer = StringBuffer();
+  for (var i = 0; i < text.length; i++) {
+    if (!isAnsi[i]) {
+      visualBuffer.write(text[i]);
+    }
+  }
+  final visualString = visualBuffer.toString();
+
+  final visualSplits = <int>{};
   var lineMaxEndIndex = width;
   var lineStartIndex = 0;
 
   while (true) {
-    if (lineMaxEndIndex >= text.length) {
-      buffer.write(text.substring(lineStartIndex, text.length));
+    if (lineMaxEndIndex >= visualString.length) {
       break;
     } else {
-      var lastSpaceIndex = text.lastIndexOf(' ', lineMaxEndIndex);
+      var lastSpaceIndex = visualString.lastIndexOf(' ', lineMaxEndIndex);
       if (lastSpaceIndex == -1 || lastSpaceIndex <= lineStartIndex) {
         // No space between [lineStartIndex] and [lineMaxEndIndex]. Get the
         // _next_ space.
-        lastSpaceIndex = text.indexOf(' ', lineMaxEndIndex);
+        lastSpaceIndex = visualString.indexOf(' ', lineMaxEndIndex);
         if (lastSpaceIndex == -1) {
-          // No space at all after [lineStartIndex].
-          lastSpaceIndex = text.length;
-          buffer.write(text.substring(lineStartIndex, lastSpaceIndex));
           break;
         }
       }
-      buffer.write(text.substring(lineStartIndex, lastSpaceIndex));
-      buffer.writeln();
+      visualSplits.add(lastSpaceIndex);
       lineStartIndex = lastSpaceIndex + 1;
     }
     lineMaxEndIndex = lineStartIndex + width;
+  }
+
+  final buffer = StringBuffer();
+  var v = 0;
+  for (var i = 0; i < text.length; i++) {
+    if (isAnsi[i]) {
+      buffer.write(text[i]);
+    } else {
+      if (visualSplits.contains(v)) {
+        buffer.writeln();
+      } else {
+        buffer.write(text[i]);
+      }
+      v++;
+    }
   }
   return buffer.toString();
 }
@@ -200,6 +226,8 @@ String wrapText(String text, {int? width}) {
 // capital letters.
 // https://dart.dev/language#important-concepts
 final RegExp _identifierRegExp = RegExp(r'^[a-z_][a-z\d_]*$');
+
+final RegExp _ansiEscapeRegExp = RegExp(r'\x1B\[[0-9;]*[a-zA-Z]');
 
 // non-contextual dart keywords.
 // https://dart.dev/language/keywords
