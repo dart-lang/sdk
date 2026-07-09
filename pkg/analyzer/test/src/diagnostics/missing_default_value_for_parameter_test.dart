@@ -110,6 +110,18 @@ class C {
 ''');
   }
 
+  test_constructor_generative_nonNullable_named_optional_noDefault_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  C({int a});
+//       ^
+// [diag.missingDefaultValueForParameter] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+
+  augment C({int a}) {}
+}
+''');
+  }
+
   test_constructor_generative_nonNullable_named_optional_super_hasDefault_explicit() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -172,12 +184,54 @@ class B extends A{
 ''');
   }
 
+  test_constructor_generative_nonNullable_positional_optional_default_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  C([int a]);
+
+  augment C([int a = 0]) {}
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_positional_optional_default_introduction_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  C([int a = 0]);
+
+  augment C([int a]) {}
+}
+''');
+  }
+
   test_constructor_generative_nonNullable_positional_optional_noDefault() async {
     await resolveTestCodeWithDiagnostics('''
 class C {
   C([int a]);
 //       ^
 // [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_positional_optional_noDefault_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  C([int a]);
+//       ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+
+  augment C([int a]) {}
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_positional_optional_noDefault_primary_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C([int x]) {
+//           ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'x' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+  augment C([int x]);
 }
 ''');
   }
@@ -431,6 +485,16 @@ void f({int a}) {}
 ''');
   }
 
+  test_function_nonNullable_named_optional_noDefault_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+void f({int a});
+//          ^
+// [diag.missingDefaultValueForParameter] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+
+augment void f({int a}) {}
+''');
+  }
+
   test_function_nonNullable_named_required() async {
     await resolveTestCodeWithDiagnostics('''
 void f({required int a}) {}
@@ -484,8 +548,6 @@ void f([int a]);
 // [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
 
 augment void f([int a]) {}
-//                  ^
-// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
 ''');
   }
 
@@ -713,6 +775,18 @@ class C {
 ''');
   }
 
+  test_method_nonNullable_named_optional_noDefault_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  void foo({int a});
+//              ^
+// [diag.missingDefaultValueForParameter] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
+
+  augment void foo({int a}) {}
+}
+''');
+  }
+
   test_method_nonNullable_positional_optional_default_augmentation() async {
     await resolveTestCodeWithDiagnostics('''
 class C {
@@ -759,10 +833,10 @@ class C {
     await resolveTestCodeWithDiagnostics('''
 class C {
   void foo([int a]);
+//              ^
+// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
 
   augment void foo([int a]) {}
-//                      ^
-// [diag.missingDefaultValueForParameterPositional] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
 }
 ''');
   }
