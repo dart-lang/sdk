@@ -39,8 +39,7 @@ Message _withArgumentsAbstractClassInstantiation({required String name}) {
 const MessageCode abstractFieldConstructorInitializer = const MessageCode(
   "AbstractFieldConstructorInitializer",
   problemMessage: """Abstract fields cannot have initializers.""",
-  correctionMessage:
-      """Try removing the field initializer or the 'abstract' keyword from the field declaration.""",
+  correctionMessage: """Try removing the field initializer or the 'abstract' keyword from the field declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -98,8 +97,7 @@ Message _withArgumentsAmbiguousExtensionMethod({
     problemMessage:
         """The method '${name_0}' is defined in multiple extensions for '${type_0}' and neither is more specific.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+    correctionMessage: """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
     arguments: {'name': name, 'type': type},
   );
 }
@@ -124,8 +122,7 @@ Message _withArgumentsAmbiguousExtensionOperator({
     problemMessage:
         """The operator '${name_0}' is defined in multiple extensions for '${type_0}' and neither is more specific.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+    correctionMessage: """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
     arguments: {'name': name, 'type': type},
   );
 }
@@ -150,8 +147,7 @@ Message _withArgumentsAmbiguousExtensionProperty({
     problemMessage:
         """The property '${name_0}' is defined in multiple extensions for '${type_0}' and neither is more specific.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
+    correctionMessage: """Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.""",
     arguments: {'name': name, 'type': type},
   );
 }
@@ -232,8 +228,7 @@ Message _withArgumentsAnonymousMethodWrongParameterTypeCfe({
     problemMessage:
         """The receiver type '${receiverType_0}' must be assignable to the formal parameter type '${parameterType_0}' in an anonymous method.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try removing the parameter type, or make it a supertype of the receiver type.""",
+    correctionMessage: """Try removing the parameter type, or make it a supertype of the receiver type.""",
     arguments: {'receiverType': receiverType, 'parameterType': parameterType},
   );
 }
@@ -277,8 +272,7 @@ const MessageCode awaitInLateLocalInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitOfExtensionTypeNotFuture = const MessageCode(
   "AwaitOfExtensionTypeNotFuture",
-  problemMessage:
-      """The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""",
+  problemMessage: """The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -548,17 +542,14 @@ Message _withArgumentsCannotReadSdkSpecification({required String details}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cantDisambiguateAmbiguousInformation = const MessageCode(
   "CantDisambiguateAmbiguousInformation",
-  problemMessage:
-      """Both Iterable and Map spread elements encountered in ambiguous literal.""",
+  problemMessage: """Both Iterable and Map spread elements encountered in ambiguous literal.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cantDisambiguateNotEnoughInformation = const MessageCode(
   "CantDisambiguateNotEnoughInformation",
-  problemMessage:
-      """Not enough type information to disambiguate between literal set and literal map.""",
-  correctionMessage:
-      """Try providing type arguments for the literal explicitly to disambiguate it.""",
+  problemMessage: """Not enough type information to disambiguate between literal set and literal map.""",
+  correctionMessage: """Try providing type arguments for the literal explicitly to disambiguate it.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -769,8 +760,7 @@ Message _withArgumentsCantUseDeferredPrefixAsConstant({required Token token}) {
     cantUseDeferredPrefixAsConstant,
     problemMessage:
         """'${token_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
-    correctionMessage:
-        """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
+    correctionMessage: """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
     arguments: {'token': token},
   );
 }
@@ -792,8 +782,7 @@ const MessageCode cantUsePrefixWithNullAware = const MessageCode(
 const MessageCode classImplementsDeferredClass = const MessageCode(
   "ClassImplementsDeferredClass",
   problemMessage: """Classes and mixins can't implement deferred classes.""",
-  correctionMessage:
-      """Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""",
+  correctionMessage: """Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1065,8 +1054,7 @@ Message _withArgumentsConstEvalDeferredLibrary({required String importName}) {
     constEvalDeferredLibrary,
     problemMessage:
         """'${importName_0}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
-    correctionMessage:
-        """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
+    correctionMessage: """Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
     arguments: {'importName': importName},
   );
 }
@@ -1215,8 +1203,7 @@ const MessageCode constEvalExternalConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constEvalExternalFactory = const MessageCode(
   "ConstEvalExternalFactory",
-  problemMessage:
-      """External factory constructors can't be evaluated in constant expressions.""",
+  problemMessage: """External factory constructors can't be evaluated in constant expressions.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1640,8 +1627,7 @@ const MessageCode constEvalNonNull = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constEvalNotListOrSetInSpread = const MessageCode(
   "ConstEvalNotListOrSetInSpread",
-  problemMessage:
-      """Only lists and sets can be used in spreads in constant lists and sets.""",
+  problemMessage: """Only lists and sets can be used in spreads in constant lists and sets.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1759,18 +1745,15 @@ Message _withArgumentsConstEvalZeroDivisor({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constFactoryRedirectionToNonConst = const MessageCode(
   "ConstFactoryRedirectionToNonConst",
-  problemMessage:
-      """Constant factory constructor can't delegate to a non-constant constructor.""",
-  correctionMessage:
-      """Try redirecting to a different constructor or marking the target constructor 'const'.""",
+  problemMessage: """Constant factory constructor can't delegate to a non-constant constructor.""",
+  correctionMessage: """Try redirecting to a different constructor or marking the target constructor 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constInstanceField = const MessageCode(
   "ConstInstanceField",
   problemMessage: """Only static fields can be declared as const.""",
-  correctionMessage:
-      """Try using 'final' instead of 'const', or adding the keyword 'static'.""",
+  correctionMessage: """Try using 'final' instead of 'const', or adding the keyword 'static'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1817,8 +1800,7 @@ Message _withArgumentsConstructorConflictsWithMemberCause({
 const MessageCode constructorCyclic = const MessageCode(
   "ConstructorCyclic",
   problemMessage: """Redirecting constructors can't be cyclic.""",
-  correctionMessage:
-      """Try to have all constructors eventually redirect to a non-redirecting constructor.""",
+  correctionMessage: """Try to have all constructors eventually redirect to a non-redirecting constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1892,10 +1874,8 @@ Message _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode constructorTearOffWithTypeArguments = const MessageCode(
   "ConstructorTearOffWithTypeArguments",
-  problemMessage:
-      """A constructor tear-off can't have type arguments after the constructor name.""",
-  correctionMessage:
-      """Try removing the type arguments or placing them after the class name.""",
+  problemMessage: """A constructor tear-off can't have type arguments after the constructor name.""",
+  correctionMessage: """Try removing the type arguments or placing them after the class name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1983,8 +1963,7 @@ Message _withArgumentsCycleInTypeParameters({
     cycleInTypeParameters,
     problemMessage:
         """Type '${typeName_0}' is a bound of itself via '${cycle_0}'.""",
-    correctionMessage:
-        """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
+    correctionMessage: """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
     arguments: {'typeName': typeName, 'cycle': cycle},
   );
 }
@@ -2028,8 +2007,7 @@ Message _withArgumentsCyclicRedirectingFactoryConstructors({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode cyclicRepresentationDependency = const MessageCode(
   "CyclicRepresentationDependency",
-  problemMessage:
-      """An extension type can't depend on itself through its representation type.""",
+  problemMessage: """An extension type can't depend on itself through its representation type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2049,8 +2027,7 @@ Message _withArgumentsCyclicTypedef({required String name}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode dartExternalEffectIncorrectType = const MessageCode(
   "DartExternalEffectIncorrectType",
-  problemMessage:
-      """A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'""",
+  problemMessage: """A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'""",
   correctionMessage: """Try correcting the type of the function.""",
 );
 
@@ -2066,8 +2043,7 @@ const MessageCode dartExternalEffectMalformedPragma = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode dartExternalEffectNotExternal = const MessageCode(
   "DartExternalEffectNotExternal",
-  problemMessage:
-      """A function annotated with the 'external-effect' pragma must be external.""",
+  problemMessage: """A function annotated with the 'external-effect' pragma must be external.""",
   correctionMessage: """Try making the function external.""",
 );
 
@@ -2082,8 +2058,7 @@ const MessageCode dartExternalEffectNotMethod = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode dartExternalEffectNotStatic = const MessageCode(
   "DartExternalEffectNotStatic",
-  problemMessage:
-      """A function annotated with the 'external-effect' pragma must be static.""",
+  problemMessage: """A function annotated with the 'external-effect' pragma must be static.""",
   correctionMessage: """Try making the function static.""",
 );
 
@@ -2369,8 +2344,7 @@ Message _withArgumentsDirectCycleInTypeParameters({required String typeName}) {
   return new Message(
     directCycleInTypeParameters,
     problemMessage: """Type '${typeName_0}' can't use itself as a bound.""",
-    correctionMessage:
-        """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
+    correctionMessage: """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
     arguments: {'typeName': typeName},
   );
 }
@@ -2381,8 +2355,7 @@ dotShorthandsConstructorInvocationWithTypeArguments = const MessageCode(
   "DotShorthandsConstructorInvocationWithTypeArguments",
   problemMessage:
       """A dot shorthand constructor invocation can't have type arguments.""",
-  correctionMessage:
-      """Try adding the class name and type arguments explicitly before the constructor name.""",
+  correctionMessage: """Try adding the class name and type arguments explicitly before the constructor name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2777,22 +2750,18 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode dynamicCallsAreDisallowedByDefault = const MessageCode(
   "DynamicCallsAreDisallowedByDefault",
-  problemMessage:
-      """Dynamic calls are not allowed in dynamic modules by default as they increase risks of runtime errors in applications.""",
-  correctionMessage:
-      """You can bypass this error by using '--allow-dynamic-calls-in-dynamic-modules'.""",
+  problemMessage: """Dynamic calls are not allowed in dynamic modules by default as they increase risks of runtime errors in applications.""",
+  correctionMessage: """You can bypass this error by using '--allow-dynamic-calls-in-dynamic-modules'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-dynamicCallsAreDiscouragedInDynamicModules = const MessageCode(
-  "DynamicCallsAreDiscouragedInDynamicModules",
-  severity: CfeSeverity.warning,
-  problemMessage:
-      """Dynamic calls are discouraged in dynamic modules as they may fail at runtime if their target is not properly exposed as 'dynamically-callable'.""",
-  correctionMessage:
-      """Consider avoiding dynamic calls. You can remove '--allow-dynamic-calls-in-dynamic-modules' to see where dynamic calls are used.""",
-);
+const MessageCode dynamicCallsAreDiscouragedInDynamicModules =
+    const MessageCode(
+      "DynamicCallsAreDiscouragedInDynamicModules",
+      severity: CfeSeverity.warning,
+      problemMessage: """Dynamic calls are discouraged in dynamic modules as they may fail at runtime if their target is not properly exposed as 'dynamically-callable'.""",
+      correctionMessage: """Consider avoiding dynamic calls. You can remove '--allow-dynamic-calls-in-dynamic-modules' to see where dynamic calls are used.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})>
@@ -2832,8 +2801,7 @@ Message _withArgumentsDynamicallyCallableWithNoSuchMethod({
     dynamicallyCallableWithNoSuchMethod,
     problemMessage:
         """Cannot expose class '${name_0}' because it declares or inherits a 'noSuchMethod' declaration.""",
-    correctionMessage:
-        """Try removing the 'noSuchMethod' declaration or not exposing the class.""",
+    correctionMessage: """Try removing the 'noSuchMethod' declaration or not exposing the class.""",
     arguments: {'name': name},
   );
 }
@@ -2881,8 +2849,7 @@ Message _withArgumentsDynamicallyCallableWithNoSuchMethodHostSubtype({
     dynamicallyCallableWithNoSuchMethodHostSubtype,
     problemMessage:
         """Cannot expose class '${name_0}' because it has a subtype with a 'noSuchMethod' declaration.""",
-    correctionMessage:
-        """Try removing the 'noSuchMethod' declaration from the subtype or not exposing the class.""",
+    correctionMessage: """Try removing the 'noSuchMethod' declaration from the subtype or not exposing the class.""",
     arguments: {'name': name},
   );
 }
@@ -2954,8 +2921,7 @@ const MessageCode enumDeclarationEmpty = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode enumFactoryRedirectsToConstructor = const MessageCode(
   "EnumFactoryRedirectsToConstructor",
-  problemMessage:
-      """Enum factory constructors can't redirect to generative constructors.""",
+  problemMessage: """Enum factory constructors can't redirect to generative constructors.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3063,8 +3029,7 @@ Message _withArgumentsEnumSupertypeOfNonAbstractClass({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode enumWithNameValues = const MessageCode(
   "EnumWithNameValues",
-  problemMessage:
-      """The name 'values' is not a valid name for an enum. Try using a different name.""",
+  problemMessage: """The name 'values' is not a valid name for an enum. Try using a different name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3311,8 +3276,7 @@ Message _withArgumentsExperimentOptOutImplicit({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode explicitExtensionArgumentMismatch = const MessageCode(
   "ExplicitExtensionArgumentMismatch",
-  problemMessage:
-      """Explicit extension application requires exactly 1 positional argument.""",
+  problemMessage: """Explicit extension application requires exactly 1 positional argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3388,8 +3352,7 @@ Message _withArgumentsExpressionEvaluationKnownVariableUnavailable({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode expressionNotMetadata = const MessageCode(
   "ExpressionNotMetadata",
-  problemMessage:
-      """This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""",
+  problemMessage: """This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3429,8 +3392,7 @@ Message _withArgumentsExtendingRestricted({required String restrictedName}) {
 const MessageCode extendsDeferredClass = const MessageCode(
   "ExtendsDeferredClass",
   problemMessage: """Classes can't extend deferred classes.""",
-  correctionMessage:
-      """Try specifying a different superclass, or removing the extends clause.""",
+  correctionMessage: """Try specifying a different superclass, or removing the extends clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3512,8 +3474,7 @@ const MessageCode extensionTypeDeclarationCause = const MessageCode(
 const MessageCode extensionTypeImplementsDeferred = const MessageCode(
   "ExtensionTypeImplementsDeferred",
   problemMessage: """Extension types can't implement deferred types.""",
-  correctionMessage:
-      """Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""",
+  correctionMessage: """Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3531,23 +3492,20 @@ const MessageCode extensionTypeMemberOneOfContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-extensionTypePrimaryConstructorFunctionFormalParameterSyntax = const MessageCode(
-  "ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax",
-  problemMessage:
-      """Primary constructors in extension types can't use function formal parameter syntax.""",
-  correctionMessage:
-      """Try rewriting with an explicit function type, like `int Function() f`.""",
-);
+const MessageCode extensionTypePrimaryConstructorFunctionFormalParameterSyntax =
+    const MessageCode(
+      "ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax",
+      problemMessage: """Primary constructors in extension types can't use function formal parameter syntax.""",
+      correctionMessage: """Try rewriting with an explicit function type, like `int Function() f`.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-extensionTypePrimaryConstructorWithInitializingFormal = const MessageCode(
-  "ExtensionTypePrimaryConstructorWithInitializingFormal",
-  problemMessage:
-      """Primary constructors in extension types can't use initializing formals.""",
-  correctionMessage: """Try removing `this.` from the formal parameter.""",
-);
+const MessageCode extensionTypePrimaryConstructorWithInitializingFormal =
+    const MessageCode(
+      "ExtensionTypePrimaryConstructorWithInitializingFormal",
+      problemMessage: """Primary constructors in extension types can't use initializing formals.""",
+      correctionMessage: """Try removing `this.` from the formal parameter.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionTypeRepresentationTypeBottom = const MessageCode(
@@ -3583,8 +3541,7 @@ _withArgumentsExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface({
 const MessageCode externalFieldConstructorInitializer = const MessageCode(
   "ExternalFieldConstructorInitializer",
   problemMessage: """External fields cannot have initializers.""",
-  correctionMessage:
-      """Try removing the field initializer or the 'external' keyword from the field declaration.""",
+  correctionMessage: """Try removing the field initializer or the 'external' keyword from the field declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3734,15 +3691,13 @@ const MessageCode fastaUsageShort = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiAbiSpecificIntegerInvalid = const MessageCode(
   "FfiAbiSpecificIntegerInvalid",
-  problemMessage:
-      """Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""",
+  problemMessage: """Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiAbiSpecificIntegerMappingInvalid = const MessageCode(
   "FfiAbiSpecificIntegerMappingInvalid",
-  problemMessage:
-      """Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""",
+  problemMessage: """Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3755,15 +3710,13 @@ const MessageCode ffiAddressOfMustBeNative = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiAddressPosition = const MessageCode(
   "FfiAddressPosition",
-  problemMessage:
-      """The '.address' expression can only be used as argument to a leaf native external call.""",
+  problemMessage: """The '.address' expression can only be used as argument to a leaf native external call.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiAddressReceiver = const MessageCode(
   "FfiAddressReceiver",
-  problemMessage:
-      """The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
+  problemMessage: """The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
   correctionMessage:
       """Change the receiver of '.address' to one of the allowed kinds.""",
 );
@@ -3797,8 +3750,7 @@ Message _withArgumentsFfiCompoundImplementsFinalizable({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiCreateOfStructOrUnion = const MessageCode(
   "FfiCreateOfStructOrUnion",
-  problemMessage:
-      """Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""",
+  problemMessage: """Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3841,41 +3793,34 @@ const MessageCode ffiDeeplyImmutableClassesMustBeFinalOrSealed =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiDeeplyImmutableFieldsModifiers = const MessageCode(
   "FfiDeeplyImmutableFieldsModifiers",
-  problemMessage:
-      """Deeply immutable classes must only have final non-late instance fields.""",
-  correctionMessage:
-      """Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
+  problemMessage: """Deeply immutable classes must only have final non-late instance fields.""",
+  correctionMessage: """Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-ffiDeeplyImmutableFieldsMustBeDeeplyImmutable = const MessageCode(
-  "FfiDeeplyImmutableFieldsMustBeDeeplyImmutable",
-  problemMessage:
-      """Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', function types and classes annotated with `@pragma('vm:deeply-immutable')`.""",
-  correctionMessage:
-      """Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.""",
-);
+const MessageCode ffiDeeplyImmutableFieldsMustBeDeeplyImmutable =
+    const MessageCode(
+      "FfiDeeplyImmutableFieldsMustBeDeeplyImmutable",
+      problemMessage: """Deeply immutable classes must only have deeply immutable instance fields. Deeply immutable types include 'int', 'double', 'bool', 'String', 'Pointer', 'Float32x4', 'Float64x2', 'Int32x4', function types and classes annotated with `@pragma('vm:deeply-immutable')`.""",
+      correctionMessage: """Try changing the type of this field to a deeply immutable type or mark the type of this field as deeply immutable.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-ffiDeeplyImmutableSubtypesMustBeDeeplyImmutable = const MessageCode(
-  "FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable",
-  problemMessage:
-      """Subtypes of deeply immutable classes must be deeply immutable.""",
-  correctionMessage:
-      """Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
-);
+const MessageCode ffiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
+    const MessageCode(
+      "FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable",
+      problemMessage:
+          """Subtypes of deeply immutable classes must be deeply immutable.""",
+      correctionMessage: """Try marking this class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-ffiDeeplyImmutableSupertypeMustBeDeeplyImmutable = const MessageCode(
-  "FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable",
-  problemMessage:
-      """The super type of deeply immutable classes must be deeply immutable.""",
-  correctionMessage:
-      """Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
-);
+const MessageCode ffiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
+    const MessageCode(
+      "FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable",
+      problemMessage: """The super type of deeply immutable classes must be deeply immutable.""",
+      correctionMessage: """Try marking the super class deeply immutable by adding `@pragma('vm:deeply-immutable')`.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiDefaultAssetDuplicate = const MessageCode(
@@ -4164,15 +4109,13 @@ Message _withArgumentsFfiNativeCallableListenerReturnVoid({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiNativeDuplicateAnnotations = const MessageCode(
   "FfiNativeDuplicateAnnotations",
-  problemMessage:
-      """Native functions and fields must not have more than @Native annotation.""",
+  problemMessage: """Native functions and fields must not have more than @Native annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiNativeFieldMissingType = const MessageCode(
   "FfiNativeFieldMissingType",
-  problemMessage:
-      """The native type of this field could not be inferred and must be specified in the annotation.""",
+  problemMessage: """The native type of this field could not be inferred and must be specified in the annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4184,15 +4127,13 @@ const MessageCode ffiNativeFieldMustBeStatic = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiNativeFieldType = const MessageCode(
   "FfiNativeFieldType",
-  problemMessage:
-      """Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""",
+  problemMessage: """Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiNativeFunctionMissingType = const MessageCode(
   "FfiNativeFunctionMissingType",
-  problemMessage:
-      """The native type of this function couldn't be inferred so it must be specified in the annotation.""",
+  problemMessage: """The native type of this function couldn't be inferred so it must be specified in the annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4202,12 +4143,11 @@ const MessageCode ffiNativeMustBeExternal = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-ffiNativeOnlyNativeFieldWrapperClassCanBePointer = const MessageCode(
-  "FfiNativeOnlyNativeFieldWrapperClassCanBePointer",
-  problemMessage:
-      """Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.""",
-);
+const MessageCode ffiNativeOnlyNativeFieldWrapperClassCanBePointer =
+    const MessageCode(
+      "FfiNativeOnlyNativeFieldWrapperClassCanBePointer",
+      problemMessage: """Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -4411,8 +4351,7 @@ Message _withArgumentsFfiTypeMismatch({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode ffiVariableLengthArrayNotLast = const MessageCode(
   "FfiVariableLengthArrayNotLast",
-  problemMessage:
-      """Variable length 'Array's must only occur as the last field of Structs.""",
+  problemMessage: """Variable length 'Array's must only occur as the last field of Structs.""",
   correctionMessage:
       """Try adjusting the arguments in the 'Array' annotation.""",
 );
@@ -4421,8 +4360,7 @@ const MessageCode ffiVariableLengthArrayNotLast = const MessageCode(
 const MessageCode ffiVmSharedFieldsModifiers = const MessageCode(
   "FfiVmSharedFieldsModifiers",
   problemMessage: """Shared fields must be final non-late.""",
-  correctionMessage:
-      """Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
+  correctionMessage: """Add the 'final' modifier to this field, and remove 'late' modifier from this field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4864,8 +4802,7 @@ Message _withArgumentsFinalFieldNotInitialized({required String fieldName}) {
   return new Message(
     finalFieldNotInitialized,
     problemMessage: """Final field '${fieldName_0}' is not initialized.""",
-    correctionMessage:
-        """Try to initialize the field in the declaration or in every constructor.""",
+    correctionMessage: """Try to initialize the field in the declaration or in every constructor.""",
     arguments: {'fieldName': fieldName},
   );
 }
@@ -4886,8 +4823,7 @@ Message _withArgumentsFinalFieldNotInitializedByConstructor({
     finalFieldNotInitializedByConstructor,
     problemMessage:
         """Final field '${fieldName_0}' is not initialized by this constructor.""",
-    correctionMessage:
-        """Try to initialize the field using an initializing formal or a field initializer.""",
+    correctionMessage: """Try to initialize the field using an initializing formal or a field initializer.""",
     arguments: {'fieldName': fieldName},
   );
 }
@@ -5103,8 +5039,7 @@ Message _withArgumentsGetterNotFound({required String name}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode illegalAsyncGeneratorReturnType = const MessageCode(
   "IllegalAsyncGeneratorReturnType",
-  problemMessage:
-      """Functions marked 'async*' must have a return type assignable to 'Stream'.""",
+  problemMessage: """Functions marked 'async*' must have a return type assignable to 'Stream'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5117,8 +5052,7 @@ const MessageCode illegalAsyncGeneratorVoidReturnType = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode illegalAsyncReturnType = const MessageCode(
   "IllegalAsyncReturnType",
-  problemMessage:
-      """Functions marked 'async' must have a return type assignable to 'Future'.""",
+  problemMessage: """Functions marked 'async' must have a return type assignable to 'Future'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5179,8 +5113,7 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode illegalSyncGeneratorReturnType = const MessageCode(
   "IllegalSyncGeneratorReturnType",
-  problemMessage:
-      """Functions marked 'sync*' must have a return type assignable to 'Iterable'.""",
+  problemMessage: """Functions marked 'sync*' must have a return type assignable to 'Iterable'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5392,8 +5325,7 @@ Message _withArgumentsImplicitReturnNull({required DartType returnType}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode implicitSuperCallOfNonMethod = const MessageCode(
   "ImplicitSuperCallOfNonMethod",
-  problemMessage:
-      """Cannot invoke `super` because it declares 'call' to be something other than a method.""",
+  problemMessage: """Cannot invoke `super` because it declares 'call' to be something other than a method.""",
   correctionMessage:
       """Try changing 'call' to a method or explicitly invoke 'call'.""",
 );
@@ -5414,8 +5346,7 @@ Message _withArgumentsImplicitSuperInitializerMissingArguments({
     implicitSuperInitializerMissingArguments,
     problemMessage:
         """The implicitly called unnamed constructor from '${className_0}' has required parameters.""",
-    correctionMessage:
-        """Try adding an explicit super initializer with the required arguments.""",
+    correctionMessage: """Try adding an explicit super initializer with the required arguments.""",
     arguments: {'className': className},
   );
 }
@@ -5600,8 +5531,7 @@ Message _withArgumentsIncorrectTypeArgumentInferred({
     problemMessage:
         """Inferred type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${enclosingName_0}'.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try specifying type arguments explicitly so that they conform to the bounds.""",
+    correctionMessage: """Try specifying type arguments explicitly so that they conform to the bounds.""",
     arguments: {
       'typeArgument': typeArgument,
       'typeParameterBound': typeParameterBound,
@@ -5688,8 +5618,7 @@ Message _withArgumentsIncorrectTypeArgumentInstantiationInferred({
     problemMessage:
         """Inferred type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${receiverType_0}'.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try specifying type arguments explicitly so that they conform to the bounds.""",
+    correctionMessage: """Try specifying type arguments explicitly so that they conform to the bounds.""",
     arguments: {
       'typeArgument': typeArgument,
       'typeParameterBound': typeParameterBound,
@@ -5783,8 +5712,7 @@ Message _withArgumentsIncorrectTypeArgumentQualifiedInferred({
     problemMessage:
         """Inferred type argument '${typeArgument_0}' doesn't conform to the bound '${typeParameterBound_0}' of the type variable '${typeParameterName_0}' on '${receiverType_0}.${targetName_0}'.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try specifying type arguments explicitly so that they conform to the bounds.""",
+    correctionMessage: """Try specifying type arguments explicitly so that they conform to the bounds.""",
     arguments: {
       'typeArgument': typeArgument,
       'typeParameterBound': typeParameterBound,
@@ -6321,8 +6249,7 @@ Message _withArgumentsIntegerLiteralIsOutOfRange({required String literal}) {
     integerLiteralIsOutOfRange,
     problemMessage:
         """The integer literal ${literal_0} can't be represented in 64 bits.""",
-    correctionMessage:
-        """Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
+    correctionMessage: """Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
     arguments: {'literal': literal},
   );
 }
@@ -6522,13 +6449,12 @@ Message _withArgumentsInternalProblemNotFoundIn({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-internalProblemOmittedTypeNameInConstructorReference = const MessageCode(
-  "InternalProblemOmittedTypeNameInConstructorReference",
-  severity: CfeSeverity.internalProblem,
-  problemMessage:
-      """Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""",
-);
+const MessageCode internalProblemOmittedTypeNameInConstructorReference =
+    const MessageCode(
+      "InternalProblemOmittedTypeNameInConstructorReference",
+      severity: CfeSeverity.internalProblem,
+      problemMessage: """Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode internalProblemPreviousTokenNotFound = const MessageCode(
@@ -7500,27 +7426,23 @@ Message _withArgumentsJsInteropDartClassExtendsJSClass({
     jsInteropDartClassExtendsJSClass,
     problemMessage:
         """Dart class '${className_0}' cannot extend JS interop class '${superclassName_0}'.""",
-    correctionMessage:
-        """Try adding the JS interop annotation or removing it from the parent class.""",
+    correctionMessage: """Try adding the JS interop annotation or removing it from the parent class.""",
     arguments: {'className': className, 'superclassName': superclassName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-jsInteropDartJsInteropAnnotationForStaticInteropOnly = const MessageCode(
-  "JsInteropDartJsInteropAnnotationForStaticInteropOnly",
-  problemMessage:
-      """The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.""",
-  correctionMessage:
-      """Try making this class an extension type or marking it as '@staticInterop'.""",
-);
+const MessageCode jsInteropDartJsInteropAnnotationForStaticInteropOnly =
+    const MessageCode(
+      "JsInteropDartJsInteropAnnotationForStaticInteropOnly",
+      problemMessage: """The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.""",
+      correctionMessage: """Try making this class an extension type or marking it as '@staticInterop'.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropEnclosingClassJSAnnotation = const MessageCode(
   "JsInteropEnclosingClassJSAnnotation",
-  problemMessage:
-      """Member has a JS interop annotation but the enclosing class does not.""",
+  problemMessage: """Member has a JS interop annotation but the enclosing class does not.""",
   correctionMessage: """Try adding the annotation to the enclosing class.""",
 );
 
@@ -7592,8 +7514,7 @@ Message _withArgumentsJsInteropExportDisallowedMember({
     jsInteropExportDisallowedMember,
     problemMessage:
         """Member '${memberName_0}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
-    correctionMessage:
-        """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
+    correctionMessage: """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
     arguments: {'memberName': memberName},
   );
 }
@@ -7666,8 +7587,7 @@ Message _withArgumentsJsInteropExportMemberCollision({
     jsInteropExportMemberCollision,
     problemMessage:
         """The following class members collide with the same export '${exportName_0}': ${members_0}.""",
-    correctionMessage:
-        """Either remove the conflicting members or use a different export name.""",
+    correctionMessage: """Either remove the conflicting members or use a different export name.""",
     arguments: {'exportName': exportName, 'members': members},
   );
 }
@@ -7688,8 +7608,7 @@ Message _withArgumentsJsInteropExportNoExportableMembers({
     jsInteropExportNoExportableMembers,
     problemMessage:
         """Class '${className_0}' has no exportable members in the class or the inheritance chain.""",
-    correctionMessage:
-        """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
+    correctionMessage: """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
     arguments: {'className': className},
   );
 }
@@ -7697,10 +7616,8 @@ Message _withArgumentsJsInteropExportNoExportableMembers({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropExtensionTypeMemberNotInterop = const MessageCode(
   "JsInteropExtensionTypeMemberNotInterop",
-  problemMessage:
-      """Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
-  correctionMessage:
-      """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
+  problemMessage: """Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
+  correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7730,8 +7647,7 @@ Message _withArgumentsJsInteropExtensionTypeNotInterop({
     problemMessage:
         """Extension type '${extensionTypeName_0}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${representationType_0}'.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
+    correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""",
     arguments: {
       'extensionTypeName': extensionTypeName,
       'representationType': representationType,
@@ -7740,40 +7656,34 @@ Message _withArgumentsJsInteropExtensionTypeNotInterop({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-jsInteropExtensionTypeUsedWithWrongJsAnnotation = const MessageCode(
-  "JsInteropExtensionTypeUsedWithWrongJsAnnotation",
-  problemMessage:
-      """Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
-  correctionMessage:
-      """Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead.""",
-);
+const MessageCode jsInteropExtensionTypeUsedWithWrongJsAnnotation =
+    const MessageCode(
+      "JsInteropExtensionTypeUsedWithWrongJsAnnotation",
+      problemMessage: """Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
+      correctionMessage: """Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-jsInteropExternalExtensionMemberOnTypeInvalid = const MessageCode(
-  "JsInteropExternalExtensionMemberOnTypeInvalid",
-  problemMessage:
-      """JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
-  correctionMessage:
-      """Try making the on-type a JS interop type or an @Native SDK web library type.""",
-);
+const MessageCode jsInteropExternalExtensionMemberOnTypeInvalid =
+    const MessageCode(
+      "JsInteropExternalExtensionMemberOnTypeInvalid",
+      problemMessage: """JS interop type or @Native type from an SDK web library required for 'external' extension members.""",
+      correctionMessage: """Try making the on-type a JS interop type or an @Native SDK web library type.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-jsInteropExternalExtensionMemberWithStaticDisallowed = const MessageCode(
-  "JsInteropExternalExtensionMemberWithStaticDisallowed",
-  problemMessage:
-      """External extension members with the keyword 'static' on JS interop and @Native types are disallowed.""",
-  correctionMessage: """Try putting the member in the on-type instead.""",
-);
+const MessageCode jsInteropExternalExtensionMemberWithStaticDisallowed =
+    const MessageCode(
+      "JsInteropExternalExtensionMemberWithStaticDisallowed",
+      problemMessage: """External extension members with the keyword 'static' on JS interop and @Native types are disallowed.""",
+      correctionMessage: """Try putting the member in the on-type instead.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropExternalMemberNotJSAnnotated = const MessageCode(
   "JsInteropExternalMemberNotJSAnnotated",
   problemMessage: """Only JS interop members may be 'external'.""",
-  correctionMessage:
-      """Try removing the 'external' keyword or adding a JS interop annotation.""",
+  correctionMessage: """Try removing the 'external' keyword or adding a JS interop annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7873,8 +7783,7 @@ Message _withArgumentsJsInteropFunctionToJSTypeViolation({
     jsInteropFunctionToJSTypeViolation,
     problemMessage:
         """Function converted via '${conversion_0}' contains invalid types in its function signature: '${typeWithDiasllowedPartsHighlighted_0}'.""",
-    correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    correctionMessage: """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
     arguments: {
       'conversion': conversion,
       'typeWithDiasllowedPartsHighlighted': typeWithDiasllowedPartsHighlighted,
@@ -7907,8 +7816,7 @@ Message _withArgumentsJsInteropIsAInvalidTypeVariable({
     problemMessage:
         """Type argument '${type_0}' provided to 'isA' cannot be a type variable and must be an interop extension type that can be determined at compile-time.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
+    correctionMessage: """Use a valid interop extension type that can be determined at compile-time as the type argument instead.""",
     arguments: {'type': type},
   );
 }
@@ -7990,8 +7898,7 @@ Message _withArgumentsJsInteropJSClassExtendsDartClass({
     jsInteropJSClassExtendsDartClass,
     problemMessage:
         """JS interop class '${className_0}' cannot extend Dart class '${superclassName_0}'.""",
-    correctionMessage:
-        """Try removing the JS interop annotation or adding it to the parent class.""",
+    correctionMessage: """Try removing the JS interop annotation or adding it to the parent class.""",
     arguments: {'className': className, 'superclassName': superclassName},
   );
 }
@@ -7999,8 +7906,7 @@ Message _withArgumentsJsInteropJSClassExtendsDartClass({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropNamedParameters = const MessageCode(
   "JsInteropNamedParameters",
-  problemMessage:
-      """Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
+  problemMessage: """Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
   correctionMessage:
       """Try replacing them with normal or optional parameters.""",
 );
@@ -8052,8 +7958,7 @@ const MessageCode jsInteropNonExternalConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropNonExternalMember = const MessageCode(
   "JsInteropNonExternalMember",
-  problemMessage:
-      """This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
+  problemMessage: """This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
   correctionMessage: """Try annotating the member with `external`.""",
 );
 
@@ -8108,8 +8013,7 @@ Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropOperatorCannotBeRenamed = const MessageCode(
   "JsInteropOperatorCannotBeRenamed",
-  problemMessage:
-      """JS interop operator methods cannot be renamed using the '@JS' annotation.""",
+  problemMessage: """JS interop operator methods cannot be renamed using the '@JS' annotation.""",
   correctionMessage:
       """Remove the annotation or remove the value inside the annotation.""",
 );
@@ -8117,8 +8021,7 @@ const MessageCode jsInteropOperatorCannotBeRenamed = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropOperatorsNotSupported = const MessageCode(
   "JsInteropOperatorsNotSupported",
-  problemMessage:
-      """JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
+  problemMessage: """JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
   correctionMessage: """Try making this class a static interop type instead.""",
 );
 
@@ -8141,8 +8044,7 @@ Message _withArgumentsJsInteropStaticInteropExternalAccessorTypeViolation({
     problemMessage:
         """External JS interop member contains an invalid type: '${type_0}'.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    correctionMessage: """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
     arguments: {'type': type},
   );
 }
@@ -8168,8 +8070,7 @@ Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation({
     jsInteropStaticInteropExternalFunctionTypeViolation,
     problemMessage:
         """External JS interop member contains invalid types in its function signature: '${typeWithDiasllowedPartsHighlighted_0}'.""",
-    correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    correctionMessage: """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
     arguments: {
       'typeWithDiasllowedPartsHighlighted': typeWithDiasllowedPartsHighlighted,
     },
@@ -8177,13 +8078,12 @@ Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-jsInteropStaticInteropGenerativeConstructor = const MessageCode(
-  "JsInteropStaticInteropGenerativeConstructor",
-  problemMessage:
-      """`@staticInterop` classes should not contain any generative constructors.""",
-  correctionMessage: """Use factory constructors instead.""",
-);
+const MessageCode jsInteropStaticInteropGenerativeConstructor =
+    const MessageCode(
+      "JsInteropStaticInteropGenerativeConstructor",
+      problemMessage: """`@staticInterop` classes should not contain any generative constructors.""",
+      correctionMessage: """Use factory constructors instead.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8255,8 +8155,7 @@ Message _withArgumentsJsInteropStaticInteropMockMissingImplements({
     jsInteropStaticInteropMockMissingImplements,
     problemMessage:
         """Dart class '${className_0}' does not have any members that implement any of the following extension member(s) with export name '${exportName_0}': ${missingMembers_0}.""",
-    correctionMessage:
-        """Declare an exportable member that implements one of these extension members.""",
+    correctionMessage: """Declare an exportable member that implements one of these extension members.""",
     arguments: {
       'className': className,
       'exportName': exportName,
@@ -8307,8 +8206,7 @@ Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed({
     problemMessage:
         """Type argument '${type_0}' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Remove the type parameter in the type argument or replace it with its bound.""",
+    correctionMessage: """Remove the type parameter in the type argument or replace it with its bound.""",
     arguments: {'type': type},
   );
 }
@@ -8335,15 +8233,13 @@ Message _withArgumentsJsInteropStaticInteropNoJSAnnotation({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-jsInteropStaticInteropParameterInitializersAreIgnored = const MessageCode(
-  "JsInteropStaticInteropParameterInitializersAreIgnored",
-  severity: CfeSeverity.warning,
-  problemMessage:
-      """Initializers for parameters are ignored on static interop external functions.""",
-  correctionMessage:
-      """Declare a forwarding non-external function with this initializer, or remove the initializer.""",
-);
+const MessageCode jsInteropStaticInteropParameterInitializersAreIgnored =
+    const MessageCode(
+      "JsInteropStaticInteropParameterInitializersAreIgnored",
+      severity: CfeSeverity.warning,
+      problemMessage: """Initializers for parameters are ignored on static interop external functions.""",
+      correctionMessage: """Declare a forwarding non-external function with this initializer, or remove the initializer.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
@@ -8351,8 +8247,7 @@ jsInteropStaticInteropSyntheticConstructor = const MessageCode(
   "JsInteropStaticInteropSyntheticConstructor",
   problemMessage:
       """Synthetic constructors on `@staticInterop` classes can not be used.""",
-  correctionMessage:
-      """Declare an external factory constructor for this `@staticInterop` class and use that instead.""",
+  correctionMessage: """Declare an external factory constructor for this `@staticInterop` class and use that instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8465,8 +8360,7 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype({
     jsInteropStaticInteropWithNonStaticSupertype,
     problemMessage:
         """JS interop class '${className_0}' has an `@staticInterop` annotation, but has supertype '${superclassName_0}', which does not.""",
-    correctionMessage:
-        """Try marking the supertype as a static interop class using `@staticInterop`.""",
+    correctionMessage: """Try marking the supertype as a static interop class using `@staticInterop`.""",
     arguments: {'className': className, 'superclassName': superclassName},
   );
 }
@@ -8481,8 +8375,7 @@ Message _withArgumentsLabelNotFound({required String label}) {
   return new Message(
     labelNotFound,
     problemMessage: """Can't find label '${label_0}'.""",
-    correctionMessage:
-        """Try defining the label, or correcting the name to match an existing label.""",
+    correctionMessage: """Try defining the label, or correcting the name to match an existing label.""",
     arguments: {'label': label},
   );
 }
@@ -8490,8 +8383,7 @@ Message _withArgumentsLabelNotFound({required String label}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode languageVersionInvalidInDotPackages = const MessageCode(
   "LanguageVersionInvalidInDotPackages",
-  problemMessage:
-      """The language version is not specified correctly in the packages file.""",
+  problemMessage: """The language version is not specified correctly in the packages file.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8504,15 +8396,13 @@ const MessageCode languageVersionLibraryContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode languageVersionMismatchInPart = const MessageCode(
   "LanguageVersionMismatchInPart",
-  problemMessage:
-      """The language version override has to be the same in the library and its part(s).""",
+  problemMessage: """The language version override has to be the same in the library and its part(s).""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode languageVersionMismatchInPatch = const MessageCode(
   "LanguageVersionMismatchInPatch",
-  problemMessage:
-      """The language version override has to be the same in the library and its patch(es).""",
+  problemMessage: """The language version override has to be the same in the library and its patch(es).""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9436,12 +9326,11 @@ Message _withArgumentsNameNotFoundInRecordNameGet({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-namedFieldClashesWithPositionalFieldInRecord = const MessageCode(
-  "NamedFieldClashesWithPositionalFieldInRecord",
-  problemMessage:
-      """Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""",
-);
+const MessageCode namedFieldClashesWithPositionalFieldInRecord =
+    const MessageCode(
+      "NamedFieldClashesWithPositionalFieldInRecord",
+      problemMessage: """Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9485,29 +9374,25 @@ const MessageCode namedParametersInExtensionTypeDeclaration = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode negativeVariableDimension = const MessageCode(
   "NegativeVariableDimension",
-  problemMessage:
-      """The variable dimension of a variable-length array must be non-negative.""",
+  problemMessage: """The variable dimension of a variable-length array must be non-negative.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode neverReachableSwitchDefaultError = const MessageCode(
   "NeverReachableSwitchDefaultError",
-  problemMessage:
-      """`null` encountered as case in a switch expression with a non-nullable enum type.""",
+  problemMessage: """`null` encountered as case in a switch expression with a non-nullable enum type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode neverReachableSwitchExpressionError = const MessageCode(
   "NeverReachableSwitchExpressionError",
-  problemMessage:
-      """`null` encountered as case in a switch expression with a non-nullable type.""",
+  problemMessage: """`null` encountered as case in a switch expression with a non-nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode neverReachableSwitchStatementError = const MessageCode(
   "NeverReachableSwitchStatementError",
-  problemMessage:
-      """`null` encountered as case in a switch statement with a non-nullable type.""",
+  problemMessage: """`null` encountered as case in a switch statement with a non-nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9570,28 +9455,24 @@ const MessageCode nonBoolCondition = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nonConstConstructor = const MessageCode(
   "NonConstConstructor",
-  problemMessage:
-      """Cannot invoke a non-'const' constructor where a const expression is expected.""",
+  problemMessage: """Cannot invoke a non-'const' constructor where a const expression is expected.""",
   correctionMessage: """Try using a constructor or factory that is 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nonConstFactory = const MessageCode(
   "NonConstFactory",
-  problemMessage:
-      """Cannot invoke a non-'const' factory where a const expression is expected.""",
+  problemMessage: """Cannot invoke a non-'const' factory where a const expression is expected.""",
   correctionMessage: """Try using a constructor or factory that is 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-nonCovariantTypeParameterInRepresentationType = const MessageCode(
-  "NonCovariantTypeParameterInRepresentationType",
-  problemMessage:
-      """An extension type parameter can't be used non-covariantly in its representation type.""",
-  correctionMessage:
-      """Try removing the type parameters from function parameter types and type parameter bounds.""",
-);
+const MessageCode nonCovariantTypeParameterInRepresentationType =
+    const MessageCode(
+      "NonCovariantTypeParameterInRepresentationType",
+      problemMessage: """An extension type parameter can't be used non-covariantly in its representation type.""",
+      correctionMessage: """Try removing the type parameters from function parameter types and type parameter bounds.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -9687,8 +9568,7 @@ const MessageCode nonExtensionTypeMemberOneOfContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nonIdentifierForInElement = const MessageCode(
   "NonIdentifierForInElement",
-  problemMessage:
-      """The element in a for-in loop must be an identifier or a local variable declaration.""",
+  problemMessage: """The element in a for-in loop must be an identifier or a local variable declaration.""",
   correctionMessage:
       """Try using an existing variable or a variable declaration.""",
 );
@@ -9788,8 +9668,7 @@ const MessageCode nonVoidReturnOperator = const MessageCode(
 const MessageCode nonVoidReturnSetter = const MessageCode(
   "NonVoidReturnSetter",
   problemMessage: """The return type of the setter must be 'void' or absent.""",
-  correctionMessage:
-      """Try removing the return type, or define a method rather than a setter.""",
+  correctionMessage: """Try removing the return type, or define a method rather than a setter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10027,8 +9906,7 @@ Message _withArgumentsNullablePropertyAccessError({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nullableSpreadError = const MessageCode(
   "NullableSpreadError",
-  problemMessage:
-      """An expression whose value can be 'null' must be null-checked before it can be dereferenced.""",
+  problemMessage: """An expression whose value can be 'null' must be null-checked before it can be dereferenced.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10096,8 +9974,7 @@ const MessageCode objectMixesIn = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode obsoleteColonForDefaultValue = const MessageCode(
   "ObsoleteColonForDefaultValue",
-  problemMessage:
-      """Using a colon as a separator before a default value is no longer supported.""",
+  problemMessage: """Using a colon as a separator before a default value is no longer supported.""",
   correctionMessage: """Try replacing the colon with an equal sign.""",
 );
 
@@ -10117,8 +9994,7 @@ Message _withArgumentsOperatorMinusParameterMismatch({
     operatorMinusParameterMismatch,
     problemMessage:
         """Operator '${operatorName_0}' should have zero or one parameter.""",
-    correctionMessage:
-        """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
+    correctionMessage: """With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
     arguments: {'operatorName': operatorName},
   );
 }
@@ -10214,8 +10090,7 @@ Message _withArgumentsOptionalNonNullableWithoutInitializerError({
     problemMessage:
         """The parameter '${parameterName_0}' can't have a value of 'null' because of its type '${parameterType_0}', but the implicit default value is 'null'.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try adding either an explicit non-'null' default value or the 'required' modifier.""",
+    correctionMessage: """Try adding either an explicit non-'null' default value or the 'required' modifier.""",
     arguments: {'parameterName': parameterName, 'parameterType': parameterType},
   );
 }
@@ -10809,8 +10684,7 @@ Message _withArgumentsPartOfLibraryNameMismatch({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode partOfName = const MessageCode(
   "PartOfName",
-  problemMessage:
-      """The 'part of' directive can't use a name with the enhanced-parts feature.""",
+  problemMessage: """The 'part of' directive can't use a name with the enhanced-parts feature.""",
   correctionMessage: """Try using 'part of' with a URI instead.""",
 );
 
@@ -10824,8 +10698,7 @@ const MessageCode partOfSelf = const MessageCode(
 const MessageCode partOfTwoLibraries = const MessageCode(
   "PartOfTwoLibraries",
   problemMessage: """A file can't be part of more than one library.""",
-  correctionMessage:
-      """Try moving the shared declarations into the libraries, or into a new library.""",
+  correctionMessage: """Try moving the shared declarations into the libraries, or into a new library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10895,8 +10768,7 @@ Message _withArgumentsPartOfUseUri({
     partOfUseUri,
     problemMessage:
         """Using '${partFileUri_0}' as part of '${libraryUri_0}' but its 'part of' declaration says '${partOfName_0}'.""",
-    correctionMessage:
-        """Try changing the 'part of' declaration to use a relative file name.""",
+    correctionMessage: """Try changing the 'part of' declaration to use a relative file name.""",
     arguments: {
       'partFileUri': partFileUri,
       'libraryUri': libraryUri,
@@ -10945,8 +10817,7 @@ const MessageCode patchClassOrigin = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode patchClassTypeParametersMismatch = const MessageCode(
   "PatchClassTypeParametersMismatch",
-  problemMessage:
-      """A patch class must have the same number of type variables as its origin class.""",
+  problemMessage: """A patch class must have the same number of type variables as its origin class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10966,8 +10837,7 @@ const MessageCode patchExtensionOrigin = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode patchExtensionTypeParametersMismatch = const MessageCode(
   "PatchExtensionTypeParametersMismatch",
-  problemMessage:
-      """A patch extension must have the same number of type variables as its origin extension.""",
+  problemMessage: """A patch extension must have the same number of type variables as its origin extension.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10996,8 +10866,7 @@ Message _withArgumentsPatchInjectionFailed({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode patternAssignmentNotLocalVariable = const MessageCode(
   "PatternAssignmentNotLocalVariable",
-  problemMessage:
-      """Only local variables or formal parameters can be used in pattern assignments.""",
+  problemMessage: """Only local variables or formal parameters can be used in pattern assignments.""",
   correctionMessage: """Try assigning to a local variable.""",
 );
 
@@ -11032,8 +10901,7 @@ Message _withArgumentsPatternTypeMismatchInIrrefutableContext({
     problemMessage:
         """The matched value of type '${actualType_0}' isn't assignable to the required type '${expectedType_0}'.""" +
         labeler.originMessages,
-    correctionMessage:
-        """Try changing the required type of the pattern, or the matched value type.""",
+    correctionMessage: """Try changing the required type of the pattern, or the matched value type.""",
     arguments: {'actualType': actualType, 'expectedType': expectedType},
   );
 }
@@ -11041,8 +10909,7 @@ Message _withArgumentsPatternTypeMismatchInIrrefutableContext({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode patternVariableAssignmentInsideGuard = const MessageCode(
   "PatternVariableAssignmentInsideGuard",
-  problemMessage:
-      """Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
+  problemMessage: """Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
   correctionMessage: """Try assigning to a different variable.""",
 );
 
@@ -11055,8 +10922,7 @@ const MessageCode platformPrivateLibraryAccess = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode positionalSuperParametersAndArguments = const MessageCode(
   "PositionalSuperParametersAndArguments",
-  problemMessage:
-      """Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""",
+  problemMessage: """Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11103,15 +10969,13 @@ const MessageCode recordUseCannotBePlacedHere = const MessageCode(
 const MessageCode recordUseClassesMustBeFinal = const MessageCode(
   "RecordUseClassesMustBeFinal",
   problemMessage: """Classes marked with '@RecordUse' must be final.""",
-  correctionMessage:
-      """Try marking the class as 'final' or removing the '@RecordUse' annotation.""",
+  correctionMessage: """Try marking the class as 'final' or removing the '@RecordUse' annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUseOutsideOfPackage = const MessageCode(
   "RecordUseOutsideOfPackage",
-  problemMessage:
-      """`RecordUse` annotations are only supported in libraries with a `package:` URI.""",
+  problemMessage: """`RecordUse` annotations are only supported in libraries with a `package:` URI.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11137,8 +11001,7 @@ Message _withArgumentsRecordUseSubtypingNotSupported({required String name}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordUsedAsCallable = const MessageCode(
   "RecordUsedAsCallable",
-  problemMessage:
-      """The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`""",
+  problemMessage: """The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11220,8 +11083,7 @@ const MessageCode refutablePatternInIrrefutableContext = const MessageCode(
   "RefutablePatternInIrrefutableContext",
   problemMessage:
       """Refutable patterns can't be used in an irrefutable context.""",
-  correctionMessage:
-      """Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""",
+  correctionMessage: """Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11326,8 +11188,7 @@ Message _withArgumentsSdkSpecificationNotFound({required Uri uri}) {
   return new Message(
     sdkSpecificationNotFound,
     problemMessage: """SDK libraries specification not found: ${uri_0}.""",
-    correctionMessage:
-        """Normally, the specification is a file named 'libraries.json' in the Dart SDK install location.""",
+    correctionMessage: """Normally, the specification is a file named 'libraries.json' in the Dart SDK install location.""",
     arguments: {'uri': uri},
   );
 }
@@ -11740,8 +11601,7 @@ const MessageCode staticTearOffFromInstantiatedClass = const MessageCode(
   "StaticTearOffFromInstantiatedClass",
   problemMessage:
       """Cannot access static member on an instantiated generic class.""",
-  correctionMessage:
-      """Try removing the type arguments or placing them after the member name.""",
+  correctionMessage: """Try removing the type arguments or placing them after the member name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11800,8 +11660,7 @@ Message _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed({
 const MessageCode superAsExpression = const MessageCode(
   "SuperAsExpression",
   problemMessage: """Can't use 'super' as an expression.""",
-  correctionMessage:
-      """To delegate a constructor to a super constructor, put the super call as an initializer.""",
+  correctionMessage: """To delegate a constructor to a super constructor, put the super call as an initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11944,13 +11803,12 @@ const MessageCode superInitializerParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-superParameterInitializerOutsideConstructor = const MessageCode(
-  "SuperParameterInitializerOutsideConstructor",
-  problemMessage:
-      """Super-initializer formal parameters can only be used in generative constructors.""",
-  correctionMessage: """Try removing 'super.'.""",
-);
+const MessageCode superParameterInitializerOutsideConstructor =
+    const MessageCode(
+      "SuperParameterInitializerOutsideConstructor",
+      problemMessage: """Super-initializer formal parameters can only be used in generative constructors.""",
+      correctionMessage: """Try removing 'super.'.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String constructorName})>
@@ -12454,8 +12312,7 @@ Message _withArgumentsTypeParameterDuplicatedNameCause({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode typeParameterSameNameAsEnclosing = const MessageCode(
   "TypeParameterSameNameAsEnclosing",
-  problemMessage:
-      """A type variable can't have the same name as its enclosing declaration.""",
+  problemMessage: """A type variable can't have the same name as its enclosing declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12498,8 +12355,7 @@ const MessageCode typedefNullableType = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode typedefTypeParameterNotConstructor = const MessageCode(
   "TypedefTypeParameterNotConstructor",
-  problemMessage:
-      """Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""",
+  problemMessage: """Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12639,12 +12495,11 @@ Message _withArgumentsUndefinedSetter({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-unexpectedSuperParametersInGenerativeConstructors = const MessageCode(
-  "UnexpectedSuperParametersInGenerativeConstructors",
-  problemMessage:
-      """Super parameters can only be used in non-redirecting generative constructors.""",
-);
+const MessageCode unexpectedSuperParametersInGenerativeConstructors =
+    const MessageCode(
+      "UnexpectedSuperParametersInGenerativeConstructors",
+      problemMessage: """Super parameters can only be used in non-redirecting generative constructors.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String className})>
@@ -12660,8 +12515,7 @@ Message _withArgumentsUnmatchedAugmentationClass({required String className}) {
     unmatchedAugmentationClass,
     problemMessage:
         """Augmentation class '${className_0}' doesn't match a class in the augmented library.""",
-    correctionMessage:
-        """Try changing the name to an existing class or removing the 'augment' modifier.""",
+    correctionMessage: """Try changing the name to an existing class or removing the 'augment' modifier.""",
     arguments: {'className': className},
   );
 }
@@ -12682,8 +12536,7 @@ Message _withArgumentsUnmatchedAugmentationClassMember({
     unmatchedAugmentationClassMember,
     problemMessage:
         """Augmentation member '${memberName_0}' doesn't match a member in the augmented class.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the 'augment' modifier.""",
+    correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
     arguments: {'memberName': memberName},
   );
 }
@@ -12704,8 +12557,7 @@ Message _withArgumentsUnmatchedAugmentationDeclaration({
     unmatchedAugmentationDeclaration,
     problemMessage:
         """Augmentation '${declarationName_0}' doesn't match a declaration in the augmented library.""",
-    correctionMessage:
-        """Try changing the name to an existing declaration or removing the 'augment' modifier.""",
+    correctionMessage: """Try changing the name to an existing declaration or removing the 'augment' modifier.""",
     arguments: {'declarationName': declarationName},
   );
 }
@@ -12726,8 +12578,7 @@ Message _withArgumentsUnmatchedAugmentationLibraryMember({
     unmatchedAugmentationLibraryMember,
     problemMessage:
         """Augmentation member '${memberName_0}' doesn't match a member in the augmented library.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the 'augment' modifier.""",
+    correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
     arguments: {'memberName': memberName},
   );
 }
@@ -12746,8 +12597,7 @@ Message _withArgumentsUnmatchedPatchClass({required String className}) {
     unmatchedPatchClass,
     problemMessage:
         """Patch class '${className_0}' doesn't match a class in the origin library.""",
-    correctionMessage:
-        """Try changing the name to an existing class or removing the '@patch' annotation.""",
+    correctionMessage: """Try changing the name to an existing class or removing the '@patch' annotation.""",
     arguments: {'className': className},
   );
 }
@@ -12766,8 +12616,7 @@ Message _withArgumentsUnmatchedPatchClassMember({required String memberName}) {
     unmatchedPatchClassMember,
     problemMessage:
         """Patch member '${memberName_0}' doesn't match a member in the origin class.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the '@patch' annotation.""",
+    correctionMessage: """Try changing the name to an existing member or removing the '@patch' annotation.""",
     arguments: {'memberName': memberName},
   );
 }
@@ -12788,8 +12637,7 @@ Message _withArgumentsUnmatchedPatchDeclaration({
     unmatchedPatchDeclaration,
     problemMessage:
         """Patch '${declarationName_0}' doesn't match a declaration in the origin library.""",
-    correctionMessage:
-        """Try changing the name to an existing declaration or removing the '@patch' annotation.""",
+    correctionMessage: """Try changing the name to an existing declaration or removing the '@patch' annotation.""",
     arguments: {'declarationName': declarationName},
   );
 }
@@ -12810,8 +12658,7 @@ Message _withArgumentsUnmatchedPatchLibraryMember({
     unmatchedPatchLibraryMember,
     problemMessage:
         """Patch member '${memberName_0}' doesn't match a member in the origin library.""",
-    correctionMessage:
-        """Try changing the name to an existing member or removing the '@patch' annotation.""",
+    correctionMessage: """Try changing the name to an existing member or removing the '@patch' annotation.""",
     arguments: {'memberName': memberName},
   );
 }
@@ -12826,30 +12673,26 @@ const MessageCode unnamedObjectPatternField = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode unsoundSwitchExpressionError = const MessageCode(
   "UnsoundSwitchExpressionError",
-  problemMessage:
-      """None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
+  problemMessage: """None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode unsoundSwitchStatementError = const MessageCode(
   "UnsoundSwitchStatementError",
-  problemMessage:
-      """None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
+  problemMessage: """None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode unspecifiedGetterNameInObjectPattern = const MessageCode(
   "UnspecifiedGetterNameInObjectPattern",
-  problemMessage:
-      """The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.""",
+  problemMessage: """The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode unsupportedDartExt = const MessageCode(
   "UnsupportedDartExt",
   problemMessage: """Dart native extensions are no longer supported.""",
-  correctionMessage:
-      """Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""",
+  correctionMessage: """Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13025,22 +12868,19 @@ Message _withArgumentsWasmConstantLaneOutOfRange({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExternInvalidLoad = const MessageCode(
   "WasmExternInvalidLoad",
-  problemMessage:
-      """WebAssembly elements may only be referenced to directly call a method on them.""",
+  problemMessage: """WebAssembly elements may only be referenced to directly call a method on them.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExternInvalidTarget = const MessageCode(
   "WasmExternInvalidTarget",
-  problemMessage:
-      """The receiver of this call must be a top-level variable describing the WebAssembly element.""",
+  problemMessage: """The receiver of this call must be a top-level variable describing the WebAssembly element.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExternMemoryMissingAnnotation = const MessageCode(
   "WasmExternMemoryMissingAnnotation",
-  problemMessage:
-      """This external getter returns a memory instance, but no annotation describing it was found""",
+  problemMessage: """This external getter returns a memory instance, but no annotation describing it was found""",
   correctionMessage:
       """Try adding a `@MemoryType()` or `@Import.memory()` annotation.""",
 );
@@ -13048,8 +12888,7 @@ const MessageCode wasmExternMemoryMissingAnnotation = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmImportOrExportInUserCode = const MessageCode(
   "WasmImportOrExportInUserCode",
-  problemMessage:
-      """Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
+  problemMessage: """Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13096,8 +12935,7 @@ const MessageCode weakReferenceTargetHasParameters = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode weakReferenceTargetNotStaticTearoff = const MessageCode(
   "WeakReferenceTargetNotStaticTearoff",
-  problemMessage:
-      """The target of weak reference should be a tearoff of a static method.""",
+  problemMessage: """The target of weak reference should be a tearoff of a static method.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

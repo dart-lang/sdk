@@ -418,8 +418,7 @@ const DiagnosticWithArguments<
 >
 avoidCatchingErrorsSubclass = LinterLintTemplate(
   name: 'avoid_catching_errors',
-  problemMessage:
-      "The type '{0}' should not be caught because it is a subclass of 'Error'.",
+  problemMessage: "The type '{0}' should not be caught because it is a subclass of 'Error'.",
   correctionMessage:
       "Try removing the catch or catching an 'Exception' instead.",
   uniqueName: 'avoid_catching_errors_subclass',
@@ -567,16 +566,15 @@ const LinterLintWithoutArguments avoidInitToNull = LinterLintWithoutArguments(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments
-avoidJsRoundedInts = LinterLintWithoutArguments(
-  name: 'avoid_js_rounded_ints',
-  problemMessage:
-      "Integer literal can't be represented exactly when compiled to JavaScript.",
-  correctionMessage: "Try using a 'BigInt' to represent the value.",
-  hasPublishedDocs: true,
-  uniqueName: 'avoid_js_rounded_ints',
-  expectedTypes: [],
-);
+const LinterLintWithoutArguments avoidJsRoundedInts =
+    LinterLintWithoutArguments(
+      name: 'avoid_js_rounded_ints',
+      problemMessage: "Integer literal can't be represented exactly when compiled to JavaScript.",
+      correctionMessage: "Try using a 'BigInt' to represent the value.",
+      hasPublishedDocs: true,
+      uniqueName: 'avoid_js_rounded_ints',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const LinterLintWithoutArguments avoidMultipleDeclarationsPerLine =
@@ -758,8 +756,7 @@ const DiagnosticWithArguments<
 >
 avoidShadowingTypeParameters = LinterLintTemplate(
   name: 'avoid_shadowing_type_parameters',
-  problemMessage:
-      "The type parameter '{0}' shadows a type parameter from the enclosing {1}.",
+  problemMessage: "The type parameter '{0}' shadows a type parameter from the enclosing {1}.",
   correctionMessage: "Try renaming one of the type parameters.",
   hasPublishedDocs: true,
   uniqueName: 'avoid_shadowing_type_parameters',
@@ -916,8 +913,7 @@ const DiagnosticWithArguments<
 >
 awaitOnlyFutures = LinterLintTemplate(
   name: 'await_only_futures',
-  problemMessage:
-      "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
+  problemMessage: "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
   correctionMessage: "Try removing the 'await' or changing the expression.",
   hasPublishedDocs: true,
   uniqueName: 'await_only_futures',
@@ -1302,16 +1298,15 @@ const LinterLintWithoutArguments emptyCatches = LinterLintWithoutArguments(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments
-emptyConstructorBodies = LinterLintWithoutArguments(
-  name: 'empty_constructor_bodies',
-  problemMessage:
-      "Empty constructor bodies should be written using a ';' rather than '{}'.",
-  correctionMessage: "Try replacing the constructor body with ';'.",
-  hasPublishedDocs: true,
-  uniqueName: 'empty_constructor_bodies',
-  expectedTypes: [],
-);
+const LinterLintWithoutArguments emptyConstructorBodies =
+    LinterLintWithoutArguments(
+      name: 'empty_constructor_bodies',
+      problemMessage: "Empty constructor bodies should be written using a ';' rather than '{}'.",
+      correctionMessage: "Try replacing the constructor body with ';'.",
+      hasPublishedDocs: true,
+      uniqueName: 'empty_constructor_bodies',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String containerKind: The kind of the container, such as 'class' or
@@ -1526,8 +1521,7 @@ invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType = LinterLintTempla
       "Remove the type in the catch clause and try using 'isA' from "
       "'dart:js_interop' within the catch block to check if the value is a "
       "JS interop type.",
-  uniqueName:
-      'invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type',
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type',
   withArguments:
       _withArgumentsInvalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
   expectedTypes: [ExpectedType.object],
@@ -2610,15 +2604,15 @@ preferIsEmptyAlwaysFalse = LinterLintWithoutArguments(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments
-preferIsEmptyAlwaysTrue = LinterLintWithoutArguments(
-  name: 'prefer_is_empty',
-  problemMessage:
-      "The comparison is always 'true' because the length is always greater than "
-      "or equal to 0.",
-  uniqueName: 'prefer_is_empty_always_true',
-  expectedTypes: [],
-);
+const LinterLintWithoutArguments preferIsEmptyAlwaysTrue =
+    LinterLintWithoutArguments(
+      name: 'prefer_is_empty',
+      problemMessage:
+          "The comparison is always 'true' because the length is always greater than "
+          "or equal to 0.",
+      uniqueName: 'prefer_is_empty_always_true',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const LinterLintWithoutArguments preferIsEmptyUseIsEmpty =
@@ -2915,8 +2909,7 @@ const DiagnosticWithArguments<
 >
 sizedBoxShrinkExpand = LinterLintTemplate(
   name: 'sized_box_shrink_expand',
-  problemMessage:
-      "Use 'SizedBox.{0}' to avoid needing to specify the 'height' and 'width'.",
+  problemMessage: "Use 'SizedBox.{0}' to avoid needing to specify the 'height' and 'width'.",
   correctionMessage:
       "Try using 'SizedBox.{0}' and removing the 'height' and 'width' "
       "arguments.",
@@ -3679,8 +3672,7 @@ unsafeHtmlMethod = LinterLintTemplate(
 /// No parameters.
 const LinterLintWithoutArguments unsafeVariance = LinterLintWithoutArguments(
   name: 'unsafe_variance',
-  problemMessage:
-      "This type is unsafe: a type parameter occurs in a non-covariant position.",
+  problemMessage: "This type is unsafe: a type parameter occurs in a non-covariant position.",
   correctionMessage:
       "Try using a more general type that doesn't contain any type "
       "parameters in such a position.",
