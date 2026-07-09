@@ -1,0 +1,7 @@
+import 'const_patterns_binary.dart' as prefix;
+
+
+
+import[KeywordToken] 'const_patterns_binary.dart'[StringToken] as[KeywordToken] prefix[StringToken];[SimpleToken]
+
+[SimpleToken]

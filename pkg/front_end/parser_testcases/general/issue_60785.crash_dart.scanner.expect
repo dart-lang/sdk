@@ -1,3 +1,5 @@
+// @dart = 2.19
+// @dart = 2.19
 void foo(String s) {
 switch (s) {
 case 'foo') {

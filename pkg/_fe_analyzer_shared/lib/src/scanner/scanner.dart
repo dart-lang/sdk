@@ -53,6 +53,24 @@ class ScannerResult {
   ScannerResult(this.tokens, this.lineStarts, this.hasErrors);
 }
 
+/// Scan/tokenize that start of the given UTF8 [bytes]. Attempts to only scan
+/// the directives.
+ScannerResult scanDirectives(
+  Uint8List bytes, {
+  ScannerConfiguration? configuration,
+  LanguageVersionChanged? languageVersionChanged,
+}) {
+  Utf8BytesScanner scanner = new Utf8BytesScanner(
+    bytes,
+    configuration: configuration,
+    includeComments: false,
+    languageVersionChanged: languageVersionChanged,
+    allowLazyStrings: false,
+  );
+  Token tokens = scanner.tokenizeDirectives();
+  return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
+}
+
 /// Scan/tokenize the given UTF8 [bytes].
 ScannerResult scan(
   Uint8List bytes, {

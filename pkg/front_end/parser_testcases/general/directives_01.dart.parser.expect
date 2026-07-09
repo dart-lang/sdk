@@ -1,0 +1,71 @@
+#!/usr/bin/env dart
+
+
+@FooX<int>(<int, int>{})
+library foo.bar.directive;
+
+@FooX<int>(<int, int>{})
+import "foo.dart";
+export "bar.dart";
+
+import 'baz1.dart'
+if (dart.library.html) 'baz2.dart'
+if (dart.library.io) 'baz3.dart' as baz;
+part 'bla.dart';
+
+@FooX<int>(<int, int>{})
+class FooY {}
+
+void foo() {
+print("This isn't a directive!");
+}
+
+@FooX<int>(<int, int>{})
+class Foo {
+void foo1() {}
+void foo2() {}
+void foo3() {}
+void foo4() {}
+}
+
+class FooX<E> {
+final Map<E, E> map;
+const FooX(this.map);
+}
+
+
+#!/usr/bin/env dart[StringToken]
+
+
+@[SimpleToken]FooX[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]<[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+library[KeywordToken] foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]directive[StringToken];[SimpleToken]
+
+@[SimpleToken]FooX[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]<[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+import[KeywordToken] "foo.dart"[StringToken];[SimpleToken]
+export[KeywordToken] "bar.dart"[StringToken];[SimpleToken]
+
+import[KeywordToken] 'baz1.dart'[StringToken]
+if[KeywordToken] ([BeginToken]dart[StringToken].[SimpleToken]library[KeywordToken].[SimpleToken]html[StringToken])[SimpleToken] 'baz2.dart'[StringToken]
+if[KeywordToken] ([BeginToken]dart[StringToken].[SimpleToken]library[KeywordToken].[SimpleToken]io[StringToken])[SimpleToken] 'baz3.dart'[StringToken] as[KeywordToken] baz[StringToken];[SimpleToken]
+part[KeywordToken] 'bla.dart'[StringToken];[SimpleToken]
+
+@[SimpleToken]FooX[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]<[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+class[KeywordToken] FooY[StringToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"This isn't a directive!"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+@[SimpleToken]FooX[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]<[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken]{[BeginToken]}[SimpleToken])[SimpleToken]
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+void[KeywordToken] foo1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] foo2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] foo3[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+void[KeywordToken] foo4[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] FooX[StringToken]<[BeginToken]E[StringToken]>[SimpleToken] {[BeginToken]
+final[KeywordToken] Map[StringToken]<[BeginToken]E[StringToken],[SimpleToken] E[StringToken]>[SimpleToken] map[StringToken];[SimpleToken]
+const[KeywordToken] FooX[StringToken]([BeginToken]this[KeywordToken].[SimpleToken]map[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]
