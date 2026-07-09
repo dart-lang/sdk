@@ -144,6 +144,7 @@ import 'lines_longer_than_80_chars_test.dart' as lines_longer_than_80_chars;
 import 'literal_only_boolean_expressions_test.dart'
     as literal_only_boolean_expressions;
 import 'matching_super_parameters_test.dart' as matching_super_parameters;
+import 'migrate_design_widgets_test.dart' as migrate_design_widgets;
 import 'missing_code_block_language_in_doc_comment_test.dart'
     as missing_code_block_language_in_doc_comment;
 import 'missing_whitespace_between_adjacent_strings_test.dart'
@@ -449,6 +450,7 @@ void main() {
   lines_longer_than_80_chars.main();
   literal_only_boolean_expressions.main();
   matching_super_parameters.main();
+  migrate_design_widgets.main();
   missing_code_block_language_in_doc_comment.main();
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();

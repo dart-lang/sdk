@@ -7378,6 +7378,18 @@ LinterLintCode:
         );
       }
       ```
+  migrateDesignWidgets:
+    type: lint
+    parameters:
+      String libraryName: the name of the deprecated library
+    problemMessage: "The '#libraryName' library is deprecated."
+    correctionMessage: "Try using the Material or Cupertino package."
+    state:
+      testing: "3.13"
+    categories: [flutter]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      The 'package:flutter/material.dart' and 'package:flutter/cupertino.dart' libraries are deprecated.
   missingCodeBlockLanguageInDocComment:
     type: lint
     parameters: none

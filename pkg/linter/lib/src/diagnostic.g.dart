@@ -1818,6 +1818,20 @@ matchingSuperParameters = LinterLintTemplate(
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
 
+/// Parameters:
+/// String libraryName: the name of the deprecated library
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String libraryName})
+>
+migrateDesignWidgets = LinterLintTemplate(
+  name: 'migrate_design_widgets',
+  problemMessage: "The '{0}' library is deprecated.",
+  correctionMessage: "Try using the Material or Cupertino package.",
+  uniqueName: 'migrate_design_widgets',
+  withArguments: _withArgumentsMigrateDesignWidgets,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const LinterLintWithoutArguments missingCodeBlockLanguageInDocComment =
     LinterLintWithoutArguments(
@@ -4369,6 +4383,12 @@ LocatableDiagnostic _withArgumentsMatchingSuperParameters({
   required Object p1,
 }) {
   return LocatableDiagnosticImpl(diag.matchingSuperParameters, [p0, p1]);
+}
+
+LocatableDiagnostic _withArgumentsMigrateDesignWidgets({
+  required String libraryName,
+}) {
+  return LocatableDiagnosticImpl(diag.migrateDesignWidgets, [libraryName]);
 }
 
 LocatableDiagnostic _withArgumentsNoDuplicateCaseValues({
