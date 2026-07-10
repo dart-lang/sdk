@@ -14,7 +14,6 @@ aam
 abbr
 abbreviate
 abc
-abcdef
 abs
 absorb
 absorbed
@@ -434,7 +433,6 @@ dashes
 davidmorgan
 dc
 ddc
-ddfea
 ddk
 dea
 debuggable
@@ -571,7 +569,6 @@ e
 eager
 ease
 easy
-eb
 ecma
 ecosystem
 ed
@@ -696,12 +693,6 @@ feff
 fetched
 fewest
 ff
-fff
-ffff
-fffff
-ffffff
-fffffff
-ffffffff
 ffi
 fieldformal
 file's
@@ -2230,19 +2221,7 @@ wtf
 www
 x
 x$y
-xb
-xbb
-xbf
 xcodebuild
-xd
-xdbff
-xdc
-xdfff
-xef
-xff
-xffff
-xffffffff
-xffffffffffffffff
 xi
 xj
 xk

@@ -382,7 +382,7 @@ class _DummyExtensionScope implements ExtensionScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {}
 }
 
-final Argument dummyArgument = new PositionalArgument(dummyExpression);
+final Argument dummyArgument = new PositionalArgument(dummyInternalExpression);
 
 bool isOutlineAnnotatedWithPragma(
   Annotatable node,

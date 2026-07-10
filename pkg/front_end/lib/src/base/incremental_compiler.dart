@@ -106,7 +106,7 @@ import '../kernel/internal_ast.dart'
         InternalVariableGet,
         InternalVariableSet,
         InternalVariable,
-        InternalVariableDeclaration;
+        InternalConstVariable;
 import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import '../source/check_helper.dart';
@@ -1903,7 +1903,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         return null;
       }
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
-      List<InternalVariableDeclaration> extraKnownVariables = [];
+      List<InternalVariable> extraKnownVariables = [];
       String? usedMethodName = methodName;
       Substitution? substitution;
       Set<String> removedDefinitionNames = {};
@@ -1983,18 +1983,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               if (alwaysInlineConstants &&
                   def.value.isConst &&
                   def.value.initializer is ConstantExpression) {
-                extraKnownVariables.add(
-                  intern.createVariableDeclaration(
-                    intern.createConstVariable(
-                      name: def.key,
-                      type: substitution.substituteType(def.value.type),
-                      hasDeclaredInitializer: true,
-                      fileOffset: def.value.fileOffset,
-                    ),
-                    initializer: def.value.initializer,
-                    fileOffset: def.value.fileOffset,
-                  ),
+                InternalConstVariable variable = intern.createConstVariable(
+                  name: def.key,
+                  type: substitution.substituteType(def.value.type),
+                  hasDeclaredInitializer: true,
+                  fileOffset: def.value.fileOffset,
                 );
+                variable.astVariable.value = def.value.initializer;
+                extraKnownVariables.add(variable);
               } else if (def.value.isInitializingFormal ||
                   def.value.isSuperInitializingFormal) {
                 // An (super) initializing formal parameter of a constructor
@@ -2006,13 +2002,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 // captured? Either way there's something shadowing any fields
                 // etc.
                 extraKnownVariables.add(
-                  intern.createVariableDeclaration(
-                    intern.createLocalVariable(
-                      name: def.key,
-                      type: substitution.substituteType(def.value.type),
-                      fileOffset: def.value.fileOffset,
-                    ),
-                    initializer: null,
+                  intern.createLocalVariable(
+                    name: def.key,
+                    type: substitution.substituteType(def.value.type),
                     fileOffset: def.value.fileOffset,
                   ),
                 );
@@ -2634,14 +2626,14 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   final ClassHierarchy hierarchy;
   final Map<String, FormalParameterBuilder> extraParametersIfNotShadowing = {};
 
-  new(List<InternalVariableDeclaration> extraKnown, this.hierarchy) {
-    for (InternalVariableDeclaration declaration in extraKnown) {
-      if (declaration.variable.isConst) {
+  new(List<InternalVariable> extraKnown, this.hierarchy) {
+    for (InternalVariable variable in extraKnown) {
+      if (variable.isConst) {
         // We allow const variables - these are inlined (we check
         // `alwaysInlineConstants` in `compileExpression`).
         continue;
       }
-      knownButUnavailable.add(declaration.variable);
+      knownButUnavailable.add(variable);
     }
   }
 

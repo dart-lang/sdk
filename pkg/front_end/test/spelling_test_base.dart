@@ -7,7 +7,13 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show ErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show BeginToken, KeywordToken, StringToken, Token;
+    show
+        BeginToken,
+        KeywordToken,
+        StringToken,
+        Token,
+        TokenIsAExtension,
+        TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 import 'package:front_end/src/base/command_line_reporting.dart'
@@ -17,16 +23,46 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 
 import 'spell_checking_utils.dart' as spell;
-import 'testing_utils.dart' show filterList;
+import 'testing_utils.dart' show filterList, checkEnvironment;
+
+class SpellOptions {
+  final bool interactive;
+  final bool justAddEverything;
+  final bool onlyInGit;
+
+  new _({
+    required this.interactive,
+    required this.justAddEverything,
+    required this.onlyInGit,
+  });
+
+  static SpellOptions create(Map<String, String> environment) {
+    const Set<String> knownEnvironmentKeys = {
+      "interactive",
+      "justAddEverything",
+      "onlyInGit",
+    };
+    checkEnvironment(environment, knownEnvironmentKeys);
+
+    bool interactive = environment["interactive"] == "true";
+    bool justAddEverything = environment["justAddEverything"] == "true";
+    bool onlyInGit = environment["onlyInGit"] != "false";
+
+    return new SpellOptions._(
+      interactive: interactive,
+      justAddEverything: justAddEverything,
+      onlyInGit: onlyInGit,
+    );
+  }
+}
 
 abstract class SpellContext extends ChainContext {
   @override
   final List<Step> steps = const <Step>[const SpellTest()];
 
-  final bool interactive;
-  final bool onlyInGit;
+  final SpellOptions spellOptions;
 
-  new({required this.interactive, required this.onlyInGit});
+  new(this.spellOptions);
 
   List<spell.Dictionaries> get dictionaries;
 
@@ -39,7 +75,7 @@ abstract class SpellContext extends ChainContext {
 
   @override
   Future<List<TestDescription>> list(Chain suite) async {
-    return filterList(suite, onlyInGit, await super.list(suite));
+    return filterList(suite, spellOptions.onlyInGit, await super.list(suite));
   }
 
   @override
@@ -55,8 +91,10 @@ abstract class SpellContext extends ChainContext {
       reportedWordsAndAlternatives,
       reportedWordsDenylisted,
       dictionaries,
-      interactive,
-      '"$dartPath" "$suitePath" -DonlyInGit=$onlyInGit -Dinteractive=true',
+      spellOptions.interactive,
+      spellOptions.justAddEverything,
+      '"$dartPath" "$suitePath" '
+      '-DonlyInGit=${spellOptions.onlyInGit} -Dinteractive=true',
     );
     return new Future.value();
   }
@@ -81,7 +119,6 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
       includeComments: true,
     );
     Token firstToken = scanner.tokenize();
-    Token? token = firstToken;
 
     List<String>? errors;
     Source source = new Source(
@@ -132,7 +169,11 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
       );
     }
 
-    while (token != null) {
+    for (
+      Token? token = firstToken;
+      token != null && !token.isEof;
+      token = token.next
+    ) {
       if (token is ErrorToken) {
         // For now just accept that.
         return new Future.value(pass(description));
@@ -163,6 +204,8 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
         }
       }
       if (token is StringToken) {
+        if (token.isA(TokenType.HEXADECIMAL)) continue;
+        if (token.isA(TokenType.HEXADECIMAL_WITH_SEPARATORS)) continue;
         spell.SpellingResult spellingResult = spell.spellcheckString(
           token.lexeme,
           splitAsCode: true,
@@ -189,10 +232,6 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
       } else {
         throw "Unsupported token type: ${token.runtimeType} ($token)";
       }
-
-      if (token.isEof) break;
-
-      token = token.next;
     }
 
     if (errors == null) {

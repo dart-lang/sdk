@@ -862,14 +862,14 @@ class _ExtensionTypeInitializerToStatementConverter
 
   @override
   void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
-    if (node is ExtensionTypeRedirectingInitializer) {
+    if (node is ExternalExtensionTypeRedirectingInitializer) {
       statements.add(
         extern.createExpressionStatement(
           extern.createVariableSet(
             thisVariableStatement.declaration.variable,
             extern.createStaticInvocation(
               node.target,
-              node.inferredArguments,
+              node.arguments,
               fileOffset: node.fileOffset,
             ),
             fileOffset: node.fileOffset,
@@ -879,7 +879,7 @@ class _ExtensionTypeInitializerToStatementConverter
         ),
       );
       return;
-    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
+    } else if (node is ExternalExtensionTypeRepresentationFieldInitializer) {
       thisVariableStatement.declaration.variable
         ..initializer = (node.value
           ..parent = thisVariableStatement.declaration.variable)

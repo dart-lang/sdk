@@ -44,9 +44,9 @@ import 'stack_listener_impl.dart' as type;
 
 class ValueKinds {
   static const ValueKind AnnotationList =
-      const SingleValueKind<List<type.Expression>>();
+      const SingleValueKind<List<type.InternalExpression>>();
   static const ValueKind AnnotationListOrNull =
-      const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
+      const SingleValueKind<List<type.InternalExpression>>(NullValues.Metadata);
   static const ValueKind AnonymousMethodParameters =
       const SingleValueKind<type.AnonymousMethodParameters>();
   static const ValueKind AnonymousMethodParameterBuilder =
@@ -100,17 +100,20 @@ class ValueKinds {
       const SingleValueKind<type.EnumConstantInfo>(NullValues.EnumConstantInfo);
   static const ValueKind EnumConstantInfoOrParserRecovery =
       const UnionValueKind([EnumConstantInfo, ParserRecovery]);
-  static const ValueKind Expression = const SingleValueKind<type.Expression>();
+  static const ValueKind Expression =
+      const SingleValueKind<type.InternalExpression>();
   static const ValueKind ExpressionOrPatternGuardCase =
       const SingleValueKind<type.ExpressionOrPatternGuardCase>();
   static const ValueKind ExpressionOrPatternGuardCaseList =
       const SingleValueKind<List<type.ExpressionOrPatternGuardCase>>();
   static const ValueKind ExpressionOrNull =
-      const SingleValueKind<type.Expression>(NullValues.Expression);
+      const SingleValueKind<type.InternalExpression>(NullValues.Expression);
   static const ValueKind FieldInitializerTokenOrNull =
       const SingleValueKind<type.Token>(NullValues.FieldInitializer);
   static const ValueKind FieldInitializerOrNull =
-      const SingleValueKind<type.Expression>(NullValues.FieldInitializer);
+      const SingleValueKind<type.InternalExpression>(
+        NullValues.FieldInitializer,
+      );
   static const ValueKind FormalParameters =
       const SingleValueKind<type.FormalParameters>();
   static const ValueKind FormalListOrNull =

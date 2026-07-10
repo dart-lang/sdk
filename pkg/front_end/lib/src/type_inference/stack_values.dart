@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart' as type;
 
-import '../kernel/collections.dart' as type;
+import '../kernel/inferred_collections.dart' as type;
 
 class NullValues {
   static const NullValue Expression = const NullValue("Expression");
@@ -22,6 +22,10 @@ class ValueKinds {
       const SingleValueKind<type.Expression>();
   static const SingleValueKind<type.Expression> ExpressionOrNull =
       const SingleValueKind<type.Expression>(NullValues.Expression);
+  static const SingleValueKind<type.InferredElement> InferredElement =
+      const SingleValueKind<type.InferredElement>();
+  static const SingleValueKind<type.InferredElement> InferredElementOrNull =
+      const SingleValueKind<type.InferredElement>(NullValues.Expression);
   static const SingleValueKind<type.InferredMapLiteralEntry> MapLiteralEntry =
       const SingleValueKind<type.InferredMapLiteralEntry>();
   static const SingleValueKind<type.InferredMapLiteralEntry>

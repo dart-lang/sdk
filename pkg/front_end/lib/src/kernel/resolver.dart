@@ -113,9 +113,9 @@ class Resolver {
       internalThisVariable: null,
     );
 
-    List<Expression> annotationsToBeInferred = [];
+    List<InternalExpression> annotationsToBeInferred = [];
     for (Annotation annotation in annotations) {
-      Expression expression = bodyBuilder.buildAnnotation(
+      InternalExpression expression = bodyBuilder.buildAnnotation(
         atToken: annotation.atToken,
       );
       if (annotation.createFileUriExpression) {
@@ -986,13 +986,12 @@ class Resolver {
 
     BuildSingleExpressionResult result = bodyBuilder.buildSingleExpression(
       token: token,
-      extraKnownVariableDeclarations:
-          expressionCompilationData.extraKnownVariables,
+      extraKnownVariables: expressionCompilationData.extraKnownVariables,
       fileOffset: fileOffset,
       typeParameterBuilders: typeParameterBuilders,
       formals: formals,
     );
-    Expression expression = result.expression;
+    InternalExpression expression = result.expression;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         InternalVariable variable = formals[i].variable;
@@ -1013,17 +1012,13 @@ class Resolver {
         );
       }
     }
-    for (InternalVariableDeclaration extraVariableDeclaration
+    for (InternalVariable extraVariable
         in expressionCompilationData.extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
-        extraVariableDeclaration.variable,
-        new SharedTypeView(extraVariableDeclaration.variable.type),
+        extraVariable,
+        new SharedTypeView(extraVariable.type),
         initialized: true,
       );
-      // Ensure that initializers are attached to the variable.
-      extraVariableDeclaration.variable.astVariable.initializer =
-          extraVariableDeclaration.initializer
-            ?..parent = extraVariableDeclaration.variable.astVariable;
     }
 
     InternalReturnStatement internalReturn = intern.createReturnStatement(
@@ -1277,7 +1272,7 @@ class Resolver {
 
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [fileOffset] as the file offset.
-  Expression _createVariableGet({
+  InternalExpression _createVariableGet({
     required AssignedVariablesImpl assignedVariables,
     required InternalVariable variable,
     required int fileOffset,
