@@ -21,7 +21,7 @@ declare_args() {
   # VM service will be included in the build. By default, the legacy VM
   # service implementation will be launched by the VM, unless the
   # --include-experimental-vm-service VM flag is provided.
-  include_experimental_vm_service = true
+  include_experimental_vm_service = false
 }
 
 # The SDK hash to build into VM and kernels.

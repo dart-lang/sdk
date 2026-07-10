@@ -13,7 +13,7 @@ import 'reload_utils.dart';
 final N = runningInSimulator
     ? 2
     : Platform.isWindows
-    ? math.min(4, Platform.numberOfProcessors)
+    ? math.min(8, Platform.numberOfProcessors)
     : math.min(20, Platform.numberOfProcessors);
 
 main() async {
@@ -43,7 +43,6 @@ String dartTestFile(int N) =>
     '''
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:io';
 
 import 'package:expect/expect.dart';
 
@@ -128,10 +127,6 @@ void child(ChildMessage message) async {
   await onParentExit.first;
 
   if (!isDone()) {
-    if (Platform.isWindows) {
-      // Windows can be slow to tear down isolates; delay to avoid thrashing.
-      await Future.delayed(const Duration(milliseconds: 50));
-    }
     final attachOnExitListener = ReceivePort();
     final childMessage = message.next(attachOnExitListener.sendPort);
     Isolate.spawn(
