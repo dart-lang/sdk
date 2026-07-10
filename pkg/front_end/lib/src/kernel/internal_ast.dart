@@ -5237,42 +5237,14 @@ class InternalRecordLiteral extends InternalExpression {
   }
 }
 
-class ExtensionTypeRedirectingInitializer extends ExternalInitializer
-    implements InternalInitializer {
-  Reference targetReference;
-  ActualArguments arguments;
-
-  /// Redirecting initializers are encoded as calls to top-level functions.
-  /// The type arguments for this call are inferred.
-  late Arguments inferredArguments;
-
-  new(Procedure target, ActualArguments arguments, {required int fileOffset})
-    : this.byReference(
-        // Getter vs setter doesn't matter for procedures.
-        getNonNullableMemberReferenceGetter(target),
-        arguments,
-        fileOffset: fileOffset,
-      );
-
-  new byReference(
-    this.targetReference,
-    this.arguments, {
-    required int fileOffset,
-  }) {
-    arguments.parent = this;
-    this.fileOffset = fileOffset;
-  }
+class ExtensionTypeRedirectingInitializer extends InternalInitializer {
+  final Procedure target;
+  final ActualArguments arguments;
 
   @override
-  bool get isRedirectingInitializer => true;
+  final int fileOffset;
 
-  Procedure get target => targetReference.asProcedure;
-
-  // Coverage-ignore(suite): Not run.
-  void set target(Procedure target) {
-    // Getter vs setter doesn't matter for procedures.
-    targetReference = getNonNullableMemberReferenceGetter(target);
-  }
+  new(this.target, this.arguments, {required this.fileOffset});
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -5295,28 +5267,44 @@ class ExtensionTypeRedirectingInitializer extends ExternalInitializer
       'ExtensionTypeRedirectingInitializer(${toStringInternal()})';
 }
 
-/// Internal expression for an explicit initialization of an extension type
-/// declaration representation field.
-class ExtensionTypeRepresentationFieldInitializer extends ExternalInitializer
-    implements InternalInitializer {
-  Reference fieldReference;
-  Expression value;
+class ExternalExtensionTypeRedirectingInitializer extends ExternalInitializer {
+  final Procedure target;
+  final Arguments arguments;
 
-  new(Procedure field, this.value, {required int fileOffset})
-    : assert(field.stubKind == ProcedureStubKind.RepresentationField),
-      this.fieldReference = field.reference {
-    value.parent = this;
+  new(this.target, this.arguments, {required int fileOffset}) {
+    arguments.parent = this;
     this.fileOffset = fileOffset;
   }
 
   @override
+  bool get isRedirectingInitializer => true;
+
+  @override
   // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) {
-    value = v.transform(value)..parent = this;
+  void toTextInternal(AstPrinter printer) {
+    printer.write('this');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    arguments.toTextInternal(printer);
   }
 
+  @override
+  String toString() => '$runtimeType(${toStringInternal()})';
+}
+
+/// Internal expression for an explicit initialization of an extension type
+/// declaration representation field.
+class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   /// [Procedure] that represents the representation field.
-  Procedure get field => fieldReference.asProcedure;
+  final Procedure field;
+  final Expression value;
+  @override
+  final int fileOffset;
+
+  new(this.field, this.value, {required this.fileOffset})
+    : assert(field.stubKind == ProcedureStubKind.RepresentationField);
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -5326,7 +5314,7 @@ class ExtensionTypeRepresentationFieldInitializer extends ExternalInitializer
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(fieldReference);
+    printer.writeMemberName(field.reference);
     printer.write(" = ");
     printer.writeExpression(value);
   }
@@ -5334,6 +5322,32 @@ class ExtensionTypeRepresentationFieldInitializer extends ExternalInitializer
   @override
   String toString() =>
       'ExtensionTypeRepresentationFieldInitializer(${toStringInternal()})';
+}
+
+/// Internal expression for an explicit initialization of an extension type
+/// declaration representation field.
+class ExternalExtensionTypeRepresentationFieldInitializer
+    extends ExternalInitializer {
+  /// [Procedure] that represents the representation field.
+  final Procedure field;
+  final Expression value;
+
+  new(this.field, this.value, {required int fileOffset})
+    : assert(field.stubKind == ProcedureStubKind.RepresentationField) {
+    value.parent = this;
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(field.reference);
+    printer.write(" = ");
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() => '$runtimeType(${toStringInternal()})';
 }
 
 /// Internal expression for a dot shorthand.

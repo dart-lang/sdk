@@ -13015,7 +13015,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
-    node.inferredArguments = createArgumentsFromInternalNode(
+    Arguments arguments = createArgumentsFromInternalNode(
       inferenceResult.typeArguments,
       inferenceResult.positional,
       inferenceResult.named,
@@ -13041,7 +13041,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
     return new InitializerInferenceResult.fromInvocationInferenceResult(
-      result ?? node,
+      result ??
+          new ExternalExtensionTypeRedirectingInitializer(
+            node.target,
+            arguments,
+            fileOffset: node.fileOffset,
+          ),
       inferenceResult,
     );
   }
@@ -13062,8 +13067,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
       isVoidAllowed: true,
     ).expression;
-    node.value = initializer..parent = node;
-    return new SuccessfulInitializerInferenceResult(node);
+    Initializer replacement =
+        new ExternalExtensionTypeRepresentationFieldInitializer(
+          node.field,
+          initializer,
+          fileOffset: node.fileOffset,
+        );
+    return new SuccessfulInitializerInferenceResult(replacement);
   }
 
   @override

@@ -1674,7 +1674,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   Initializer buildImplicitInitializer() {
-    return new ExtensionTypeRepresentationFieldInitializer(
+    return new ExternalExtensionTypeRepresentationFieldInitializer(
       _getter,
       extern.createNullLiteral(fileOffset: _fragment.nameOffset),
       fileOffset: _fragment.nameOffset,

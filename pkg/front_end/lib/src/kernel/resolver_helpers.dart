@@ -557,12 +557,12 @@ class _InitializerBuilder {
       case AuxiliaryInitializer():
         if (initializer is ExternalInitializer) {
           switch (initializer) {
-            case ExtensionTypeRedirectingInitializer():
+            case ExternalExtensionTypeRedirectingInitializer():
               _addRedirectingInitializer(
                 initializerInferenceResult,
                 initializer,
               );
-            case ExtensionTypeRepresentationFieldInitializer():
+            case ExternalExtensionTypeRepresentationFieldInitializer():
               _addRegularInitializer(initializerInferenceResult, initializer);
           }
         } else {

@@ -139,7 +139,7 @@ void testPattern(
 }
 
 void testInitializer(
-  Initializer node,
+  InternalInitializer node,
   String normal, {
   String? verbose,
   String? limited,
