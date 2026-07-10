@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io' as io;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart';
@@ -107,6 +108,15 @@ class LspAnalysisServer extends AnalysisServer {
   /// A progress reporter for analysis status.
   ProgressReporter? analyzingProgressReporter;
 
+  /// Whether the core analysis driver is currently analyzing.
+  bool _serverAnalyzing = false;
+
+  /// Whether we are waiting for plugins to complete their analysis cycle.
+  ///
+  /// Set when core analysis starts and new-style plugins are running.
+  /// Cleared when the plugin reports it has finished analyzing.
+  bool _pluginAnalysisPending = false;
+
   /// The number of times contexts have been created/recreated.
   @visibleForTesting
   int contextBuilds = 0;
@@ -183,13 +193,28 @@ class LspAnalysisServer extends AnalysisServer {
 
     channel.listen(scheduleMessage, onDone: done, onError: socketError);
 
-    _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
-      (_) => _onPluginsChanged(),
-    );
+    _pluginChangeSubscription = pluginManager.pluginsChanged.listen((_) {
+      _onPluginsChanged();
+      if (pluginManager.newPluginIsolates.isEmpty && _pluginAnalysisPending) {
+        // Plugin discovery completed but no new-style plugins were found.
+        // Clear the pending flag so the end notification can proceed.
+        _pluginAnalysisPending = false;
+        _updateAnalyzingStatus();
+      } else if (!_serverAnalyzing &&
+          pluginManager.newPluginIsolates.isNotEmpty) {
+        // Plugins were added while the server is idle. The plugin will
+        // trigger its own analysis cycle. Keep it pending.
+        _pluginAnalysisPending = true;
+        _updateAnalyzingStatus();
+      }
+    });
 
-    // TODO(srawlins): Listen to
-    // `notificationManager.pluginAnalysisStatusChanges` and perform "on idle"
-    // tasks.
+    notificationManager.pluginAnalysisStatusChanges.listen((isAnalyzing) {
+      if (!isAnalyzing) {
+        _pluginAnalysisPending = false;
+      }
+      _updateAnalyzingStatus();
+    });
   }
 
   /// The hosted location of the client application.
@@ -844,19 +869,39 @@ class LspAnalysisServer extends AnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   Future<void> sendStatusNotification(analysis.AnalysisStatus status) async {
-    // Send old custom notifications to clients that do not support $/progress.
-    // TODO(dantup): Remove this custom notification (and related classes) when
-    // it's unlikely to be in use by any clients.
-    var isAnalyzing = status.isWorking;
-    if (wasAnalyzing && !isAnalyzing) {
-      wasAnalyzing = isAnalyzing;
+    _serverAnalyzing = status.isWorking;
+    if (status.isWorking) {
+      if (pluginManager.newPluginIsolates.isNotEmpty ||
+          !pluginManager.initializedCompleter.isCompleted) {
+        // Plugins are running or still loading. Defer the end notification
+        // until the plugin reports completion.
+        _pluginAnalysisPending = true;
+      }
+    }
+    await _updateAnalyzingStatus();
+  }
+
+  /// Updates the combined analyzing status and sends notifications only on
+  /// actual state transitions.
+  Future<void> _updateAnalyzingStatus() async {
+    var isAnalyzing =
+        _serverAnalyzing ||
+        notificationManager.pluginStatusAnalyzing ||
+        _pluginAnalysisPending;
+
+    // Only send notifications when the combined status actually changes.
+    if (isAnalyzing == wasAnalyzing) {
+      return;
+    }
+
+    wasAnalyzing = isAnalyzing;
+
+    if (!isAnalyzing) {
       // Only send analysis analytics after analysis is complete.
       reportAnalysisAnalytics();
     }
-    if (isAnalyzing && !wasAnalyzing) {
-      wasAnalyzing = true;
-    }
 
+    // Send old custom notifications to clients that do not support $/progress.
     if (editorClientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(
         NotificationMessage(
