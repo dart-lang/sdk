@@ -1367,12 +1367,15 @@ InternalPattern createRecordPattern(
   return new InternalRecordPattern(patterns: patterns, fileOffset: fileOffset);
 }
 
-RedirectingFactoryTearOff createRedirectingFactoryTearOff(
+InternalExpression createRedirectingFactoryTearOff(
   int fileOffset,
   Procedure procedure,
 ) {
   assert(procedure.isRedirectingFactory);
-  return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
+  return new InternalRedirectingFactoryTearOff(
+    procedure,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalRedirectingInitializer createRedirectingInitializer({

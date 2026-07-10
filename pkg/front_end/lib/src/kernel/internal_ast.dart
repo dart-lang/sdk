@@ -9891,3 +9891,30 @@ final InternalMapLiteralEntry dummyInternalMapLiteralEntry =
       value: dummyInternalExpression,
       fileOffset: TreeNode.noOffset,
     );
+
+class InternalRedirectingFactoryTearOff extends InternalExpression {
+  final Procedure target;
+
+  new(this.target, {required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalRedirectingFactoryTearOff(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(target.reference);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
+  }
+}

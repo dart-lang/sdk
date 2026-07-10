@@ -411,6 +411,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (expression is InternalExpression) {
       result = expression.acceptInference(this, typeContext);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       result = expression.accept1(this, typeContext);
     }
     DartType inferredType = result.inferredType;
@@ -753,15 +754,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitRedirectingFactoryTearOff(
     RedirectingFactoryTearOff node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalRedirectingFactoryTearOff(
+    InternalRedirectingFactoryTearOff node,
     DartType typeContext,
   ) {
     ensureMemberType(node.target);
     DartType type = node.target.function.computeFunctionType(
       Nullability.nonNullable,
     );
-    return instantiateTearOff(type, typeContext, node);
+    Expression replacement = extern.createRedirectingFactoryTearOff(
+      node.target,
+      fileOffset: node.fileOffset,
+    );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, replacement);
+    return instantiateTearOff(type, typeContext, replacement);
   }
 
   @override

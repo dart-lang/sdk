@@ -1338,6 +1338,14 @@ RecordPattern createRecordPattern({
     ..fileOffset = fileOffset;
 }
 
+RedirectingFactoryTearOff createRedirectingFactoryTearOff(
+  Procedure procedure, {
+  required int fileOffset,
+}) {
+  assert(procedure.isRedirectingFactory);
+  return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
+}
+
 RelationalPattern createRelationalPattern({
   required RelationalPatternKind kind,
   required Expression expression,

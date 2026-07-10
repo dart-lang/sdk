@@ -2534,7 +2534,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 (receiver.target.isFactory ||
                     isTearOffLowering(receiver.target)) ||
             receiver is InternalConstructorTearOff ||
-            receiver is RedirectingFactoryTearOff) {
+            receiver is InternalRedirectingFactoryTearOff) {
           return buildProblem(
             message: diag.constructorTearOffWithTypeArguments,
             fileUri: uri,
@@ -9215,7 +9215,7 @@ class BodyBuilderImpl extends StackListenerImpl
       } else if (operand is InternalStaticTearOff &&
               (operand.target.isFactory || isTearOffLowering(operand.target)) ||
           operand is InternalConstructorTearOff ||
-          operand is RedirectingFactoryTearOff) {
+          operand is InternalRedirectingFactoryTearOff) {
         push(
           buildProblem(
             message: diag.constructorTearOffWithTypeArguments,
