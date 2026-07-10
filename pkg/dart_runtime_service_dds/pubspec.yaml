@@ -1,0 +1,19 @@
+name: dart_runtime_service_dds
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: ^3.12.0-0
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  dart_runtime_service: any
+  shelf_proxy: any
+  vm_service: any
+  web_socket_channel: any
+
+dev_dependencies:
+  json_rpc_2: any
+  test: any
