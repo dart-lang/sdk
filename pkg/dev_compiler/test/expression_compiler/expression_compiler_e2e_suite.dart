@@ -70,6 +70,9 @@ class ExpressionEvaluationTestDriver {
           ['about:blank'],
           userDataDir: chromeDir.uri.toFilePath(),
           headless: !Platform.isWindows,
+          // Disabling to avoid issues with the AppArmor security features in
+          // Ubuntu "Resolute".
+          additionalArguments: ['--no-sandbox'],
         );
       } catch (e) {
         if (retries == 0) rethrow;
