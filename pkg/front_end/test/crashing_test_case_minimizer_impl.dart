@@ -47,7 +47,7 @@ import "package:vm/modular/target/flutter.dart" show FlutterTarget;
 import "package:vm/modular/target/vm.dart" show VmTarget;
 
 import 'incremental_suite.dart' show getOptions;
-import 'parser_suite.dart' as parser_suite;
+import 'parser_suite_utils.dart' as parser_suite_utils;
 import 'parser_test_listener.dart' show ParserTestListener;
 
 class TestMinimizerSettings {
@@ -1219,7 +1219,7 @@ worlds:
 
     List<int> lineStarts = [];
 
-    Token firstToken = parser_suite.scanRawBytes(
+    Token firstToken = parser_suite_utils.scanRawBytes(
       data,
       _scannerConfiguration,
       lineStarts,
@@ -2307,7 +2307,7 @@ worlds:
   String _getFileAsStringContent(Uint8List rawBytes) {
     List<int> lineStarts = [];
 
-    Token firstToken = parser_suite.scanRawBytes(
+    Token firstToken = parser_suite_utils.scanRawBytes(
       rawBytes,
       _scannerConfiguration,
       lineStarts,
@@ -2320,14 +2320,14 @@ worlds:
       experimentalFeatures: const DefaultExperimentalFeatures(),
     );
     parser.parseUnit(firstToken);
-    String parsedString = parser_suite
+    String parsedString = parser_suite_utils
         .tokenStreamToString(firstToken, lineStarts)
         .toString();
     return parsedString;
   }
 
   bool _parsesWithoutError(Uint8List rawBytes) {
-    Token firstToken = parser_suite.scanRawBytes(
+    Token firstToken = parser_suite_utils.scanRawBytes(
       rawBytes,
       _scannerConfiguration,
       null,

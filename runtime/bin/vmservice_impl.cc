@@ -20,11 +20,7 @@ namespace bin {
 
 #if !defined(PRODUCT)
 
-#if defined(EXPERIMENTAL_VM_SERVICE)
-bool VmService::enable_experimental_vm_service = true;
-#else
 bool VmService::enable_experimental_vm_service = false;
-#endif
 
 #define RETURN_ERROR_HANDLE(handle)                                            \
   if (Dart_IsError(handle)) {                                                  \
@@ -113,6 +109,9 @@ char VmService::server_uri_[kServerUriStringBufferSize];
 static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
 
 void VmService::SetNativeResolver() {
+  if (enable_experimental_vm_service) {
+    return;
+  }
   Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (!Dart_IsError(library)) {

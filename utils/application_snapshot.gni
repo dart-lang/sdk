@@ -222,7 +222,6 @@ template("application_snapshot") {
                   "--packages=" + rebase_path(package_config, root_build_dir),
                   "--snapshot-kind=app-jit",
                   "--snapshot=" + rebase_path(output, root_build_dir),
-                  "--disable-experimental-vm-service",
                 ] + snapshot_vm_args
       args = training_args
     }

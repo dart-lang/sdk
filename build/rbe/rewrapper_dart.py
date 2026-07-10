@@ -288,10 +288,7 @@ trace to find the place to insert the appropriate support.
                     '--ignore-unrecognized-flags'
             ]):
                 pass
-            elif arg in [
-                    '--deterministic', '--sound-null-safety',
-                    '--disable-experimental-vm-service'
-            ]:
+            elif arg in ['--deterministic', '--sound-null-safety']:
                 pass
             elif arg == 'compile':
                 self.extra_paths.add(

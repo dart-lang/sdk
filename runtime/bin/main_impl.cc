@@ -536,7 +536,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   const uint8_t* snapshot_text = nullptr;
 
 #if defined(EXPERIMENTAL_VM_SERVICE)
-  if (!Options::disable_experimental_vm_service()) {
+  if (Options::experimental_vm_service()) {
     VmService::enable_experimental_vm_service = true;
     const bool vm_service_explicitly_requested =
         (Options::vm_service_server_port() >= 0);
@@ -566,9 +566,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       }
     }
     app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
-    isolate_group_data->AddLoadedSnapshot(app_snapshot);
   } else {
-    VmService::enable_experimental_vm_service = false;
 #endif  // defined(EXPERIMENTAL_VM_SERVICE)
 #if defined(DART_PRECOMPILED_RUNTIME)
     // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT

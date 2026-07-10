@@ -100,9 +100,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  const char* packages_config,
                                                  Dart_IsolateFlags* flags,
                                                  char** error) {
-#if defined(PRODUCT)
-  return nullptr;
-#else
   // We only enable the vm-service for this particular test.
   // The vm-service seems to have some shutdown race which would cause other
   // vm/cc tests to randomly time out due to inability to shut service-isolate
@@ -153,7 +150,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
   if (is_service_test) {
     ASSERT(!is_exp_service_test);
-    bin::VmService::enable_experimental_vm_service = false;
     const uint8_t* kernel_buffer = nullptr;
     intptr_t kernel_buffer_size = 0;
 
@@ -204,7 +200,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   Dart_ExitScope();
   Dart_ExitIsolate();
   return isolate;
-#endif
 }
 
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
