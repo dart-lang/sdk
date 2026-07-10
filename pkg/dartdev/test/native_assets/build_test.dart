@@ -685,6 +685,14 @@ Future<void> _runDownloadHookAppTest(
             .resolve('third_party/pkg/native/pkgs/hooks/')
             .toFilePath(),
       },
+      // Include package:record_use in dependency_overrides alongside hooks so
+      // unreleased record_use versions required by package:hooks are resolved
+      // directly from the local SDK checkout rather than pub.dev.
+      'record_use': {
+        'path': sdkRootUri
+            .resolve('third_party/pkg/native/pkgs/record_use/')
+            .toFilePath(),
+      },
     });
     await pubspecFile.writeAsString(pubspec.toString());
 

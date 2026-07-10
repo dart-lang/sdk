@@ -1259,8 +1259,8 @@ abstract interface class HttpClient {
 
   static const int defaultHttpsPort = 443;
 
-  /// Enable logging of HTTP requests from all [HttpClient]s to the developer
-  /// timeline.
+  /// Enable logging of HTTP requests and WebSocket connections
+  /// from all [HttpClient]s to the developer timeline.
   ///
   /// Default is `false`.
   static set enableTimelineLogging(bool value) {
@@ -1276,8 +1276,8 @@ abstract interface class HttpClient {
     _enableTimelineLogging = enabled;
   }
 
-  /// Current state of HTTP request logging from all [HttpClient]s to the
-  /// developer timeline.
+  /// Current state of HTTP request and WebSocket timeline logging
+  /// from all [HttpClient]s to the developer timeline.
   ///
   /// Default is `false`.
   static bool get enableTimelineLogging => _enableTimelineLogging;
