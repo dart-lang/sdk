@@ -11,6 +11,28 @@ import 'package:kernel/names.dart';
 import '../source/check_helper.dart';
 import 'internal_ast.dart';
 
+/// Returns a clone of [node].
+///
+/// This assumes that `isPureExpression(node)` is `true`.
+Expression clonePureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return createThisExpression(fileOffset: node.fileOffset);
+  } else if (node is VariableGet) {
+    assert(
+      node.variable.isFinal && !node.variable.isLate,
+      "Trying to clone VariableGet of non-final variable"
+      " ${node.variable}.",
+    );
+    return createVariableGet(
+      node.variable,
+      promotedType: node.promotedType,
+      fileOffset: node.fileOffset,
+    );
+  }
+  // Coverage-ignore-block(suite): Not run.
+  throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
+}
+
 /// Returns a block like this:
 ///
 ///     {
@@ -1729,4 +1751,17 @@ YieldStatement createYieldStatement(
 }) {
   return new YieldStatement(expression, isYieldStar: isYieldStar)
     ..fileOffset = fileOffset;
+}
+
+/// Returns `true` if [node] is a pure expression.
+///
+/// A pure expression is an expression that is deterministic and side effect
+/// free, such as `this` or a variable get of a final variable.
+bool isPureExpression(Expression node) {
+  if (node is ThisExpression) {
+    return true;
+  } else if (node is VariableGet) {
+    return node.variable.isFinal && !node.variable.isLate;
+  }
+  return false;
 }

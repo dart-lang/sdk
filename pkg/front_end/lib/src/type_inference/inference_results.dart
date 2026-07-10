@@ -10,7 +10,6 @@ import '../base/messages.dart';
 import '../kernel/external_ast_helper.dart';
 import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/inferred_collections.dart';
-import '../kernel/internal_ast.dart';
 import '../source/check_helper.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';

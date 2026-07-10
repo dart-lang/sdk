@@ -1558,7 +1558,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
   @override
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     return [

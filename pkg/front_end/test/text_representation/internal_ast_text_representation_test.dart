@@ -667,7 +667,7 @@ for (a in null) {}''',
   testStatement(
     new InternalForInStatement(
       new PropertyForInElement(
-        receiver: new ThisExpression(),
+        receiver: new InternalThisExpression(fileOffset: TreeNode.noOffset),
         name: new Name('a'),
         nameOffset: -1,
         inOffset: -1,
@@ -794,7 +794,7 @@ for (void a, b in null) {}''',
       new ExtensionForInElement(
         extension: new Extension(name: 'Extension', fileUri: dummyUri),
         thisTypeArguments: null,
-        thisAccess: new ThisExpression(),
+        thisAccess: new InternalThisExpression(fileOffset: TreeNode.noOffset),
         name: new Name('a'),
         setter: new Procedure(
           new Name('Extension|a'),
@@ -821,7 +821,7 @@ for (a in null) {}''',
 }
 
 void _testSwitchCaseImpl() {
-  Expression expression = new InternalNullLiteral(
+  InternalExpression expression = new InternalNullLiteral(
     fileOffset: TreeNode.noOffset,
   );
   InternalExpression case0 = new InternalIntLiteral(
@@ -954,7 +954,7 @@ switch (null) { case 0: case 1: return; foo: case 2: default: return; }''',
 }
 
 void _testPatternSwitchStatement() {
-  Expression expression = new InternalNullLiteral(
+  InternalExpression expression = new InternalNullLiteral(
     fileOffset: TreeNode.noOffset,
   );
   InternalPatternGuard case0 = new InternalPatternGuard(
@@ -1214,11 +1214,14 @@ void _testCascade() {
 let final dynamic #0 = 0 in cascade {} => #0''');
 
   cascade.addCascadeExpression(
-    new DynamicSet(
-      DynamicAccessKind.Dynamic,
+    new PropertySet(
       new InternalVariableGet(variable),
       new Name('foo'),
       new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      forEffect: false,
+      readOnlyReceiver: false,
+      isNullAware: false,
+      isImplicitThis: false,
     ),
   );
   testExpression(
@@ -1232,11 +1235,14 @@ let final dynamic #0 = 0 in cascade { (#0).foo = 1; } => #0''',
   );
 
   cascade.addCascadeExpression(
-    new DynamicSet(
-      DynamicAccessKind.Dynamic,
+    new PropertySet(
       new InternalVariableGet(variable),
       new Name('bar'),
       new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+      forEffect: false,
+      readOnlyReceiver: false,
+      isNullAware: false,
+      isImplicitThis: false,
     ),
   );
   testExpression(
@@ -2144,11 +2150,16 @@ void _testIfNullPropertySet() {
 }
 
 void _testIfNullSet() {
-  Variable variable = new LocalVariable(name: 'foo', type: const DynamicType());
+  InternalVariable variable = new InternalLocalVariable(
+    name: 'foo',
+    type: const DynamicType(),
+    isImplicitlyTyped: false,
+    fileOffset: TreeNode.noOffset,
+  );
   testExpression(
     new IfNullSet(
-      new VariableGet(variable),
-      new VariableSet(
+      new InternalVariableGet(variable),
+      new InternalVariableSet(
         variable,
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       ),
@@ -2160,8 +2171,8 @@ foo ?? foo = 1''',
 
   testExpression(
     new IfNullSet(
-      new VariableGet(variable),
-      new VariableSet(
+      new InternalVariableGet(variable),
+      new InternalVariableSet(
         variable,
         new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
       ),
