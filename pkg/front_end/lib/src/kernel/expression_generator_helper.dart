@@ -26,16 +26,16 @@ import 'constness.dart' show Constness;
 import 'expression_generator.dart';
 import 'internal_ast.dart';
 
-/// Alias for Expression | Generator
+/// Alias for InternalExpression | Generator
 typedef Expression_Generator = dynamic;
 
-/// Alias for Expression | Generator | Builder
+/// Alias for InternalExpression | Generator | Builder
 typedef Expression_Generator_Builder = dynamic;
 
-/// Alias for Expression | Generator | Initializer
+/// Alias for InternalExpression | Generator | Initializer
 typedef Expression_Generator_Initializer = dynamic;
 
-/// Alias for Expression | Initializer
+/// Alias for InternalExpression | Initializer
 typedef Expression_Initializer = dynamic;
 
 abstract class ExpressionGeneratorHelper {
@@ -66,7 +66,7 @@ abstract class ExpressionGeneratorHelper {
     required int length,
     List<LocatedMessage>? context,
     bool errorHasBeenReported = false,
-    Expression? expression,
+    InternalExpression? expression,
   });
 
   MemberLookupResult? lookupSuperConstructor(
@@ -74,7 +74,7 @@ abstract class ExpressionGeneratorHelper {
     LibraryBuilder accessingLibrary,
   );
 
-  Expression toValue(Object? node);
+  InternalExpression toValue(Object? node);
 
   String superConstructorNameForDiagnostics(String name);
 
@@ -108,7 +108,7 @@ abstract class ExpressionGeneratorHelper {
   List<InternalInitializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
-    Expression expression, {
+    InternalExpression expression, {
     FormalParameterBuilder? formal,
   });
 
@@ -125,7 +125,7 @@ abstract class ExpressionGeneratorHelper {
     required int fileOffset,
   });
 
-  Expression buildStaticInvocation({
+  InternalExpression buildStaticInvocation({
     required Procedure target,
     required TypeArguments? typeArguments,
     required ActualArguments arguments,
@@ -141,16 +141,16 @@ abstract class ExpressionGeneratorHelper {
     bool errorHasBeenReported,
   });
 
-  Expression wrapInDeferredCheck(
-    Expression expression,
+  InternalExpression wrapInDeferredCheck(
+    InternalExpression expression,
     PrefixBuilder prefix,
     int charOffset,
   );
 
   bool isIdentical(Member? member);
 
-  Expression buildMethodInvocation(
-    Expression receiver,
+  InternalExpression buildMethodInvocation(
+    InternalExpression receiver,
     Name name,
     TypeArguments? typeArguments,
     ActualArguments arguments,
@@ -160,7 +160,7 @@ abstract class ExpressionGeneratorHelper {
     bool isImplicitThis = false,
   });
 
-  Expression buildSuperInvocation(
+  InternalExpression buildSuperInvocation(
     Name name,
     TypeArguments? typeArguments,
     ActualArguments arguments,
@@ -192,15 +192,15 @@ abstract class ExpressionGeneratorHelper {
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
-  Expression buildProblemErrorIfConst(
+  InternalExpression buildProblemErrorIfConst(
     Message message,
     int charOffset,
     int length,
   );
 
-  Expression evaluateArgumentsBefore(
+  InternalExpression evaluateArgumentsBefore(
     ActualArguments arguments,
-    Expression expression,
+    InternalExpression expression,
   );
 
   DartType buildDartType(
@@ -223,7 +223,10 @@ abstract class ExpressionGeneratorHelper {
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(InternalVariable variable, int charOffset);
+  InternalExpression createVariableGet(
+    InternalVariable variable,
+    int charOffset,
+  );
 
   /// Registers that [variable] is read from.
   ///
@@ -256,8 +259,8 @@ abstract class ExpressionGeneratorHelper {
   /// If [inImplicitCreationContext] is `false`, then the expression is
   /// preceded by `new` or `const`, and an error should be reported instead of
   /// creating the instantiation and invocation.
-  Expression createInstantiationAndInvocation(
-    Expression Function() receiverFunction,
+  InternalExpression createInstantiationAndInvocation(
+    InternalExpression Function() receiverFunction,
     List<TypeBuilder>? typeArguments,
     String className,
     String constructorName,
@@ -324,13 +327,13 @@ enum UnresolvedKind { Unknown, Member, Method, Getter, Setter, Constructor }
 sealed class ConstructorResolutionResult;
 
 class SuccessfulConstructorResolutionResult(
-  final Expression constructorInvocation,
+  final InternalExpression constructorInvocation,
 ) extends ConstructorResolutionResult;
 
 /// Erroneous case of [ConstructorResolutionResult].
 class ErroneousConstructorResolutionResult({
   /// The expression signaling the error, typically an [InvalidExpression].
-  required final Expression errorExpression,
+  required final InternalExpression errorExpression,
 }) extends ConstructorResolutionResult;
 
 /// Unresolved case of [UnresolvedConstructorResolutionResult].
@@ -347,7 +350,7 @@ class UnresolvedConstructorResolutionResult({
   /// [UnresolvedConstructorResolutionResult], to allow for other resolution
   /// mechanisms to make their attempts, and only if they are also unsuccessful,
   /// build and signal the unresolved error.
-  Expression buildErrorExpression() {
+  InternalExpression buildErrorExpression() {
     return _helper.buildUnresolvedError(
       errorName,
       charOffset,

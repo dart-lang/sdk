@@ -201,7 +201,7 @@ class PrimaryConstructorFieldDeclaration
   @override
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     return _encoding.createInitializer(

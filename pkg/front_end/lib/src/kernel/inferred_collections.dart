@@ -72,7 +72,7 @@ class InferredForInMapEntry({
 
 class InferredPatternForMapEntry({
   required final PatternVariableDeclaration patternVariableDeclaration,
-  required final List<InternalVariableDeclaration> intermediateVariables,
+  required final List<VariableDeclaration> intermediateVariables,
   required final List<VariableDeclaration> variables,
   required final Expression? condition,
   required final List<Expression> updates,
@@ -157,7 +157,7 @@ class InferredSpreadElement({
 
 class InferredPatternForElement({
   required final PatternVariableDeclaration patternVariableDeclaration,
-  required final List<InternalVariableDeclaration> intermediateVariables,
+  required final List<VariableDeclaration> intermediateVariables,
   required final List<VariableDeclaration> variables,
   required final Expression? condition,
   required final List<Expression> updates,

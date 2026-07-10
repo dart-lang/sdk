@@ -4603,21 +4603,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<Variable> declaredVariables = pattern.declaredVariables;
     assert(declaredVariables.length == element.intermediateVariables.length);
     assert(declaredVariables.length == element.variables.length);
+    List<VariableDeclaration> intermediateVariables = new List.filled(
+      element.intermediateVariables.length,
+      dummyVariableDeclaration,
+    );
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
 
       InternalVariableDeclaration intermediateVariableDeclaration =
           element.intermediateVariables[i];
-      InternalVariable intermediateVariable =
+      InternalDeclaredVariable intermediateVariable =
           intermediateVariableDeclaration.variable;
-      intermediateVariableDeclaration.updateInitializer(
-        inferExpression(
-          intermediateVariableDeclaration.initializer!,
-          type,
-          isVoidAllowed: true,
-        ).expression,
-      );
+      Expression initializer = inferExpression(
+        intermediateVariableDeclaration.initializer!,
+        type,
+        isVoidAllowed: true,
+      ).expression;
       intermediateVariable.type = type;
+
+      intermediateVariables[i] = extern.createVariableDeclaration(
+        intermediateVariable.astVariable,
+        initializer: initializer,
+        fileOffset: intermediateVariableDeclaration.fileOffset,
+      );
 
       element.variables[i].variable.type = type;
     }
@@ -4631,7 +4639,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType: result.inferredType,
       element: new InferredPatternForElement(
         patternVariableDeclaration: patternVariableDeclaration,
-        intermediateVariables: element.intermediateVariables,
+        intermediateVariables: intermediateVariables,
         variables: result.variables,
         condition: result.condition,
         updates: result.updates,
@@ -5609,17 +5617,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(element.nodeForTesting, loop);
     body.add(element.patternVariableDeclaration);
-    for (InternalVariableDeclaration intermediateVariable
+    for (VariableDeclaration intermediateVariable
         in element.intermediateVariables) {
-      body.add(
-        extern.createVariableStatement(
-          extern.createVariableDeclaration(
-            intermediateVariable.variable.astVariable,
-            initializer: intermediateVariable.initializer,
-            fileOffset: intermediateVariable.fileOffset,
-          ),
-        ),
-      );
+      body.add(extern.createVariableStatement(intermediateVariable));
     }
     body.add(loop);
   }
@@ -6296,17 +6296,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(entry.nodeForTesting, loop);
     body.add(entry.patternVariableDeclaration);
-    for (InternalVariableDeclaration intermediateVariable
+    for (VariableDeclaration intermediateVariable
         in entry.intermediateVariables) {
-      body.add(
-        extern.createVariableStatement(
-          extern.createVariableDeclaration(
-            intermediateVariable.variable.astVariable,
-            initializer: intermediateVariable.initializer,
-            fileOffset: intermediateVariable.fileOffset,
-          ),
-        ),
-      );
+      body.add(extern.createVariableStatement(intermediateVariable));
     }
     body.add(loop);
   }
@@ -7940,22 +7932,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<Variable> declaredVariables = pattern.declaredVariables;
     assert(declaredVariables.length == entry.intermediateVariables.length);
     assert(declaredVariables.length == entry.variables.length);
+    List<VariableDeclaration> intermediateVariables = new List.filled(
+      entry.intermediateVariables.length,
+      dummyVariableDeclaration,
+    );
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
 
       InternalVariableDeclaration intermediateVariableDeclaration =
           entry.intermediateVariables[i];
-      InternalVariable intermediateVariable =
+      InternalDeclaredVariable intermediateVariable =
           intermediateVariableDeclaration.variable;
-      intermediateVariableDeclaration.updateInitializer(
-        inferExpression(
-          intermediateVariableDeclaration.initializer!,
-          type,
-          isVoidAllowed: true,
-        ).expression,
-      );
+      Expression initializer = inferExpression(
+        intermediateVariableDeclaration.initializer!,
+        type,
+        isVoidAllowed: true,
+      ).expression;
       intermediateVariable.type = type;
 
+      intermediateVariables[i] = extern.createVariableDeclaration(
+        intermediateVariable.astVariable,
+        initializer: initializer,
+        fileOffset: intermediateVariableDeclaration.fileOffset,
+      );
       entry.variables[i].variable.type = type;
     }
 
@@ -7971,7 +7970,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     return new InferredPatternForMapEntry(
       patternVariableDeclaration: patternVariableDeclaration,
-      intermediateVariables: entry.intermediateVariables,
+      intermediateVariables: intermediateVariables,
       variables: result.variables,
       condition: result.condition,
       updates: result.updates,

@@ -369,7 +369,7 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      Expression variableGet = intern.createVariableGet(
+      InternalExpression variableGet = intern.createVariableGet(
         parameter,
         fileOffset: parameter.fileOffset,
       );

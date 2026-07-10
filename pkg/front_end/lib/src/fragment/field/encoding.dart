@@ -46,7 +46,7 @@ sealed class FieldEncoding {
   /// This is only used for instance fields.
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   });
 
@@ -214,7 +214,7 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
   @override
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     return [
@@ -533,7 +533,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   @override
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     List<InternalInitializer> initializers = [];

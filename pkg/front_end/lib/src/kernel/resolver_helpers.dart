@@ -276,7 +276,7 @@ class _InitializerBuilder {
           if (_bodyBuilderContext.isEnumClass) {
             List<FormalParameterBuilder> formals = _bodyBuilderContext.formals!;
             ActualArguments arguments = initializer.arguments;
-            List<Expression> enumSyntheticArguments = [
+            List<InternalExpression> enumSyntheticArguments = [
               intern.createVariableGet(
                 formals[0].variable,
                 fileOffset: formals[0].fileOffset,
@@ -597,11 +597,11 @@ class _InitializerBuilder {
             formals[0].name == "#index" &&
             formals[1].name == "#name",
       );
-      Expression indexExpression = intern.createVariableGet(
+      InternalExpression indexExpression = intern.createVariableGet(
         formals[0].variable,
         fileOffset: formals[0].fileOffset,
       );
-      Expression nameExpression = intern.createVariableGet(
+      InternalExpression nameExpression = intern.createVariableGet(
         formals[1].variable,
         fileOffset: formals[1].fileOffset,
       );

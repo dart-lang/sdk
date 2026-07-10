@@ -209,7 +209,7 @@ sealed class InternalSwitchCase extends TreeNode with InternalTreeNode {
 }
 
 class InternalSwitchStatementCase extends InternalSwitchCase {
-  final List<Expression> expressions;
+  final List<InternalExpression> expressions;
   final List<int> expressionOffsets;
   @override
   final InternalStatement body;
@@ -502,7 +502,7 @@ class TypeArguments {
 sealed class Argument {
   int get fileOffset;
 
-  abstract Expression expression;
+  InternalExpression get expression;
 
   bool get isSuperParameter => false;
 
@@ -511,7 +511,7 @@ sealed class Argument {
 
 class PositionalArgument extends Argument {
   @override
-  Expression expression;
+  final InternalExpression expression;
 
   new(this.expression);
 
@@ -544,16 +544,10 @@ class NamedArgument extends Argument {
   String get name => namedExpression.name;
 
   @override
-  Expression get expression => namedExpression.value;
+  InternalExpression get expression => namedExpression.value;
 
   @override
   int get fileOffset => namedExpression.fileOffset;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void set expression(Expression value) {
-    namedExpression.value = value..parent = namedExpression;
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -3848,8 +3842,8 @@ class CompoundIndexSet extends InternalExpression {
     printer.write(']');
     if (forPostIncDec &&
         (binaryName.text == '+' || binaryName.text == '-') &&
-        value is IntLiteral &&
-        (value as IntLiteral).value == 1) {
+        value is InternalIntLiteral &&
+        (value as InternalIntLiteral).value == 1) {
       if (binaryName.text == '+') {
         printer.write('++');
       } else {
@@ -3941,8 +3935,8 @@ class CompoundSuperIndexSet extends InternalExpression {
     printer.write(']');
     if (forPostIncDec &&
         (binaryName.text == '+' || binaryName.text == '-') &&
-        value is IntLiteral &&
-        (value as IntLiteral).value == 1) {
+        value is InternalIntLiteral &&
+        (value as InternalIntLiteral).value == 1) {
       if (binaryName.text == '+') {
         printer.write('++');
       } else {
@@ -8045,14 +8039,14 @@ class InternalCatch extends TreeNode with InternalTreeNode {
 class InternalVariableDeclaration extends TreeNode with InternalTreeNode {
   /// The declared variable.
   final InternalDeclaredVariable variable;
-  Expression? initializer;
+  InternalExpression? initializer;
 
   new(this.variable, {this.initializer}) {
     variable.parent = this;
     initializer?.parent = this;
   }
 
-  void updateInitializer(Expression? value) {
+  void updateInitializer(InternalExpression? value) {
     initializer = value?..parent = this;
   }
 
@@ -8466,7 +8460,7 @@ class InternalEmptyStatement extends InternalStatement {
 }
 
 class InternalExpressionStatement extends InternalStatement {
-  final Expression expression;
+  final InternalExpression expression;
 
   new(this.expression, {required int fileOffset}) {
     expression.parent = this;
@@ -9507,7 +9501,7 @@ class InternalStaticTearOff extends InternalExpression {
 }
 
 class InternalStringConcatenation extends InternalExpression {
-  final List<Expression> expressions;
+  final List<InternalExpression> expressions;
 
   new(this.expressions, {required int fileOffset}) {
     setParents(expressions, this);
@@ -9805,7 +9799,7 @@ class InternalTypeLiteral extends InternalExpression {
 class InternalNamedExpression extends TreeNode with InternalTreeNode {
   final String name;
 
-  Expression value;
+  InternalExpression value;
 
   new({required this.name, required this.value, required int fileOffset}) {
     value.parent = this;

@@ -396,7 +396,7 @@ class Label(final String name, final int charOffset) {
 }
 
 class Condition(
-  final Expression expression, [
+  final InternalExpression expression, [
   final InternalPatternGuard? patternGuard,
 ]) {
   @override
@@ -408,15 +408,15 @@ class Condition(
 final ExpressionOrPatternGuardCase dummyExpressionOrPatternGuardCase =
     new ExpressionOrPatternGuardCase.expression(
       TreeNode.noOffset,
-      dummyExpression,
+      dummyInternalExpression,
     );
 
 class ExpressionOrPatternGuardCase._(
   final int caseOffset,
-  final Expression? expression,
+  final InternalExpression? expression,
   final InternalPatternGuard? patternGuard,
 ) {
-  new expression(int caseOffset, Expression expression)
+  new expression(int caseOffset, InternalExpression expression)
     : this._(caseOffset, expression, null);
 
   new patternGuard(int caseOffset, InternalPatternGuard patternGuard)
@@ -459,7 +459,7 @@ class PendingAnnotations(
 /// A single target holding annotations to be inferred.
 class SingleTargetAnnotations(
   final Annotatable target,
-  final List<Expression> annotations,
+  final List<InternalExpression> annotations,
 );
 
 /// A multiple targets holding annotations to be inferred.
@@ -468,7 +468,7 @@ class SingleTargetAnnotations(
 /// subsequent targets after inference.
 class MultiTargetAnnotations(
   final List<Annotatable> targets,
-  final List<Expression> annotations,
+  final List<InternalExpression> annotations,
 );
 
 class BuildInitializersResult(
@@ -477,7 +477,7 @@ class BuildInitializersResult(
 );
 
 class BuildParameterDefaultValueResult(
-  final Expression defaultValue,
+  final InternalExpression defaultValue,
   final PendingAnnotations? annotations,
 );
 
@@ -486,7 +486,7 @@ class BuildRedirectingFactoryMethodResult(
 );
 
 class BuildFieldsResult(
-  final Map<Identifier, Expression?> fieldInitializers,
+  final Map<Identifier, InternalExpression?> fieldInitializers,
   final PendingAnnotations? annotations,
 );
 
@@ -510,12 +510,12 @@ class BuildPrimaryConstructorBodyResult({
 });
 
 class BuildMetadataListResult(
-  final List<Expression> expressions,
+  final List<InternalExpression> expressions,
   final PendingAnnotations? annotations,
 );
 
 class BuildFieldInitializerResult(
-  final Expression initializer,
+  final InternalExpression initializer,
   final PendingAnnotations? annotations,
 );
 
@@ -526,6 +526,6 @@ class BuildEnumConstantResult(
 
 // Coverage-ignore(suite): Not run.
 class BuildSingleExpressionResult(
-  final Expression expression,
+  final InternalExpression expression,
   final PendingAnnotations? annotations,
 );
