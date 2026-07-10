@@ -245,6 +245,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_not_nu
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_syncvalue.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -341,6 +342,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.eolAtEndOfFileTooMany: [AddEolAtEndOfFile.new],
   diag.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
   diag.flutterStyleTodos: [ConvertToFlutterStyleTodo.new],
+  diag.futureSyncValue: [ReplaceWithSyncValue.new],
   diag.hashAndEquals: [CreateMethod.equalityOrHashCode],
   diag.implicitCallTearoffs: [AddExplicitCall.new],
   diag.implicitReopen: [AddReopen.new],

@@ -248,6 +248,8 @@ abstract final class LintNames {
 
   static const String flutter_style_todos = 'flutter_style_todos';
 
+  static const String future_sync_value = 'future_sync_value';
+
   static const String hash_and_equals = 'hash_and_equals';
 
   static const String implementation_imports = 'implementation_imports';

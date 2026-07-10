@@ -2208,6 +2208,8 @@ file_names:
     The fix is to rename the file, but that's a refactoring.
 flutter_style_todos:
   status: hasFix
+future_sync_value:
+  status: hasFix
 hash_and_equals:
   status: hasFix
 implementation_imports:

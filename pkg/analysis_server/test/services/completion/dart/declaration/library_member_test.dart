@@ -132,6 +132,8 @@ suggestions
     kind: constructorInvocation
   Future.microtask
     kind: constructorInvocation
+  Future.syncValue
+    kind: constructorInvocation
   Future.value
     kind: constructorInvocation
 ''');
@@ -156,6 +158,8 @@ suggestions
   Future.error
     kind: constructorInvocation
   Future.microtask
+    kind: constructorInvocation
+  Future.syncValue
     kind: constructorInvocation
   Future.value
     kind: constructorInvocation
@@ -187,6 +191,8 @@ suggestions
   Future.error
     kind: constructorInvocation
   Future.microtask
+    kind: constructorInvocation
+  Future.syncValue
     kind: constructorInvocation
   Future.value
     kind: constructorInvocation
@@ -388,6 +394,8 @@ suggestions
     kind: constructorInvocation
   Future.microtask
     kind: constructorInvocation
+  Future.syncValue
+    kind: constructorInvocation
   Future.value
     kind: constructorInvocation
 ''');
@@ -460,6 +468,8 @@ suggestions
   Future.error
     kind: constructorInvocation
   Future.microtask
+    kind: constructorInvocation
+  Future.syncValue
     kind: constructorInvocation
   Future.value
     kind: constructorInvocation

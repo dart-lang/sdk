@@ -1417,6 +1417,16 @@ const LinterLintWithoutArguments flutterStyleTodos = LinterLintWithoutArguments(
   expectedTypes: [],
 );
 
+/// No parameters.
+const LinterLintWithoutArguments futureSyncValue = LinterLintWithoutArguments(
+  name: 'future_sync_value',
+  problemMessage:
+      "For synchronous values, `Future.syncValue` is more performant.",
+  correctionMessage: "Try replacing `Future.value` with `Future.syncValue`.",
+  uniqueName: 'future_sync_value',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// Object p0: undocumented
 /// Object p1: undocumented

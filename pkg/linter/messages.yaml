@@ -5659,6 +5659,51 @@ LinterLintCode:
       // TODO(username): message.
       // TODO(username): message, https://URL-to-issue.
       ```
+  futureSyncValue:
+    type: lint
+    parameters: none
+    problemMessage: "For synchronous values, `Future.syncValue` is more performant."
+    correctionMessage: "Try replacing `Future.value` with `Future.syncValue`."
+    state:
+      stable: "3.14"
+    categories: [nonPerformant]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the method `Future.value`
+      is called with a non-`Future` value. This includes the type `Object`,
+      but not `dynamic` or `FutureOr`.
+
+      The constructor internally checks whether the argument is a `Future`.
+      If the argument is already known not to be a `Future`, the check is
+      redundant and reduces performance.
+
+      #### Example
+
+      ```dart
+      Future<int> f() => Future.[!value!](1);
+      ```
+
+      #### Common fixes
+
+      Replace the call to `Future.value` with a call to `Future.syncValue`:
+
+      ```dart
+      Future<int> f() => Future.syncValue(1);
+      ```
+    deprecatedDetails: |-
+      **DO** use `Future.syncValue` when the argument is synchronous.
+
+      **BAD:**
+      ```dart
+      Future<int> f() => Future.value(1);
+      ```
+
+      **GOOD:**
+      ```dart
+      Future<int> f() => Future.value(1);
+      ```
   hashAndEquals:
     type: lint
     parameters:

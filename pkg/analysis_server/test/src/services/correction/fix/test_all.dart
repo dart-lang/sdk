@@ -315,6 +315,7 @@ import 'replace_with_not_null_aware_element_or_entry_test.dart'
 import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_part_of_uri_test.dart' as replace_with_part_of_uri;
+import 'replace_with_syncvalue_test.dart' as replace_with_syncvalue;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_unicode_escape_test.dart' as replace_with_unicode_escape_;
 import 'replace_with_var_test.dart' as replace_with_var;
@@ -605,6 +606,7 @@ void main() {
     replace_with_not_null_aware_element_or_entry.main();
     replace_with_null_aware.main();
     replace_with_part_of_uri.main();
+    replace_with_syncvalue.main();
     replace_with_tear_off.main();
     replace_with_unicode_escape_.main();
     replace_with_var.main();
