@@ -529,16 +529,14 @@ InternalFunctionNode createFunctionNode({
 
 Expression createIfCaseElement(
   int fileOffset, {
-  required List<Statement> prelude,
   required Expression expression,
   required InternalPatternGuard patternGuard,
   required Expression then,
   Expression? otherwise,
 }) {
   return new IfCaseElement(
-    prelude: prelude,
     expression: expression,
-    internalPatternGuard: patternGuard,
+    patternGuard: patternGuard,
     then: then,
     otherwise: otherwise,
   )..fileOffset = fileOffset;
@@ -546,16 +544,14 @@ Expression createIfCaseElement(
 
 InternalMapLiteralEntry createIfCaseMapEntry(
   int fileOffset, {
-  required List<Statement> prelude,
   required Expression expression,
   required InternalPatternGuard patternGuard,
   required InternalMapLiteralEntry then,
   InternalMapLiteralEntry? otherwise,
 }) {
   return new IfCaseMapEntry(
-    prelude: prelude,
     expression: expression,
-    internalPatternGuard: patternGuard,
+    patternGuard: patternGuard,
     then: then,
     otherwise: otherwise,
   )..fileOffset = fileOffset;
@@ -1183,9 +1179,9 @@ PatternForElement createPatternForElement(
   required Expression body,
 }) {
   return new PatternForElement(
-    internalPatternVariableDeclaration: patternVariableDeclaration,
+    patternVariableDeclaration: patternVariableDeclaration,
     intermediateVariables: intermediateVariables,
-    internalVariables: variables,
+    variables: variables,
     condition: condition,
     updates: updates,
     body: body,
@@ -1202,9 +1198,9 @@ PatternForMapEntry createPatternForMapEntry(
   required InternalMapLiteralEntry body,
 }) {
   return new PatternForMapEntry(
-    internalPatternVariableDeclaration: patternVariableDeclaration,
+    patternVariableDeclaration: patternVariableDeclaration,
     intermediateVariables: intermediateVariables,
-    internalVariables: variableInitializations,
+    variables: variableInitializations,
     condition: condition,
     updates: updates,
     body: body,

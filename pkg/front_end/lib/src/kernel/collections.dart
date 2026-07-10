@@ -29,14 +29,8 @@ sealed class ControlFlowElement extends InternalExpression {
 
 /// A spread element in a list or set literal.
 class SpreadElement extends ControlFlowElement {
-  Expression expression;
-  bool isNullAware;
-
-  /// The type of the elements of the collection that [expression] evaluates to.
-  ///
-  /// It is set during type inference and is used to add appropriate type casts
-  /// during the desugaring.
-  DartType? elementType;
+  final Expression expression;
+  final bool isNullAware;
 
   new(this.expression, {required this.isNullAware}) {
     expression.parent = this;
@@ -67,7 +61,7 @@ class SpreadElement extends ControlFlowElement {
 }
 
 class NullAwareElement extends ControlFlowElement {
-  Expression expression;
+  final Expression expression;
 
   new(this.expression);
 
@@ -94,9 +88,9 @@ class NullAwareElement extends ControlFlowElement {
 
 /// An 'if' element in a list or set literal.
 class IfElement extends ControlFlowElement {
-  Expression condition;
-  Expression then;
-  Expression? otherwise;
+  final Expression condition;
+  final Expression then;
+  final Expression? otherwise;
 
   new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
@@ -154,22 +148,19 @@ class IfElement extends ControlFlowElement {
 class ForElement extends ControlFlowElement implements ForElementBase {
   // May be empty, but not null.
   @override
-  final List<InternalVariableDeclaration> internalVariables;
+  final List<InternalVariableDeclaration> variables;
 
   @override
-  Expression? condition; // May be null.
+  final Expression? condition; // May be null.
 
   @override
   final List<Expression> updates; // May be empty, but not null.
 
   @override
-  Expression body;
+  final Expression body;
 
-  @override
-  late List<VariableDeclaration> variables;
-
-  new(this.internalVariables, this.condition, this.updates, this.body) {
-    setParents(internalVariables, this);
+  new(this.variables, this.condition, this.updates, this.body) {
+    setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -187,7 +178,7 @@ class ForElement extends ControlFlowElement implements ForElementBase {
     }
     if (bodyEntry == null) return null;
     ForMapEntry result = new ForMapEntry(
-      internalVariables,
+      variables,
       condition,
       updates,
       bodyEntry,
@@ -205,14 +196,14 @@ class ForElement extends ControlFlowElement implements ForElementBase {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < internalVariables.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      internalVariables[index].variable.toTextInternal(
+      variables[index].variable.toTextInternal(
         printer,
         includeModifiersAndType: index == 0,
-        initializer: internalVariables[index].initializer,
+        initializer: variables[index].initializer,
       );
     }
     printer.write('; ');
@@ -229,22 +220,12 @@ class ForElement extends ControlFlowElement implements ForElementBase {
 /// A 'for-in' element in a list or set literal.
 class ForInElement extends ControlFlowElement {
   final InternalForInElement element;
-  Expression iterable;
-  Expression body;
+  final Expression iterable;
+  final Expression body;
   final bool isAsync; // True if this is an 'await for' loop.
 
   /// File offset for the `for` keyword.
   final int forOffset;
-
-  /// Variable [Scope] of this [ForInElement].
-  ///
-  /// Since [ForInElement] is desugared, its [scope] is passed on to other
-  /// [ScopeProvider] nodes in the output.
-  Scope? scope;
-
-  late DeclaredVariable variable;
-
-  ForInEncoding? encoding;
 
   new(
     this.element,
@@ -253,7 +234,6 @@ class ForInElement extends ControlFlowElement {
     required this.isAsync,
     required int fileOffset,
     required this.forOffset,
-    this.encoding,
   }) {
     this.fileOffset = fileOffset;
     iterable.parent = this;
@@ -288,7 +268,6 @@ class ForInElement extends ControlFlowElement {
       isAsync: isAsync,
       fileOffset: fileOffset,
       forOffset: forOffset,
-      encoding: encoding,
     );
     onConvertElement(this, result);
     return result;
@@ -296,30 +275,19 @@ class ForInElement extends ControlFlowElement {
 }
 
 class IfCaseElement extends ControlFlowElement {
-  Expression expression;
-  InternalPatternGuard internalPatternGuard;
-  Expression then;
-  Expression? otherwise;
-  List<Statement> prelude;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
-
-  /// [PatternGuard] computed after inference of [internalPatternGuard].
-  late PatternGuard patternGuard;
+  final Expression expression;
+  final InternalPatternGuard patternGuard;
+  final Expression then;
+  final Expression? otherwise;
 
   new({
-    required this.prelude,
     required this.expression,
-    required this.internalPatternGuard,
+    required this.patternGuard,
     required this.then,
     this.otherwise,
   }) {
-    setParents(prelude, this);
     expression.parent = this;
-    internalPatternGuard.parent = this;
+    patternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -330,7 +298,7 @@ class IfCaseElement extends ControlFlowElement {
     printer.write('if (');
     printer.writeExpression(expression);
     printer.write(' case ');
-    internalPatternGuard.toTextInternal(printer);
+    patternGuard.toTextInternal(printer);
     printer.write(') ');
     printer.writeExpression(then);
     if (otherwise != null) {
@@ -360,16 +328,12 @@ class IfCaseElement extends ControlFlowElement {
       }
       if (otherwiseEntry == null) return null;
     }
-    IfCaseMapEntry result =
-        new IfCaseMapEntry(
-            prelude: prelude,
-            expression: expression,
-            internalPatternGuard: internalPatternGuard,
-            then: thenEntry,
-            otherwise: otherwiseEntry,
-          )
-          ..matchedValueType = matchedValueType
-          ..fileOffset = fileOffset;
+    IfCaseMapEntry result = new IfCaseMapEntry(
+      expression: expression,
+      patternGuard: this.patternGuard,
+      then: thenEntry,
+      otherwise: otherwiseEntry,
+    )..fileOffset = fileOffset;
     onConvertElement(this, result);
     return result;
   }
@@ -381,46 +345,36 @@ class IfCaseElement extends ControlFlowElement {
 }
 
 abstract interface class ForElementBase implements AuxiliaryExpression {
-  List<InternalVariableDeclaration> get internalVariables;
+  List<InternalVariableDeclaration> get variables;
 
-  abstract Expression? condition;
+  Expression? get condition;
 
   List<Expression> get updates;
 
-  abstract Expression body;
-
-  /// [VariableDeclaration]s computed after inference of [internalVariables].
-  abstract List<VariableDeclaration> variables;
+  Expression get body;
 }
 
 class PatternForElement extends ControlFlowElement implements ForElementBase {
-  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
-  List<InternalVariableDeclaration> intermediateVariables;
+  final InternalPatternVariableDeclaration patternVariableDeclaration;
+  final List<InternalVariableDeclaration> intermediateVariables;
 
   // May be empty, but not null.
   @override
-  final List<InternalVariableDeclaration> internalVariables;
+  final List<InternalVariableDeclaration> variables;
 
   @override
-  Expression? condition; // May be null.
+  final Expression? condition; // May be null.
 
   @override
   final List<Expression> updates; // May be empty, but not null.
 
   @override
-  Expression body;
-
-  /// [PatternVariableDeclaration] computed after inference of
-  /// [internalPatternVariableDeclaration].
-  late PatternVariableDeclaration patternVariableDeclaration;
-
-  @override
-  late List<VariableDeclaration> variables;
+  final Expression body;
 
   new({
-    required this.internalPatternVariableDeclaration,
+    required this.patternVariableDeclaration,
     required this.intermediateVariables,
-    required this.internalVariables,
+    required this.variables,
     required this.condition,
     required this.updates,
     required this.body,
@@ -429,16 +383,16 @@ class PatternForElement extends ControlFlowElement implements ForElementBase {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    internalPatternVariableDeclaration.toTextInternal(printer);
+    patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < internalVariables.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      internalVariables[index].variable.toTextInternal(
+      variables[index].variable.toTextInternal(
         printer,
         includeModifiersAndType: index == 0,
-        initializer: internalVariables[index].initializer,
+        initializer: variables[index].initializer,
       );
     }
     printer.write('; ');
@@ -468,7 +422,7 @@ class PatternForElement extends ControlFlowElement implements ForElementBase {
 /// Base class for all control-flow map entries.
 sealed class ControlFlowMapEntry extends TreeNode
     with InternalTreeNode
-    implements InternalMapLiteralEntry, InferredMapLiteralEntry {
+    implements InternalMapLiteralEntry {
   @override
   R accept<R>(TreeVisitor<R> v) {
     throw new UnsupportedError('$runtimeType.accept');
@@ -480,25 +434,20 @@ sealed class ControlFlowMapEntry extends TreeNode
   }
 
   @override
-  MapLiteralEntry convertToMapLiteralEntry() {
-    throw new UnsupportedError('$runtimeType.convertToMapLiteralEntry');
-  }
-
-  @override
   String toStringInternal() => toText(defaultAstTextStrategy);
 }
 
 /// A null-aware entry in a map literal.
 class NullAwareMapEntry extends ControlFlowMapEntry {
   /// `true` if the key expression is null-aware, that is, marked with `?`.
-  bool isKeyNullAware;
+  final bool isKeyNullAware;
 
-  Expression key;
+  final Expression key;
 
   /// `true` if the value expression is null-aware, that is, marked with `?`.
-  bool isValueNullAware;
+  final bool isValueNullAware;
 
-  Expression value;
+  final Expression value;
 
   new({
     required this.isKeyNullAware,
@@ -529,14 +478,8 @@ class NullAwareMapEntry extends ControlFlowMapEntry {
 
 /// A spread element in a map literal.
 class SpreadMapEntry extends ControlFlowMapEntry {
-  Expression expression;
-  bool isNullAware;
-
-  /// The type of the map entries of the map that [expression] evaluates to.
-  ///
-  /// It is set during type inference and is used to add appropriate type casts
-  /// during the desugaring.
-  DartType? entryType;
+  final Expression expression;
+  final bool isNullAware;
 
   new(this.expression, {required this.isNullAware}) {
     expression.parent = this;
@@ -557,12 +500,9 @@ class SpreadMapEntry extends ControlFlowMapEntry {
 
 /// An 'if' element in a map literal.
 class IfMapEntry extends ControlFlowMapEntry {
-  Expression condition;
+  final Expression condition;
   final InternalMapLiteralEntry then;
   final InternalMapLiteralEntry? otherwise;
-
-  late InferredMapLiteralEntry inferredThen;
-  InferredMapLiteralEntry? inferredOtherwise;
 
   new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
@@ -589,30 +529,24 @@ class IfMapEntry extends ControlFlowMapEntry {
   }
 }
 
-sealed class ForMapEntryBase
-    implements TreeNode, InternalMapLiteralEntry, InferredMapLiteralEntry {
-  List<InternalVariableDeclaration> get internalVariables;
+sealed class ForMapEntryBase implements TreeNode, InternalMapLiteralEntry {
+  List<InternalVariableDeclaration> get variables;
 
-  abstract Expression? condition;
+  Expression? get condition;
 
   List<Expression> get updates;
 
   InternalMapLiteralEntry get body;
-
-  /// [VariableDeclaration]s computed after inference of [internalVariables].
-  abstract List<VariableDeclaration> variables;
-
-  abstract InferredMapLiteralEntry inferredBody;
 }
 
 /// A 'for' element in a map literal.
 class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
   // May be empty, but not null.
   @override
-  final List<InternalVariableDeclaration> internalVariables;
+  final List<InternalVariableDeclaration> variables;
 
   @override
-  Expression? condition; // May be null.
+  final Expression? condition; // May be null.
 
   @override
   final List<Expression> updates; // May be empty, but not null.
@@ -620,14 +554,8 @@ class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
   @override
   final InternalMapLiteralEntry body;
 
-  @override
-  late List<VariableDeclaration> variables;
-
-  @override
-  late InferredMapLiteralEntry inferredBody;
-
-  new(this.internalVariables, this.condition, this.updates, this.body) {
-    setParents(internalVariables, this);
+  new(this.variables, this.condition, this.updates, this.body) {
+    setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -642,14 +570,14 @@ class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < internalVariables.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      internalVariables[index].variable.toTextInternal(
+      variables[index].variable.toTextInternal(
         printer,
         includeModifiersAndType: index == 0,
-        initializer: internalVariables[index].initializer,
+        initializer: variables[index].initializer,
       );
     }
     printer.write('; ');
@@ -665,14 +593,14 @@ class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
 
 class PatternForMapEntry extends ControlFlowMapEntry
     implements ForMapEntryBase {
-  InternalPatternVariableDeclaration internalPatternVariableDeclaration;
-  List<InternalVariableDeclaration> intermediateVariables;
+  final InternalPatternVariableDeclaration patternVariableDeclaration;
+  final List<InternalVariableDeclaration> intermediateVariables;
 
   @override
-  final List<InternalVariableDeclaration> internalVariables;
+  final List<InternalVariableDeclaration> variables;
 
   @override
-  Expression? condition;
+  final Expression? condition;
 
   @override
   final List<Expression> updates;
@@ -680,20 +608,10 @@ class PatternForMapEntry extends ControlFlowMapEntry
   @override
   final InternalMapLiteralEntry body;
 
-  /// [PatternVariableDeclaration] computed after inference of
-  /// [internalPatternVariableDeclaration].
-  late PatternVariableDeclaration patternVariableDeclaration;
-
-  @override
-  late List<VariableDeclaration> variables;
-
-  @override
-  late InferredMapLiteralEntry inferredBody;
-
   new({
-    required this.internalPatternVariableDeclaration,
+    required this.patternVariableDeclaration,
     required this.intermediateVariables,
-    required this.internalVariables,
+    required this.variables,
     required this.condition,
     required this.updates,
     required this.body,
@@ -702,16 +620,16 @@ class PatternForMapEntry extends ControlFlowMapEntry
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    internalPatternVariableDeclaration.toTextInternal(printer);
+    patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < internalVariables.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      internalVariables[index].variable.toTextInternal(
+      variables[index].variable.toTextInternal(
         printer,
         includeModifiersAndType: index == 0,
-        initializer: internalVariables[index].initializer,
+        initializer: variables[index].initializer,
       );
     }
     printer.write('; ');
@@ -733,24 +651,12 @@ class PatternForMapEntry extends ControlFlowMapEntry
 /// A 'for-in' element in a map literal.
 class ForInMapEntry extends ControlFlowMapEntry {
   final InternalForInElement element;
-  Expression iterable;
+  final Expression iterable;
   final InternalMapLiteralEntry body;
   final bool isAsync; // True if this is an 'await for' loop.
 
   /// File offset for the `for` keyword.
   final int forOffset;
-
-  /// Variable [Scope] of this [ForInMapEntry].
-  ///
-  /// Since [ForInMapEntry] is desugared, its [scope] is passed on to other
-  /// [ScopeProvider] nodes in the output.
-  Scope? scope;
-
-  late DeclaredVariable variable;
-
-  ForInEncoding? encoding;
-
-  late InferredMapLiteralEntry inferredBody;
 
   new(
     this.element,
@@ -759,7 +665,6 @@ class ForInMapEntry extends ControlFlowMapEntry {
     required this.isAsync,
     required int fileOffset,
     required this.forOffset,
-    this.encoding,
   }) {
     this.fileOffset = fileOffset;
     iterable.parent = this;
@@ -779,31 +684,19 @@ class ForInMapEntry extends ControlFlowMapEntry {
 }
 
 class IfCaseMapEntry extends ControlFlowMapEntry {
-  Expression expression;
-  final InternalPatternGuard internalPatternGuard;
+  final Expression expression;
+  final InternalPatternGuard patternGuard;
   final InternalMapLiteralEntry then;
   final InternalMapLiteralEntry? otherwise;
-  final List<Statement> prelude;
-
-  /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
-
-  /// [PatternGuard] computed after inference of [internalPatternGuard].
-  late PatternGuard patternGuard;
-  late InferredMapLiteralEntry inferredThen;
-  InferredMapLiteralEntry? inferredOtherwise;
 
   new({
-    required this.prelude,
     required this.expression,
-    required this.internalPatternGuard,
+    required this.patternGuard,
     required this.then,
     this.otherwise,
   }) {
     expression.parent = this;
-    internalPatternGuard.parent = this;
+    patternGuard.parent = this;
     then.parent = this;
     otherwise?.parent = this;
   }
@@ -814,7 +707,7 @@ class IfCaseMapEntry extends ControlFlowMapEntry {
     printer.write('if (');
     expression.toTextInternal(printer);
     printer.write(' case ');
-    internalPatternGuard.toTextInternal(printer);
+    patternGuard.toTextInternal(printer);
     printer.write(') ');
     then.toTextInternal(printer);
     if (otherwise != null) {
@@ -911,39 +804,34 @@ InternalMapLiteralEntry convertToMapEntry(
         return result;
 
       case IfCaseElement():
-        IfCaseMapEntry result =
-            new IfCaseMapEntry(
-                prelude: [],
-                expression: element.expression,
-                internalPatternGuard: element.internalPatternGuard,
-                then: convertToMapEntry(
-                  element.then,
+        IfCaseMapEntry result = new IfCaseMapEntry(
+          expression: element.expression,
+          patternGuard: element.patternGuard,
+          then: convertToMapEntry(
+            element.then,
+            problemReporting,
+            compilerContext,
+            fileUri,
+            onConvertElement,
+          ),
+          otherwise: element.otherwise == null
+              ? null
+              : convertToMapEntry(
+                  element.otherwise!,
                   problemReporting,
                   compilerContext,
                   fileUri,
                   onConvertElement,
                 ),
-                otherwise: element.otherwise == null
-                    ? null
-                    : convertToMapEntry(
-                        element.otherwise!,
-                        problemReporting,
-                        compilerContext,
-                        fileUri,
-                        onConvertElement,
-                      ),
-              )
-              ..matchedValueType = element.matchedValueType
-              ..fileOffset = element.fileOffset;
+        )..fileOffset = element.fileOffset;
         onConvertElement(element, result);
         return result;
 
       case PatternForElement():
         PatternForMapEntry result = new PatternForMapEntry(
-          internalPatternVariableDeclaration:
-              element.internalPatternVariableDeclaration,
+          patternVariableDeclaration: element.patternVariableDeclaration,
           intermediateVariables: element.intermediateVariables,
-          internalVariables: element.internalVariables,
+          variables: element.variables,
           condition: element.condition,
           updates: element.updates,
           body: convertToMapEntry(
@@ -959,7 +847,7 @@ InternalMapLiteralEntry convertToMapEntry(
 
       case ForElement():
         ForMapEntry result = new ForMapEntry(
-          element.internalVariables,
+          element.variables,
           element.condition,
           element.updates,
           convertToMapEntry(
@@ -987,7 +875,6 @@ InternalMapLiteralEntry convertToMapEntry(
           fileOffset: element.fileOffset,
           forOffset: element.forOffset,
           isAsync: element.isAsync,
-          encoding: element.encoding,
         );
         onConvertElement(element, result);
         return result;
@@ -1023,27 +910,3 @@ InternalMapLiteralEntry _convertToErroneousMapEntry(
     fileOffset: element.fileOffset,
   );
 }
-
-sealed class InferredMapLiteralEntry {
-  // TODO(johnniwinther): Remove this.
-  MapLiteralEntry convertToMapLiteralEntry();
-  int get fileOffset;
-}
-
-class RegularInferredMapLiteralEntry(
-  final Expression key,
-  final Expression value, {
-  @override required final int fileOffset,
-}) implements InferredMapLiteralEntry {
-  @override
-  MapLiteralEntry convertToMapLiteralEntry() {
-    return extern.createMapLiteralEntry(key, value, fileOffset: fileOffset);
-  }
-}
-
-final InferredMapLiteralEntry dummyMapLiteralEntryResult =
-    new RegularInferredMapLiteralEntry(
-      dummyExpression,
-      dummyExpression,
-      fileOffset: TreeNode.noOffset,
-    );

@@ -4562,7 +4562,6 @@ class BodyBuilderImpl extends StackListenerImpl
       } else {
         node = intern.createIfCaseMapEntry(
           offsetForToken(ifToken),
-          prelude: [],
           expression: condition.expression,
           patternGuard: patternGuard,
           then: entry,
@@ -4578,7 +4577,6 @@ class BodyBuilderImpl extends StackListenerImpl
       } else {
         node = intern.createIfCaseElement(
           offsetForToken(ifToken),
-          prelude: [],
           expression: condition.expression,
           patternGuard: patternGuard,
           then: toValue(entry),
@@ -4633,7 +4631,6 @@ class BodyBuilderImpl extends StackListenerImpl
         } else {
           node = intern.createIfCaseMapEntry(
             offsetForToken(ifToken),
-            prelude: [],
             expression: condition.expression,
             patternGuard: patternGuard,
             then: thenEntry,
@@ -4655,7 +4652,6 @@ class BodyBuilderImpl extends StackListenerImpl
           } else {
             node = intern.createIfCaseMapEntry(
               offsetForToken(ifToken),
-              prelude: [],
               expression: condition.expression,
               patternGuard: patternGuard,
               then: thenEntry,
@@ -4709,7 +4705,6 @@ class BodyBuilderImpl extends StackListenerImpl
             // Coverage-ignore-block(suite): Not run.
             node = intern.createIfCaseMapEntry(
               offsetForToken(ifToken),
-              prelude: [],
               expression: condition.expression,
               patternGuard: patternGuard,
               then: thenMapEntry,
@@ -4757,7 +4752,6 @@ class BodyBuilderImpl extends StackListenerImpl
       } else {
         node = intern.createIfCaseElement(
           offsetForToken(ifToken),
-          prelude: [],
           expression: condition.expression,
           patternGuard: condition.patternGuard!,
           then: toValue(thenEntry),
