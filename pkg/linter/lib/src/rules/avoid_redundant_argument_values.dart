@@ -32,11 +32,13 @@ class AvoidRedundantArgumentValues extends AnalysisRule {
     RuleContext context,
   ) {
     var visitor = _Visitor(this);
-    registry.addEnumConstantArguments(this, visitor);
+    registry.addEnumConstantDeclaration(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
     registry.addAnnotation(this, visitor);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
+    registry.addDotShorthandInvocation(this, visitor);
   }
 }
 
@@ -88,13 +90,34 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     if (node.arguments case var arguments?) {
-      check(arguments);
+      if (node.element case ConstructorElement element) {
+        _visitConstructorInvocation(arguments, element);
+      } else {
+        check(arguments);
+      }
     }
   }
 
   @override
-  void visitEnumConstantArguments(EnumConstantArguments node) {
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _visitConstructorInvocation(node.argumentList, node.element);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
     check(node.argumentList);
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (node.arguments case var arguments?) {
+      _visitConstructorInvocation(
+        arguments.argumentList,
+        node.constructorElement,
+      );
+    }
   }
 
   @override
@@ -104,15 +127,29 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var constructor = node.constructorName.element;
+    _visitConstructorInvocation(
+      node.argumentList,
+      node.constructorName.element,
+    );
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    check(node.argumentList);
+  }
+
+  void _visitConstructorInvocation(
+    ArgumentList argumentList,
+    ConstructorElement? constructor,
+  ) {
     if (constructor != null && !constructor.isFactory) {
-      check(node.argumentList);
+      check(argumentList);
       return;
     }
 
     var redirectedConstructor = constructor?.redirectedConstructor;
     if (constructor == null || redirectedConstructor == null) {
-      check(node.argumentList);
+      check(argumentList);
       return;
     }
 
@@ -134,7 +171,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // corresponding parameter on the _redirected constructor_, not this
     // constructor, which may be different.
 
-    var arguments = node.argumentList.arguments;
+    var arguments = argumentList.arguments;
     if (arguments.isEmpty) {
       return;
     }
@@ -166,10 +203,5 @@ class _Visitor extends SimpleAstVisitor<void> {
         break;
       }
     }
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    check(node.argumentList);
   }
 }

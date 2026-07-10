@@ -2253,6 +2253,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Replace with 'part of {0}'",
   );
+  static const replaceWithSyncValue = FixKind(
+    'dart.fix.replace.withSyncValue',
+    DartFixKindPriority.standard,
+    "Replace with 'syncValue'",
+  );
+  static const replaceWithSyncValueMulti = FixKind(
+    'dart.fix.replace.withSyncValueMulti',
+    DartFixKindPriority.inFile,
+    "Replace with 'syncValue' in file.",
+  );
   static const replaceWithTearOff = FixKind(
     'dart.fix.replace.withTearOff',
     DartFixKindPriority.standard,

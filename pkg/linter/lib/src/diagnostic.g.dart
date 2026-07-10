@@ -1254,12 +1254,22 @@ directivesOrderingPackageBeforeRelative = LinterLintTemplate(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments discardedFutureOr = LinterLintWithoutArguments(
+  name: 'discarded_futures',
+  problemMessage: "'FutureOr'-returning calls in a non-'async' function.",
+  correctionMessage:
+      "Try converting the enclosing function to be 'async' and then 'await'.",
+  uniqueName: 'discarded_future_or',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const LinterLintWithoutArguments discardedFutures = LinterLintWithoutArguments(
   name: 'discarded_futures',
   problemMessage: "'Future'-returning calls in a non-'async' function.",
   correctionMessage:
-      "Try converting the enclosing function to be 'async' and then 'await' "
-      "the future, or wrap the expression in 'unawaited'.",
+      "Try converting the enclosing function to be 'async' and then 'await', "
+      "or wrap the expression in 'unawaited'.",
   uniqueName: 'discarded_futures',
   expectedTypes: [],
 );
@@ -1414,6 +1424,16 @@ const LinterLintWithoutArguments flutterStyleTodos = LinterLintWithoutArguments(
   problemMessage: "To-do comment doesn't follow the Flutter style.",
   correctionMessage: "Try following the Flutter style for to-do comments.",
   uniqueName: 'flutter_style_todos',
+  expectedTypes: [],
+);
+
+/// No parameters.
+const LinterLintWithoutArguments futureSyncValue = LinterLintWithoutArguments(
+  name: 'future_sync_value',
+  problemMessage:
+      "For synchronous values, `Future.syncValue` is more performant.",
+  correctionMessage: "Try replacing `Future.value` with `Future.syncValue`.",
+  uniqueName: 'future_sync_value',
   expectedTypes: [],
 );
 
@@ -3133,12 +3153,24 @@ const LinterLintWithoutArguments typeLiteralInConstantPattern =
     );
 
 /// No parameters.
+const LinterLintWithoutArguments unawaitedFutureOr = LinterLintWithoutArguments(
+  name: 'unawaited_futures',
+  problemMessage:
+      "Missing an 'await' for the 'FutureOr' computed by this expression.",
+  correctionMessage: "Try adding an 'await'.",
+  hasPublishedDocs: true,
+  uniqueName: 'unawaited_future_or',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const LinterLintWithoutArguments unawaitedFutures = LinterLintWithoutArguments(
   name: 'unawaited_futures',
   problemMessage:
       "Missing an 'await' for the 'Future' computed by this expression.",
   correctionMessage:
-      "Try adding an 'await' or wrapping the expression with 'unawaited'.",
+      "Try adding an 'await' or wrapping the expression with 'unawaited' (if "
+      "it is a 'Future').",
   hasPublishedDocs: true,
   uniqueName: 'unawaited_futures',
   expectedTypes: [],
