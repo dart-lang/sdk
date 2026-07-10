@@ -11,8 +11,7 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 import 'package:test_runner/src/options.dart';
 
-import '../vm/dart/snapshot_test_helper.dart';
-import '../../tools/dartfuzz/flag_fuzzer.dart';
+import 'dartfuzz/flag_fuzzer.dart';
 
 int crashCounter = 0;
 
@@ -100,6 +99,15 @@ class AotTestRunner extends TestRunner {
         ], crashes);
       }
     });
+  }
+}
+
+Future<R> withTempDir<R>(String name, Future<R> fun(String dir)) async {
+  final tempDir = Directory.systemTemp.createTempSync(name);
+  try {
+    return await fun(tempDir.path);
+  } finally {
+    tempDir.deleteSync(recursive: true);
   }
 }
 

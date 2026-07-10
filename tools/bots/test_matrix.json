@@ -3135,21 +3135,21 @@
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/generate_stress_test.dart",
+          "name": "analyze runtime/tools/generate_stress_test.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/generate_stress_test.dart"
+            "runtime/tools/generate_stress_test.dart"
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/run_stress_test_shards.dart",
+          "name": "analyze runtime/tools/run_stress_test_shards.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/run_stress_test_shards.dart"
+            "runtime/tools/run_stress_test_shards.dart"
           ]
         }
       ]
@@ -3533,7 +3533,7 @@
           "name": "Generate Isolate Stress Test",
           "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
-            "runtime/tests/concurrency/generate_stress_test.dart"
+            "runtime/tools/generate_stress_test.dart"
           ]
         },
         {
@@ -3567,7 +3567,7 @@
           "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
             "tools/sdks/dart-sdk/bin/dart",
-            "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "runtime/tools/run_stress_test_shards.dart",
             "--arch=${arch}",
             "--copy-coredumps"
           ],
