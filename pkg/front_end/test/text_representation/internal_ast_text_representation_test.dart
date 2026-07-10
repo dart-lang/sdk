@@ -14,7 +14,6 @@ import 'package:front_end/src/dill/dill_loader.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/dill/dill_type_alias_builder.dart';
 import 'package:front_end/src/kernel/body_builder.dart';
-import 'package:front_end/src/kernel/collections.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/internal_ast_helper.dart' as forest;
 import 'package:kernel/ast.dart';

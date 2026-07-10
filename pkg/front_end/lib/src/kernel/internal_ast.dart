@@ -17,6 +17,8 @@
 /// This means that in some cases multiple shadow classes may extend the same
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
+///
+/// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
@@ -28,17 +30,21 @@ import 'package:kernel/src/text_util.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence;
 import 'package:kernel/type_environment.dart';
 
-import '../base/problems.dart' show unsupported;
+import '../base/compiler_context.dart';
+import '../base/messages.dart' show noLength, ProblemReporting;
+import '../base/problems.dart' show getFileUri, unsupported;
 import '../builder/declaration_builders.dart';
 import '../codes/diagnostic.dart' as diag;
+import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/type_schema.dart';
 import 'body_builder.dart';
 import 'external_ast_helper.dart' as extern;
+import 'internal_ast_helper.dart' as intern;
 
-/// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+part 'collections.dart';
 
 typedef SharedMatchContext =
     shared.MatchContext<
@@ -9838,7 +9844,10 @@ class InternalNamedExpression extends TreeNode with InternalTreeNode {
   }
 }
 
-class InternalMapLiteralEntry extends TreeNode with InternalTreeNode {
+sealed class InternalMapLiteralEntry extends TreeNode {}
+
+class RegularMapLiteralEntry extends InternalMapLiteralEntry
+    with InternalTreeNode {
   final Expression key;
 
   final Expression value;
@@ -9886,7 +9895,7 @@ final InternalExpression dummyInternalExpression = new InternalNullLiteral(
 );
 
 final InternalMapLiteralEntry dummyInternalMapLiteralEntry =
-    new InternalMapLiteralEntry(
+    new RegularMapLiteralEntry(
       key: dummyInternalExpression,
       value: dummyInternalExpression,
       fileOffset: TreeNode.noOffset,

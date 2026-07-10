@@ -32,29 +32,6 @@ import '../base/uri_offset.dart';
 import '../builder/library_builder.dart';
 import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_library_builder.dart';
-import '../kernel/collections.dart'
-    show
-        ControlFlowElement,
-        ControlFlowMapEntry,
-        ForElement,
-        ForElementBase,
-        ForInElement,
-        ForInMapEntry,
-        ForMapEntry,
-        ForMapEntryBase,
-        IfCaseElement,
-        IfCaseMapEntry,
-        IfElement,
-        IfMapEntry,
-        NullAwareElement,
-        NullAwareMapEntry,
-        PatternForElement,
-        PatternForMapEntry,
-        SpreadElement,
-        SpreadMapEntry,
-        InferredMapLiteralEntry,
-        DirectMapLiteralEntry,
-        dummyMapLiteralEntryResult;
 import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/external_ast_helper.dart';
 import '../kernel/internal_ast_helper.dart' as intern;
@@ -6099,7 +6076,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           result,
           body,
         );
-      case DirectMapLiteralEntry():
+      case RegularInferredMapLiteralEntry():
         _addNormalEntry(entry, receiverType, result, body);
     }
   }
@@ -6869,176 +6846,177 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     for (; i < entries.length; ++i) {
       InferredMapLiteralEntry entry = entries[i];
-      if (entry is ControlFlowMapEntry) {
-        switch (entry) {
-          case SpreadMapEntry():
-            if (currentPart != null) {
-              parts.add(makeLiteral(fileOffset, currentPart));
-              currentPart = null;
-            }
-            Expression spreadExpression = entry.expression;
-            if (entry.isNullAware) {
-              SyntheticVariable temp = _createVariable(
-                spreadExpression,
-                collectionType.withDeclaredNullability(Nullability.nullable),
-              );
-              parts.add(
-                _createNullAwareGuard(
-                  entry.fileOffset,
-                  temp,
-                  makeLiteral(entry.fileOffset, []),
-                  collectionType,
-                ),
-              );
-            } else {
-              parts.add(spreadExpression);
-            }
-          case NullAwareMapEntry():
-            assert(entry.isKeyNullAware || entry.isValueNullAware);
-            if (currentPart != null) {
-              // Coverage-ignore-block(suite): Not run.
-              parts.add(makeLiteral(fileOffset, currentPart));
-              currentPart = null;
-            }
-
-            Expression desugaredExpression = extern.createNullLiteral(
-              fileOffset: TreeNode.noOffset,
+      switch (entry) {
+        case SpreadMapEntry():
+          if (currentPart != null) {
+            parts.add(makeLiteral(fileOffset, currentPart));
+            currentPart = null;
+          }
+          Expression spreadExpression = entry.expression;
+          if (entry.isNullAware) {
+            SyntheticVariable temp = _createVariable(
+              spreadExpression,
+              collectionType.withDeclaredNullability(Nullability.nullable),
             );
-
-            if (entry.isKeyNullAware && entry.isValueNullAware) {
-              SyntheticVariable keyTemp = _createVariable(
-                entry.key,
-                keyType.withDeclaredNullability(Nullability.nullable),
-              );
-              Expression keyExpression = _createNullCheckedVariableGet(keyTemp);
-
-              SyntheticVariable valueTemp = _createVariable(
-                entry.value,
-                valueType.withDeclaredNullability(Nullability.nullable),
-              );
-              Expression valueExpression = _createNullCheckedVariableGet(
-                valueTemp,
-              );
-
-              InferredMapLiteralEntry addedMapLiteralEntry =
-                  new DirectMapLiteralEntry(
-                    keyExpression,
-                    valueExpression,
-                    fileOffset: entry.fileOffset,
-                  );
-              Expression nullCheckedKeyValue = makeLiteral(
-                entry.value.fileOffset,
-                [addedMapLiteralEntry],
-              );
-              desugaredExpression = _createNullAwareGuard(
-                entry.fileOffset,
-                valueTemp,
-                makeLiteral(entry.fileOffset, []),
-                collectionType,
-                nullCheckedValue: nullCheckedKeyValue,
-              );
-              desugaredExpression = _createNullAwareGuard(
-                entry.fileOffset,
-                keyTemp,
-                makeLiteral(entry.fileOffset, []),
-                collectionType,
-                nullCheckedValue: desugaredExpression,
-              );
-            } else if (entry.isValueNullAware) {
-              SyntheticVariable valueTemp = _createVariable(
-                entry.value,
-                valueType.withDeclaredNullability(Nullability.nullable),
-              );
-              Expression valueExpression = _createNullCheckedVariableGet(
-                valueTemp,
-              );
-              Expression defaultValue = makeLiteral(entry.fileOffset, []);
-              InferredMapLiteralEntry addedMapLiteralEntry =
-                  new DirectMapLiteralEntry(
-                    entry.key,
-                    valueExpression,
-                    fileOffset: entry.fileOffset,
-                  );
-              Expression nullCheckedValue = makeLiteral(
-                entry.value.fileOffset,
-                [addedMapLiteralEntry],
-              );
-              desugaredExpression = _createNullAwareGuard(
-                entry.fileOffset,
-                valueTemp,
-                defaultValue,
-                collectionType,
-                nullCheckedValue: nullCheckedValue,
-              );
-            } else {
-              assert(entry.isKeyNullAware);
-              SyntheticVariable keyTemp = _createVariable(
-                entry.key,
-                keyType.withDeclaredNullability(Nullability.nullable),
-              );
-              Expression keyExpression = _createNullCheckedVariableGet(keyTemp);
-              Expression defaultValue = makeLiteral(entry.fileOffset, []);
-
-              InferredMapLiteralEntry addedMapLiteralEntry =
-                  new DirectMapLiteralEntry(
-                    keyExpression,
-                    entry.value,
-                    fileOffset: entry.fileOffset,
-                  );
-              Expression nullCheckedKey = makeLiteral(entry.key.fileOffset, [
-                addedMapLiteralEntry,
-              ]);
-
-              desugaredExpression = _createNullAwareGuard(
-                entry.fileOffset,
-                keyTemp,
-                defaultValue,
-                collectionType,
-                nullCheckedValue: nullCheckedKey,
-              );
-            }
-
-            parts.add(desugaredExpression);
-          // Coverage-ignore(suite): Not run.
-          case IfMapEntry():
-            if (currentPart != null) {
-              parts.add(makeLiteral(fileOffset, currentPart));
-              currentPart = null;
-            }
-            Expression condition = entry.condition;
-            Expression then = makeLiteral(entry.then.fileOffset, [
-              entry.inferredThen,
-            ]);
-            Expression otherwise = entry.inferredOtherwise != null
-                ? makeLiteral(entry.inferredOtherwise!.fileOffset, [
-                    entry.inferredOtherwise!,
-                  ])
-                : makeLiteral(fileOffset, []);
             parts.add(
-              _createConditionalExpression(
+              _createNullAwareGuard(
                 entry.fileOffset,
-                condition,
-                then,
-                otherwise,
+                temp,
+                makeLiteral(entry.fileOffset, []),
                 collectionType,
               ),
             );
-          // Coverage-ignore(suite): Not run.
-          case IfCaseMapEntry():
-          case PatternForMapEntry():
-          case ForMapEntry():
-          case ForInMapEntry():
-            // Rejected earlier.
-            problems.unhandled(
-              "${entry.runtimeType}",
-              "_translateConstMap",
-              entry.fileOffset,
-              fileUri,
+          } else {
+            parts.add(spreadExpression);
+          }
+        case NullAwareMapEntry():
+          assert(entry.isKeyNullAware || entry.isValueNullAware);
+          if (currentPart != null) {
+            // Coverage-ignore-block(suite): Not run.
+            parts.add(makeLiteral(fileOffset, currentPart));
+            currentPart = null;
+          }
+
+          Expression desugaredExpression = extern.createNullLiteral(
+            fileOffset: TreeNode.noOffset,
+          );
+
+          if (entry.isKeyNullAware && entry.isValueNullAware) {
+            SyntheticVariable keyTemp = _createVariable(
+              entry.key,
+              keyType.withDeclaredNullability(Nullability.nullable),
             );
-        }
-      } else {
-        currentPart ??= [];
-        currentPart.add(entry);
+            Expression keyExpression = _createNullCheckedVariableGet(keyTemp);
+
+            SyntheticVariable valueTemp = _createVariable(
+              entry.value,
+              valueType.withDeclaredNullability(Nullability.nullable),
+            );
+            Expression valueExpression = _createNullCheckedVariableGet(
+              valueTemp,
+            );
+
+            InferredMapLiteralEntry addedMapLiteralEntry =
+                new RegularInferredMapLiteralEntry(
+                  keyExpression,
+                  valueExpression,
+                  fileOffset: entry.fileOffset,
+                );
+            Expression nullCheckedKeyValue = makeLiteral(
+              entry.value.fileOffset,
+              [addedMapLiteralEntry],
+            );
+            desugaredExpression = _createNullAwareGuard(
+              entry.fileOffset,
+              valueTemp,
+              makeLiteral(entry.fileOffset, []),
+              collectionType,
+              nullCheckedValue: nullCheckedKeyValue,
+            );
+            desugaredExpression = _createNullAwareGuard(
+              entry.fileOffset,
+              keyTemp,
+              makeLiteral(entry.fileOffset, []),
+              collectionType,
+              nullCheckedValue: desugaredExpression,
+            );
+          } else if (entry.isValueNullAware) {
+            SyntheticVariable valueTemp = _createVariable(
+              entry.value,
+              valueType.withDeclaredNullability(Nullability.nullable),
+            );
+            Expression valueExpression = _createNullCheckedVariableGet(
+              valueTemp,
+            );
+            Expression defaultValue = makeLiteral(entry.fileOffset, []);
+            InferredMapLiteralEntry addedMapLiteralEntry =
+                new RegularInferredMapLiteralEntry(
+                  entry.key,
+                  valueExpression,
+                  fileOffset: entry.fileOffset,
+                );
+            Expression nullCheckedValue = makeLiteral(entry.value.fileOffset, [
+              addedMapLiteralEntry,
+            ]);
+            desugaredExpression = _createNullAwareGuard(
+              entry.fileOffset,
+              valueTemp,
+              defaultValue,
+              collectionType,
+              nullCheckedValue: nullCheckedValue,
+            );
+          } else {
+            assert(entry.isKeyNullAware);
+            SyntheticVariable keyTemp = _createVariable(
+              entry.key,
+              keyType.withDeclaredNullability(Nullability.nullable),
+            );
+            Expression keyExpression = _createNullCheckedVariableGet(keyTemp);
+            Expression defaultValue = makeLiteral(entry.fileOffset, []);
+
+            InferredMapLiteralEntry addedMapLiteralEntry =
+                new RegularInferredMapLiteralEntry(
+                  keyExpression,
+                  entry.value,
+                  fileOffset: entry.fileOffset,
+                );
+            Expression nullCheckedKey = makeLiteral(entry.key.fileOffset, [
+              addedMapLiteralEntry,
+            ]);
+
+            desugaredExpression = _createNullAwareGuard(
+              entry.fileOffset,
+              keyTemp,
+              defaultValue,
+              collectionType,
+              nullCheckedValue: nullCheckedKey,
+            );
+          }
+
+          parts.add(desugaredExpression);
+        case IfMapEntry():
+          if (currentPart != null) {
+            // Coverage-ignore-block(suite): Not run.
+            parts.add(makeLiteral(fileOffset, currentPart));
+            currentPart = null;
+          }
+          // Coverage-ignore(suite): Not run.
+          Expression condition = entry.condition;
+          // Coverage-ignore(suite): Not run.
+          Expression then = makeLiteral(entry.then.fileOffset, [
+            entry.inferredThen,
+          ]);
+          // Coverage-ignore(suite): Not run.
+          Expression otherwise = entry.inferredOtherwise != null
+              ? makeLiteral(entry.inferredOtherwise!.fileOffset, [
+                  entry.inferredOtherwise!,
+                ])
+              : makeLiteral(fileOffset, []);
+          // Coverage-ignore(suite): Not run.
+          parts.add(
+            _createConditionalExpression(
+              entry.fileOffset,
+              condition,
+              then,
+              otherwise,
+              collectionType,
+            ),
+          );
+        case IfCaseMapEntry():
+        case PatternForMapEntry():
+        case ForMapEntry():
+        case ForInMapEntry():
+          // Coverage-ignore(suite): Not run.
+          // Rejected earlier.
+          problems.unhandled(
+            "${entry.runtimeType}",
+            "_translateConstMap",
+            entry.fileOffset,
+            fileUri,
+          );
+        case RegularInferredMapLiteralEntry():
+          currentPart ??= [];
+          currentPart.add(entry);
       }
     }
     if (currentPart != null) {
@@ -7452,7 +7430,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     if (actualKeyType == noInferredType) {
       if (coreTypes.isNull(spreadTypeBound) && !entry.isNullAware) {
-        replacement = new DirectMapLiteralEntry(
+        replacement = new RegularInferredMapLiteralEntry(
           extern.createInvalidExpressionFromErrorText(
             problemReporting.buildProblem(
               compilerContext: compilerContext,
@@ -7516,7 +7494,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ),
         );
         _copyNonPromotionReasonToReplacement(entry, problem);
-        replacement = new DirectMapLiteralEntry(
+        replacement = new RegularInferredMapLiteralEntry(
           problem,
           extern.createNullLiteral(fileOffset: TreeNode.noOffset),
           fileOffset: entry.fileOffset,
@@ -7578,7 +7556,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (keyError != null || valueError != null) {
         keyError ??= extern.createNullLiteral(fileOffset: TreeNode.noOffset);
         valueError ??= extern.createNullLiteral(fileOffset: TreeNode.noOffset);
-        replacement = new DirectMapLiteralEntry(
+        replacement = new RegularInferredMapLiteralEntry(
           keyError,
           valueError,
           fileOffset: entry.fileOffset,
@@ -8180,124 +8158,122 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
-    if (entry is ControlFlowMapEntry) {
-      switch (entry) {
-        case SpreadMapEntry():
-          return _inferSpreadMapEntry(
-            entry,
-            inferredKeyType,
-            inferredValueType,
-            spreadContext,
-            actualTypes,
-            actualTypesForSet,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-        case NullAwareMapEntry():
-          return _inferNullAwareMapEntry(
-            entry,
-            inferredKeyType,
-            inferredValueType,
-            spreadContext,
-            actualTypes,
-            actualTypesForSet,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-        case IfMapEntry():
-          return _inferIfMapEntry(
-            entry,
-            inferredKeyType,
-            inferredValueType,
-            spreadContext,
-            actualTypes,
-            actualTypesForSet,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-        case IfCaseMapEntry():
-          return _inferIfCaseMapEntry(
-            entry,
-            inferredKeyType,
-            inferredValueType,
-            spreadContext,
-            actualTypes,
-            actualTypesForSet,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-        case ForMapEntry():
-          return _inferForMapEntry(
-            entry,
-            inferredKeyType,
-            inferredValueType,
-            spreadContext,
-            actualTypes,
-            actualTypesForSet,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-        case PatternForMapEntry():
-          return _inferPatternForMapEntry(
-            entry,
-            inferredKeyType,
-            inferredValueType,
-            spreadContext,
-            actualTypes,
-            actualTypesForSet,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-        case ForInMapEntry():
-          return _inferForInMapEntry(
-            entry,
-            inferredKeyType,
-            inferredValueType,
-            spreadContext,
-            actualTypes,
-            actualTypesForSet,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-      }
-    } else {
-      ExpressionInferenceResult keyResult = inferExpression(
-        entry.key,
-        inferredKeyType,
-        isVoidAllowed: true,
-      );
-      Expression key = ensureAssignableResult(
-        inferredKeyType,
-        keyResult,
-        isVoidAllowed: inferredKeyType is VoidType,
-      ).expression;
-      ExpressionInferenceResult valueResult = inferExpression(
-        entry.value,
-        inferredValueType,
-        isVoidAllowed: true,
-      );
-      Expression value = ensureAssignableResult(
-        inferredValueType,
-        valueResult,
-        isVoidAllowed: inferredValueType is VoidType,
-      ).expression;
-      actualTypes.add(keyResult.inferredType);
-      actualTypes.add(valueResult.inferredType);
-      // Use 'dynamic' for error recovery.
-      actualTypesForSet.add(const DynamicType());
-      offsets.mapEntryOffset = entry.fileOffset;
-      return new DirectMapLiteralEntry(
-        key,
-        value,
-        fileOffset: entry.fileOffset,
-      );
+    switch (entry) {
+      case SpreadMapEntry():
+        return _inferSpreadMapEntry(
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+      case NullAwareMapEntry():
+        return _inferNullAwareMapEntry(
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+      case IfMapEntry():
+        return _inferIfMapEntry(
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+      case IfCaseMapEntry():
+        return _inferIfCaseMapEntry(
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+      case ForMapEntry():
+        return _inferForMapEntry(
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+      case PatternForMapEntry():
+        return _inferPatternForMapEntry(
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+      case ForInMapEntry():
+        return _inferForInMapEntry(
+          entry,
+          inferredKeyType,
+          inferredValueType,
+          spreadContext,
+          actualTypes,
+          actualTypesForSet,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+      case RegularMapLiteralEntry():
+        ExpressionInferenceResult keyResult = inferExpression(
+          entry.key,
+          inferredKeyType,
+          isVoidAllowed: true,
+        );
+        Expression key = ensureAssignableResult(
+          inferredKeyType,
+          keyResult,
+          isVoidAllowed: inferredKeyType is VoidType,
+        ).expression;
+        ExpressionInferenceResult valueResult = inferExpression(
+          entry.value,
+          inferredValueType,
+          isVoidAllowed: true,
+        );
+        Expression value = ensureAssignableResult(
+          inferredValueType,
+          valueResult,
+          isVoidAllowed: inferredValueType is VoidType,
+        ).expression;
+        actualTypes.add(keyResult.inferredType);
+        actualTypes.add(valueResult.inferredType);
+        // Use 'dynamic' for error recovery.
+        actualTypesForSet.add(const DynamicType());
+        offsets.mapEntryOffset = entry.fileOffset;
+        return new RegularInferredMapLiteralEntry(
+          key,
+          value,
+          fileOffset: entry.fileOffset,
+        );
     }
   }
 
@@ -8312,7 +8288,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // It's disambiguated as a map literal.
     InferredMapLiteralEntry replacement = entry;
     if (offsets.iterableSpreadOffset != null) {
-      replacement = new DirectMapLiteralEntry(
+      replacement = new RegularInferredMapLiteralEntry(
         extern.createInvalidExpressionFromErrorText(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
@@ -8328,98 +8304,95 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         fileOffset: offsets.iterableSpreadOffset!,
       );
     }
-    if (entry is ControlFlowMapEntry) {
-      switch (entry) {
-        case SpreadMapEntry():
-          DartType? spreadType = inferredSpreadTypes[entry.expression];
-          if (spreadType is DynamicType) {
-            Expression expression = ensureAssignable(
-              coreTypes.mapRawType(
-                entry.isNullAware
-                    ? Nullability.nullable
-                    : Nullability.nonNullable,
-              ),
-              spreadType,
-              entry.expression,
-            );
-            entry.expression = expression..parent = entry;
-          }
-        case IfMapEntry():
-          InferredMapLiteralEntry then = checkMapEntry(
-            entry.inferredThen,
+    switch (entry) {
+      case SpreadMapEntry():
+        DartType? spreadType = inferredSpreadTypes[entry.expression];
+        if (spreadType is DynamicType) {
+          Expression expression = ensureAssignable(
+            coreTypes.mapRawType(
+              entry.isNullAware
+                  ? Nullability.nullable
+                  : Nullability.nonNullable,
+            ),
+            spreadType,
+            entry.expression,
+          );
+          entry.expression = expression..parent = entry;
+        }
+      case IfMapEntry():
+        InferredMapLiteralEntry then = checkMapEntry(
+          entry.inferredThen,
+          keyType,
+          valueType,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+        entry.inferredThen = then;
+        if (entry.inferredOtherwise != null) {
+          InferredMapLiteralEntry otherwise = checkMapEntry(
+            entry.inferredOtherwise!,
             keyType,
             valueType,
             inferredSpreadTypes,
             inferredConditionTypes,
             offsets,
           );
-          entry.inferredThen = then;
-          if (entry.inferredOtherwise != null) {
-            InferredMapLiteralEntry otherwise = checkMapEntry(
-              entry.inferredOtherwise!,
-              keyType,
-              valueType,
-              inferredSpreadTypes,
-              inferredConditionTypes,
-              offsets,
-            );
-            entry.inferredOtherwise = otherwise;
-          }
-        case ForMapEntry():
-          InferredMapLiteralEntry body = checkMapEntry(
-            entry.inferredBody,
+          entry.inferredOtherwise = otherwise;
+        }
+      case ForMapEntry():
+        InferredMapLiteralEntry body = checkMapEntry(
+          entry.inferredBody,
+          keyType,
+          valueType,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+        entry.inferredBody = body;
+      case PatternForMapEntry():
+        InferredMapLiteralEntry body = checkMapEntry(
+          entry.inferredBody,
+          keyType,
+          valueType,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+        entry.inferredBody = body;
+      case ForInMapEntry():
+        InferredMapLiteralEntry body = checkMapEntry(
+          entry.inferredBody,
+          keyType,
+          valueType,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+        entry.inferredBody = body;
+      case IfCaseMapEntry():
+        InferredMapLiteralEntry then = checkMapEntry(
+          entry.inferredThen,
+          keyType,
+          valueType,
+          inferredSpreadTypes,
+          inferredConditionTypes,
+          offsets,
+        );
+        entry.inferredThen = then;
+        if (entry.inferredOtherwise != null) {
+          InferredMapLiteralEntry otherwise = checkMapEntry(
+            entry.inferredOtherwise!,
             keyType,
             valueType,
             inferredSpreadTypes,
             inferredConditionTypes,
             offsets,
           );
-          entry.inferredBody = body;
-        case PatternForMapEntry():
-          InferredMapLiteralEntry body = checkMapEntry(
-            entry.inferredBody,
-            keyType,
-            valueType,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-          entry.inferredBody = body;
-        case ForInMapEntry():
-          InferredMapLiteralEntry body = checkMapEntry(
-            entry.inferredBody,
-            keyType,
-            valueType,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-          entry.inferredBody = body;
-        case IfCaseMapEntry():
-          InferredMapLiteralEntry then = checkMapEntry(
-            entry.inferredThen,
-            keyType,
-            valueType,
-            inferredSpreadTypes,
-            inferredConditionTypes,
-            offsets,
-          );
-          entry.inferredThen = then;
-          if (entry.inferredOtherwise != null) {
-            InferredMapLiteralEntry otherwise = checkMapEntry(
-              entry.inferredOtherwise!,
-              keyType,
-              valueType,
-              inferredSpreadTypes,
-              inferredConditionTypes,
-              offsets,
-            );
-            entry.inferredOtherwise = otherwise;
-          }
-        case NullAwareMapEntry():
-        // Do nothing.  Assignability checks are done during type inference.
-      }
-    } else {
+          entry.inferredOtherwise = otherwise;
+        }
+      case NullAwareMapEntry():
+      case RegularInferredMapLiteralEntry():
       // Do nothing.  Assignability checks are done during type inference.
     }
     return replacement;
@@ -8856,7 +8829,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         )..variable = entry.variable;
         onConvertMapEntry(entry, result);
         return result;
-      case DirectMapLiteralEntry():
+      case RegularInferredMapLiteralEntry():
         return _convertToErroneousElement(
           entry.key,
           entry.value,

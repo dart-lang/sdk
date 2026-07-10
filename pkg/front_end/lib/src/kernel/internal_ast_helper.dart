@@ -7,21 +7,6 @@ import 'package:kernel/ast.dart';
 
 import '../source/check_helper.dart';
 import 'body_builder.dart';
-import 'collections.dart'
-    show
-        ForElement,
-        ForInElement,
-        ForInMapEntry,
-        ForMapEntry,
-        IfCaseElement,
-        IfCaseMapEntry,
-        IfElement,
-        IfMapEntry,
-        NullAwareElement,
-        NullAwareMapEntry,
-        PatternForElement,
-        PatternForMapEntry,
-        SpreadElement;
 import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
 
@@ -965,7 +950,7 @@ InternalMapLiteralEntry createMapLiteralEntry(
   Expression value, {
   required int fileOffset,
 }) {
-  return new InternalMapLiteralEntry(
+  return new RegularMapLiteralEntry(
     key: key,
     value: value,
     fileOffset: fileOffset,

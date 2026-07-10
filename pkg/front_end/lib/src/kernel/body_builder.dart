@@ -102,7 +102,6 @@ import '../util/local_stack.dart';
 import 'assigned_variables_impl.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder_context.dart';
-import 'collections.dart';
 import 'constness.dart' show Constness;
 import 'expression_generator.dart';
 import 'expression_generator_helper.dart';
