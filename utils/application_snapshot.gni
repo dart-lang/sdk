@@ -199,6 +199,10 @@ template("application_snapshot") {
         pool = invoker.pool
       }
       deps = extra_deps + [ ":${target_name}_dill" ] + training_deps
+      if (include_experimental_vm_service &&
+          target_name != "generate_dart_runtime_service_vm_snapshot") {
+        deps += [ "$_dart_root/utils/dart_runtime_service_vm" ]
+      }
 
       # No depfile needed when running from a kernel file. The set of inputs is
       # known at GN time.
