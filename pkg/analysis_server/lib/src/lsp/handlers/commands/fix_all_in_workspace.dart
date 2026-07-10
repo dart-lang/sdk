@@ -62,6 +62,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       byteStore: server.byteStore,
     );
 
+    // ignore: unawaited_futures
     progress.begin('Computing fixes…');
     try {
       var result = await processor.fixErrors(
@@ -89,6 +90,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       );
       return await sendWorkspaceEditToClient(edit);
     } finally {
+      // ignore: unawaited_futures
       progress.end();
     }
   }
