@@ -4,7 +4,7 @@
 
 #### `dart:js_interop`
 
-- Added extension methods for `JSArray<JSNumber>.toDartDoubleList` and
+- Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
   `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
   `List<num>.toJS` (`ListOfNumberToJSArray`);
   `JSArray<JSString>.toDartStringList` (`JSArrayOfJSStringToList`);
