@@ -10,24 +10,7 @@ import '../rule_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidRedundantArgumentValuesTest);
-    defineReflectiveTests(AvoidRedundantArgumentValuesNamedArgsAnywhereTest);
   });
-}
-
-@reflectiveTest
-class AvoidRedundantArgumentValuesNamedArgsAnywhereTest extends LintRuleTest {
-  @override
-  String get lintRule => LintNames.avoid_redundant_argument_values;
-
-  Future<void> test_namedArgumentBeforePositional() async {
-    await assertDiagnosticsFromMarkup(r'''
-void foo(int a, int b, {bool c = true}) {}
-
-void f() {
-  foo(0, c: [!true!], 1);
-}
-''');
-  }
 }
 
 @reflectiveTest
@@ -84,6 +67,22 @@ void f() {
   A(p: [!true!]);
 }
 class A({bool p = true});
+''');
+  }
+
+  Future<void> test_dotShorthand() async {
+    await assertDiagnosticsFromMarkup('''
+class C {
+  static C other({foo = true}) => C();
+}
+C c = .other(foo: [!true!]);
+''');
+  }
+
+  Future<void> test_dotShorthandConstructor() async {
+    await assertDiagnosticsFromMarkup('''
+class C({foo = true});
+C c = .new(foo: [!true!]);
 ''');
   }
 
@@ -189,6 +188,16 @@ void f(A a) {
 }
 class A {
   void g({bool p = true}) {}
+}
+''');
+  }
+
+  Future<void> test_namedArgumentBeforePositional() async {
+    await assertDiagnosticsFromMarkup(r'''
+void foo(int a, int b, {bool c = true}) {}
+
+void f() {
+  foo(0, c: [!true!], 1);
 }
 ''');
   }
