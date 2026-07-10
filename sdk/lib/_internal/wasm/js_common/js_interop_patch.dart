@@ -734,12 +734,12 @@ extension StringToJSString on String {
 @patch
 extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
   @patch
-  List<double> get toDartOfDouble => [
+  List<double> get toDartDoubleList => [
     for (var i = 0; i < this.length; i++) this[i].toDartDouble,
   ];
 
   @patch
-  List<int> get toDartOfInt => [
+  List<int> get toDartIntList => [
     for (var i = 0; i < this.length; i++) this[i].toDartInt,
   ];
 }
@@ -755,12 +755,12 @@ extension ListOfNumberToJSArray on List<num> {
 @patch
 extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
   @patch
-  List<double?> get toDartOfDouble => [
+  List<double?> get toDartDoubleList => [
     for (var i = 0; i < this.length; i++) this[i]?.toDartDouble,
   ];
 
   @patch
-  List<int?> get toDartOfInt => [
+  List<int?> get toDartIntList => [
     for (var i = 0; i < this.length; i++) this[i]?.toDartInt,
   ];
 }
@@ -776,7 +776,7 @@ extension ListOfNullableNumberToJSArray on List<num?> {
 @patch
 extension JSArrayOfJSStringToList on JSArray<JSString> {
   @patch
-  List<String> get toDart => [
+  List<String> get toDartStringList => [
     for (var i = 0; i < this.length; i++) this[i].toDart,
   ];
 }
@@ -792,7 +792,7 @@ extension ListOfStringToJSArray on List<String> {
 @patch
 extension JSArrayOfNullableJSStringToList on JSArray<JSString?> {
   @patch
-  List<String?> get toDart => [
+  List<String?> get toDartStringList => [
     for (var i = 0; i < this.length; i++) this[i]?.toDart,
   ];
 }
@@ -808,7 +808,7 @@ extension ListOfNullableStringToJSArray on List<String?> {
 @patch
 extension JSArrayOfJSBooleanToList on JSArray<JSBoolean> {
   @patch
-  List<bool> get toDart => [
+  List<bool> get toDartBoolList => [
     for (var i = 0; i < this.length; i++) this[i].toDart,
   ];
 }
@@ -824,7 +824,7 @@ extension ListOfBoolToJSArray on List<bool> {
 @patch
 extension JSArrayOfNullableJSBooleanToList on JSArray<JSBoolean?> {
   @patch
-  List<bool?> get toDart => [
+  List<bool?> get toDartBoolList => [
     for (var i = 0; i < this.length; i++) this[i]?.toDart,
   ];
 }

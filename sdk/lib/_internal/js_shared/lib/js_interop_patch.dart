@@ -492,14 +492,14 @@ extension StringToJSString on String {
 extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
   @patch
   @pragma('dart2js:prefer-inline')
-  List<double> get toDartOfDouble => switch (this) {
+  List<double> get toDartDoubleList => switch (this) {
     List<double> _ => this,
     _ => (this as List).cast<double>(),
   };
 
   @patch
   @pragma('dart2js:prefer-inline')
-  List<int> get toDartOfInt => switch (this) {
+  List<int> get toDartIntList => switch (this) {
     List<int> _ => this,
     _ => (this as List).cast<int>(),
   };
@@ -518,14 +518,14 @@ extension ListOfNumberToJSArray on List<num> {
 extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
   @patch
   @pragma('dart2js:prefer-inline')
-  List<double?> get toDartOfDouble => switch (this) {
+  List<double?> get toDartDoubleList => switch (this) {
     List<double?> _ => this,
     _ => (this as List).cast<double?>(),
   };
 
   @patch
   @pragma('dart2js:prefer-inline')
-  List<int?> get toDartOfInt => switch (this) {
+  List<int?> get toDartIntList => switch (this) {
     List<int?> _ => this,
     _ => (this as List).cast<int?>(),
   };
@@ -544,7 +544,7 @@ extension ListOfNullableNumberToJSArray on List<num?> {
 extension JSArrayOfJSStringToList on JSArray<JSString> {
   @patch
   @pragma('dart2js:prefer-inline')
-  List<String> get toDart => switch (this) {
+  List<String> get toDartStringList => switch (this) {
     List<String> _ => this,
     _ => (this as List).cast<String>(),
   };
@@ -562,7 +562,7 @@ extension ListOfStringToJSArray on List<String> {
 extension JSArrayOfNullableJSStringToList on JSArray<JSString?> {
   @patch
   @pragma('dart2js:prefer-inline')
-  List<String?> get toDart => switch (this) {
+  List<String?> get toDartStringList => switch (this) {
     List<String?> _ => this,
     _ => (this as List).cast<String?>(),
   };
@@ -579,7 +579,7 @@ extension ListOfNullableStringToJSArray on List<String?> {
 @patch
 extension JSArrayOfJSBooleanToList on JSArray<JSBoolean> {
   @patch
-  List<bool> get toDart => switch (this) {
+  List<bool> get toDartBoolList => switch (this) {
     List<bool> _ => this,
     _ => (this as List).cast<bool>(),
   };
@@ -596,7 +596,7 @@ extension ListOfBoolToJSArray on List<bool> {
 @patch
 extension JSArrayOfNullableJSBooleanToList on JSArray<JSBoolean?> {
   @patch
-  List<bool?> get toDart => switch (this) {
+  List<bool?> get toDartBoolList => switch (this) {
     List<bool?> _ => this,
     _ => (this as List).cast<bool?>(),
   };

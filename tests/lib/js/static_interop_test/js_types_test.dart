@@ -412,7 +412,7 @@ void syncTests() {
   Expect.isTrue(arrayOfDoubles is JSArray<JSNumber>);
   Expect.isTrue(confuse(arrayOfDoubles) is JSArray<JSNumber>);
 
-  var dartArrayOfDoubles = arrayOfDoubles.toDart;
+  var dartArrayOfDoubles = arrayOfDoubles.toDartDoubleList;
   Expect.equals(dartArrayOfDoubles.length, listOfDoubles.length);
   Expect.equals(dartArrayOfDoubles[0], listOfDoubles[0]);
   Expect.equals(dartArrayOfDoubles[1], listOfDoubles[1]);
@@ -427,7 +427,7 @@ void syncTests() {
 
   arrN = JSArray();
   arrN.push((1.0).toJS);
-  dartArrayOfDoubles = arrN.toDart;
+  dartArrayOfDoubles = arrN.toDartDoubleList;
   Expect.equals(dartArrayOfDoubles.length, 1);
   Expect.equals(dartArrayOfDoubles[0], 1.0);
 
@@ -437,7 +437,7 @@ void syncTests() {
   Expect.isTrue(arrayOfInts is JSArray<JSNumber>);
   Expect.isTrue(confuse(arrayOfInts) is JSArray<JSNumber>);
 
-  final dartArrayOfInts = arrayOfInts.toDart;
+  final dartArrayOfInts = arrayOfInts.toDartIntList;
   Expect.equals(dartArrayOfInts.length, listOfInts.length);
   Expect.equals(dartArrayOfInts[0], listOfInts[0]);
   Expect.equals(dartArrayOfInts[1], listOfInts[1]);
@@ -452,7 +452,7 @@ void syncTests() {
 
   // Copy the list to elicit an error even on platforms where this only throws
   // lazily.
-  Expect.throws(() => List.of([1.5.toJS].toJS.toDartOfInt));
+  Expect.throws(() => List.of([1.5.toJS].toJS.toDartIntList));
 
   // [JSArray<JSNumber?>] <-> [List<double?>]
   final listOfNullableDoubles = <double?>[1.0, null];
@@ -460,7 +460,7 @@ void syncTests() {
   Expect.isTrue(arrayOfNullableDoubles is JSArray<JSNumber?>);
   Expect.isTrue(confuse(arrayOfNullableDoubles) is JSArray<JSNumber?>);
 
-  var dartArrayOfNullableDoubles = arrayOfNullableDoubles.toDart;
+  var dartArrayOfNullableDoubles = arrayOfNullableDoubles.toDartDoubleList;
   Expect.equals(
     dartArrayOfNullableDoubles.length,
     listOfNullableDoubles.length,
@@ -479,14 +479,14 @@ void syncTests() {
   arrNNullable = JSArray();
   arrNNullable.push((1.0).toJS);
   arrNNullable.push(null);
-  dartArrayOfNullableDoubles = arrNNullable.toDart;
+  dartArrayOfNullableDoubles = arrNNullable.toDartDoubleList;
   Expect.equals(dartArrayOfNullableDoubles.length, 2);
   Expect.equals(dartArrayOfNullableDoubles[0], 1.0);
   Expect.equals(dartArrayOfNullableDoubles[1], null);
 
   // Copy the list to elicit an error even on platforms where this only throws
   // lazily.
-  Expect.throws(() => List.of([1.5.toJS, null].toJS.toDartOfInt));
+  Expect.throws(() => List.of([1.5.toJS, null].toJS.toDartIntList));
 
   // [JSArray<JSNumber?>] <-> [List<int?>]
   final listOfNullableInts = <int?>[1, null];
@@ -494,7 +494,7 @@ void syncTests() {
   Expect.isTrue(arrayOfNullableInts is JSArray<JSNumber?>);
   Expect.isTrue(confuse(arrayOfNullableInts) is JSArray<JSNumber?>);
 
-  final dartArrayOfNullableInts = arrayOfNullableInts.toDart;
+  final dartArrayOfNullableInts = arrayOfNullableInts.toDartIntList;
   Expect.equals(dartArrayOfNullableInts.length, listOfNullableInts.length);
   Expect.equals(dartArrayOfNullableInts[0], listOfNullableInts[0]);
   Expect.equals(dartArrayOfNullableInts[1], listOfNullableInts[1]);
@@ -513,7 +513,7 @@ void syncTests() {
   Expect.isTrue(arrayOfStrings is JSArray<JSString>);
   Expect.isTrue(confuse(arrayOfStrings) is JSArray<JSString>);
 
-  var dartArrayOfStrings = arrayOfStrings.toDart;
+  var dartArrayOfStrings = arrayOfStrings.toDartStringList;
   Expect.equals(dartArrayOfStrings.length, listOfStrings.length);
   Expect.equals(dartArrayOfStrings[0], listOfStrings[0]);
   Expect.equals(dartArrayOfStrings[1], listOfStrings[1]);
@@ -528,7 +528,7 @@ void syncTests() {
 
   arrStr = JSArray();
   arrStr.push("a".toJS);
-  dartArrayOfStrings = arrStr.toDart;
+  dartArrayOfStrings = arrStr.toDartStringList;
   Expect.equals(dartArrayOfStrings.length, 1);
   Expect.equals(dartArrayOfStrings[0], "a");
 
@@ -538,7 +538,7 @@ void syncTests() {
   Expect.isTrue(arrayOfNullableStrings is JSArray<JSString?>);
   Expect.isTrue(confuse(arrayOfNullableStrings) is JSArray<JSString?>);
 
-  var dartArrayOfNullableStrings = arrayOfNullableStrings.toDart;
+  var dartArrayOfNullableStrings = arrayOfNullableStrings.toDartStringList;
   Expect.equals(
     dartArrayOfNullableStrings.length,
     listOfNullableStrings.length,
@@ -557,7 +557,7 @@ void syncTests() {
   arrStrNullable = JSArray();
   arrStrNullable.push("a".toJS);
   arrStrNullable.push(null);
-  dartArrayOfNullableStrings = arrStrNullable.toDart;
+  dartArrayOfNullableStrings = arrStrNullable.toDartStringList;
   Expect.equals(dartArrayOfNullableStrings.length, 2);
   Expect.equals(dartArrayOfNullableStrings[0], "a");
   Expect.equals(dartArrayOfNullableStrings[1], null);
@@ -568,7 +568,7 @@ void syncTests() {
   Expect.isTrue(arrayOfBooleans is JSArray<JSBoolean>);
   Expect.isTrue(confuse(arrayOfBooleans) is JSArray<JSBoolean>);
 
-  final dartArrayOfBooleans = arrayOfBooleans.toDart;
+  final dartArrayOfBooleans = arrayOfBooleans.toDartBoolList;
   Expect.equals(dartArrayOfBooleans.length, listOfBooleans.length);
   Expect.equals(dartArrayOfBooleans[0], listOfBooleans[0]);
   Expect.equals(dartArrayOfBooleans[1], listOfBooleans[1]);
@@ -583,7 +583,7 @@ void syncTests() {
 
   arrBool = JSArray();
   arrBool.push(true.toJS);
-  dartArrayOfBooleans = arrBool.toDart;
+  dartArrayOfBooleans = arrBool.toDartBoolList;
   Expect.equals(dartArrayOfBooleans.length, 1);
   Expect.equals(dartArrayOfBooleans[0], true);
 
@@ -593,7 +593,7 @@ void syncTests() {
   Expect.isTrue(arrayOfNullableBooleans is JSArray<JSBoolean?>);
   Expect.isTrue(confuse(arrayOfNullableBooleans) is JSArray<JSBoolean?>);
 
-  final dartArrayOfNullableBooleans = arrayOfNullableBooleans.toDart;
+  final dartArrayOfNullableBooleans = arrayOfNullableBooleans.toDartBoolList;
   Expect.equals(
     dartArrayOfNullableBooleans.length,
     listOfNullableBooleans.length,
@@ -612,7 +612,7 @@ void syncTests() {
   arrBoolNullable = JSArray();
   arrBoolNullable.push(true.toJS);
   arrBoolNullable.push(null);
-  dartArrayOfNullableBooleans = arrBoolNullable.toDart;
+  dartArrayOfNullableBooleans = arrBoolNullable.toDartBoolList;
   Expect.equals(dartArrayOfNullableBooleans.length, 2);
   Expect.equals(dartArrayOfNullableBooleans[0], true);
   Expect.equals(dartArrayOfNullableBooleans[1], null);

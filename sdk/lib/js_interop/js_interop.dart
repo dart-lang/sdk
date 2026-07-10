@@ -2057,7 +2057,8 @@ extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [double] to ensure soundness.
+  /// a [List] that casts the elements to [double] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List].
@@ -2074,7 +2075,8 @@ extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [int] to ensure soundness.
+  /// a [List] that casts the elements to [int] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List]. If the `Array` contains any non-integer values, this will throw a
@@ -2082,7 +2084,7 @@ extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
   ///
   /// Avoid assuming that modifications to this [JSArray] will affect the
   /// returned [List] and vice versa in all compilers.
-  external List<int> get toDartOfInt;
+  external List<int> get toDartIntList;
 }
 
 /// Conversions from `List<num>` directly to `JSArray<JSNumber>`.
@@ -2116,14 +2118,15 @@ extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [double?] to ensure soundness.
+  /// a [List] that casts the elements to [double?] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List].
   ///
   /// Avoid assuming that modifications to this [JSArray] will affect the
   /// returned [List] and vice versa in all compilers.
-  external List<double?> get toDartOfDouble;
+  external List<double?> get toDartDoubleList;
 
   /// Converts this to a [List] of nullable [int]s.
   ///
@@ -2133,14 +2136,15 @@ extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [double?] to ensure soundness.
+  /// a [List] that casts the elements to [double?] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List].
   ///
   /// Avoid assuming that modifications to this [JSArray] will affect the
   /// returned [List] and vice versa in all compilers.
-  external List<int?> get toDartOfInt;
+  external List<int?> get toDartIntList;
 }
 
 /// Conversions from `List<num>` directly to `JSArray<JSNumber>`.
@@ -2174,14 +2178,15 @@ extension JSArrayOfJSStringToList on JSArray<JSString> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [String] to ensure soundness.
+  /// a [List] that casts the elements to [String] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List].
   ///
   /// Avoid assuming that modifications to this [JSArray] will affect the
   /// returned [List] and vice versa in all compilers.
-  external List<String> get toDart;
+  external List<String> get toDartStringList;
 }
 
 /// Conversions from `List<String>` directly to `JSArray<JSString>`.
@@ -2215,14 +2220,15 @@ extension JSArrayOfNullableJSStringToList on JSArray<JSString?> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [String?] to ensure soundness.
+  /// a [List] that casts the elements to [String?] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List].
   ///
   /// Avoid assuming that modifications to this [JSArray] will affect the
   /// returned [List] and vice versa in all compilers.
-  external List<String?> get toDart;
+  external List<String?> get toDartStringList;
 }
 
 /// Conversions from `List<String>` directly to `JSArray<JSString>`.
@@ -2256,14 +2262,15 @@ extension JSArrayOfJSBooleanToList on JSArray<JSBoolean> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [bool?] to ensure soundness.
+  /// a [List] that casts the elements to [bool?] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List].
   ///
   /// Avoid assuming that modifications to this [JSArray] will affect the
   /// returned [List] and vice versa in all compilers.
-  external List<bool> get toDart;
+  external List<bool> get toDartBoolList;
 }
 
 /// Conversions from `List<bool>` directly to `JSArray<JSBoolean>`.
@@ -2297,14 +2304,15 @@ extension JSArrayOfNullableJSBooleanToList on JSArray<JSBoolean?> {
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
   /// the [JSArray] was already a [List] converted via [ListToJSArray.toJS],
   /// this getter simply casts the `Array`. Otherwise, it wraps the `Array` with
-  /// a [List] that casts the elements to [bool?] to ensure soundness.
+  /// a [List] that casts the elements to [bool?] on access to ensure
+  /// soundness.
   ///
   /// When compiling to Wasm, this clones the `Array`'s values into a new
   /// [List].
   ///
   /// Avoid assuming that modifications to this [JSArray] will affect the
   /// returned [List] and vice versa in all compilers.
-  external List<bool?> get toDart;
+  external List<bool?> get toDartBoolList;
 }
 
 /// Conversions from `List<bool>` directly to `JSArray<JSBoolean>`.

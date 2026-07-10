@@ -4,20 +4,21 @@
 
 #### `dart:js_interop`
 
-- **Breaking change**:
-  Added `JSArrayOfJSStringToList`, `JSArrayOfJSBooleanToList`,
-  `JSArrayOfNullableJSStringToList`, and `JSArrayOfNullableJSBooleanToList`.
-  These eagerly and efficiently convert the contents of the array to Dart
-  values, but they will shadow previous calls to `JSArray<T extends
-  JSAny?>.toDart` which may cause build errors in code that expected the
-  resulting array to contain `T extends JSAny?` rather than Dart values.
-
-- Added `JSArrayOfJSNumberToList`, `ListOfNumberToJSArray`,
-  `ListOfStringToJSArray`, `ListOfBoolToJSArray`,
-  `JSArrayOfNullableJSNumberToList`, `ListOfNullableNumberToJSArray`,
-  `ListOfNullableStringToJSArray`, and `ListOfNullableBoolToJSArray`. These make
-  it easier and more efficient to convert between JS and Dart arrays of
-  primitives.
+- Added extension methods for `JSArray<JSNumber>.toDartDoubleList` and
+  `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
+  `List<num>.toJS` (`ListOfNumberToJSArray`);
+  `JSArray<JSString>.toDartStringList` (`JSArrayOfJSStringToList`);
+  `List<String>.toJS` (`ListOfStringToJSArray`);
+  `JSArray<JSBoolean>.toDartBoolList` (`JSArrayOfJSBooleanToList`);
+  `List<bool>.toJS` (`ListOfBoolToJSArray`);
+  `JSArray<JSNumber?>.toDartDoubleList` and `JSArray<JSNumber?>.toDartIntList`
+  (`JSArrayOfNullableJSNumberToList`); `List<num?>.toJS`
+  (`ListOfNullableNumberToJSArray`); `JSArray<JSString?>.toDartStringList`
+  (`JSArrayOfNullableJSStringToList`); `List<String?>.toJS`
+  (`ListOfNullableStringToJSArray`); `JSArray<JSBoolean?>.toDartBoolList`
+  (`JSArrayOfNullableJSBooleanToList`); and `List<bool?>.toJS`
+  (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
+  convert between JS and Dart arrays of primitives.
 
 ## 3.13.0
 
