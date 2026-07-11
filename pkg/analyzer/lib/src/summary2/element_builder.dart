@@ -2082,6 +2082,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         var name = _getFragmentName(formalParameter.name);
         var fieldFragment = FieldFragmentImpl(name: name);
         fieldFragment.isAugmentation = isAugmentation;
+        fieldFragment.isExplicitlyCovariant =
+            formalParameter.covariantKeyword != null;
         fieldFragment.isFinal =
             formalParameter.isFinal || isExtensionTypeRepresentation;
         fieldFragment.isOriginDeclaringFormalParameter = true;
@@ -2155,15 +2157,15 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
-    var nameToken = node.name;
-    var name2 = _getFragmentName(nameToken);
+    var declaringFormalInfo = _linker.getDeclaringFormalInfo(node);
 
     FormalParameterFragmentImpl fragment;
-    if (_linker.getDeclaringFormalInfo(node) case var declaring?) {
-      fragment = declaring.formalFragment;
+    if (declaringFormalInfo != null) {
+      fragment = declaringFormalInfo.formalFragment;
     } else {
+      var name = _getFragmentName(node.name);
       fragment = FormalParameterFragmentImpl(
-        name: name2,
+        name: name,
         nameOffset: null,
         parameterKind: node.kind,
       );
@@ -2174,7 +2176,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.constantInitializer = node.defaultClause?.value;
     fragment.hasImplicitType =
         node.type == null && node.functionTypedSuffix == null;
-    fragment.isExplicitlyCovariant = node.covariantKeyword != null;
+    fragment.isExplicitlyCovariant =
+        declaringFormalInfo == null && node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
     fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
