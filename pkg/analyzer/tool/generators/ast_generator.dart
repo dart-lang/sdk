@@ -836,7 +836,7 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
 void visitChildren(AstVisitor visitor) {''');
 
     if (implClass.isAnnotatedNodeSubclass) {
-      buffer.write('super.visitChildren(visitor);');
+      buffer.write('_visitCommentAndAnnotations(visitor);');
     }
 
     for (var property in implClass.properties) {
@@ -896,7 +896,7 @@ void visitChildrenWithHooks(AstVisitor visitor, {
     }
 
     if (implClass.isAnnotatedNodeSubclass) {
-      buffer.write('super.visitChildren(visitor);');
+      buffer.write('_visitCommentAndAnnotations(visitor);');
     }
 
     for (var property in implClass.properties) {

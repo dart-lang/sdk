@@ -106,13 +106,13 @@ class ScopeContext {
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
     void Function(ConstructorNameImpl)? visitRedirectedConstructor,
   }) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
 
     node.metadata.accept(visitor);
     node.typeName?.visitWithOverride(visitor, visitTypeName);
     node.parameters.accept(visitor);
 
-    withConstructorInitializerScope(element, () {
+    withScope(_constructorInitializerScope(fragment), () {
       node.formalParameterInitializerScope = nameScope;
       node.initializers.visitWithOverride(visitor, visitInitializers);
       node.documentationComment?.accept(visitor);
@@ -123,7 +123,7 @@ class ScopeContext {
       visitRedirectedConstructor,
     );
 
-    withFormalParameterScope(element.formalParameters, () {
+    withFormalParameterScope(fragment.formalParameters, () {
       node.body.accept(visitor);
     });
   }
@@ -261,7 +261,8 @@ class ScopeContext {
     FunctionDeclarationImpl node, {
     required AstVisitor visitor,
   }) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     node.metadata.accept(visitor);
 
@@ -273,7 +274,7 @@ class ScopeContext {
       functionExpression.typeParameters?.accept(visitor);
       functionExpression.parameters?.accept(visitor);
 
-      withFormalParameterScope(element.formalParameters, () {
+      withFormalParameterScope(fragment.formalParameters, () {
         node.documentationComment?.accept(visitor);
         functionExpression.body.accept(visitor);
       });
@@ -284,13 +285,13 @@ class ScopeContext {
     FunctionExpressionImpl node, {
     required AstVisitor visitor,
   }) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
 
     withTypeParameterList(node.typeParameters, () {
       node.typeParameters?.accept(visitor);
       node.parameters?.accept(visitor);
 
-      withFormalParameterScope(element.formalParameters, () {
+      withFormalParameterScope(fragment.formalParameters, () {
         node.body.accept(visitor);
       });
     });
@@ -361,7 +362,8 @@ class ScopeContext {
     MethodDeclarationImpl node, {
     required AstVisitor visitor,
   }) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     node.metadata.accept(visitor);
 
@@ -373,7 +375,7 @@ class ScopeContext {
         node.typeParameters?.accept(visitor);
         node.parameters?.accept(visitor);
 
-        withFormalParameterScope(element.formalParameters, () {
+        withFormalParameterScope(fragment.formalParameters, () {
           node.documentationComment?.accept(visitor);
           node.body.accept(visitor);
         });
@@ -408,25 +410,31 @@ class ScopeContext {
     required AstVisitor visitor,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
   }) {
-    var element = node.declaration?.declaredFragment!.element;
+    var fragment = node.declaration?.declaredFragment;
 
     node.metadata.accept(visitor);
 
-    var constructorInitializerScope = element != null
-        ? ConstructorInitializerScope(nameScope, element)
-        : nameScope;
-    withScope(constructorInitializerScope, () {
-      node.formalParameterInitializerScope = nameScope;
-      node.initializers.visitWithOverride(visitor, visitInitializers);
-    });
+    withScope(
+      fragment != null ? _constructorInitializerScope(fragment) : nameScope,
+      () {
+        node.formalParameterInitializerScope = nameScope;
+        node.initializers.visitWithOverride(visitor, visitInitializers);
+      },
+    );
 
-    var primaryParameterScope = element != null
-        ? PrimaryParameterScope(nameScope, element)
-        : nameScope;
-    withScope(primaryParameterScope, () {
-      node.documentationComment?.accept(visitor);
-      node.body.accept(visitor);
-    });
+    withScope(
+      fragment != null
+          ? PrimaryParameterScope(
+              nameScope,
+              fragment.element,
+              fragment.formalParameters,
+            )
+          : nameScope,
+      () {
+        node.documentationComment?.accept(visitor);
+        node.body.accept(visitor);
+      },
+    );
   }
 
   void visitVariableDeclarationList(
@@ -440,17 +448,12 @@ class ScopeContext {
 
     // Use different scope for instance non-late field initializers.
     if (node.parent case FieldDeclarationImpl fieldDeclaration) {
-      if (!fieldDeclaration.isStatic) {
-        if (node.lateKeyword == null) {
-          var primaryConstructor = _enclosingInstanceElement
-              .tryCast<InterfaceElementImpl>()
-              ?.primaryConstructor;
-          if (primaryConstructor != null) {
-            variablesScope = ConstructorInitializerScope(
-              nameScope,
-              primaryConstructor,
-            );
-          }
+      if (!fieldDeclaration.isStatic && node.lateKeyword == null) {
+        var primaryConstructor = fieldDeclaration.enclosingPrimaryConstructor;
+        if (primaryConstructor != null) {
+          variablesScope = _constructorInitializerScope(
+            primaryConstructor.declaredFragment!,
+          );
         }
       }
     }
@@ -458,13 +461,6 @@ class ScopeContext {
     withScope(variablesScope, () {
       node.variables.accept(visitor);
     });
-  }
-
-  void withConstructorInitializerScope(
-    ConstructorElementImpl element,
-    void Function() operation,
-  ) {
-    withScope(ConstructorInitializerScope(nameScope, element), operation);
   }
 
   void withExtensionScope(
@@ -477,11 +473,11 @@ class ScopeContext {
   }
 
   void withFormalParameterScope(
-    List<FormalParameterElementImpl> elements,
+    List<FormalParameterFragmentImpl> fragments,
     void Function() operation,
   ) {
     withScope(
-      FormalParameterScope(nameScope, elements, featureSet: _featureSet),
+      FormalParameterScope(nameScope, fragments, featureSet: _featureSet),
       operation,
     );
   }
@@ -509,13 +505,6 @@ class ScopeContext {
   void withLocalScope(void Function(LocalScope scope) operation) {
     var scope = LocalScope(nameScope, featureSet: _featureSet);
     withScope(scope, () => operation(scope));
-  }
-
-  void withPrimaryParameterScope(
-    ConstructorElementImpl element,
-    void Function() operation,
-  ) {
-    withScope(PrimaryParameterScope(nameScope, element), operation);
   }
 
   void withScope(Scope scope, void Function() operation) {
@@ -549,6 +538,14 @@ class ScopeContext {
     withScope(
       TypeParameterScope(nameScope, elements, featureSet: _featureSet),
       operation,
+    );
+  }
+
+  Scope _constructorInitializerScope(ConstructorFragmentImpl fragment) {
+    return ConstructorInitializerScope(
+      nameScope,
+      fragment.element,
+      fragment.formalParameters,
     );
   }
 
@@ -593,5 +590,16 @@ extension LocalScopeExtension on LocalScope {
     for (var formalParameter in node.parameters) {
       add(formalParameter.declaredFragment!.element);
     }
+  }
+}
+
+extension _FieldDeclarationExtension on FieldDeclaration {
+  PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
+    return switch (parent?.parent) {
+      ClassDeclarationImpl(:var namePart) => namePart.tryCast(),
+      EnumDeclarationImpl(:var namePart) => namePart.tryCast(),
+      ExtensionTypeDeclarationImpl(:var namePart) => namePart.tryCast(),
+      _ => null,
+    };
   }
 }

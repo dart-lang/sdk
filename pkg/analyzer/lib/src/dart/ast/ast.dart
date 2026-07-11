@@ -5012,7 +5012,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     namePart.accept(visitor);
     extendsClause?.accept(visitor);
     withClause?.accept(visitor);
@@ -5036,7 +5036,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
     void Function(NativeClauseImpl)? visitNativeClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitNamePart != null) {
       visitNamePart(namePart);
     } else {
@@ -5436,7 +5436,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     superclass.accept(visitor);
     withClause.accept(visitor);
@@ -5456,7 +5456,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     void Function(WithClauseImpl)? visitWithClause,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
@@ -7230,7 +7230,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeName?.accept(visitor);
     parameters.accept(visitor);
     initializers.accept(visitor);
@@ -7252,7 +7252,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     void Function(ConstructorNameImpl)? visitRedirectedConstructor,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (typeName case var typeName?) {
       if (visitTypeName != null) {
         visitTypeName(typeName);
@@ -8372,7 +8372,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     type?.accept(visitor);
   }
 
@@ -8386,7 +8386,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     AstVisitor visitor, {
     void Function(TypeAnnotationImpl)? visitType,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
@@ -10193,7 +10193,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     arguments?.accept(visitor);
   }
 
@@ -10207,7 +10207,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     AstVisitor visitor, {
     void Function(EnumConstantArgumentsImpl)? visitArguments,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (arguments case var arguments?) {
       if (visitArguments != null) {
         visitArguments(arguments);
@@ -10440,7 +10440,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     namePart.accept(visitor);
     withClause?.accept(visitor);
     implementsClause?.accept(visitor);
@@ -10460,7 +10460,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(EnumBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitNamePart != null) {
       visitNamePart(namePart);
     } else {
@@ -10627,7 +10627,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri.accept(visitor);
     configurations.accept(visitor);
     combinators.accept(visitor);
@@ -10645,7 +10645,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     void Function(NodeListImpl<ConfigurationImpl>)? visitConfigurations,
     void Function(NodeListImpl<CombinatorImpl>)? visitCombinators,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitUri != null) {
       visitUri(uri);
     } else {
@@ -11648,7 +11648,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     body.accept(visitor);
@@ -11666,7 +11666,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     void Function(ExtensionOnClauseImpl)? visitOnClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
@@ -12318,7 +12318,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     namePart.accept(visitor);
     implementsClause?.accept(visitor);
     body.accept(visitor);
@@ -12336,7 +12336,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitNamePart != null) {
       visitNamePart(namePart);
     } else {
@@ -12559,7 +12559,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     fields.accept(visitor);
   }
 
@@ -12573,7 +12573,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     AstVisitor visitor, {
     void Function(VariableDeclarationListImpl)? visitFields,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitFields != null) {
       visitFields(fields);
     } else {
@@ -12759,10 +12759,13 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @generated
   @override
-  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
+    type?.accept(visitor);
+    functionTypedSuffix?.accept(visitor);
+    defaultClause?.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -12770,7 +12773,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
+  @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
     void Function(TypeAnnotationImpl)? visitType,
@@ -14052,7 +14055,6 @@ sealed class FormalParameterImpl extends AstNodeImpl
   }
 
   @override
-  @mustCallSuper
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
     type?.accept(visitor);
@@ -15409,7 +15411,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     returnType?.accept(visitor);
     functionExpression.accept(visitor);
   }
@@ -15425,7 +15427,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     void Function(TypeAnnotationImpl)? visitReturnType,
     void Function(FunctionExpressionImpl)? visitFunctionExpression,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (returnType case var returnType?) {
       if (visitReturnType != null) {
         visitReturnType(returnType);
@@ -16358,7 +16360,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters.accept(visitor);
@@ -16376,7 +16378,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(FormalParameterListImpl)? visitParameters,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (returnType case var returnType?) {
       if (visitReturnType != null) {
         visitReturnType(returnType);
@@ -17093,7 +17095,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     type.accept(visitor);
   }
@@ -17109,7 +17111,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(TypeAnnotationImpl)? visitType,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
@@ -18558,7 +18560,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri.accept(visitor);
     configurations.accept(visitor);
     prefix?.accept(visitor);
@@ -18578,7 +18580,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     void Function(SimpleIdentifierImpl)? visitPrefix,
     void Function(NodeListImpl<CombinatorImpl>)? visitCombinators,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitUri != null) {
       visitUri(uri);
     } else {
@@ -20468,7 +20470,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     name?.accept(visitor);
   }
 
@@ -20482,7 +20484,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     AstVisitor visitor, {
     void Function(DottedNameImpl)? visitName,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (name case var name?) {
       if (visitName != null) {
         visitName(name);
@@ -22214,7 +22216,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     returnType?.accept(visitor);
     typeParameters?.accept(visitor);
     parameters?.accept(visitor);
@@ -22234,7 +22236,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     void Function(FormalParameterListImpl)? visitParameters,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (returnType case var returnType?) {
       if (visitReturnType != null) {
         visitReturnType(returnType);
@@ -22853,7 +22855,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     typeParameters?.accept(visitor);
     onClause?.accept(visitor);
     implementsClause?.accept(visitor);
@@ -22873,7 +22875,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     void Function(ImplementsClauseImpl)? visitImplementsClause,
     void Function(ClassBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
@@ -25231,7 +25233,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri.accept(visitor);
   }
 
@@ -25245,7 +25247,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     AstVisitor visitor, {
     void Function(StringLiteralImpl)? visitUri,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitUri != null) {
       visitUri(uri);
     } else {
@@ -25416,7 +25418,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     uri?.accept(visitor);
     libraryName?.accept(visitor);
   }
@@ -25432,7 +25434,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     void Function(StringLiteralImpl)? visitUri,
     void Function(DottedNameImpl)? visitLibraryName,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (uri case var uri?) {
       if (visitUri != null) {
         visitUri(uri);
@@ -26065,7 +26067,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     pattern.accept(visitor);
     expression.accept(visitor);
   }
@@ -26081,7 +26083,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     void Function(DartPatternImpl)? visitPattern,
     void Function(ExpressionImpl)? visitExpression,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitPattern != null) {
       visitPattern(pattern);
     } else {
@@ -26934,7 +26936,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     initializers.accept(visitor);
     body.accept(visitor);
   }
@@ -26950,7 +26952,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitInitializers != null) {
       visitInitializers(initializers);
     } else {
@@ -29043,10 +29045,13 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @generated
   @override
-  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
+    type?.accept(visitor);
+    functionTypedSuffix?.accept(visitor);
+    defaultClause?.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -29054,7 +29059,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
+  @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
     void Function(TypeAnnotationImpl)? visitType,
@@ -31364,10 +31369,13 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @generated
   @override
-  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
+    type?.accept(visitor);
+    functionTypedSuffix?.accept(visitor);
+    defaultClause?.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -31375,7 +31383,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
+  @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
     void Function(TypeAnnotationImpl)? visitType,
@@ -33047,7 +33055,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     variables.accept(visitor);
   }
 
@@ -33061,7 +33069,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     AstVisitor visitor, {
     void Function(VariableDeclarationListImpl)? visitVariables,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (visitVariables != null) {
       visitVariables(variables);
     } else {
@@ -33863,7 +33871,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     bound?.accept(visitor);
   }
 
@@ -33877,7 +33885,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     AstVisitor visitor, {
     void Function(TypeAnnotationImpl)? visitBound,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (bound case var bound?) {
       if (visitBound != null) {
         visitBound(bound);
@@ -34323,7 +34331,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     initializer?.accept(visitor);
   }
 
@@ -34337,7 +34345,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
     AstVisitor visitor, {
     void Function(ExpressionImpl)? visitInitializer,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (initializer case var initializer?) {
       if (visitInitializer != null) {
         visitInitializer(initializer);
@@ -34549,7 +34557,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     type?.accept(visitor);
     variables.accept(visitor);
   }
@@ -34565,7 +34573,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     void Function(TypeAnnotationImpl)? visitType,
     void Function(NodeListImpl<VariableDeclarationImpl>)? visitVariables,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
