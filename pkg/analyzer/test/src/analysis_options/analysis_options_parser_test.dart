@@ -997,7 +997,7 @@ AnalysisOptionsImpl
   }
 
   // TODO(srawlins): Enable when we deprecate strict-raw-types.
-  @SkippedTest(reason: 'Enable when we deprecate strict-raw-types')
+  @FailingTest(reason: 'Enable when we deprecate strict-raw-types')
   test_analyzer_language_strictRawTypes_deprecated() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:

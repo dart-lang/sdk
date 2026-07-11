@@ -71,7 +71,7 @@ extension E on A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_instanceMethod_staticMethodInAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension A on int {
@@ -194,7 +194,7 @@ extension E on String {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_staticMethod_instanceMethodInAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension A on int {

@@ -26,7 +26,6 @@ class B extends A {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_extends_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 final class A {}

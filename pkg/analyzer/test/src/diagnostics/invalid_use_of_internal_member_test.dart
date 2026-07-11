@@ -559,7 +559,7 @@ int a = C().m(a: 5);
 ''');
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_methodParameter_positional() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';
@@ -782,7 +782,7 @@ t func = () {};
 ''');
   }
 
-  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_typedefParameter() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';

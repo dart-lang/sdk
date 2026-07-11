@@ -4896,7 +4896,7 @@ void test<S>(T Function<T>(T) pf) {
     _assertLocalVarType(result, 'paramTearOff', "T Function<T>(T)");
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_genericMethod_tearoff_instantiated() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C<E> {
