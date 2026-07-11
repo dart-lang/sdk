@@ -338,6 +338,167 @@ augment class A with M {}
     });
   }
 
+  test_class_declaringFormalParameter_covariantVar_implements_setter_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+class B extends A {}
+
+abstract class I {
+  set foo(A value);
+}
+
+class C(covariant var B foo) implements I;
+''');
+  }
+
+  test_class_declaringFormalParameter_final_extends_getter_invalid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  int get foo;
+//        ^^^
+// [context 1] The member being overridden.
+}
+class B(final num foo) extends A;
+//                ^^^
+// [diag.invalidOverride][context 1] 'B.foo' ('num Function()') isn't a valid override of 'A.foo' ('int Function()').
+''');
+  }
+
+  test_class_declaringFormalParameter_final_extends_getter_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  num get foo;
+}
+class B(final int foo) extends A;
+''');
+  }
+
+  test_class_declaringFormalParameter_final_with_getter_invalid() async {
+    await resolveTestCodeWithDiagnostics('''
+mixin M {
+  int get foo;
+//        ^^^
+// [context 1] The member being overridden.
+}
+class A(final num foo) with M;
+//                ^^^
+// [diag.invalidOverride][context 1] 'A.foo' ('num Function()') isn't a valid override of 'M.foo' ('int Function()').
+''');
+  }
+
+  test_class_declaringFormalParameter_final_with_getter_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+mixin M {
+  num get foo;
+}
+class A(final int foo) with M;
+''');
+  }
+
+  test_class_declaringFormalParameter_var_implements_getter_invalid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  int get foo;
+//        ^^^
+// [context 1] The member being overridden.
+}
+class B(var num foo) implements A;
+//              ^^^
+// [diag.invalidOverride][context 1] 'B.foo' ('num Function()') isn't a valid override of 'A.foo' ('int Function()').
+''');
+  }
+
+  test_class_declaringFormalParameter_var_implements_getter_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  num get foo;
+}
+class B(var int foo) implements A;
+''');
+  }
+
+  test_class_declaringFormalParameter_var_implements_getterSetter_invalid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  abstract String foo;
+//                ^^^
+// [context 1] The member being overridden.
+// [context 2] The setter being overridden.
+}
+class B(var int foo) implements A;
+//              ^^^
+// [diag.invalidOverride][context 1] 'B.foo' ('int Function()') isn't a valid override of 'A.foo' ('String Function()').
+// [diag.invalidOverrideSetter][context 2] The setter 'B.foo' ('void Function(int)') isn't a valid override of 'A.foo' ('void Function(String)').
+''');
+  }
+
+  test_class_declaringFormalParameter_var_implements_getterSetter_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  abstract int foo;
+}
+class B(var int foo) implements A;
+''');
+  }
+
+  test_class_declaringFormalParameter_var_implements_setter_inheritsCovariant_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+class B extends A {}
+
+class C(covariant var A foo);
+class D(var B foo) implements C;
+''');
+  }
+
+  test_class_declaringFormalParameter_var_implements_setter_invalid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  set foo(num value);
+//    ^^^
+// [context 1] The setter being overridden.
+}
+class B(var int foo) implements A;
+//              ^^^
+// [diag.invalidOverrideSetter][context 1] The setter 'B.foo' ('void Function(int)') isn't a valid override of 'A.foo' ('void Function(num)').
+''');
+  }
+
+  test_class_declaringFormalParameter_var_implements_setter_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  set foo(int value);
+}
+class B(var num foo) implements A;
+''');
+  }
+
+  test_enum_declaringFormalParameter_final_implements_getter_invalid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  int get foo;
+//        ^^^
+// [context 1] The member being overridden.
+}
+enum E(final num foo) implements A {
+//               ^^^
+// [diag.invalidOverride][context 1] 'E.foo' ('num Function()') isn't a valid override of 'A.foo' ('int Function()').
+  v(0)
+}
+''');
+  }
+
+  test_enum_declaringFormalParameter_final_implements_getter_valid() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  num get foo;
+}
+enum E(final int foo) implements A {
+  v(0)
+}
+''');
+  }
+
   test_external_field_covariant_inheritance() async {
     await resolveTestCodeWithDiagnostics('''
 abstract class A {
