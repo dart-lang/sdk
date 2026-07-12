@@ -121,7 +121,7 @@ List<String> a = <String>[0];
     assertType(result.findNode.listLiteral('<String>['), 'List<String>');
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_context_typeArgs_expression_conflictingTypeArgs() async {
     // Context type and element types both suggest `String`, so this should
     // override the explicit type argument.
@@ -474,7 +474,7 @@ var a = <int>[1];
     assertType(result.findNode.listLiteral('['), 'List<int>');
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_noContext_typeArgs_expressions_conflict() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var a = <int, String>[1, 2];

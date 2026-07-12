@@ -1389,7 +1389,7 @@ class C {
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_factoryWithoutBody() {
     parseTestCodeWithDiagnostics(r'''
 class C {
@@ -1840,7 +1840,7 @@ var s = 'begin \u{110000}';
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__new_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''
 /// [new 42]
@@ -1850,7 +1850,7 @@ void f() {}
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__new_tooMuch() {
     parseTestCodeWithDiagnostics(r'''
 /// [new a.b.c.d]
@@ -1860,7 +1860,7 @@ void f() {}
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__nonNew_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''
 /// [42]
@@ -1870,7 +1870,7 @@ void f() {}
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__nonNew_tooMuch() {
     parseTestCodeWithDiagnostics(r'''
 /// [a.b.c.d]

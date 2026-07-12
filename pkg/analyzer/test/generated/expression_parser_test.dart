@@ -267,7 +267,7 @@ SetOrMapLiteral
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_mapLiteral_invalid_too_many_type_arguments1() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <int, int, int>{};
@@ -293,7 +293,7 @@ SetOrMapLiteral
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_mapLiteral_invalid_too_many_type_arguments2() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = <int, int, int>{1};
@@ -4434,7 +4434,7 @@ PrefixExpression
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_parseUnaryExpression_decrement_super() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --super;
@@ -4465,7 +4465,7 @@ PrefixExpression
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_parseUnaryExpression_decrement_super_withComment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = /* 0 */ --super;

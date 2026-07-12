@@ -359,7 +359,7 @@ void f(List<void> values) {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): review this
+  @FailingTest() // TODO(scheglov): review this
   test_forIn_loopVariable_typeVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
@@ -651,7 +651,7 @@ void f(void x) {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): review this
+  @FailingTest() // TODO(scheglov): review this
   test_returnStatement_nonVoidFunction_error() async {
     // TODO(mfairhurst): Get this test to pass once codebase is compliant.
     await resolveTestCodeWithDiagnostics('''

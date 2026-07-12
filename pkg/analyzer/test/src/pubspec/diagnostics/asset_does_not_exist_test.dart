@@ -48,7 +48,7 @@ flutter:
   }
 
   // TODO(scheglov): Support package assets.
-  @skippedTest
+  @failingTest
   test_assetDoesNotExist_uri_error() {
     assertDiagnostics('''
 name: sample

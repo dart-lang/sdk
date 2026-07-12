@@ -663,7 +663,7 @@ var a = <int, String>{1};
     assertType(result.findNode.setOrMapLiteral('{'), 'Map<int, String>');
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_noContext_typeArgs_expressions_conflictingTypeArgs() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var a = <int>{1 : 2, 3 : 4};

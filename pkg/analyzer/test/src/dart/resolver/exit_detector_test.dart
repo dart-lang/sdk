@@ -164,7 +164,7 @@ class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
     _assertFalse('v = 1;');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   test_assignmentExpression_compound_lazy() async {
     _assertFalse('v ||= false;');
   }
