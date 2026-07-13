@@ -420,7 +420,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 166
+    i32.const 176
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType
@@ -449,7 +449,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 188
+    i32.const 187
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType

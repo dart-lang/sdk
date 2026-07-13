@@ -10,7 +10,7 @@
   (global $".Foo called " (import "" "Foo called ") (ref extern))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 4 funcref)
   (global $"\"Foo called \"" (ref $JSExternWrapper)
-    (i32.const 60)
+    (i32.const 65)
     (i32.const 0)
     (global.get $".Foo called ")
     (struct.new $JSExternWrapper))

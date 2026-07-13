@@ -715,7 +715,7 @@ final currentExpectations = [
 <asynchronous suspension>""",
   """
 #0    awaitTimeoutHappensThrowFromOnTimeout.<anonymous closure> (%test%)
-#1    _RootZone.run (zone.dart)
+#1    Zone.run (zone.dart)
 #2    Future.timeout.<anonymous closure> (future_impl.dart)
 <asynchronous suspension>
 #3    awaitTimeoutHappensThrowFromOnTimeout (%test%)
@@ -728,7 +728,7 @@ final currentExpectations = [
 <asynchronous suspension>""",
   """
 #0    awaitTimeoutHappensThrowFromOnTimeout.<anonymous closure> (%test%)
-#1    _RootZone.run (zone.dart)
+#1    Zone.run (zone.dart)
 #2    Future.timeout.<anonymous closure> (future_impl.dart)
 <asynchronous suspension>
 #3    awaitTimeoutHappensThrowFromOnTimeout (%test%)
@@ -743,7 +743,7 @@ final currentExpectations = [
 <asynchronous suspension>""",
   """
 #0    awaitTimeoutHappensThrowFromOnTimeout.<anonymous closure> (%test%)
-#1    _RootZone.run (zone.dart)
+#1    Zone.run (zone.dart)
 #2    Future.timeout.<anonymous closure> (future_impl.dart)
 <asynchronous suspension>
 #3    awaitTimeoutHappensThrowFromOnTimeout (%test%)

@@ -18,14 +18,14 @@
   (func $print (param $var0 (ref $#Top)) <...>)
   (@binaryen.inline 0)
   (func $sinkDouble (param $var0 f64)
-    i32.const 93
+    i32.const 95
     local.get $var0
     struct.new $BoxedDouble
     call $print
   )
   (@binaryen.inline 0)
   (func $sinkInt (param $var0 i64)
-    i32.const 84
+    i32.const 60
     local.get $var0
     struct.new $BoxedInt
     call $print
@@ -44,10 +44,10 @@
   )
   (@binaryen.inline 0)
   (func $testMaxIntDouble
-    i32.const 84
+    i32.const 60
     call $"intA implicit getter"
     struct.new $BoxedInt
-    i32.const 93
+    i32.const 95
     call $"doubleA implicit getter"
     struct.new $BoxedDouble
     call $_maxSlow
@@ -77,17 +77,17 @@
       call $"numIntA implicit getter"
       local.tee $var0
       struct.get $#Top $field0
-      i32.const 84
+      i32.const 60
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
       struct.get $#Top $field0
-      i32.const 84
+      i32.const 60
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 84
+        i32.const 60
         local.get $var0
         ref.cast $BoxedInt
         struct.get $BoxedInt $value
@@ -105,16 +105,16 @@
       end
       local.get $var0
       struct.get $#Top $field0
-      i32.const 93
+      i32.const 95
       i32.ne
       local.get $var1
       struct.get $#Top $field0
-      i32.const 93
+      i32.const 95
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 93
+        i32.const 95
         local.get $var0
         ref.cast $BoxedDouble
         struct.get $BoxedDouble $value
@@ -140,10 +140,10 @@
   )
   (@binaryen.inline 0)
   (func $testMinIntDouble
-    i32.const 84
+    i32.const 60
     call $"intA implicit getter"
     struct.new $BoxedInt
-    i32.const 93
+    i32.const 95
     call $"doubleA implicit getter"
     struct.new $BoxedDouble
     call $_minSlow
@@ -173,17 +173,17 @@
       call $"numIntA implicit getter"
       local.tee $var0
       struct.get $#Top $field0
-      i32.const 84
+      i32.const 60
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
       struct.get $#Top $field0
-      i32.const 84
+      i32.const 60
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 84
+        i32.const 60
         local.get $var0
         ref.cast $BoxedInt
         struct.get $BoxedInt $value
@@ -201,16 +201,16 @@
       end
       local.get $var0
       struct.get $#Top $field0
-      i32.const 93
+      i32.const 95
       i32.ne
       local.get $var1
       struct.get $#Top $field0
-      i32.const 93
+      i32.const 95
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 93
+        i32.const 95
         local.get $var0
         ref.cast $BoxedDouble
         struct.get $BoxedDouble $value

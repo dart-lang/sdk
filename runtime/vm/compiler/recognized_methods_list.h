@@ -13,7 +13,7 @@ namespace dart {
 // debug mode to get the correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(AsyncLibrary, _FutureListener, handleValue, FutureListenerHandleValue,     \
-    0xaa83f593)                                                                \
+    0x4212057a)                                                                \
   V(AsyncLibrary, _SuspendState, get:_functionData,                            \
     SuspendState_getFunctionData, 0x79c36e2e)                                  \
   V(AsyncLibrary, _SuspendState, set:_functionData,                            \
