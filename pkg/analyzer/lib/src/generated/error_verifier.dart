@@ -7974,13 +7974,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
     var defaultValuesAreExpected = () {
       var parent = node.parent;
-      if (parent is ConstructorDeclaration) {
-        if (parent.augmentKeyword != null) {
+      if (parent is ConstructorDeclarationImpl) {
+        var fragment = parent.declaredFragment!;
+        var element = fragment.element;
+        if (fragment.isAugmentation) {
           return false;
-        } else if (parent.externalKeyword != null) {
+        }
+        if (element.isExternal) {
           return false;
-        } else if (parent.factoryKeyword != null &&
-            parent.redirectedConstructor != null) {
+        }
+        if (element.isFactory && element.isRedirecting) {
           return false;
         }
         return true;
