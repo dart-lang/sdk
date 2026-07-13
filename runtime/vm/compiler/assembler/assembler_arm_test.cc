@@ -71,7 +71,7 @@ TEST_CASE(ReciprocalOps) {
 #define EXPECT_DISASSEMBLY(expected)
 #else
 #define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->RelativeDisassembly())
+  EXPECT_STREQ_NO_PREFIX_SUFFIX(expected, test->RelativeDisassembly())
 #endif
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {

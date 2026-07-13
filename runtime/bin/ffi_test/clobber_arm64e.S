@@ -1,17 +1,11 @@
 .text
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__Fuchsia__)
-.globl ClobberAndCall
-.type ClobberAndCall, @function
-.align 4
-ClobberAndCall:
-#else /* HOST_OS_MACOS */
 .globl _ClobberAndCall
 .align 4
 _ClobberAndCall:
-#endif
 
 /* Save link register and thread register. Keep stack aligned to 16 bytes. */
+pacibsp
 stp lr, x26, [sp, #-16]!
 mov lr, #1
 mov x26, #1
@@ -49,4 +43,4 @@ blr x0
 ldp x24, x27, [sp], #16
 ldp lr, x26, [sp], #16
 
-ret
+retab

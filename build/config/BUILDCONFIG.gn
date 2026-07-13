@@ -135,7 +135,8 @@ declare_args() {
   # Compile for Thread Sanitizer to find threading bugs.
   is_tsan = false
 
-  # Compile for Undefined Behavior Sanitizer to find reliance on undefined behavior.
+  # Compile for Undefined Behavior Sanitizer to find reliance on undefined
+  # behavior.
   is_ubsan = false
 
   # Compile for execution in user-mode QEMU.
@@ -256,8 +257,9 @@ if (current_os == "win") {
 # BUILD OPTIONS
 # =============================================================================
 
-use_flutter_cxx = is_clang && (((is_asan || is_ubsan) && is_mac) || is_msan ||
-                               is_tsan || is_ios || is_android)
+use_flutter_cxx =
+    is_clang && (((is_asan || is_ubsan) && is_mac) || is_msan || is_tsan ||
+                 is_ios || is_android || current_cpu == "arm64e")
 
 using_sanitizer = !is_win && (is_asan || is_hwasan || is_lsan || is_msan ||
                               is_tsan || is_ubsan)

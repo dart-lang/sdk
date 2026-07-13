@@ -671,10 +671,13 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
+  uword entry = StubCode::JumpToFrame().EntryPoint();
+#if defined(HOST_ARCH_ARM64E)
+  entry = reinterpret_cast<uword>(ptrauth_sign_unauthenticated(
+      reinterpret_cast<void*>(entry), ptrauth_key_function_pointer, 0));
+#endif
   typedef void (*ExcpHandler)(uword, uword, uword, Thread*);
-  ExcpHandler func =
-      reinterpret_cast<ExcpHandler>(StubCode::JumpToFrame().EntryPoint());
-
+  ExcpHandler func = reinterpret_cast<ExcpHandler>(entry);
   if (thread->is_unwind_in_progress()) {
     thread->SetUnwindErrorInProgress(true);
   }

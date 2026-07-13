@@ -1244,6 +1244,10 @@ void AssemblyImageWriter::Finalize() {
 #endif
 #endif
 
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64E)
+  assembly_stream_->WriteString(".ptrauth_abi_version 0\n");
+#endif
+
 #if defined(DART_TARGET_OS_WINDOWS)
   // __declspec(dllexport)
   const char* const exported_symbols[] = {
