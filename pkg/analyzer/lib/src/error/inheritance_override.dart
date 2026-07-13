@@ -353,14 +353,14 @@ class _ClassVerifier {
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
     var mixinNodes = withClause?.mixinTypes ?? <NamedType>[];
-    for (var node in mixinNodes) {
-      var mixinType = node.type;
+    var mixinIndex = classFragment.withClauseMixinStartIndex;
+    for (var mixinNode in mixinNodes) {
+      var mixinType = mixinNode.type;
       // When building the element model, we skip incorrect types.
       // So, here we skip corresponding nodes to keep the index in sync.
       if (mixinType is InterfaceTypeImpl &&
           isInterfaceTypeInterface(mixinType)) {
-        var index = interfaceElementState.mixinIndex++;
-        _checkDeclaredMembers(node, mixinType, mixinIndex: index);
+        _checkDeclaredMembers(mixinNode, mixinType, mixinIndex: mixinIndex++);
         directSuperInterfaces.add(mixinType);
       }
     }
@@ -1177,8 +1177,6 @@ class _DiagnosticTarget {
 /// Maintains an [InterfaceElementImpl]'s mixin index across multiple fragments.
 class _InterfaceElementState {
   bool hasReportedRecursiveInterfaceInheritance = false;
-
-  int mixinIndex = 0;
 
   _InterfaceElementState();
 }

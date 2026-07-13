@@ -6169,6 +6169,9 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     implements InterfaceFragment {
   List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorFragment;
 
+  /// Start index in the element's `mixins` for this fragment's `with` clause.
+  int withClauseMixinStartIndex = 0;
+
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   InterfaceFragmentImpl({required super.name});

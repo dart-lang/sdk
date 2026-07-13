@@ -2131,6 +2131,7 @@ library
         #F2 isAugmentation class A (nameOffset:46) (firstTokenOffset:32) (offset:46)
           element: <testLibrary>::@class::A
           previousFragment: #F1
+          withClauseMixinStartIndex: 1
       mixins
         #F4 mixin M1 (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@mixin::M1
@@ -2206,6 +2207,7 @@ library
           element: <testLibrary>::@class::A
           previousFragment: #F4
           nextFragment: #F9
+          withClauseMixinStartIndex: 1
           typeParameters
             #F7 T (nameOffset:91) (firstTokenOffset:91) (offset:91)
               element: #E1 T
@@ -2214,6 +2216,7 @@ library
         #F9 isAugmentation class A (nameOffset:146) (firstTokenOffset:132) (offset:146)
           element: <testLibrary>::@class::A
           previousFragment: #F5
+          withClauseMixinStartIndex: 2
           typeParameters
             #F10 T (nameOffset:148) (firstTokenOffset:148) (offset:148)
               element: #E1 T
@@ -2288,6 +2291,91 @@ library
           firstFragment: #F16
       superclassConstraints
         M2<U3>
+''');
+  }
+
+  test_class_mixins_augmentation_extensionType() async {
+    var library = await buildLibrary(r'''
+mixin A {}
+
+extension type B(int it) {}
+
+mixin C {}
+
+class D extends Object with A, B {}
+
+augment class D with C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 hasExtendsClause class D (nameOffset:59) (firstTokenOffset:53) (offset:59)
+          element: <testLibrary>::@class::D
+          nextFragment: #F2
+        #F2 isAugmentation class D (nameOffset:104) (firstTokenOffset:90) (offset:104)
+          element: <testLibrary>::@class::D
+          previousFragment: #F1
+          withClauseMixinStartIndex: 1
+      extensionTypes
+        #F3 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
+          element: <testLibrary>::@extensionType::B
+          fields
+            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+              element: <testLibrary>::@extensionType::B::@field::it
+              inducedGetter: #F5
+          getters
+            #F5 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+              element: <testLibrary>::@extensionType::B::@getter::it
+              inducingVariable: #F4
+      mixins
+        #F6 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+        #F7 mixin C (nameOffset:47) (firstTokenOffset:41) (offset:47)
+          element: <testLibrary>::@mixin::C
+  classes
+    isSimplyBounded class D
+      reference: <testLibrary>::@class::D
+      firstFragment: #F1
+      supertype: Object
+      mixins
+        A
+        C
+  extensionTypes
+    isSimplyBounded extension type B
+      reference: <testLibrary>::@extensionType::B
+      firstFragment: #F3
+      representation: <testLibrary>::@extensionType::B::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extensionType::B::@field::it
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F6
+      superclassConstraints
+        Object
+    isSimplyBounded mixin C
+      reference: <testLibrary>::@mixin::C
+      firstFragment: #F7
+      superclassConstraints
+        Object
 ''');
   }
 

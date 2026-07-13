@@ -13293,6 +13293,7 @@ library
         #F2 isAugmentation enum A (nameOffset:49) (firstTokenOffset:36) (offset:49)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
+          withClauseMixinStartIndex: 1
       mixins
         #F8 mixin M1 (nameOffset:29) (firstTokenOffset:23) (offset:29)
           element: <testLibrary>::@mixin::M1
@@ -13436,6 +13437,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           nextFragment: #F10
+          withClauseMixinStartIndex: 1
           typeParameters
             #F4 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: #E0 T
@@ -13444,6 +13446,7 @@ library
         #F10 isAugmentation enum A (nameOffset:122) (firstTokenOffset:109) (offset:122)
           element: <testLibrary>::@enum::A
           previousFragment: #F2
+          withClauseMixinStartIndex: 2
           typeParameters
             #F11 T (nameOffset:124) (firstTokenOffset:124) (offset:124)
               element: #E0 T
