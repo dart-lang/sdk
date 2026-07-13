@@ -1,3 +1,11 @@
+## 3.14.0
+
+### Libraries
+
+#### `dart:js_interop`
+
+- Added `jsThrow`, which throws an error without any Dart wrappers.
+
 ## 3.13.0
 
 **Released on:** Unreleased

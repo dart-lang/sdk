@@ -982,6 +982,9 @@ bool jsIdentical(Object? a, Object? b) {
   return identical(a, b);
 }
 
+@patch
+Never jsThrow(JSAny error) => js_helper.JS<Never>('(e) => throw e', error);
+
 @JS('Array')
 @staticInterop
 class _Array {

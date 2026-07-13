@@ -976,7 +976,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Return whether [type] can be used on a `dart:js_interop` external member
   /// or in the signature of a function that is converted via `toJS`.
   bool _isAllowedExternalType(DartType type) {
-    if (type is VoidType || type is NullType) return true;
+    if (type case VoidType() || NullType() || NeverType()) return true;
     if (type is TypeParameterType || type is StructuralParameterType) {
       final bound = type.nonTypeParameterBound;
       // If it can be used as a representation type of an interop extension
