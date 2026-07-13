@@ -2112,6 +2112,55 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         value: '<inspected variable>', // Shown to user, expandable.
         variablesReference: instance != null ? thread.storeData(instance) : 0,
       ));
+    } else if (data is PointerData) {
+      if (!data.showBytes) {
+        // Step 1: return the single child that lazy: true expects
+        variables.add(Variable(
+          name: '',
+          value: '${data.byteCount} bytes @ ${data.address}',
+          variablesReference: thread.storeData(
+            PointerData(data.address, data.byteCount, data.format,
+                showBytes: true),
+          ),
+          indexedVariables: data.byteCount,
+        ));
+      } else {
+        // Step 2: call _readNativeMemory and return byte variables
+        final svc = service;
+        if (svc != null) {
+          try {
+            final start = childStart ?? 0;
+            final count = childCount ?? data.byteCount;
+            final address = data.address.replaceFirst('0x', '');
+            final baseAddress = int.parse(address, radix: 16);
+            final pageAddress = (baseAddress + start).toRadixString(16);
+
+            final result = await svc.callMethod(
+              '_readNativeMemory',
+              args: {'address': pageAddress, 'size': count},
+            );
+            final bytes = result.json!['bytes'] as String;
+            final size = result.json!['size'] as int;
+            // Each byte is represented as 2 hex characters (e.g. "de" for 0xDE).
+            const hexCharsPerByte = 2;
+            for (var i = 0; i < size; i++) {
+              final byteHex = bytes.substring(
+                  i * hexCharsPerByte, i * hexCharsPerByte + hexCharsPerByte);
+              variables.add(Variable(
+                name: '[${start + i}]',
+                value: '0x$byteHex',
+                variablesReference: 0,
+              ));
+            }
+          } on vm.RPCError catch (e) {
+            variables.add(Variable(
+              name: '<error>',
+              value: e.message,
+              variablesReference: 0,
+            ));
+          }
+        }
+      }
     } else if (data is WrappedInstanceVariable) {
       // WrappedInstanceVariables are used to support DAP-over-DDS clients that
       // had a VM Instance ID and wanted to convert it to a variable for use in

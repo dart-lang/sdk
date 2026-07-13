@@ -80,6 +80,8 @@ class ProtocolConverter {
     } else if (ref.kind == vm.InstanceKind.kString) {
       // Untruncated strings.
       return formatter.formatString(valueAsString ?? "");
+    } else if (ref.kind == 'Pointer') {
+      return 'Pointer (${valueAsString ?? 'unknown'})';
     } else if (valueAsString != null) {
       if (isTruncated) {
         return '$valueAsString…';
@@ -134,7 +136,20 @@ class ProtocolConverter {
     final associations = instance.associations;
     final fields = instance.fields;
 
-    if (isSimpleKind(instance.kind)) {
+    if (instance.kind == 'Pointer') {
+      final address = instance.valueAsString ?? '0x0';
+      // Currently always reads a fixed 8 bytes (word size on 64-bit).
+      const byteCount = 8;
+      return [
+        dap.Variable(
+          name: '[raw bytes]',
+          value: '',
+          variablesReference:
+              thread.storeData(PointerData(address, byteCount, format)),
+          presentationHint: dap.VariablePresentationHint(lazy: true),
+        ),
+      ];
+    } else if (isSimpleKind(instance.kind)) {
       // For simple kinds, just return a single variable with their value.
       return [
         await convertVmResponseToVariable(
