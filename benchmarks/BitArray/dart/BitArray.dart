@@ -436,13 +436,155 @@ class BitArray {
   }
 }
 
+class BitArray32x4 {
+  final Int32x4List _words;
+  final int length;
+
+  BitArray32x4(this.length) : _words = Int32x4List((length + 127) >> 7);
+
+  void setBit(int i) {
+    final wordIdx = i >> 7;
+    final laneIdx = (i >> _wordShift) & 3;
+    final bit = 1 << (i & _wordMask);
+    final v = _words[wordIdx];
+    switch (laneIdx) {
+      case 0:
+        _words[wordIdx] = Int32x4(v.x | bit, v.y, v.z, v.w);
+      case 1:
+        _words[wordIdx] = Int32x4(v.x, v.y | bit, v.z, v.w);
+      case 2:
+        _words[wordIdx] = Int32x4(v.x, v.y, v.z | bit, v.w);
+      case 3:
+        _words[wordIdx] = Int32x4(v.x, v.y, v.z, v.w | bit);
+    }
+  }
+
+  // Used by the cross-implementation correctness check to enumerate bits.
+  void forEachSetBit(void Function(int) action) {
+    for (var i = 0; i < _words.length; i++) {
+      final v = _words[i];
+      final base = i << 7;
+      var w = v.x & 0xFFFFFFFF;
+      while (w != 0) {
+        final bit = w.trailingZeroBitCount;
+        final pos = base + bit;
+        if (pos >= length) return;
+        action(pos);
+        w &= w - 1;
+      }
+      w = v.y & 0xFFFFFFFF;
+      final b1 = base + 32;
+      while (w != 0) {
+        final bit = w.trailingZeroBitCount;
+        final pos = b1 + bit;
+        if (pos >= length) return;
+        action(pos);
+        w &= w - 1;
+      }
+      w = v.z & 0xFFFFFFFF;
+      final b2 = base + 64;
+      while (w != 0) {
+        final bit = w.trailingZeroBitCount;
+        final pos = b2 + bit;
+        if (pos >= length) return;
+        action(pos);
+        w &= w - 1;
+      }
+      w = v.w & 0xFFFFFFFF;
+      final b3 = base + 96;
+      while (w != 0) {
+        final bit = w.trailingZeroBitCount;
+        final pos = b3 + bit;
+        if (pos >= length) return;
+        action(pos);
+        w &= w - 1;
+      }
+    }
+  }
+
+  static void intersection(BitArray32x4 a, BitArray32x4 b, BitArray32x4 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] & wb[i];
+    }
+  }
+
+  static void union(BitArray32x4 a, BitArray32x4 b, BitArray32x4 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] | wb[i];
+    }
+  }
+
+  static void xor(BitArray32x4 a, BitArray32x4 b, BitArray32x4 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] ^ wb[i];
+    }
+  }
+
+  static void difference(BitArray32x4 a, BitArray32x4 b, BitArray32x4 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    final ones = Int32x4(-1, -1, -1, -1);
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] & (wb[i] ^ ones);
+    }
+  }
+
+  static void complement(BitArray32x4 a, BitArray32x4 out) {
+    final wa = a._words;
+    final wo = out._words;
+    if (wa.length != wo.length) {
+      throw ArgumentError('a and out must have the same length');
+    }
+    final n = wa.length;
+    final ones = Int32x4(-1, -1, -1, -1);
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] ^ ones;
+    }
+  }
+}
+
 // ----- Correctness check ----------------------------------------------------
+
+void _setRandomBits(
+  void Function(int) setBit,
+  int size,
+  Random rng,
+  int densityPercent,
+) {
+  for (var i = 0; i < size; i++) {
+    if (rng.nextInt(100) < densityPercent) setBit(i);
+  }
+}
 
 BitArray _randomArray(int size, Random rng, int densityPercent) {
   final bits = BitArray(size);
-  for (var i = 0; i < size; i++) {
-    if (rng.nextInt(100) < densityPercent) bits.setBit(i);
-  }
+  _setRandomBits(bits.setBit, size, rng, densityPercent);
   return bits;
 }
 
@@ -549,6 +691,9 @@ void checkCorrectness() {
 
 const int _benchSize = 1 << 20; // 1,048,576 bits = 32,768 words.
 
+const int _seedA = 0xBEEF;
+const int _seedB = 0xC0DE;
+
 class _BitArrayBenchmark extends BenchmarkBase {
   final int densityPercent;
   final void Function(BitArray) operation;
@@ -559,7 +704,7 @@ class _BitArrayBenchmark extends BenchmarkBase {
 
   @override
   void setup() {
-    bits = _randomArray(_benchSize, Random(0xBEEF), densityPercent);
+    bits = _randomArray(_benchSize, Random(_seedA), densityPercent);
   }
 
   @override
@@ -580,8 +725,8 @@ class _BitArrayPairBenchmark extends BenchmarkBase {
 
   @override
   void setup() {
-    a = _randomArray(_benchSize, Random(0xBEEF), densityPercent);
-    b = _randomArray(_benchSize, Random(0xC0DE), densityPercent);
+    a = _randomArray(_benchSize, Random(_seedA), densityPercent);
+    b = _randomArray(_benchSize, Random(_seedB), densityPercent);
     out = BitArray(_benchSize);
   }
 
@@ -692,9 +837,114 @@ List<BenchmarkBase> _benchmarks() {
   ];
 }
 
+// ----- BitArray32x4 correctness + benchmarks ------------------------------
+
+BitArray32x4 _randomArray32x4(int size, Random rng, int densityPercent) {
+  final bits = BitArray32x4(size);
+  _setRandomBits(bits.setBit, size, rng, densityPercent);
+  return bits;
+}
+
+// Cross-implementation check: for the same seeded bit pattern, every
+// `BitArray32x4` SIMD op must produce the same set of bits as its
+// corresponding `BitArray.*Accelerated` counterpart.
+void checkCrossImpl() {
+  final rng = Random(0xC0DE);
+
+  void compareSets(String op, BitArray u, BitArray32x4 s) {
+    final uBits = <int>[];
+    final sBits = <int>[];
+    u.forEachSetBitAccelerated(uBits.add);
+    s.forEachSetBit(sBits.add);
+    _assertEq(sBits.length, uBits.length, '$op count');
+    for (var i = 0; i < uBits.length; i++) {
+      _assertEq(sBits[i], uBits[i], '$op [$i]');
+    }
+  }
+
+  for (final size in const [0, 1, 31, 32, 33, 63, 64, 65, 127, 1000, 50000]) {
+    for (final density in const [0, 3, 50, 97, 100]) {
+      final u = _randomArray(size, rng, density);
+      final uOther = _randomArray(size, rng, density);
+      // Mirror both `u` operands into `BitArray32x4` via forEachSetBit.
+      final s = BitArray32x4(size);
+      u.forEachSetBitAccelerated(s.setBit);
+      final sOther = BitArray32x4(size);
+      uOther.forEachSetBitAccelerated(sOther.setBit);
+
+      final label = 'cross(size=$size, density=$density)';
+
+      final uInt = BitArray(size);
+      final sInt = BitArray32x4(size);
+      BitArray.intersectionAccelerated(u, uOther, uInt);
+      BitArray32x4.intersection(s, sOther, sInt);
+      compareSets('$label intersection', uInt, sInt);
+
+      final uUni = BitArray(size);
+      final sUni = BitArray32x4(size);
+      BitArray.unionAccelerated(u, uOther, uUni);
+      BitArray32x4.union(s, sOther, sUni);
+      compareSets('$label union', uUni, sUni);
+
+      final uXor = BitArray(size);
+      final sXor = BitArray32x4(size);
+      BitArray.xorAccelerated(u, uOther, uXor);
+      BitArray32x4.xor(s, sOther, sXor);
+      compareSets('$label xor', uXor, sXor);
+
+      final uDif = BitArray(size);
+      final sDif = BitArray32x4(size);
+      BitArray.differenceAccelerated(u, uOther, uDif);
+      BitArray32x4.difference(s, sOther, sDif);
+      compareSets('$label difference', uDif, sDif);
+    }
+  }
+}
+
+class _BitArray32x4PairBenchmark extends BenchmarkBase {
+  final int densityPercent;
+  final void Function(BitArray32x4, BitArray32x4, BitArray32x4) operation;
+  late BitArray32x4 a;
+  late BitArray32x4 b;
+  late BitArray32x4 out;
+
+  _BitArray32x4PairBenchmark(String name, this.densityPercent, this.operation)
+    : super('BitArray32x4.$name');
+
+  @override
+  void setup() {
+    a = _randomArray32x4(_benchSize, Random(_seedA), densityPercent);
+    b = _randomArray32x4(_benchSize, Random(_seedB), densityPercent);
+    out = BitArray32x4(_benchSize);
+  }
+
+  @override
+  void run() {
+    operation(a, b, out);
+  }
+}
+
+List<BenchmarkBase> _benchmarks32x4() {
+  return [
+    _BitArray32x4PairBenchmark('intersection', 25, BitArray32x4.intersection),
+    _BitArray32x4PairBenchmark('union', 25, BitArray32x4.union),
+    _BitArray32x4PairBenchmark('xor', 25, BitArray32x4.xor),
+    _BitArray32x4PairBenchmark('difference', 25, BitArray32x4.difference),
+    _BitArray32x4PairBenchmark(
+      'complement',
+      25,
+      (a, _, out) => BitArray32x4.complement(a, out),
+    ),
+  ];
+}
+
 void main() {
   checkCorrectness();
+  checkCrossImpl();
   for (final benchmark in _benchmarks()) {
+    benchmark.report();
+  }
+  for (final benchmark in _benchmarks32x4()) {
     benchmark.report();
   }
 }
