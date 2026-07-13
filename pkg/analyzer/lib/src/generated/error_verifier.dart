@@ -53,6 +53,7 @@ import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -555,7 +556,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           superclass != null ||
           withClause != null) {
         var moreChecks = _checkClassInheritance(
-          declarationFragment,
+          declaredFragment,
           node,
           node.namePart.typeName,
           superclass,
@@ -602,8 +603,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
+    var declaredFragment = node.declaredFragment!;
+    var element = declaredFragment.element;
     var firstFragment = element.firstFragment;
 
     _checkForBuiltInIdentifierAsName(
@@ -613,7 +614,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       _enclosingClass = firstFragment.asElement2;
       _checkClassInheritance(
-        firstFragment,
+        declaredFragment,
         node,
         node.name,
         node.superclass,
@@ -853,7 +854,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       if (implementsClause != null || withClause != null) {
         _checkClassInheritance(
-          firstFragment,
+          declaredFragment,
           node,
           node.namePart.typeName,
           null,
@@ -2337,7 +2338,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // class.
     if (!_checkForExtendsDisallowedClass(superclass) &&
         !_checkForImplementsClauseErrorCodes(implementsClause) &&
-        !_checkForAllMixinErrorCodes(withClause) &&
+        !_checkForAllMixinErrorCodes(declarationFragment, withClause) &&
         !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
       _checkForExtendsDeferredClass(superclass);
       _checkForRepeatedType(
@@ -2443,12 +2444,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [diag.classUsedAsMixin],
   /// [diag.classUsedAsMixinDeclaresGenerativeConstructor],
   /// [diag.mixinInheritsFromNotObject].
-  bool _checkForAllMixinErrorCodes(WithClauseImpl? withClause) {
+  bool _checkForAllMixinErrorCodes(
+    InterfaceFragmentImpl declarationFragment,
+    WithClauseImpl? withClause,
+  ) {
     if (withClause == null) {
       return false;
     }
     bool problemReported = false;
-    int mixinTypeIndex = -1;
+    var mixinIndex = declarationFragment.withClauseMixinStartIndex;
     for (
       int mixinNameIndex = 0;
       mixinNameIndex < withClause.mixinTypes.length;
@@ -2457,7 +2461,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var mixinName = withClause.mixinTypes[mixinNameIndex];
       DartType mixinType = mixinName.typeOrThrow;
       if (mixinType is InterfaceType) {
-        mixinTypeIndex++;
+        int? currentMixinIndex;
+        if (isInterfaceTypeInterface(mixinType)) {
+          currentMixinIndex = mixinIndex++;
+        }
+
         if (_checkForExtendsOrImplementsDisallowedClass(mixinName) &&
             !mixinType.isDartCoreEnum) {
           problemReported = true;
@@ -2472,18 +2480,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (mixinType.element is ExtensionTypeElement) {
             // Already reported.
           } else if (mixinElement is MixinElement) {
-            if (_checkForMixinSuperclassConstraints(
-              mixinNameIndex,
-              mixinName,
-            )) {
-              problemReported = true;
-            } else if (_checkForMixinSuperInvokedMembers(
-              mixinTypeIndex,
-              mixinName,
-              mixinElement,
-              mixinType,
-            )) {
-              problemReported = true;
+            if (currentMixinIndex != null) {
+              if (_checkForMixinSuperclassConstraints(
+                currentMixinIndex,
+                mixinName,
+              )) {
+                problemReported = true;
+              } else if (_checkForMixinSuperInvokedMembers(
+                currentMixinIndex,
+                mixinName,
+                mixinElement,
+                mixinType,
+              )) {
+                problemReported = true;
+              }
             }
           } else if (mixinElement is ClassElementImpl &&
               !mixinElement.isMixinClass &&

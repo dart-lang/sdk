@@ -170,6 +170,7 @@ class BundleWriter {
 
   void _writeClassFragment(ClassFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -292,6 +293,7 @@ class BundleWriter {
 
   void _writeEnumFragment(EnumFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
