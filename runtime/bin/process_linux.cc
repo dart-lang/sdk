@@ -133,23 +133,22 @@ class ExitCodeHandler {
   static void Init();
   static void Cleanup();
 
-  // Notify the ExitCodeHandler that another process exists.
-  static void ProcessStarted() {
-    // Multiple isolates could be starting processes at the same
-    // time. Make sure that only one ExitCodeHandler thread exists.
+  static void EnsureStarted() {
     MonitorLocker locker(monitor_);
-    process_count_++;
-
-    monitor_->Notify();
-
     if (running_) {
       return;
     }
-
     // Start thread that handles process exits when wait returns.
     Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
-
     running_ = true;
+  }
+
+  // Notify the ExitCodeHandler that another process exists.
+  static void ProcessStarted() {
+    MonitorLocker locker(monitor_);
+    ASSERT(running_);
+    process_count_++;
+    monitor_->Notify();
   }
 
   static void TerminateExitCodeThread() {
@@ -343,6 +342,8 @@ class ProcessStarter {
     write_out_[1] = -1;
     exec_control_[0] = -1;
     exec_control_[1] = -1;
+    exit_pipe_[0] = -1;
+    exit_pipe_[1] = -1;
 
     program_arguments_ = reinterpret_cast<const char**>(Dart_ScopeAllocate(
         (arguments_length + 2) * sizeof(*program_arguments_)));
@@ -370,6 +371,10 @@ class ProcessStarter {
       return err;
     }
 
+    if (Process::ModeIsAttached(mode_)) {
+      ExitCodeHandler::EnsureStarted();
+    }
+
     // Fork to create the new process.
     pid_t pid = TEMP_FAILURE_RETRY(fork());
     if (pid < 0) {
@@ -386,11 +391,8 @@ class ProcessStarter {
     // listen for exit-codes, now that we have a non detached child process
     // and also Register this child process.
     if (Process::ModeIsAttached(mode_)) {
+      RegisterProcess(pid);
       ExitCodeHandler::ProcessStarted();
-      err = RegisterProcess(pid);
-      if (err != 0) {
-        return err;
-      }
     }
 
     // Notify child process to start. This is done to delay the call to exec
@@ -451,6 +453,8 @@ class ProcessStarter {
     }
     ASSERT(exec_control_[0] == -1);
     ASSERT(exec_control_[1] == -1);
+    ASSERT(exit_pipe_[0] == -1);
+    ASSERT(exit_pipe_[1] == -1);
 
     *id_ = pid;
     return 0;
@@ -481,6 +485,13 @@ class ProcessStarter {
       }
 
       result = TEMP_FAILURE_RETRY(pipe2(write_out_, O_CLOEXEC));
+      if (result < 0) {
+        return CleanupAndReturnError();
+      }
+    }
+
+    if (Process::ModeIsAttached(mode_)) {
+      result = TEMP_FAILURE_RETRY(pipe2(exit_pipe_, O_CLOEXEC));
       if (result < 0) {
         return CleanupAndReturnError();
       }
@@ -622,18 +633,14 @@ class ProcessStarter {
     }
   }
 
-  int RegisterProcess(pid_t pid) {
-    int result;
-    int event_fds[2];
-    result = TEMP_FAILURE_RETRY(pipe2(event_fds, O_CLOEXEC));
-    if (result < 0) {
-      return CleanupAndReturnError();
-    }
-
-    ProcessInfoList::AddProcess(pid, event_fds[1]);
-    *exit_event_ = event_fds[0];
-    FDUtils::SetNonBlocking(event_fds[0]);
-    return 0;
+  void RegisterProcess(pid_t pid) {
+    ASSERT(exit_pipe_[0] != -1);
+    ASSERT(exit_pipe_[1] != -1);
+    ProcessInfoList::AddProcess(pid, exit_pipe_[1]);
+    exit_pipe_[1] = -1;
+    *exit_event_ = exit_pipe_[0];
+    FDUtils::SetNonBlocking(exit_pipe_[0]);
+    exit_pipe_[0] = -1;
   }
 
   int ReadExecResult() {
@@ -781,12 +788,14 @@ class ProcessStarter {
     ClosePipe(read_in_);
     ClosePipe(read_err_);
     ClosePipe(write_out_);
+    ClosePipe(exit_pipe_);
   }
 
   int read_in_[2];       // Pipe for stdout to child process.
   int read_err_[2];      // Pipe for stderr to child process.
   int write_out_[2];     // Pipe for stdin to child process.
   int exec_control_[2];  // Pipe to get the result from exec.
+  int exit_pipe_[2];     // Pipe for exit event.
 
   const char** program_arguments_;
   char** program_environment_;
