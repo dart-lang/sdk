@@ -23,7 +23,7 @@ namespace compiler {
 #define EXPECT_DISASSEMBLY(expected)
 #else
 #define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->RelativeDisassembly())
+  EXPECT_STREQ_NO_PREFIX_SUFFIX(expected, test->RelativeDisassembly())
 #endif
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
@@ -7977,6 +7977,52 @@ intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
   // On ARM64, the results of non-word-sized operations are zero-extended
   // to 64 bits.
   return ZeroExtendValue(SignExtendValue(value, sz) >> shift, sz);
+}
+
+ASSEMBLER_TEST_GENERATE(BranchToRegisterWithPointerAuthentication, assembler) {
+  SPILLS_LR_TO_FRAME();  // Not executing, don't care about LR.
+  __ braa(R1, R2);
+  __ braaz(R3);
+  __ brab(R4, R5);
+  __ brabz(R6);
+}
+
+ASSEMBLER_TEST_RUN(BranchToRegisterWithPointerAuthentication, test) {
+  EXPECT_DISASSEMBLY(
+      "braa r1, r2\n"
+      "braaz r3\n"
+      "brab r4, r5\n"
+      "brabz r6\n");
+}
+
+ASSEMBLER_TEST_GENERATE(BranchAndLinkToRegisterWithPointerAuthentication,
+                        assembler) {
+  SPILLS_LR_TO_FRAME();  // Not executing, don't care about LR.
+  __ blraa(R1, R2);
+  __ blraaz(R3);
+  __ blrab(R4, R5);
+  __ blrabz(R6);
+}
+
+ASSEMBLER_TEST_RUN(BranchAndLinkToRegisterWithPointerAuthentication, test) {
+  EXPECT_DISASSEMBLY(
+      "blraa r1, r2\n"
+      "blraaz r3\n"
+      "blrab r4, r5\n"
+      "blrabz r6\n");
+}
+
+ASSEMBLER_TEST_GENERATE(ReturnWithPointerAuthentication, assembler) {
+  __ retaa();
+  // Not executing, don't care about LR.
+  __ set_lr_state(__ lr_state().SetLRContainsReturnAddress(true));
+  __ retab();
+}
+
+ASSEMBLER_TEST_RUN(ReturnWithPointerAuthentication, test) {
+  EXPECT_DISASSEMBLY(
+      "retaa\n"
+      "retab\n");
 }
 
 }  // namespace compiler

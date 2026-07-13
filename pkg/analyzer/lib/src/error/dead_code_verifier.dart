@@ -30,7 +30,7 @@ class DeadCodeForPartsState {
 
 /// A visitor that finds dead code, other than unreachable code that is
 /// handled in [NullSafetyDeadCodeVerifier].
-class DeadCodeVerifier extends RecursiveAstVisitor<void> {
+class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   /// The diagnostic reporter by which diagnostics will be reported.
   final DiagnosticReporter _diagnosticReporter;
 
@@ -507,7 +507,7 @@ class NullSafetyDeadCodeVerifier {
 }
 
 /// A visitor that finds a [BreakStatement] for a specified [DoStatement].
-class _BreakDoStatementVisitor extends RecursiveAstVisitor<void> {
+class _BreakDoStatementVisitor extends RecursiveAstVisitor2<void> {
   bool hasBreakStatement = false;
   final DoStatement doStatement;
 
@@ -627,7 +627,7 @@ class _LabelTracker {
 extension DoStatementExtension on DoStatement {
   bool get hasBreakStatement {
     var visitor = _BreakDoStatementVisitor(this);
-    body.visitChildren(visitor);
+    body.visitChildren2(visitor);
     return visitor.hasBreakStatement;
   }
 }

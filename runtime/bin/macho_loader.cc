@@ -232,6 +232,11 @@ bool LoadedMachODylib::ReadHeader() {
               "Architecture mismatch.");
   CHECK_ERROR(header_.cpusubtype == dart::mach_o::CPU_SUBTYPE_ARM_ALL,
               "Unexpected subtype of ARM specified");
+#elif defined(TARGET_ARCH_ARM64E)
+  CHECK_ERROR(header_.cputype == dart::mach_o::CPU_TYPE_ARM64,
+              "Architecture mismatch.");
+  CHECK_ERROR(header_.cpusubtype == dart::mach_o::CPU_SUBTYPE_ARM64E_V0,
+              "Unexpected subtype of ARM64 specified");
 #elif defined(TARGET_ARCH_ARM64)
   CHECK_ERROR(header_.cputype == dart::mach_o::CPU_TYPE_ARM64,
               "Architecture mismatch.");

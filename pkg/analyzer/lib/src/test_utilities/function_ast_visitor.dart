@@ -5,8 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-/// [RecursiveAstVisitor] that delegates visit methods to functions.
-class FunctionAstVisitor extends RecursiveAstVisitor<void> {
+/// [RecursiveAstVisitor2] that delegates visit methods to functions.
+class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(Block)? block;
   final void Function(CatchClauseParameter)? catchClauseParameter;
   final void Function(DeclaredIdentifier)? declaredIdentifier;

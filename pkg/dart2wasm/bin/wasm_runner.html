@@ -1,0 +1,46 @@
+<!-- Specify wasm filename prefix in URL query parameter 'name'. Default is 'main.dart' -->
+<!-- Example: http://localhost:8080/wasm_runner.html?name=myapp -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="utf-8">
+</head>
+<style>body {background-color: black}</style>
+<body>
+  <script type="module">
+    let filename = (new URLSearchParams(window.location.search)).get('name') ?? 'main.dart';
+    let mjs = await import(`./${filename}.mjs`);
+    let compiledApp = await mjs.compileStreaming(fetch(`${filename}.wasm`));
+
+    function loadDeferredModules(modules, callback) {
+        return Promise.all(modules.map((m) => fetch(m).then((r) => callback(m, r))));
+    }
+
+    let idMap;
+    async function loadIdMap() {
+        const jsonRes = await fetch(`${filename}.json`);
+        const allJson = await jsonRes.json();
+        const map = {};
+        for (const val of Object.values(allJson)) {
+            const imports = val["imports"];
+            for (const id of Object.keys(imports)) {
+                map[id] = imports[id];
+            }
+        }
+        return map;
+    }
+    async function loadDeferredId(id, callback) {
+        idMap ??= await loadIdMap();
+        return loadDeferredModules(idMap[id], callback);
+    }
+    let instantiatedModule = await compiledApp.instantiate({}, {
+        loadDeferredModules: loadDeferredModules,
+        loadDeferredId: loadDeferredId,
+    });
+
+    instantiatedModule.invokeMain();
+  </script>
+</body>
+</html>

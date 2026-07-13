@@ -211,7 +211,7 @@ class EnclosingExecutableContext {
 
 /// A visitor used to traverse an AST structure looking for additional errors
 /// and warnings not covered by the parser and resolver.
-class ErrorVerifier extends RecursiveAstVisitor<void>
+class ErrorVerifier extends RecursiveAstVisitor2<void>
     with ErrorDetectionHelpers {
   /// The factory used to create diagnostic messages.
   static final _diagnosticFactory = DiagnosticFactory();
@@ -389,13 +389,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var target = node.target;
     if (target != null) {
       checkForUseOfVoidResult(target);
-      target.accept(this);
+      target.accept2(this);
     }
     _constArgumentsVerifier.visitAnonymousMethodInvocation(node);
 
     void visitRest() {
-      node.parameters?.accept(this);
-      node.body.accept(this);
+      node.parameters?.accept2(this);
+      node.body.accept2(this);
     }
 
     void visitWithThisContext() {
@@ -736,7 +736,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           this,
           visitInitializers: (initializers) {
             _withThisContext(ThisContext.constructorInitializers, () {
-              initializers.accept(this);
+              initializers.accept2(this);
             });
           },
           visitBody: (body) {
@@ -745,7 +745,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   ? ThisContext.factoryConstructorBody
                   : ThisContext.generativeConstructorBody,
               () {
-                body.accept(this);
+                body.accept2(this);
               },
             );
           },
@@ -1112,7 +1112,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             }
           }(),
           () {
-            fields.accept(this);
+            fields.accept2(this);
           },
         );
       },
@@ -1331,9 +1331,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitGuardedPattern(covariant GuardedPatternImpl node) {
     _withHiddenElementsGuardedPattern(node, () {
-      node.pattern.accept(this);
+      node.pattern.accept2(this);
     });
-    node.whenClause?.accept(this);
+    node.whenClause?.accept2(this);
   }
 
   @override
@@ -1539,7 +1539,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                   ? ThisContext.staticMemberBody
                   : ThisContext.instanceMemberBody,
               () {
-                body.accept(this);
+                body.accept2(this);
               },
             );
           },
@@ -1748,12 +1748,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           this,
           visitInitializers: (initializers) {
             _withThisContext(ThisContext.constructorInitializers, () {
-              initializers.accept(this);
+              initializers.accept2(this);
             });
           },
           visitBody: (body) {
             _withThisContext(ThisContext.generativeConstructorBody, () {
-              body.accept(this);
+              body.accept2(this);
             });
           },
         );
@@ -2157,7 +2157,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForGenericFunctionType(node.bound);
-    node.bound?.accept(_uninstantiatedBoundChecker);
+    node.bound?.accept2(_uninstantiatedBoundChecker);
     super.visitTypeParameter(node);
   }
 
@@ -2179,7 +2179,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _namesForReferenceToDeclaredVariableInInitializer.add(name);
     try {
       if (initializerNode != null) {
-        initializerNode.accept(this);
+        initializerNode.accept2(this);
       }
     } finally {
       _namesForReferenceToDeclaredVariableInInitializer.remove(name);
@@ -7974,13 +7974,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
     var defaultValuesAreExpected = () {
       var parent = node.parent;
-      if (parent is ConstructorDeclaration) {
-        if (parent.augmentKeyword != null) {
+      if (parent is ConstructorDeclarationImpl) {
+        var fragment = parent.declaredFragment!;
+        var element = fragment.element;
+        if (fragment.isAugmentation) {
           return false;
-        } else if (parent.externalKeyword != null) {
+        }
+        if (element.isExternal) {
           return false;
-        } else if (parent.factoryKeyword != null &&
-            parent.redirectedConstructor != null) {
+        }
+        if (element.isFactory && element.isRedirecting) {
           return false;
         }
         return true;
@@ -8227,7 +8230,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _reportMissingAwaitInTryBlock(ReturnStatement node) {
-    node.accept(_asyncReturnVisitor);
+    node.accept2(_asyncReturnVisitor);
   }
 
   Diagnostic _reportUnawaitedReturnInTryBlock(Token token) {
@@ -8537,7 +8540,7 @@ enum _NullAwareKind {
 }
 
 /// Recursively visits a type annotation, looking uninstantiated bounds.
-class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
+class _UninstantiatedBoundChecker extends RecursiveAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   _UninstantiatedBoundChecker(this._diagnosticReporter);
@@ -8546,7 +8549,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
   void visitNamedType(NamedType node) {
     var typeArgs = node.typeArguments;
     if (typeArgs != null) {
-      typeArgs.accept(this);
+      typeArgs.accept2(this);
       return;
     }
 

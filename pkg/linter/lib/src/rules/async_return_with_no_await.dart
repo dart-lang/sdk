@@ -5,6 +5,8 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/async_return_visitor.dart'; // ignore: implementation_imports
 
@@ -29,12 +31,32 @@ class AsyncReturnWithNoAwait extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    var visitor = AsyncReturnVisitor(
-      reportAtToken: reportAtToken,
-      typeProvider: context.typeProvider,
-      typeSystem: context.typeSystem,
+    var visitor = _AsyncReturnVisitorAdapter(
+      AsyncReturnVisitor(
+        reportAtToken: reportAtToken,
+        typeProvider: context.typeProvider,
+        typeSystem: context.typeSystem,
+      ),
     );
     registry.addReturnStatement(this, visitor);
     registry.addExpressionFunctionBody(this, visitor);
+  }
+}
+
+class _AsyncReturnVisitorAdapter extends SimpleAstVisitor<void> {
+  final AsyncReturnVisitor delegate;
+
+  new(this.delegate);
+
+  @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    // ignore: experimental_member_use
+    node.accept2(delegate);
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    // ignore: experimental_member_use
+    node.accept2(delegate);
   }
 }

@@ -16,12 +16,12 @@ class ElementLocator {
     if (node == null) return null;
 
     var mapper = _ElementMapper2();
-    return node.accept(mapper);
+    return node.accept2(mapper);
   }
 }
 
 /// Visitor that maps nodes to elements.
-class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
+class _ElementMapper2 extends GeneralizingAstVisitor2<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
     return node.element;
@@ -282,7 +282,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
-    return node.parent!.accept(this);
+    return node.parent!.accept2(this);
   }
 
   @override
@@ -340,7 +340,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
     if (node.parent case PrimaryConstructorDeclaration declaration) {
       return declaration.declaredFragment?.element;
     }
-    return node.parent!.accept(this);
+    return node.parent!.accept2(this);
   }
 
   @override

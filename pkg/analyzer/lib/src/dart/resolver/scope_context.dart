@@ -51,71 +51,71 @@ class ScopeContext {
 
   void visitClassDeclaration(
     ClassDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
-      node.namePart.typeParameters?.accept(visitor);
-      node.extendsClause?.accept(visitor);
-      node.withClause?.accept(visitor);
-      node.implementsClause?.accept(visitor);
-      node.nativeClause?.accept(visitor);
+      node.namePart.typeParameters?.accept2(visitor);
+      node.extendsClause?.accept2(visitor);
+      node.withClause?.accept2(visitor);
+      node.implementsClause?.accept2(visitor);
+      node.nativeClause?.accept2(visitor);
 
       withInstanceScope(element, () {
         node.bodyScope = nameScope;
-        node.documentationComment?.accept(visitor);
+        node.documentationComment?.accept2(visitor);
         node.namePart
             .tryCast<PrimaryConstructorDeclarationImpl>()
             ?.formalParameters
-            .accept(visitor);
-        node.body.accept(visitor);
+            .accept2(visitor);
+        node.body.accept2(visitor);
       });
     });
   }
 
   void visitClassTypeAlias(
     ClassTypeAliasImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
     void Function(NamedTypeImpl)? visitSuperclass,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.typeParameterScope = nameScope;
-      node.typeParameters?.accept(visitor);
+      node.typeParameters?.accept2(visitor);
       node.superclass.visitWithOverride(visitor, visitSuperclass);
-      node.withClause.accept(visitor);
-      node.implementsClause?.accept(visitor);
+      node.withClause.accept2(visitor);
+      node.implementsClause?.accept2(visitor);
 
       withInstanceScope(element, () {
-        node.documentationComment?.accept(visitor);
+        node.documentationComment?.accept2(visitor);
       });
     });
   }
 
   void visitConstructorDeclaration(
     ConstructorDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
     void Function(SimpleIdentifierImpl)? visitTypeName,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
     void Function(ConstructorNameImpl)? visitRedirectedConstructor,
   }) {
     var fragment = node.declaredFragment!;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
     node.typeName?.visitWithOverride(visitor, visitTypeName);
-    node.parameters.accept(visitor);
+    node.parameters.accept2(visitor);
 
     withScope(_constructorInitializerScope(fragment), () {
       node.formalParameterInitializerScope = nameScope;
       node.initializers.visitWithOverride(visitor, visitInitializers);
-      node.documentationComment?.accept(visitor);
+      node.documentationComment?.accept2(visitor);
     });
 
     node.redirectedConstructor?.visitWithOverride(
@@ -124,17 +124,17 @@ class ScopeContext {
     );
 
     withFormalParameterScope(fragment.formalParameters, () {
-      node.body.accept(visitor);
+      node.body.accept2(visitor);
     });
   }
 
-  void visitDocumentationComment(CommentImpl node, AstVisitor visitor) {
+  void visitDocumentationComment(CommentImpl node, AstVisitor2 visitor) {
     var docImportInnerScope = _docImportScope.innerScope;
     _docImportScope.innerScope = nameScope;
     try {
       withScope(_docImportScope, () {
         node.nameScope = nameScope;
-        node.visitChildren(visitor);
+        node.visitChildren2(visitor);
       });
     } finally {
       _docImportScope.innerScope = docImportInnerScope;
@@ -143,83 +143,83 @@ class ScopeContext {
 
   void visitEnumDeclaration(
     EnumDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
-      node.namePart.typeParameters?.accept(visitor);
-      node.withClause?.accept(visitor);
-      node.implementsClause?.accept(visitor);
+      node.namePart.typeParameters?.accept2(visitor);
+      node.withClause?.accept2(visitor);
+      node.implementsClause?.accept2(visitor);
 
       withInstanceScope(element, () {
         node.bodyScope = nameScope;
-        node.documentationComment?.accept(visitor);
+        node.documentationComment?.accept2(visitor);
         node.namePart
             .tryCast<PrimaryConstructorDeclarationImpl>()
             ?.formalParameters
-            .accept(visitor);
-        node.body.accept(visitor);
+            .accept2(visitor);
+        node.body.accept2(visitor);
       });
     });
   }
 
   void visitExtensionDeclaration(
     ExtensionDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
-      node.typeParameters?.accept(visitor);
-      node.onClause?.accept(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.onClause?.accept2(visitor);
 
       withExtensionScope(element, () {
         node.bodyScope = nameScope;
-        node.documentationComment?.accept(visitor);
-        node.body.accept(visitor);
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
       });
     });
   }
 
   void visitExtensionTypeDeclaration(
     ExtensionTypeDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
-      node.namePart.typeParameters?.accept(visitor);
-      node.implementsClause?.accept(visitor);
+      node.namePart.typeParameters?.accept2(visitor);
+      node.implementsClause?.accept2(visitor);
 
       if (_featureSet.isEnabled(Feature.primary_constructors)) {
         withInstanceScope(element, () {
           node.bodyScope = nameScope;
-          node.documentationComment?.accept(visitor);
+          node.documentationComment?.accept2(visitor);
           node.namePart
               .tryCast<PrimaryConstructorDeclarationImpl>()
               ?.formalParameters
-              .accept(visitor);
-          node.body.accept(visitor);
+              .accept2(visitor);
+          node.body.accept2(visitor);
         });
       } else {
         node.namePart
             .tryCast<PrimaryConstructorDeclarationImpl>()
             ?.formalParameters
-            .accept(visitor);
+            .accept2(visitor);
         withInstanceScope(element, () {
           node.bodyScope = nameScope;
-          node.documentationComment?.accept(visitor);
-          node.body.accept(visitor);
+          node.documentationComment?.accept2(visitor);
+          node.body.accept2(visitor);
         });
       }
     });
@@ -227,157 +227,157 @@ class ScopeContext {
 
   void visitFieldDeclaration(
     FieldDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     withInStaticMember(node.isStatic, () {
-      node.visitChildren(visitor);
+      node.visitChildren2(visitor);
     });
   }
 
   void visitFormalParameter(
     FormalParameterImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     node.scope = nameScope;
 
-    node.metadata.accept(visitor);
-    node.documentationComment?.accept(visitor);
+    node.metadata.accept2(visitor);
+    node.documentationComment?.accept2(visitor);
 
     var functionTypedSuffix = node.functionTypedSuffix;
     if (functionTypedSuffix == null) {
-      node.type?.accept(visitor);
+      node.type?.accept2(visitor);
     } else {
       withTypeParameterList(functionTypedSuffix.typeParameters, () {
-        node.type?.accept(visitor);
-        functionTypedSuffix.typeParameters?.accept(visitor);
-        functionTypedSuffix.formalParameters.accept(visitor);
+        node.type?.accept2(visitor);
+        functionTypedSuffix.typeParameters?.accept2(visitor);
+        functionTypedSuffix.formalParameters.accept2(visitor);
       });
     }
 
-    node.defaultClause?.accept(visitor);
+    node.defaultClause?.accept2(visitor);
   }
 
   void visitFunctionDeclaration(
     FunctionDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
-      node.returnType?.accept(visitor);
+      node.returnType?.accept2(visitor);
 
       var functionExpression = node.functionExpression;
-      functionExpression.typeParameters?.accept(visitor);
-      functionExpression.parameters?.accept(visitor);
+      functionExpression.typeParameters?.accept2(visitor);
+      functionExpression.parameters?.accept2(visitor);
 
       withFormalParameterScope(fragment.formalParameters, () {
-        node.documentationComment?.accept(visitor);
-        functionExpression.body.accept(visitor);
+        node.documentationComment?.accept2(visitor);
+        functionExpression.body.accept2(visitor);
       });
     });
   }
 
   void visitFunctionExpression(
     FunctionExpressionImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var fragment = node.declaredFragment!;
 
     withTypeParameterList(node.typeParameters, () {
-      node.typeParameters?.accept(visitor);
-      node.parameters?.accept(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.parameters?.accept2(visitor);
 
       withFormalParameterScope(fragment.formalParameters, () {
-        node.body.accept(visitor);
+        node.body.accept2(visitor);
       });
     });
   }
 
   void visitFunctionTypeAlias(
     FunctionTypeAliasImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters.accept(visitor);
+      node.returnType?.accept2(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.parameters.accept2(visitor);
 
       withLocalScope((scope) {
         scope.addFormalParameterList(node.parameters);
-        node.documentationComment?.accept(visitor);
+        node.documentationComment?.accept2(visitor);
       });
     });
   }
 
   void visitGenericFunctionType(
     GenericFunctionTypeImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     withTypeParameterList(node.typeParameters, () {
       node.nameScope = nameScope;
-      node.typeParameters?.accept(visitor);
-      node.parameters.accept(visitor);
-      node.returnType?.accept(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.parameters.accept2(visitor);
+      node.returnType?.accept2(visitor);
     });
   }
 
   void visitGenericTypeAlias(
     GenericTypeAliasImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
     void Function()? enterTypeParameterScope,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       if (enterTypeParameterScope != null) {
         enterTypeParameterScope();
       }
-      node.typeParameters?.accept(visitor);
-      node.type.accept(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.type.accept2(visitor);
 
       if (node.type case GenericFunctionTypeImpl functionTypeNode) {
         withTypeParameterList(functionTypeNode.typeParameters, () {
           withLocalScope((scope) {
             scope.addFormalParameterList(functionTypeNode.parameters);
-            node.documentationComment?.accept(visitor);
+            node.documentationComment?.accept2(visitor);
           });
         });
       } else {
-        node.documentationComment?.accept(visitor);
+        node.documentationComment?.accept2(visitor);
       }
     });
   }
 
   void visitMethodDeclaration(
     MethodDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withInStaticMember(node.isStatic, () {
       withTypeParameterScope(element.typeParameters, () {
         node.nameScope = nameScope;
         node.typeParameterScope = nameScope;
-        node.returnType?.accept(visitor);
-        node.typeParameters?.accept(visitor);
-        node.parameters?.accept(visitor);
+        node.returnType?.accept2(visitor);
+        node.typeParameters?.accept2(visitor);
+        node.parameters?.accept2(visitor);
 
         withFormalParameterScope(fragment.formalParameters, () {
-          node.documentationComment?.accept(visitor);
-          node.body.accept(visitor);
+          node.documentationComment?.accept2(visitor);
+          node.body.accept2(visitor);
         });
       });
     });
@@ -385,34 +385,34 @@ class ScopeContext {
 
   void visitMixinDeclaration(
     MixinDeclarationImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
-      node.typeParameters?.accept(visitor);
-      node.onClause?.accept(visitor);
-      node.implementsClause?.accept(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.onClause?.accept2(visitor);
+      node.implementsClause?.accept2(visitor);
 
       withInstanceScope(element, () {
         node.bodyScope = nameScope;
-        node.documentationComment?.accept(visitor);
-        node.body.accept(visitor);
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
       });
     });
   }
 
   void visitPrimaryConstructorBody(
     PrimaryConstructorBodyImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
   }) {
     var fragment = node.declaration?.declaredFragment;
 
-    node.metadata.accept(visitor);
+    node.metadata.accept2(visitor);
 
     withScope(
       fragment != null ? _constructorInitializerScope(fragment) : nameScope,
@@ -431,18 +431,18 @@ class ScopeContext {
             )
           : nameScope,
       () {
-        node.documentationComment?.accept(visitor);
-        node.body.accept(visitor);
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
       },
     );
   }
 
   void visitVariableDeclarationList(
     VariableDeclarationListImpl node, {
-    required AstVisitor visitor,
+    required AstVisitor2 visitor,
   }) {
-    node.metadata.accept(visitor);
-    node.type?.accept(visitor);
+    node.metadata.accept2(visitor);
+    node.type?.accept2(visitor);
 
     var variablesScope = nameScope;
 
@@ -459,7 +459,7 @@ class ScopeContext {
     }
 
     withScope(variablesScope, () {
-      node.variables.accept(visitor);
+      node.variables.accept2(visitor);
     });
   }
 
@@ -563,24 +563,24 @@ class ScopeContext {
 }
 
 extension<T extends AstNode> on T {
-  void visitWithOverride(AstVisitor visitor, void Function(T)? visitOverride) {
+  void visitWithOverride(AstVisitor2 visitor, void Function(T)? visitOverride) {
     if (visitOverride != null) {
       visitOverride(this);
     } else {
-      accept(visitor);
+      accept2(visitor);
     }
   }
 }
 
 extension<E extends AstNode> on NodeList<E> {
   void visitWithOverride(
-    AstVisitor visitor,
+    AstVisitor2 visitor,
     void Function(NodeList<E>)? visitOverride,
   ) {
     if (visitOverride != null) {
       visitOverride(this);
     } else {
-      accept(visitor);
+      accept2(visitor);
     }
   }
 }

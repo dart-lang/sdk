@@ -28,7 +28,7 @@ class ConstructorReferenceResolver {
         diag.sdkVersionConstructorTearoffs.at(node),
       );
     }
-    node.constructorName.accept(_resolver);
+    node.constructorName.accept2(_resolver);
     var element = node.constructorName.element;
     if (element != null && !element.isFactory) {
       var enclosingElement = element.enclosingElement;

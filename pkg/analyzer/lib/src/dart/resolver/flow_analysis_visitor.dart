@@ -151,7 +151,7 @@ class FlowAnalysisHelper {
   void bodyOrInitializer_enter(
     AstNodeImpl node,
     List<FormalParameterElementImpl>? parameters, {
-    void Function(AstVisitor<Object?> visitor)? visit,
+    void Function(AstVisitor2<Object?> visitor)? visit,
   }) {
     inferenceLogWriter?.enterBodyOrInitializer(node);
     assert(flow == null);
@@ -405,7 +405,7 @@ class FlowAnalysisHelper {
     AstNodeImpl node,
     List<FormalParameterElementImpl>? parameters, {
     bool retainDataForTesting = false,
-    void Function(AstVisitor<Object?> visitor)? visit,
+    void Function(AstVisitor2<Object?> visitor)? visit,
   }) {
     AssignedVariables<AstNodeImpl, PromotableElementImpl> assignedVariables =
         retainDataForTesting
@@ -416,7 +416,7 @@ class FlowAnalysisHelper {
     if (visit != null) {
       visit(assignedVariablesVisitor);
     } else {
-      node.visitChildren(assignedVariablesVisitor);
+      node.visitChildren2(assignedVariablesVisitor);
     }
     assignedVariables.finish();
     return assignedVariables;
@@ -1037,14 +1037,14 @@ class TypeSystemOperations
 
 /// The visitor that gathers local variables that are potentially assigned
 /// in corresponding statements, such as loops, `switch` and `try`.
-class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
+class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   final AssignedVariables<AstNode, PromotableElementImpl> assignedVariables;
 
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
-    node.target?.accept(this);
+    node.target?.accept2(this);
     var parameters = node.parameters;
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
@@ -1053,9 +1053,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.declare(element);
         }
       }
-      parameters.accept(this);
+      parameters.accept2(this);
     }
-    node.body.accept(this);
+    node.body.accept2(this);
   }
 
   @override
@@ -1083,9 +1083,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-      node.leftOperand.accept(this);
+      node.leftOperand.accept2(this);
       assignedVariables.beginNode();
-      node.rightOperand.accept(this);
+      node.rightOperand.accept2(this);
       assignedVariables.endNode(node);
     } else {
       super.visitBinaryExpression(node);
@@ -1107,11 +1107,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    node.condition.accept(this);
+    node.condition.accept2(this);
     assignedVariables.beginNode();
-    node.thenExpression.accept(this);
+    node.thenExpression.accept2(this);
     assignedVariables.endNode(node);
-    node.elseExpression.accept(this);
+    node.elseExpression.accept2(this);
   }
 
   @override
@@ -1230,7 +1230,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchExpression(covariant SwitchExpressionImpl node) {
-    node.expression.accept(this);
+    node.expression.accept2(this);
 
     for (var case_ in node.cases) {
       var guardedPattern = case_.guardedPattern;
@@ -1238,26 +1238,26 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       for (var variable in variables.values) {
         assignedVariables.declare(variable);
       }
-      case_.accept(this);
+      case_.accept2(this);
     }
   }
 
   @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
-    node.expression.accept(this);
+    node.expression.accept2(this);
 
     assignedVariables.beginNode();
     for (var group in node.memberGroups) {
       for (var member in group.members) {
         if (member is SwitchCaseImpl) {
-          member.expression.accept(this);
+          member.expression.accept2(this);
         } else if (member is SwitchPatternCaseImpl) {
           var guardedPattern = member.guardedPattern;
-          guardedPattern.pattern.accept(this);
+          guardedPattern.pattern.accept2(this);
           for (var variable in guardedPattern.variables.values) {
             assignedVariables.declare(variable);
           }
-          guardedPattern.whenClause?.accept(this);
+          guardedPattern.whenClause?.accept2(this);
         }
       }
       for (var variable in group.variables.values) {
@@ -1266,7 +1266,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         // case.
         assignedVariables.declare(variable, ignoreDuplicates: true);
       }
-      group.statements.accept(this);
+      group.statements.accept2(this);
     }
     assignedVariables.endNode(node);
   }
@@ -1276,13 +1276,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     var finallyBlock = node.finallyBlock;
     assignedVariables.beginNode(); // Begin info for [node].
     assignedVariables.beginNode(); // Begin info for [node.body].
-    node.body.accept(this);
+    node.body.accept2(this);
     assignedVariables.endNode(node.body);
 
-    node.catchClauses.accept(this);
+    node.catchClauses.accept2(this);
     assignedVariables.endNode(node);
 
-    finallyBlock?.accept(this);
+    finallyBlock?.accept2(this);
   }
 
   @override
@@ -1321,24 +1321,24 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   void _handleFor(AstNode node, ForLoopPartsImpl forLoopParts, AstNode body) {
     if (forLoopParts is ForPartsImpl) {
       if (forLoopParts is ForPartsWithExpressionImpl) {
-        forLoopParts.initialization?.accept(this);
+        forLoopParts.initialization?.accept2(this);
       } else if (forLoopParts is ForPartsWithDeclarationsImpl) {
-        forLoopParts.variables.accept(this);
+        forLoopParts.variables.accept2(this);
       } else if (forLoopParts is ForPartsWithPatternImpl) {
-        forLoopParts.variables.accept(this);
+        forLoopParts.variables.accept2(this);
       } else {
         throw StateError('Unrecognized for loop parts');
       }
 
       assignedVariables.beginNode();
-      forLoopParts.condition?.accept(this);
-      body.accept(this);
-      forLoopParts.updaters.accept(this);
+      forLoopParts.condition?.accept2(this);
+      body.accept2(this);
+      forLoopParts.updaters.accept2(this);
       assignedVariables.endNode(node);
     } else if (forLoopParts is ForEachPartsImpl) {
       var iterable = forLoopParts.iterable;
 
-      iterable.accept(this);
+      iterable.accept2(this);
 
       if (forLoopParts is ForEachPartsWithIdentifierImpl) {
         var element = forLoopParts.identifier.element;
@@ -1356,7 +1356,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         throw StateError('Unrecognized for loop parts');
       }
       assignedVariables.beginNode();
-      body.accept(this);
+      body.accept2(this);
       assignedVariables.endNode(node);
     } else {
       throw StateError('Unrecognized for loop parts');
@@ -1364,7 +1364,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _visitIf(IfElementOrStatementImpl node) {
-    node.expression.accept(this);
+    node.expression.accept2(this);
 
     var caseClause = node.caseClause;
     if (caseClause != null) {
@@ -1373,15 +1373,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       for (var variable in guardedPattern.variables.values) {
         assignedVariables.declare(variable);
       }
-      guardedPattern.whenClause?.accept(this);
-      node.ifTrue.accept(this);
+      guardedPattern.whenClause?.accept2(this);
+      node.ifTrue.accept2(this);
       assignedVariables.endNode(node);
-      node.ifFalse?.accept(this);
+      node.ifFalse?.accept2(this);
     } else {
       assignedVariables.beginNode();
-      node.ifTrue.accept(this);
+      node.ifTrue.accept2(this);
       assignedVariables.endNode(node);
-      node.ifFalse?.accept(this);
+      node.ifFalse?.accept2(this);
     }
   }
 }

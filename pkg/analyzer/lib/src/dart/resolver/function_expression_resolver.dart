@@ -55,13 +55,13 @@ class FunctionExpressionResolver {
       }
     }
 
-    node.typeParameters?.accept(_resolver);
-    node.parameters?.accept(_resolver);
+    node.typeParameters?.accept2(_resolver);
+    node.parameters?.accept2(_resolver);
     imposedType = node.body.resolve(_resolver, imposedType);
     if (isFunctionDeclaration) {
       // A side effect of visiting the children is that the parameters are now
       // in scope, so we can visit the documentation comment now.
-      parent.documentationComment?.accept(_resolver);
+      parent.documentationComment?.accept2(_resolver);
     }
     _resolve2(node, imposedType);
 

@@ -168,13 +168,13 @@ class LibraryAnalyzer {
         libraryFilePath: _library.file.path,
         unitFilePath: file.path,
       );
-      parsedUnit.accept(
+      parsedUnit.accept2(
         ElementBindingVisitor.forAnalysis(
           fragment: libraryFragment,
           walker: elementWalker,
         ),
       );
-      parsedUnit.accept(
+      parsedUnit.accept2(
         ResolutionVisitor(
           libraryFragment: libraryFragment,
           diagnosticListener: diagnosticListener,
@@ -231,7 +231,7 @@ class LibraryAnalyzer {
       if (nodeToResolve != null && nodeToResolve is! Directive) {
         var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
         if (canResolveNode) {
-          nodeToResolve.accept(resolverVisitor);
+          nodeToResolve.accept2(resolverVisitor);
           resolverVisitor.checkIdle();
           return AnalysisForCompletionResult(
             fileState: file,
@@ -305,7 +305,7 @@ class LibraryAnalyzer {
       _declaredVariables,
       retainDataForTesting: _testingData != null,
     );
-    fileAnalysis.unit.accept(constantVerifier);
+    fileAnalysis.unit.accept2(constantVerifier);
     _testingData?.recordExhaustivenessDataForTesting(
       fileAnalysis.file.uri,
       constantVerifier.exhaustivenessDataForTesting!,
@@ -360,7 +360,7 @@ class LibraryAnalyzer {
       for (var fileAnalysis in _libraryFiles.values) {
         {
           var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
-          fileAnalysis.unit.accept(visitor);
+          fileAnalysis.unit.accept2(visitor);
           usedLocalElements.add(visitor.usedElements);
         }
       }
@@ -493,11 +493,11 @@ class LibraryAnalyzer {
       _analysisOptions,
       typeSystemOperations: _typeSystemOperations,
     );
-    unit.accept(errorVerifier);
+    unit.accept2(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
     // compile-time errors and so does the analyzer.
-    unit.accept(
+    unit.accept2(
       FfiVerifier(
         _typeSystem,
         diagnosticReporter,
@@ -517,9 +517,9 @@ class LibraryAnalyzer {
       diagnosticReporter,
     ).verify(unit, fileAnalysis.file.content);
 
-    unit.accept(DeadCodeVerifier(diagnosticReporter, _libraryElement));
+    unit.accept2(DeadCodeVerifier(diagnosticReporter, _libraryElement));
 
-    unit.accept(
+    unit.accept2(
       BestPracticesVerifier(
         diagnosticReporter,
         _typeProvider,
@@ -531,9 +531,9 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(OverrideVerifier(diagnosticReporter));
+    unit.accept2(OverrideVerifier(diagnosticReporter));
 
-    unit.accept(RedeclareVerifier(diagnosticReporter));
+    unit.accept2(RedeclareVerifier(diagnosticReporter));
 
     TodoFinder(diagnosticReporter).findIn(unit);
     LanguageVersionOverrideVerifier(diagnosticReporter).verify(unit);
@@ -551,7 +551,7 @@ class LibraryAnalyzer {
     }
 
     // Unused local elements.
-    unit.accept(
+    unit.accept2(
       UnusedLocalElementsVerifier(
         fileAnalysis.diagnosticReporter,
         usedElements,
@@ -572,7 +572,7 @@ class LibraryAnalyzer {
         diagnosticReporter,
         sdkVersionConstraint.withoutPreRelease,
       );
-      unit.accept(verifier);
+      unit.accept2(verifier);
     }
   }
 
@@ -613,10 +613,10 @@ class LibraryAnalyzer {
     ConstantFinder constantFinder = ConstantFinder(
       configuration: configuration,
     );
-    unit.accept(constantFinder);
+    unit.accept2(constantFinder);
 
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
-    unit.accept(dependenciesFinder);
+    unit.accept2(dependenciesFinder);
     return [
       ...constantFinder.constantsToCompute,
       ...dependenciesFinder.dependencies,
@@ -825,7 +825,7 @@ class LibraryAnalyzer {
       libraryFilePath: _library.file.path,
       unitFilePath: fileAnalysis.file.path,
     );
-    unit.accept(
+    unit.accept2(
       ElementBindingVisitor.forAnalysis(
         fragment: libraryFragment,
         walker: elementWalker,
@@ -840,7 +840,7 @@ class LibraryAnalyzer {
           ),
     ];
 
-    unit.accept(
+    unit.accept2(
       ResolutionVisitor(
         libraryFragment: libraryFragment,
         diagnosticListener: diagnosticListener,
@@ -884,7 +884,7 @@ class LibraryAnalyzer {
       libraryFragment: libraryFragment,
       typeAnalyzerOptions: typeAnalyzerOptions,
     );
-    unit.accept(resolver);
+    unit.accept2(resolver);
     _testingData?.recordTypeConstraintGenerationDataForTesting(
       fileAnalysis.file.uri,
       resolver.inferenceHelper.dataForTesting!,

@@ -259,7 +259,7 @@ class ConstantEvaluationEngine {
       var declaration = constant;
       var initializer = declaration.constantInitializer;
       if (initializer != null) {
-        initializer.accept(referenceFinder);
+        initializer.accept2(referenceFinder);
       }
     } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
@@ -286,7 +286,7 @@ class ConstantEvaluationEngine {
               initializer is RedirectingConstructorInvocation) {
             defaultSuperInvocationNeeded = false;
           }
-          initializer.accept(referenceFinder);
+          initializer.accept2(referenceFinder);
         }
         if (defaultSuperInvocationNeeded) {
           // No explicit superconstructor invocation found, so we need to
@@ -305,7 +305,7 @@ class ConstantEvaluationEngine {
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) && !field.isStatic) {
             if (field.constantInitializer case var initializer?) {
-              initializer.accept(referenceFinder);
+              initializer.accept2(referenceFinder);
             }
           }
         }
@@ -331,7 +331,7 @@ class ConstantEvaluationEngine {
         // reported at constant evaluation time.
       }
       if (constNode.arguments != null) {
-        constNode.arguments!.accept(referenceFinder);
+        constNode.arguments!.accept2(referenceFinder);
       }
     } else if (constant is VariableFragmentImpl) {
       // `constant` is a VariableElement but not a VariableElementImpl.  This
@@ -547,7 +547,7 @@ abstract class ConstantEvaluationTarget {
 
 /// A visitor used to evaluate constant expressions to produce their
 /// compile-time value.
-class ConstantVisitor extends UnifyingAstVisitor<Constant> {
+class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   /// The evaluation engine used to access the feature set, type system, and
   /// type provider.
   final ConstantEvaluationEngine _evaluationEngine;
@@ -620,10 +620,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// if the expression fails to evaluate to a constant value.
   ///
   /// The [ConstantVisitor] can't return any `null` values even though
-  /// [UnifyingAstVisitor] allows it. If we encounter an unexpected `null`
+  /// [UnifyingAstVisitor2] allows it. If we encounter an unexpected `null`
   /// value, we will return an [InvalidConstant] instead.
   Constant evaluateConstant(AstNode node) {
-    var result = node.accept(this);
+    var result = node.accept2(this);
     if (result == null) {
       // Should never reach this.
       throw UnsupportedError(

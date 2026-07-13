@@ -1963,6 +1963,8 @@ class MachOHeader : public MachOContents {
   mach_o::cpu_subtype_t cpu_subtype() const {
 #if defined(TARGET_ARCH_X64)
     return mach_o::CPU_SUBTYPE_X86_64_ALL;
+#elif defined(TARGET_ARCH_ARM64E)
+    return mach_o::CPU_SUBTYPE_ARM64E_V0;
 #elif defined(TARGET_ARCH_ARM64)
     return mach_o::CPU_SUBTYPE_ARM64_ALL;
 #elif defined(TARGET_ARCH_IA32)

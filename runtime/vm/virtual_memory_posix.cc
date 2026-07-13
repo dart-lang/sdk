@@ -301,7 +301,13 @@ class ScopedExcBadAccessHandler {
     auto arm_new_state =
         reinterpret_cast<arm_unified_thread_state_t*>(new_state);
     arm_new_state->ts_64.__x[0] = kExceptionalReturnValue;
+#if defined(HOST_ARCH_ARM64E)
+    __darwin_arm_thread_state64_set_pc_fptr(
+        arm_new_state->ts_64,
+        __darwin_arm_thread_state64_get_lr_fptr(arm_new_state->ts_64));
+#else
     arm_new_state->ts_64.__pc = arm_new_state->ts_64.__lr;
+#endif
     return KERN_SUCCESS;
   }
 

@@ -587,7 +587,7 @@ class SdkLibrariesReader {
 
     var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
     if (parseResult.errors.isEmpty) {
-      unit.accept(libraryBuilder);
+      unit.accept2(libraryBuilder);
     }
     return libraryBuilder.librariesMap;
   }

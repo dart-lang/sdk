@@ -77,6 +77,8 @@ def HostCpuForArch(arch):
         candidates = ['arm', 'x86', 'riscv32', 'arm64', 'x64', 'riscv64']
     elif arch in ['arm64', 'arm64c', 'simarm64', 'simarm64c']:
         candidates = ['arm64', 'x64', 'riscv64']
+    elif arch in ['arm64e']:
+        candidates = ['arm64e']
     elif arch in ['riscv32', 'simriscv32']:
         candidates = ['riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64']
     elif arch in ['riscv64', 'simriscv64']:
@@ -101,6 +103,8 @@ def TargetCpuForArch(arch):
         return 'x86'
     elif arch.startswith('x64'):
         return 'x64'
+    elif arch.startswith('arm64e'):
+        return 'arm64e'
     elif arch.startswith('arm64'):
         return 'arm64'
     elif arch.startswith('arm'):

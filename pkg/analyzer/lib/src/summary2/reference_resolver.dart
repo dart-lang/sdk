@@ -26,7 +26,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 /// the corresponding type set (so, if there is an explicit type annotation,
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
-class ReferenceResolver extends ThrowingAstVisitor<void> {
+class ReferenceResolver extends ThrowingAstVisitor2<void> {
   /// The library fragment in which the AST nodes are being resolved.
   final LibraryFragmentImpl libraryFragment;
 
@@ -72,13 +72,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    node.members.accept(this);
+    node.members.accept2(this);
   }
 
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
-    node.constants.accept(this);
-    node.members.accept(this);
+    node.constants.accept2(this);
+    node.members.accept2(this);
   }
 
   @override
@@ -101,7 +101,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    node.declarations.accept(this);
+    node.declarations.accept2(this);
   }
 
   @override
@@ -148,7 +148,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
+    node.superclass.accept2(this);
   }
 
   @override
@@ -159,7 +159,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionOnClause(ExtensionOnClause node) {
-    node.extendedType.accept(this);
+    node.extendedType.accept2(this);
   }
 
   @override
@@ -185,7 +185,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    node.parameters.accept(this);
+    node.parameters.accept2(this);
   }
 
   @override
@@ -219,7 +219,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    node.interfaces.accept(this);
+    node.interfaces.accept2(this);
   }
 
   @override
@@ -236,7 +236,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinOnClause(MixinOnClause node) {
-    node.superclassConstraints.accept(this);
+    node.superclassConstraints.accept2(this);
   }
 
   @override
@@ -265,7 +265,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     }
     node.element = element;
 
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
     if (element == null) {
@@ -290,7 +290,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitNameWithTypeParameters(NameWithTypeParameters node) {
-    node.typeParameters?.accept(this);
+    node.typeParameters?.accept2(this);
   }
 
   @override
@@ -310,8 +310,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
-    node.positionalFields.accept(this);
-    node.namedFields?.accept(this);
+    node.positionalFields.accept2(this);
+    node.namedFields?.accept2(this);
 
     var builder = RecordTypeBuilder.of(typeSystem, node);
     node.type = builder;
@@ -322,21 +322,21 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitRecordTypeAnnotationNamedField(
     RecordTypeAnnotationNamedField node,
   ) {
-    node.type.accept(this);
+    node.type.accept2(this);
   }
 
   @override
   void visitRecordTypeAnnotationNamedFields(
     RecordTypeAnnotationNamedFields node,
   ) {
-    node.fields.accept(this);
+    node.fields.accept2(this);
   }
 
   @override
   void visitRecordTypeAnnotationPositionalField(
     RecordTypeAnnotationPositionalField node,
   ) {
-    node.type.accept(this);
+    node.type.accept2(this);
   }
 
   @override
@@ -351,19 +351,19 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
-    node.arguments.accept(this);
+    node.arguments.accept2(this);
   }
 
   @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var bound = node.bound;
     if (bound != null) {
-      bound.accept(this);
+      bound.accept2(this);
       var fragment = node.declaredFragment!;
       if (fragment.previousFragment == null) {
         fragment.element.bound = bound.type;
@@ -374,7 +374,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
-    node.typeParameters.accept(this);
+    node.typeParameters.accept2(this);
   }
 
   @override
@@ -392,7 +392,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    node.mixinTypes.accept(this);
+    node.mixinTypes.accept2(this);
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {

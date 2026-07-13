@@ -38,7 +38,7 @@ MemberId computeMemberId(Element element) {
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
-abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
+abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
     with DataRegistry<T> {
   final Uri uri;
 
@@ -133,7 +133,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   void run(CompilationUnit unit) {
-    unit.accept(this);
+    unit.accept2(this);
   }
 
   @override

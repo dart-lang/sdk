@@ -72,6 +72,8 @@ class Expect : public DynamicAssertionHelper {
 
   void StringEquals(const char* expected, const char* actual);
 
+  void StringEqualsNoPrefixSuffix(const char* expected, const char* actual);
+
   void IsSubstring(const char* needle, const char* haystack);
 
   void IsNotSubstring(const char* needle, const char* haystack);
@@ -268,6 +270,37 @@ inline void Expect::StringEquals(const char* expected, const char* actual) {
   }
 }
 
+static void EscapeNoPrefixSuffix(std::string& dst, const char* src) {
+  char c;
+  while ((c = *src++) != '\0') {
+    if (c == '\n') {
+      dst += "\\n\"\n\"";
+    } else if (c == '\'') {
+      dst += "\\\'";
+    } else if (c == '\"') {
+      dst += "\\\"";
+    } else if (c == '\\') {
+      dst += "\\\\";
+    } else {
+      dst += c;
+    }
+  }
+}
+
+inline void Expect::StringEqualsNoPrefixSuffix(const char* expected,
+                                               const char* actual) {
+  if (strcmp(expected, actual) == 0) return;
+  if (actual == nullptr) {
+    Fail("expected:\n<\"%s\">\nbut was nullptr", expected);
+  } else {
+    if (strcmp(expected, actual) == 0) return;
+    std::string es, as;
+    EscapeNoPrefixSuffix(es, expected);
+    EscapeNoPrefixSuffix(as, actual);
+    Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
+  }
+}
+
 inline void Expect::IsSubstring(const char* needle, const char* haystack) {
   if (strstr(haystack, needle) != nullptr) return;
   Fail("expected <\"%s\"> to be a substring of <\"%s\">", needle, haystack);
@@ -457,6 +490,10 @@ void Expect::Null(const T p) {
 
 #define EXPECT_STREQ(expected, actual)                                         \
   dart::Expect(__FILE__, __LINE__).StringEquals((expected), (actual))
+
+#define EXPECT_STREQ_NO_PREFIX_SUFFIX(expected, actual)                        \
+  dart::Expect(__FILE__, __LINE__)                                             \
+      .StringEqualsNoPrefixSuffix((expected), (actual))
 
 #define EXPECT_SUBSTRING(needle, haystack)                                     \
   dart::Expect(__FILE__, __LINE__).IsSubstring((needle), (haystack))

@@ -144,6 +144,11 @@ uword RuntimeEntry::GetEntryPoint() const {
                                                  argument_count());
   }
 #endif
+#if defined(HOST_ARCH_ARM64E)
+  // TODO(63420): Adjust runtime calls instead.
+  entry = reinterpret_cast<uword>(ptrauth_strip(reinterpret_cast<void*>(entry),
+                                                ptrauth_key_function_pointer));
+#endif
   return entry;
 }
 

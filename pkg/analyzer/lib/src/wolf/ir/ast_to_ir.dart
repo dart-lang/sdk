@@ -76,7 +76,7 @@ base class AstToIREventListener {
 /// to do next.
 ///
 /// The remaining visit methods simply return `null`.
-class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
+class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   final TypeProvider typeProvider;
   final TypeSystem typeSystem;
   final InheritanceManager3 inheritanceManager;
@@ -142,7 +142,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   }
 
   /// Visits L-value [node] and returns the templates for reading/writing it.
-  _LValueTemplates dispatchLValue(Expression node) => node.accept(this)!;
+  _LValueTemplates dispatchLValue(Expression node) => node.accept2(this)!;
 
   /// Visits [node], reporting progress to [eventListener].
   ///
@@ -157,7 +157,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   void dispatchNode(AstNode node, {bool terminateNullShorting = true}) {
     eventListener.onEnterNode(node);
     var previousNestingLevel = ir.nestingLevel;
-    var lValueTemplates = node.accept(this);
+    var lValueTemplates = node.accept2(this);
     // If the node was an L-value, then its visitor didn't actually perform the
     // read, so do that now.
     lValueTemplates?.simpleRead(this);

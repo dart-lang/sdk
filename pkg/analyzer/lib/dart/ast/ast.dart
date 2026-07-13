@@ -55,6 +55,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         AssignmentExpression,
         AstNode,
         AstVisitor,
+        AstVisitor2,
         AwaitExpression,
         BinaryExpression,
         Block,

@@ -30,7 +30,7 @@ typedef SubtypeOfStructDiagnosticCode =
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
 /// of the desired hints.
-class FfiVerifier extends RecursiveAstVisitor<void> {
+class FfiVerifier extends RecursiveAstVisitor2<void> {
   static const _abiSpecificIntegerClassName = 'AbiSpecificInteger';
   static const _abiSpecificIntegerMappingClassName =
       'AbiSpecificIntegerMapping';

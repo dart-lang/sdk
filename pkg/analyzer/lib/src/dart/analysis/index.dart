@@ -357,7 +357,7 @@ class _IndexAssembler {
 
   /// Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
-    unit.accept(_IndexContributor(this, unit));
+    unit.accept2(_IndexContributor(this, unit));
 
     // Sort strings and set IDs.
     List<_StringInfo> stringInfoList = stringMap.values.toList(growable: false);
@@ -540,7 +540,7 @@ class _IndexAssembler {
 }
 
 /// Visits a resolved AST and adds relationships into the [assembler].
-class _IndexContributor extends GeneralizingAstVisitor {
+class _IndexContributor extends GeneralizingAstVisitor2 {
   final _IndexAssembler assembler;
   final CompilationUnit unit;
 
@@ -704,12 +704,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
         prefix: var prefix,
         identifier: SimpleIdentifier(element: ConstructorElement()),
       )) {
-        prefix.accept(this);
+        prefix.accept2(this);
       } else {
-        node.name.accept(this);
+        node.name.accept2(this);
       }
-      node.typeArguments?.accept(this);
-      node.arguments?.accept(this);
+      node.typeArguments?.accept2(this);
+      node.arguments?.accept2(this);
       return;
     }
 
@@ -850,7 +850,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var fieldName = node.fieldName;
     var element = fieldName.element;
     recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, fieldName, true);
-    node.expression.accept(this);
+    node.expression.accept2(this);
   }
 
   @override
@@ -879,7 +879,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     recordRelationOffset(element, kind, offset, length, true);
 
-    node.type.accept(this);
+    node.type.accept2(this);
   }
 
   @override
@@ -893,7 +893,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.constructorName,
       true,
     );
-    node.argumentList.accept(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -901,8 +901,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var name = node.memberName;
     var element = name.element;
     recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -977,7 +977,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
-    node.superclass.accept(this);
+    node.superclass.accept2(this);
   }
 
   @override
@@ -988,8 +988,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
       element: node.element,
     );
 
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1022,7 +1022,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitImplementsClause(ImplementsClause node) {
     for (NamedType namedType in node.interfaces) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
-      namedType.accept(this);
+      namedType.accept2(this);
     }
   }
 
@@ -1071,9 +1071,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
         ? IndexRelationKind.IS_REFERENCED_BY
         : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
-    node.target?.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.target?.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1086,7 +1086,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitMixinOnClause(MixinOnClause node) {
     for (NamedType namedType in node.superclassConstraints) {
       recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
-      namedType.accept(this);
+      namedType.accept2(this);
     }
   }
 
@@ -1115,7 +1115,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       element: node.element,
     );
 
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
   }
 
   @override
@@ -1205,7 +1205,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         true,
       );
     }
-    node.argumentList.accept(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1311,7 +1311,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         true,
       );
     }
-    node.argumentList.accept(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1338,7 +1338,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
-      namedType.accept(this);
+      namedType.accept2(this);
     }
   }
 

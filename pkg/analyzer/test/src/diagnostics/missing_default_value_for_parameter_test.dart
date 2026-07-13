@@ -349,6 +349,16 @@ class B implements A {
 ''');
   }
 
+  test_constructor_redirectingFactory_nonNullable_named_optional_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A({int a = 0});
+  factory A.redirect({int a});
+  augment factory A.redirect({int a}) = A;
+}
+''');
+  }
+
   test_constructor_redirectingFactory_nonNullable_positional_optional() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -357,6 +367,16 @@ class A {
 
 class B implements A {
   B([int a = 0]);
+}
+''');
+  }
+
+  test_constructor_redirectingFactory_nonNullable_positional_optional_augmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A([int a = 0]);
+  factory A.redirect([int a]);
+  augment factory A.redirect([int a]) = A;
 }
 ''');
   }

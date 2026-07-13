@@ -266,7 +266,7 @@ class LibraryBuilder {
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.body.members) {
             if (executable is ast.MethodDeclarationImpl) {
-              executable.body.accept(collector);
+              executable.body.accept2(collector);
             }
           }
           var fragment = declaration.declaredFragment!;
@@ -347,7 +347,7 @@ class LibraryBuilder {
   void resolveMetadata() {
     for (var linkingUnit in units) {
       var resolver = MetadataResolver(linker, linkingUnit.fragment, this);
-      linkingUnit.node.accept(resolver);
+      linkingUnit.node.accept2(resolver);
     }
   }
 
@@ -360,7 +360,7 @@ class LibraryBuilder {
         linkingUnit.fragment.scope,
         libraryFragment: linkingUnit.fragment,
       );
-      linkingUnit.node.accept(resolver);
+      linkingUnit.node.accept2(resolver);
     }
   }
 

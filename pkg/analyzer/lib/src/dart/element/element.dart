@@ -3428,6 +3428,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return {
       ...super.flagsForTesting,
       'hasEnclosingTypeParameterReference': hasEnclosingTypeParameterReference,
+      'isCovariant': isCovariant,
       'isEnumConstant': isEnumConstant,
       'isOriginDeclaringFormalParameter': isOriginDeclaringFormalParameter,
       'isOriginEnumValues': isOriginEnumValues,
@@ -12057,6 +12058,7 @@ enum _ExecutableElementFlags {
 
 enum _FieldElementFlags {
   hasEnclosingTypeParameterReference(element: _ElementFlagSource.stored),
+  isCovariant(element: _ElementFlagSource.computed),
   isEnumConstant(fragment: true, element: _ElementFlagSource.firstFragment),
   isExplicitlyCovariant(fragment: true),
   isOriginDeclaringFormalParameter(

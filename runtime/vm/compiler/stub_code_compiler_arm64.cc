@@ -739,7 +739,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     __ mov(R1, R5);  // Pass the function entrypoint to call.
 
     // Call native function invocation wrapper or redirection via simulator.
-    __ Call(wrapper);
+    __ CallNativeWrapper(wrapper);
 
     // Restore SP and CSP.
     __ mov(SP, CSP);

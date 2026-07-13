@@ -913,7 +913,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm64 =>
       _configuration.architecture == Architecture.arm64 ||
-      _configuration.architecture == Architecture.arm64c;
+      _configuration.architecture == Architecture.arm64c ||
+      _configuration.architecture == Architecture.arm64e;
 
   bool get _isX64 =>
       _configuration.architecture == Architecture.x64 ||
@@ -1244,6 +1245,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simarm64:
         case Architecture.simarm64c:
           target = ['-arch', 'arm64'];
+          break;
+        case Architecture.arm64e:
+          target = ['-arch', 'arm64e'];
           break;
         case Architecture.riscv32:
         case Architecture.simriscv32:

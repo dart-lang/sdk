@@ -21,7 +21,7 @@ class ListPatternResolver {
   }) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      typeArguments.accept(resolverVisitor);
+      typeArguments.accept2(resolverVisitor);
       // Check that we have exactly one type argument.
       var length = typeArguments.arguments.length;
       if (length != 1) {

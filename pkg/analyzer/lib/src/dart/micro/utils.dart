@@ -271,7 +271,7 @@ class MatchKind {
   String toString() => name;
 }
 
-class ReferencesCollector extends GeneralizingAstVisitor<void> {
+class ReferencesCollector extends GeneralizingAstVisitor2<void> {
   final Element element;
   final List<MatchInfo> references = [];
 
@@ -421,8 +421,8 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
       );
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
   }
 
   @override

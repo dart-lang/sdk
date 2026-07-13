@@ -16,7 +16,7 @@ typedef ReferenceFinderCallback =
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build the full set of dependencies for all constant
 /// expressions.
-class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
+class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   /// The constants whose values need to be computed.
   HashSet<ConstantEvaluationTarget> dependencies =
       HashSet<ConstantEvaluationTarget>();
@@ -99,14 +99,14 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   @override
   void visitSwitchCase(SwitchCase node) {
     _find(node.expression);
-    node.statements.accept(this);
+    node.statements.accept2(this);
   }
 
   /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
   /// of [CollectionElement]).
   void _find(CollectionElement node) {
     ReferenceFinder referenceFinder = ReferenceFinder(dependencies.add);
-    node.accept(referenceFinder);
+    node.accept2(referenceFinder);
   }
 }
 
@@ -114,7 +114,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
 /// units being resolved and build tables of the constant variables, constant
 /// constructors, constant constructor invocations, and annotations found in
 /// those compilation units.
-class ConstantFinder extends RecursiveAstVisitor<void> {
+class ConstantFinder extends RecursiveAstVisitor2<void> {
   final ConstantEvaluationConfiguration configuration;
 
   /// The elements and AST nodes whose constant values need to be computed.
@@ -238,7 +238,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
 
 /// An object used to add reference information for a given variable to the
 /// bi-directional mapping used to order the evaluation of constants.
-class ReferenceFinder extends RecursiveAstVisitor<void> {
+class ReferenceFinder extends RecursiveAstVisitor2<void> {
   /// The callback which should be used to report any dependencies that were
   /// found.
   final ReferenceFinderCallback _callback;

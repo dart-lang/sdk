@@ -40,7 +40,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 /// for additional errors and warnings not covered by the parser and resolver.
 /// In particular, it looks for errors and warnings related to constant
 /// expressions.
-class ConstantVerifier extends RecursiveAstVisitor<void> {
+class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// The diagnostic reporter by which diagnostics will be reported.
   final DiagnosticReporter _diagnosticReporter;
 
@@ -308,7 +308,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMapPattern(MapPattern node) {
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
 
     var featureSet = _currentLibrary.featureSet;
     var uniqueKeys = HashMap<DartObjectImpl, Expression>(
@@ -326,7 +326,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     );
     var duplicateKeys = <Expression, Expression>{};
     for (var element in node.elements) {
-      element.accept(this);
+      element.accept2(this);
       if (element is MapPatternEntry) {
         var key = element.key;
         var keyValue = _evaluateAndReportError(
@@ -875,7 +875,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         }
       case DartObjectImpl():
         // Check for further errors in individual arguments.
-        argumentList.accept(this);
+        argumentList.accept2(this);
     }
   }
 
@@ -928,7 +928,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               DiagnosticListener.nullListener,
               _diagnosticReporter.source,
             );
-            var result = initializer.accept(
+            var result = initializer.accept2(
               ConstantVisitor(
                 _evaluationEngine,
                 _currentLibrary,
@@ -1170,7 +1170,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         validateExpression(switchMember.expression);
       } else if (switchMember is SwitchPatternCase) {
         if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
-          switchMember.accept(this);
+          switchMember.accept2(this);
         } else {
           var pattern = switchMember.guardedPattern.pattern;
           if (pattern is ConstantPattern) {

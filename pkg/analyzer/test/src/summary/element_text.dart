@@ -208,7 +208,7 @@ abstract class _AbstractElementWriter {
 
   void _writeNode(AstNode node) {
     _sink.writeIndent();
-    node.accept(_createAstPrinter());
+    _createAstPrinter().writeNode(node);
   }
 
   void _writeReference(ElementImpl e) {

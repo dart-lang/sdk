@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// Visitor that collects super-invoked names in a mixin declaration.
-class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor<void> {
+class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   final Set<String> _names;
 
   MixinSuperInvokedNamesCollector(this._names);

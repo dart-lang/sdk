@@ -215,6 +215,9 @@ struct simd128_value_t {
 #elif defined(_M_ARM64) || defined(__aarch64__)
 #define HOST_ARCH_ARM64 1
 #define ARCH_IS_64_BIT 1
+#if defined(__arm64e__)
+#define HOST_ARCH_ARM64E 1
+#endif
 #elif defined(__riscv)
 #if __SIZEOF_POINTER__ == 4
 #define HOST_ARCH_RISCV32 1
