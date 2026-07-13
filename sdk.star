@@ -108,6 +108,18 @@ dart.try_builder(
 )
 
 dart.try_builder(
+    "dart-sdk-mac-arm64e",
+    dimensions = [mac, arm64],
+    properties = {
+        "archs": ["arm64e"],
+        "clobber": True,  # To match the regular SDK builder
+        "disable_bcid": True,
+    },
+    recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
+)
+
+dart.try_builder(
     "dart-sdk-win",
     dimensions = windows,
     properties = {

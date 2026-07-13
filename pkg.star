@@ -75,6 +75,12 @@ _pkg_builder(
     properties = [chrome],
     enable_cq = True,
 )
+_pkg_nightly_builder(
+    "pkg-mac-release-arm64e",
+    category = "pkg|me",
+    dimensions = [mac, arm64],
+    properties = [chrome],
+)
 _pkg_builder(
     "pkg-win-release",
     category = "pkg|w",
