@@ -516,6 +516,7 @@ final _builtInLintMultiGenerators = {
   diag.commentReferences: [ImportLibrary.forType, ImportLibrary.forExtension],
   diag.deprecatedMemberUseFromSamePackageWithoutMessage: [DataDriven.new],
   diag.deprecatedMemberUseFromSamePackageWithMessage: [DataDriven.new],
+  diag.migrateDesignWidgets: [DataDriven.new],
 };
 
 final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
