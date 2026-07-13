@@ -285,11 +285,13 @@ class AnalyzeCommand extends DartdevCommand {
     nonPriorityErrors.sort();
 
     if (machineFormat) {
-      // TODO(srawlins): Why don't we emit the priority errors here?
-      emitMachineFormat(log, nonPriorityErrors);
+      emitMachineFormat(log, [...priorityErrors, ...nonPriorityErrors]..sort());
     } else if (jsonFormat) {
-      // TODO(srawlins): Why don't we emit the priority errors here?
-      emitJsonFormat(log, nonPriorityErrors, usageInfo);
+      emitJsonFormat(
+        log,
+        [...priorityErrors, ...nonPriorityErrors]..sort(),
+        usageInfo,
+      );
     } else {
       var relativeTo = targets.length == 1 ? targets.single : null;
 
@@ -407,8 +409,6 @@ class AnalyzeCommand extends DartdevCommand {
           '$message $bullet '
           '${ansi.green}$codeRef${ansi.none}';
 
-      // TODO(devoncarew): We need to take into account ansi color codes when
-      // performing line wrapping.
       output = wrapText(output, width: wrapWidth);
       log.stdout(
         '$severity $bullet '
