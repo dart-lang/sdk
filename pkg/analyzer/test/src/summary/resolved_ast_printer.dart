@@ -18,7 +18,8 @@ import 'package:test/test.dart';
 import '../../util/element_printer.dart';
 
 /// Prints AST as a tree, with properties and children.
-class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
+class ResolvedAstPrinter extends ThrowingAstVisitor<void>
+    implements AstVisitor2<void> {
   final TreeStringSink _sink;
   final ElementPrinter _elementPrinter;
   final ResolvedNodeTextConfiguration configuration;
@@ -29,6 +30,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// If `true`, resolution should be printed.
   final bool _withResolution;
 
+  final bool _useAstView2;
+
   final Map<Token, String> _tokenIdMap = Map.identity();
 
   ResolvedAstPrinter({
@@ -37,10 +40,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required this.configuration,
     bool withOffsets = false,
     bool withResolution = true,
+    bool useAstView2 = false,
   }) : _sink = sink,
        _elementPrinter = elementPrinter,
        _withOffsets = withOffsets,
-       _withResolution = withResolution;
+       _withResolution = withResolution,
+       _useAstView2 = useAstView2;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -1753,6 +1758,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     });
   }
 
+  void writeNode(AstNode node) {
+    _acceptInView(node);
+  }
+
+  void _acceptInView(AstNode node) {
+    if (_useAstView2) {
+      node.accept2(this);
+    } else {
+      node.accept(this);
+    }
+  }
+
   void _assertFormalParameterDeclaredElement(FormalParameter node) {
     if (_withResolution) {
       var declaredFragment = node.declaredFragment;
@@ -1764,7 +1781,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// Check that children entities of the [node] link to each other.
   void _checkChildrenEntitiesLinking(AstNode node) {
     Token? lastEnd;
-    for (var entity in node.childEntities) {
+    for (var entity in _viewChildEntities(node)) {
       if (entity is Comment) {
         continue;
       }
@@ -1779,7 +1796,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   /// Check that the actual parent of [child] is [parent].
   void _checkParentOfChild(AstNode parent, AstNode child) {
-    var actualParent = child.parent;
+    var actualParent = _viewParent(child);
     if (actualParent == null) {
       fail('''
 No parent.
@@ -1801,6 +1818,30 @@ Expected parent: (${parent.runtimeType}) $parent
       return '<null>';
     }
     return _tokenIdMap[token] ??= 'T${_tokenIdMap.length}';
+  }
+
+  Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
+    if (_useAstView2) {
+      return node.childEntities2;
+    } else {
+      return node.childEntities;
+    }
+  }
+
+  Iterable<ChildEntity> _viewNamedChildEntities(AstNodeImpl node) {
+    if (_useAstView2) {
+      return node.namedChildEntities2;
+    } else {
+      return node.namedChildEntities;
+    }
+  }
+
+  AstNode? _viewParent(AstNode node) {
+    if (_useAstView2) {
+      return node.parent2;
+    } else {
+      return node.parent;
+    }
   }
 
   void _writeDeclaredFragment(Fragment? fragment) {
@@ -1980,7 +2021,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeNamedChildEntities(AstNode node) {
     node as AstNodeImpl;
-    for (var entity in node.namedChildEntities) {
+    for (var entity in _viewNamedChildEntities(node)) {
       var value = entity.value;
       if (value is Token) {
         _writeToken(entity.name, value);
@@ -2003,7 +2044,7 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeNode(String name, AstNode? node) {
     if (node != null) {
       _sink.writeWithIndent('$name: ');
-      node.accept(this);
+      _acceptInView(node);
     }
   }
 
@@ -2014,7 +2055,7 @@ Expected parent: (${parent.runtimeType}) $parent
         for (var node in nodeList) {
           _checkParentOfChild(parent, node);
           _sink.writeIndent();
-          node.accept(this);
+          _acceptInView(node);
         }
       });
     }
@@ -2024,13 +2065,13 @@ Expected parent: (${parent.runtimeType}) $parent
   /// writes the corresponding parameter element.
   void _writeParameterElement(AstNode node) {
     if (configuration.withParameterElements) {
-      if (node is Argument && node.parent is ArgumentList) {
+      if (node is Argument && _viewParent(node) is ArgumentList) {
         _writeElement('correspondingParameter', node.correspondingParameter);
         return;
       }
 
       if (node is Expression) {
-        var parent = node.parent;
+        var parent = _viewParent(node);
         if (parent is AssignmentExpression && parent.rightHandSide == node ||
             parent is BinaryExpression && parent.rightOperand == node ||
             parent is IndexExpression && parent.index == node) {

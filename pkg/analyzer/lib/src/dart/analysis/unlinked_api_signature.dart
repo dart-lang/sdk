@@ -242,7 +242,7 @@ extension on MixinDeclaration {
   List<String> get superInvokedNames {
     var names = <String>{};
     var collector = MixinSuperInvokedNamesCollector(names);
-    accept(collector);
+    accept2(collector);
     return names.toList(growable: false);
   }
 }

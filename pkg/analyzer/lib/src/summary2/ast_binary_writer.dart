@@ -12,7 +12,7 @@ import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
 
 /// Serializer of fully resolved ASTs.
-class AstBinaryWriter extends ThrowingAstVisitor<void> {
+class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   final ResolutionSink _sink;
 
   AstBinaryWriter({required ResolutionSink sink}) : _sink = sink;
@@ -967,13 +967,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _writeNode(AstNode node) {
-    node.accept(this);
+    node.accept2(this);
   }
 
   void _writeNodeList(List<AstNode> nodeList) {
     _writeUint30(nodeList.length);
     for (var i = 0; i < nodeList.length; ++i) {
-      nodeList[i].accept(this);
+      nodeList[i].accept2(this);
     }
   }
 
@@ -1009,12 +1009,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     if (node == null) return false;
 
     var visitor = _IsSerializableExpressionVisitor();
-    node.accept(visitor);
+    node.accept2(visitor);
     return visitor.result;
   }
 }
 
-class _IsSerializableExpressionVisitor extends RecursiveAstVisitor<void> {
+class _IsSerializableExpressionVisitor extends RecursiveAstVisitor2<void> {
   bool result = true;
 
   @override

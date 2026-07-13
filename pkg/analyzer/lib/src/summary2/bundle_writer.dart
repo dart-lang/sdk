@@ -1090,7 +1090,7 @@ class ResolutionSink extends BinaryWriter {
 
   void _writeNode(AstNode node) {
     var astWriter = AstBinaryWriter(sink: this);
-    node.accept(astWriter);
+    node.accept2(astWriter);
   }
 
   void _writeNullabilitySuffix(NullabilitySuffix suffix) {

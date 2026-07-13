@@ -175,7 +175,7 @@ class InstanceCreationExpressionResolver {
   }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
-    constructorName.accept(_resolver);
+    constructorName.accept2(_resolver);
     // Re-assign constructorName in case the node got replaced.
     constructorName = node.constructorName;
     _resolver.elementResolver.visitInstanceCreationExpression(node);

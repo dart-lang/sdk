@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 /// is guaranteed to terminate by executing a `return` statement, `throw`
 /// expression, `rethrow` expression, or simple infinite loop such as
 /// `while(true)`.
-class ExitDetector extends GeneralizingAstVisitor<bool> {
+class ExitDetector extends GeneralizingAstVisitor2<bool> {
   /// Set to `true` when a `break` is encountered, and reset to `false` when a
   /// `do`, `while`, `for` or `switch` block is entered.
   bool _enclosingBlockContainsBreak = false;
@@ -124,7 +124,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (_nodeExits(conditionExpression)) {
       return true;
     }
-    return thenExpression.accept(this)! && elseExpression.accept(this)!;
+    return thenExpression.accept2(this)! && elseExpression.accept2(this)!;
   }
 
   @override
@@ -325,14 +325,14 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (_nodeExits(node.function)) {
       return true;
     }
-    return node.argumentList.accept(this)!;
+    return node.argumentList.accept2(this)!;
   }
 
   @override
   bool visitFunctionReference(FunctionReference node) {
     // Note: `node.function` could be a reference to a method
     // (`Target.methodName`) so we need to visit it in case the target exits.
-    return node.function.accept(this)!;
+    return node.function.accept2(this)!;
   }
 
   @override
@@ -411,7 +411,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.argumentList);
 
   @override
-  bool visitIsExpression(IsExpression node) => node.expression.accept(this)!;
+  bool visitIsExpression(IsExpression node) => node.expression.accept2(this)!;
 
   @override
   bool visitLabel(Label node) => false;
@@ -451,7 +451,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
     if (target != null) {
-      if (target.accept(this)!) {
+      if (target.accept2(this)!) {
         return true;
       }
       if (node.isNullAware) {
@@ -467,7 +467,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitNamedArgument(NamedArgument node) =>
-      node.argumentExpression.accept(this)!;
+      node.argumentExpression.accept2(this)!;
 
   @override
   bool visitNamedType(NamedType node) => false;
@@ -486,7 +486,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression.accept(this)!;
+      node.expression.accept2(this)!;
 
   @override
   bool visitPatternAssignment(PatternAssignment node) =>
@@ -510,7 +510,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitPropertyAccess(PropertyAccess node) {
     var target = node.realTarget;
-    return target.accept(this)!;
+    return target.accept2(this)!;
   }
 
   @override
@@ -547,7 +547,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitSwitchExpression(SwitchExpression node) {
     for (var case_ in node.cases) {
-      if (!case_.accept(this)!) {
+      if (!case_.accept2(this)!) {
         return false;
       }
     }
@@ -587,7 +587,8 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         // For switch members with no statements, don't visit the children.
         // Otherwise, if the children statements don't exit, mark this as a
         // non-exiting case.
-        if (switchMember.statements.isNotEmpty && !switchMember.accept(this)!) {
+        if (switchMember.statements.isNotEmpty &&
+            !switchMember.accept2(this)!) {
           hasNonExitingCase = true;
         }
       }
@@ -630,7 +631,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitVariableDeclaration(VariableDeclaration node) {
     var initializer = node.initializer;
     if (initializer != null) {
-      return initializer.accept(this)!;
+      return initializer.accept2(this)!;
     }
     return false;
   }
@@ -643,7 +644,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     NodeList<VariableDeclaration> variables = node.variables.variables;
     for (int i = 0; i < variables.length; i++) {
-      if (variables[i].accept(this)!) {
+      if (variables[i].accept2(this)!) {
         return true;
       }
     }
@@ -656,10 +657,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     _enclosingBlockContainsBreak = false;
     try {
       Expression conditionExpression = node.condition;
-      if (conditionExpression.accept(this)!) {
+      if (conditionExpression.accept2(this)!) {
         return true;
       }
-      node.body.accept(this);
+      node.body.accept2(this);
       // TODO(jwren): Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
         // If while(true), and the body doesn't have a break, then return true.
@@ -701,12 +702,12 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (node == null) {
       return false;
     }
-    return node.accept(this)!;
+    return node.accept2(this)!;
   }
 
   bool _visitNodes(NodeList<AstNode> nodes) {
     for (int i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].accept(this)!) {
+      if (nodes[i].accept2(this)!) {
         return true;
       }
     }
@@ -715,7 +716,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   bool _visitStatements(NodeList<Statement> statements) {
     for (int i = 0; i < statements.length; i++) {
-      if (statements[i].accept(this)!) {
+      if (statements[i].accept2(this)!) {
         return true;
       }
     }
@@ -726,7 +727,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     NodeList<VariableDeclaration> variableDeclarations,
   ) {
     for (int i = variableDeclarations.length - 1; i >= 0; i--) {
-      if (variableDeclarations[i].accept(this)!) {
+      if (variableDeclarations[i].accept2(this)!) {
         return true;
       }
     }

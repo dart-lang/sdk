@@ -93,7 +93,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// indicate various conditions encountered during evaluation. These are
 /// documented with the static fields that define those values.
 @Deprecated('This has no uses in package:analyzer and not exhaustive.')
-class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
+class ConstantEvaluator extends GeneralizingAstVisitor2<Object> {
   /// The value returned for expressions (or non-expression nodes) that are not
   /// compile-time constant expressions.
   static Object NOT_A_CONSTANT = Object();
@@ -102,7 +102,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   Object? visitAdjacentStrings(AdjacentStrings node) {
     StringBuffer buffer = StringBuffer();
     for (StringLiteral string in node.strings) {
-      var value = string.accept(this);
+      var value = string.accept2(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }
@@ -113,11 +113,11 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object? visitBinaryExpression(BinaryExpression node) {
-    var leftOperand = node.leftOperand.accept(this);
+    var leftOperand = node.leftOperand.accept2(this);
     if (identical(leftOperand, NOT_A_CONSTANT)) {
       return leftOperand;
     }
-    var rightOperand = node.rightOperand.accept(this);
+    var rightOperand = node.rightOperand.accept2(this);
     if (identical(rightOperand, NOT_A_CONSTANT)) {
       return rightOperand;
     }
@@ -254,7 +254,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object? visitInterpolationExpression(InterpolationExpression node) {
-    var value = node.expression.accept(this);
+    var value = node.expression.accept2(this);
     if (value == null || value is bool || value is String || value is num) {
       return value;
     }
@@ -269,7 +269,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     List<Object?> list = <Object>[];
     for (CollectionElement element in node.elements) {
       if (element is Expression) {
-        var value = element.accept(this);
+        var value = element.accept2(this);
         if (identical(value, NOT_A_CONSTANT)) {
           return value;
         }
@@ -294,7 +294,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object? visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression.accept(this);
+      node.expression.accept2(this);
 
   @override
   Object? visitPrefixedIdentifier(PrefixedIdentifier node) =>
@@ -302,7 +302,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object? visitPrefixExpression(PrefixExpression node) {
-    var operand = node.operand.accept(this);
+    var operand = node.operand.accept2(this);
     if (identical(operand, NOT_A_CONSTANT)) {
       return operand;
     }
@@ -340,8 +340,8 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
     Map<String, Object?> map = HashMap<String, Object>();
     for (CollectionElement element in node.elements) {
       if (element is MapLiteralEntry) {
-        var key = element.key.accept(this);
-        var value = element.value.accept(this);
+        var key = element.key.accept2(this);
+        var value = element.value.accept2(this);
         if (key is String && !identical(value, NOT_A_CONSTANT)) {
           map[key] = value;
         } else {
@@ -367,7 +367,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   Object? visitStringInterpolation(StringInterpolation node) {
     StringBuffer buffer = StringBuffer();
     for (InterpolationElement element in node.elements) {
-      var value = element.accept(this);
+      var value = element.accept2(this);
       if (identical(value, NOT_A_CONSTANT)) {
         return value;
       }

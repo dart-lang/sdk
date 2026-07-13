@@ -90,7 +90,7 @@ class FindElement2 extends _FindElementBase {
       }
     }
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         label: (node) {
           updateResult(node.declaredFragment!.element);
@@ -125,7 +125,7 @@ class FindElement2 extends _FindElementBase {
   LocalFunctionElement localFunction(String name) {
     LocalFunctionElement? result;
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         functionDeclarationStatement: (node) {
           var element = node.functionDeclaration.declaredFragment?.element;
@@ -157,7 +157,7 @@ class FindElement2 extends _FindElementBase {
       }
     }
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         catchClauseParameter: (node) {
           updateResult(node.declaredFragment!.element);
@@ -233,7 +233,7 @@ class FindElement2 extends _FindElementBase {
       }
     }
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         functionExpression: (node, local) {
           if (local) {
@@ -291,7 +291,7 @@ class FindElement2 extends _FindElementBase {
   TypeParameterElement typeParameter(String name) {
     TypeParameterElement? result;
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         typeParameter: (node) {
           var element = node.declaredFragment!.element;

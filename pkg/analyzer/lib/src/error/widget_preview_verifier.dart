@@ -85,7 +85,7 @@ class WidgetPreviewVerifier {
     var visitor = _InvalidWidgetPreviewArgumentDetectorVisitor(
       diagnosticReporter: _diagnosticReporter,
     );
-    node.arguments!.accept(visitor);
+    node.arguments!.accept2(visitor);
   }
 
   bool _hasRequiredParameters(NodeList<FormalParameter> parameters) {
@@ -222,7 +222,8 @@ class WidgetPreviewVerifier {
   }
 }
 
-class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
+class _InvalidWidgetPreviewArgumentDetectorVisitor
+    extends RecursiveAstVisitor2 {
   final DiagnosticReporter diagnosticReporter;
 
   NamedArgument? rootArgument;
@@ -235,7 +236,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
     for (var argument in node.arguments) {
       if (argument is NamedArgument) {
         rootArgument = argument;
-        argument.argumentExpression.accept(this);
+        argument.argumentExpression.accept2(this);
         rootArgument = null;
       }
     }

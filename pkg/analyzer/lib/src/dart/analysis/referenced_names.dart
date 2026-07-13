@@ -16,7 +16,7 @@ Set<String> computeReferencedNames(
     includeAnalyzerDiagnosticExpectations:
         includeAnalyzerDiagnosticExpectations,
   );
-  unit.accept(computer);
+  unit.accept2(computer);
   return computer.names;
 }
 
@@ -218,7 +218,7 @@ class _LocalNameScope {
   }
 }
 
-class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
+class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   final bool includeAnalyzerDiagnosticExpectations;
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};

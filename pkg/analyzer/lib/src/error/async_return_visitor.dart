@@ -8,7 +8,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
-class AsyncReturnVisitor extends SimpleAstVisitor<void> {
+class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
   final Diagnostic? Function(Token token) _reportAtToken;
   final TypeSystem _typeSystem;
   final TypeProvider _typeProvider;

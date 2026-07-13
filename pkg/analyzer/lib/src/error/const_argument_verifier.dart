@@ -14,7 +14,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
 /// actually constant.
-class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
+class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   ConstArgumentsVerifier(this._diagnosticReporter);

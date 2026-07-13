@@ -20,7 +20,7 @@ export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 /// - Offsets that fall between the name and type/formal parameter list of a
 ///   declaration will return the declaration node and not the parameter list
 ///   node.
-class NodeLocator2 extends UnifyingAstVisitor<void> {
+class NodeLocator2 extends UnifyingAstVisitor2<void> {
   /// The inclusive start offset of the range used to identify the node.
   final int _startOffset;
 
@@ -46,7 +46,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       return null;
     }
     try {
-      node.accept(this);
+      node.accept2(this);
     } catch (exception, stackTrace) {
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
@@ -140,7 +140,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
     }
     // Check children.
     try {
-      node.visitChildren(this);
+      node.visitChildren2(this);
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
@@ -171,7 +171,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
 ///
 /// Completion test code coverage is 95%. The two basic blocks that are not
 /// executed cannot be executed. They are included for future reference.
-class ScopedNameFinder extends GeneralizingAstVisitor<void> {
+class ScopedNameFinder extends GeneralizingAstVisitor2<void> {
   Declaration? _declarationNode;
 
   AstNode? _immediateChild;
@@ -262,7 +262,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   @override
   void visitNode(AstNode node) {
     _immediateChild = node;
-    node.parent?.accept(this);
+    node.parent?.accept2(this);
   }
 
   @override

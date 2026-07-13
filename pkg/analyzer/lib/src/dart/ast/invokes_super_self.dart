@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-class _SuperVisitor extends RecursiveAstVisitor<void> {
+class _SuperVisitor extends RecursiveAstVisitor2<void> {
   final String name;
   final _Usage _usage;
 
@@ -75,7 +75,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
       name.lexeme,
       isSetter ? _Usage.writing : _Usage.reading,
     );
-    body.accept(visitor);
+    body.accept2(visitor);
     return visitor.hasSuperInvocation;
   }
 }

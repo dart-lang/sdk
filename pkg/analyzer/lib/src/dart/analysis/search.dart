@@ -248,7 +248,7 @@ class FindDeclarations {
 }
 
 /// Visitor that adds [SearchResult]s for references to the [import].
-class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
+class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final LibraryImport import;
@@ -288,8 +288,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
   }
 
   @override
@@ -969,7 +969,7 @@ class Search {
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = ImportElementReferencesVisitor(element, libraryFragment);
-        unitResult.unit.accept(visitor);
+        unitResult.unit.accept2(visitor);
         results.addAll(visitor.results);
       }
     }
@@ -1047,7 +1047,7 @@ class Search {
 
     // Find the matches.
     var visitor = _LocalReferencesVisitor({element}, unit.declaredFragment!);
-    enclosingNode.accept(visitor);
+    enclosingNode.accept2(visitor);
     return visitor.results;
   }
 
@@ -1104,7 +1104,7 @@ class Search {
       transitiveVariables.toSet(),
       bindElement.firstFragment.libraryFragment,
     );
-    rootNode.accept(visitor);
+    rootNode.accept2(visitor);
     return visitor.results;
   }
 
@@ -1122,7 +1122,7 @@ class Search {
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _LocalReferencesVisitor({element}, libraryFragment);
-        unitResult.unit.accept(visitor);
+        unitResult.unit.accept2(visitor);
         results.addAll(visitor.results);
       }
     }
@@ -1749,7 +1749,7 @@ class _IndexRequest {
 /// Visitor that adds [SearchResult]s for local elements of a block, method,
 /// class or a library - labels, local functions, local variables and
 /// parameters, type parameters, import prefixes.
-class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
+class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final Set<Element> elements;
@@ -1768,9 +1768,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1804,8 +1804,8 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
   }
 
   @override

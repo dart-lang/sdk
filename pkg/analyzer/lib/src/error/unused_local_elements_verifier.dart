@@ -23,8 +23,8 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
-/// An [AstVisitor] that fills [UsedLocalElements].
-class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
+/// An [AstVisitor2] that fills [UsedLocalElements].
+class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   final UsedLocalElements usedElements = UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -208,10 +208,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitIsExpression(IsExpression node) {
     var insideIsExpressionOld = _insideIsExpression;
-    node.expression.accept(this);
+    node.expression.accept2(this);
     try {
       _insideIsExpression = true;
-      node.type.accept(this);
+      node.type.accept2(this);
     } finally {
       _insideIsExpression = insideIsExpressionOld;
     }
@@ -369,15 +369,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    node.metadata.accept(this);
+    node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
     try {
       _enclosingVariableDeclaration = node;
-      node.type?.accept(this);
+      node.type?.accept2(this);
     } finally {
       _enclosingVariableDeclaration = enclosingVariableDeclarationOld;
     }
-    node.variables.accept(this);
+    node.variables.accept2(this);
   }
 
   /// Add [element] as a used member and, if [element] is a setter, add its
@@ -505,7 +505,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// looking for cases of [diag.unusedElement],
 /// [diag.unusedField],
 /// [diag.unusedLocalVariable], etc.
-class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
+class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   /// The elements know to be used.

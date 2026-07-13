@@ -51,7 +51,7 @@ class ForResolver {
   void resolveStatement(ForStatementImpl node) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body.accept(_resolver);
+      node.body.accept2(_resolver);
     }
 
     if (forLoopParts is ForPartsImpl) {
@@ -76,7 +76,7 @@ class ForResolver {
     required ForEachPartsWithPatternImpl forLoopParts,
     required void Function() dispatchBody,
   }) {
-    forLoopParts.metadata.accept(_resolver);
+    forLoopParts.metadata.accept2(_resolver);
     _resolver.analyzePatternForIn(
       node: node,
       hasAwait: awaitKeyword != null,
@@ -137,7 +137,7 @@ class ForResolver {
         identifier,
         ExpressionVisitCodePath.forEachIdentifier,
       );
-      identifier.accept(_resolver);
+      identifier.accept2(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,
       ).checkFinalAlreadyAssigned(identifier, isForEachIdentifier: true);
@@ -180,7 +180,7 @@ class ForResolver {
       iterable,
     );
 
-    loopVariable?.accept(_resolver);
+    loopVariable?.accept2(_resolver);
     var elementType = _computeForEachElementType(iterable, isAsync);
     if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =
@@ -219,7 +219,7 @@ class ForResolver {
     void Function() visitBody,
   ) {
     if (forParts is ForPartsWithDeclarationsImpl) {
-      forParts.variables.accept(_resolver);
+      forParts.variables.accept2(_resolver);
     } else if (forParts is ForPartsWithExpressionImpl) {
       if (forParts.initialization case var initialization?) {
         _resolver.analyzeExpression(
@@ -229,7 +229,7 @@ class ForResolver {
         _resolver.popRewrite();
       }
     } else if (forParts is ForPartsWithPatternImpl) {
-      forParts.variables.accept(_resolver);
+      forParts.variables.accept2(_resolver);
     } else {
       throw StateError('Unrecognized for loop parts');
     }

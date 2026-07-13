@@ -93,7 +93,7 @@ class ManifestNode {
       indexOfTypeParameter: context.indexOfTypeParameter,
       indexOfFormalParameter: context.indexOfFormalParameter,
     );
-    node.accept(collector);
+    node.accept2(collector);
 
     if (collector.isValid) {
       return ManifestNode._(
@@ -171,7 +171,7 @@ class ManifestNode {
       indexOfTypeParameter: context.indexOfTypeParameter,
       indexOfFormalParameter: context.indexOfFormalParameter,
     );
-    node.accept(collector);
+    node.accept2(collector);
 
     // Must reference the same elements.
     if (collector.map.length != elements.length) {
@@ -212,7 +212,7 @@ class ManifestNode {
   }
 }
 
-class _ElementCollector extends GeneralizingAstVisitor<void> {
+class _ElementCollector extends GeneralizingAstVisitor2<void> {
   bool isValid = true;
   final int Function(TypeParameterElementImpl) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
@@ -227,33 +227,33 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitAnnotation(Annotation node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
     _addElement(node.element);
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitAsExpression(AsExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
     _addElement(node.element);
   }
 
@@ -262,23 +262,23 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitConstructorName(ConstructorName node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
     _addElement(node.element);
   }
 
   @override
   void visitConstructorReference(ConstructorReference node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
@@ -286,7 +286,7 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
@@ -301,7 +301,7 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
     _localTypeParameters.addAll(localTypeParameters);
     try {
-      node.visitChildren(this);
+      node.visitChildren2(this);
     } finally {
       for (var i = 0; i < localTypeParameters.length; i++) {
         _localTypeParameters.removeLast();
@@ -316,7 +316,7 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
@@ -324,7 +324,7 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
@@ -332,24 +332,24 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitListLiteral(ListLiteral node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.element case TopLevelFunctionElement element) {
       if (element.isDartCoreIdentical) {
-        node.visitChildren(this);
+        node.visitChildren2(this);
         return;
       }
     }
@@ -358,12 +358,12 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedArgument(NamedArgument node) {
-    node.argumentExpression.accept(this);
+    node.argumentExpression.accept2(this);
   }
 
   @override
   void visitNamedType(NamedType node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
     _addElement(node.element);
   }
 
@@ -377,41 +377,41 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept(this);
+    node.prefix.accept2(this);
     _addElement(node.element);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
     _addElement(node.element);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitRegularFormalParameter(RegularFormalParameter node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
@@ -424,17 +424,17 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
@@ -442,22 +442,22 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitTypeLiteral(TypeLiteral node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
-    node.visitChildren(this);
+    node.visitChildren2(this);
   }
 
   void _addElement(Element? element) {

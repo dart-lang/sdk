@@ -350,6 +350,6 @@ void f() {
     var findNode = parseResult.findNode;
     var expression = findNode.parenthesized('); // ref').expression;
 
-    return expression.accept(ConstantEvaluator());
+    return expression.accept2(ConstantEvaluator());
   }
 }

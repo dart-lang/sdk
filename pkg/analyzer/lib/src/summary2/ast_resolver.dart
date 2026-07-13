@@ -74,10 +74,10 @@ class AstResolver {
     ElementBindingVisitor.forPartialResolution(
       fragment: _libraryFragment,
     ).bindSubtree(_libraryFragment, node);
-    node.accept(_resolutionVisitor);
+    node.accept2(_resolutionVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(node, null);
-    node.accept(_resolverVisitor);
+    node.accept2(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }
@@ -88,9 +88,9 @@ class AstResolver {
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
-    void accept(AstVisitor<Object?> visitor) {
-      node.initializers.accept(visitor);
-      node.redirectedConstructor?.accept(visitor);
+    void accept(AstVisitor2<Object?> visitor) {
+      node.initializers.accept2(visitor);
+      node.redirectedConstructor?.accept2(visitor);
     }
 
     _prepareEnclosingDeclarations();
@@ -117,7 +117,7 @@ class AstResolver {
     ElementBindingVisitor.forPartialResolution(
       fragment: _libraryFragment,
     ).bindSubtree(_libraryFragment, node);
-    node.accept(_resolutionVisitor);
+    node.accept2(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();
     _prepareEnclosingDeclarations();
@@ -137,8 +137,8 @@ class AstResolver {
   ) {
     var element = node.declaredFragment!.element;
 
-    void accept(AstVisitor<Object?> visitor) {
-      body.initializers.accept(visitor);
+    void accept(AstVisitor2<Object?> visitor) {
+      body.initializers.accept2(visitor);
     }
 
     var bindingVisitor = ElementBindingVisitor.forPartialResolution(
