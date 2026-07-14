@@ -1446,11 +1446,11 @@ LinterLintCode:
 
       ```dart
       void f(int x, int y) {
-        if (x > y)
-          print("1");
-        else
+        if (x > y) {
+          print('1');
+        } else
           [!;!]
-        print("2");
+        print('2');
       }
       ```
 
@@ -1461,10 +1461,11 @@ LinterLintCode:
 
       ```dart
       void f(int x, int y) {
-        if (x > y)
-          print("1");
-        else
-          print("2");
+        if (x > y) {
+          print('1');
+        } else {
+          print('2');
+        }
       }
       ```
 
@@ -1473,8 +1474,8 @@ LinterLintCode:
 
       ```dart
       void f(int x, int y) {
-        if (x > y) print("1");
-        print("2");
+        if (x > y) print('1');
+        print('2');
       }
       ```
     deprecatedDetails: |-
@@ -4838,7 +4839,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class C extends Widget {
+      class const C({super.key}) extends Widget {
         bool get p1 => true;
 
         bool get [!p2!] => false;
@@ -4862,7 +4863,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class C extends Widget {
+      class const C({super.key}) extends Widget {
         bool get p1 => true;
 
         bool get p2 => false;
@@ -5338,6 +5339,7 @@ LinterLintCode:
 
       ```dart
       class C {
+        @override
         String toString() => 'c';
       }
       ```
@@ -5370,7 +5372,9 @@ LinterLintCode:
 
       ```dart
       void f(bool condition) {
-        while (condition) [!;!]
+        while (condition) {
+          [!;!]
+        }
         g();
       }
 
@@ -6853,7 +6857,6 @@ LinterLintCode:
 
       ```dart
       [!@TestOn('browser')!]
-
       import 'package:test/test.dart';
 
       void main() {}
@@ -7954,7 +7957,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends StatefulWidget {
+      class const MyWidget({super.key}) extends StatefulWidget {
         @override
         MyState createState() => [!MyState(0)!];
       }
@@ -7964,6 +7967,7 @@ LinterLintCode:
 
         MyState(this.x);
 
+        @override
         Widget build(BuildContext context) => MyWidget();
       }
       ```
@@ -7975,7 +7979,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends StatefulWidget {
+      class const MyWidget({super.key}) extends StatefulWidget {
         @override
         MyState createState() => MyState();
       }
@@ -7985,6 +7989,7 @@ LinterLintCode:
 
         MyState();
 
+        @override
         Widget build(BuildContext context) => MyWidget();
       }
       ```
@@ -9737,7 +9742,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final int f;
 
         [!C!](this.f);
       }
@@ -9753,7 +9758,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final int f;
 
         const C(this.f);
       }
@@ -9763,7 +9768,7 @@ LinterLintCode:
 
       ```dart
       class C {
-        final f;
+        final int f;
 
         C(this.f);
       }
@@ -9895,7 +9900,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -9912,7 +9917,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -9929,7 +9934,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -9946,7 +9951,7 @@ LinterLintCode:
 
       @immutable
       class C {
-        final f;
+        final List<int> f;
 
         const C(this.f);
       }
@@ -10981,7 +10986,7 @@ LinterLintCode:
       class C {
         int c;
 
-        C(int c) : [!this.c = c!];
+        C(int c) : [!c = c!];
       }
       ```
 
@@ -12171,7 +12176,7 @@ LinterLintCode:
       annotated with `@deprecated`:
 
       ```dart
-      @[!deprecated!]
+      @[!Deprecated!]('...')
       void f() {}
 
       void g() {}
@@ -15805,7 +15810,7 @@ LinterLintCode:
 
       ```dart
       class C {
-        int _f = 2;
+        final int _f = 2;
 
         int get f => [!this!]._f;
       }
@@ -15817,7 +15822,7 @@ LinterLintCode:
 
       ```dart
       class C {
-        int _f = 2;
+        final int _f = 2;
 
         int get f => _f;
       }
@@ -15945,7 +15950,7 @@ LinterLintCode:
       class C {
         factory [!C!]() => C._();
 
-        new _() {}
+        new _();
       }
       ```
 
@@ -15968,7 +15973,7 @@ LinterLintCode:
       class C {
         factory() => C._();
 
-        new _() {}
+        new _();
       }
       ```
     deprecatedDetails: |-
@@ -16015,6 +16020,7 @@ LinterLintCode:
 
       ```dart
       import 'dart:async';
+
       import 'package:meta/meta.dart';
 
       @awaitNotRequired
@@ -16395,7 +16401,7 @@ LinterLintCode:
 
       ```dart
       class C<X> {
-        bool Function([!X!]) f;
+        final bool Function([!X!]) f;
         C(this.f);
       }
       ```
@@ -16415,7 +16421,7 @@ LinterLintCode:
       class C<X> {
         // NB: Ensure manually that `_f` is only accessed on `this`.
         // ignore: unsafe_variance
-        bool Function(X) _f;
+        final bool Function(X) _f;
 
         C(this._f);
 
@@ -16430,7 +16436,7 @@ LinterLintCode:
 
       ```dart
       class C<X> {
-        bool Function(Never) f;
+        final bool Function(Never) f;
         C(this.f);
       }
       ```
@@ -16445,7 +16451,7 @@ LinterLintCode:
 
       ```dart
       class C<X> {
-        Function f;
+        final Function f;
         C(this.f);
       }
       ```
@@ -16584,7 +16590,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends Widget {
+      class const MyWidget({super.key}) extends Widget {
         void onButtonTapped(BuildContext context) async {
           await Future.delayed(const Duration(seconds: 1));
           Navigator.of([!context!]).pop();
@@ -16599,7 +16605,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends Widget {
+      class const MyWidget({super.key}) extends Widget {
         void onButtonTapped(BuildContext context) {
           Navigator.of(context).pop();
         }
@@ -16612,7 +16618,7 @@ LinterLintCode:
       ```dart
       import 'package:flutter/material.dart';
 
-      class MyWidget extends Widget {
+      class const MyWidget({super.key}) extends Widget {
         void onButtonTapped(BuildContext context) async {
           await Future.delayed(const Duration(seconds: 1));
           if (context.mounted) {
@@ -17124,7 +17130,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       class MyWidget extends StatelessWidget {
-        [!MyWidget!]({required int height});
+        const [!MyWidget!]({required int height});
       }
       ```
 
@@ -17146,7 +17152,7 @@ LinterLintCode:
       import 'package:flutter/material.dart';
 
       class MyWidget extends StatelessWidget {
-        MyWidget({super.key, required int height});
+        const MyWidget({super.key, required int height});
       }
       ```
     deprecatedDetails: |-
@@ -17164,7 +17170,7 @@ LinterLintCode:
       **GOOD:**
       ```dart
       class MyPublicWidget extends StatelessWidget {
-        MyPublicWidget({super.key});
+        const MyPublicWidget({super.key});
       }
       ```
   useLateForPrivateFieldsAndVariables:
@@ -17306,7 +17312,7 @@ LinterLintCode:
       null-aware marker '?' would be less brittle and less verbose.
 
       ```dart
-      f(int? x) => [[!if!] (x != null) x];
+      void f(int? x) => [[!if!] (x != null) x];
       ```
 
       #### Common fixes
@@ -17314,7 +17320,7 @@ LinterLintCode:
       Replace the null-check with the null-aware marker '?':
 
       ```dart
-      f(int? x) => [?x];
+      void f(int? x) => [?x];
       ```
     deprecatedDetails: |-
       Where possible, use null-aware elements in collection literals.

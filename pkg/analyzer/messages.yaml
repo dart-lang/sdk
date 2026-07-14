@@ -4629,7 +4629,7 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        factory A([int [!x!] = 0]) = B;
+        factory A([int x [!=!] 0]) = B;
       }
 
       class B implements A {

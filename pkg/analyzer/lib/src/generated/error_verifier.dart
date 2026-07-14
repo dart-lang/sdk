@@ -4398,6 +4398,62 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
+  void _checkForDefaultValueInRedirectingFactoryConstructor(
+    FormalParameter formalParameter,
+  ) {
+    if (!formalParameter.isOptional) {
+      return;
+    }
+
+    var defaultClause = formalParameter.defaultClause;
+    if (defaultClause == null) {
+      return;
+    }
+
+    var fragment = formalParameter.declaredFragment;
+    if (fragment is! FormalParameterFragmentImpl) {
+      return;
+    }
+
+    var enclosingFragment = fragment.enclosingFragment;
+    if (enclosingFragment is! ConstructorFragmentImpl) {
+      return;
+    }
+
+    var constructorElement = enclosingFragment.element;
+    if (!(constructorElement.isFactory && constructorElement.isRedirecting)) {
+      return;
+    }
+
+    // More than one complete constructor fragment is reported separately.
+    if (constructorElement.fragments.where((f) => f.isComplete).length > 1) {
+      return;
+    }
+
+    // More than one default value is reported separately.
+    var defaultValueFragments = fragment.element.fragments.where((fragment) {
+      return fragment.constantInitializer != null;
+    }).toList();
+    if (defaultValueFragments.length != 1) {
+      return;
+    }
+
+    var redirectingFactoryFragment = constructorElement.fragments.firstWhere(
+      (fragment) => fragment.isFactory && fragment.isRedirecting,
+    );
+
+    diagnosticReporter.report(
+      diag.defaultValueInRedirectingFactoryConstructor
+          .withContextMessages([
+            if (redirectingFactoryFragment != enclosingFragment)
+              ?redirectingFactoryFragment.contextMessageAt(
+                "The redirecting factory is here.",
+              ),
+          ])
+          .at(defaultClause.separator),
+    );
+  }
+
   /// Report a diagnostic if there are any extensions in the imported library
   /// that are not hidden.
   void _checkForDeferredImportOfExtensions(
@@ -6890,17 +6946,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForRedirectingConstructorErrorCodes(
     ConstructorDeclaration declaration,
   ) {
-    // Check for default values in the parameters.
     var redirectedConstructor = declaration.redirectedConstructor;
     if (redirectedConstructor == null) {
       return;
-    }
-    for (FormalParameter parameter in declaration.parameters.parameters) {
-      if (parameter.defaultClause != null) {
-        diagnosticReporter.report(
-          diag.defaultValueInRedirectingFactoryConstructor.at(parameter.name!),
-        );
-      }
     }
     var redirectedElement = redirectedConstructor.element;
     _checkForRedirectToNonConstConstructor(
@@ -8019,6 +8067,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     for (var parameter in node.parameters) {
       _checkForDefaultValueAlreadySpecifiedInAugmentationChain(parameter);
+      _checkForDefaultValueInRedirectingFactoryConstructor(parameter);
 
       if (parameter.isRequiredNamed) {
         if (parameter.defaultClause != null) {

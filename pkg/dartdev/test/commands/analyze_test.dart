@@ -731,6 +731,27 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
           expect(stdout, contains('"line":1,"column":16'));
           expect(stdout, contains('"problemMessage":"A value of type '));
         });
+        test('priority error', () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: 'include: package:lints/recommended.yaml\nf',
+          );
+          var result = await p.runAnalyze(['--format=json', p.dirPath]);
+
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
+
+          final stdout = result.stdout.trim();
+          expect(
+            stdout,
+            startsWith(
+              '{"version":1,"diagnostics":[{"code":"parse_error",',
+            ),
+          );
+          expect(stdout, contains('analysis_options.yaml'));
+          expect(stdout, contains('"line":2,"column":1'));
+          expect(stdout, contains('Could not find expected'));
+        });
       });
       test('empty', () {
         final logger = TestLogger(false);
@@ -808,6 +829,20 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
           final stdout = result.stdout.trim();
           expect(stdout, contains('|A value of type '));
           expect(stdout, contains('lib${escapedSeparator}main.dart|1|16|'));
+        });
+        test('priority error', () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: 'include: package:lints/recommended.yaml\nf',
+          );
+          var result = await p.runAnalyze(['--format=machine', p.dirPath]);
+
+          expect(result.exitCode, 3);
+          expect(result.stderr, isEmpty);
+
+          final stdout = result.stdout.trim();
+          expect(stdout, contains('|PARSE_ERROR'));
+          expect(stdout, contains('analysis_options.yaml|2|1|'));
         });
       });
       test('short', () {
