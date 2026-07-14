@@ -9444,7 +9444,7 @@ library
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
-            #F3 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -9478,6 +9478,51 @@ library
             #E0 requiredPositional x
               firstFragment: #F4
               type: int
+''');
+  }
+
+  test_constructor_primary_augmentation_chain_completedByAugmentation() async {
+    var library = await buildLibrary(r'''
+class A() {}
+
+augment class A {
+  augment A() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:42)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 42
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
 ''');
   }
 
@@ -9602,7 +9647,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -9672,7 +9717,7 @@ library
         #F1 class A (nameOffset:27) (firstTokenOffset:0) (offset:27)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:27)
+            #F2 isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               documentationComment: /// first\n/// second\n/// third
               typeName: A
@@ -11658,7 +11703,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -12025,7 +12070,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -12061,7 +12106,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -12099,7 +12144,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -12161,7 +12206,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -12605,7 +12650,7 @@ library
                   staticType: int
               inducedGetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:22) (offset:22)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 22
@@ -12727,7 +12772,7 @@ library
             #F3 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: #E1 U
           constructors
-            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -19854,7 +19899,7 @@ library
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
-            #F3 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -45480,7 +45525,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -45652,7 +45697,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -45729,7 +45774,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -45806,7 +45851,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6

@@ -1760,6 +1760,7 @@ package:analyzer/dart/ast/ast.dart:
     declaredFragment (getter: ConstructorFragment?)
     errorRange (getter: SourceRange)
     formalParameters (getter: FormalParameterList)
+    isComplete (getter: bool)
   PrimaryConstructorName (class extends Object implements AstNode, abstract, final):
     name (getter: Token)
     period (getter: Token)

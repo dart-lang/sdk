@@ -2038,7 +2038,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     fragment.isConst =
         node.constKeyword != null || parent is EnumDeclarationImpl;
     fragment.isPrimary = true;
-    fragment.isComplete = true;
+    fragment.isComplete = node.isComplete;
     fragment.typeName = node.typeName.lexeme;
 
     node.declaredFragment = fragment;

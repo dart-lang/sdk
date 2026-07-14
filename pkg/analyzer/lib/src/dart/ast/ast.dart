@@ -31923,6 +31923,14 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
 
   /// The formal parameters of the constructor, including declaring.
   FormalParameterList get formalParameters;
+
+  /// Whether this primary constructor declaration is complete for augmentation
+  /// purposes.
+  ///
+  /// A primary constructor declaration is complete if it has a body, has an
+  /// initializer list, or has a declaring formal, field formal, super formal,
+  /// or extension type representation formal parameter.
+  bool get isComplete;
 }
 
 @GenerateNodeImpl(
@@ -32017,6 +32025,25 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @generated
   set formalParameters(FormalParameterListImpl formalParameters) {
     _formalParameters = _becomeParentOf12(formalParameters);
+  }
+
+  @override
+  bool get isComplete {
+    if (body case var body?) {
+      if (body.body is! EmptyFunctionBody) return true;
+      if (body.initializers.isNotEmpty) return true;
+    }
+
+    if (parent is ExtensionTypeDeclarationImpl) {
+      return true;
+    }
+
+    return formalParameters.parameters.any((formalParameter) {
+      return formalParameter is FieldFormalParameterImpl ||
+          formalParameter is SuperFormalParameterImpl ||
+          formalParameter is RegularFormalParameterImpl &&
+              formalParameter.finalOrVarKeyword != null;
+    });
   }
 
   /// Whether this is a trivial constructor.
