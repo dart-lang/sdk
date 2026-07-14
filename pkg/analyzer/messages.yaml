@@ -8416,6 +8416,7 @@ CompileTimeErrorCode:
       twice:
 
       ```dart
+      // @dart = 3.5
       class A {}
 
       class B implements A, [!A!] {}
@@ -8426,6 +8427,7 @@ CompileTimeErrorCode:
       Remove all except one occurrence of the class name:
 
       ```dart
+      // @dart = 3.5
       class A {}
 
       class B implements A {}
