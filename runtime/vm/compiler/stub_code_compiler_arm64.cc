@@ -245,7 +245,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
     __ mov(R25, CSP);
     __ mov(CSP, SP);
 
-    __ blr(R5);
+    __ CallCFunction(R5);
     __ Comment("CallToRuntimeStub return");
 
     // Restore SP and CSP.
@@ -739,7 +739,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     __ mov(R1, R5);  // Pass the function entrypoint to call.
 
     // Call native function invocation wrapper or redirection via simulator.
-    __ CallNativeWrapper(wrapper);
+    __ CallCFunction(wrapper);
 
     // Restore SP and CSP.
     __ mov(SP, CSP);
