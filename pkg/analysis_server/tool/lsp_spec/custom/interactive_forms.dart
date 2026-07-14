@@ -129,10 +129,106 @@ final interactiveFormClasses = <LspEntity>[
     field('value', type: 'LSPAny', comment: "The user's answer value."),
   ], comment: 'A single answer to a FormField, identified by its unique ID.'),
 
+  // Validators
+  LspEnum(
+    name: 'ValidationSeverity',
+    typeOfValues: TypeReference.int,
+    constants: [
+      Constant(
+        name: 'Info',
+        type: TypeReference.int,
+        value: '1',
+        comment: 'An informational message that does not block submission of the value.',
+      ),
+      Constant(
+        name: 'Warning',
+        type: TypeReference.int,
+        value: '2',
+        comment:
+            'A warning message that does not block submission of the value.',
+      ),
+      Constant(
+        name: 'Error',
+        type: TypeReference.int,
+        value: '3',
+        comment: 'An error message that prevents submission of the value.',
+      ),
+    ],
+    comment: 'The severity of a violation of a validator.',
+  ),
+  TypeAlias(
+    name: 'StringValidator',
+    // Currently there is only one StringValidator so we can't use a union
+    // or else we'll get Either1<RegexValidator>, so until there is another,
+    // just declare the regex validator directly.
+    // baseType: UnionType([TypeReference('RegexValidator')]),
+    baseType: TypeReference('RegexValidator'),
+    renameReferences: false,
+    comment: 'Validators applicable to string fields.',
+  ),
+  interface('Validator', [
+    field(
+      'severity',
+      type: 'ValidationSeverity',
+      comment: 'The severity of a violation of this validator.',
+    ),
+    field(
+      'message',
+      type: 'string',
+      comment: 'The message to show if the answer fails this validator.',
+    ),
+  ]),
+  interface(
+    'RegexValidator',
+    baseType: 'Validator',
+    [
+      field('kind', type: 'regex', literal: true),
+      field(
+        'pattern',
+        type: 'string',
+        comment:
+            'The regex pattern to validate the input.\n\n'
+            'The server must only provide regular expressions for the engine '
+            'supported by the client in the `general.regularExpressions` '
+            'client capability. If the server cannot provide an appropriate '
+            'regular expression it should not provide the regex validator.',
+      ),
+      field(
+        'matchIsValid',
+        type: 'boolean',
+        comment:
+            'Whether the answer matching the pattern means it is valid '
+            '(no message reported) or invalid (message reported).',
+      ),
+      field(
+        'message',
+        type: 'string',
+        comment:
+            'The message to show if the answer is not valid according to '
+            '`pattern` and `matchIsValid`.',
+      ),
+    ],
+    comment:
+        'A regex-based validator that ensures an answer matches a given regex.',
+  ),
+
   // Field kinds
   interface('FormFieldType', sealed: true, [field('kind', type: 'String')]),
   interface('FormFieldTypeString', baseType: 'FormFieldType', [
     field('kind', type: 'string', literal: true),
+    field(
+      'validators',
+      type: 'StringValidator',
+      array: true,
+      canBeUndefined: true,
+      comment:
+          'Validators for this form field.'
+          'Field validators only validate the input/answer to a field in '
+          'isolation and cannot depend on the answers to other fields. For '
+          'example a string field may have a regex validator, or a numeric '
+          'field may have a range validator.'
+          'Clients must ignore validators they do not support.',
+    ),
   ], comment: 'A text input.'),
   interface(
     'FormFieldTypeFile',
