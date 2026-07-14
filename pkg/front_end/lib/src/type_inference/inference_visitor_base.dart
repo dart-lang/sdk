@@ -160,7 +160,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
+  FlowAnalysis<
+    TreeNode,
+    InternalStatement,
+    InternalExpression,
+    InternalVariable
+  >
   get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
@@ -199,7 +204,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
 
   /// The mapping from expressions to their [ExpressionInfo]s.
-  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
+  final Map<Object, ExpressionInfo?> _expressionInfoMap = {};
 
   /// Associates [expression] with the given [expressionInfo] object, for later
   /// retrieval by [getExpressionInfo].
@@ -3573,7 +3578,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Computes an appropriate [PropertyTarget] for use in flow analysis to
   /// represent the given [target].
-  PropertyTarget<Expression> computePropertyTarget(Expression target);
+  PropertyTarget<InternalExpression> computePropertyTarget(Expression target);
 
   /// Performs the core type inference algorithm for method invocations.
   ExpressionInferenceResult inferMethodInvocation(

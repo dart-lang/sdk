@@ -28,7 +28,6 @@ import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/src/text_util.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence;
-import 'package:kernel/type_environment.dart';
 
 import '../base/compiler_context.dart';
 import '../base/messages.dart' show noLength, ProblemReporting;
@@ -49,7 +48,7 @@ part 'collections.dart';
 typedef SharedMatchContext =
     shared.MatchContext<
       TreeNode,
-      Expression,
+      InternalExpression,
       InternalPattern,
       InternalVariable
     >;
@@ -429,18 +428,22 @@ extension on List<InternalExpression> {
 
 // Coverage-ignore(suite): Not run.
 /// Common base class for internal expressions.
-abstract class InternalExpression extends AuxiliaryExpression {
+abstract class InternalExpression extends TreeNode with InternalTreeNode {
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) {
+    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
+    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
+  }
+
   @override
   void replaceChild(TreeNode child, TreeNode replacement) =>
       unsupported("${runtimeType}.replaceChild", -1, null);
-
-  @override
-  DartType getStaticType(StaticTypeContext context) =>
-      unsupported("${runtimeType}.getStaticType", -1, null);
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) =>
-      unsupported("${runtimeType}.getStaticType", -1, null);
 
   @override
   void visitChildren(Visitor<dynamic> v) =>
@@ -454,6 +457,9 @@ abstract class InternalExpression extends AuxiliaryExpression {
   void transformOrRemoveChildren(RemovingTransformer v) {
     unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
   }
+
+  // TODO(johnniwinther): Implement this in subclasses.
+  int get precedence => Precedence.PRIMARY;
 
   ExpressionInferenceResult acceptInference(
     InferenceVisitorImpl visitor,

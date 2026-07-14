@@ -111,14 +111,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         TypeAnalyzer<
           TreeNode,
           InternalStatement,
-          Expression,
+          InternalExpression,
           InternalVariable,
           InternalPattern,
           InvalidExpression,
           TypeDeclarationType,
           TypeDeclaration
         >,
-        NullShortingMixin<NullAwareGuard, Expression, InternalVariable>,
+        NullShortingMixin<NullAwareGuard, InternalExpression, InternalVariable>,
         StackChecker
     implements InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
@@ -278,7 +278,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionTypeAnalysisResult finishNullShorting(
     int targetDepth,
     ExpressionTypeAnalysisResult innerResult, {
-    required Expression wholeExpression,
+    required InternalExpression wholeExpression,
   }) {
     ExpressionTypeAnalysisResult analysisResult = super.finishNullShorting(
       targetDepth,
@@ -288,7 +288,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // If any expression info or expression reference was stored for the
     // null-aware expression, it was only valid in the case where the target
     // expression was not null. So it needs to be cleared now.
-    storeExpressionInfo(wholeExpression, null);
+    // TODO(paulberry): The [wholeExpression] is an internal expression, but
+    // we store expression info on external expressions, so this wouldn't have
+    // cleared anything.
+    //storeExpressionInfo(wholeExpression, null);
     return analysisResult;
   }
 
@@ -371,15 +374,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   ExpressionInferenceResult _inferExpression(
-    Expression expression,
+    InternalExpression expression,
     DartType typeContext, {
     bool isVoidAllowed = false,
     bool forEffect = false,
   }) {
     registerIfUnreachableForTesting(expression);
 
-    ExpressionInferenceResult result = (expression as InternalExpression)
-        .acceptInference(this, typeContext);
+    ExpressionInferenceResult result = expression.acceptInference(
+      this,
+      typeContext,
+    );
 
     DartType inferredType = result.inferredType;
     if (inferredType is VoidType && !isVoidAllowed) {
@@ -398,7 +403,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   ExpressionInferenceResult inferExpression(
-    Expression expression,
+    InternalExpression expression,
     DartType typeContext, {
     bool isVoidAllowed = false,
     bool forEffect = false,
@@ -1150,7 +1155,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  PropertyTarget<Expression> computePropertyTarget(Expression target) {
+  PropertyTarget<InternalExpression> computePropertyTarget(Expression target) {
     if (_enclosingCascade case Cascade(:var variable)
         when target is VariableGet && target.variable == variable.astVariable) {
       // `target` is an implicit reference to the target of a cascade
@@ -2095,11 +2100,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     ExpressionInferenceResult readResult = _computePropertyGet(
-      node.readOffset,
-      readReceiver,
-      receiverType,
-      node.propertyName,
-      const UnknownType(),
+      fileOffset: node.readOffset,
+      receiver: readReceiver,
+      receiverType: receiverType,
+      propertyName: node.propertyName,
+      typeContext: const UnknownType(),
       isThisReceiver: _isInternalThisExpression(node.receiver),
     ).expressionInferenceResult;
 
@@ -3906,7 +3911,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ElementInferenceResult _inferSpreadElement(
     SpreadElement element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     ExpressionInferenceResult spreadResult = inferExpression(
       element.expression,
@@ -4040,7 +4045,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ElementInferenceResult _inferNullAwareElement(
     NullAwareElement element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     DartType nonNullableInferredTypeArgument = inferredTypeArgument
         .withDeclaredNullability(Nullability.nullable);
@@ -4069,7 +4074,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ElementInferenceResult _inferIfElement(
     IfElement element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     flowAnalysis.ifStatement_conditionBegin();
     DartType boolType = coreTypes.boolRawType(Nullability.nonNullable);
@@ -4119,7 +4124,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ElementInferenceResult _inferIfCaseElement(
     IfCaseElement element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     int? stackBase;
     assert(checkStackBase(element, stackBase = stackHeight));
@@ -4212,7 +4217,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ElementInferenceResult _inferPatternForElement(
     PatternForElement element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     int? stackBase;
     assert(checkStackBase(element, stackBase = stackHeight));
@@ -4299,7 +4304,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ElementInferenceResult _inferForElement(
     ForElement element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     ForElementBaseResult result = _inferForElementBase(
       element,
@@ -4322,7 +4327,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ForElementBaseResult _inferForElementBase(
     ForElementBase element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     List<VariableDeclaration> variables = new List.filled(
       element.variables.length,
@@ -4382,7 +4387,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         conditionResult.expression,
       );
       condition = assignableCondition;
-      inferredConditionTypes[condition] = conditionResult.inferredType;
+      inferredConditionTypes[element.condition!] = conditionResult.inferredType;
     }
     flowAnalysis.for_bodyBegin(null, switch (condition) {
       null => flowAnalysis.booleanLiteral(true),
@@ -4420,7 +4425,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ElementInferenceResult _inferForInElement(
     ForInElement element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
@@ -4505,9 +4510,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   ElementInferenceResult inferElement(
-    Expression element,
+    InternalExpression element,
     DartType inferredTypeArgument,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
   ) {
     if (element is ControlFlowElement) {
       switch (element) {
@@ -4653,8 +4658,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool inferenceNeeded = node.typeArgument == null;
     List<DartType> formalTypes = [];
     List<DartType> actualTypes = [];
-    Map<Expression, DartType> inferredConditionTypes =
-        new Map<Expression, DartType>.identity();
+    Map<InternalExpression, DartType> inferredConditionTypes =
+        new Map<InternalExpression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(
@@ -7028,7 +7033,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     if (entry.isNullAware) {
@@ -7245,7 +7250,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     DartType adjustedInferredKeyType = entry.isKeyNullAware
@@ -7313,7 +7318,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     flowAnalysis.ifStatement_conditionBegin();
@@ -7394,7 +7399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     int? stackBase;
@@ -7510,7 +7515,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     int? stackBase;
@@ -7603,7 +7608,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     ForMapEntryBaseResult result = _inferForMapEntryBase(
@@ -7633,7 +7638,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     List<VariableDeclaration> variables = new List.filled(
@@ -7692,7 +7697,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         conditionResult.inferredType,
         conditionResult.expression,
       );
-      inferredConditionTypes[condition] = conditionResult.inferredType;
+      inferredConditionTypes[entry.condition!] = conditionResult.inferredType;
     }
     flowAnalysis.for_bodyBegin(null, switch (condition) {
       null => flowAnalysis.booleanLiteral(true),
@@ -7739,7 +7744,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     ScopeProviderInfo? scopeProviderInfo;
@@ -7836,7 +7841,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadContext,
     List<DartType> actualTypes,
     List<DartType> actualTypesForSet,
-    Map<Expression, DartType> inferredConditionTypes,
+    Map<InternalExpression, DartType> inferredConditionTypes,
     _MapLiteralEntryOffsets offsets,
   ) {
     switch (entry) {
@@ -8106,8 +8111,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<DartType> formalTypes = [];
     List<DartType> actualTypes = [];
     List<DartType> actualTypesForSet = [];
-    Map<Expression, DartType> inferredConditionTypes =
-        new Map<Expression, DartType>.identity();
+    Map<InternalExpression, DartType> inferredConditionTypes =
+        new Map<InternalExpression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(mapClass.typeParameters);
@@ -8871,11 +8876,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     ExpressionInferenceResult readResult = _computePropertyGet(
-      node.nameOffset,
-      readReceiver,
-      receiverType,
-      node.name,
-      const UnknownType(),
+      fileOffset: node.nameOffset,
+      receiver: readReceiver,
+      receiverType: receiverType,
+      propertyName: node.name,
+      typeContext: const UnknownType(),
       isThisReceiver: _isInternalThisExpression(node.receiver),
       isImplicitThis: node.isImplicitThis,
     ).expressionInferenceResult;
@@ -9003,11 +9008,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     ExpressionInferenceResult readResult = _computePropertyGet(
-      node.readOffset,
-      readReceiver,
-      receiverType,
-      node.propertyName,
-      const UnknownType(),
+      fileOffset: node.readOffset,
+      receiver: readReceiver,
+      receiverType: receiverType,
+      propertyName: node.propertyName,
+      typeContext: const UnknownType(),
       isThisReceiver: _isInternalThisExpression(node.receiver),
     ).expressionInferenceResult;
 
@@ -9093,11 +9098,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     ExpressionInferenceResult readResult = _computePropertyGet(
-      node.readOffset,
-      readReceiver,
-      receiverType,
-      node.propertyName,
-      const UnknownType(),
+      fileOffset: node.readOffset,
+      receiver: readReceiver,
+      receiverType: receiverType,
+      propertyName: node.propertyName,
+      typeContext: const UnknownType(),
       isThisReceiver: _isInternalThisExpression(node.receiver),
     ).expressionInferenceResult;
 
@@ -11260,15 +11265,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// [typeContext] is used to create implicit generic tearoff instantiation
   /// if necessary. [isThisReceiver] must be set to `true` if the receiver is a
   /// `this` expression.
-  PropertyGetInferenceResult _computePropertyGet(
-    int fileOffset,
-    Expression receiver,
-    DartType receiverType,
-    Name propertyName,
-    DartType typeContext, {
+  PropertyGetInferenceResult _computePropertyGet({
+    required int fileOffset,
+    required Expression receiver,
+    required DartType receiverType,
+    required Name propertyName,
+    required DartType typeContext,
     required bool isThisReceiver,
     ObjectAccessTarget? readTarget,
-    PropertyGet? propertyGetNode,
     bool? isImplicitThis,
   }) {
     Map<SharedTypeView, NonPromotionReason> Function() whyNotPromoted =
@@ -11294,11 +11298,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           : readTarget.member,
       new SharedTypeView(readType),
     );
-    if (propertyGetNode != null) {
-      storeExpressionInfo(propertyGetNode, expressionInfo);
-    }
     DartType? promotedReadType = wrappedPromotedReadType?.unwrapTypeView();
-    return createPropertyGet(
+    PropertyGetInferenceResult result = createPropertyGet(
       fileOffset: fileOffset,
       receiver: receiver,
       receiverType: receiverType,
@@ -11311,6 +11312,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       whyNotPromoted: whyNotPromoted,
       isImplicitThis: isImplicitThis,
     );
+    storeExpressionInfo(
+      result.expressionInferenceResult.expression,
+      expressionInfo,
+    );
+    return result;
   }
 
   ExpressionInferenceResult visitCompoundIndexSet(
@@ -12455,13 +12461,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
-      node.fileOffset,
-      receiver,
-      receiverType,
-      node.name,
-      typeContext,
+      fileOffset: node.fileOffset,
+      receiver: receiver,
+      receiverType: receiverType,
+      propertyName: node.name,
+      typeContext: typeContext,
       isThisReceiver: _isInternalThisExpression(node.receiver),
-      propertyGetNode: node,
       isImplicitThis: node.isImplicitThis,
     );
     ExpressionInferenceResult readResult =
@@ -12471,10 +12476,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readResult.inferredType,
           readResult.expression,
         );
-    storeExpressionInfo(
-      expressionInferenceResult.expression,
-      getExpressionInfo(node),
-    );
     return expressionInferenceResult;
   }
 
@@ -12739,8 +12740,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool inferenceNeeded = node.typeArgument == null;
     List<DartType> formalTypes = [];
     List<DartType> actualTypes = [];
-    Map<Expression, DartType> inferredConditionTypes =
-        new Map<Expression, DartType>.identity();
+    Map<InternalExpression, DartType> inferredConditionTypes =
+        new Map<InternalExpression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(setClass.typeParameters);
@@ -14311,7 +14312,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
-    Expression node,
+    InternalExpression node,
     SharedTypeSchemaView context, {
     bool isVoidAllowed = false,
     bool needsCoercion = false,
@@ -14345,7 +14346,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node is InternalPattern) {
       return node.acceptInference(this, context);
     } else {
-      return analyzeConstantPattern(context, node, node as Expression);
+      return analyzeConstantPattern(context, node, node as InternalExpression);
     }
   }
 
@@ -14670,12 +14671,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
+  FlowAnalysis<
+    TreeNode,
+    InternalStatement,
+    InternalExpression,
+    InternalVariable
+  >
   get flow => flowAnalysis;
 
   @override
-  SwitchExpressionMemberInfo<TreeNode, Expression, InternalVariable>
-  getSwitchExpressionMemberInfo(Expression node, int index) {
+  SwitchExpressionMemberInfo<TreeNode, InternalExpression, InternalVariable>
+  getSwitchExpressionMemberInfo(InternalExpression node, int index) {
     InternalSwitchExpressionCase switchExpressionCase =
         (node as InternalSwitchExpression).cases[index];
     InternalPattern pattern = switchExpressionCase.patternGuard.pattern;
@@ -14683,12 +14689,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       for (InternalVariable declaredVariable in pattern.declaredVariables)
         declaredVariable.cosmeticName!: declaredVariable,
     };
-    return new SwitchExpressionMemberInfo<
-      TreeNode,
-      Expression,
-      InternalVariable
-    >(
-      head: new CaseHeadOrDefaultInfo<TreeNode, Expression, InternalVariable>(
+    return new SwitchExpressionMemberInfo(
+      head: new CaseHeadOrDefaultInfo(
         pattern: pattern,
         guard: switchExpressionCase.patternGuard.guard,
         variables: variables,
@@ -14701,7 +14703,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   SwitchStatementMemberInfo<
     TreeNode,
     InternalStatement,
-    Expression,
+    InternalExpression,
     InternalVariable
   >
   getSwitchStatementMemberInfo(
@@ -14713,7 +14715,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         InternalSwitchStatementCase case_ = node.cases[caseIndex];
         return new SwitchStatementMemberInfo(
           heads: [
-            for (Expression expression in case_.expressions)
+            for (InternalExpression expression in case_.expressions)
               new CaseHeadOrDefaultInfo(pattern: expression, variables: {}),
             if (case_.isDefault)
               new CaseHeadOrDefaultInfo(pattern: null, variables: {}),
@@ -16511,7 +16513,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     covariant TreeNode element,
     covariant CollectionElementInferenceContext context,
   ) {
-    if (element is Expression) {
+    if (element is InternalExpression) {
       context as ListAndSetElementInferenceContext;
       ElementInferenceResult inferenceResult = inferElement(
         element,
@@ -16648,14 +16650,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  shared.MapPatternEntry<Expression, InternalPattern>? getMapPatternEntry(
-    TreeNode element,
-  ) {
+  shared.MapPatternEntry<InternalExpression, InternalPattern>?
+  getMapPatternEntry(TreeNode element) {
     element as InternalMapPatternEntry;
     if (element is InternalMapPatternRestEntry) {
       return null;
     } else {
-      return new shared.MapPatternEntry<Expression, InternalPattern>(
+      return new shared.MapPatternEntry<InternalExpression, InternalPattern>(
         key: element.key,
         value: element.value,
       );
@@ -17203,15 +17204,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
     }
 
-    storeExpressionInfo(
-      expressionInferenceResult.expression,
-      getExpressionInfo(node),
-    );
     return expressionInferenceResult;
   }
 
   @override
-  bool isDotShorthand(Expression node) {
+  bool isDotShorthand(InternalExpression node) {
     return node is DotShorthand;
   }
 
@@ -17603,7 +17600,7 @@ class _MapLiteralEntryOffsets {
 }
 
 abstract class CollectionElementInferenceContext {
-  Map<Expression, DartType> inferredConditionTypes;
+  Map<InternalExpression, DartType> inferredConditionTypes;
 
   new({required this.inferredConditionTypes});
 }
@@ -17614,7 +17611,7 @@ class ListAndSetElementInferenceContext
 
   new({
     required this.inferredTypeArgument,
-    required Map<Expression, DartType> inferredConditionTypes,
+    required Map<InternalExpression, DartType> inferredConditionTypes,
   }) : super(inferredConditionTypes: inferredConditionTypes);
 }
 
@@ -17633,7 +17630,7 @@ class MapEntryInferenceContext extends CollectionElementInferenceContext {
     required this.actualTypes,
     required this.actualTypesForSet,
     required this.offsets,
-    required Map<Expression, DartType> inferredConditionTypes,
+    required Map<InternalExpression, DartType> inferredConditionTypes,
   }) : super(inferredConditionTypes: inferredConditionTypes);
 }
 
