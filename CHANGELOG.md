@@ -417,6 +417,15 @@ void main() {
   for separating a package name from its version constraint.
 - Git dependencies now support Git Large File Storage (LFS).
 
+#### Dart CLI
+
+- Added support for running remote package executables directly using the
+  `dart run <package>@<descriptor>` syntax ([#62123][]). This enables dynamic
+  execution of remote tools (similar to `npx` in Node) without requiring explicit
+  installation or activation via `dart pub global activate`.
+
+[#62123]: https://github.com/dart-lang/sdk/issues/62123
+
 #### dart2wasm
 
 - Updated deferred loading module loader API to allow batched fetching of
@@ -882,6 +891,12 @@ For more details see the [hooks documentation](https://dart.dev/tools/hooks).
   The Dart CLI is not generated for ia32 as we are not shipping a
   Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
   architecture is retained).
+
+- Added the `dart install` command suite (including `dart installed` and
+  `dart uninstall`) as the modern way to globally install and run Dart CLI
+  tools. It compiles tools to self-contained, native AOT binaries using
+  `dart build cli`. For details, see the
+  [`dart install` documentation](https://dart.dev/tools/dart-install).
 
 ### Libraries
 
