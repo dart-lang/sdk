@@ -19,8 +19,15 @@ if (use_rbe) {
   compiler_args =
       rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
   if (rbe_os != host_os || rbe_cpu != host_cpu) {
+    extra_inputs = [
+      "build/rbe",
+      "buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
+
+      # Is RBE's scandeps too old to know about this?
+      "buildtools/mac-arm64/clang/lib/clang/23/include/ptrauth.h",
+    ]
     compiler_args += [
-      "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
+      "--inputs=" + string_join(",", extra_inputs),
       "--remote_wrapper=../../build/rbe/llvm.sh",
     ]
   }
@@ -33,7 +40,7 @@ if (use_rbe) {
   link_prefix = ""
 }
 
-if (host_cpu == "arm64") {
+if (host_cpu == "arm64" || host_cpu == "arm64e") {
   rebased_clang_dir =
       rebase_path("//buildtools/mac-arm64/clang/bin", root_build_dir)
 } else {

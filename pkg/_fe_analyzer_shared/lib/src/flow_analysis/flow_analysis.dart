@@ -7904,9 +7904,7 @@ class _FlowAnalysisImpl<
 
     // Update the type of the variable for looking up the write expression.
     TrivialVariableReference? reference;
-    if (typeAnalyzerOptions.inferenceUpdate4Enabled &&
-        node is Expression &&
-        !isPostfixIncDec) {
+    if (typeAnalyzerOptions.inferenceUpdate4Enabled && !isPostfixIncDec) {
       reference = _variableReference(variableKey, unpromotedType);
     }
     return reference;

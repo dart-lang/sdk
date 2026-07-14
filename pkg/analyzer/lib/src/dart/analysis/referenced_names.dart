@@ -16,7 +16,7 @@ Set<String> computeReferencedNames(
     includeAnalyzerDiagnosticExpectations:
         includeAnalyzerDiagnosticExpectations,
   );
-  unit.accept(computer);
+  unit.accept2(computer);
   return computer.names;
 }
 
@@ -218,7 +218,7 @@ class _LocalNameScope {
   }
 }
 
-class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
+class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   final bool includeAnalyzerDiagnosticExpectations;
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
@@ -281,7 +281,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    if (node.parent is! ConstructorDeclaration) {
+    if (node.parent2 is! ConstructorDeclaration) {
       super.visitConstructorName(node);
     }
   }
@@ -366,7 +366,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
       return;
     }
     // Ignore class names references from constructors.
-    var parent = node.parent!;
+    var parent = node.parent2!;
     if (parent is ConstructorDeclaration && parent.typeName == node) {
       return;
     }

@@ -31,7 +31,6 @@ static extension-type-member synthetic method FooBaz|constructor#_#new#tearOff(s
   return self::FooBaz|constructor#(i);
 static method main() → void {
   final self::FooBar /* erasure=self::Foo */ a = self::FooBar|constructor#(new self::Foo::•());
-  #L1:
   {
     final synthesized self::FooBar /* erasure=self::Foo */ #0#0 = a;
     {

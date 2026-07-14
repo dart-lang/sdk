@@ -161,7 +161,6 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
 static get hasUnsoundNullSafety() → core::bool
   return #C2 is core::List<core::Object>;
 static method method(core::Map<core::int, core::String?> m) → core::int {
-  #L1:
   {
     final synthesized core::Map<core::int, core::String?> #0#0 = m;
     synthesized core::String? #0#3;

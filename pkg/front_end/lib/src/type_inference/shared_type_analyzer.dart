@@ -23,7 +23,7 @@ class SharedTypeAnalyzerErrors
         TypeAnalyzerErrors<
           TreeNode,
           InternalStatement,
-          Expression,
+          InternalExpression,
           InternalVariable,
           InternalPattern,
           InvalidExpression
@@ -50,8 +50,8 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression caseExpressionTypeMismatch({
-    required Expression scrutinee,
-    required Expression caseExpression,
+    required InternalExpression scrutinee,
+    required InternalExpression caseExpression,
     required SharedTypeView caseExpressionType,
     required SharedTypeView scrutineeType,
   }) {
@@ -200,7 +200,7 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  InvalidExpression nonBooleanCondition({required Expression node}) {
+  InvalidExpression nonBooleanCondition({required InternalExpression node}) {
     return extern.createInvalidExpressionFromErrorText(
       problemReporting.buildProblem(
         compilerContext: compilerContext,
@@ -215,7 +215,7 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression patternForInExpressionIsNotIterable({
     required TreeNode node,
-    required Expression expression,
+    required InternalExpression expression,
     required SharedTypeView expressionType,
   }) {
     return extern.createInvalidExpressionFromErrorText(

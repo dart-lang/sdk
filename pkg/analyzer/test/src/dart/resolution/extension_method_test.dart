@@ -471,6 +471,18 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        declaredFragment: <testLibraryFragment> null@null
+          element: isPrivate
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -586,6 +598,18 @@ GenericFunctionType
     type: int
   functionKeyword: Function
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        declaredFragment: <testLibraryFragment> null@null
+          element: isPrivate
+            type: String
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

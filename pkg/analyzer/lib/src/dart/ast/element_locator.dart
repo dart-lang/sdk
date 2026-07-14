@@ -16,12 +16,12 @@ class ElementLocator {
     if (node == null) return null;
 
     var mapper = _ElementMapper2();
-    return node.accept(mapper);
+    return node.accept2(mapper);
   }
 }
 
 /// Visitor that maps nodes to elements.
-class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
+class _ElementMapper2 extends GeneralizingAstVisitor2<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
     return node.element;
@@ -69,9 +69,9 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitConstructorSelector(ConstructorSelector node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is EnumConstantArguments) {
-      var parent2 = parent.parent;
+      var parent2 = parent.parent2;
       if (parent2 is EnumConstantDeclaration) {
         return parent2.constructorElement;
       }
@@ -108,7 +108,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitDottedName(DottedName node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is LibraryDirective) {
       return parent.element;
     }
@@ -167,7 +167,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitIdentifier(Identifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is Annotation) {
       // Map the type name in an annotation.
       if (identical(parent.name, node) && parent.constructorName == null) {
@@ -189,15 +189,15 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
         return parent.declaredFragment?.element;
       }
     } else if (parent is ConstructorSelector) {
-      var parent2 = parent.parent;
+      var parent2 = parent.parent2;
       if (parent2 is EnumConstantArguments) {
-        var parent3 = parent2.parent;
+        var parent3 = parent2.parent2;
         if (parent3 is EnumConstantDeclaration) {
           return parent3.constructorElement;
         }
       }
     } else if (parent is DottedName) {
-      var grandParent = parent.parent;
+      var grandParent = parent.parent2;
       if (grandParent is LibraryDirective) {
         return grandParent.element;
       }
@@ -282,7 +282,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
-    return node.parent!.accept(this);
+    return node.parent2!.accept2(this);
   }
 
   @override
@@ -297,7 +297,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPatternFieldName(PatternFieldName node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is PatternField) {
       return parent.element;
     } else {
@@ -329,7 +329,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   Element? visitPrimaryConstructorDeclaration(
     PrimaryConstructorDeclaration node,
   ) {
-    if (node.parent case Declaration declaration) {
+    if (node.parent2 case Declaration declaration) {
       return declaration.declaredFragment?.element;
     }
     return null;
@@ -337,15 +337,15 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPrimaryConstructorName(PrimaryConstructorName node) {
-    if (node.parent case PrimaryConstructorDeclaration declaration) {
+    if (node.parent2 case PrimaryConstructorDeclaration declaration) {
       return declaration.declaredFragment?.element;
     }
-    return node.parent!.accept(this);
+    return node.parent2!.accept2(this);
   }
 
   @override
   Element? visitStringLiteral(StringLiteral node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ExportDirective) {
       return parent.libraryExport?.exportedLibrary;
     } else if (parent is ImportDirective) {

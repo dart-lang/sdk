@@ -3428,6 +3428,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return {
       ...super.flagsForTesting,
       'hasEnclosingTypeParameterReference': hasEnclosingTypeParameterReference,
+      'isCovariant': isCovariant,
       'isEnumConstant': isEnumConstant,
       'isOriginDeclaringFormalParameter': isOriginDeclaringFormalParameter,
       'isOriginEnumValues': isOriginEnumValues,
@@ -6168,6 +6169,9 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
 abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     implements InterfaceFragment {
   List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorFragment;
+
+  /// Start index in the element's `mixins` for this fragment's `with` clause.
+  int withClauseMixinStartIndex = 0;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -12054,6 +12058,7 @@ enum _ExecutableElementFlags {
 
 enum _FieldElementFlags {
   hasEnclosingTypeParameterReference(element: _ElementFlagSource.stored),
+  isCovariant(element: _ElementFlagSource.computed),
   isEnumConstant(fragment: true, element: _ElementFlagSource.firstFragment),
   isExplicitlyCovariant(fragment: true),
   isOriginDeclaringFormalParameter(

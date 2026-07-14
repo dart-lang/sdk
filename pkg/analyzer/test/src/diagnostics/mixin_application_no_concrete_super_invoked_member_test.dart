@@ -157,6 +157,23 @@ class X extends A with M1, M2 {}
 ''');
   }
 
+  test_class_OK_inPreviousMixin_fromAugmentation() async {
+    await resolveTestCodeWithDiagnostics('''
+mixin M1 {
+  void foo() {}
+}
+
+mixin M2 on M1 {
+  void bar() {
+    super.foo();
+  }
+}
+
+class X with M1 {}
+augment class X with M2 {}
+''');
+  }
+
   test_class_OK_inSuper_fromMixin() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A {

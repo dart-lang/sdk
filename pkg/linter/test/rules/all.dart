@@ -123,6 +123,7 @@ import 'erase_dart_type_extension_types_test.dart'
 import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
+import 'future_sync_value_test.dart' as future_sync_value;
 import 'hash_and_equals_test.dart' as hash_and_equals;
 import 'implementation_imports_test.dart' as implementation_imports;
 import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
@@ -434,6 +435,7 @@ void main() {
   exhaustive_cases.main();
   file_names.main();
   flutter_style_todos.main();
+  future_sync_value.main();
   hash_and_equals.main();
   implementation_imports.main();
   implicit_call_tearoffs.main();

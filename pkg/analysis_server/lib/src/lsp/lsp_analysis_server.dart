@@ -410,7 +410,7 @@ class LspAnalysisServer extends AnalysisServer {
   FutureOr<void> handleAnalysisStatusChange(
     analysis.AnalysisStatus status,
   ) async {
-    super.handleAnalysisStatusChange(status);
+    await super.handleAnalysisStatusChange(status);
     await sendStatusNotification(status);
   }
 

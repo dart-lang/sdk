@@ -56,32 +56,25 @@ class JumpTarget {
     users.add(statement);
   }
 
-  void resolveBreaks(
-    InternalLabeledStatement target,
-    InternalStatement targetStatement,
-  ) {
+  void resolveBreaks(InternalBreakableStatement targetStatement) {
     assert(isBreakTarget);
     for (InternalStatement user in users) {
       InternalBreakStatement breakStatement = user as InternalBreakStatement;
-      breakStatement.target = target;
-      breakStatement.targetStatement = targetStatement;
+      breakStatement.breakableStatement = targetStatement;
     }
     users.clear();
   }
 
-  List<InternalContinueStatement>? resolveContinues(
-    InternalLabeledStatement target,
-  ) {
+  void resolveContinues(InternalContinuableStatement targetStatement) {
     assert(isContinueTarget);
     List<InternalContinueStatement> statements = [];
     for (InternalGotoStatement user in users) {
-      InternalContinueStatement breakStatement =
+      InternalContinueStatement continueStatement =
           user as InternalContinueStatement;
-      breakStatement.target = target;
-      statements.add(breakStatement);
+      statements.add(continueStatement);
+      continueStatement.continuableStatement = targetStatement;
     }
     users.clear();
-    return statements;
   }
 
   void resolveGotos(InternalSwitchCase target) {
@@ -163,19 +156,14 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(
-    InternalLabeledStatement target,
-    InternalStatement targetStatement,
-  ) {
-    breakTarget.resolveBreaks(target, targetStatement);
+  void resolveBreaks(InternalBreakableStatement targetStatement) {
+    breakTarget.resolveBreaks(targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<InternalContinueStatement>? resolveContinues(
-    InternalLabeledStatement target,
-  ) {
-    return continueTarget.resolveContinues(target);
+  void resolveContinues(InternalContinuableStatement targetStatement) {
+    continueTarget.resolveContinues(targetStatement);
   }
 
   @override
@@ -396,7 +384,7 @@ class Label(final String name, final int charOffset) {
 }
 
 class Condition(
-  final Expression expression, [
+  final InternalExpression expression, [
   final InternalPatternGuard? patternGuard,
 ]) {
   @override
@@ -408,15 +396,15 @@ class Condition(
 final ExpressionOrPatternGuardCase dummyExpressionOrPatternGuardCase =
     new ExpressionOrPatternGuardCase.expression(
       TreeNode.noOffset,
-      dummyExpression,
+      dummyInternalExpression,
     );
 
 class ExpressionOrPatternGuardCase._(
   final int caseOffset,
-  final Expression? expression,
+  final InternalExpression? expression,
   final InternalPatternGuard? patternGuard,
 ) {
-  new expression(int caseOffset, Expression expression)
+  new expression(int caseOffset, InternalExpression expression)
     : this._(caseOffset, expression, null);
 
   new patternGuard(int caseOffset, InternalPatternGuard patternGuard)
@@ -459,7 +447,7 @@ class PendingAnnotations(
 /// A single target holding annotations to be inferred.
 class SingleTargetAnnotations(
   final Annotatable target,
-  final List<Expression> annotations,
+  final List<InternalExpression> annotations,
 );
 
 /// A multiple targets holding annotations to be inferred.
@@ -468,7 +456,7 @@ class SingleTargetAnnotations(
 /// subsequent targets after inference.
 class MultiTargetAnnotations(
   final List<Annotatable> targets,
-  final List<Expression> annotations,
+  final List<InternalExpression> annotations,
 );
 
 class BuildInitializersResult(
@@ -477,7 +465,7 @@ class BuildInitializersResult(
 );
 
 class BuildParameterDefaultValueResult(
-  final Expression defaultValue,
+  final InternalExpression defaultValue,
   final PendingAnnotations? annotations,
 );
 
@@ -486,7 +474,7 @@ class BuildRedirectingFactoryMethodResult(
 );
 
 class BuildFieldsResult(
-  final Map<Identifier, Expression?> fieldInitializers,
+  final Map<Identifier, InternalExpression?> fieldInitializers,
   final PendingAnnotations? annotations,
 );
 
@@ -510,12 +498,12 @@ class BuildPrimaryConstructorBodyResult({
 });
 
 class BuildMetadataListResult(
-  final List<Expression> expressions,
+  final List<InternalExpression> expressions,
   final PendingAnnotations? annotations,
 );
 
 class BuildFieldInitializerResult(
-  final Expression initializer,
+  final InternalExpression initializer,
   final PendingAnnotations? annotations,
 );
 
@@ -526,6 +514,6 @@ class BuildEnumConstantResult(
 
 // Coverage-ignore(suite): Not run.
 class BuildSingleExpressionResult(
-  final Expression expression,
+  final InternalExpression expression,
   final PendingAnnotations? annotations,
 );

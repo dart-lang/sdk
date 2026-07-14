@@ -82,7 +82,7 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
   }
 
   static DartType _readType(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return parent.readType!;
     } else if (parent is PostfixExpression) {

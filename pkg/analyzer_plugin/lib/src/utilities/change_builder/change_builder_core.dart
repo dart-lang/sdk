@@ -12,6 +12,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
@@ -90,7 +91,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     String? defaultEol,
   }) : assert(session == null || workspace == null),
        workspace = workspace ?? _SingleSessionWorkspace(session!),
-       defaultEol = defaultEol ?? Platform.lineTerminator;
+       defaultEol = defaultEol ?? platform.lineTerminator;
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits {

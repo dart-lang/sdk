@@ -1375,6 +1375,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: <empty> <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>
           rightParenthesis: )
@@ -1686,6 +1692,14 @@ CompilationUnit
                     arguments
                       FunctionExpression
                         parameters: FormalParameterList
+                          leftParenthesis: (
+                          parameters
+                            RegularFormalParameter
+                              name: name
+                            RegularFormalParameter
+                              name: value
+                          rightParenthesis: )
+                        parameters(v1): FormalParameterList
                           leftParenthesis: (
                           parameter: RegularFormalParameter
                             name: name
@@ -2542,6 +2556,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -3323,6 +3343,26 @@ CompilationUnit
           MethodDeclaration
             name: b
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: c
+                  defaultClause: FormalParameterDefaultClause
+                    separator: :
+                    value: IntegerLiteral
+                      literal: 0
+                RegularFormalParameter
+                  type: NamedType
+                    name: Foo
+                  name: d
+                  defaultClause: FormalParameterDefaultClause
+                    separator: :
+                    value: IntegerLiteral
+                      literal: 0
+                RegularFormalParameter
+                  name: e
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: c

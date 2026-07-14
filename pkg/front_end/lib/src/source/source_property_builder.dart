@@ -587,7 +587,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   /// This is only used for instance fields.
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     return _introductoryField!.buildInitializer(

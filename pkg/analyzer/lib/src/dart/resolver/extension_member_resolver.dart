@@ -511,14 +511,14 @@ class ExtensionMemberResolver {
   }
 
   static bool _isCascadeTarget(ExtensionOverride node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     return parent is CascadeExpression && parent.target == node;
   }
 
   /// Return `true` if the extension override [node] is being used as a target
   /// of an operation that might be accessing an instance member.
   static bool _isValidContext(ExtensionOverride node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     return parent is BinaryExpression && parent.leftOperand == node ||
         parent is FunctionExpressionInvocation && parent.function == node ||
         parent is IndexExpression && parent.target == node ||

@@ -91,6 +91,7 @@ import 'rules/erase_dart_type_extension_types.dart';
 import 'rules/exhaustive_cases.dart';
 import 'rules/file_names.dart';
 import 'rules/flutter_style_todos.dart';
+import 'rules/future_sync_value.dart';
 import 'rules/hash_and_equals.dart';
 import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
@@ -361,6 +362,7 @@ void registerLintRules() {
     ..registerLintRule(ExhaustiveCases())
     ..registerLintRule(FileNames())
     ..registerLintRule(FlutterStyleTodos())
+    ..registerLintRule(FutureSyncValue())
     ..registerLintRule(HashAndEquals())
     ..registerLintRule(ImplementationImports())
     ..registerLintRule(ImplicitCallTearoffs())

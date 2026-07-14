@@ -459,9 +459,6 @@ class Parser {
     return token;
   }
 
-  /// This method exists for analyzer compatibility only
-  /// and will be removed once analyzer/cfe integration is complete.
-  ///
   /// Similar to [parseUnit], this method parses a compilation unit,
   /// but stops when it reaches the first declaration or EOF.
   ///
@@ -469,7 +466,13 @@ class Parser {
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
+  ///
+  /// Any initial error tokens will be skipped and those errors will not be
+  /// reported.
   Token parseDirectives(Token token) {
+    // Skip over error tokens so the directives would be the same as when
+    // scanning normally.
+    token = skipErrorTokens(token);
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext(
@@ -487,9 +490,11 @@ class Parser {
         break;
       }
 
+      bool reportTopLevelDeclarationEnd = true;
       if (identical(token.next!.type, TokenType.SCRIPT_TAG)) {
         directiveState.checkScriptTag(this, token.next!);
         token = parseScript(token);
+        reportTopLevelDeclarationEnd = false;
       } else {
         token = parseMetadataStar(token);
         Token keyword = token.next!;
@@ -508,12 +513,16 @@ class Parser {
         } else if (identical(value, ';')) {
           token = start;
           listener.handleDirectivesOnly();
+          reportTopLevelDeclarationEnd = false;
         } else {
           listener.handleDirectivesOnly();
+          reportTopLevelDeclarationEnd = false;
           break;
         }
       }
-      listener.endTopLevelDeclaration(token);
+      if (reportTopLevelDeclarationEnd) {
+        listener.endTopLevelDeclaration(token);
+      }
     }
     token = token.next!;
     listener.endCompilationUnit(count, token);

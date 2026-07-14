@@ -304,6 +304,7 @@ class LibraryReader {
         create: (name) {
           var fragment = ClassFragmentImpl(name: name);
           fragment.readFlags(_reader);
+          fragment.withClauseMixinStartIndex = _reader.readUint30();
           fragment.typeParameters = _readTypeParameterFragments();
 
           _lazyRead((membersOffset) {
@@ -497,6 +498,7 @@ class LibraryReader {
         create: (name) {
           var fragment = EnumFragmentImpl(name: name);
           fragment.readFlags(_reader);
+          fragment.withClauseMixinStartIndex = _reader.readUint30();
           fragment.typeParameters = _readTypeParameterFragments();
 
           _lazyRead((offset) {

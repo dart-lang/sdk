@@ -9216,6 +9216,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   virtual bool AttributesEqual(const Instruction& other) const {
     return other.AsUnaryIntegerOp()->op_kind() == op_kind();
   }

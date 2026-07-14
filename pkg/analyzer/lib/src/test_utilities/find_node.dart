@@ -24,7 +24,7 @@ class FindNode {
 
   List<MethodInvocation> get methodInvocations {
     var result = <MethodInvocation>[];
-    unit.accept(FunctionAstVisitor(methodInvocation: result.add));
+    unit.accept2(FunctionAstVisitor(methodInvocation: result.add));
     return result;
   }
 
@@ -1081,7 +1081,7 @@ class FindNode {
   /// Otherwise, throws.
   T _first<T extends AstNode>() {
     var visitor = _TypedNodeVisitor<T>();
-    unit.accept(visitor);
+    unit.accept2(visitor);
     return visitor.nodes.first;
   }
 
@@ -1117,13 +1117,13 @@ class FindNode {
   /// Otherwise, throws.
   T _single<T extends AstNode>() {
     var visitor = _TypedNodeVisitor<T>();
-    unit.accept(visitor);
+    unit.accept2(visitor);
     return visitor.nodes.single;
   }
 }
 
 class _TypedNodeVisitor<T extends AstNode>
-    extends GeneralizingAstVisitor<void> {
+    extends GeneralizingAstVisitor2<void> {
   final List<T> nodes = [];
 
   @override

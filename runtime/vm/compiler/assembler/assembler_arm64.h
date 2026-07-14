@@ -1227,21 +1227,53 @@ class Assembler : public AssemblerBase {
 
   // Branch, link, return.
   void br(Register rn) { EmitUnconditionalBranchRegOp(BR, rn); }
-  void blr(Register rn) {
-    // CLOBBERS_LR uses __ to access the assembler.
-#define __ this->
-    CLOBBERS_LR(EmitUnconditionalBranchRegOp(BLR, rn));
-#undef __
+  void braa(Register rn, Register rm) {
+    EmitUnconditionalBranchRegOp(BRAA, rn, rm);
   }
+  void braaz(Register rn) { EmitUnconditionalBranchRegOp(BRAAZ, rn); }
+  void brab(Register rn, Register rm) {
+    EmitUnconditionalBranchRegOp(BRAB, rn, rm);
+  }
+  void brabz(Register rn) { EmitUnconditionalBranchRegOp(BRABZ, rn); }
+
+  // CLOBBERS_LR uses __ to access the assembler.
+#define __ this->
+  void blr(Register rn) { CLOBBERS_LR(EmitUnconditionalBranchRegOp(BLR, rn)); }
+  void blraa(Register rn, Register rm) {
+    CLOBBERS_LR(EmitUnconditionalBranchRegOp(BLRAA, rn, rm));
+  }
+  void blraaz(Register rn) {
+    CLOBBERS_LR(EmitUnconditionalBranchRegOp(BLRAAZ, rn));
+  }
+  void blrab(Register rn, Register rm) {
+    CLOBBERS_LR(EmitUnconditionalBranchRegOp(BLRAB, rn, rm));
+  }
+  void blrabz(Register rn) {
+    CLOBBERS_LR(EmitUnconditionalBranchRegOp(BLRABZ, rn));
+  }
+#undef __
+
+  // READS_RETURN_ADDRESS_FROM_LR uses __ to access the assembler.
+#define __ this->
   void ret(Register rn = kNoRegister2) {
     if (rn == kNoRegister2) {
-      // READS_RETURN_ADDRESS_FROM_LR uses __ to access the assembler.
-#define __ this->
       READS_RETURN_ADDRESS_FROM_LR(rn = LR);
-#undef __
     }
     EmitUnconditionalBranchRegOp(RET, rn);
   }
+  void retaa(Register rn = kNoRegister2) {
+    if (rn == kNoRegister2) {
+      READS_RETURN_ADDRESS_FROM_LR(rn = LR);
+    }
+    EmitUnconditionalBranchRegOp(RETAA, rn);
+  }
+  void retab(Register rn = kNoRegister2) {
+    if (rn == kNoRegister2) {
+      READS_RETURN_ADDRESS_FROM_LR(rn = LR);
+    }
+    EmitUnconditionalBranchRegOp(RETAB, rn);
+  }
+#undef __
 
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
@@ -1783,11 +1815,35 @@ class Assembler : public AssemblerBase {
   void Call(const Code& code) { BranchLink(code); }
 
   // Clobbers LR.
-  void CallCFunction(Address target) { Call(target); }
+  void CallCFunction(Address target) {
+#define __ this->
+    CLOBBERS_LR({
+      ldr(LR, target);
+      CallCFunction(LR);
+    });
+#undef __
+  }
   void CallCFunction(Register target) {
 #define __ this->
+#if defined(TARGET_ARCH_ARM64E)
+    ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
+    ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
+           0);
+    CLOBBERS_LR({ blraaz(target); });
+#else
     CLOBBERS_LR({ blr(target); });
+#endif
 #undef __
+  }
+  void TailCallCFunction(Register target) {
+#if defined(TARGET_ARCH_ARM64E)
+    ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
+    ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
+           0);
+    braaz(target);
+#else
+    br(target);
+#endif
   }
 
   void AddImmediate(Register dest, int64_t imm) {
@@ -2791,6 +2847,14 @@ class Assembler : public AssemblerBase {
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
     ASSERT((rn != CSP) && (rn != R31));
     const int32_t encoding = op | Arm64Encode::Rn(rn);
+    Emit(encoding);
+  }
+  void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op,
+                                    Register rn,
+                                    Register rt) {
+    ASSERT((rn != CSP) && (rn != R31));
+    ASSERT((rt != ZR) && (rt != R31));
+    const int32_t encoding = op | Arm64Encode::Rn(rn) | Arm64Encode::Rt(rt);
     Emit(encoding);
   }
 

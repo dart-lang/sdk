@@ -375,8 +375,8 @@ class ElementResolver {
       argumentList,
       element,
       enclosingConstructorFormalParameterList:
-          node.parent.tryCast<ConstructorDeclarationImpl>()?.parameters ??
-          node.parent
+          node.parent2.tryCast<ConstructorDeclarationImpl>()?.parameters ??
+          node.parent2
               .tryCast<PrimaryConstructorBodyImpl>()
               ?.declaration
               ?.formalParameters,

@@ -18,15 +18,14 @@ static method main() → void {
     case #C2:
       {
         (() → Null {
-          #L4:
           switch(inner) /* core::int */ {
-            #L5:
+            #L4:
             case #C1:
               {
                 whereWasI.{core::List::add}("inner 0"){(core::String) → void};
-                continue #L6;
+                continue #L5;
               }
-            #L6:
+            #L5:
             case #C2:
               {
                 whereWasI.{core::List::add}("inner 1"){(core::String) → void};

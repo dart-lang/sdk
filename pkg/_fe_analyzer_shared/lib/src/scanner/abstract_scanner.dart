@@ -954,22 +954,7 @@ abstract class AbstractScanner implements Scanner {
   @override
   Token tokenize() {
     while (!atEndOfFile()) {
-      int next = advance();
-
-      // Scan the header looking for a language version
-      if (next != $EOF) {
-        Token oldTail = tail;
-        next = bigHeaderSwitch(next);
-        if (next != $EOF && tail.kind == SCRIPT_TOKEN) {
-          oldTail = tail;
-          next = bigHeaderSwitch(next);
-        }
-        while (next != $EOF && tail == oldTail) {
-          next = bigHeaderSwitch(next);
-        }
-        next = next;
-      }
-
+      int next = _scanHeaderLookingForLanguageVersion(advance());
       while (next != $EOF) {
         next = bigSwitch(next);
       }
@@ -983,13 +968,10 @@ abstract class AbstractScanner implements Scanner {
     return firstToken();
   }
 
-  /// Scan directives and as little as possible after the directives.
-  Token tokenizeDirectives() {
-    int next = advance();
-
+  int _scanHeaderLookingForLanguageVersion(int next) {
     // Scan the header looking for a language version
-    Token oldTail = tail;
     if (next != $EOF) {
+      Token oldTail = tail;
       next = bigHeaderSwitch(next);
       if (next != $EOF && tail.kind == SCRIPT_TOKEN) {
         oldTail = tail;
@@ -999,12 +981,24 @@ abstract class AbstractScanner implements Scanner {
         next = bigHeaderSwitch(next);
       }
     }
+    return next;
+  }
+
+  /// Scan directives and as little as possible after the directives.
+  Token tokenizeDirectives() {
+    int next = _scanHeaderLookingForLanguageVersion(advance());
 
     // If the first token can't be the start of a directive we can stop now.
     Token? theFirstToken = tokens.next;
     if (theFirstToken != null) {
       if (theFirstToken.kind == SCRIPT_TOKEN) {
-        // OK
+        // A script token is OK - but we scanned further, _that_ has to be the
+        // start of a directive or we can stop now.
+        if (!_isTokenPossibleStartOfDirective(theFirstToken.next)) {
+          return _tokenizeDirectivesEndHelper(
+            !(theFirstToken.next?.isEof ?? true),
+          );
+        }
       } else {
         if (!_isTokenPossibleStartOfDirective(theFirstToken)) {
           return _tokenizeDirectivesEndHelper(true);
@@ -1012,16 +1006,8 @@ abstract class AbstractScanner implements Scanner {
       }
     }
 
-    // If we scanned something after a script token, _that_ has to be the start
-    // of a directive or we can stop now.
-    if (oldTail != tail && oldTail.kind == SCRIPT_TOKEN) {
-      if (!_isTokenPossibleStartOfDirective(oldTail.next)) {
-        return _tokenizeDirectivesEndHelper(true);
-      }
-    }
-
     while (next != $EOF) {
-      oldTail = tail;
+      Token oldTail = tail;
       next = bigSwitch(next);
       if (!identical(oldTail, tail)) {
         if (oldTail.isA(TokenType.SEMICOLON)) {

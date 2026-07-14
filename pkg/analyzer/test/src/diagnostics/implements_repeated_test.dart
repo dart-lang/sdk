@@ -20,8 +20,6 @@ class ImplementsRepeatedTest extends PubPackageResolutionTest {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B implements A, A {}
-//                    ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
 
     var node = result.findNode.singleImplementsClause;
@@ -45,8 +43,6 @@ ImplementsClause
 class A {}
 class B implements A {}
 augment class B implements A {}
-//                         ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
   }
 
@@ -65,10 +61,18 @@ class B implements A {}
 part of 'a.dart';
 
 augment class B implements A {}
-//                         ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''',
     });
+  }
+
+  test_class_implements_2times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
+class B implements A, A {}
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
   }
 
   test_class_implements_2times_viaTypeAlias() async {
@@ -76,8 +80,6 @@ augment class B implements A {}
 class A {}
 typedef B = A;
 class C implements A, B {}
-//                    ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
 
     var node = result.findNode.singleImplementsClause;
@@ -97,9 +99,28 @@ ImplementsClause
 ''');
   }
 
+  test_class_implements_2times_viaTypeAlias_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
+typedef B = A;
+class C implements A, B {}
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
+  }
+
   test_class_implements_4times() async {
     await resolveTestCodeWithDiagnostics(r'''
-class A {} class C{}
+class A {}
+class B implements A, A, A, A {}
+''');
+  }
+
+  test_class_implements_4times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
 class B implements A, A, A, A {}
 //                    ^
 // [diag.implementsRepeated] 'A' can only be implemented once.
@@ -114,8 +135,6 @@ class B implements A, A, A, A {}
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 enum E implements A, A {
-//                   ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
   v
 }
 ''');
@@ -141,8 +160,6 @@ ImplementsClause
 class A {}
 enum E implements A {v}
 augment enum E implements A {}
-//                        ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
   }
 
@@ -161,10 +178,20 @@ enum E implements A {v}
 part of 'a.dart';
 
 augment enum E implements A {}
-//                        ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''',
     });
+  }
+
+  test_enum_implements_2times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
+enum E implements A, A {
+//                   ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+  v
+}
+''');
   }
 
   test_enum_implements_2times_viaTypeAlias() async {
@@ -172,8 +199,6 @@ augment enum E implements A {}
 class A {}
 typedef B = A;
 enum E implements A, B {
-//                   ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
   v
 }
 ''');
@@ -195,9 +220,32 @@ ImplementsClause
 ''');
   }
 
+  test_enum_implements_2times_viaTypeAlias_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
+typedef B = A;
+enum E implements A, B {
+//                   ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+  v
+}
+''');
+  }
+
   test_enum_implements_4times() async {
     await resolveTestCodeWithDiagnostics(r'''
-class A {} class C{}
+class A {}
+enum E implements A, A, A, A {
+  v
+}
+''');
+  }
+
+  test_enum_implements_4times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
 enum E implements A, A, A, A {
 //                   ^
 // [diag.implementsRepeated] 'A' can only be implemented once.
@@ -213,8 +261,6 @@ enum E implements A, A, A, A {
   test_extensionType_implements_2times() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements int, int {}
-//                                       ^^^
-// [diag.implementsRepeated] 'int' can only be implemented once.
 ''');
 
     var node = result.findNode.singleImplementsClause;
@@ -237,8 +283,6 @@ ImplementsClause
     await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) implements int {}
 augment extension type A implements int {}
-//                                  ^^^
-// [diag.implementsRepeated] 'int' can only be implemented once.
 ''');
   }
 
@@ -256,18 +300,23 @@ extension type A(int it) implements int {}
 part of 'a.dart';
 
 augment extension type A implements int {}
-//                                  ^^^
-// [diag.implementsRepeated] 'int' can only be implemented once.
 ''',
     });
+  }
+
+  test_extensionType_implements_2times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+extension type A(int it) implements int, int {}
+//                                       ^^^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''');
   }
 
   test_extensionType_implements_2times_viaTypeAlias() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef A = int;
 extension type B(int it) implements int, A {}
-//                                       ^
-// [diag.implementsRepeated] 'int' can only be implemented once.
 ''');
 
     var node = result.findNode.singleImplementsClause;
@@ -287,8 +336,25 @@ ImplementsClause
 ''');
   }
 
+  test_extensionType_implements_2times_viaTypeAlias_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+typedef A = int;
+extension type B(int it) implements int, A {}
+//                                       ^
+// [diag.implementsRepeated] 'int' can only be implemented once.
+''');
+  }
+
   test_extensionType_implements_4times() async {
     await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) implements int, int, int, int {}
+''');
+  }
+
+  test_extensionType_implements_4times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
 extension type A(int it) implements int, int, int, int {}
 //                                       ^^^
 // [diag.implementsRepeated] 'int' can only be implemented once.
@@ -303,8 +369,6 @@ extension type A(int it) implements int, int, int, int {}
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
 mixin M implements A, A {}
-//                    ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
   }
 
@@ -313,8 +377,6 @@ mixin M implements A, A {}
 class A {}
 mixin M implements A {}
 augment mixin M implements A {}
-//                         ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''');
   }
 
@@ -333,14 +395,30 @@ mixin M implements A {}
 part of 'a.dart';
 
 augment mixin M implements A {}
-//                         ^
-// [diag.implementsRepeated] 'A' can only be implemented once.
 ''',
     });
   }
 
+  test_mixin_implements_2times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
+mixin M implements A, A {}
+//                    ^
+// [diag.implementsRepeated] 'A' can only be implemented once.
+''');
+  }
+
   test_mixin_implements_4times() async {
     await resolveTestCodeWithDiagnostics(r'''
+class A {}
+mixin M implements A, A, A, A {}
+''');
+  }
+
+  test_mixin_implements_4times_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
 class A {}
 mixin M implements A, A, A, A {}
 //                    ^

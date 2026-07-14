@@ -40,7 +40,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 /// for additional errors and warnings not covered by the parser and resolver.
 /// In particular, it looks for errors and warnings related to constant
 /// expressions.
-class ConstantVerifier extends RecursiveAstVisitor<void> {
+class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// The diagnostic reporter by which diagnostics will be reported.
   final DiagnosticReporter _diagnosticReporter;
 
@@ -187,7 +187,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (node.factoryKeyword == null &&
           element.enclosingElement.primaryConstructor == null) {
         _validateFieldInitializers(
-          node.parent.classMembers,
+          node.parent2.classMembers,
           constKeyword,
           isEnumDeclaration: element.enclosingElement is EnumElementImpl,
         );
@@ -265,7 +265,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitGenericFunctionType(GenericFunctionType node) {
     // TODO(srawlins): Also check interface types (TypeName?).
     super.visitGenericFunctionType(node);
-    var parent = node.parent;
+    var parent = node.parent2;
     if ((parent is AsExpression || parent is IsExpression) &&
         (parent as Expression).inConstantContext) {
       _checkForConstWithTypeParameters(node, diag.constWithTypeParameters);
@@ -308,7 +308,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMapPattern(MapPattern node) {
-    node.typeArguments?.accept(this);
+    node.typeArguments?.accept2(this);
 
     var featureSet = _currentLibrary.featureSet;
     var uniqueKeys = HashMap<DartObjectImpl, Expression>(
@@ -326,7 +326,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     );
     var duplicateKeys = <Expression, Expression>{};
     for (var element in node.elements) {
-      element.accept(this);
+      element.accept2(this);
       if (element is MapPatternEntry) {
         var key = element.key;
         var keyValue = _evaluateAndReportError(
@@ -380,7 +380,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredFragment!.element;
     if (element.isConst) {
       _validatePrimaryFieldInitializers(
-        members: node.parent.classMembers,
+        members: node.parent2.classMembers,
         errorToken: node.constKeyword ?? node.typeName,
         isEnumDeclaration: element.enclosingElement is EnumElementImpl,
       );
@@ -655,6 +655,14 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           }
         }
       }
+    } else if (type is RecordTypeAnnotation) {
+      for (var field in type.fields) {
+        _checkForConstWithTypeParameters(
+          field.type,
+          locatableDiagnostic,
+          allowedTypeParameters: allowedTypeParameters,
+        );
+      }
     }
   }
 
@@ -875,7 +883,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         }
       case DartObjectImpl():
         // Check for further errors in individual arguments.
-        argumentList.accept(this);
+        argumentList.accept2(this);
     }
   }
 
@@ -928,7 +936,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               DiagnosticListener.nullListener,
               _diagnosticReporter.source,
             );
-            var result = initializer.accept(
+            var result = initializer.accept2(
               ConstantVisitor(
                 _evaluationEngine,
                 _currentLibrary,
@@ -1170,7 +1178,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         validateExpression(switchMember.expression);
       } else if (switchMember is SwitchPatternCase) {
         if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
-          switchMember.accept(this);
+          switchMember.accept2(this);
         } else {
           var pattern = switchMember.guardedPattern.pattern;
           if (pattern is ConstantPattern) {
@@ -1342,7 +1350,7 @@ class _ConstLiteralVerifier {
         for (
           AstNode? parent = notConst;
           parent != null;
-          parent = parent.parent
+          parent = parent.parent2
         ) {
           if (parent is MapLiteralEntry) {
             if (parent.key == notConst) {
@@ -1663,21 +1671,21 @@ extension on Expression {
   /// This does not check whether `this` is found in a constant context.
   bool get inConstantExpression {
     AstNode child = this;
-    var parent = child.parent;
+    var parent = child.parent2;
     while (parent != null) {
       if (parent is FormalParameterDefaultClause && child == parent.value) {
         // A parameter default value does not constitute a constant context, but
         // must be a constant expression.
         return true;
       } else if (parent is VariableDeclaration && child == parent.initializer) {
-        var declarationList = parent.parent;
+        var declarationList = parent.parent2;
         if (declarationList is VariableDeclarationList) {
-          var declarationListParent = declarationList.parent;
+          var declarationListParent = declarationList.parent2;
           if (declarationListParent is FieldDeclaration &&
               !declarationListParent.isStatic) {
-            var body = declarationListParent.parent;
+            var body = declarationListParent.parent2;
             if (body is BlockClassBody) {
-              var container = body.parent;
+              var container = body.parent2;
               if (container is ClassDeclaration) {
                 var enclosingClass = container.declaredFragment!.element;
                 if (enclosingClass is ClassElementImpl) {
@@ -1693,7 +1701,7 @@ extension on Expression {
         return false;
       } else {
         child = parent;
-        parent = child.parent;
+        parent = child.parent2;
       }
     }
     return false;

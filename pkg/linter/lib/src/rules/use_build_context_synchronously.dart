@@ -1391,7 +1391,8 @@ extension on AstNode {
         self is ContinueStatement) {
       return true;
     }
-    return accept(ExitDetector()) ?? false;
+    // ignore: experimental_member_use
+    return accept2(ExitDetector()) ?? false;
   }
 }
 
@@ -1456,7 +1457,8 @@ extension on Statement {
     if (self is BreakStatement || self is ContinueStatement) {
       return true;
     }
-    return accept(ExitDetector()) ?? false;
+    // ignore: experimental_member_use
+    return accept2(ExitDetector()) ?? false;
   }
 }
 

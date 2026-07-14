@@ -53,7 +53,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
 ///
 /// The returned node may be something like a [PrimaryConstructorDeclaration]
 /// which declares a primary constructor but not a subclass of [Declaration].
-class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
+class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
   // TODO(srawlins): This visitor could be further optimized by special casing each static
   // type of [element]. For example, for library-level elements (classes etc),
   // we can iterate over the compilation unit's declarations.
@@ -167,7 +167,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
     }
 
     if (result == null) {
-      node.visitChildren(this);
+      node.visitChildren2(this);
     }
   }
 
@@ -319,7 +319,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     );
 
     var locator = DeclarationByElementLocator(fragment, nameOffset);
-    unitResult.unit.accept(locator);
+    unitResult.unit.accept2(locator);
     var declaration = locator.result;
 
     if (declaration == null) {
@@ -452,7 +452,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     );
 
     var locator = DeclarationByElementLocator(fragment, nameOffset);
-    unitResult.unit.accept(locator);
+    unitResult.unit.accept2(locator);
     var declaration = locator.result;
 
     if (declaration == null) {

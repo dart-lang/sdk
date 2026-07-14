@@ -210,43 +210,43 @@ class ConstantEvaluatorTest extends ParserDiagnosticsTest {
     expect(value, 3);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_constructor() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_class() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_function() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_static() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_staticMethod() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_topLevel() {
     var value = _getConstantValue("?");
     expect(value, null);
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_identifier_typeParameter() {
     var value = _getConstantValue("?");
     expect(value, null);
@@ -350,6 +350,6 @@ void f() {
     var findNode = parseResult.findNode;
     var expression = findNode.parenthesized('); // ref').expression;
 
-    return expression.accept(ConstantEvaluator());
+    return expression.accept2(ConstantEvaluator());
   }
 }

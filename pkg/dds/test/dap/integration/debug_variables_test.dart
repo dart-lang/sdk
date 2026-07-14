@@ -1364,6 +1364,66 @@ class C {
       });
     });
 
+    group('dart:ffi Pointer variables', () {
+      test('expands Pointer to show raw bytes', () async {
+        final client = dap.client;
+        await dap.addPackageDependency(dap.testAppDir, 'ffi');
+        final testFile = dap.createTestFile('''
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+
+void main(List<String> args) {
+  final ptr = calloc<Uint8>(8);
+  ptr[0] = 0xDE;
+  ptr[1] = 0xAD;
+  ptr[2] = 0xBE;
+  ptr[3] = 0xEF;
+  ptr[4] = 0x01;
+  ptr[5] = 0x02;
+  ptr[6] = 0x03;
+  ptr[7] = 0x04;
+  print(''); // $breakpointMarker
+  calloc.free(ptr);
+}
+    ''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+        final ptrVar = await client.getLocalVariable(stop.threadId!, 'ptr');
+
+        final rawBytesVar = await client.getChildVariable(
+          ptrVar.variablesReference,
+          '[raw bytes]',
+        );
+        expect(rawBytesVar.value, equals(''));
+        expect(rawBytesVar.presentationHint?.lazy, isTrue);
+        expect(rawBytesVar.variablesReference, isPositive);
+
+        final resolvedVars =
+            await client.getValidVariables(rawBytesVar.variablesReference);
+        expect(resolvedVars.variables, hasLength(1));
+        final resolvedVar = resolvedVars.variables.first;
+        expect(resolvedVar.name, equals(''));
+        expect(resolvedVar.value, startsWith('8 bytes @ 0x'));
+        expect(resolvedVar.variablesReference, isPositive);
+        expect(resolvedVar.indexedVariables, equals(8));
+        await client.expectVariables(
+          resolvedVar.variablesReference,
+          '''
+      [0]: 0xde
+      [1]: 0xad
+      [2]: 0xbe
+      [3]: 0xef
+      [4]: 0x01
+      [5]: 0x02
+      [6]: 0x03
+      [7]: 0x04
+  ''',
+        );
+      });
+    });
+
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

@@ -267,7 +267,7 @@ class ErrorHandlerVerifier {
         _returnTypeVerifier,
       );
       _returnTypeVerifier.enclosingExecutable = catchErrorOnErrorExecutable;
-      callback.body.accept(returnStatementVerifier);
+      callback.body.accept2(returnStatementVerifier);
     } else {
       var callbackType = callback.staticType;
       if (callbackType is FunctionTypeImpl) {
@@ -326,7 +326,7 @@ class ErrorHandlerVerifier {
       );
       _returnTypeVerifier.enclosingExecutable = thenOnErrorExecutable;
 
-      callback.body.accept(returnStatementVerifier);
+      callback.body.accept2(returnStatementVerifier);
     } else {
       if (callback.staticType case FunctionTypeImpl callbackType) {
         _checkReturnType(
@@ -398,7 +398,7 @@ class ErrorHandlerVerifier {
 }
 
 /// Visits a function body, looking for return statements.
-class _ReturnStatementVerifier extends RecursiveAstVisitor<void> {
+class _ReturnStatementVerifier extends RecursiveAstVisitor2<void> {
   final ReturnTypeVerifier _returnTypeVerifier;
 
   _ReturnStatementVerifier(this._returnTypeVerifier);

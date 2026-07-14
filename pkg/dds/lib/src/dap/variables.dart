@@ -156,6 +156,24 @@ class EvaluationExpression {
   }
 }
 
+/// Data for a dart:ffi Pointer variable that triggers a _readNativeMemory
+/// RPC call when the user expands it in the debugger.
+class PointerData {
+  final String address;
+  final int byteCount;
+  final VariableFormat? format;
+
+  /// This flag drives the two-step lazy variable pattern:
+  /// - false (first expansion): returns a single child variable showing
+  ///   the value string (e.g. '8 bytes @ 0x...').
+  /// - true (second expansion): calls `_readNativeMemory` and returns the
+  ///   individual byte variables (`[0]: 0xde, [1]: 0xad, etc.`).
+  final bool showBytes;
+
+  PointerData(this.address, this.byteCount, this.format,
+      {this.showBytes = false});
+}
+
 /// An expression for evaluating a variable ("evaluateName" in DAP) and a flag
 /// that indicates whether it's nullable (in which case it must be suffixed with
 /// a `?` when accessing members).

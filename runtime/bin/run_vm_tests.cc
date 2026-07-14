@@ -23,7 +23,7 @@
 
 extern "C" {
 extern const uint8_t kDartCoreSnapshotData[];
-extern const uint8_t kDartCoreSnapshotText[];
+extern void kDartCoreSnapshotText();
 }
 
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
@@ -31,7 +31,8 @@ namespace dart {
 
 // Snapshot pieces when we link in a snapshot.
 const uint8_t* bin::core_snapshot_data = kDartCoreSnapshotData;
-const uint8_t* bin::core_snapshot_text = kDartCoreSnapshotText;
+const uint8_t* bin::core_snapshot_text =
+    reinterpret_cast<const uint8_t*>(kDartCoreSnapshotText);
 
 // Only run tests that match the filter string. The default does not match any
 // tests.

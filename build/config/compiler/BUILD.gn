@@ -236,12 +236,22 @@ config("compiler") {
         common_mac_flags += [ "--target=x86_64-apple-macos" ]
       } else if (current_cpu == "arm64") {
         common_mac_flags += [ "--target=arm64-apple-macos" ]
+      } else if (current_cpu == "arm64e") {
+        common_mac_flags += [ "--target=arm64e-apple-macos" ]
+
+        # TODO(https://github.com/llvm/llvm-project/pull/188378): Use lld (default).
+        ldflags += [ "-fuse-ld=ld" ]
       }
     } else if (is_ios) {
       if (current_cpu == "x64") {
         common_mac_flags += [ "--target=x86_64-apple-darwin" ]
       } else if (current_cpu == "arm64") {
         common_mac_flags += [ "--target=arm64-apple-darwin" ]
+      } else if (current_cpu == "arm64e") {
+        common_mac_flags += [ "--target=arm64e-apple-darwin" ]
+
+        # TODO(https://github.com/llvm/llvm-project/pull/188378): Use lld (default).
+        ldflags += [ "-fuse-ld=ld" ]
       }
     }
 
@@ -437,7 +447,8 @@ config("compiler") {
     } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
-    } else if ((is_mac || is_ios) && host_cpu == "arm64") {
+    } else if ((is_mac || is_ios) &&
+               (host_cpu == "arm64" || host_cpu == "arm64e")) {
       toolchain_stamp_file =
           "//buildtools/mac-arm64/clang/.versions/clang.cipd_version"
     } else if (is_mac || is_ios) {

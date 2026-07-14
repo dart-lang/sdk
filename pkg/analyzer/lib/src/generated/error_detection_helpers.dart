@@ -73,9 +73,9 @@ mixin ErrorDetectionHelpers {
     TypeImpl? correspondingParameterType;
     if (parameter != null) {
       correspondingParameterType = parameter.type;
-    } else if (argument.parent
+    } else if (argument.parent2
         case ArgumentListImpl(
-          parent: FunctionExpressionInvocationImpl(
+          parent2: FunctionExpressionInvocationImpl(
             function: Expression(:var staticType),
           ),
         )

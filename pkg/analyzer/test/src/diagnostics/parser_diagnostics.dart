@@ -104,16 +104,14 @@ class ParserDiagnosticsTest {
       sink: sink,
       configuration: ElementPrinterConfiguration(),
     );
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration()
-          ..withTokenPreviousNext = withTokenPreviousNext,
-        withResolution: false,
-        withOffsets: withOffsets,
-      ),
-    );
+    ResolvedAstPrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: ResolvedNodeTextConfiguration()
+        ..withTokenPreviousNext = withTokenPreviousNext,
+      withResolution: false,
+      withOffsets: withOffsets,
+    ).writeNode(node);
     return buffer.toString();
   }
 }

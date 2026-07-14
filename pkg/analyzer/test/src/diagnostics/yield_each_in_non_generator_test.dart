@@ -26,7 +26,7 @@ f() async {
 ''');
   }
 
-  @SkippedTest(
+  @FailingTest(
     reason:
         'We are currently trying to parse the yield statement as a '
         'binary expression.',

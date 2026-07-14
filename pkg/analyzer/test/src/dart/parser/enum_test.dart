@@ -1260,6 +1260,14 @@ EnumDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1480,6 +1488,22 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          requiredKeyword: required
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value: IntegerLiteral
+              literal: 0
+      leftDelimiter: {
+      rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -1518,6 +1542,25 @@ EnumDeclaration
     constKeyword: const
     typeName: E
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          requiredKeyword: required
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value: IntegerLiteral
+              literal: 0
+      leftDelimiter: {
+      rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1561,6 +1604,34 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                  name: x
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
@@ -1601,6 +1672,15 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -1632,6 +1712,18 @@ EnumDeclaration
     constKeyword: const
     typeName: E
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -1665,6 +1757,15 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -1703,6 +1804,16 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
         constFinalOrVarKeyword: final
@@ -1738,6 +1849,16 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -1943,6 +2064,14 @@ EnumDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1978,6 +2107,14 @@ EnumDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

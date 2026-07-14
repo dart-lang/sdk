@@ -2110,13 +2110,11 @@ class ResolvedUnitResultPrinter {
       var nodeToWrite = configuration.nodeSelector(result);
       if (nodeToWrite != null) {
         sink.writeWithIndent('selectedNode: ');
-        nodeToWrite.accept(
-          ResolvedAstPrinter(
-            sink: sink,
-            elementPrinter: elementPrinter,
-            configuration: configuration.nodeConfiguration,
-          ),
-        );
+        ResolvedAstPrinter(
+          sink: sink,
+          elementPrinter: elementPrinter,
+          configuration: configuration.nodeConfiguration,
+        ).writeNode(nodeToWrite);
       }
 
       var typesToWrite = configuration.typesSelector(result);

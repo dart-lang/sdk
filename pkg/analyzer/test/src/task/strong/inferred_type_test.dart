@@ -430,7 +430,6 @@ var y = () => x;
     _assertTypeStr(y.type, 'dynamic');
   }
 
-  @SkippedTest(reason: 'Element model rewrite')
   test_circularReference_viaClosures_initializerTypes() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var x = () => y;

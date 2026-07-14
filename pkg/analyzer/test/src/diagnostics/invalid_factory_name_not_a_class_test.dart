@@ -26,7 +26,7 @@ class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_notEnclosingClassName_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}

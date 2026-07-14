@@ -17,7 +17,7 @@ bool isNotSerializableMarker(SimpleIdentifier node) {
 /// Otherwise returns a marker node.
 ExpressionImpl replaceNotSerializableExpression(ExpressionImpl node) {
   var visitor = _IsSerializableNodeVisitor();
-  node.accept(visitor);
+  node.accept2(visitor);
   if (visitor.result) {
     return node;
   }
@@ -26,7 +26,7 @@ ExpressionImpl replaceNotSerializableExpression(ExpressionImpl node) {
   );
 }
 
-class _IsSerializableNodeVisitor extends RecursiveAstVisitor<void> {
+class _IsSerializableNodeVisitor extends RecursiveAstVisitor2<void> {
   bool result = true;
 
   @override

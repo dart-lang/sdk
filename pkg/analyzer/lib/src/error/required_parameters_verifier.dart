@@ -12,7 +12,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
 /// Checks for missing arguments for required named parameters.
-class RequiredParametersVerifier extends SimpleAstVisitor<void> {
+class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _errorReporter;
 
   RequiredParametersVerifier(this._errorReporter);

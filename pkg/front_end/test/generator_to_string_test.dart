@@ -42,17 +42,13 @@ import 'package:kernel/ast.dart'
         Class,
         Component,
         DynamicType,
-        Expression,
         FunctionNode,
         Library,
         Name,
         Procedure,
         ProcedureKind,
-        StringLiteral,
         TypeParameter,
-        VariableGet,
-        defaultLanguageVersion,
-        LocalVariable;
+        defaultLanguageVersion;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
@@ -76,17 +72,30 @@ Future<void> main() async {
     CoreTypes coreTypes = new CoreTypes(component);
     ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
 
-    Expression argument = new StringLiteral("arg");
+    InternalExpression argument = new InternalStringLiteral(
+      "arg",
+      fileOffset: -1,
+    );
     ActualArguments arguments = new ActualArguments(
       argumentList: [new PositionalArgument(argument)],
       hasNamedBeforePositional: false,
       positionalCount: 1,
     );
-    Expression expression = new VariableGet(
-      new LocalVariable(name: "expression", type: const DynamicType()),
+    InternalExpression expression = new InternalVariableGet(
+      new InternalLocalVariable(
+        name: "expression",
+        type: const DynamicType(),
+        isImplicitlyTyped: false,
+        fileOffset: -1,
+      ),
     );
-    Expression index = new VariableGet(
-      new LocalVariable(name: "index", type: const DynamicType()),
+    InternalExpression index = new InternalVariableGet(
+      new InternalLocalVariable(
+        name: "index",
+        type: const DynamicType(),
+        isImplicitlyTyped: false,
+        fileOffset: -1,
+      ),
     );
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLoader loader = new KernelTarget(

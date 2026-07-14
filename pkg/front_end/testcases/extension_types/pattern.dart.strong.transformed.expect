@@ -65,7 +65,6 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
       }
     }
   }
-  #L1:
   {
     final synthesized self::MyList<core::int> /* erasure=core::List<core::int> */ #4#0 = list;
     synthesized core::int #4#1;
@@ -84,7 +83,6 @@ static method method(self::MyList<core::int> /* erasure=core::List<core::int> */
       }
     }
   }
-  #L2:
   {
     final synthesized self::MyMap<core::String, core::bool> /* erasure=core::Map<core::String, core::bool> */ #5#0 = map;
     synthesized core::bool? #5#3;

@@ -15,7 +15,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 /// A visitor that finds code that assumes a later version of the SDK than the
 /// minimum version required by the SDK constraints in `pubspec.yaml`.
-class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
+class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   /// The error reporter to be used to report errors.
   final DiagnosticReporter _errorReporter;
 

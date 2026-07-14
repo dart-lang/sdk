@@ -246,7 +246,7 @@
         "use-sdk": true
       }
     },
-    "unittest-asserts-(debug|product|release)-(linux|mac|win)-(arm64|x64)": {
+    "unittest-asserts-(debug|product|release)-(linux|mac|win)-(arm64|arm64e|x64)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
@@ -370,7 +370,8 @@
     "vm-aot-(linux|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {}
     },
-    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-mac-(debug|product|release)-arm64e": {},
+    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c|arm64e)": {
       "options": {
         "gen-snapshot-format": "macho-dylib"
       }
@@ -1179,7 +1180,9 @@
     {
       "builders": [
         "vm-mac-debug-arm64",
-        "vm-mac-release-arm64"
+        "vm-mac-debug-arm64e",
+        "vm-mac-release-arm64",
+        "vm-mac-release-arm64e"
       ],
       "meta": {
         "description": "This configuration is used by the VM JIT builders on mac arm64. Includes VM service testing and building shared libraries for iOS target."
@@ -1255,7 +1258,9 @@
         "vm-aot-linux-debug-x64",
         "vm-aot-linux-release-x64",
         "vm-aot-mac-release-arm64",
+        "vm-aot-mac-release-arm64e",
         "vm-aot-mac-debug-arm64",
+        "vm-aot-mac-debug-arm64e",
         "vm-aot-win-debug-x64",
         "vm-aot-win-release-x64"
       ],
@@ -3135,21 +3140,21 @@
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/generate_stress_test.dart",
+          "name": "analyze runtime/tools/generate_stress_test.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/generate_stress_test.dart"
+            "runtime/tools/generate_stress_test.dart"
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/run_stress_test_shards.dart",
+          "name": "analyze runtime/tools/run_stress_test_shards.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/run_stress_test_shards.dart"
+            "runtime/tools/run_stress_test_shards.dart"
           ]
         }
       ]
@@ -3161,6 +3166,7 @@
         "pkg-linux-release-arm64",
         "pkg-mac-release",
         "pkg-mac-release-arm64",
+        "pkg-mac-release-arm64e",
         "pkg-win-release",
         "pkg-win-release-arm64"
       ],
@@ -3533,7 +3539,7 @@
           "name": "Generate Isolate Stress Test",
           "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
-            "runtime/tests/concurrency/generate_stress_test.dart"
+            "runtime/tools/generate_stress_test.dart"
           ]
         },
         {
@@ -3567,7 +3573,7 @@
           "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
             "tools/sdks/dart-sdk/bin/dart",
-            "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "runtime/tools/run_stress_test_shards.dart",
             "--arch=${arch}",
             "--copy-coredumps"
           ],

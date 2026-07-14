@@ -528,7 +528,7 @@ main() {
       }
     }
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         simpleIdentifier: (node) {
           var comment = node.token.precedingComments;

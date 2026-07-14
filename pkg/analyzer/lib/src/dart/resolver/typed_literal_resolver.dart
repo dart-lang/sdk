@@ -96,7 +96,7 @@ class TypedLiteralResolver {
       );
     }
 
-    node.typeArguments?.accept(_resolver);
+    node.typeArguments?.accept2(_resolver);
     _resolveElements(node.elements, context);
     var staticType = _resolveListLiteral2(
       inferrer,
@@ -182,7 +182,7 @@ class TypedLiteralResolver {
       node.contextType = null;
     }
 
-    node.typeArguments?.accept(_resolver);
+    node.typeArguments?.accept2(_resolver);
     _resolveElements(node.elements, context);
     _resolveSetOrMapLiteral2(
       inferrer,

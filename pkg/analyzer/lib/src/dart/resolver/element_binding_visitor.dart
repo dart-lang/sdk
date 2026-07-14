@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
-class ElementBindingVisitor extends RecursiveAstVisitor<void> {
+class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   final LibraryFragmentImpl _libraryFragment;
 
   /// This index is incremented every time we visit a [LibraryDirective].
@@ -41,7 +41,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
   void bindSubtree(FragmentImpl enclosingFragment, AstNode node) {
     _withElementHolder(ElementHolder(enclosingFragment), () {
-      node.accept(this);
+      node.accept2(this);
     });
   }
 
@@ -168,15 +168,15 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(null, () {
-        node.typeName?.accept(this);
+        node.typeName?.accept2(this);
 
         _withElementWalker(ElementWalker.forExecutable(fragment), () {
-          node.parameters.accept(this);
+          node.parameters.accept2(this);
         });
 
-        node.initializers.accept(this);
-        node.redirectedConstructor?.accept(this);
-        node.body.accept(this);
+        node.initializers.accept2(this);
+        node.redirectedConstructor?.accept2(this);
+        node.body.accept2(this);
       });
     });
   }
@@ -243,7 +243,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     if (arguments != null) {
       _withElementWalker(null, () {
         _withElementHolder(ElementHolder(fragment), () {
-          arguments.accept(this);
+          arguments.accept2(this);
         });
       });
     }
@@ -352,31 +352,31 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
-      node.returnType?.accept(this);
+      node.returnType?.accept2(this);
 
       if (_elementWalker != null) {
         _withElementWalker(ElementWalker.forExecutable(fragment), () {
-          node.functionExpression.typeParameters?.accept(this);
-          node.functionExpression.parameters?.accept(this);
+          node.functionExpression.typeParameters?.accept2(this);
+          node.functionExpression.parameters?.accept2(this);
         });
 
         _withElementWalker(null, () {
-          node.functionExpression.body.accept(this);
+          node.functionExpression.body.accept2(this);
         });
       } else {
-        node.functionExpression.typeParameters?.accept(this);
+        node.functionExpression.typeParameters?.accept2(this);
         fragment.typeParameters = holder.typeParameters;
         for (var typeParameter in fragment.typeParameters) {
           TypeParameterElementImpl(firstFragment: typeParameter);
         }
 
-        node.functionExpression.parameters?.accept(this);
+        node.functionExpression.parameters?.accept2(this);
         fragment.formalParameters = holder.formalParameters;
         for (var formalParameter in fragment.formalParameters) {
           formalParameter.initElement();
         }
 
-        node.functionExpression.body.accept(this);
+        node.functionExpression.body.accept2(this);
       }
     });
   }
@@ -403,7 +403,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    if (node.parent is FunctionDeclaration) {
+    if (node.parent2 is FunctionDeclaration) {
       // Handled in visitFunctionDeclaration
       super.visitFunctionExpression(node);
       return;
@@ -425,19 +425,19 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
-      node.typeParameters?.accept(this);
+      node.typeParameters?.accept2(this);
       fragment.typeParameters = holder.typeParameters;
       for (var typeParameter in fragment.typeParameters) {
         TypeParameterElementImpl(firstFragment: typeParameter);
       }
 
-      node.parameters?.accept(this);
+      node.parameters?.accept2(this);
       fragment.formalParameters = holder.formalParameters;
       for (var formalParameter in fragment.formalParameters) {
         formalParameter.initElement();
       }
 
-      node.body.accept(this);
+      node.body.accept2(this);
     });
 
     fragment.setCodeRange(node.offset, node.length);
@@ -453,11 +453,11 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
       _withElementWalker(ElementWalker.forTypedef(fragment), () {
-        node.typeParameters?.accept(this);
+        node.typeParameters?.accept2(this);
 
         _withElementWalker(null, () {
-          node.returnType?.accept(this);
-          node.parameters.accept(this);
+          node.returnType?.accept2(this);
+          node.parameters.accept2(this);
           fragment.encloseElements(holder.formalParameters);
           for (var formalParameter in holder.formalParameters) {
             formalParameter.initElement();
@@ -545,15 +545,15 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     _setOrCreateMetadataElements(fragment, node.metadata);
 
-    node.returnType?.accept(this);
+    node.returnType?.accept2(this);
     _withElementWalker(ElementWalker.forExecutable(fragment), () {
-      node.typeParameters?.accept(this);
-      node.parameters?.accept(this);
+      node.typeParameters?.accept2(this);
+      node.parameters?.accept2(this);
     });
 
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(null, () {
-        node.body.accept(this);
+        node.body.accept2(this);
       });
     });
   }
@@ -613,11 +613,11 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(ElementWalker.forExecutable(fragment), () {
-        node.formalParameters.accept(this);
+        node.formalParameters.accept2(this);
       });
     });
 
-    node.typeParameters?.accept(this);
+    node.typeParameters?.accept2(this);
   }
 
   @override
@@ -691,8 +691,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var variableList = node.parent as VariableDeclarationListImpl;
-    var declarationParent = variableList.parent!;
+    var variableList = node.parent2 as VariableDeclarationListImpl;
+    var declarationParent = variableList.parent2!;
 
     VariableFragmentImpl fragment;
     if (_elementWalker != null) {
@@ -766,7 +766,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     _withElementWalker(null, () {
       for (var node in annotations) {
-        node.accept(this);
+        node.accept2(this);
       }
     });
 
@@ -802,10 +802,10 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
       var holder = ElementHolder(fragment);
       _withElementHolder(holder, () {
         _withElementWalker(null, () {
-          node.documentationComment?.accept(this);
-          node.type?.accept(this);
-          functionTypedSuffix.typeParameters?.accept(this);
-          functionTypedSuffix.formalParameters.accept(this);
+          node.documentationComment?.accept2(this);
+          node.type?.accept2(this);
+          functionTypedSuffix.typeParameters?.accept2(this);
+          functionTypedSuffix.formalParameters.accept2(this);
         });
       });
       for (var typeParameter in holder.typeParameters) {
@@ -815,8 +815,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
         formalParameter.initElement();
       }
     } else {
-      node.documentationComment?.accept(this);
-      node.type?.accept(this);
+      node.documentationComment?.accept2(this);
+      node.type?.accept2(this);
     }
 
     if (node.defaultClause case var defaultClause?) {
@@ -826,7 +826,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
       _withElementWalker(null, () {
         _withElementHolder(ElementHolder(fragment), () {
-          defaultClause.value.accept(this);
+          defaultClause.value.accept2(this);
         });
       });
     }

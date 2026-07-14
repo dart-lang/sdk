@@ -2544,8 +2544,8 @@ class InvalidConstant implements Constant {
     required AstNode node,
     bool isUnresolved = false,
   }) {
-    var parent = node.parent;
-    var parent2 = parent?.parent;
+    var parent = node.parent2;
+    var parent2 = parent?.parent2;
     if (parent is ArgumentList &&
         parent2 is InstanceCreationExpression &&
         parent2.isConst) {

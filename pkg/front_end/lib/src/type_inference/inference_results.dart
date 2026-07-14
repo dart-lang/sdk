@@ -9,7 +9,7 @@ import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../kernel/external_ast_helper.dart';
 import '../kernel/external_ast_helper.dart' as extern;
-import '../kernel/internal_ast.dart';
+import '../kernel/inferred_collections.dart';
 import '../source/check_helper.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
@@ -552,6 +552,14 @@ class ExpressionInferenceResult {
   @override
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
+
+class ElementInferenceResult({
+  /// The inferred type of the element.
+  required final DartType inferredType,
+
+  /// The inferred expression.
+  required final InferredElement element,
+});
 
 /// A guard used for creating null-shorting null-aware actions.
 class NullAwareGuard {

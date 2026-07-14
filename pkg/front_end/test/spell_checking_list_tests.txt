@@ -21,6 +21,7 @@ acr
 acts
 adapter
 adaptor
+additions
 adequately
 adopted
 advantages
@@ -301,6 +302,7 @@ dw
 e's
 ea
 ease
+eb
 ec
 echo
 edits
@@ -976,6 +978,7 @@ worse
 wrongly
 ws
 x's
+xb
 xf
 xfq
 xlate

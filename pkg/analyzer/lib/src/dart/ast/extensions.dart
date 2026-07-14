@@ -12,7 +12,7 @@ import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _readElement(AstNode node) {
-  var parent = node.parent;
+  var parent = node.parent2;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
     return parent.readElement;
@@ -35,7 +35,7 @@ Element? _readElement(AstNode node) {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _writeElement(AstNode node) {
-  var parent = node.parent;
+  var parent = node.parent2;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
     return parent.writeElement;
@@ -58,7 +58,7 @@ Element? _writeElement(AstNode node) {
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 DartType? _writeType(AstNode node) {
-  var parent = node.parent;
+  var parent = node.parent2;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
     return parent.writeType;
@@ -170,7 +170,7 @@ extension FormalParameterExtension on FormalParameter {
   }
 
   FormalParameterList get parentFormalParameterList {
-    return parent as FormalParameterList;
+    return parent2 as FormalParameterList;
   }
 
   AstNode get typeOrSelf {

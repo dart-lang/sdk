@@ -232,6 +232,11 @@ bool LoadedMachODylib::ReadHeader() {
               "Architecture mismatch.");
   CHECK_ERROR(header_.cpusubtype == dart::mach_o::CPU_SUBTYPE_ARM_ALL,
               "Unexpected subtype of ARM specified");
+#elif defined(TARGET_ARCH_ARM64E)
+  CHECK_ERROR(header_.cputype == dart::mach_o::CPU_TYPE_ARM64,
+              "Architecture mismatch.");
+  CHECK_ERROR(header_.cpusubtype == dart::mach_o::CPU_SUBTYPE_ARM64E_V0,
+              "Unexpected subtype of ARM64 specified");
 #elif defined(TARGET_ARCH_ARM64)
   CHECK_ERROR(header_.cputype == dart::mach_o::CPU_TYPE_ARM64,
               "Architecture mismatch.");
@@ -481,15 +486,27 @@ bool LoadedMachODylib::ResolveSymbols(const uint8_t** data,
     const auto& sym = external_symbols_[i];
     const char* name = string_table_ + sym.n_idx;
     const uint8_t** output = nullptr;
+    bool is_text = false;
 
     if (strcmp(name, kSnapshotDataAsmSymbol) == 0) {
       output = data;
     } else if (strcmp(name, kSnapshotTextAsmSymbol) == 0) {
       output = text;
+      // dyld decides based on the section the symbol comes from, but our loader
+      // doesn't keep track of the sections.
+      is_text = true;
     }
 
     if (output != nullptr) {
-      *output = reinterpret_cast<const uint8_t*>(base_->start() + sym.n_value);
+      auto* addr =
+          reinterpret_cast<const uint8_t*>(base_->start() + sym.n_value);
+#if defined(HOST_ARCH_ARM64E)
+      if (is_text) {
+        addr =
+            ptrauth_sign_unauthenticated(addr, ptrauth_key_function_pointer, 0);
+      }
+#endif
+      *output = addr;
     }
   }
 

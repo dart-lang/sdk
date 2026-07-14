@@ -248,7 +248,7 @@ class FindDeclarations {
 }
 
 /// Visitor that adds [SearchResult]s for references to the [import].
-class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
+class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final LibraryImport import;
@@ -288,8 +288,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
   }
 
   @override
@@ -299,7 +299,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
     }
     if (import.prefix != null) {
       if (node.element == import.prefix?.element) {
-        var parent = node.parent;
+        var parent = node.parent2;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
           var element = parent.writeOrReadElement?.baseElement;
           if (importedElements.contains(element)) {
@@ -509,7 +509,7 @@ class Search {
             n is FunctionBody ||
             n is TopLevelVariableDeclaration ||
             n is SwitchExpression ||
-            n.parent is CompilationUnit,
+            n.parent2 is CompilationUnit,
       );
     } else if (element is LibraryElementImpl) {
       return _searchReferences_Library(element);
@@ -520,7 +520,7 @@ class Search {
     } else if (element is TypeParameterElement) {
       return _searchReferences_Local(
         element,
-        (n) => n.parent is CompilationUnit,
+        (n) => n.parent2 is CompilationUnit,
       );
     }
     return const <SearchResult>[];
@@ -969,7 +969,7 @@ class Search {
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = ImportElementReferencesVisitor(element, libraryFragment);
-        unitResult.unit.accept(visitor);
+        unitResult.unit.accept2(visitor);
         results.addAll(visitor.results);
       }
     }
@@ -1047,7 +1047,7 @@ class Search {
 
     // Find the matches.
     var visitor = _LocalReferencesVisitor({element}, unit.declaredFragment!);
-    enclosingNode.accept(visitor);
+    enclosingNode.accept2(visitor);
     return visitor.results;
   }
 
@@ -1058,7 +1058,7 @@ class Search {
     if (element.enclosingElement is LocalFunctionElement) {
       results.addAll(
         await _searchReferences_Local(element, (node) {
-          return node is Block || node.parent is CompilationUnit;
+          return node is Block || node.parent2 is CompilationUnit;
         }),
       );
     } else {
@@ -1104,7 +1104,7 @@ class Search {
       transitiveVariables.toSet(),
       bindElement.firstFragment.libraryFragment,
     );
-    rootNode.accept(visitor);
+    rootNode.accept2(visitor);
     return visitor.results;
   }
 
@@ -1122,7 +1122,7 @@ class Search {
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _LocalReferencesVisitor({element}, libraryFragment);
-        unitResult.unit.accept(visitor);
+        unitResult.unit.accept2(visitor);
         results.addAll(visitor.results);
       }
     }
@@ -1749,7 +1749,7 @@ class _IndexRequest {
 /// Visitor that adds [SearchResult]s for local elements of a block, method,
 /// class or a library - labels, local functions, local variables and
 /// parameters, type parameters, import prefixes.
-class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
+class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final Set<Element> elements;
@@ -1768,9 +1768,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -1804,8 +1804,8 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
   }
 
   @override
@@ -1815,7 +1815,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
     }
     var element = node.element;
     if (elements.contains(element)) {
-      var parent = node.parent;
+      var parent = node.parent2;
       SearchResultKind kind = SearchResultKind.REFERENCE;
       if (element is LocalFunctionElement) {
         if (parent is MethodInvocation && parent.methodName == node) {
@@ -1841,7 +1841,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
-    bool isQualified = entity is AstNode && entity.parent is Label;
+    bool isQualified = entity is AstNode && entity.parent2 is Label;
     _addResultImpl(entity, kind, isQualified: isQualified);
   }
 

@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AugmentationFormalParameterModifierTest);
     defineReflectiveTests(AugmentationFormalParameterNameTest);
+    defineReflectiveTests(AugmentationFormalParameterScopeTest);
     defineReflectiveTests(AugmentationFormalParameterShapeTest);
     defineReflectiveTests(AugmentationFormalParameterTypeTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -242,6 +243,94 @@ set foo(int x);
 augment set foo(int y) {}
 //                  ^
 // [diag.augmentationPositionalFormalParameterName][context 1] The parameter name 'y' must either match the name 'x' from a preceding declaration or be '_'.
+''');
+  }
+}
+
+@reflectiveTest
+class AugmentationFormalParameterScopeTest extends PubPackageResolutionTest {
+  test_class_constructor_rP1__rPw_body() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int p1);
+  augment A(int _) {
+    p1;
+//  ^^
+// [diag.undefinedIdentifier] Undefined name 'p1'.
+  }
+}
+''');
+  }
+
+  test_class_constructor_rP1__rPw_constructorInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int value;
+  A(int p1);
+  augment A(int _) : value = p1;
+//                           ^^
+// [diag.undefinedIdentifier] Undefined name 'p1'.
+}
+''');
+  }
+
+  test_class_constructor_rP1_rP2__rP1_constructorInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int value;
+  A(int? p1, int? p2);
+//^
+// [context 1] The declaration being augmented.
+  augment A(int? p1) : value = p2;
+//                 ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
+//                             ^^
+// [diag.undefinedIdentifier] Undefined name 'p2'.
+}
+''');
+  }
+
+  test_class_instanceMethod_rP1__rPw_body() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  void f(int p1);
+  augment void f(int _) {
+    p1;
+//  ^^
+// [diag.undefinedIdentifier] Undefined name 'p1'.
+  }
+}
+''');
+  }
+
+  test_class_primaryConstructor_rP1__rPw_fieldInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A(int p1);
+augment class A(int _) {
+  final int value = p1;
+//                  ^^
+// [diag.undefinedIdentifier] Undefined name 'p1'.
+}
+''');
+  }
+
+  test_topLevelFunction_rP1__rPw_body() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int x);
+augment void f(int _) {
+  x;
+//^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+}
+''');
+  }
+
+  test_topLevelFunction_rPw__rP1_body() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int _);
+augment void f(int x) {
+  x;
+}
 ''');
   }
 }

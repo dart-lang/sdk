@@ -14,7 +14,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
 /// actually constant.
-class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
+class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   ConstArgumentsVerifier(this._diagnosticReporter);
@@ -107,7 +107,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is PropertyAccess && parent.propertyName == node) return;
     if (parent is PrefixedIdentifier && parent.identifier == node) return;
     if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
@@ -206,12 +206,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference) return false;
     if (node is SimpleIdentifier) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is ConstructorName) {
-        parent = parent.parent;
+        parent = parent.parent2;
       }
       while (parent is ParenthesizedExpression) {
-        parent = parent.parent;
+        parent = parent.parent2;
       }
       if (parent is InvocationExpression) return false;
       if (node.element is TopLevelFunctionElement) return true;

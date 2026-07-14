@@ -17,7 +17,6 @@ class C extends core::Object {
   }
 }
 static method test1(self::C c) → core::String {
-  #L1:
   {
     final synthesized self::C #0#0 = c;
     final const synthesized core::int #0#1 = #C1;

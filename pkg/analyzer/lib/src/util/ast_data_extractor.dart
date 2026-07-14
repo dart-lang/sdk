@@ -38,7 +38,7 @@ MemberId computeMemberId(Element element) {
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
-abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
+abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
     with DataRegistry<T> {
   final Uri uri;
 
@@ -133,7 +133,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   void run(CompilationUnit unit) {
-    unit.accept(this);
+    unit.accept2(this);
   }
 
   @override
@@ -175,7 +175,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent is CompilationUnit) {
+    if (node.parent2 is CompilationUnit) {
       computeForMember(node, createMemberId(node));
     }
     super.visitFunctionDeclaration(node);
@@ -236,9 +236,9 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent!.parent is TopLevelVariableDeclaration) {
+    if (node.parent2!.parent2 is TopLevelVariableDeclaration) {
       computeForMember(node, createMemberId(node));
-    } else if (node.parent!.parent is FieldDeclaration) {
+    } else if (node.parent2!.parent2 is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
     } else {
       computeForVariableDeclaration(node, computeDefaultNodeId(node));

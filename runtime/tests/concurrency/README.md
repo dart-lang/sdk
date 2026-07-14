@@ -15,7 +15,7 @@ The resulting `stress_test_list.json` file was hand-edited afterwards to remove
 certain tests that have passed the simple automated filter but cannot be used
 as part of the stress test.
 
-`generate_stress_test.dart`: Can be used to consume `stress_test_list.json` and
+`runtime/tools/generate_stress_test.dart`: Can be used to consume `stress_test_list.json` and
 build the stress test files.
 
 `stress_test_list.json`: Contains a list of tests that can be used to generate a

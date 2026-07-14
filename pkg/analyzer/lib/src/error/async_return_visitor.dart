@@ -8,7 +8,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
-class AsyncReturnVisitor extends SimpleAstVisitor<void> {
+class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
   final Diagnostic? Function(Token token) _reportAtToken;
   final TypeSystem _typeSystem;
   final TypeProvider _typeProvider;
@@ -72,7 +72,7 @@ class AsyncReturnVisitor extends SimpleAstVisitor<void> {
 extension on ReturnStatement {
   bool get isWithinTryBlock {
     for (var ancestor in withAncestors) {
-      if (ancestor case Block(:var parent)) {
+      if (ancestor case Block(parent2: var parent)) {
         if (parent is BlockFunctionBody) {
           return false;
         }
@@ -86,7 +86,7 @@ extension on ReturnStatement {
 }
 
 extension on FunctionBody {
-  DartType? get returnType => switch (parent) {
+  DartType? get returnType => switch (parent2) {
     MethodDeclaration(:var declaredFragment) ||
     FunctionDeclaration(:var declaredFragment) ||
     FunctionExpression(

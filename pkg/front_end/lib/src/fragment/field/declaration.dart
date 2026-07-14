@@ -133,7 +133,7 @@ abstract class FieldDeclaration {
   /// This is only used for instance fields.
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   });
 
@@ -326,7 +326,7 @@ class RegularFieldDeclaration
   @override
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     return _encoding.createInitializer(
@@ -942,7 +942,7 @@ abstract class FieldFragmentDeclaration {
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    Expression? initializer,
+    InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
   });
 
@@ -998,7 +998,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    Expression? initializer,
+    InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
   }) {
     if (_fieldInitializerCache != null) {
@@ -1015,12 +1015,12 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
               inferenceDefaultType: inferenceDefaultType,
               internalThisVariable: internalThisVariable,
             );
-        initializer =
+        Expression inferredInitializer =
             inferredFieldInitializer.expressionInferenceResult.expression;
         _hasInitializerBeenComputed = true;
         buildBody(
           coreTypes,
-          initializer,
+          inferredInitializer,
           scopeProviderInfo: inferredFieldInitializer.scopeProviderInfo,
         );
       }

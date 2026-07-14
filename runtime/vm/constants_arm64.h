@@ -828,8 +828,20 @@ enum UnconditionalBranchRegOp {
   UnconditionalBranchRegMask = 0xfe000000,
   UnconditionalBranchRegFixed = CompareBranchFixed | B31 | B30 | B25,
   BR = UnconditionalBranchRegFixed | B20 | B19 | B18 | B17 | B16,
+  BRAA = BR | B24 | B11,
+  BRAAZ = BR | B11 | B4 | B3 | B2 | B1 | B0,
+  BRAB = BRAA | B10,
+  BRABZ = BRAAZ | B10,
+
   BLR = BR | B21,
+  BLRAA = BRAA | B21,
+  BLRAAZ = BRAAZ | B21,
+  BLRAB = BRAB | B21,
+  BLRABZ = BRABZ | B21,
+
   RET = BR | B22,
+  RETAA = RET | B11 | B4 | B3 | B2 | B1 | B0,
+  RETAB = RETAA | B10,
 };
 
 // C3.3.5

@@ -30,7 +30,7 @@ typedef SubtypeOfStructDiagnosticCode =
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
 /// of the desired hints.
-class FfiVerifier extends RecursiveAstVisitor<void> {
+class FfiVerifier extends RecursiveAstVisitor2<void> {
   static const _abiSpecificIntegerClassName = 'AbiSpecificInteger';
   static const _abiSpecificIntegerMappingClassName =
       'AbiSpecificIntegerMapping';
@@ -1156,7 +1156,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Check that .address is only used in argument lists passed to native leaf
   /// calls.
   void _validateAddressPosition(Expression node, AstNode errorNode) {
-    var parent = node.parent;
+    var parent = node.parent2;
     // Since we are allowing .address.cast(), we need to traverse up one level
     // to get the ffi Invocation (.cast() nested down one level the expression)
     if (parent is MethodInvocation &&
@@ -1164,9 +1164,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         parent.methodName.name == "cast" &&
         parent.methodName.element?.enclosingElement is ClassElement &&
         parent.methodName.element!.enclosingElement.isPointer) {
-      parent = parent.parent;
+      parent = parent.parent2;
     }
-    var grandParent = parent?.parent;
+    var grandParent = parent?.parent2;
     if (parent is! ArgumentList ||
         grandParent is! MethodInvocation ||
         !grandParent.isNativeLeafInvocation) {

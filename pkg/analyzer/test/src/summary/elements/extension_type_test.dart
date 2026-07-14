@@ -2613,7 +2613,7 @@ library
         #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F2 isExplicitlyCovariant isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
@@ -2624,7 +2624,7 @@ library
               typeName: A
               typeNameOffset: 15
               formalParameters
-                #F5 requiredPositional isDeclaring isExplicitlyCovariant isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:17) (offset:31)
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:17) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
@@ -2638,7 +2638,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter it
+        isCovariant isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -2649,7 +2649,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional isCovariant isDeclaring isFinal this.it
+            #E0 requiredPositional isDeclaring isFinal this.it
               firstFragment: #F5
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
@@ -2679,7 +2679,7 @@ library
         #F1 extension type A (nameOffset:31) (firstTokenOffset:16) (offset:31)
           element: <testLibrary>::@extensionType::A
           fields
-            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F2 isExplicitlyCovariant isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@field::it
               inducedGetter: #F3
           constructors
@@ -2690,7 +2690,7 @@ library
               typeName: A
               typeNameOffset: 31
               formalParameters
-                #F5 requiredPositional isDeclaring isExplicitlyCovariant isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:33) (offset:47)
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:33) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
@@ -2704,7 +2704,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter it
+        isCovariant isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
           type: int
@@ -2715,7 +2715,7 @@ library
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional isCovariant isDeclaring isFinal this.it
+            #E0 requiredPositional isDeclaring isFinal this.it
               firstFragment: #F5
               type: int
               field: <testLibrary>::@extensionType::A::@field::it

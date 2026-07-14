@@ -109,6 +109,27 @@ var f = ({int x = x}) {};
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: x
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value: SimpleIdentifier
+          token: x
+          element: <null>
+          staticType: InvalidType
+      declaredFragment: <testLibraryFragment> x@14
+        element: isPublic
+          type: int
+  leftDelimiter: {
+  rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType

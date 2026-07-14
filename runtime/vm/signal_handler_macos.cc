@@ -19,6 +19,10 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   pc = static_cast<uintptr_t>(mcontext->__ss.__rip);
 #elif defined(HOST_ARCH_ARM)
   pc = static_cast<uintptr_t>(mcontext->__ss.__pc);
+#elif defined(HOST_ARCH_ARM64E)
+  __darwin_arm_thread_state64_ptrauth_strip(mcontext->__ss);
+  pc = static_cast<uintptr_t>(
+      __darwin_arm_thread_state64_get_pc(mcontext->__ss));
 #elif defined(HOST_ARCH_ARM64)
   pc = static_cast<uintptr_t>(mcontext->__ss.__pc);
 #else
@@ -37,6 +41,9 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   fp = static_cast<uintptr_t>(mcontext->__ss.__rbp);
 #elif defined(HOST_ARCH_ARM)
   fp = static_cast<uintptr_t>(mcontext->__ss.__r[7]);
+#elif defined(HOST_ARCH_ARM64E)
+  fp = static_cast<uintptr_t>(
+      __darwin_arm_thread_state64_get_fp(mcontext->__ss));
 #elif defined(HOST_ARCH_ARM64)
   fp = static_cast<uintptr_t>(mcontext->__ss.__fp);
 #else
@@ -55,6 +62,9 @@ uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   sp = static_cast<uintptr_t>(mcontext->__ss.__rsp);
 #elif defined(HOST_ARCH_ARM)
   sp = static_cast<uintptr_t>(mcontext->__ss.__sp);
+#elif defined(HOST_ARCH_ARM64E)
+  sp = static_cast<uintptr_t>(
+      __darwin_arm_thread_state64_get_sp(mcontext->__ss));
 #elif defined(HOST_ARCH_ARM64)
   sp = static_cast<uintptr_t>(mcontext->__ss.__sp);
 #else
@@ -81,6 +91,9 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   lr = 0;
 #elif defined(HOST_ARCH_ARM)
   lr = static_cast<uintptr_t>(mcontext->__ss.__lr);
+#elif defined(HOST_ARCH_ARM64E)
+  lr = static_cast<uintptr_t>(
+      __darwin_arm_thread_state64_get_lr(mcontext->__ss));
 #elif defined(HOST_ARCH_ARM64)
   lr = static_cast<uintptr_t>(mcontext->__ss.__lr);
 #else

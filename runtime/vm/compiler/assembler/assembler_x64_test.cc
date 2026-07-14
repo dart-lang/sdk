@@ -26,7 +26,7 @@ namespace compiler {
 #define EXPECT_DISASSEMBLY_NOT_WINDOWS_ENDS_WITH(expected)
 #else
 #define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->RelativeDisassembly())
+  EXPECT_STREQ_NO_PREFIX_SUFFIX(expected, test->RelativeDisassembly())
 #define EXPECT_DISASSEMBLY_ENDS_WITH(expected_arg)                             \
   char* disassembly = test->RelativeDisassembly();                             \
   const char* expected = expected_arg;                                         \

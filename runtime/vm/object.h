@@ -334,7 +334,19 @@ namespace RTN = dart;
 namespace RTN = dart::compiler::target;
 #endif  //  defined(DART_PRECOMPILED_RUNTIME)
 
-class Object {
+// Explicitly choose the discriminator, since we can't ask what the default is.
+#define HANDLE_DISCRIMINATOR 0x1234
+
+#if defined(HOST_ARCH_ARM64E)
+#define KNOWN_VTABLE_DISCRIMINATOR                                             \
+  [[clang::ptrauth_vtable_pointer(default_key, address_discrimination,         \
+                                  custom_discrimination,                       \
+                                  HANDLE_DISCRIMINATOR)]]
+#else
+#define KNOWN_VTABLE_DISCRIMINATOR
+#endif
+
+class KNOWN_VTABLE_DISCRIMINATOR Object {
  public:
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
@@ -707,13 +719,34 @@ class Object {
   // representation of C++ objects, but works okay in practice with
   // -fno-strict-vtable-pointers.
   cpp_vtable vtable() const {
-    cpp_vtable result;
-    memcpy(&result, reinterpret_cast<const void*>(this),  // NOLINT
-           sizeof(result));
-    return result;
+    void* data;
+    memcpy(&data, reinterpret_cast<const void*>(this),  // NOLINT
+           sizeof(cpp_vtable));
+#if defined(HOST_ARCH_ARM64E)
+    // Adjust the vtable pointer so it doesn't depend on the address of the
+    // prototype handle.
+    data = ptrauth_auth_and_resign(
+        data, ptrauth_key_cxx_vtable_pointer,
+        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR),
+        ptrauth_key_cxx_vtable_pointer, 0x4321);
+#endif
+    return reinterpret_cast<cpp_vtable>(data);
   }
-  void set_vtable(cpp_vtable value) {
-    memcpy(reinterpret_cast<void*>(this), &value,  // NOLINT
+  void set_vtable(cpp_vtable data_in) {
+    void* data = reinterpret_cast<void*>(data_in);
+#if defined(HOST_ARCH_ARM64E)
+    // Resign the vtable pointer for the new handle's address.
+    data = ptrauth_auth_and_resign(
+        data, ptrauth_key_cxx_vtable_pointer, 0x4321,
+        ptrauth_key_cxx_vtable_pointer,
+        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR));
+#endif
+    memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
+           sizeof(cpp_vtable));
+  }
+  void set_vtable_invalid() {
+    void* data = nullptr;
+    memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
            sizeof(cpp_vtable));
   }
 
@@ -1072,7 +1105,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& Handle(ObjectPtr ptr) {
@@ -1088,7 +1121,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateZoneHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& ZoneHandle(ObjectPtr ptr) {

@@ -76,7 +76,12 @@ class MappedAppSnapshot : public AppSnapshot {
       *data_buffer = reinterpret_cast<const uint8_t*>(data_mapping_->address());
     }
     if (text_mapping_ != nullptr) {
-      *text_buffer = reinterpret_cast<const uint8_t*>(text_mapping_->address());
+      auto* addr = reinterpret_cast<const uint8_t*>(text_mapping_->address());
+#if defined(HOST_ARCH_ARM64E)
+      addr =
+          ptrauth_sign_unauthenticated(addr, ptrauth_key_function_pointer, 0);
+#endif
+      *text_buffer = addr;
     }
   }
 

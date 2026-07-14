@@ -183,7 +183,7 @@ class _FutureListener<S, T> {
     : errorCallback = null,
       state = stateWhenComplete;
 
-  _Zone get _zone => result._zone;
+  Zone get _zone => result._zone;
 
   bool get handlesValue => (state & maskValue != 0);
   bool get handlesError => (state & maskError != 0);
@@ -219,12 +219,16 @@ class _FutureListener<S, T> {
   @pragma("vm:never-inline")
   @pragma("vm:invisible")
   FutureOr<T> handleValue(S sourceResult) {
-    return _zone.runUnary<FutureOr<T>, S>(_onValue, sourceResult);
+    return _zone._runUnaryZoned<FutureOr<T>, S>(_zone, _onValue, sourceResult);
   }
 
   bool matchesErrorTest(AsyncError asyncError) {
     if (!hasErrorTest) return true;
-    return _zone.runUnary<bool, Object>(_errorTest, asyncError.error);
+    return _zone._runUnaryZoned<bool, Object>(
+      _zone,
+      _errorTest,
+      asyncError.error,
+    );
   }
 
   FutureOr<T> handleError(AsyncError asyncError) {
@@ -234,13 +238,15 @@ class _FutureListener<S, T> {
     // this return statement throws, and the caller handles the error.
     dynamic result;
     if (errorCallback is dynamic Function(Object, StackTrace)) {
-      result = _zone.runBinary<dynamic, Object, StackTrace>(
+      result = _zone._runBinaryZoned<dynamic, Object, StackTrace>(
+        _zone,
         errorCallback,
         asyncError.error,
         asyncError.stackTrace,
       );
     } else {
-      result = _zone.runUnary<dynamic, Object>(
+      result = _zone._runUnaryZoned<dynamic, Object>(
+        _zone,
         errorCallback as dynamic,
         asyncError.error,
       );
@@ -269,7 +275,7 @@ class _FutureListener<S, T> {
 
   dynamic handleWhenComplete() {
     assert(!handlesError);
-    return _zone.run(_whenCompleteAction);
+    return _zone._runZoned(_zone, _whenCompleteAction);
   }
 
   // Whether the [value] future should be awaited and the [future] completed
@@ -330,7 +336,7 @@ class _Future<T> implements Future<T> {
   ///
   /// Until the future is completed, the field may hold the zone that
   /// listener callbacks used to create this future should be run in.
-  final _Zone _zone;
+  final Zone _zone;
 
   /// Either the result, a list of listeners or another future.
   ///
@@ -440,9 +446,12 @@ class _Future<T> implements Future<T> {
 
   Future<T> catchError(Function onError, {bool test(Object error)?}) {
     _Future<T> result = _Future<T>();
-    if (!identical(result._zone, _rootZone)) {
-      onError = _registerErrorHandler(onError, result._zone);
-      if (test != null) test = result._zone.registerUnaryCallback(test);
+    var resultZone = result._zone;
+    if (!identical(resultZone, _rootZone)) {
+      onError = _registerErrorHandler(onError, resultZone);
+      if (test != null) {
+        test = resultZone._registerUnaryCallbackZoned(resultZone, test);
+      }
     }
     _addListener(_FutureListener<T, T>.catchError(result, onError, test));
     return result;
@@ -458,8 +467,9 @@ class _Future<T> implements Future<T> {
   Future<R> _safeOnError<R>(FutureOr<R> Function(Object, StackTrace) onError) {
     assert(this is _Future<R>); // Is up-cast.
     _Future<R> result = _Future<R>();
-    if (!identical(result._zone, _rootZone)) {
-      onError = result._zone.registerBinaryCallback(onError);
+    var resultZone = result._zone;
+    if (!identical(resultZone, _rootZone)) {
+      onError = resultZone._registerBinaryCallbackZoned(resultZone, onError);
     }
     _addListener(_FutureListener<T, R>.catchError(result, onError, null));
     return result;
@@ -467,8 +477,9 @@ class _Future<T> implements Future<T> {
 
   Future<T> whenComplete(dynamic action()) {
     _Future<T> result = _Future<T>();
-    if (!identical(result._zone, _rootZone)) {
-      action = result._zone.registerCallback<dynamic>(action);
+    var resultZone = result._zone;
+    if (!identical(resultZone, _rootZone)) {
+      action = resultZone._registerCallbackZoned<dynamic>(resultZone, action);
     }
     _addListener(_FutureListener<T, T>.whenComplete(result, action));
     return result;
@@ -539,7 +550,7 @@ class _Future<T> implements Future<T> {
       }
       assert(_isComplete);
       // Handle late listeners asynchronously.
-      _zone.scheduleMicrotask(() {
+      _zone._scheduleMicrotaskZoned(_zone, () {
         _propagateToListeners(this, listener);
       });
     }
@@ -573,7 +584,7 @@ class _Future<T> implements Future<T> {
       }
       assert(_isComplete);
       listeners = _reverseListeners(listeners);
-      _zone.scheduleMicrotask(() {
+      _zone._scheduleMicrotaskZoned(_zone, () {
         _propagateToListeners(this, listeners);
       });
     }
@@ -686,7 +697,8 @@ class _Future<T> implements Future<T> {
     }
     // Otherwise delay the chaining to avoid any synchronous callbacks.
     target._setPendingComplete();
-    target._zone.scheduleMicrotask(() {
+    var targetZone = target._zone;
+    targetZone._scheduleMicrotaskZoned(targetZone, () {
       _chainCoreFuture(source, target, _allowCompleteSync);
     });
   }
@@ -800,7 +812,7 @@ class _Future<T> implements Future<T> {
 
   void _asyncCompleteWithValue(T value) {
     _setPendingComplete();
-    _zone.scheduleMicrotask(() {
+    _zone._scheduleMicrotaskZoned(_zone, () {
       _completeWithValue(value);
     });
   }
@@ -828,7 +840,7 @@ class _Future<T> implements Future<T> {
     assert(!_isComplete);
 
     _setPendingComplete();
-    _zone.scheduleMicrotask(() {
+    _zone._scheduleMicrotaskZoned(_zone, () {
       _completeErrorObject(error);
     });
   }
@@ -879,7 +891,7 @@ class _Future<T> implements Future<T> {
       // expensive, branch. Here we'll enter/leave the zone. Many futures
       // don't have callbacks, so this is a significant optimization.
       if (hasError || listener.handlesValue || listener.handlesComplete) {
-        _Zone zone = listener._zone;
+        Zone zone = listener._zone;
         if (hasError && !source._zone.inSameErrorZone(zone)) {
           // Don't cross zone boundaries with errors.
           AsyncError asyncError = source._error;
@@ -890,10 +902,11 @@ class _Future<T> implements Future<T> {
           return;
         }
 
-        _Zone? oldZone;
+        Zone? oldZone;
         if (!identical(Zone._current, zone)) {
           // Change zone if it's not current.
-          oldZone = Zone._enter(zone);
+          oldZone = Zone._current;
+          Zone._current = zone;
         }
 
         // These callbacks are abstracted to isolate the try/catch blocks
@@ -983,7 +996,7 @@ class _Future<T> implements Future<T> {
         }
 
         // If we changed zone, oldZone will not be null.
-        if (oldZone != null) Zone._leave(oldZone);
+        if (oldZone != null) Zone._current = oldZone;
 
         // If the listener's value is a future we *might* need to chain it. Note that
         // this can only happen if there is a callback.
@@ -1025,7 +1038,7 @@ class _Future<T> implements Future<T> {
   /// New uncompleted future with same type.
   ///
   /// In same zone or other [zone] if specified.
-  _Future<T> _newFutureWithSameType([_Zone? zone]) =>
+  _Future<T> _newFutureWithSameType([Zone? zone]) =>
       _Future<T>.zone(zone ?? _zone);
 
   @pragma("vm:entry-point")

@@ -45,6 +45,28 @@ RegularFormalParameter
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: U
+            element: #E1 U
+            type: U
+          name: a
+          declaredFragment: <testLibraryFragment> a@22
+            element: isPublic
+              type: U
+        RegularFormalParameter
+          type: NamedType
+            name: V
+            element: #E2 V
+            type: V
+          name: b
+          declaredFragment: <testLibraryFragment> b@27
+            element: isPublic
+              type: V
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: U
@@ -85,6 +107,19 @@ RegularFormalParameter
   name: p
   functionTypedSuffix: FunctionTypedFormalParameterSuffix
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@18
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

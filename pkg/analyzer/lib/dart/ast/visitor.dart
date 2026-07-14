@@ -83,6 +83,61 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
 }
 
 /// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure, similar to [GeneralizingAstVisitor2]. This visitor uses a
+/// breadth-first ordering rather than the depth-first ordering of
+/// [GeneralizingAstVisitor2].
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general visit method. Failure to
+/// do so will cause the visit methods for superclasses of the node to not be
+/// invoked and will cause the children of the visited node to not be visited.
+///
+/// In addition, subclasses should <b>not</b> explicitly visit the children of a
+/// node, but should ensure that the method [visitNode] is used to visit the
+/// children (either directly or indirectly). Failure to do will break the order
+/// in which nodes are visited.
+///
+/// Note that, unlike other visitors that begin to visit a structure of nodes by
+/// asking the root node in the structure to accept the visitor, this visitor
+/// requires that clients start the visit by invoking the method [visitAllNodes]
+/// defined on the visitor with the root node as the argument:
+///
+///     visitor.visitAllNodes(rootNode);
+///
+/// Clients may extend this class.
+@experimental
+class BreadthFirstVisitor2<R> extends GeneralizingAstVisitor2<R> {
+  /// A queue holding the nodes that have not yet been visited in the order in
+  /// which they ought to be visited.
+  final Queue<AstNode> _queue = Queue<AstNode>();
+
+  /// A visitor, used to visit the children of the current node, that will add
+  /// the nodes it visits to the [_queue].
+  late final _BreadthFirstChildVisitor2 _childVisitor;
+
+  /// Initialize a newly created visitor.
+  BreadthFirstVisitor2() {
+    _childVisitor = _BreadthFirstChildVisitor2(this);
+  }
+
+  /// Visit all nodes in the tree starting at the given [root] node, in
+  /// breadth-first order.
+  void visitAllNodes(AstNode root) {
+    _queue.add(root);
+    while (_queue.isNotEmpty) {
+      AstNode next = _queue.removeFirst();
+      next.accept2(this);
+    }
+  }
+
+  @override
+  R? visitNode(AstNode node) {
+    node.visitChildren2(_childVisitor);
+    return null;
+  }
+}
+
+/// An AST visitor that will recursively visit all of the nodes in an AST
 /// structure. For each node that is visited, the corresponding visit method on
 /// one or more other visitors (the 'delegates') will be invoked.
 ///
@@ -113,6 +168,38 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
   }
 }
 
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For each node that is visited, the corresponding visit method on
+/// one or more other visitors (the 'delegates') will be invoked.
+///
+/// For example, if an instance of this class is created with two delegates V1
+/// and V2, and that instance is used to visit the expression 'x + 1', then the
+/// following visit methods will be invoked:
+/// 1. V1.visitBinaryExpression
+/// 2. V2.visitBinaryExpression
+/// 3. V1.visitSimpleIdentifier
+/// 4. V2.visitSimpleIdentifier
+/// 5. V1.visitIntegerLiteral
+/// 6. V2.visitIntegerLiteral
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+class DelegatingAstVisitor2<T> extends UnifyingAstVisitor2<T> {
+  /// The delegates whose visit methods will be invoked.
+  final Iterable<AstVisitor2<T>> delegates;
+
+  /// Initialize a newly created visitor to use each of the given delegate
+  /// visitors to visit the nodes of an AST structure.
+  const DelegatingAstVisitor2(this.delegates);
+
+  @override
+  T? visitNode(AstNode node) {
+    delegates.forEach(node.accept2);
+    node.visitChildren2(this);
+    return null;
+  }
+}
+
 /// A helper class used to implement the correct order of visits for a
 /// [BreadthFirstVisitor].
 class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
@@ -121,6 +208,21 @@ class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to help the [outerVisitor].
   _BreadthFirstChildVisitor(this.outerVisitor);
+
+  @override
+  void visitNode(AstNode node) {
+    outerVisitor._queue.add(node);
+  }
+}
+
+/// A helper class used to implement the correct order of visits for a
+/// [BreadthFirstVisitor2].
+class _BreadthFirstChildVisitor2 extends UnifyingAstVisitor2<void> {
+  /// The [BreadthFirstVisitor2] being helped by this visitor.
+  final BreadthFirstVisitor2 outerVisitor;
+
+  /// Initialize a newly created visitor to help the [outerVisitor].
+  _BreadthFirstChildVisitor2(this.outerVisitor);
 
   @override
   void visitNode(AstNode node) {

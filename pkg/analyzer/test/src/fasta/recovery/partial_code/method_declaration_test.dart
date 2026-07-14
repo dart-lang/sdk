@@ -39,6 +39,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -91,6 +103,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -130,6 +154,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -177,6 +213,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -228,6 +276,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -277,6 +337,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -328,6 +400,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -346,6 +430,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -382,6 +472,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -400,6 +502,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -435,6 +543,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -452,6 +572,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -486,6 +612,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -539,6 +677,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -578,6 +728,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -625,6 +787,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -676,6 +850,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -725,6 +911,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -776,6 +974,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -794,6 +1004,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -830,6 +1046,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -848,6 +1076,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -883,6 +1117,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -900,6 +1146,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -934,6 +1186,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -1004,6 +1268,13 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
                 name: f
@@ -1038,6 +1309,17 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -1078,6 +1360,17 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
                 name: f
@@ -1114,6 +1407,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -1148,6 +1449,26 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1190,6 +1511,26 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: void
@@ -1231,6 +1572,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -1241,6 +1588,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1514,6 +1867,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -1558,6 +1917,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -1600,6 +1965,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -1633,6 +2004,22 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1675,6 +2062,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -1710,6 +2105,17 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1749,6 +2155,21 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1793,6 +2214,21 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -1833,6 +2269,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -1871,6 +2319,30 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1917,6 +2389,30 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -1962,6 +2458,16 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -1976,6 +2482,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2009,6 +2521,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2055,6 +2573,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -2088,6 +2612,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2129,6 +2659,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2174,6 +2710,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -2218,6 +2760,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -2261,6 +2811,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -2273,6 +2831,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2309,6 +2873,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -2321,6 +2891,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2355,6 +2931,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -2367,6 +2951,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2399,6 +2989,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2446,6 +3044,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -2479,6 +3085,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2520,6 +3134,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2565,6 +3187,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -2608,6 +3238,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2653,6 +3291,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -2667,6 +3313,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2701,6 +3353,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -2715,6 +3375,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2748,6 +3414,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -2761,6 +3435,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2794,6 +3474,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2842,6 +3530,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -2877,6 +3573,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2920,6 +3624,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2967,6 +3679,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3012,6 +3732,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3059,6 +3787,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3073,6 +3809,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3109,6 +3851,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3123,6 +3873,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3158,6 +3914,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3171,6 +3935,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3206,6 +3976,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3260,6 +4042,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3300,6 +4094,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3348,6 +4154,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3400,6 +4218,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3450,6 +4280,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3502,6 +4344,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3520,6 +4374,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3557,6 +4417,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3575,6 +4447,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3611,6 +4489,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3628,6 +4518,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3663,6 +4559,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3717,6 +4625,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3757,6 +4677,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3805,6 +4737,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3857,6 +4801,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3907,6 +4863,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3959,6 +4927,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -3977,6 +4957,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4014,6 +5000,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -4032,6 +5030,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4068,6 +5072,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -4085,6 +5101,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4120,6 +5142,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -4192,6 +5226,13 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
                 name: f
@@ -4227,6 +5268,17 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -4268,6 +5320,17 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
                 name: f
@@ -4305,6 +5368,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -4340,6 +5411,26 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4383,6 +5474,26 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: void
@@ -4425,6 +5536,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -4435,6 +5552,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4715,6 +5838,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -4760,6 +5889,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -4803,6 +5938,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -4837,6 +5978,22 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4880,6 +6037,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -4916,6 +6081,17 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4956,6 +6132,21 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5001,6 +6192,21 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5042,6 +6248,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5081,6 +6299,30 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5128,6 +6370,30 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5174,6 +6440,16 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5188,6 +6464,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5222,6 +6504,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5269,6 +6557,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -5303,6 +6597,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5345,6 +6645,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5391,6 +6697,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -5436,6 +6748,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5480,6 +6800,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5492,6 +6820,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5529,6 +6863,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -5541,6 +6881,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5576,6 +6922,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5588,6 +6942,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5621,6 +6981,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5669,6 +7037,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -5703,6 +7079,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5745,6 +7129,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5791,6 +7183,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -5835,6 +7235,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5881,6 +7289,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -5895,6 +7311,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5930,6 +7352,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -5944,6 +7374,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5978,6 +7414,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -5991,6 +7435,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6025,6 +7475,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6074,6 +7532,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6110,6 +7576,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6154,6 +7628,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6202,6 +7684,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6248,6 +7738,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6296,6 +7794,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6310,6 +7816,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6347,6 +7859,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6361,6 +7881,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6397,6 +7923,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6410,6 +7944,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6447,6 +7987,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6503,6 +8055,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6545,6 +8109,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6595,6 +8171,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6649,6 +8237,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6701,6 +8301,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6755,6 +8367,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6773,6 +8397,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6812,6 +8442,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6830,6 +8472,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6868,6 +8516,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -6885,6 +8545,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6922,6 +8588,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6978,6 +8656,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -7020,6 +8710,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7070,6 +8772,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7124,6 +8838,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -7176,6 +8902,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7230,6 +8968,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -7248,6 +8998,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7287,6 +9043,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -7305,6 +9073,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7343,6 +9117,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -7360,6 +9146,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7397,6 +9189,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -7473,6 +9277,13 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
                 name: f
@@ -7510,6 +9321,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -7553,6 +9375,17 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
                 name: f
@@ -7592,6 +9425,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -7629,6 +9470,26 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7674,6 +9535,26 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: void
@@ -7718,6 +9599,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -7728,6 +9615,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8022,6 +9915,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -8069,6 +9968,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -8114,6 +10019,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -8150,6 +10061,22 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8195,6 +10122,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8233,6 +10168,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8275,6 +10221,21 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8322,6 +10283,21 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8365,6 +10341,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8406,6 +10394,30 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8455,6 +10467,30 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8503,6 +10539,16 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8517,6 +10563,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8553,6 +10605,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8602,6 +10660,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -8638,6 +10702,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8682,6 +10752,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8730,6 +10806,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -8777,6 +10859,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8823,6 +10913,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8835,6 +10933,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8874,6 +10978,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -8886,6 +10996,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8923,6 +11039,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8935,6 +11059,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8970,6 +11100,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9020,6 +11158,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -9056,6 +11202,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9100,6 +11254,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9148,6 +11310,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -9194,6 +11364,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9242,6 +11420,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -9256,6 +11442,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9293,6 +11485,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -9307,6 +11507,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9343,6 +11549,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -9356,6 +11570,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9392,6 +11612,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9443,6 +11671,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -9481,6 +11717,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9527,6 +11771,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9577,6 +11829,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -9625,6 +11885,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9675,6 +11943,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -9689,6 +11965,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9728,6 +12010,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -9742,6 +12032,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9780,6 +12076,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -9793,6 +12097,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9829,6 +12139,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9884,6 +12206,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -9925,6 +12259,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9974,6 +12320,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10027,6 +12385,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10078,6 +12448,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10131,6 +12513,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10149,6 +12543,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10187,6 +12587,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10205,6 +12617,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10242,6 +12660,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: {
+              rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10259,6 +12689,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10295,6 +12731,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10350,6 +12798,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10391,6 +12851,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10440,6 +12912,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10493,6 +12977,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10544,6 +13040,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10597,6 +13105,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10615,6 +13135,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10653,6 +13179,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10671,6 +13209,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10708,6 +13252,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+              leftDelimiter: [
+              rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -10725,6 +13281,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10761,6 +13323,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -10835,6 +13409,13 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
                 name: f
@@ -10871,6 +13452,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -10913,6 +13505,17 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
                 name: f
@@ -10951,6 +13554,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -10987,6 +13598,26 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11031,6 +13662,26 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: void
@@ -11074,6 +13725,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -11084,6 +13741,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -11371,6 +14034,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -11417,6 +14086,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -11461,6 +14136,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -11496,6 +14177,22 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11540,6 +14237,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -11577,6 +14282,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11618,6 +14334,21 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11664,6 +14395,21 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -11706,6 +14452,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -11746,6 +14504,30 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11794,6 +14576,30 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -11841,6 +14647,16 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -11855,6 +14671,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -11890,6 +14712,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -11938,6 +14766,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -11973,6 +14807,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -12016,6 +14856,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -12063,6 +14909,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -12109,6 +14961,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -12154,6 +15014,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -12166,6 +15034,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12204,6 +15078,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -12216,6 +15096,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12252,6 +15138,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -12264,6 +15158,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12298,6 +15198,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12347,6 +15255,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -12382,6 +15298,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12425,6 +15349,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12472,6 +15404,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -12517,6 +15457,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12564,6 +15512,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -12578,6 +15534,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12614,6 +15576,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -12628,6 +15598,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12663,6 +15639,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -12676,6 +15660,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12711,6 +15701,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12761,6 +15759,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -12798,6 +15804,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12843,6 +15857,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12892,6 +15914,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -12939,6 +15969,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12988,6 +16026,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -13002,6 +16048,12 @@ CompilationUnit
               name: int
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -13040,6 +16092,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -13054,6 +16114,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -13091,6 +16157,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -13104,6 +16178,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b

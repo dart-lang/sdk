@@ -574,7 +574,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       var leftOperandInfo = identicalArgumentInfo[0]!;
       var rightOperandInfo = identicalArgumentInfo[1]!;
       resolver.flowAnalysis.storeExpressionInfo(
-        argumentList.parent as ExpressionImpl,
+        argumentList.parent2 as ExpressionImpl,
         flow?.equalityOperation_end(
           leftOperandInfo.expressionInfo,
           SharedTypeView(leftOperandInfo.staticType),

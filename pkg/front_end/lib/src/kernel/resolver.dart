@@ -113,9 +113,9 @@ class Resolver {
       internalThisVariable: null,
     );
 
-    List<Expression> annotationsToBeInferred = [];
+    List<InternalExpression> annotationsToBeInferred = [];
     for (Annotation annotation in annotations) {
-      Expression expression = bodyBuilder.buildAnnotation(
+      InternalExpression expression = bodyBuilder.buildAnnotation(
         atToken: annotation.atToken,
       );
       if (annotation.createFileUriExpression) {
@@ -215,7 +215,7 @@ class Resolver {
         fileOffset: fileOffset,
       );
     } else {
-      initializer = _buildConstructorInvocation(
+      InternalExpression internalInitializer = _buildConstructorInvocation(
         compilerContext: compilerContext,
         problemReporting: problemReporting,
         libraryFeatures: libraryFeatures,
@@ -231,7 +231,7 @@ class Resolver {
           .inferFieldInitializer(
             fileUri: fileUri,
             declaredType: const UnknownType(),
-            initializer: initializer,
+            initializer: internalInitializer,
             inferenceDefaultType: InferenceDefaultType.Dynamic,
             internalThisVariable: bodyBuilderContext
                 .createInternalThisVariable(),
@@ -348,10 +348,10 @@ class Resolver {
       thisVariable: null,
       formals: primaryConstructorInitializerScopeParameters,
     );
-    for (MapEntry<Identifier, Expression?> entry
+    for (MapEntry<Identifier, InternalExpression?> entry
         in result.fieldInitializers.entries) {
       Identifier identifier = entry.key;
-      Expression? initializer = entry.value;
+      InternalExpression? initializer = entry.value;
       FieldFragment fieldFragment = offsetMap.lookupField(identifier);
       fieldFragment.declaration.buildFieldInitializer(
         typeInferrer: context.typeInferrer,
@@ -886,6 +886,7 @@ class Resolver {
       String formalName,
     ) {
       InternalPositionalParameter formal = new InternalPositionalParameter(
+        defaultValue: null,
         astVariable: parameter,
         isImplicitlyTyped: false,
         fileOffset: parameter.fileOffset,
@@ -986,13 +987,12 @@ class Resolver {
 
     BuildSingleExpressionResult result = bodyBuilder.buildSingleExpression(
       token: token,
-      extraKnownVariableDeclarations:
-          expressionCompilationData.extraKnownVariables,
+      extraKnownVariables: expressionCompilationData.extraKnownVariables,
       fileOffset: fileOffset,
       typeParameterBuilders: typeParameterBuilders,
       formals: formals,
     );
-    Expression expression = result.expression;
+    InternalExpression expression = result.expression;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         InternalVariable variable = formals[i].variable;
@@ -1013,17 +1013,13 @@ class Resolver {
         );
       }
     }
-    for (InternalVariableDeclaration extraVariableDeclaration
+    for (InternalVariable extraVariable
         in expressionCompilationData.extraKnownVariables) {
       context.typeInferrer.flowAnalysis.declare(
-        extraVariableDeclaration.variable,
-        new SharedTypeView(extraVariableDeclaration.variable.type),
+        extraVariable,
+        new SharedTypeView(extraVariable.type),
         initialized: true,
       );
-      // Ensure that initializers are attached to the variable.
-      extraVariableDeclaration.variable.astVariable.initializer =
-          extraVariableDeclaration.initializer
-            ?..parent = extraVariableDeclaration.variable.astVariable;
     }
 
     InternalReturnStatement internalReturn = intern.createReturnStatement(
@@ -1050,7 +1046,7 @@ class Resolver {
     return returnStatement.expression!;
   }
 
-  Expression _buildConstructorInvocation({
+  InternalExpression _buildConstructorInvocation({
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required LibraryFeatures libraryFeatures,
@@ -1086,7 +1082,7 @@ class Resolver {
           ),
         );
       }
-      Expression node = new InternalConstructorInvocation(
+      InternalExpression node = new InternalConstructorInvocation(
         target,
         typeArguments,
         arguments,
@@ -1277,7 +1273,7 @@ class Resolver {
 
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [fileOffset] as the file offset.
-  Expression _createVariableGet({
+  InternalExpression _createVariableGet({
     required AssignedVariablesImpl assignedVariables,
     required InternalVariable variable,
     required int fileOffset,
@@ -1425,7 +1421,7 @@ class Resolver {
       int declaredParameterIndex = 0;
       for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
         if (parameter.isExtensionThis) continue;
-        Expression? defaultValue = parameter.variable.defaultValue;
+        InternalExpression? defaultValue = parameter.variable.defaultValue;
         bool inferDefaultValue;
         if (parameter.isSuperInitializingFormal) {
           // Super-parameters can inherit the default value from the super
@@ -1437,6 +1433,7 @@ class Resolver {
           inferDefaultValue = parameter.isOptional;
         }
         if (inferDefaultValue) {
+          Expression? inferredDefaultValue;
           if (!parameter.defaultValueWasInferred) {
             // Coverage-ignore(suite): Not run.
             defaultValue ??= intern.createNullLiteral(
@@ -1445,23 +1442,26 @@ class Resolver {
               noLocation,
             );
             InternalFunctionParameter originParameter = parameter.variable;
-            defaultValue = context.typeInferrer.inferParameterDefaultValue(
-              fileUri: fileUri,
-              defaultValue: defaultValue,
-              declaredType: originParameter.type,
-              hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
-            );
-            originParameter.updateDefaultValue(defaultValue);
-            if (defaultValue is InvalidExpression) {
+            inferredDefaultValue = context.typeInferrer
+                .inferParameterDefaultValue(
+                  fileUri: fileUri,
+                  defaultValue: defaultValue,
+                  declaredType: originParameter.type,
+                  hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
+                );
+            originParameter.setInferredDefaultValue(inferredDefaultValue);
+            if (inferredDefaultValue is InvalidExpression) {
               originParameter.hasErroneousDefaultValue = true;
             }
             parameter.defaultValueWasInferred = true;
+          } else {
+            inferredDefaultValue = parameter.variable.inferredDefaultValue;
           }
           FunctionParameter? tearOffParameter = bodyBuilderContext
               .getTearOffParameter(declaredParameterIndex);
           if (tearOffParameter != null) {
             Expression tearOffDefaultValue = _simpleCloner.cloneInContext(
-              defaultValue!,
+              inferredDefaultValue!,
             );
             tearOffParameter.defaultValue = tearOffDefaultValue
               ..parent = tearOffParameter;

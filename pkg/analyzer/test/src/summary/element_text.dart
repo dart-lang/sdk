@@ -208,7 +208,7 @@ abstract class _AbstractElementWriter {
 
   void _writeNode(AstNode node) {
     _sink.writeIndent();
-    node.accept(_createAstPrinter());
+    _createAstPrinter().writeNode(node);
   }
 
   void _writeReference(ElementImpl e) {
@@ -1040,6 +1040,13 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementReference('element', f.element);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
+      if (f is InterfaceFragmentImpl && f.withClauseMixinStartIndex != 0) {
+        _sink.writeIndentedLine(() {
+          _sink.write(
+            'withClauseMixinStartIndex: ${f.withClauseMixinStartIndex}',
+          );
+        });
+      }
 
       _writeFragmentList(
         'typeParameters',

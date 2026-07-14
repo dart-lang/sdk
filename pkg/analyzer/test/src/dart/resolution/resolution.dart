@@ -127,14 +127,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
       configuration: ElementPrinterConfiguration(),
     );
 
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration(),
-        withResolution: false,
-      ),
-    );
+    ResolvedAstPrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: ResolvedNodeTextConfiguration(),
+      withResolution: false,
+    ).writeNode(node);
 
     var actual = buffer.toString();
     if (actual != expected) {
@@ -398,15 +396,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withRedirectedConstructors
         ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: nodeTextConfiguration,
-      ),
-    );
+    ResolvedAstPrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: nodeTextConfiguration,
+    ).writeNode(node);
 
-    var unit = node.thisOrAncestorOfType<CompilationUnitImpl>();
+    var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        ? node.thisOrAncestorOfType<CompilationUnitImpl>()
+        : node.thisOrAncestorOfType2<CompilationUnitImpl>();
     if (unit != null) {
       sink.writeElements('invalidNodes', unit.invalidNodes, (node) {
         var range = '[${node.offset}, ${node.end})';

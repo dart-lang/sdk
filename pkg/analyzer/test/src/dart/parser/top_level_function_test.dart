@@ -461,6 +461,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -488,6 +496,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -513,6 +529,14 @@ FunctionDeclaration
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -540,6 +564,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -564,6 +596,14 @@ FunctionDeclaration
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -591,6 +631,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -615,6 +663,14 @@ FunctionDeclaration
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -642,6 +698,14 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: _
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -666,6 +730,12 @@ FunctionDeclaration
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: ( @8 <synthetic>
+      parameters
+        RegularFormalParameter
+          name: <empty> @8 <synthetic>
+      rightParenthesis: ) @8 <synthetic>
+    parameters(v1): FormalParameterList
       leftParenthesis: ( @8 <synthetic>
       parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>
@@ -692,6 +762,12 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
+      parameters
+        RegularFormalParameter
+          name: a @9
+      rightParenthesis: ) @11
+    parameters(v1): FormalParameterList
+      leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @9
       rightParenthesis: ) @11
@@ -716,6 +792,12 @@ FunctionDeclaration
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: ( @7
+      parameters
+        RegularFormalParameter
+          name: a @9
+      rightParenthesis: ) @11
+    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @9
@@ -742,6 +824,12 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: ( @7
+      parameters
+        RegularFormalParameter
+          name: a @8
+      rightParenthesis: ) @15
+    parameters(v1): FormalParameterList
+      leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @8
       rightParenthesis: ) @15
@@ -766,6 +854,12 @@ FunctionDeclaration
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: ( @7
+      parameters
+        RegularFormalParameter
+          name: <empty> @8 <synthetic>
+      rightParenthesis: ) @8
+    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>

@@ -242,9 +242,9 @@ class TypeArgumentsVerifier {
 
   void checkNamedType(NamedTypeImpl node) {
     _checkForTypeArgumentNotMatchingBounds(node);
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is! ConstructorNameImpl ||
-        parent.parent is! InstanceCreationExpressionImpl) {
+        parent.parent2 is! InstanceCreationExpressionImpl) {
       _checkForRawTypeName(node);
     }
   }
@@ -273,9 +273,9 @@ class TypeArgumentsVerifier {
   /// [diag.strictRawType].
   void _checkForRawTypeName(NamedType node) {
     AstNode parentEscapingTypeArguments(NamedType node) {
-      var parent = node.parent!;
+      var parent = node.parent2!;
       while (parent is TypeArgumentList || parent is NamedType) {
-        var grandparent = parent.parent;
+        var grandparent = parent.parent2;
         if (grandparent == null) {
           return parent;
         }
@@ -697,7 +697,7 @@ class TypeArgumentsVerifier {
   /// Determines if the given [namedType] occurs in a context where
   /// super-bounded types are allowed.
   bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
-    switch (namedType.parent) {
+    switch (namedType.parent2) {
       case ClassTypeAlias _:
       case ConstructorName _:
       case ExtendsClause _:

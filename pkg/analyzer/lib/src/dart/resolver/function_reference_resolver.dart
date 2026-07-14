@@ -39,7 +39,7 @@ class FunctionReferenceResolver {
 
   void resolve(FunctionReferenceImpl node) {
     var function = node.function;
-    node.typeArguments?.accept(_resolver);
+    node.typeArguments?.accept2(_resolver);
 
     if (function is SimpleIdentifierImpl) {
       _resolveSimpleIdentifierFunction(node, function);
@@ -287,7 +287,7 @@ class FunctionReferenceResolver {
 
   void _resolveConstructorReference(FunctionReferenceImpl node) {
     // TODO(srawlins): Rewrite and resolve [node] as a constructor reference.
-    node.function.accept(_resolver);
+    node.function.accept2(_resolver);
     node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
   }
 
@@ -582,7 +582,7 @@ class FunctionReferenceResolver {
       // A type-instantiated constructor tearoff like `prefix.C<int>.name` is
       // initially represented as a [PropertyAccess] with a
       // [FunctionReference] 'target'.
-      if (node.parent is PropertyAccess) {
+      if (node.parent2 is PropertyAccess) {
         _resolveConstructorReference(node);
         return;
       } else if (element is InterfaceElementImpl) {
@@ -690,7 +690,7 @@ class FunctionReferenceResolver {
       // A type-instantiated constructor tearoff like `C<int>.name` or
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
-      if (node.parent is PropertyAccess) {
+      if (node.parent2 is PropertyAccess) {
         if (element is TypeAliasElementImpl &&
             element.aliasedType is FunctionType) {
           function.element = element;

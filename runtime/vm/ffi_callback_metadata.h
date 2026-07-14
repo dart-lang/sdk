@@ -276,7 +276,8 @@ class FfiCallbackMetadata {
 
   // The number of trampolines that can be stored on a single page.
   static constexpr intptr_t NumCallbackTrampolinesPerPage() {
-    return (kPageSize - kNativeCallbackSharedStubSize) /
+    return (kPageSize - kNativeCallbackSharedStubSize -
+            kUbsanTargetValidationPaddingSize) /
            kNativeCallbackTrampolineSize;
   }
 
@@ -321,11 +322,16 @@ class FfiCallbackMetadata {
     return address & ~mask;
   }
   static constexpr uword RuntimeFunctionOffset(uword function_index) {
-    return RXMappingSize() + function_index * compiler::target::kWordSize;
+    return RXMappingSize() +
+           FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+           function_index * compiler::target::kWordSize;
   }
   static constexpr intptr_t MetadataOffset() {
     return RuntimeFunctionOffset(kNumRuntimeFunctions);
   }
+
+  static constexpr intptr_t kUbsanTargetValidationPaddingSize =
+      2 * compiler::target::kWordSize;
 
 #if defined(TARGET_ARCH_X64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
