@@ -403,7 +403,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    if (node.parent is FunctionDeclaration) {
+    if (node.parent2 is FunctionDeclaration) {
       // Handled in visitFunctionDeclaration
       super.visitFunctionExpression(node);
       return;
@@ -691,8 +691,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var variableList = node.parent as VariableDeclarationListImpl;
-    var declarationParent = variableList.parent!;
+    var variableList = node.parent2 as VariableDeclarationListImpl;
+    var declarationParent = variableList.parent2!;
 
     VariableFragmentImpl fragment;
     if (_elementWalker != null) {

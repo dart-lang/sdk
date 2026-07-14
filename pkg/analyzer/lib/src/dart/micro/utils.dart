@@ -16,12 +16,12 @@ Element? getElementOfNode2(AstNode? node) {
     return null;
   }
   if (node is NameWithTypeParameters) {
-    node = node.parent;
+    node = node.parent2;
   }
   if (node is DottedName) {
-    node = node.parent;
+    node = node.parent2;
   }
-  if (node is StringLiteral && node.parent is UriBasedDirective) {
+  if (node is StringLiteral && node.parent2 is UriBasedDirective) {
     return null;
   }
 
@@ -40,7 +40,7 @@ Element? getElementOfNode2(AstNode? node) {
   }
 
   if (node is SimpleIdentifier && element is PrefixElement) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ImportDirective) {
       element = MockLibraryImportElement(parent.libraryImport!);
     } else {
@@ -85,7 +85,7 @@ ConstructorElement? _getActualConstructorElement(
 /// with a [PrefixElement], maybe `null`.
 MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   // prepare environment
-  var parent = prefixNode.parent;
+  var parent = prefixNode.parent2;
   var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
   var libraryFragment = unit?.declaredFragment;
   if (libraryFragment == null) {
@@ -131,7 +131,7 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
 
   // prepare used element
   Element? usedElement;
-  var parent = prefixNode.parent;
+  var parent = prefixNode.parent2;
   if (parent is ExtensionOverride) {
     usedElement = parent.element;
   } else if (parent is NamedType) {
@@ -369,9 +369,9 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
     int offset;
     int length;
     if (e == element) {
-      if (node.parent is ConstructorReference) {
+      if (node.parent2 is ConstructorReference) {
         kind = MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
-      } else if (node.parent is InstanceCreationExpression) {
+      } else if (node.parent2 is InstanceCreationExpression) {
         kind = MatchKind.INVOCATION;
       } else {
         kind = MatchKind.REFERENCE;

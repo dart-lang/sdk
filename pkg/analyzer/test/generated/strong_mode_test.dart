@@ -3995,7 +3995,7 @@ main() {
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'cOfString' must be assigned before it can be used.
 }
 ''');
-    var f = result.findNode.simple('f<int>').parent as MethodInvocation;
+    var f = result.findNode.simple('f<int>').parent2 as MethodInvocation;
     var ft = f.staticInvokeType as FunctionType;
     assertType(ft, 'List<int> Function(String)');
 

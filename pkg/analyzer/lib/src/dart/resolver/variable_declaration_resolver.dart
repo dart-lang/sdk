@@ -26,7 +26,7 @@ class VariableDeclarationResolver {
        _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {
-    var parent = node.parent as VariableDeclarationList;
+    var parent = node.parent2 as VariableDeclarationList;
 
     var initializer = node.initializer;
 

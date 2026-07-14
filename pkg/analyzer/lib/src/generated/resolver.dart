@@ -1240,7 +1240,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     // Don't rewrite function declarations.
-    if (expression.parent is FunctionDeclaration) {
+    if (expression.parent2 is FunctionDeclaration) {
       return expression;
     }
 
@@ -1273,7 +1273,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       staticType = staticType.instantiate(typeArgumentTypes);
     }
 
-    var parent = expression.parent;
+    var parent = expression.parent2;
     var genericFunctionInstantiation = FunctionReferenceImpl(
       function: expression,
       typeArguments: null,
@@ -1353,7 +1353,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// Return `true` if we were able to do this, or `false` if it is not
   /// possible to resolve only [node].
   bool prepareForResolving(AstNode node) {
-    var parent = node.parent;
+    var parent = node.parent2;
 
     if (parent is CompilationUnit) {
       return node is ClassDeclaration ||
@@ -1364,7 +1364,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     if (parent is ClassBody) {
-      parent = parent.parent;
+      parent = parent.parent2;
     }
 
     if (parent is ClassDeclarationImpl) {
@@ -1419,7 +1419,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       oldExpression: oldNode,
       newExpression: newNode,
     );
-    parent ??= oldNode.parent;
+    parent ??= oldNode.parent2;
     parent!.replaceChild(oldNode, newNode);
     nullSafetyDeadCodeVerifier.maybeRewriteFirstDeadNode(oldNode, newNode);
   }
@@ -1776,7 +1776,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
       parent.readElement = element;
       parent.readType = readType;
@@ -1832,7 +1832,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
       parent.writeElement = element;
       parent.writeType = writeType;
@@ -3075,7 +3075,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    bool isLocal = node.parent is FunctionDeclarationStatement;
+    bool isLocal = node.parent2 is FunctionDeclarationStatement;
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var functionType = element.type;
@@ -4431,7 +4431,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     var initializer = node.initializer;
     if (initializer != null) {
-      var parent = node.parent as VariableDeclarationList;
+      var parent = node.parent2 as VariableDeclarationList;
       var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
       flowAnalysis.flow?.initialize(
@@ -4515,11 +4515,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void _checkForFutureCatchErrorOnError(BlockFunctionBody errorNode) {
     // Check for "body  might complete normally" in a `Future.catchError`'s
     //`onError` callback.
-    var parent = errorNode.parent?.parent;
+    var parent = errorNode.parent2?.parent2;
     if (parent is! ArgumentList) {
       return;
     }
-    var invocation = parent.parent;
+    var invocation = parent.parent2;
     if (invocation is! MethodInvocation) {
       return;
     }
@@ -4625,7 +4625,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     ExpressionImpl expression, {
     required TypeImpl contextType,
   }) {
-    var parent = expression.parent;
+    var parent = expression.parent2;
     if (_shouldSkipImplicitCallReferenceDueToForm(expression, parent)) {
       return;
     }
@@ -4783,7 +4783,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   ) {
     while (parent is ParenthesizedExpression) {
       expression = parent;
-      parent = expression.parent;
+      parent = expression.parent2;
     }
     if (parent is CascadeExpression && parent.target == expression) {
       // Do not perform an "implicit tear-off conversion" here. It should only
@@ -4976,7 +4976,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
-      var parent = argumentList.parent;
+      var parent = argumentList.parent2;
       if (diagnosticReporter != null && parent != null) {
         var token =
             lastPositionalArgument?.endToken.next ??
@@ -5064,7 +5064,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         name = function.name;
       }
     } else if (nameNode is EnumConstantArguments) {
-      var parent = nameNode.parent;
+      var parent = nameNode.parent2;
       if (parent is EnumConstantDeclaration) {
         var declaredElement = parent.declaredFragment!.element;
         name = declaredElement.type.getDisplayString();

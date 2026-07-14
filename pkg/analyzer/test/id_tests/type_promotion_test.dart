@@ -74,7 +74,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   }
 
   static Element? _readElement(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return parent.readElement;
     } else if (parent is PostfixExpression) {
@@ -87,7 +87,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   }
 
   static DartType? _readType(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return parent.readType;
     } else if (parent is PostfixExpression) {

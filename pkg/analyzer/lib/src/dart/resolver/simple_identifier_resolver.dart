@@ -71,7 +71,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   ///
   // TODO(scheglov): this is duplicate
   bool _isExpressionIdentifier(Identifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
@@ -94,7 +94,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// * it is the prefix in an import directive, or
   /// * it is the prefix in a prefixed identifier.
   bool _isValidAsPrefix(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ImportDirectiveImpl) {
       return identical(parent.prefix, node);
     } else if (parent is PrefixedIdentifierImpl) {
@@ -139,7 +139,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         node.element is FormalParameterElement) {
       return null;
     }
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is FieldFormalParameterImpl) {
       return null;
     } else if (parent is ConstructorFieldInitializerImpl &&
@@ -157,7 +157,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var hasRead = true;
     var hasWrite = false;
     {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is ForEachPartsWithIdentifierImpl &&
           parent.identifier == node) {
         hasRead = false;
@@ -273,7 +273,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         isRead: node.inGetterContext(),
       );
     } else if (element is PrefixElement) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is PrefixedIdentifierImpl && parent.prefix == node ||
           parent is MethodInvocationImpl && parent.target == node) {
         inferenceLogWriter?.recordExpressionWithNoType(node);
@@ -311,11 +311,11 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
 
     if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
-      parent = node.parent;
+      parent = node.parent2;
     }
 
     if (parent is CommentReferenceImpl ||
@@ -340,7 +340,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// Return `true` if the given [identifier] is the return type of a
   /// constructor declaration.
   static bool _isConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     if (parent is ConstructorDeclarationImpl) {
       return identical(parent.typeName, identifier);
     }
@@ -350,7 +350,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// Return `true` if the given [identifier] is the return type of a factory
   /// constructor.
   static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     if (parent is ConstructorDeclarationImpl) {
       return identical(parent.typeName, identifier) &&
           parent.factoryKeyword != null;

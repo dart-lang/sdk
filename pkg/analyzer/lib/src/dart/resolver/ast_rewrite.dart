@@ -260,7 +260,7 @@ class AstRewriter {
   /// The [PrefixedIdentifier] may need to be rewritten as a
   /// [ConstructorReference].
   AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifierImpl node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AnnotationImpl) {
       // An annotations which is a const constructor invocation can initially be
       // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
@@ -345,7 +345,7 @@ class AstRewriter {
       // `Type`.
       return node;
     }
-    if (node.parent is CommentReferenceImpl) {
+    if (node.parent2 is CommentReferenceImpl) {
       // TODO(srawlins): This probably should be allowed to be rewritten to a
       // [ConstructorReference] at some point.
       return node;
@@ -436,7 +436,7 @@ class AstRewriter {
   }
 
   AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ConstantPatternImpl) {
       var element = nameScope.lookup(node.name).getter;
       switch (element) {

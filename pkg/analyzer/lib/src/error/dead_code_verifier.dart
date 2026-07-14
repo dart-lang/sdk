@@ -240,7 +240,7 @@ class NullSafetyDeadCodeVerifier {
       return;
     }
 
-    var parent = firstDeadNode.parent;
+    var parent = firstDeadNode.parent2;
     if (parent is Assertion && identical(firstDeadNode, parent.message)) {
       // Don't report "dead code" for the message part of an assert statement,
       // because this causes nuisance warnings for redundant `!= null`
@@ -458,7 +458,7 @@ class NullSafetyDeadCodeVerifier {
   }
 
   bool _containsFirstDeadNode(AstNode parent) {
-    for (var node = _firstDeadNode; node != null; node = node.parent) {
+    for (var node = _firstDeadNode; node != null; node = node.parent2) {
       if (node == parent) return true;
     }
     return false;
@@ -488,12 +488,12 @@ class NullSafetyDeadCodeVerifier {
       var element = target.element;
       if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(target, element)) {
-        var parent = node.parent;
+        var parent = node.parent2;
         while (parent is MethodInvocation ||
             parent is PropertyAccess ||
             parent is IndexExpression) {
           node = parent!;
-          parent = node.parent;
+          parent = node.parent2;
         }
         _diagnosticReporter.report(
           diag.deadCode.atOffset(

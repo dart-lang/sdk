@@ -473,7 +473,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
     try {
       // Return types are inferred only on non-recursive local functions.
-      if (node.parent is CompilationUnit && !node.isSetter) {
+      if (node.parent2 is CompilationUnit && !node.isSetter) {
         _checkStrictInferenceReturnType(
           node.returnType,
           node,
@@ -531,7 +531,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitGenericFunctionType(GenericFunctionType node) {
     // GenericTypeAlias is handled in [visitGenericTypeAlias], where a proper
     // name can be reported in any message.
-    if (node.parent is! GenericTypeAlias) {
+    if (node.parent2 is! GenericTypeAlias) {
       _checkStrictInferenceReturnType(node.returnType, node, node.toString());
     }
     super.visitGenericFunctionType(node);
@@ -1368,7 +1368,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       if (parameterType is FunctionType) {
         returnType = parameterType.returnType;
       } else {
-        var parent = node.parent;
+        var parent = node.parent2;
         if (parent is! FunctionDeclaration) return;
         returnType = parent.returnType?.type;
       }
@@ -1640,11 +1640,11 @@ class _InvalidAccessVerifier {
 
     // This is the same logic used in [checkForDeprecatedMemberUseAtIdentifier]
     // to avoid reporting an error twice for named constructors.
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     if (parent is ConstructorName && identical(identifier, parent.name)) {
       return;
     }
-    var grandparent = parent?.parent;
+    var grandparent = parent?.parent2;
 
     var element = grandparent is ConstructorName
         ? grandparent.element
@@ -1663,7 +1663,7 @@ class _InvalidAccessVerifier {
     }
 
     _checkForInvalidInternalAccess(
-      parent: identifier.parent,
+      parent: identifier.parent2,
       nameToken: identifier.token,
       element: element,
     );
@@ -1730,7 +1730,7 @@ class _InvalidAccessVerifier {
   void verifyNamedType(NamedType node) {
     var element = node.element;
 
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ConstructorName) {
       element = parent.element;
     }
@@ -1805,7 +1805,7 @@ class _InvalidAccessVerifier {
       String name;
       SyntacticEntity node;
 
-      var grandparent = parent?.parent;
+      var grandparent = parent?.parent2;
 
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();
@@ -1848,10 +1848,10 @@ class _InvalidAccessVerifier {
 
     var hasVisibleForOverriding = _hasVisibleForOverriding(element);
     if (hasVisibleForOverriding) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is MethodInvocation && parent.target is SuperExpression ||
           parent is PropertyAccess && parent.target is SuperExpression) {
-        var grandparent = parent?.parent;
+        var grandparent = parent?.parent2;
         var methodDeclaration = grandparent
             ?.thisOrAncestorOfType<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == name) {
@@ -1966,7 +1966,7 @@ class _InvalidAccessVerifier {
   bool _inCurrentLibrary(Element element) => element.library == _library;
 
   bool _inExportDirective(AstNode node) =>
-      node.parent is Combinator && node.parent!.parent is ExportDirective;
+      node.parent2 is Combinator && node.parent2!.parent2 is ExportDirective;
 
   bool _isLibraryInWorkspacePackage(LibraryElement? library) {
     if (_workspacePackage == null || library == null) {
@@ -2004,8 +2004,8 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    var parent = node.parent;
-    var grandparent = parent?.parent;
+    var parent = node.parent2;
+    var grandparent = parent?.parent2;
     if (node is Identifier) {
       if (grandparent is ConstructorName) {
         name = grandparent.toSource();

@@ -122,7 +122,7 @@ class AstResolver {
     node = getNode();
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(
-      node.parent as AstNodeImpl,
+      node.parent2 as AstNodeImpl,
       inScopePrimaryConstructorParameters,
     );
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));

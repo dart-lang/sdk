@@ -122,7 +122,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   /// returns the [CompoundAssignmentExpression].
   CompoundAssignmentExpression? assignmentTargeting(AstNode node) {
     while (true) {
-      var parent = node.parent!;
+      var parent = node.parent2!;
       switch (parent) {
         case PrefixedIdentifier() when identical(node, parent.identifier):
         case PropertyAccess() when identical(node, parent.propertyName):

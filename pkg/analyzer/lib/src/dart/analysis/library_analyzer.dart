@@ -221,12 +221,12 @@ class LibraryAnalyzer {
       );
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
-        return e.parent is ClassBody ||
-            e.parent is ClassDeclaration ||
-            e.parent is CompilationUnit ||
-            e.parent is EnumBody ||
-            e.parent is ExtensionDeclaration ||
-            e.parent is MixinDeclaration;
+        return e.parent2 is ClassBody ||
+            e.parent2 is ClassDeclaration ||
+            e.parent2 is CompilationUnit ||
+            e.parent2 is EnumBody ||
+            e.parent2 is ExtensionDeclaration ||
+            e.parent2 is MixinDeclaration;
       });
       if (nodeToResolve != null && nodeToResolve is! Directive) {
         var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);

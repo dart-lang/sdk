@@ -2022,7 +2022,7 @@ void f() sync* {
     required AstNode? Function(T node) childAccessor,
   }) {
     var child = childAccessor(destination)!;
-    expect(child.parent, destination);
+    expect(child.parent2, destination);
 
     (child as AstNodeImpl).removeFromParent();
     expect(childAccessor(destination), isNull);
@@ -2035,10 +2035,10 @@ void f() sync* {
     required AstNode child,
     required AstNode replacement,
   }) {
-    expect(child.parent, destination);
+    expect(child.parent2, destination);
 
     (child as AstNodeImpl).replaceWith(replacement as AstNodeImpl);
-    expect(replacement.parent, destination);
+    expect(replacement.parent2, destination);
   }
 
   /// Asserts for each child returned by a function from [childAccessors]
@@ -2053,12 +2053,12 @@ void f() sync* {
   }) {
     for (var childAccessor in childAccessors) {
       var child = childAccessor(destination);
-      expect(child.parent, destination);
+      expect(child.parent2, destination);
 
       var replacement = childAccessor(source);
       (child as AstNodeImpl).replaceWith(replacement as AstNodeImpl);
       expect(childAccessor(destination), replacement);
-      expect(replacement.parent, destination);
+      expect(replacement.parent2, destination);
     }
   }
 

@@ -107,7 +107,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     }
 
     SyntacticEntity errorEntity = node;
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       if (node is SimpleIdentifier) {
         errorEntity = node;
@@ -228,9 +228,9 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void formalParameter(FormalParameter node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is! FormalParameterList) return;
-    if (parent.parent case ConstructorDeclaration constructor) {
+    if (parent.parent2 case ConstructorDeclaration constructor) {
       if (constructor.redirectedConstructor?.element
           case var redirectedConstructor?) {
         if (node.isNamed) {
@@ -323,7 +323,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     }
 
     // Report full ConstructorName, not just the constructor name.
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ConstructorName && identical(node, parent.name)) {
       return;
     }
@@ -419,7 +419,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     if (element is FormalParameterElement) {
       var definingFunction = element.enclosingElement;
 
-      for (; node != null; node = node.parent) {
+      for (; node != null; node = node.parent2) {
         if (node is ConstructorDeclaration) {
           if (node.declaredFragment?.element == definingFunction) {
             return true;

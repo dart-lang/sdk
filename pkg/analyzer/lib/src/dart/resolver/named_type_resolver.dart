@@ -381,7 +381,7 @@ class NamedTypeResolver with ScopeHelpers {
     required Element importPrefixElement,
     required Token nameToken,
   }) {
-    var constructorName = node.parent;
+    var constructorName = node.parent2;
     if (constructorName is ConstructorNameImpl &&
         constructorName.name == null) {
       var typeArguments = node.typeArguments;
@@ -394,7 +394,7 @@ class NamedTypeResolver with ScopeHelpers {
               )
               .at(typeArguments),
         );
-        var instanceCreation = constructorName.parent;
+        var instanceCreation = constructorName.parent2;
         if (instanceCreation is InstanceCreationExpressionImpl) {
           instanceCreation.typeArguments = typeArguments;
         }
@@ -465,7 +465,7 @@ class NamedTypeResolver with ScopeHelpers {
   TypeImpl _verifyNullability(NamedType node, TypeImpl type) {
     if (identical(node, classHierarchy_namedType)) {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
-        var parent = node.parent;
+        var parent = node.parent2;
         if (parent is ExtendsClause || parent is ClassTypeAlias) {
           diagnosticReporter.report(diag.nullableTypeInExtendsClause.at(node));
         } else if (parent is ImplementsClause) {
@@ -491,10 +491,10 @@ class NamedTypeResolver with ScopeHelpers {
   ) {
     // If a type alias that expands to a type parameter.
     if (element.aliasedType is TypeParameterType) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is ConstructorName) {
         var errorRange = _ErrorHelper._getErrorRange(node);
-        var constructorUsage = parent.parent;
+        var constructorUsage = parent.parent2;
         if (constructorUsage is InstanceCreationExpression) {
           diagnosticReporter.report(
             diag.instantiateTypeAliasExpandsToTypeParameter.atOffset(
@@ -547,9 +547,9 @@ class NamedTypeResolver with ScopeHelpers {
   }
 
   static bool _isInstanceCreation(NamedType node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     return parent is ConstructorName &&
-        parent.parent is InstanceCreationExpression;
+        parent.parent2 is InstanceCreationExpression;
   }
 }
 
@@ -560,9 +560,9 @@ class _ErrorHelper {
   _ErrorHelper(this.diagnosticReporter);
 
   bool reportNewWithNonType(NamedType node) {
-    var constructorName = node.parent;
+    var constructorName = node.parent2;
     if (constructorName is ConstructorName) {
-      var instanceCreation = constructorName.parent;
+      var instanceCreation = constructorName.parent2;
       if (instanceCreation is InstanceCreationExpression) {
         var errorRange = _getErrorRange(node, skipImportPrefix: true);
         var importPrefix = node.importPrefix;
@@ -672,7 +672,7 @@ class _ErrorHelper {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ExtendsClause ||
         parent is ImplementsClause ||
         parent is WithClause ||
@@ -751,9 +751,9 @@ class _ErrorHelper {
 
   /// Check if the [node] is the type in a redirected constructor name.
   static bool _isRedirectingConstructor(NamedType node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ConstructorName) {
-      var grandParent = parent.parent;
+      var grandParent = parent.parent2;
       if (grandParent is ConstructorDeclaration) {
         return identical(grandParent.redirectedConstructor, parent);
       }
@@ -763,7 +763,7 @@ class _ErrorHelper {
 
   /// Checks if the [node] is the type in an `as` expression.
   static bool _isTypeInAsExpression(NamedType node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is AsExpression) {
       return identical(parent.type, node);
     }
@@ -772,7 +772,7 @@ class _ErrorHelper {
 
   /// Checks if the [node] is the exception type in a `catch` clause.
   static bool _isTypeInCatchClause(NamedType node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is CatchClause) {
       return identical(parent.exceptionType, node);
     }
@@ -781,7 +781,7 @@ class _ErrorHelper {
 
   /// Checks if the [node] is the type in an `is` expression.
   static bool _isTypeInIsExpression(NamedType node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is IsExpression) {
       return identical(parent.type, node);
     }
@@ -790,6 +790,6 @@ class _ErrorHelper {
 
   /// Checks if the [node] is an element in a type argument list.
   static bool _isTypeInTypeArgumentList(NamedType node) {
-    return node.parent is TypeArgumentList;
+    return node.parent2 is TypeArgumentList;
   }
 }

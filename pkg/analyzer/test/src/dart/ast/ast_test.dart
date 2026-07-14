@@ -1724,7 +1724,7 @@ libr^ary myLib;
 void f() { ^ }
 ''');
     node as Block;
-    var parent = node.parent;
+    var parent = node.parent2;
     parent as BlockFunctionBody;
     expect(parent.offset, node.offset);
     expect(parent.length, node.length);

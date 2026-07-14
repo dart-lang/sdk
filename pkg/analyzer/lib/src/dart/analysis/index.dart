@@ -40,9 +40,9 @@ Element? declaredNamedArgumentParameter(
     }).firstOrNull;
   }
 
-  var argumentList = namedArgument.parent;
+  var argumentList = namedArgument.parent2;
   if (argumentList is ArgumentList) {
-    var invocation = argumentList.parent;
+    var invocation = argumentList.parent2;
     if (invocation is InstanceCreationExpression) {
       return namedParameterElement(invocation.constructorName.element);
     } else if (invocation is MethodInvocation) {
@@ -859,9 +859,9 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     element = _getActualConstructorElement(element);
 
     IndexRelationKind kind;
-    if (node.parent is ConstructorReference) {
+    if (node.parent2 is ConstructorReference) {
       kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
-    } else if (node.parent is InstanceCreationExpression) {
+    } else if (node.parent2 is InstanceCreationExpression) {
       kind = IndexRelationKind.IS_INVOKED_BY;
     } else {
       kind = IndexRelationKind.IS_REFERENCED_BY;
@@ -1217,7 +1217,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
     var element = node.writeOrReadElement;
 
-    var parent = node.parent;
+    var parent = node.parent2;
     if (element != null &&
         element.firstFragment.enclosingFragment is LibraryFragmentImpl &&
         // We're only unprefixed when part of a PrefixedIdentifier if we're
@@ -1243,7 +1243,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     }
     IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
     if (element is FormalParameterElement) {
-      var parent = node.parent;
+      var parent = node.parent2;
       var isGet = node.inGetterContext();
       var isSet = node.inSetterContext();
       if (parent is CommentReference) {
@@ -1478,7 +1478,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     if (node.isQualified) {
       return true;
     }
-    AstNode parent = node.parent!;
+    AstNode parent = node.parent2!;
     return parent is Combinator || parent is Label;
   }
 

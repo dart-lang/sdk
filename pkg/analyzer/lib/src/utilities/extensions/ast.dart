@@ -33,7 +33,7 @@ extension AstNodeExtension on AstNode {
   FunctionExpression? get enclosingClosure {
     for (var node in withAncestors) {
       switch (node) {
-        case FunctionExpression(:var parent)
+        case FunctionExpression(parent2: var parent)
             when parent is! FunctionDeclaration:
           return node;
         case FunctionDeclaration() ||
@@ -86,7 +86,7 @@ extension AstNodeExtension on AstNode {
 
   AstNode? get enclosingUnitChild {
     for (var node in withAncestors) {
-      if (node.parent is CompilationUnit) {
+      if (node.parent2 is CompilationUnit) {
         return node;
       }
     }
@@ -98,7 +98,7 @@ extension AstNodeExtension on AstNode {
     AstNode? current = this;
     while (current != null) {
       yield current;
-      current = current.parent;
+      current = current.parent2;
     }
   }
 
@@ -138,9 +138,9 @@ extension AstNodeNullableExtension on AstNode? {
 extension ExpressionExtension on Expression {
   /// Whether this expression is found in a [CommentReference].
   bool get inCommentReference =>
-      parent is CommentReference ||
-      parent?.parent is CommentReference ||
-      parent?.parent?.parent is CommentReference;
+      parent2 is CommentReference ||
+      parent2?.parent2 is CommentReference ||
+      parent2?.parent2?.parent2 is CommentReference;
 }
 
 extension ExtensionElementExtension on ExtensionElement {

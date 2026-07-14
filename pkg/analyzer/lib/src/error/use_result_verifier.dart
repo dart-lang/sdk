@@ -54,7 +54,7 @@ class UseResultVerifier {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     // Covered by checkPropertyAccess, checkMethodInvocation
     // and checkFunctionExpressionInvocation respectively.
     if (parent is PropertyAccess ||
@@ -72,9 +72,9 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is PrefixedIdentifier) {
-      parent = parent.parent;
+      parent = parent.parent2;
     }
     if (parent is CommentReference) {
       // Don't flag references in comments.
@@ -157,7 +157,7 @@ class UseResultVerifier {
   }
 
   static bool _isUsed(AstNode node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent == null) {
       return false;
     }

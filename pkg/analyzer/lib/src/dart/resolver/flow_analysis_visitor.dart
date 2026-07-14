@@ -432,7 +432,7 @@ class FlowAnalysisHelper {
     Element? element, {
     required bool isBreak,
   }) {
-    for (; node != null; node = node.parent) {
+    for (; node != null; node = node.parent2) {
       if (element == null) {
         switch (node) {
           case DoStatementImpl():
@@ -1138,7 +1138,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    if (node.parent is CompilationUnit) {
+    if (node.parent2 is CompilationUnit) {
       throw StateError('Should not visit top level declarations');
     }
     assignedVariables.beginNode();
@@ -1150,7 +1150,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    if (node.parent is FunctionDeclaration) {
+    if (node.parent2 is FunctionDeclaration) {
       // A FunctionExpression just inside a FunctionDeclaration is an analyzer
       // artifact--it doesn't correspond to a separate closure.  So skip our
       // usual processing.
@@ -1221,9 +1221,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     var element = node.element;
     if (element is PromotableElementImpl &&
         node.inGetterContext() &&
-        node.parent is! FormalParameter &&
-        node.parent is! CatchClause &&
-        node.parent is! CommentReference) {
+        node.parent2 is! FormalParameter &&
+        node.parent2 is! CatchClause &&
+        node.parent2 is! CommentReference) {
       assignedVariables.read(element);
     }
   }
@@ -1287,7 +1287,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var grandParent = node.parent!.parent;
+    var grandParent = node.parent2!.parent2;
     if (grandParent is TopLevelVariableDeclaration ||
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');

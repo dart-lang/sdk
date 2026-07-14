@@ -165,7 +165,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is! FunctionDeclaration) {
+    if (node.parent2 is! FunctionDeclaration) {
       usedElements.addElement(node.declaredFragment?.element);
     }
     super.visitFunctionExpression(node);
@@ -302,11 +302,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         usedElements.addElement(element);
       }
     } else {
-      var parent = node.parent!;
+      var parent = node.parent2!;
       _useIdentifierElement(node.readElement);
       _useIdentifierElement(node.writeElement);
       _useIdentifierElement(node.element);
-      var grandparent = parent.parent;
+      var grandparent = parent.parent2;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
           (element is ExecutableElement && parent is MethodInvocation) ||
@@ -317,7 +317,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
           // unnamed constructor
           (element is InterfaceElement &&
               grandparent is ConstructorName &&
-              grandparent.parent is InstanceCreationExpression);
+              grandparent.parent2 is InstanceCreationExpression);
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {
@@ -432,9 +432,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       return false;
     }
     // Check if useless reading.
-    AstNode parent = node.parent!;
+    AstNode parent = node.parent2!;
 
-    if (parent.parent is ExpressionStatement) {
+    if (parent.parent2 is ExpressionStatement) {
       if (parent is PrefixExpression || parent is PostfixExpression) {
         // v++;
         // ++v;
@@ -721,7 +721,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
-    switch (node.parent) {
+    switch (node.parent2) {
       case ClassDeclarationImpl():
       case EnumDeclarationImpl():
         for (var parameter in node.formalParameters.parameters) {
@@ -748,7 +748,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
         // renaming it to be public is not an improvement.
         break;
       default:
-        throw UnimplementedError('${node.parent.runtimeType}');
+        throw UnimplementedError('${node.parent2.runtimeType}');
     }
 
     super.visitPrimaryConstructorDeclaration(node);

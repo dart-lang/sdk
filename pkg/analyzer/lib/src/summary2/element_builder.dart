@@ -2028,7 +2028,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       fragmentName = _getFragmentName(nameToken) ?? 'new';
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     var isAugmentation =
         parent is ExtensionTypeDeclarationImpl && parent.augmentKeyword != null;
 
