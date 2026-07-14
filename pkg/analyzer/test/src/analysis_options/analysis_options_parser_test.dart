@@ -25,7 +25,6 @@ main() {
     defineReflectiveTests(ErrorCodeValuesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
 
-    // TODO(srawlins): add tests for multiple includes.
     // TODO(srawlins): add tests with duplicate legacy plugin names.
     // https://github.com/dart-lang/sdk/issues/50980
   });
@@ -462,6 +461,33 @@ AnalysisOptionsImpl
   errorProcessors
     invalid_assignment: ignore
     unused_import: warning
+''');
+  }
+
+  test_analyzer_errors_include_sharedTransitiveIncludeAppliedPerPath() {
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include:
+  - first_options.yaml
+  - shared_options.yaml
+''',
+      getFile('$testPackageRootPath/first_options.yaml'): '''
+include: shared_options.yaml
+analyzer:
+  errors:
+    invalid_assignment: error
+''',
+      getFile('$testPackageRootPath/shared_options.yaml'): '''
+analyzer:
+  errors:
+    invalid_assignment: warning
+''',
+    });
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    invalid_assignment: warning
 ''');
   }
 
