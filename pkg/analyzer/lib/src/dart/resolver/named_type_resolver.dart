@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/type_info.dart'
+    show isValidNonRecordTypeReference;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -716,6 +718,10 @@ class _ErrorHelper {
 
     if (node.importPrefix == null && node.name.lexeme == 'await') {
       diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
+      return;
+    }
+
+    if (!isValidNonRecordTypeReference(node.name)) {
       return;
     }
 

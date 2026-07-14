@@ -2357,7 +2357,6 @@ CompileTimeErrorCode:
       as a type because it's a built-in identifier:
 
       ```dart
-      %ignore=undefined_class
       [!import!]<int> x = [];
       ```
 
