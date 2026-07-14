@@ -301,6 +301,9 @@ class InternalRegularSwitchStatement extends InternalStatement
   @override
   final List<InternalSwitchStatementCase> cases;
 
+  @override
+  final List<BreakStatement> breakStatements = [];
+
   new({
     required this.expression,
     required this.cases,
@@ -344,11 +347,22 @@ sealed class InternalGotoStatement implements InternalStatement {
   abstract InternalInvalidExpression? error;
 }
 
+/// A statement that can be the target of a break statement.
+sealed class InternalBreakableStatement implements InternalStatement {
+  /// List of [BreakStatement]s that will target this breakable statement.
+  List<BreakStatement> get breakStatements;
+}
+
+/// A statement that can be the target of a continue statement.
+sealed class InternalContinuableStatement implements InternalStatement {
+  /// List of [BreakStatement]s that will target this continuable statement.
+  List<BreakStatement> get continueStatements;
+}
+
 class InternalBreakStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late InternalStatement targetStatement;
-  late InternalLabeledStatement target;
+  late InternalBreakableStatement breakableStatement;
 
   @override
   InternalInvalidExpression? error;
@@ -382,8 +396,7 @@ class InternalBreakStatement extends InternalStatement
 class InternalContinueStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late InternalStatement targetStatement;
-  late InternalLabeledStatement target;
+  late InternalContinuableStatement continuableStatement;
 
   @override
   InternalInvalidExpression? error;
@@ -6409,8 +6422,7 @@ class ForInHeaderResult {
 }
 
 /// Internal node for a for-in loop statement.
-class InternalForInStatement extends InternalStatement
-    implements InternalLoopStatement {
+class InternalForInStatement extends InternalLoopStatement {
   /// The element of the for-in loop.
   ///
   /// For instance 'x' and 'var x' in
@@ -7666,6 +7678,9 @@ class InternalPatternSwitchStatement extends InternalStatement
   @override
   final List<InternalPatternSwitchCase> cases;
 
+  @override
+  final List<BreakStatement> breakStatements = [];
+
   new({
     required this.expression,
     required this.cases,
@@ -7706,7 +7721,7 @@ class InternalPatternSwitchStatement extends InternalStatement
 sealed class InternalSwitch implements TreeNode {}
 
 sealed class InternalSwitchStatement
-    implements InternalSwitch, InternalStatement {
+    implements InternalSwitch, InternalStatement, InternalBreakableStatement {
   List<InternalSwitchCase> get cases;
 }
 
@@ -8102,12 +8117,18 @@ class InternalVariableStatement extends InternalStatement {
   }
 }
 
-abstract interface class InternalLoopStatement implements InternalStatement {
+sealed class InternalLoopStatement extends InternalStatement
+    implements InternalBreakableStatement, InternalContinuableStatement {
   abstract InternalStatement body;
+
+  @override
+  final List<BreakStatement> breakStatements = [];
+
+  @override
+  final List<BreakStatement> continueStatements = [];
 }
 
-class InternalForStatement extends InternalStatement
-    implements InternalLoopStatement {
+class InternalForStatement extends InternalLoopStatement {
   // May be empty, but not null.
   final List<InternalVariableDeclaration> variables;
   final InternalExpression? condition; // May be null.
@@ -8556,8 +8577,7 @@ class InternalYieldStatement extends InternalStatement {
   }
 }
 
-class InternalDoStatement extends InternalStatement
-    implements InternalLoopStatement {
+class InternalDoStatement extends InternalLoopStatement {
   @override
   InternalStatement body;
 
@@ -8590,8 +8610,7 @@ class InternalDoStatement extends InternalStatement
   }
 }
 
-class InternalWhileStatement extends InternalStatement
-    implements InternalLoopStatement {
+class InternalWhileStatement extends InternalLoopStatement {
   InternalExpression condition;
 
   @override
@@ -8623,36 +8642,18 @@ class InternalWhileStatement extends InternalStatement
   }
 }
 
-class InternalLabeledStatement extends InternalStatement {
+class InternalLabeledStatement extends InternalStatement
+    implements InternalBreakableStatement {
   late InternalStatement body;
 
-  /// List of [BreakStatement]s that must use the [LabeledStatement] created
-  /// for this [InternalLabeledStatement] as their target.
-  List<BreakStatement>? _users = [];
+  @override
+  final List<BreakStatement> breakStatements = [];
 
   new(InternalStatement? body, {required int fileOffset}) {
     if (body != null) {
       this.body = body..parent = this;
     }
     this.fileOffset = fileOffset;
-  }
-
-  /// Registers that [BreakStatement] should target the [LabeledStatement]
-  /// created for this [InternalLabeledStatement] as its target.
-  void addUser(BreakStatement statement) {
-    assert(_users != null, "Users have already been processed for $this.");
-    _users!.add(statement);
-  }
-
-  /// Registers [replacement] as the [LabeledStatement] created for this
-  /// [InternalLabeledStatement] and updates all [_users] to use it as their
-  /// target.
-  void registerReplacement(LabeledStatement replacement) {
-    assert(_users != null, "Users have already been processed for $this.");
-    for (BreakStatement breakStatement in _users!) {
-      breakStatement.target = replacement;
-    }
-    _users = null;
   }
 
   @override

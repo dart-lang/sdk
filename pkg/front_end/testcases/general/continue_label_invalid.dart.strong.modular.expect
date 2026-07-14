@@ -18,15 +18,14 @@ static method main() → dynamic {
       continue L; // Error
       ^^^^^^^^";
   1;
-  #L1:
   for (dynamic i in <dynamic>[])
-    #L2:
+    #L1:
     {
       if(i =={core::Object::==}{(core::Object) → core::bool} 0) {
-        break #L2;
+        break #L1;
       }
       else {
-        break #L2;
+        break #L1;
       }
     }
   invalid-expression "pkg/front_end/testcases/general/continue_label_invalid.dart:31:9: Error: A 'continue' label must be on a loop or a switch member.

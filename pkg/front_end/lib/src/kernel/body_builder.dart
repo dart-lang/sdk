@@ -3523,35 +3523,22 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalStatement body = popStatement(doKeyword);
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<InternalContinueStatement>? continueStatements;
-    if (continueTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        body,
-      );
-      continueStatements = continueTarget.resolveContinues(labeledStatement);
-      body = labeledStatement;
-    }
-    InternalStatement doStatement = intern.createDoStatement(
+
+    InternalLoopStatement doStatement = intern.createDoStatement(
       offsetForToken(doKeyword),
       body,
       expression,
     );
+    if (breakTarget.hasUsers) {
+      breakTarget.resolveBreaks(doStatement);
+    }
+    if (continueTarget.hasUsers) {
+      continueTarget.resolveContinues(doStatement);
+    }
     // This is matched by the [beginNode] call in [beginDoWhileStatement].
     assignedVariables.endNode(doStatement);
-    if (continueStatements != null) {
-      for (InternalContinueStatement continueStatement in continueStatements) {
-        continueStatement.targetStatement = doStatement;
-      }
-    }
-    InternalStatement result = doStatement;
-    if (breakTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        result,
-      );
-      breakTarget.resolveBreaks(labeledStatement, doStatement);
-      result = labeledStatement;
-    }
-    exitLoopOrSwitch(result);
+
+    exitLoopOrSwitch(doStatement);
   }
 
   @override
@@ -3773,15 +3760,7 @@ class BodyBuilderImpl extends StackListenerImpl
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<InternalContinueStatement>? continueStatements;
-    if (continueTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        body,
-      );
-      continueStatements = continueTarget.resolveContinues(labeledStatement);
-      body = labeledStatement;
-    }
-    InternalStatement forInStatement = new InternalForInStatement(
+    InternalLoopStatement forInStatement = new InternalForInStatement(
       _computeForInElement(
         forToken: forToken,
         inToken: inKeyword,
@@ -3793,22 +3772,14 @@ class BodyBuilderImpl extends StackListenerImpl
       fileOffset: awaitToken?.charOffset ?? forToken.charOffset,
       bodyOffset: body.fileOffset,
     );
-
-    assignedVariables.storeInfo(forInStatement, assignedVariablesNodeInfo);
-    if (continueStatements != null) {
-      for (InternalContinueStatement continueStatement in continueStatements) {
-        continueStatement.targetStatement = forInStatement;
-      }
-    }
-    InternalStatement result = forInStatement;
     if (breakTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        result,
-      );
-      breakTarget.resolveBreaks(labeledStatement, forInStatement);
-      result = labeledStatement;
+      breakTarget.resolveBreaks(forInStatement);
     }
-    exitLoopOrSwitch(result);
+    if (continueTarget.hasUsers) {
+      continueTarget.resolveContinues(forInStatement);
+    }
+    assignedVariables.storeInfo(forInStatement, assignedVariablesNodeInfo);
+    exitLoopOrSwitch(forInStatement);
   }
 
   @override
@@ -4308,41 +4279,27 @@ class BodyBuilderImpl extends StackListenerImpl
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget() as JumpTarget;
     JumpTarget breakTarget = exitBreakTarget() as JumpTarget;
-    List<InternalContinueStatement>? continueStatements;
-    if (continueTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        body,
-      );
-      continueStatements = continueTarget.resolveContinues(labeledStatement);
-      body = labeledStatement;
-    }
     InternalExpression? condition;
     if (conditionStatement is InternalExpressionStatement) {
       condition = conditionStatement.expression;
     } else {
       assert(conditionStatement is InternalEmptyStatement);
     }
-    InternalStatement forStatement = intern.createForStatement(
+    InternalLoopStatement forStatement = intern.createForStatement(
       offsetForToken(forKeyword),
       variables,
       condition,
       updates,
       body,
     );
-    assignedVariables.storeInfo(forStatement, assignedVariablesNodeInfo);
-    if (continueStatements != null) {
-      for (InternalContinueStatement continueStatement in continueStatements) {
-        continueStatement.targetStatement = forStatement;
-      }
-    }
-    InternalStatement result = forStatement;
     if (breakTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        result,
-      );
-      breakTarget.resolveBreaks(labeledStatement, forStatement);
-      result = labeledStatement;
+      breakTarget.resolveBreaks(forStatement);
     }
+    if (continueTarget.hasUsers) {
+      continueTarget.resolveContinues(forStatement);
+    }
+    assignedVariables.storeInfo(forStatement, assignedVariablesNodeInfo);
+    InternalStatement result = forStatement;
     if (variableOrExpression is InternalPatternVariableDeclaration) {
       result = intern.createBlock(
         fileOffset: result.fileOffset,
@@ -4966,7 +4923,6 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalStatement statement = popStatementNoWrap();
     LabelTarget target = pop() as LabelTarget;
     _labelScopes.pop();
-    // TODO(johnniwinther): Split the handling of breaks and continue.
     if (target.breakTarget.hasUsers || target.continueTarget.hasUsers) {
       if (intern.isVariablesDeclaration(statement)) {
         internalProblem(
@@ -4976,36 +4932,27 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
       if (statement is! InternalLabeledStatement) {
+        // We avoid nested labeled statements by only inserting one if
+        // [statement] isn't already a labeled statement. This helps simplify
+        // the handling of labeled continue statements, which should redirect
+        // to the loop enclosed by the label statement(s).
         statement = intern.createLabeledStatement(statement);
       }
-      target.breakTarget.resolveBreaks(statement, statement);
-      List<InternalContinueStatement>? continueStatements = target
-          .continueTarget
-          .resolveContinues(statement);
-      if (continueStatements != null) {
-        for (InternalContinueStatement continueStatement
-            in continueStatements) {
-          continueStatement.targetStatement = statement;
-          InternalStatement labelStatementBody = statement.body;
-          if (labelStatementBody is InternalLoopStatement) {
-            InternalStatement loopBody = labelStatementBody.body;
-            if (loopBody is InternalLabeledStatement) {
-              continueStatement.target = loopBody;
-            } else {
-              labelStatementBody.body = continueStatement.target =
-                  intern.createLabeledStatement(labelStatementBody.body)
-                    ..parent = labelStatementBody;
-            }
-          } else {
-            push(
-              buildProblemStatement(
-                diag.continueLabelInvalid,
-                continueStatement.fileOffset,
-                length: 8,
-              ),
-            );
-            return;
-          }
+      target.breakTarget.resolveBreaks(statement);
+      if (target.continueTarget.hasUsers) {
+        InternalStatement labelStatementBody = statement.body;
+        if (labelStatementBody is InternalLoopStatement) {
+          // Continue statements targeting this label redirect to the loop.
+          target.continueTarget.resolveContinues(labelStatementBody);
+        } else {
+          push(
+            buildProblemStatement(
+              diag.continueLabelInvalid,
+              target.continueTarget.users.first.fileOffset,
+              length: 8,
+            ),
+          );
+          return;
         }
       }
     }
@@ -6080,7 +6027,7 @@ class BodyBuilderImpl extends StackListenerImpl
       "Unexpected pattern in switch statement: ${condition.patternGuard}.",
     );
     InternalExpression expression = condition.expression;
-    InternalStatement switchStatement;
+    InternalSwitchStatement switchStatement;
     if (containsPatterns || libraryFeatures.patterns.isEnabled) {
       // If patterns are enabled, we always use the pattern switch encoding.
       // Otherwise, we use pattern switch encoding to handle the erroneous case
@@ -6132,20 +6079,10 @@ class BodyBuilderImpl extends StackListenerImpl
           case_ as InternalSwitchStatementCase,
       ], fileOffset: switchKeyword.charOffset);
     }
-    InternalStatement result = switchStatement;
-    // We create a labeled statement enclosing the switch statement if it has
-    // explicit break statements targeting it, or if the patterns feature is
-    // enabled, in which case synthetic break statements might be inserted.
-    // TODO(johnniwinther): Remove [LabeledStatement]s in inference visitor
-    // when they have no target.
-    if (target.hasUsers || libraryFeatures.patterns.isEnabled) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        result,
-      );
-      target.resolveBreaks(labeledStatement, switchStatement);
-      result = labeledStatement;
+    if (target.hasUsers) {
+      target.resolveBreaks(switchStatement);
     }
-    exitLoopOrSwitch(result);
+    exitLoopOrSwitch(switchStatement);
     // This is matched by the [beginNode] call in [beginSwitchBlock].
     assignedVariables.endNode(switchStatement);
   }
@@ -6414,35 +6351,20 @@ class BodyBuilderImpl extends StackListenerImpl
     InternalExpression expression = condition.expression;
     JumpTarget continueTarget = exitContinueTarget()!;
     JumpTarget breakTarget = exitBreakTarget()!;
-    List<InternalContinueStatement>? continueStatements;
-    if (continueTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        body,
-      );
-      continueStatements = continueTarget.resolveContinues(labeledStatement);
-      body = labeledStatement;
-    }
-    InternalStatement whileStatement = intern.createWhileStatement(
+    InternalLoopStatement whileStatement = intern.createWhileStatement(
       offsetForToken(whileKeyword),
       expression,
       body,
     );
-    if (continueStatements != null) {
-      for (InternalContinueStatement continueStatement in continueStatements) {
-        continueStatement.targetStatement = whileStatement;
-      }
-    }
-    InternalStatement result = whileStatement;
     if (breakTarget.hasUsers) {
-      InternalLabeledStatement labeledStatement = intern.createLabeledStatement(
-        result,
-      );
-      breakTarget.resolveBreaks(labeledStatement, whileStatement);
-      result = labeledStatement;
+      breakTarget.resolveBreaks(whileStatement);
     }
-    exitLoopOrSwitch(result);
+    if (continueTarget.hasUsers) {
+      continueTarget.resolveContinues(whileStatement);
+    }
     // This is matched by the [beginNode] call in [beginWhileStatement].
     assignedVariables.endNode(whileStatement);
+    exitLoopOrSwitch(whileStatement);
   }
 
   @override

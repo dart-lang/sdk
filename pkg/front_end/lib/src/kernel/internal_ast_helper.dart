@@ -277,7 +277,7 @@ InternalContinueSwitchStatement createContinueSwitchStatement({
 }
 
 /// Return a representation of a do statement.
-InternalStatement createDoStatement(
+InternalLoopStatement createDoStatement(
   int fileOffset,
   InternalStatement body,
   InternalExpression condition,
@@ -455,7 +455,7 @@ ForMapEntry createForMapEntry(
 }
 
 /// Return a representation of a for statement.
-InternalStatement createForStatement(
+InternalLoopStatement createForStatement(
   int fileOffset,
   List<InternalVariableDeclaration>? variables,
   InternalExpression? condition,
@@ -1235,7 +1235,7 @@ InternalPatternSwitchCase createPatternSwitchCase(
   );
 }
 
-InternalStatement createPatternSwitchStatement(
+InternalSwitchStatement createPatternSwitchStatement(
   int fileOffset,
   InternalExpression expression,
   List<InternalPatternSwitchCase> cases,
@@ -1570,7 +1570,7 @@ InternalSwitchExpressionCase createSwitchExpressionCase(
   );
 }
 
-InternalStatement createSwitchStatement(
+InternalSwitchStatement createSwitchStatement(
   InternalExpression expression,
   List<InternalSwitchStatementCase> cases, {
   required int fileOffset,
@@ -1732,7 +1732,7 @@ InternalVariableStatement createVariableStatement(
 
 /// Return a representation of a while statement at the given [fileOffset]
 /// consisting of the given [condition] and [body].
-InternalStatement createWhileStatement(
+InternalLoopStatement createWhileStatement(
   int fileOffset,
   InternalExpression condition,
   InternalStatement body,

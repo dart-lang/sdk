@@ -1048,12 +1048,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
       );
     }
-    flowAnalysis.handleBreak(node.targetStatement);
+    flowAnalysis.handleBreak(node.breakableStatement);
     BreakStatement replacement = extern.createBreakStatement(
       dummyLabeledStatement,
       fileOffset: node.fileOffset,
     );
-    node.target.addUser(replacement);
+    node.breakableStatement.breakStatements.add(replacement);
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -1071,12 +1071,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
       );
     }
-    flowAnalysis.handleContinue(node.targetStatement);
+    flowAnalysis.handleContinue(node.continuableStatement);
     BreakStatement replacement = extern.createBreakStatement(
       dummyLabeledStatement,
       fileOffset: node.fileOffset,
     );
-    node.target.addUser(replacement);
+    node.continuableStatement.continueStatements.add(replacement);
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -2381,10 +2381,61 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
+  /// If [continuableStatement] has any continue statements targeting it, the
+  /// [body] of the [continuableStatement] is wrapped in a [LabeledStatement]
+  /// and the [BreakStatement]s used to lower the continue statements are set to
+  /// target the labeled statement.
+  ///
+  /// Returns [body] or the labeled statement wrapping [body] when necessary.
+  Statement _handleContinues(
+    InternalContinuableStatement continuableStatement,
+    Statement body,
+  ) {
+    if (continuableStatement.continueStatements.isNotEmpty) {
+      LabeledStatement continueLabel = extern.createLabeledStatement(
+        body,
+        fileOffset: continuableStatement.fileOffset,
+      );
+      for (BreakStatement continueStatement
+          in continuableStatement.continueStatements) {
+        continueStatement.target = continueLabel;
+      }
+      body = continueLabel;
+    }
+    return body;
+  }
+
+  /// If [breakableStatement] has any break statements targeting it, the
+  /// [replacement] of the [breakableStatement] is wrapped in a
+  /// [LabeledStatement] and the [BreakStatement]s used to lower the break
+  /// statements are set to target the labeled statement.
+  ///
+  /// Returns [replacement] or the labeled statement wrapping [replacement] when
+  /// necessary.
+  Statement _handleBreaks(
+    InternalBreakableStatement breakableStatement,
+    Statement replacement,
+  ) {
+    if (breakableStatement.breakStatements.isNotEmpty) {
+      LabeledStatement breakLabel = extern.createLabeledStatement(
+        replacement,
+        fileOffset: breakableStatement.fileOffset,
+      );
+      for (BreakStatement breakStatement
+          in breakableStatement.breakStatements) {
+        breakStatement.target = breakLabel;
+      }
+      replacement = breakLabel;
+    }
+    return replacement;
+  }
+
   StatementInferenceResult visitInternalDoStatement(InternalDoStatement node) {
     flowAnalysis.doStatement_bodyBegin(node);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     Statement body = bodyResult.statement;
+
+    body = _handleContinues(node, body);
 
     flowAnalysis.doStatement_conditionBegin();
     InterfaceType boolType = coreTypes.boolRawType(Nullability.nonNullable);
@@ -2403,9 +2454,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       condition,
       fileOffset: node.fileOffset,
     );
+
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
+
+    replacement = _handleBreaks(node, replacement);
+
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -3228,6 +3283,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.forEach_end();
 
     Statement body = bodyResult.statement;
+
+    body = _handleContinues(node, body);
+
     Statement? bodyPrologue = encoding.bodyPrologue;
     if (bodyPrologue != null) {
       body = combineStatements(bodyPrologue, body);
@@ -3241,11 +3299,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       forInStatement.scope = scopeProviderInfo.scope;
     }
     Statement result = forInStatement;
+
+    result = _handleBreaks(node, result);
+
     InvalidExpression? preLoopError = encoding.preLoopError;
     if (preLoopError != null) {
       result = createBlock([
         createExpressionStatement(preLoopError),
-        forInStatement,
+        result,
       ], fileOffset: node.fileOffset);
     }
     libraryBuilder.loader.dataForTesting
@@ -3328,6 +3389,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     });
     StatementInferenceResult bodyResult = inferStatement(node.body);
     Statement body = bodyResult.statement;
+
+    body = _handleContinues(node, body);
+
     flowAnalysis.for_updaterBegin();
 
     List<Expression> updates = new List.filled(
@@ -3357,9 +3421,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       scope: scope,
       fileOffset: node.fileOffset,
     );
+
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
+
+    replacement = _handleBreaks(node, replacement);
+
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -3874,11 +3942,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     StatementInferenceResult bodyResult = inferStatement(node.body);
     flowAnalysis.labeledStatement_end();
     Statement body = bodyResult.statement;
-    LabeledStatement replacement = extern.createLabeledStatement(
-      body,
-      fileOffset: node.fileOffset,
-    );
-    node.registerReplacement(replacement);
+    Statement replacement = _handleBreaks(node, body);
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -12195,6 +12259,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       type: const DynamicType(),
       fileOffset: node.fileOffset,
     );
+    // TODO(johnniwinther): Avoid the need for this.
     InternalLabeledStatement internalLabel = new InternalLabeledStatement(
       null,
       fileOffset: node.fileOffset,
@@ -12315,7 +12380,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Statement body = bodyResult.statement;
     label.body = body..parent = label;
-    internalLabel.registerReplacement(label);
 
     DartType inferredType = isReachable
         ? const NullType()
@@ -13325,6 +13389,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
+
+    replacement = _handleBreaks(node, replacement);
+
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -13444,15 +13511,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
 
-    return new StatementInferenceResult.single(
-      extern.createPatternSwitchStatement(
-        expression: expression,
-        cases: cases,
-        expressionType: expressionType,
-        lastCaseTerminates: lastCaseTerminates,
-        fileOffset: node.fileOffset,
-      ),
+    Statement replacement = extern.createPatternSwitchStatement(
+      expression: expression,
+      cases: cases,
+      expressionType: expressionType,
+      lastCaseTerminates: lastCaseTerminates,
+      fileOffset: node.fileOffset,
     );
+
+    replacement = _handleBreaks(node, replacement);
+
+    return new StatementInferenceResult.single(replacement);
   }
 
   ExpressionInferenceResult visitInternalSymbolLiteral(
@@ -13821,6 +13890,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     StatementInferenceResult bodyResult = inferStatement(node.body);
     Statement body = bodyResult.statement;
 
+    body = _handleContinues(node, body);
+
     flowAnalysis.whileStatement_end();
     Scope? scope;
     if (scopeProviderInfo != null) {
@@ -13836,6 +13907,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
+
+    replacement = _handleBreaks(node, replacement);
+
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -14483,6 +14557,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(checkStack(node, stackBase, [ValueKinds.SwitchExpressionCase]));
   }
 
+  Statement _handleImplicitBreak(InternalSwitchStatement node, Statement body) {
+    BreakStatement breakStatement = extern.createBreakStatement(
+      dummyLabeledStatement,
+      fileOffset: TreeNode.noOffset,
+    );
+    node.breakStatements.add(breakStatement);
+    if (body is Block) {
+      body.addStatement(breakStatement);
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      body = new Block([body, breakStatement])..fileOffset = body.fileOffset;
+    }
+    return body;
+  }
+
   @override
   void handleMergedStatementCase(
     covariant InternalSwitchStatement node, {
@@ -14529,15 +14618,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             // Coverage-ignore(suite): Not run.
             caseIndex < node.cases.length - 1) {
           // Coverage-ignore-block(suite): Not run.
-          LabeledStatement switchLabel = node.parent as LabeledStatement;
-          BreakStatement syntheticBreak = new BreakStatement(switchLabel)
-            ..fileOffset = TreeNode.noOffset;
-          if (body is Block) {
-            body.addStatement(syntheticBreak);
-          } else {
-            body = new Block([body, syntheticBreak])
-              ..fileOffset = body.fileOffset;
-          }
+          body = _handleImplicitBreak(node, body);
         }
 
         assert(
@@ -14610,20 +14691,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (libraryBuilder.libraryFeatures.patterns.isEnabled &&
             !isTerminating &&
             caseIndex < node.cases.length - 1) {
-          InternalLabeledStatement switchLabel =
-              node.parent as InternalLabeledStatement;
-          BreakStatement syntheticBreak = extern.createBreakStatement(
-            dummyLabeledStatement,
-            fileOffset: TreeNode.noOffset,
-          );
-          switchLabel.addUser(syntheticBreak);
-          if (body is Block) {
-            body.addStatement(syntheticBreak);
-          } else {
-            // Coverage-ignore-block(suite): Not run.
-            body = new Block([body, syntheticBreak])
-              ..fileOffset = body.fileOffset;
-          }
+          body = _handleImplicitBreak(node, body);
         }
 
         assert(

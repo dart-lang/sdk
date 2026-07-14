@@ -47,9 +47,8 @@ library from "org-dartlang-test:///main.dart" as main {
       return new main::Foo::•($creationLocationd_0dea112b090073317d4: #C6);
   }
   static method method(dynamic o) → dynamic {
-    #L1:
     switch(o) /* dynamic */ {
-      #L2:
+      #L1:
       case #C7:
         {
           return new main::Foo::•($creationLocationd_0dea112b090073317d4: #C10);

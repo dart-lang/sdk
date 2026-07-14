@@ -1,0 +1,10 @@
+library;
+import self as self;
+
+static const field dynamic annotation = null;
+static method use(dynamic x) → dynamic
+  ;
+static method test0() → dynamic
+  ;
+static method test2() → dynamic
+  ;
