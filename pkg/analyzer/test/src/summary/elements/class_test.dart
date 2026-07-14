@@ -30923,6 +30923,19 @@ library
                             functionKeyword: Function @63
                             parameters: FormalParameterList
                               leftParenthesis: ( @71
+                              parameters
+                                RegularFormalParameter
+                                  type: NamedType
+                                    name: double @72
+                                    element: dart:core::@class::double
+                                    type: double
+                                  name: a @79
+                                  declaredFragment: <testLibraryFragment> a@79
+                                    element: isPublic
+                                      type: double
+                              rightParenthesis: ) @80
+                            parameters(v1): FormalParameterList
+                              leftParenthesis: ( @71
                               parameter: RegularFormalParameter
                                 type: NamedType
                                   name: double @72

@@ -30,7 +30,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void>
   /// If `true`, resolution should be printed.
   final bool _withResolution;
 
-  final bool _useAstView2;
+  _AstView _view = _AstView.v2;
 
   final Map<Token, String> _tokenIdMap = Map.identity();
 
@@ -40,12 +40,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void>
     required this.configuration,
     bool withOffsets = false,
     bool withResolution = true,
-    bool useAstView2 = false,
   }) : _sink = sink,
        _elementPrinter = elementPrinter,
        _withOffsets = withOffsets,
-       _withResolution = withResolution,
-       _useAstView2 = useAstView2;
+       _withResolution = withResolution;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -1759,14 +1757,29 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void>
   }
 
   void writeNode(AstNode node) {
-    _acceptInView(node);
+    var view = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        ? _AstView.v1
+        : _AstView.v2;
+    _withView(view, () {
+      _acceptInView(node);
+    });
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
+    if (node case FormalParameterListImpl(parameters: [_, ...])) {
+      _sink.writeln('FormalParameterList(v1)');
+      _sink.withIndent(() {
+        _withView(_AstView.v1, () {
+          _writeNamedChildEntities(node);
+        });
+      });
+    }
   }
 
   void _acceptInView(AstNode node) {
-    if (_useAstView2) {
-      node.accept2(this);
-    } else {
-      node.accept(this);
+    switch (_view) {
+      case _AstView.v1:
+        node.accept(this);
+      case _AstView.v2:
+        node.accept2(this);
     }
   }
 
@@ -1821,26 +1834,26 @@ Expected parent: (${parent.runtimeType}) $parent
   }
 
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
-    if (_useAstView2) {
-      return node.childEntities2;
-    } else {
-      return node.childEntities;
-    }
-  }
-
-  Iterable<ChildEntity> _viewNamedChildEntities(AstNodeImpl node) {
-    if (_useAstView2) {
-      return node.namedChildEntities2;
-    } else {
-      return node.namedChildEntities;
-    }
+    return switch (_view) {
+      _AstView.v1 => node.childEntities,
+      _AstView.v2 => node.childEntities2,
+    };
   }
 
   AstNode? _viewParent(AstNode node) {
-    if (_useAstView2) {
-      return node.parent2;
-    } else {
-      return node.parent;
+    return switch (_view) {
+      _AstView.v1 => node.parent,
+      _AstView.v2 => node.parent2,
+    };
+  }
+
+  T _withView<T>(_AstView view, T Function() operation) {
+    var previousView = _view;
+    _view = view;
+    try {
+      return operation();
+    } finally {
+      _view = previousView;
     }
   }
 
@@ -2021,23 +2034,73 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeNamedChildEntities(AstNode node) {
     node as AstNodeImpl;
-    for (var entity in _viewNamedChildEntities(node)) {
-      var value = entity.value;
-      if (value is Token) {
-        _writeToken(entity.name, value);
-      } else if (value is AstNode) {
-        _checkParentOfChild(node, value);
-        if (value is ArgumentList && configuration.skipArgumentList) {
-        } else {
-          _writeNode(entity.name, value);
-        }
-      } else if (value is List<Token>) {
-        _writeTokenList(entity.name, value);
-      } else if (value is List<AstNode>) {
-        _writeNodeList(node, entity.name, value);
-      } else {
-        throw UnimplementedError('(${value.runtimeType}) $value');
+    if (_view == _AstView.v1) {
+      for (var entity in node.namedChildEntities) {
+        _writeNamedChildEntity(node, entity);
       }
+      return;
+    }
+
+    var entities2 = node.namedChildEntities2.toList();
+    var entities = node.astNodeApi == AstNodeApi.v2
+        ? <ChildEntity>[]
+        : node.namedChildEntities.toList();
+    var entitiesByName = {for (var entity in entities) entity.name: entity};
+
+    for (var entity2 in entities2) {
+      _writeNamedChildEntity(node, entity2);
+
+      var entity = entitiesByName[entity2.name];
+      var entityValue = entity?.value;
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
+      if (entity2.value is FormalParameterListImpl &&
+          entityValue is FormalParameterListImpl &&
+          entityValue.parameters.isNotEmpty) {
+        _withView(_AstView.v1, () {
+          _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
+        });
+      }
+    }
+
+    // The V1 representation of a formal parameter list manually flattens its
+    // parameters. It is printed separately at the property containing the
+    // list, rather than as additional properties of the list itself.
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
+    if (node is FormalParameterListImpl) {
+      return;
+    }
+
+    var names2 = {for (var entity in entities2) entity.name};
+    _withView(_AstView.v1, () {
+      for (var entity in entities) {
+        if (!names2.contains(entity.name)) {
+          _writeNamedChildEntity(node, entity);
+        }
+      }
+    });
+  }
+
+  void _writeNamedChildEntity(
+    AstNode parent,
+    ChildEntity entity, {
+    String? name,
+  }) {
+    name ??= entity.name;
+    var value = entity.value;
+    if (value is Token) {
+      _writeToken(name, value);
+    } else if (value is AstNode) {
+      _checkParentOfChild(parent, value);
+      if (value is ArgumentList && configuration.skipArgumentList) {
+      } else {
+        _writeNode(name, value);
+      }
+    } else if (value is List<Token>) {
+      _writeTokenList(name, value);
+    } else if (value is List<AstNode>) {
+      _writeNodeList(parent, name, value);
+    } else {
+      throw UnimplementedError('(${value.runtimeType}) $value');
     }
   }
 
@@ -2286,3 +2349,5 @@ class ResolvedNodeTextConfiguration {
   /// If `true`, print IDs of each token, `previous` and `next` tokens.
   bool withTokenPreviousNext = false;
 }
+
+enum _AstView { v1, v2 }

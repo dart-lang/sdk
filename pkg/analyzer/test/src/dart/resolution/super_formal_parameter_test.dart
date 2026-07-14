@@ -83,6 +83,19 @@ SuperFormalParameter
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: b
+          declaredFragment: <testLibraryFragment> b@69
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int

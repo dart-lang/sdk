@@ -436,6 +436,15 @@ void f(List<int> items) {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        name: item
+        declaredFragment: <testLibraryFragment> item@43
+          element: hasImplicitType isPublic
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       name: item
       declaredFragment: <testLibraryFragment> item@43
@@ -475,6 +484,15 @@ main() {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        name: x
+        declaredFragment: <testLibraryFragment> x@53
+          element: hasImplicitType isPublic
+            type: Object?
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       name: x
       declaredFragment: <testLibraryFragment> x@53
@@ -506,6 +524,15 @@ main() {
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        name: x
+        declaredFragment: <testLibraryFragment> x@52
+          element: hasImplicitType isPublic
+            type: Object?
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: x
@@ -546,6 +573,19 @@ FunctionExpression
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: a
+        declaredFragment: <testLibraryFragment> a@29
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

@@ -3688,6 +3688,19 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: x
+          declaredFragment: <testLibraryFragment> x@9
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -3744,6 +3757,19 @@ FunctionDeclaration
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: x
+          declaredFragment: <testLibraryFragment> x@21
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3808,6 +3834,19 @@ MethodDeclaration
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@31
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -4316,6 +4355,15 @@ MethodInvocation
       FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: e
+              declaredFragment: <testLibraryFragment> e@93
+                element: hasImplicitType isPublic
+                  type: dynamic
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
             declaredFragment: <testLibraryFragment> e@93
@@ -4361,6 +4409,15 @@ MethodInvocation
     arguments
       FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: e
+              declaredFragment: <testLibraryFragment> e@115
+                element: hasImplicitType isPublic
+                  type: dynamic
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
@@ -4660,6 +4717,19 @@ MethodDeclaration
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: y
+        declaredFragment: <testLibraryFragment> y@66
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

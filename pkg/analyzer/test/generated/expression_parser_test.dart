@@ -1755,6 +1755,12 @@ FunctionExpressionInvocation
   function: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          name: a
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         name: a
       rightParenthesis: )
@@ -2080,6 +2086,14 @@ var v = (int i) => i++;
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: i
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -2110,6 +2124,14 @@ FunctionExpression
         name: E
     rightBracket: >
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: E
+        name: i
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -2166,6 +2188,14 @@ FunctionExpression
         name: E
     rightBracket: >
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: E
+        name: i
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -3047,6 +3077,14 @@ var v = (int i) => i + 1;
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: i
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -3096,6 +3134,26 @@ FunctionExpression
         name: Y
     rightBracket: >
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: Map
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: X
+              NamedType
+                name: Y
+            rightBracket: >
+        name: m
+      RegularFormalParameter
+        type: NamedType
+          name: X
+        name: x
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -3453,6 +3511,13 @@ AsExpression
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -3475,6 +3540,13 @@ AsExpression
       name: String
     functionKeyword: Function
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

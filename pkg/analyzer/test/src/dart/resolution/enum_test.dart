@@ -272,6 +272,18 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: double
+          element: dart:core::@class::double
+          type: double
+        declaredFragment: <testLibraryFragment> null@null
+          element: isPrivate
+            type: double
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: double
@@ -756,6 +768,28 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@32
+          element: isPublic
+            type: T
+      RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E1 U
+          type: U
+        name: u
+        declaredFragment: <testLibraryFragment> u@37
+          element: isPublic
+            type: U
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -944,6 +978,28 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value: IntegerLiteral
+              literal: 0
+              staticType: int
+          declaredFragment: <testLibraryFragment> a@18
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@enum::A::@field::a
+      leftDelimiter: {
+      rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1003,6 +1059,24 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          requiredKeyword: required
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@27
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@enum::A::@field::a
+      leftDelimiter: {
+      rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -1058,6 +1132,47 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                    element: dart:core::@class::String
+                    type: String
+                  name: x
+                  declaredFragment: <testLibraryFragment> x@26
+                    element: isPublic
+                      type: String
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                  element: dart:core::@class::String
+                  type: String
+                name: x
+                declaredFragment: <testLibraryFragment> x@26
+                  element: isPublic
+                    type: String
+              rightParenthesis: )
+          declaredFragment: <testLibraryFragment> a@17
+            element: isFinal isPublic
+              type: int Function(String)
+              field: <testLibrary>::@enum::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1122,6 +1237,21 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@17
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@enum::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -1173,6 +1303,22 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        FieldFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          thisKeyword: this
+          period: .
+          name: a
+          declaredFragment: <testLibraryFragment> a@16
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@enum::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         type: NamedType
@@ -1241,6 +1387,27 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@enum::A::@getter::foo
+              staticType: null
+            element: <testLibrary>::@enum::A::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: x
+        declaredFragment: <testLibraryFragment> x@31
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       metadata
         Annotation
@@ -1281,6 +1448,19 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: <testLibrary>::@enum::A::@getter::int
+          type: InvalidType
+        name: x
+        declaredFragment: <testLibraryFragment> x@11
+          element: isPublic
+            type: InvalidType
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -1320,6 +1500,19 @@ EnumDeclaration
       period: .
       name: named
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: t
+          declaredFragment: <testLibraryFragment> t@18
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1386,6 +1579,19 @@ EnumDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: t
+          declaredFragment: <testLibraryFragment> t@12
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -1440,6 +1646,19 @@ EnumDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@17
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1492,6 +1711,19 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@11
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1557,6 +1789,35 @@ PrimaryConstructorDeclaration
           defaultType: dynamic
     rightBracket: >
   formalParameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@enum::A::@getter::foo
+              staticType: null
+            element: <testLibrary>::@enum::A::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: x
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@enum::A::@getter::foo
+            staticType: int
+        declaredFragment: <testLibraryFragment> x@40
+          element: isPublic
+            type: int
+    leftDelimiter: [
+    rightDelimiter: ]
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
     parameter: RegularFormalParameter
@@ -1625,6 +1886,28 @@ PrimaryConstructorDeclaration
     rightBracket: >
   formalParameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E1 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@37
+          element: isPublic
+            type: T
+      RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        name: u
+        declaredFragment: <testLibraryFragment> u@42
+          element: isPublic
+            type: U
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -1674,6 +1957,28 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: x
+          declaredFragment: <testLibraryFragment> x@12
+            element: isPublic
+              type: bool
+        RegularFormalParameter
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: y
+          declaredFragment: <testLibraryFragment> y@20
+            element: isPublic
+              type: bool
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2090,6 +2395,19 @@ MethodDeclaration
   propertyKeyword: set
   name: foo
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: a
+        declaredFragment: <testLibraryFragment> a@29
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

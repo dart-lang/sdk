@@ -1239,6 +1239,15 @@ CompilationUnit
               token: Foo
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: Object
+                    question: ?
+                  name: o
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: Object
@@ -1311,6 +1320,15 @@ CompilationUnit
             typeName: SimpleIdentifier
               token: Foo
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: Object
+                    question: ?
+                  name: o
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1395,6 +1413,15 @@ CompilationUnit
             typeName: SimpleIdentifier
               token: Foo
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: Object
+                    question: ?
+                  name: o
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType

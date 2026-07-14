@@ -408,6 +408,19 @@ library
                     functionKeyword: Function @36
                     parameters: FormalParameterList
                       leftParenthesis: ( @44
+                      parameters
+                        RegularFormalParameter
+                          type: NamedType
+                            name: String @45
+                            element: dart:core::@class::String
+                            type: String
+                          name: a @52
+                          declaredFragment: <testLibraryFragment> a@52
+                            element: isPublic
+                              type: String
+                      rightParenthesis: ) @53
+                    parameters(v1): FormalParameterList
+                      leftParenthesis: ( @44
                       parameter: RegularFormalParameter
                         type: NamedType
                           name: String @45
@@ -479,6 +492,19 @@ library
                   type: int
                 functionKeyword: Function @36
                 parameters: FormalParameterList
+                  leftParenthesis: ( @44
+                  parameters
+                    RegularFormalParameter
+                      type: NamedType
+                        name: String @45
+                        element: dart:core::@class::String
+                        type: String
+                      name: a @52
+                      declaredFragment: <testLibraryFragment> a@52
+                        element: isPublic
+                          type: String
+                  rightParenthesis: ) @53
+                parameters(v1): FormalParameterList
                   leftParenthesis: ( @44
                   parameter: RegularFormalParameter
                     type: NamedType
@@ -571,6 +597,22 @@ library
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
+                          leftParenthesis: ( @56
+                          parameters
+                            RegularFormalParameter
+                              type: NamedType
+                                name: int @58
+                                question: ? @61
+                                element: dart:core::@class::int
+                                type: int?
+                              name: a @63
+                              declaredFragment: <testLibraryFragment> a@63
+                                element: isPublic
+                                  type: int?
+                          leftDelimiter: { @57
+                          rightDelimiter: } @64
+                          rightParenthesis: ) @65
+                        parameters(v1): FormalParameterList
                           leftParenthesis: ( @56
                           leftDelimiter: { @57
                           parameter: RegularFormalParameter
@@ -682,6 +724,22 @@ library
                         functionKeyword: Function @48
                         parameters: FormalParameterList
                           leftParenthesis: ( @56
+                          parameters
+                            RegularFormalParameter
+                              type: NamedType
+                                name: int @58
+                                question: ? @61
+                                element: dart:core::@class::int
+                                type: int?
+                              name: a @63
+                              declaredFragment: <testLibraryFragment> a@63
+                                element: isPublic
+                                  type: int?
+                          leftDelimiter: [ @57
+                          rightDelimiter: ] @64
+                          rightParenthesis: ) @65
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: ( @56
                           leftDelimiter: [ @57
                           parameter: RegularFormalParameter
                             type: NamedType
@@ -792,6 +850,22 @@ library
                         functionKeyword: Function @48
                         parameters: FormalParameterList
                           leftParenthesis: ( @56
+                          parameters
+                            RegularFormalParameter
+                              requiredKeyword: required @58
+                              type: NamedType
+                                name: int @67
+                                element: dart:core::@class::int
+                                type: int
+                              name: a @71
+                              declaredFragment: <testLibraryFragment> a@71
+                                element: isPublic
+                                  type: int
+                          leftDelimiter: { @57
+                          rightDelimiter: } @72
+                          rightParenthesis: ) @73
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: ( @56
                           leftDelimiter: { @57
                           parameter: RegularFormalParameter
                             requiredKeyword: required @58
@@ -901,6 +975,19 @@ library
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
+                          leftParenthesis: ( @56
+                          parameters
+                            RegularFormalParameter
+                              type: NamedType
+                                name: int @57
+                                element: dart:core::@class::int
+                                type: int
+                              name: a @61
+                              declaredFragment: <testLibraryFragment> a@61
+                                element: isPublic
+                                  type: int
+                          rightParenthesis: ) @62
+                        parameters(v1): FormalParameterList
                           leftParenthesis: ( @56
                           parameter: RegularFormalParameter
                             type: NamedType

@@ -31,6 +31,28 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: Function
+              functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  parameters
+                    RegularFormalParameter
+                      type: NamedType
+                        name: void
+                      name: <empty> <synthetic>
+                  rightParenthesis: )
+                formalParameters(v1): FormalParameterList
+                  leftParenthesis: (
+                  parameter: RegularFormalParameter
+                    type: NamedType
+                      name: void
+                    name: <empty> <synthetic>
+                  rightParenthesis: )
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: Function
             functionTypedSuffix: FunctionTypedFormalParameterSuffix
@@ -78,6 +100,12 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: C
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: C

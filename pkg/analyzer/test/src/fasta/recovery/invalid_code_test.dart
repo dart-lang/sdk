@@ -293,6 +293,20 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: with
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: {
+          rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
             type: NamedType
@@ -358,6 +372,24 @@ CompilationUnit
       name: forEach
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: <empty> <synthetic>
+              functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  parameters
+                    RegularFormalParameter
+                      name: enum
+                  rightParenthesis: )
+                formalParameters(v1): FormalParameterList
+                  leftParenthesis: (
+                  parameter: RegularFormalParameter
+                    name: enum
+                  rightParenthesis: )
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>

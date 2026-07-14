@@ -686,6 +686,20 @@ typedef F = void Function({int x : 0});
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: int
+      name: x
+      defaultClause: FormalParameterDefaultClause
+        separator: :
+        value: IntegerLiteral
+          literal: 0
+  leftDelimiter: {
+  rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -711,6 +725,20 @@ typedef F = void Function({int x = 0});
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: int
+      name: x
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value: IntegerLiteral
+          literal: 0
+  leftDelimiter: {
+  rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -735,6 +763,20 @@ typedef F = void Function([int x = 0]);
     var node = parseResult.findNode.singleFormalParameterList;
     assertParsedNodeText(node, r'''
 FormalParameterList
+  leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: int
+      name: x
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value: IntegerLiteral
+          literal: 0
+  leftDelimiter: [
+  rightDelimiter: ]
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   leftDelimiter: [
   parameter: RegularFormalParameter
@@ -2261,6 +2303,12 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        name: E
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       name: E
     rightParenthesis: )
@@ -2720,6 +2768,20 @@ typedef F = void Function({int : 0});
     assertParsedNodeText(parameter, r'''
 FormalParameterList
   leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: int
+      name: <empty> <synthetic>
+      defaultClause: FormalParameterDefaultClause
+        separator: :
+        value: IntegerLiteral
+          literal: 0
+  leftDelimiter: {
+  rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -2746,6 +2808,20 @@ typedef F = void Function({int = 0});
     assertParsedNodeText(parameter, r'''
 FormalParameterList
   leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: int
+      name: <empty> <synthetic>
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value: IntegerLiteral
+          literal: 0
+  leftDelimiter: {
+  rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -2770,6 +2846,16 @@ typedef F = void Function({int});
     var parameter = result.findNode.singleFormalParameterList;
     assertParsedNodeText(parameter, r'''
 FormalParameterList
+  leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: int
+      name: <empty> <synthetic>
+  leftDelimiter: {
+  rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
@@ -3005,6 +3091,18 @@ void f(a, b : 0) {}
     assertParsedNodeText(list, r'''
 FormalParameterList
   leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      name: a
+    RegularFormalParameter
+      name: b
+      defaultClause: FormalParameterDefaultClause
+        separator: :
+        value: IntegerLiteral
+          literal: 0
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   parameter: RegularFormalParameter
     name: a
   parameter: RegularFormalParameter
@@ -3160,6 +3258,18 @@ void f(a, b = 0) {}
     var list = result.findNode.singleFormalParameterList;
     assertParsedNodeText(list, r'''
 FormalParameterList
+  leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      name: a
+    RegularFormalParameter
+      name: b
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value: IntegerLiteral
+          literal: 0
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: RegularFormalParameter
     name: a

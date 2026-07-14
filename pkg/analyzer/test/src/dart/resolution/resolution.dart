@@ -402,7 +402,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
       configuration: nodeTextConfiguration,
     ).writeNode(node);
 
-    var unit = node.thisOrAncestorOfType<CompilationUnitImpl>();
+    var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        ? node.thisOrAncestorOfType<CompilationUnitImpl>()
+        : node.thisOrAncestorOfType2<CompilationUnitImpl>();
     if (unit != null) {
       sink.writeElements('invalidNodes', unit.invalidNodes, (node) {
         var range = '[${node.offset}, ${node.end})';

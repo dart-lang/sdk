@@ -488,6 +488,12 @@ CompilationUnit
             name: &
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -521,6 +527,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
@@ -552,6 +564,12 @@ CompilationUnit
       name: convert
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
@@ -668,6 +686,12 @@ CompilationUnit
             name: |
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -701,6 +725,12 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
@@ -776,6 +806,18 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: a
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -916,6 +958,12 @@ CompilationUnit
             name: ==
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -947,6 +995,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
@@ -972,6 +1026,12 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
@@ -1040,6 +1100,12 @@ CompilationUnit
             operatorKeyword: operator
             name: >
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -1114,6 +1180,12 @@ CompilationUnit
             name: >>
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -1187,6 +1259,12 @@ CompilationUnit
             name: >=
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -1259,6 +1337,12 @@ CompilationUnit
             operatorKeyword: operator
             name: ^
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -1476,6 +1560,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
@@ -1557,6 +1647,12 @@ CompilationUnit
             name: <
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -1629,6 +1725,12 @@ CompilationUnit
             operatorKeyword: operator
             name: <<
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -1703,6 +1805,12 @@ CompilationUnit
             name: <=
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -1775,6 +1883,12 @@ CompilationUnit
             operatorKeyword: operator
             name: -
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -1893,6 +2007,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
           rightParenthesis: )
@@ -1964,6 +2084,12 @@ CompilationUnit
             operatorKeyword: operator
             name: %
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -2037,6 +2163,12 @@ CompilationUnit
             operatorKeyword: operator
             name: +
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -2157,6 +2289,12 @@ CompilationUnit
             name: /
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -2229,6 +2367,12 @@ CompilationUnit
             operatorKeyword: operator
             name: *
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
@@ -2356,6 +2500,12 @@ CompilationUnit
             name: ~/
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
@@ -2391,6 +2541,14 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+          leftDelimiter: {
+          rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
             name: a
@@ -2418,6 +2576,18 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+            RegularFormalParameter
+              name: <empty> <synthetic>
+            RegularFormalParameter
+              name: b
+          leftDelimiter: {
+          rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -2449,6 +2619,14 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+          leftDelimiter: [
+          rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
             name: a
@@ -2476,6 +2654,18 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+            RegularFormalParameter
+              name: <empty> <synthetic>
+            RegularFormalParameter
+              name: b
+          leftDelimiter: [
+          rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -2507,6 +2697,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
           rightParenthesis: )
@@ -2532,6 +2728,16 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+            RegularFormalParameter
+              name: <empty> <synthetic>
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -2581,6 +2787,12 @@ CompilationUnit
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: this
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
               rightParenthesis: )
@@ -2623,6 +2835,14 @@ CompilationUnit
             typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: this
+                RegularFormalParameter
+                  name: p
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
@@ -2669,6 +2889,14 @@ CompilationUnit
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                FieldFormalParameter
+                  thisKeyword: this
+                  period: .
+                  name: <empty> <synthetic>
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this
                 period: .
@@ -2714,6 +2942,16 @@ CompilationUnit
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                FieldFormalParameter
+                  thisKeyword: this
+                  period: .
+                  name: <empty> <synthetic>
+                RegularFormalParameter
+                  name: p
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this
                 period: .
@@ -2742,6 +2980,18 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: {
+          rightDelimiter: } <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -2777,6 +3027,18 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: {
+          rightDelimiter: } <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
             name: a
@@ -2809,6 +3071,12 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
           rightParenthesis: )
@@ -2834,6 +3102,12 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -2862,6 +3136,18 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: [
+          rightDelimiter: ] <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -2895,6 +3181,18 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: [
+          rightDelimiter: ] <synthetic>
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -2932,6 +3230,16 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+            RegularFormalParameter
+              name: b
+            RegularFormalParameter
+              name: c
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
           parameter: RegularFormalParameter
@@ -2947,6 +3255,16 @@ CompilationUnit
       name: h
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: v1
+            RegularFormalParameter
+              name: v2
+            RegularFormalParameter
+              name: v
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: v1
@@ -3006,6 +3324,18 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value: SimpleIdentifier
+                  token: <empty> <synthetic>
+          leftDelimiter: {
+          rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
             name: a
@@ -3037,6 +3367,20 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value: SimpleIdentifier
+                  token: <empty> <synthetic>
+            RegularFormalParameter
+              name: b
+          leftDelimiter: {
+          rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -3072,6 +3416,18 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: SimpleIdentifier
+                  token: <empty> <synthetic>
+          leftDelimiter: [
+          rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
             name: a
@@ -3103,6 +3459,20 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: SimpleIdentifier
+                  token: <empty> <synthetic>
+            RegularFormalParameter
+              name: b
+          leftDelimiter: [
+          rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
@@ -3139,6 +3509,18 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: [
+          rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
             name: a
@@ -3172,6 +3554,18 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: [
+          rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
             name: a
@@ -3203,6 +3597,18 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: {
+          rightDelimiter: }
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           leftDelimiter: {
           parameter: RegularFormalParameter
@@ -3236,6 +3642,18 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: IntegerLiteral
+                  literal: 0
+          leftDelimiter: [
+          rightDelimiter: ]
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           leftDelimiter: [
           parameter: RegularFormalParameter
             name: a
@@ -3268,6 +3686,16 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value: IntegerLiteral
+                  literal: 0
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
             defaultClause: FormalParameterDefaultClause
@@ -3297,6 +3725,16 @@ CompilationUnit
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: a
+              defaultClause: FormalParameterDefaultClause
+                separator: =
+                value: IntegerLiteral
+                  literal: 0
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: a
@@ -3342,6 +3780,14 @@ CompilationUnit
             rightBracket: >
         functionKeyword: Function <synthetic>
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              type: NamedType
+                name: E
+              name: element
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

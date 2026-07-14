@@ -2773,6 +2773,8 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   AstNodeImpl? _parent2;
 
+  AstNodeApi get astNodeApi => _astNodeApi;
+
   @override
   Iterable<SyntacticEntity> get childEntities =>
       _childEntities.syntacticEntities;

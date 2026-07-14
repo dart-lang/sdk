@@ -37,6 +37,19 @@ FieldFormalParameter
   functionTypedSuffix: FunctionTypedFormalParameterSuffix
     formalParameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@44
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -84,6 +97,19 @@ FieldFormalParameter
             defaultType: null
       rightBracket: >
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: U
+            element: #E0 U
+            type: U
+          name: a
+          declaredFragment: <testLibraryFragment> a@50
+            element: isPublic
+              type: U
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -134,6 +160,28 @@ FieldFormalParameter
             defaultType: null
       rightBracket: >
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: U
+            element: #E1 U
+            type: U
+          name: a
+          declaredFragment: <testLibraryFragment> a@62
+            element: isPublic
+              type: U
+        RegularFormalParameter
+          type: NamedType
+            name: V
+            element: #E2 V
+            type: V
+          name: b
+          declaredFragment: <testLibraryFragment> b@67
+            element: isPublic
+              type: V
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

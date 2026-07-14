@@ -93,6 +93,19 @@ ConstructorDeclaration
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: a
+          element: <testLibrary>::@class::a
+          type: a
+        name: a
+        declaredFragment: <testLibraryFragment> a@28
+          element: isPublic
+            type: a
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: a
@@ -167,6 +180,20 @@ ConstructorDeclaration
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
+    parameters
+      FieldFormalParameter
+        thisKeyword: this
+        period: .
+        name: _x
+        declaredFragment: <testLibraryFragment> x@31
+          element: hasImplicitType isFinal isPublic
+            type: int?
+            field: <testLibrary>::@class::C::@field::_x
+    leftDelimiter: {
+    rightDelimiter: }
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     leftDelimiter: {
     parameter: FieldFormalParameter
       thisKeyword: this
@@ -205,6 +232,22 @@ ConstructorDeclaration
     element: <testLibrary>::@class::C
     staticType: null
   parameters: FormalParameterList
+    leftParenthesis: (
+    parameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: _x
+        declaredFragment: <testLibraryFragment> _x@20
+          element: isPrivate
+            type: int?
+    leftDelimiter: {
+    rightDelimiter: }
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
