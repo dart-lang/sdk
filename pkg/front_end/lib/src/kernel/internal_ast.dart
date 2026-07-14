@@ -265,7 +265,7 @@ class InternalSwitchStatementCase extends InternalSwitchCase {
         printer.newLine();
       }
       printer.write('case ');
-      printer.writeExpression(expression);
+      expression.toTextInternal(printer);
       printer.write(':');
       needsNewLine = true;
     }
@@ -321,7 +321,7 @@ class InternalRegularSwitchStatement extends InternalStatement
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('switch (');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(') {');
     printer.incIndentation();
     for (InternalSwitchStatementCase switchCase in cases) {
@@ -412,6 +412,18 @@ class InternalContinueStatement extends InternalStatement
   @override
   String toString() {
     return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+extension on List<InternalExpression> {
+  void toTextInternal(AstPrinter printer) {
+    for (int index = 0; index < length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      this[index].toTextInternal(printer);
+    }
   }
 }
 
@@ -749,7 +761,7 @@ class Cascade extends InternalExpression {
     printer.incIndentation();
     for (InternalExpression expression in expressions) {
       printer.newLine();
-      printer.writeExpression(expression);
+      expression.toTextInternal(printer);
       printer.write(';');
     }
     printer.decIndentation();
@@ -805,7 +817,7 @@ class AnonymousMethodExpression extends InternalExpression {
     printer.write('let ');
     variable.toTextInternal(printer, initializer: receiver);
     printer.write(' in ');
-    printer.writeExpression(body);
+    body.toTextInternal(printer);
   }
 }
 
@@ -892,7 +904,7 @@ class DeferredCheck extends InternalExpression {
     printer.write('let final dynamic # = ');
     printer.write(dependency.name!);
     printer.write('.checkLibraryIsLoaded() in ');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 }
 
@@ -1079,11 +1091,14 @@ class IfNullExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(left, minimumPrecedence: Precedence.CONDITIONAL);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    left.toTextInternal(
+      printer /*, minimumPrecedence: Precedence.CONDITIONAL*/,
+    );
     printer.write(' ?? ');
-    printer.writeExpression(
-      right,
-      minimumPrecedence: Precedence.CONDITIONAL + 1,
+    right.toTextInternal(
+      printer,
+      /*minimumPrecedence: Precedence.CONDITIONAL + 1,*/
     );
   }
 }
@@ -1212,7 +1227,7 @@ class ExpressionInvocation extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
@@ -1242,7 +1257,7 @@ class InternalReturnStatement extends InternalStatement {
     }
     if (expression != null) {
       printer.write(' ');
-      printer.writeExpression(expression!);
+      expression!.toTextInternal(printer);
     }
     printer.write(';');
   }
@@ -1923,7 +1938,7 @@ sealed class InternalDeclaredVariable extends InternalVariable {
     printer.write(cosmeticName ?? '<unnamed-variable>');
     if (initializer != null) {
       printer.write(' = ');
-      printer.writeExpression(initializer);
+      initializer.toTextInternal(printer);
     }
   }
 }
@@ -2054,14 +2069,14 @@ class IfNullPropertySet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('.');
     printer.writeName(propertyName);
     printer.write(' ??= ');
-    printer.writeExpression(rhs);
+    rhs.toTextInternal(printer);
   }
 }
 
@@ -2107,9 +2122,9 @@ class IfNullSet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(read);
+    read.toTextInternal(printer);
     printer.write(' ?? ');
-    printer.writeExpression(write);
+    write.toTextInternal(printer);
   }
 }
 
@@ -2289,10 +2304,10 @@ class ExtensionIfNullSet extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -2300,7 +2315,7 @@ class ExtensionIfNullSet extends InternalExpression {
     printer.write('.');
     printer.writeName(propertyName);
     printer.write(' ??= ');
-    printer.writeExpression(rhs);
+    rhs.toTextInternal(printer);
   }
 
   @override
@@ -2489,10 +2504,10 @@ class ExtensionCompoundSet extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -2502,7 +2517,7 @@ class ExtensionCompoundSet extends InternalExpression {
     printer.write(' ');
     printer.writeName(binaryName);
     printer.write('= ');
-    printer.writeExpression(rhs);
+    rhs.toTextInternal(printer);
   }
 
   @override
@@ -2581,7 +2596,7 @@ class CompoundPropertySet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     if (isNullAware) {
       printer.write('?');
     }
@@ -2590,7 +2605,7 @@ class CompoundPropertySet extends InternalExpression {
     printer.write(' ');
     printer.writeName(binaryName);
     printer.write('= ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 }
 
@@ -2668,7 +2683,7 @@ class PropertyIncDec extends InternalExpression {
         printer.write('--');
       }
     }
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     if (isNullAware) {
       printer.write('?');
     }
@@ -2836,10 +2851,10 @@ class ExtensionIncDec extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -3131,12 +3146,12 @@ class IndexGet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write(']');
   }
 }
@@ -3199,14 +3214,14 @@ class IndexSet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write('] = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 }
 
@@ -3332,13 +3347,13 @@ class ExtensionIndexGet extends InternalExpression {
       printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     printer.write(')');
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write(']');
   }
 }
@@ -3430,15 +3445,15 @@ class ExtensionIndexSet extends InternalExpression {
       printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     printer.write(')');
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write('] = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 }
 
@@ -3714,16 +3729,16 @@ class ExtensionIfNullIndexSet extends InternalExpression {
       printer.writeTypeArguments(knownTypeArguments!);
     }
     printer.write('(');
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     printer.write(')');
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write(']');
     printer.write(' ??= ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -3811,12 +3826,12 @@ class CompoundIndexSet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write(']');
     if (forPostIncDec &&
         (binaryName.text == '+' || binaryName.text == '-') &&
@@ -3831,7 +3846,7 @@ class CompoundIndexSet extends InternalExpression {
       printer.write(' ');
       printer.write(binaryName.text);
       printer.write('= ');
-      printer.writeExpression(value);
+      value.toTextInternal(printer);
     }
   }
 }
@@ -3909,7 +3924,7 @@ class CompoundSuperIndexSet extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('super[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write(']');
     if (forPostIncDec &&
         (binaryName.text == '+' || binaryName.text == '-') &&
@@ -3924,7 +3939,7 @@ class CompoundSuperIndexSet extends InternalExpression {
       printer.write(' ');
       printer.write(binaryName.text);
       printer.write('= ');
-      printer.writeExpression(value);
+      value.toTextInternal(printer);
     }
   }
 
@@ -4044,13 +4059,13 @@ class ExtensionCompoundIndexSet extends InternalExpression {
       printer.writeTypeArguments(explicitTypeArguments!.types);
     }
     printer.write('(');
-    printer.writeExpression(receiver);
+    receiver.toTextInternal(printer);
     printer.write(')');
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('[');
-    printer.writeExpression(index);
+    index.toTextInternal(printer);
     printer.write(']');
     if (forPostIncDec) {
       printer.write(binaryName == plusName ? '++' : '--');
@@ -4058,7 +4073,7 @@ class ExtensionCompoundIndexSet extends InternalExpression {
       printer.write(' ');
       printer.writeName(binaryName);
       printer.write('= ');
-      printer.writeExpression(rhs);
+      rhs.toTextInternal(printer);
     }
   }
 
@@ -4178,10 +4193,10 @@ class ExtensionGet extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -4337,10 +4352,10 @@ class ExtensionSet extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -4348,7 +4363,7 @@ class ExtensionSet extends InternalExpression {
     printer.write('.');
     printer.writeName(name);
     printer.write(' = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -4483,10 +4498,10 @@ class ExtensionMethodInvocation extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -4630,10 +4645,10 @@ class ExtensionGetterInvocation extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -4760,10 +4775,10 @@ class ExtensionTearOff extends InternalExpression {
         printer.writeTypeArguments(knownTypeArguments!);
       }
       printer.write('(');
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
       printer.write(')');
     } else {
-      printer.writeExpression(receiver);
+      receiver.toTextInternal(printer);
     }
     if (isNullAware) {
       printer.write('?');
@@ -4805,13 +4820,16 @@ class EqualsExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(left, minimumPrecedence: Precedence.EQUALITY);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    left.toTextInternal(printer /*, minimumPrecedence: Precedence.EQUALITY*/);
     if (isNot) {
       printer.write(' != ');
     } else {
       printer.write(' == ');
     }
-    printer.writeExpression(right, minimumPrecedence: Precedence.EQUALITY + 1);
+    right.toTextInternal(
+      printer /*minimumPrecedence: Precedence.EQUALITY + 1*/,
+    );
   }
 }
 
@@ -4846,9 +4864,10 @@ class BinaryExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(left, minimumPrecedence: precedence);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    left.toTextInternal(printer /*, minimumPrecedence: precedence*/);
     printer.write(' ${binaryName.text} ');
-    printer.writeExpression(right, minimumPrecedence: precedence);
+    right.toTextInternal(printer /*, minimumPrecedence: precedence*/);
   }
 }
 
@@ -4886,7 +4905,8 @@ class UnaryExpression extends InternalExpression {
     } else {
       printer.write('${unaryName.text}');
     }
-    printer.writeExpression(expression, minimumPrecedence: precedence);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    expression.toTextInternal(printer /*, minimumPrecedence: precedence*/);
   }
 }
 
@@ -4919,7 +4939,7 @@ class ParenthesizedExpression extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('(');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(')');
   }
 }
@@ -4980,7 +5000,10 @@ class MethodInvocation extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    receiver.toTextInternal(
+      printer /*, minimumPrecedence: Precedence.PRIMARY*/,
+    );
     if (isNullAware) {
       printer.write('?');
     }
@@ -5038,7 +5061,10 @@ class PropertyGet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    receiver.toTextInternal(
+      printer /*, minimumPrecedence: Precedence.PRIMARY*/,
+    );
     if (isNullAware) {
       printer.write('?');
     }
@@ -5104,14 +5130,17 @@ class PropertySet extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    receiver.toTextInternal(
+      printer /*, minimumPrecedence: Precedence.PRIMARY*/,
+    );
     if (isNullAware) {
       printer.write('?');
     }
     printer.write('.');
     printer.writeName(name);
     printer.write(' = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 }
 
@@ -5168,11 +5197,11 @@ class InternalRecordLiteral extends InternalExpression {
       printer.write(comma);
       switch (field) {
         case PositionalRecordField():
-          printer.writeExpression(field as InternalExpression);
+          field.value.toTextInternal(printer);
         case NamedRecordField():
           printer.write(field.name);
           printer.write(': ');
-          printer.writeExpression(field.value);
+          field.value.toTextInternal(printer);
       }
       comma = ', ';
     }
@@ -5259,7 +5288,7 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(field.reference);
     printer.write(" = ");
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -5286,7 +5315,7 @@ class ExternalExtensionTypeRepresentationFieldInitializer
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(field.reference);
     printer.write(" = ");
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -5319,7 +5348,7 @@ class DotShorthand extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(innerExpression);
+    innerExpression.toTextInternal(printer);
   }
 }
 
@@ -5884,7 +5913,7 @@ class UnassignableForInElement extends _BaseForInElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 
   @override
@@ -5975,7 +6004,7 @@ class InvalidForInElement extends _BaseForInElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(error);
+    error.toTextInternal(printer);
   }
 
   @override
@@ -6418,7 +6447,7 @@ class InternalForInStatement extends InternalStatement
     printer.write('for (');
     element.toTextInternal(printer);
     printer.write(' in ');
-    printer.writeExpression(iterable);
+    iterable.toTextInternal(printer);
     printer.write(') ');
     body.toTextInternal(printer);
   }
@@ -6478,7 +6507,7 @@ class InternalVariableSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(variable.cosmeticName ?? '<unnamed-variable>');
     printer.write(' = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -6578,7 +6607,7 @@ class InternalFunctionNode {
     if (body != null) {
       if (body is InternalReturnStatement) {
         printer.write(' => ');
-        printer.writeExpression(body.expression!);
+        body.expression!.toTextInternal(printer);
       } else {
         printer.write(' ');
         body.toTextInternal(printer);
@@ -6912,7 +6941,7 @@ class InternalInvalidPattern extends InternalPattern {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(invalidExpression);
+    invalidExpression.toTextInternal(printer);
   }
 
   @override
@@ -7358,7 +7387,7 @@ class InternalRelationalPattern extends InternalPattern {
         printer.write('>= ');
         break;
     }
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 
   @override
@@ -7510,7 +7539,7 @@ class InternalPatternGuard extends TreeNode with InternalTreeNode {
     pattern.toTextInternal(printer);
     if (guard != null) {
       printer.write(' when ');
-      printer.writeExpression(guard!);
+      guard!.toTextInternal(printer);
     }
   }
 
@@ -7639,7 +7668,7 @@ class InternalPatternSwitchStatement extends InternalStatement
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('switch (');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(') {');
     printer.incIndentation();
     for (InternalPatternSwitchCase switchCase in cases) {
@@ -7696,7 +7725,7 @@ class InternalSwitchExpressionCase extends TreeNode with InternalTreeNode {
     printer.write('case ');
     patternGuard.toTextInternal(printer);
     printer.write(' => ');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 
   @override
@@ -7732,7 +7761,7 @@ class InternalSwitchExpression extends InternalExpression
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('switch (');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(') {');
     String comma = ' ';
     for (InternalSwitchExpressionCase switchCase in cases) {
@@ -7778,7 +7807,7 @@ class InternalPatternVariableDeclaration extends InternalStatement {
     }
     pattern.toTextInternal(printer);
     printer.write(" = ");
-    printer.writeExpression(initializer);
+    initializer.toTextInternal(printer);
     printer.write(';');
   }
 
@@ -7815,7 +7844,7 @@ class InternalPatternAssignment extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     pattern.toTextInternal(printer);
     printer.write(' = ');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 
   @override
@@ -7860,7 +7889,7 @@ class InternalIfCaseStatement extends InternalStatement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('if (');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(' case ');
     patternGuard.toTextInternal(printer);
     printer.write(') ');
@@ -8098,10 +8127,10 @@ class InternalForStatement extends InternalStatement
     }
     printer.write('; ');
     if (condition != null) {
-      printer.writeExpression(condition!);
+      condition!.toTextInternal(printer);
     }
     printer.write('; ');
-    printer.writeExpressions(updates);
+    updates.toTextInternal(printer);
     printer.write(') ');
     body.toTextInternal(printer);
   }
@@ -8144,9 +8173,9 @@ class InternalLet extends InternalExpression {
     printer.write('let ');
     printer.writeType(valueType);
     printer.write(' # = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
     printer.write(' in ');
-    printer.writeExpression(body);
+    body.toTextInternal(printer);
   }
 
   @override
@@ -8269,7 +8298,7 @@ class InternalFieldInitializer extends InternalInitializer {
   void toTextInternal(AstPrinter printer) {
     printer.writeName(field.name);
     printer.write(' = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -8380,10 +8409,10 @@ class InternalAssertStatement extends InternalStatement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('assert(');
-    printer.writeExpression(condition);
+    condition.toTextInternal(printer);
     if (message != null) {
       printer.write(', ');
-      printer.writeExpression(message!);
+      message!.toTextInternal(printer);
     }
     printer.write(');');
   }
@@ -8432,7 +8461,7 @@ class InternalExpressionStatement extends InternalStatement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(';');
   }
 
@@ -8463,7 +8492,7 @@ class InternalIfStatement extends InternalStatement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('if (');
-    printer.writeExpression(condition);
+    condition.toTextInternal(printer);
     printer.write(') ');
     then.toTextInternal(printer);
     if (otherwise != null) {
@@ -8500,7 +8529,7 @@ class InternalYieldStatement extends InternalStatement {
       printer.write('*');
     }
     printer.write(' ');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(';');
   }
 
@@ -8534,7 +8563,7 @@ class InternalDoStatement extends InternalStatement
     printer.write('do ');
     body.toTextInternal(printer);
     printer.write(' while (');
-    printer.writeExpression(condition);
+    condition.toTextInternal(printer);
     printer.write(');');
   }
 
@@ -8566,7 +8595,7 @@ class InternalWhileStatement extends InternalStatement
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('while (');
-    printer.writeExpression(condition);
+    condition.toTextInternal(printer);
     printer.write(') ');
     body.toTextInternal(printer);
   }
@@ -8696,7 +8725,7 @@ class InternalBlockExpression extends InternalExpression {
     printer.write('block ');
     body.toTextInternal(printer);
     printer.write(' => ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -8765,7 +8794,10 @@ class InternalAsExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(operand, minimumPrecedence: Precedence.BITWISE_OR);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    operand.toTextInternal(
+      printer /*, minimumPrecedence: Precedence.BITWISE_OR*/,
+    );
     printer.write(' as');
     printer.write(' ');
     printer.writeType(type);
@@ -8797,7 +8829,7 @@ class InternalAwaitExpression extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('await ');
-    printer.writeExpression(operand);
+    operand.toTextInternal(printer);
   }
 
   @override
@@ -8856,14 +8888,15 @@ class InternalConditionalExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(
-      condition,
-      minimumPrecedence: Precedence.LOGICAL_OR,
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    condition.toTextInternal(
+      printer,
+      /*minimumPrecedence: Precedence.LOGICAL_OR,*/
     );
     printer.write(' ? ');
-    printer.writeExpression(then);
+    then.toTextInternal(printer);
     printer.write(' : ');
-    printer.writeExpression(otherwise);
+    otherwise.toTextInternal(printer);
   }
 
   @override
@@ -8960,7 +8993,7 @@ class InternalFileUriExpression extends InternalExpression {
       printer.write(fileUri.toString());
       printer.write('}');
     }
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 
   @override
@@ -8989,7 +9022,7 @@ class InternalInstantiation extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.writeTypeArguments(typeArguments);
   }
 
@@ -9058,7 +9091,10 @@ class InternalIsExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(operand, minimumPrecedence: Precedence.BITWISE_OR);
+    operand.toTextInternal(
+      printer,
+      /*, minimumPrecedence: Precedence.BITWISE_OR*/
+    );
     printer.write(' is');
     if (isNot) {
       printer.write('!');
@@ -9108,7 +9144,7 @@ class InternalListLiteral extends InternalExpression {
       printer.write('>');
     }
     printer.write('[');
-    printer.writeExpressions(expressions);
+    expressions.toTextInternal(printer);
     printer.write(']');
   }
 
@@ -9140,10 +9176,13 @@ class InternalLogicalExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    int minimumPrecedence = precedence;
-    printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    //int minimumPrecedence = precedence;
+    left.toTextInternal(printer /*, minimumPrecedence: minimumPrecedence*/);
     printer.write(' ${logicalExpressionOperatorToString(operator)} ');
-    printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
+    right.toTextInternal(
+      printer /*, minimumPrecedence: minimumPrecedence + 1*/,
+    );
   }
 
   @override
@@ -9226,7 +9265,8 @@ class InternalNot extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('!');
-    printer.writeExpression(operand, minimumPrecedence: Precedence.PREFIX);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    operand.toTextInternal(printer /*, minimumPrecedence: Precedence.PREFIX*/);
   }
 
   @override
@@ -9254,7 +9294,8 @@ class InternalNullCheck extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(operand, minimumPrecedence: Precedence.POSTFIX);
+    // TODO(johnniwinther): Support precedence on internal expressions.
+    operand.toTextInternal(printer /*, minimumPrecedence: Precedence.POSTFIX*/);
     printer.write('!');
   }
 
@@ -9349,7 +9390,7 @@ class InternalSetLiteral extends InternalExpression {
       printer.write('>');
     }
     printer.write('{');
-    printer.writeExpressions(expressions);
+    expressions.toTextInternal(printer);
     printer.write('}');
   }
 
@@ -9416,7 +9457,7 @@ class InternalStaticSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(target.reference);
     printer.write(' = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -9482,7 +9523,7 @@ class InternalStringConcatenation extends InternalExpression {
         printer.write(escapeString(part.value));
       } else {
         printer.write(r'${');
-        printer.writeExpression(part);
+        part.toTextInternal(printer);
         printer.write('}');
       }
     }
@@ -9596,7 +9637,7 @@ class InternalSuperPropertySet extends InternalExpression {
     printer.write('super.');
     printer.writeInterfaceMemberName(interfaceTarget.reference, name);
     printer.write(' = ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -9678,7 +9719,7 @@ class InternalThrow extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('throw ');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 
   @override
@@ -9715,7 +9756,7 @@ class InternalTypedefTearOff extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeStructuralParameters(structuralParameters);
     printer.write(".(");
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.writeTypeArguments(typeArguments);
     printer.write(")");
   }
@@ -9786,7 +9827,7 @@ class InternalNamedExpression extends TreeNode with InternalTreeNode {
   void toTextInternal(AstPrinter printer) {
     printer.write(name);
     printer.write(': ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
@@ -9830,9 +9871,9 @@ class RegularMapLiteralEntry extends InternalMapLiteralEntry
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeExpression(key);
+    key.toTextInternal(printer);
     printer.write(': ');
-    printer.writeExpression(value);
+    value.toTextInternal(printer);
   }
 
   @override
