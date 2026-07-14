@@ -1825,16 +1825,14 @@ class Assembler : public AssemblerBase {
   }
   void CallCFunction(Register target) {
 #define __ this->
-    CLOBBERS_LR({
 #if defined(TARGET_ARCH_ARM64E)
-      ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
-      ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
-             0);
-      blraaz(target);
+    ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
+    ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
+           0);
+    CLOBBERS_LR({ blraaz(target); });
 #else
-      blr(target);
+    CLOBBERS_LR({ blr(target); });
 #endif
-    });
 #undef __
   }
   void TailCallCFunction(Register target) {
