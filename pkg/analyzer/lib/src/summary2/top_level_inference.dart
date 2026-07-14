@@ -65,30 +65,34 @@ class ConstantInitializersResolver {
 
     var fragment = constantInitializer.fragment;
     var node = linker.getLinkingNode(fragment) as VariableDeclarationImpl;
-    var scope = node.initializerScope!;
 
-    var astResolver = AstResolver(
-      linker,
-      fragment.libraryFragment as LibraryFragmentImpl,
-      scope,
-      analysisOptions,
-    );
+    // TopLevelInference resolves an initializer when it infers the variable's
+    // type from it. Only the remaining constant initializers need resolution.
+    if (!element.isTypeInferredFromInitializer) {
+      var astResolver = AstResolver(
+        linker,
+        fragment.libraryFragment as LibraryFragmentImpl,
+        node.initializerScope!,
+        analysisOptions,
+      );
 
-    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
-    if (element case FieldElementImpl field) {
-      if (field.isInstanceField && !field.isLate) {
-        inScopePrimaryConstructorParameters = field.enclosingElement
-            .tryCast<InterfaceElementImpl>()
-            ?.primaryConstructor
-            ?.formalParameters;
+      List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
+      if (element case FieldElementImpl field) {
+        if (field.isInstanceField && !field.isLate) {
+          inScopePrimaryConstructorParameters = field.enclosingElement
+              .tryCast<InterfaceElementImpl>()
+              ?.primaryConstructor
+              ?.formalParameters;
+        }
       }
-    }
 
-    astResolver.resolveExpression(
-      () => node.initializer!,
-      contextType: element.type,
-      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
-    );
+      astResolver.resolveExpression(
+        () => node.initializer!,
+        contextType: element.type,
+        inScopePrimaryConstructorParameters:
+            inScopePrimaryConstructorParameters,
+      );
+    }
 
     // We could have rewritten the initializer.
     fragment.constantInitializer = node.initializer;

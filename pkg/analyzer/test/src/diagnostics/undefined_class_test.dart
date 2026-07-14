@@ -16,6 +16,25 @@ main() {
 
 @reflectiveTest
 class UndefinedClassTest extends PubPackageResolutionTest {
+  test_builtInIdentifier() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import<int> x = [];
+// [diag.builtInIdentifierAsType][column 1][length 6] The built-in identifier 'import' can't be used as a type.
+''');
+  }
+
+  test_builtInIdentifier_prefixed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:math'.
+
+void f(p.import x) {}
+//       ^^^^^^
+// [diag.builtInIdentifierAsType] The built-in identifier 'import' can't be used as a type.
+''');
+  }
+
   test_const() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
