@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' as io;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart';
@@ -881,53 +880,6 @@ class LspAnalysisServer extends AnalysisServer {
     await _updateAnalyzingStatus();
   }
 
-  /// Updates the combined analyzing status and sends notifications only on
-  /// actual state transitions.
-  Future<void> _updateAnalyzingStatus() async {
-    var isAnalyzing =
-        _serverAnalyzing ||
-        notificationManager.pluginStatusAnalyzing ||
-        _pluginAnalysisPending;
-
-    // Only send notifications when the combined status actually changes.
-    if (isAnalyzing == wasAnalyzing) {
-      return;
-    }
-
-    wasAnalyzing = isAnalyzing;
-
-    if (!isAnalyzing) {
-      // Only send analysis analytics after analysis is complete.
-      reportAnalysisAnalytics();
-    }
-
-    // Send old custom notifications to clients that do not support $/progress.
-    if (editorClientCapabilities?.workDoneProgress != true) {
-      channel.sendNotification(
-        NotificationMessage(
-          method: CustomMethods.analyzerStatus,
-          params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
-          jsonrpc: jsonRpcVersion,
-        ),
-      );
-      return;
-    }
-
-    if (isAnalyzing) {
-      analyzingProgressReporter ??= ProgressReporter.serverCreated(
-        this,
-        analyzingProgressToken,
-      )..begin('Analyzing…');
-    } else {
-      if (analyzingProgressReporter != null) {
-        // Do not null this out until after end completes, otherwise we may try
-        // to create a new token before it's really completed.
-        await analyzingProgressReporter?.end();
-        analyzingProgressReporter = null;
-      }
-    }
-  }
-
   /// Returns `true` if closing labels should be sent for [file] with the given
   /// absolute path.
   bool shouldSendClosingLabelsFor(String file) {
@@ -1241,6 +1193,53 @@ class LspAnalysisServer extends AnalysisServer {
     pluginManager.setAnalysisSetAnalysisRootsParams(
       plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
     );
+  }
+
+  /// Updates the combined analyzing status and sends notifications only on
+  /// actual state transitions.
+  Future<void> _updateAnalyzingStatus() async {
+    var isAnalyzing =
+        _serverAnalyzing ||
+        notificationManager.pluginStatusAnalyzing ||
+        _pluginAnalysisPending;
+
+    // Only send notifications when the combined status actually changes.
+    if (isAnalyzing == wasAnalyzing) {
+      return;
+    }
+
+    wasAnalyzing = isAnalyzing;
+
+    if (!isAnalyzing) {
+      // Only send analysis analytics after analysis is complete.
+      reportAnalysisAnalytics();
+    }
+
+    // Send old custom notifications to clients that do not support $/progress.
+    if (editorClientCapabilities?.workDoneProgress != true) {
+      channel.sendNotification(
+        NotificationMessage(
+          method: CustomMethods.analyzerStatus,
+          params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
+          jsonrpc: jsonRpcVersion,
+        ),
+      );
+      return;
+    }
+
+    if (isAnalyzing) {
+      analyzingProgressReporter ??= ProgressReporter.serverCreated(
+        this,
+        analyzingProgressToken,
+      )..begin('Analyzing…');
+    } else {
+      if (analyzingProgressReporter != null) {
+        // Do not null this out until after end completes, otherwise we may try
+        // to create a new token before it's really completed.
+        await analyzingProgressReporter?.end();
+        analyzingProgressReporter = null;
+      }
+    }
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
