@@ -175,7 +175,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent is CompilationUnit) {
+    if (node.parent2 is CompilationUnit) {
       computeForMember(node, createMemberId(node));
     }
     super.visitFunctionDeclaration(node);
@@ -236,9 +236,9 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent!.parent is TopLevelVariableDeclaration) {
+    if (node.parent2!.parent2 is TopLevelVariableDeclaration) {
       computeForMember(node, createMemberId(node));
-    } else if (node.parent!.parent is FieldDeclaration) {
+    } else if (node.parent2!.parent2 is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
     } else {
       computeForVariableDeclaration(node, computeDefaultNodeId(node));

@@ -30,14 +30,11 @@
 namespace dart {
 
 #if (defined(DART_INCLUDE_SIMULATOR) && !defined(SIMULATOR_FFI)) ||            \
-    (defined(DART_PRECOMPILER) && !defined(TESTING)) ||                        \
-    defined(HOST_ARCH_ARM64E)
+    (defined(DART_PRECOMPILER) && !defined(TESTING))
 
 DART_NORETURN static void SimulatorUnsupported() {
 #if defined(DART_INCLUDE_SIMULATOR)
   Exceptions::ThrowUnsupportedError("Not supported on this simulator.");
-#elif defined(HOST_ARCH_ARM64E)
-  Exceptions::ThrowUnsupportedError("Not implemented for arm64e.");
 #else
   Exceptions::ThrowUnsupportedError("Not supported in precompiler.");
 #endif

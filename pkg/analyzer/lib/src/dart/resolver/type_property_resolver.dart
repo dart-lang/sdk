@@ -113,9 +113,9 @@ class TypePropertyResolver {
 
       if (parentNode == null) {
         if (receiver != null) {
-          parentNode = receiver.parent;
+          parentNode = receiver.parent2;
         } else if (propertyErrorEntity is AstNode) {
-          parentNode = propertyErrorEntity.parent;
+          parentNode = propertyErrorEntity.parent2;
         } else {
           throw StateError(
             'Either `receiver` must be non-null or '

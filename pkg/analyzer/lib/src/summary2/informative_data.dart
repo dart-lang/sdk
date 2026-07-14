@@ -853,7 +853,7 @@ class _InfoBuilder {
 
   _InfoFieldDeclaration _buildField(VariableDeclaration node) {
     var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent!.parent as FieldDeclaration;
+    var declaration = node.parent2!.parent2 as FieldDeclaration;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
@@ -1117,7 +1117,7 @@ class _InfoBuilder {
 
   _InfoTopLevelVariable _buildTopLevelVariable(VariableDeclaration node) {
     var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent!.parent as TopLevelVariableDeclaration;
+    var declaration = node.parent2!.parent2 as TopLevelVariableDeclaration;
     return _InfoTopLevelVariable(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
@@ -1153,9 +1153,9 @@ class _InfoBuilder {
 
   int _codeOffsetForVariable(VariableDeclaration node) {
     var codeOffset = node.offset;
-    var variableList = node.parent as VariableDeclarationList;
+    var variableList = node.parent2 as VariableDeclarationList;
     if (variableList.variables[0] == node) {
-      codeOffset = variableList.parent!.offset;
+      codeOffset = variableList.parent2!.offset;
     }
     return codeOffset;
   }

@@ -143,13 +143,18 @@ _SimulatorFfiCallbackTrampoline:
 .type SimulatorFfiCallbackTrampoline, %function
 SimulatorFfiCallbackTrampoline:
 #endif
+LOCAL_SYMBOL(start_before_padding):
+  brk 0 // ubsan padding
+  brk 0 // ubsan padding
+  brk 0 // ubsan padding
+  brk 0 // ubsan padding
 LOCAL_SYMBOL(start):
 #if defined(__Fuchsia__)
   .rept 483 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #elif defined(__APPLE__)
-  .rept 2019 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+  .rept 2013 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #else
-  .rept 8163 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+  .rept 8157 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #endif
   adr x9, 0
   b LOCAL_SYMBOL(body)
@@ -188,6 +193,7 @@ LOCAL_SYMBOL(body):
   and x2, x2, ~(0x10000-1)  // FfiCallbackMetadata::kPageSize = 64k
   add x2, x2, 0x20000
 #endif
+  add x2, x2, LOCAL_SYMBOL(start) - LOCAL_SYMBOL(start_before_padding)
   ldr x2, [x2, #8]  // FfiCallbackMetadata::kDoRedirectedFfiCallback
   blr x2  // DoRedirectedFfiCallback
 

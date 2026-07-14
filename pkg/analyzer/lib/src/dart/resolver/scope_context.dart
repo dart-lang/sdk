@@ -447,7 +447,7 @@ class ScopeContext {
     var variablesScope = nameScope;
 
     // Use different scope for instance non-late field initializers.
-    if (node.parent case FieldDeclarationImpl fieldDeclaration) {
+    if (node.parent2 case FieldDeclarationImpl fieldDeclaration) {
       if (!fieldDeclaration.isStatic && node.lateKeyword == null) {
         var primaryConstructor = fieldDeclaration.enclosingPrimaryConstructor;
         if (primaryConstructor != null) {
@@ -595,7 +595,7 @@ extension LocalScopeExtension on LocalScope {
 
 extension _FieldDeclarationExtension on FieldDeclaration {
   PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
-    return switch (parent?.parent) {
+    return switch (parent2?.parent2) {
       ClassDeclarationImpl(:var namePart) => namePart.tryCast(),
       EnumDeclarationImpl(:var namePart) => namePart.tryCast(),
       ExtensionTypeDeclarationImpl(:var namePart) => namePart.tryCast(),

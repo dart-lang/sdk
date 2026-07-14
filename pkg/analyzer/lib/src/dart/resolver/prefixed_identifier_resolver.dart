@@ -95,7 +95,7 @@ class PrefixedIdentifierResolver {
       identifier.setPseudoExpressionStaticType(type);
       return null;
     } else if (element is TypeAliasElement) {
-      if (node.parent is NamedType) {
+      if (node.parent2 is NamedType) {
         // no type
       } else {
         var type = _typeProvider.typeType;
@@ -140,7 +140,7 @@ class PrefixedIdentifierResolver {
   ///
   // TODO(scheglov): this is duplicate
   bool _isExpressionIdentifier(Identifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
@@ -165,11 +165,11 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
 
     if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
-      parent = node.parent;
+      parent = node.parent2;
     }
 
     if (parent is CommentReference ||

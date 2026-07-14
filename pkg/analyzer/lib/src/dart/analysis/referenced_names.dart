@@ -281,7 +281,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    if (node.parent is! ConstructorDeclaration) {
+    if (node.parent2 is! ConstructorDeclaration) {
       super.visitConstructorName(node);
     }
   }
@@ -366,7 +366,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
       return;
     }
     // Ignore class names references from constructors.
-    var parent = node.parent!;
+    var parent = node.parent2!;
     if (parent is ConstructorDeclaration && parent.typeName == node) {
       return;
     }

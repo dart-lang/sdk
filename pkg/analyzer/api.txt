@@ -589,6 +589,7 @@ package:analyzer/dart/ast/ast.dart:
     elementAnnotation (getter: ElementAnnotation?)
     name (getter: Identifier)
     parent (getter: AstNode)
+    parent2 (getter: AstNode, experimental)
     period (getter: Token?)
     typeArguments (getter: TypeArgumentList?)
   AnonymousBlockBody (class extends Object implements AnonymousMethodBody, abstract, final, experimental):
@@ -1369,6 +1370,7 @@ package:analyzer/dart/ast/ast.dart:
     rightParenthesis (getter: Token)
   ForLoopParts (class extends Object implements AstNode, sealed (immediate subtypes: ForEachParts, ForLoopPartsImpl, ForParts)):
     parent (getter: ForLoop<AstNode>)
+    parent2 (getter: ForLoop<AstNode>, experimental)
   ForParts (class extends Object implements ForLoopParts, sealed (immediate subtypes: ForPartsImpl, ForPartsWithDeclarations, ForPartsWithExpression, ForPartsWithPattern)):
     condition (getter: Expression?)
     leftSeparator (getter: Token)
@@ -1760,6 +1762,7 @@ package:analyzer/dart/ast/ast.dart:
     declaredFragment (getter: ConstructorFragment?)
     errorRange (getter: SourceRange)
     formalParameters (getter: FormalParameterList)
+    isComplete (getter: bool)
   PrimaryConstructorName (class extends Object implements AstNode, abstract, final):
     name (getter: Token)
     period (getter: Token)

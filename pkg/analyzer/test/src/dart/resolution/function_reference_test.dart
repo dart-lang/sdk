@@ -4317,6 +4317,18 @@ FunctionReference
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
+        parameters
+          RegularFormalParameter
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
+            declaredFragment: <testLibraryFragment> null@null
+              element: isPrivate
+                type: T
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
+        leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
             name: T
@@ -4544,6 +4556,19 @@ FunctionReference
             defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: a
+          declaredFragment: <testLibraryFragment> a@42
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

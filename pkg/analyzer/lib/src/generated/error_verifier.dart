@@ -407,7 +407,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     if (node.body case AnonymousBlockBodyImpl body) {
-      var parent = body.parent as AnonymousMethodInvocationImpl;
+      var parent = body.parent2 as AnonymousMethodInvocationImpl;
       var returnType = parent.staticType ?? _typeProvider.dynamicType;
       var fragment = node.declaredFragment!.element;
       fragment.returnType = returnType;
@@ -910,7 +910,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (node.parent is! PrimaryConstructorBody) {
+    if (node.parent2 is! PrimaryConstructorBody) {
       _returnTypeVerifier.verifyExpressionFunctionBody(node);
     }
     super.visitExpressionFunctionBody(node);
@@ -1262,7 +1262,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     _isInLateLocalVariable.add(false);
 
-    if (node.parent is FunctionDeclarationImpl) {
+    if (node.parent2 is FunctionDeclarationImpl) {
       super.visitFunctionExpression(node);
     } else {
       var fragment = node.declaredFragment!;
@@ -1707,7 +1707,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _constArgumentsVerifier.visitPrefixedIdentifier(node);
-    if (node.parent is! Annotation) {
+    if (node.parent2 is! Annotation) {
       var typeReference = getTypeReference(node.prefix);
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
@@ -1942,7 +1942,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     super.visitSuperFormalParameter(node);
 
     if (_enclosingClass is ExtensionTypeElement) {
-      if (node.parentFormalParameterList.parent
+      if (node.parentFormalParameterList.parent2
           is PrimaryConstructorDeclaration) {
         return;
       }
@@ -1954,7 +1954,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    var constructor = node.parentFormalParameterList.parent;
+    var constructor = node.parentFormalParameterList.parent2;
     if (constructor is ConstructorDeclarationImpl &&
         constructor.isNonRedirectingGenerative) {
       var constructorElement = constructor.declaredFragment!.element;
@@ -2185,7 +2185,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _namesForReferenceToDeclaredVariableInInitializer.remove(name);
     }
     // declare the variable
-    AstNode grandparent = node.parent!.parent!;
+    AstNode grandparent = node.parent2!.parent2!;
     if (grandparent is! TopLevelVariableDeclaration &&
         grandparent is! FieldDeclaration) {
       var element = node.declaredFragment!.element;
@@ -2668,7 +2668,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (expression is! SimpleIdentifier) return;
 
     // Already handled in the assignment resolver.
-    if (expression.parent is AssignmentExpression) {
+    if (expression.parent2 is AssignmentExpression) {
       return;
     }
 
@@ -4512,7 +4512,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     var iterableType = node.iterable.typeOrThrow;
 
     Token? awaitKeyword;
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ForStatement) {
       awaitKeyword = parent.awaitKeyword;
     } else if (parent is ForElement) {
@@ -4827,7 +4827,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
-    if (node.parent?.parent is! ExtensionDeclaration) {
+    if (node.parent2?.parent2 is! ExtensionDeclaration) {
       return;
     }
 
@@ -5181,11 +5181,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     FieldFormalParameter parameter,
   ) {
     // prepare the node that should be a ConstructorDeclaration
-    var formalParameterList = parameter.parent;
+    var formalParameterList = parameter.parent2;
     if (formalParameterList is! FormalParameterList) {
-      formalParameterList = formalParameterList?.parent;
+      formalParameterList = formalParameterList?.parent2;
     }
-    var constructor = formalParameterList?.parent;
+    var constructor = formalParameterList?.parent2;
     // now check whether the node is actually a ConstructorDeclaration
     if (constructor is ConstructorDeclaration) {
       // constructor cannot be a factory
@@ -5666,8 +5666,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         constructorElement.isGenerative &&
         constructorElement.enclosingElement is EnumElement) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
-        if (node.parent case ConstructorReference(
-          :var parent,
+        if (node.parent2 case ConstructorReference(
+          parent2: var parent,
         ) when parent is! InstanceCreationExpression) {
           diagnosticReporter.report(
             diag.invalidReferenceToGenerativeEnumConstructorTearoff.at(node),
@@ -5715,7 +5715,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     // qualified method invocation
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     if (parent is MethodInvocation) {
       if (identical(parent.methodName, identifier) &&
           parent.realTarget != null) {
@@ -5857,7 +5857,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    if (functionDeclaration.parent is! CompilationUnit) {
+    if (functionDeclaration.parent2 is! CompilationUnit) {
       return;
     }
 
@@ -7455,8 +7455,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
     SimpleIdentifier name,
   ) {
-    if (name.parent is DotShorthandPropertyAccessImpl ||
-        name.parent is DotShorthandInvocationImpl) {
+    if (name.parent2 is DotShorthandPropertyAccessImpl ||
+        name.parent2 is DotShorthandInvocationImpl) {
       return;
     }
 
@@ -7479,7 +7479,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    if (name.parent case MethodInvocation(
+    if (name.parent2 case MethodInvocation(
       :var methodName,
     ) when name == methodName) {
       // Invalid methods are reported in
@@ -7502,9 +7502,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
-    var constructor = parameter.parentFormalParameterList.parent;
+    var constructor = parameter.parentFormalParameterList.parent2;
     if (constructor is PrimaryConstructorDeclaration &&
-        constructor.parent is ExtensionTypeDeclaration) {
+        constructor.parent2 is ExtensionTypeDeclaration) {
       return;
     }
     if (constructor is! ConstructorDeclaration &&
@@ -7981,7 +7981,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkUseOfCovariantInParameters(FormalParameterList node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (_enclosingClass != null && parent is MethodDeclaration) {
       // Either [parent] is a static method, in which case `EXTRANEOUS_MODIFIER`
       // is reported by the parser, or [parent] is an instance method, in which
@@ -8000,8 +8000,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     if (parent is FunctionExpression) {
-      var parent2 = parent.parent;
-      if (parent2 is FunctionDeclaration && parent2.parent is CompilationUnit) {
+      var parent2 = parent.parent2;
+      if (parent2 is FunctionDeclaration &&
+          parent2.parent2 is CompilationUnit) {
         // `EXTRANEOUS_MODIFIER` is reported by the parser, for library-level
         // functions.
         return;
@@ -8021,7 +8022,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
     var defaultValuesAreExpected = () {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is ConstructorDeclarationImpl) {
         var fragment = parent.declaredFragment!;
         var element = fragment.element;
@@ -8036,7 +8037,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
         return true;
       } else if (parent is FunctionExpression) {
-        var parent2 = parent.parent;
+        var parent2 = parent.parent2;
         if (parent2 is FunctionDeclaration) {
           if (parent2.augmentKeyword != null) {
             return false;
@@ -8194,7 +8195,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (identifier.inDeclarationContext()) {
       return true;
     }
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     if (parent is Annotation) {
       return identical(parent.constructorName, identifier);
     }

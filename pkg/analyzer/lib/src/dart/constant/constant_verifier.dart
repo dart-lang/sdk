@@ -187,7 +187,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       if (node.factoryKeyword == null &&
           element.enclosingElement.primaryConstructor == null) {
         _validateFieldInitializers(
-          node.parent.classMembers,
+          node.parent2.classMembers,
           constKeyword,
           isEnumDeclaration: element.enclosingElement is EnumElementImpl,
         );
@@ -265,7 +265,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   void visitGenericFunctionType(GenericFunctionType node) {
     // TODO(srawlins): Also check interface types (TypeName?).
     super.visitGenericFunctionType(node);
-    var parent = node.parent;
+    var parent = node.parent2;
     if ((parent is AsExpression || parent is IsExpression) &&
         (parent as Expression).inConstantContext) {
       _checkForConstWithTypeParameters(node, diag.constWithTypeParameters);
@@ -380,7 +380,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     var element = node.declaredFragment!.element;
     if (element.isConst) {
       _validatePrimaryFieldInitializers(
-        members: node.parent.classMembers,
+        members: node.parent2.classMembers,
         errorToken: node.constKeyword ?? node.typeName,
         isEnumDeclaration: element.enclosingElement is EnumElementImpl,
       );
@@ -1342,7 +1342,7 @@ class _ConstLiteralVerifier {
         for (
           AstNode? parent = notConst;
           parent != null;
-          parent = parent.parent
+          parent = parent.parent2
         ) {
           if (parent is MapLiteralEntry) {
             if (parent.key == notConst) {
@@ -1663,21 +1663,21 @@ extension on Expression {
   /// This does not check whether `this` is found in a constant context.
   bool get inConstantExpression {
     AstNode child = this;
-    var parent = child.parent;
+    var parent = child.parent2;
     while (parent != null) {
       if (parent is FormalParameterDefaultClause && child == parent.value) {
         // A parameter default value does not constitute a constant context, but
         // must be a constant expression.
         return true;
       } else if (parent is VariableDeclaration && child == parent.initializer) {
-        var declarationList = parent.parent;
+        var declarationList = parent.parent2;
         if (declarationList is VariableDeclarationList) {
-          var declarationListParent = declarationList.parent;
+          var declarationListParent = declarationList.parent2;
           if (declarationListParent is FieldDeclaration &&
               !declarationListParent.isStatic) {
-            var body = declarationListParent.parent;
+            var body = declarationListParent.parent2;
             if (body is BlockClassBody) {
-              var container = body.parent;
+              var container = body.parent2;
               if (container is ClassDeclaration) {
                 var enclosingClass = container.declaredFragment!.element;
                 if (enclosingClass is ClassElementImpl) {
@@ -1693,7 +1693,7 @@ extension on Expression {
         return false;
       } else {
         child = parent;
-        parent = child.parent;
+        parent = child.parent2;
       }
     }
     return false;

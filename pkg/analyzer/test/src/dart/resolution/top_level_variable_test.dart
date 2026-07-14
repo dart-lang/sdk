@@ -50,6 +50,15 @@ VariableDeclaration
         FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
+            parameters
+              RegularFormalParameter
+                name: z
+                declaredFragment: <testLibraryFragment> z@100
+                  element: hasImplicitType isPublic
+                    type: Object?
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               name: z
               declaredFragment: <testLibraryFragment> z@100
@@ -116,6 +125,15 @@ VariableDeclaration
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
+            leftParenthesis: (
+            parameters
+              RegularFormalParameter
+                name: z
+                declaredFragment: <testLibraryFragment> z@108
+                  element: hasImplicitType isPublic
+                    type: String
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: z

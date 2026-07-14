@@ -350,7 +350,7 @@ bool File::CreateLink(Namespace* namespc,
 
 bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
   int pipe_fds[2];
-  int status = NO_RETRY_EXPECTED(pipe(pipe_fds));
+  int status = NO_RETRY_EXPECTED(pipe2(pipe_fds, O_CLOEXEC));
   if (status != 0) {
     return false;
   }

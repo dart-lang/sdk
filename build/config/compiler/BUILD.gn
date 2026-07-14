@@ -239,7 +239,7 @@ config("compiler") {
       } else if (current_cpu == "arm64e") {
         common_mac_flags += [ "--target=arm64e-apple-macos" ]
 
-        # Default lld does not work.
+        # TODO(https://github.com/llvm/llvm-project/pull/188378): Use lld (default).
         ldflags += [ "-fuse-ld=ld" ]
       }
     } else if (is_ios) {
@@ -250,7 +250,7 @@ config("compiler") {
       } else if (current_cpu == "arm64e") {
         common_mac_flags += [ "--target=arm64e-apple-darwin" ]
 
-        # Default lld does not work.
+        # TODO(https://github.com/llvm/llvm-project/pull/188378): Use lld (default).
         ldflags += [ "-fuse-ld=ld" ]
       }
     }

@@ -82,6 +82,19 @@ void f(({int f1, String f2}) x) {}
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: <empty> <synthetic>
+        element: <null>
+        type: InvalidType
+      name: x
+      declaredFragment: <testLibraryFragment> x@45
+        element: isPublic
+          type: InvalidType
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   parameter: RegularFormalParameter
     type: NamedType
       name: <empty> <synthetic>
@@ -106,6 +119,19 @@ void f((int, String) x) {}
     var node = result.findNode.singleFormalParameterList;
     assertResolvedNodeText(node, r'''
 FormalParameterList
+  leftParenthesis: (
+  parameters
+    RegularFormalParameter
+      type: NamedType
+        name: <empty> <synthetic>
+        element: <null>
+        type: InvalidType
+      name: x
+      declaredFragment: <testLibraryFragment> x@37
+        element: isPublic
+          type: InvalidType
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: RegularFormalParameter
     type: NamedType

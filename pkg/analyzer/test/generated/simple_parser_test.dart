@@ -216,6 +216,22 @@ CompilationUnit
             name: f
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  name: <empty> <synthetic>
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    typeParameters: TypeParameterList
+                      leftBracket: <
+                      typeParameters
+                        TypeParameter
+                          name: T
+                      rightBracket: >
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: <empty> <synthetic>
                 functionTypedSuffix: FunctionTypedFormalParameterSuffix
@@ -1665,6 +1681,12 @@ CompilationUnit
                   FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: e
+                      rightParenthesis: )
+                    parameters(v1): FormalParameterList
+                      leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: e
                       rightParenthesis: )
@@ -1732,6 +1754,12 @@ CompilationUnit
                 arguments
                   FunctionExpression
                     parameters: FormalParameterList
+                      leftParenthesis: (
+                      parameters
+                        RegularFormalParameter
+                          name: e
+                      rightParenthesis: )
+                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: e
@@ -1922,6 +1950,13 @@ CompilationUnit
                               functionKeyword: Function
                               parameters: FormalParameterList
                                 leftParenthesis: (
+                                parameters
+                                  RegularFormalParameter
+                                    type: NamedType
+                                      name: String
+                                rightParenthesis: )
+                              parameters(v1): FormalParameterList
+                                leftParenthesis: (
                                 parameter: RegularFormalParameter
                                   type: NamedType
                                     name: String
@@ -2075,6 +2110,26 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
+        parameters
+          RegularFormalParameter
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: core
+                period: .
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    importPrefix: ImportPrefixReference
+                      name: core
+                      period: .
+                    name: int
+                rightBracket: >
+            name: x
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
+        leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
             importPrefix: ImportPrefixReference
@@ -2172,6 +2227,16 @@ RegularFormalParameter
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+        RegularFormalParameter
+          type: NamedType
+            name: int
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2225,6 +2290,19 @@ RegularFormalParameter
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: String
+        RegularFormalParameter
+          type: NamedType
+            name: T
+          name: t
+      leftDelimiter: {
+      rightDelimiter: }
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: String
@@ -2266,6 +2344,16 @@ RegularFormalParameter
       functionKeyword: Function
       parameters: FormalParameterList
         leftParenthesis: (
+        parameters
+          RegularFormalParameter
+            type: NamedType
+              name: B
+          RegularFormalParameter
+            type: NamedType
+              name: C
+        rightParenthesis: )
+      parameters(v1): FormalParameterList
+        leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
             name: B
@@ -2275,6 +2363,13 @@ RegularFormalParameter
         rightParenthesis: )
     functionKeyword: Function
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: D
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2327,6 +2422,18 @@ RegularFormalParameter
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: String
+          name: s
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: i
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: String
@@ -2352,6 +2459,16 @@ RegularFormalParameter
       name: A
     functionKeyword: Function
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: B
+        RegularFormalParameter
+          type: NamedType
+            name: C
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2420,6 +2537,19 @@ RegularFormalParameter
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: String
+          name: s
+        RegularFormalParameter
+          type: NamedType
+            name: T
+      leftDelimiter: [
+      rightDelimiter: ]
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: String
@@ -2452,6 +2582,13 @@ RegularFormalParameter
         rightBracket: >
     functionKeyword: Function
     parameters: FormalParameterList
+      leftParenthesis: (
+      parameters
+        RegularFormalParameter
+          type: NamedType
+            name: C
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2678,6 +2815,13 @@ ClassDeclaration
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -2710,6 +2854,13 @@ ClassDeclaration
               name: String
             functionKeyword: Function
             parameters: FormalParameterList
+              leftParenthesis: (
+              parameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3236,6 +3387,30 @@ CompilationUnit
         functionKeyword: Function
         parameters: FormalParameterList
           leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: <empty> <synthetic>
+              functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                typeParameters: TypeParameterList
+                  leftBracket: <
+                  typeParameters
+                    TypeParameter
+                      name: <empty> <synthetic>
+                  rightBracket: >
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  parameters
+                    RegularFormalParameter
+                      name: $
+                  rightParenthesis: ) <synthetic>
+                formalParameters(v1): FormalParameterList
+                  leftParenthesis: (
+                  parameter: RegularFormalParameter
+                    name: $
+                  rightParenthesis: ) <synthetic>
+          rightParenthesis: ) <synthetic>
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>
             functionTypedSuffix: FunctionTypedFormalParameterSuffix
@@ -3273,6 +3448,22 @@ CompilationUnit
       type: GenericFunctionType
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          parameters
+            RegularFormalParameter
+              name: <empty> <synthetic>
+              functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                typeParameters: TypeParameterList
+                  leftBracket: <
+                  typeParameters
+                    TypeParameter
+                      name: S
+                  rightBracket: >
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>

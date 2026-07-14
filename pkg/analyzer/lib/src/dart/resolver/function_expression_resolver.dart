@@ -24,7 +24,7 @@ class FunctionExpressionResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(FunctionExpressionImpl node, {required DartType contextType}) {
-    var parent = node.parent;
+    var parent = node.parent2;
     var isFunctionDeclaration = parent is FunctionDeclarationImpl;
     var body = node.body;
     var isClosure = _resolver.flowAnalysis.isActive && !isFunctionDeclaration;
@@ -198,10 +198,10 @@ class FunctionExpressionResolver {
   }
 
   static bool _shouldUpdateReturnType(FunctionExpression node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is FunctionDeclaration) {
       // Local function without declared return type.
-      return parent.parent is FunctionDeclarationStatement &&
+      return parent.parent2 is FunctionDeclarationStatement &&
           parent.returnType == null;
     } else {
       // Pure function expression.

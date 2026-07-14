@@ -121,8 +121,8 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   void visitFunctionExpression(FunctionExpression node) {
     if (functionExpression != null) {
       var local =
-          node.parent is! FunctionDeclaration ||
-          node.parent!.parent is FunctionDeclarationStatement;
+          node.parent2 is! FunctionDeclaration ||
+          node.parent2!.parent2 is FunctionDeclarationStatement;
       functionExpression!(node, local);
     }
     super.visitFunctionExpression(node);

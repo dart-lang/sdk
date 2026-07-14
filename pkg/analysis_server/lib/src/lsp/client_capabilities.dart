@@ -74,6 +74,10 @@ class LspClientCapabilities {
 
   final ClientCapabilities raw;
   final bool documentChanges;
+
+  /// Whether the clients regex engine is 'ECMAScript'.
+  final bool ecmaScriptRegex;
+
   final bool changeAnnotations;
   final bool configuration;
   final bool createResourceOperations;
@@ -117,6 +121,7 @@ class LspClientCapabilities {
   final List<String> experimentalCapabilitiesErrors;
 
   factory(ClientCapabilities raw) {
+    var general = raw.general;
     var workspace = raw.workspace;
     var workspaceEdit = workspace?.workspaceEdit;
     var resourceOperations = workspaceEdit?.resourceOperations;
@@ -136,6 +141,7 @@ class LspClientCapabilities {
     var typeDefinition = textDocument?.typeDefinition;
     var workspaceSymbol = workspace?.symbol;
 
+    var ecmaScriptRegex = general?.regularExpressions?.engine == 'ECMAScript';
     var applyEdit = workspace?.applyEdit ?? false;
     var codeActionKinds = _listToSet(
       codeActionLiteral?.codeActionKind.valueSet,
@@ -199,6 +205,7 @@ class LspClientCapabilities {
     return LspClientCapabilities._(
       raw,
       documentChanges: documentChanges,
+      ecmaScriptRegex: ecmaScriptRegex,
       changeAnnotations: changeAnnotations,
       configuration: configuration,
       createResourceOperations: createResourceOperations,
@@ -243,6 +250,7 @@ class LspClientCapabilities {
   new _(
     this.raw, {
     required this.documentChanges,
+    required this.ecmaScriptRegex,
     required this.changeAnnotations,
     required this.configuration,
     required this.createResourceOperations,

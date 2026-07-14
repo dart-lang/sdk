@@ -107,7 +107,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is PropertyAccess && parent.propertyName == node) return;
     if (parent is PrefixedIdentifier && parent.identifier == node) return;
     if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
@@ -206,12 +206,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference) return false;
     if (node is SimpleIdentifier) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is ConstructorName) {
-        parent = parent.parent;
+        parent = parent.parent2;
       }
       while (parent is ParenthesizedExpression) {
-        parent = parent.parent;
+        parent = parent.parent2;
       }
       if (parent is InvocationExpression) return false;
       if (node.element is TopLevelFunctionElement) return true;

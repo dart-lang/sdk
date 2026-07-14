@@ -335,7 +335,12 @@ abstract final class Annotation implements AstNode {
   Identifier get name;
 
   @override
+  @ToBeDeprecated('Use parent2 instead')
   AstNode get parent;
+
+  @experimental
+  @override
+  AstNode get parent2;
 
   /// The period before the constructor name, or `null` if this annotation isn't
   /// the invocation of a named constructor.
@@ -470,7 +475,12 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @override
+  @ToBeDeprecated('Use parent2 instead')
   AstNodeImpl get parent => super.parent!;
+
+  @experimental
+  @override
+  AstNodeImpl get parent2 => super.parent2!;
 
   @generated
   @override
@@ -1162,7 +1172,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   /// This method assumes that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -1351,7 +1361,7 @@ base mixin ArgumentImpl on AstNodeImpl implements Argument {
 
   @override
   InternalFormalParameterElement? get correspondingParameter {
-    var parent = this.parent;
+    var parent = parent2;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     }
@@ -2663,6 +2673,7 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Note that the relationship between an AST node and its parent node may
   /// change over the lifetime of a node.
+  @ToBeDeprecated('Use parent2 instead')
   AstNode? get parent;
 
   /// Returns this node's parent node, or `null` if this node is the root of an
@@ -2773,6 +2784,8 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   AstNodeImpl? _parent2;
 
+  AstNodeApi get astNodeApi => _astNodeApi;
+
   @override
   Iterable<SyntacticEntity> get childEntities =>
       _childEntities.syntacticEntities;
@@ -2806,6 +2819,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   int get offset => beginToken.offset;
 
   @override
+  @ToBeDeprecated('Use parent2 instead')
   AstNodeImpl? get parent {
     _checkV1View();
     return _parent;
@@ -2822,10 +2836,10 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNode get root {
     _checkV1View();
     AstNodeImpl root = this;
-    var rootParent = parent;
+    var rootParent = _parent;
     while (rootParent != null) {
       root = rootParent;
-      rootParent = root.parent;
+      rootParent = root._parent;
     }
     return root;
   }
@@ -2856,7 +2870,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   @override
   Token? findPrevious(Token target) =>
-      util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
+      util.findPrevious(beginToken, target) ?? _parent?.findPrevious(target);
 
   /// Returns `true` if [child] is in a slot of this node that allows a value
   /// expression.
@@ -2879,7 +2893,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// This is only supported for nullable child slots. It is not supported for
   /// required child slots or for elements of a [NodeList].
   void removeFromParent() {
-    var parent = this.parent;
+    var parent = parent2;
     if (parent is! AstNodeImpl) {
       throw ArgumentError('The node is not a child of another node.');
     }
@@ -2905,7 +2919,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     if (identical(this, newNode)) {
       return;
     }
-    var parent = this.parent;
+    var parent = parent2;
     if (parent is! AstNodeImpl) {
       throw ArgumentError('The node is not a child of another node.');
     }
@@ -2919,7 +2933,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     _checkV1View();
     AstNode? node = this;
     while (node != null && !predicate(node)) {
-      node = node.parent;
+      node = (node as AstNodeImpl)._parent;
     }
     return node as E?;
   }
@@ -2942,7 +2956,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     _checkV1View();
     AstNode? node = this;
     while (node != null && node is! E) {
-      node = node.parent;
+      node = (node as AstNodeImpl)._parent;
     }
     return node as E?;
   }
@@ -9668,13 +9682,13 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// - Matching context: [GuardedPatternImpl]
   AstNodeImpl? get patternContext {
     for (DartPatternImpl current = this; ;) {
-      var parent = current.parent;
+      var parent = current.parent2;
       if (parent is MapPatternEntryImpl) {
-        parent = parent.parent;
+        parent = parent.parent2;
       } else if (parent is PatternFieldImpl) {
-        parent = parent.parent;
+        parent = parent.parent2;
       } else if (parent is RestPatternElementImpl) {
-        parent = parent.parent;
+        parent = parent.parent2;
       }
       if (parent is ForEachPartsWithPatternImpl) {
         return parent;
@@ -13027,7 +13041,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   InternalFormalParameterElement? get correspondingParameter {
-    var parent = this.parent;
+    var parent = parent2;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
@@ -13131,7 +13145,7 @@ sealed class ExpressionImpl extends AstNodeImpl
   (AstNode, Token?)? constantContext({required bool includeSelf}) {
     AstNode? current = this;
     if (!includeSelf) {
-      current = current.parent;
+      current = current.parent2;
     }
 
     while (true) {
@@ -13187,7 +13201,7 @@ sealed class ExpressionImpl extends AstNodeImpl
         default:
           return null;
       }
-      current = current?.parent;
+      current = current?.parent2;
     }
   }
 
@@ -16124,12 +16138,22 @@ sealed class ForLoopImpl<Body extends AstNode, BodyImpl extends Body>
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ForLoopParts implements AstNode {
   @override
+  @ToBeDeprecated('Use parent2 instead')
   ForLoop get parent;
+
+  @experimental
+  @override
+  ForLoop get parent2;
 }
 
 sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {
   @override
+  @ToBeDeprecated('Use parent2 instead')
   ForLoopImpl get parent => super.parent as ForLoopImpl;
+
+  @experimental
+  @override
+  ForLoopImpl get parent2 => super.parent2 as ForLoopImpl;
 }
 
 /// A node representing a parameter to a function.
@@ -22405,7 +22429,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -22439,7 +22463,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   InternalFormalParameterElement? get _staticParameterElementForIndex {
     Element? element = this.element;
 
-    if (parent case CompoundAssignmentExpression parent) {
+    if (parent2 case CompoundAssignmentExpression parent) {
       element = parent.writeElement ?? parent.readElement;
     }
 
@@ -22465,7 +22489,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inGetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
-    var parent = this.parent!;
+    var parent = parent2!;
     if (parent case AssignmentExpression assignment) {
       if (identical(assignment.leftHandSide, this) &&
           assignment.operator.type == TokenType.EQ) {
@@ -22478,7 +22502,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   bool inSetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
-    var parent = this.parent!;
+    var parent = parent2!;
     if (parent is PrefixExpressionImpl) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpressionImpl) {
@@ -22951,13 +22975,13 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
     return literal;
   }
 
-  /// Whether this literal's [parent] is a [PrefixExpression] of unary negation.
+  /// Whether this literal's [parent2] is a [PrefixExpression] of unary negation.
   ///
   /// Note: this does *not* indicate that the value itself is negated, just that
   /// the literal is the child of a negation operation. The literal value itself
   /// is always positive.
   bool get immediatelyNegated {
-    var parent = this.parent!;
+    var parent = parent2!;
     return parent is PrefixExpressionImpl &&
         parent.operator.type == TokenType.MINUS;
   }
@@ -23321,7 +23345,13 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   }
 
   @override
+  @ToBeDeprecated('Use parent2 instead')
   StringInterpolationImpl get parent => super.parent as StringInterpolationImpl;
+
+  @experimental
+  @override
+  StringInterpolationImpl get parent2 =>
+      super.parent2 as StringInterpolationImpl;
 
   @generated
   @override
@@ -23337,8 +23367,8 @@ final class InterpolationStringImpl extends InterpolationElementImpl
     String lexeme = contents.lexeme;
     return StringLexemeHelper(
       lexeme,
-      identical(this, parent.elements.first),
-      identical(this, parent.elements.last),
+      identical(this, parent2.elements.first),
+      identical(this, parent2.elements.last),
     );
   }
 
@@ -26511,7 +26541,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -31730,7 +31760,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 
   @override
   PrimaryConstructorDeclarationImpl? get declaration {
-    switch (parent?.parent) {
+    switch (parent2?.parent2) {
       case ClassDeclarationImpl parent:
         return parent.namePart.tryCast();
       case EnumDeclarationImpl parent:
@@ -31923,6 +31953,14 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
 
   /// The formal parameters of the constructor, including declaring.
   FormalParameterList get formalParameters;
+
+  /// Whether this primary constructor declaration is complete for augmentation
+  /// purposes.
+  ///
+  /// A primary constructor declaration is complete if it has a body, has an
+  /// initializer list, or has a declaring formal, field formal, super formal,
+  /// or extension type representation formal parameter.
+  bool get isComplete;
 }
 
 @GenerateNodeImpl(
@@ -31985,7 +32023,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @override
   PrimaryConstructorBodyImpl? get body =>
-      parent.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
+      parent2.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 
   @generated
   @override
@@ -32017,6 +32055,25 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @generated
   set formalParameters(FormalParameterListImpl formalParameters) {
     _formalParameters = _becomeParentOf12(formalParameters);
+  }
+
+  @override
+  bool get isComplete {
+    if (body case var body?) {
+      if (body.body is! EmptyFunctionBody) return true;
+      if (body.initializers.isNotEmpty) return true;
+    }
+
+    if (parent is ExtensionTypeDeclarationImpl) {
+      return true;
+    }
+
+    return formalParameters.parameters.any((formalParameter) {
+      return formalParameter is FieldFormalParameterImpl ||
+          formalParameter is SuperFormalParameterImpl ||
+          formalParameter is RegularFormalParameterImpl &&
+              formalParameter.finalOrVarKeyword != null;
+    });
   }
 
   /// Whether this is a trivial constructor.
@@ -32440,7 +32497,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   /// This method assumes that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent!; ; ancestor = ancestor.parent!) {
+    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
@@ -35682,7 +35739,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     var operatorType = token.previous?.type;
     if (operatorType == TokenType.PERIOD_PERIOD ||
         operatorType == TokenType.QUESTION_PERIOD_PERIOD) {
-      return thisOrAncestorOfType<CascadeExpressionImpl>();
+      return thisOrAncestorOfType2<CascadeExpressionImpl>();
     }
     return null;
   }
@@ -35701,7 +35758,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool get isQualified {
-    var parent = this.parent!;
+    var parent = parent2!;
     if (parent is PrefixedIdentifierImpl) {
       return identical(parent.identifier, this);
     } else if (parent is PropertyAccessImpl) {
@@ -35744,13 +35801,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inDeclarationContext() {
-    var parent = this.parent;
+    var parent = parent2;
     switch (parent) {
       case ImportDirectiveImpl():
         return parent.prefix == this;
       case LabelImpl():
-        var parent2 = parent.parent;
-        return parent2 is StatementImpl || parent2 is SwitchMemberImpl;
+        var grandParent = parent.parent2;
+        return grandParent is StatementImpl || grandParent is SwitchMemberImpl;
       default:
         break;
     }
@@ -35759,7 +35816,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inGetterContext() {
-    AstNode initialParent = this.parent!;
+    AstNode initialParent = parent2!;
     AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
@@ -35767,13 +35824,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       if (identical(initialParent.prefix, this)) {
         return true;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     } else if (initialParent is PropertyAccess) {
       if (identical(initialParent.target, this)) {
         return true;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     }
     // skip label
@@ -35801,7 +35858,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inSetterContext() {
-    AstNode initialParent = this.parent!;
+    AstNode initialParent = parent2!;
     AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
@@ -35810,13 +35867,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       if (identical(initialParent.prefix, this)) {
         return false;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     } else if (initialParent is PropertyAccess) {
       if (identical(initialParent.target, this)) {
         return false;
       }
-      parent = initialParent.parent!;
+      parent = initialParent.parent2!;
       target = initialParent;
     }
     // analyze usage
@@ -40525,7 +40582,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   CommentImpl? get documentationComment {
     var comment = super.documentationComment;
     if (comment == null) {
-      var node = parent?.parent;
+      var node = parent2?.parent2;
       if (node is AnnotatedNodeImpl) {
         return node.documentationComment;
       }
@@ -40562,19 +40619,19 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   bool get isConst {
-    var parent = this.parent;
+    var parent = parent2;
     return parent is VariableDeclarationListImpl && parent.isConst;
   }
 
   @override
   bool get isFinal {
-    var parent = this.parent;
+    var parent = parent2;
     return parent is VariableDeclarationListImpl && parent.isFinal;
   }
 
   @override
   bool get isLate {
-    var parent = this.parent;
+    var parent = parent2;
     return parent is VariableDeclarationListImpl && parent.isLate;
   }
 

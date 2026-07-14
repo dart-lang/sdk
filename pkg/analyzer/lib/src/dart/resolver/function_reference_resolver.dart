@@ -582,7 +582,7 @@ class FunctionReferenceResolver {
       // A type-instantiated constructor tearoff like `prefix.C<int>.name` is
       // initially represented as a [PropertyAccess] with a
       // [FunctionReference] 'target'.
-      if (node.parent is PropertyAccess) {
+      if (node.parent2 is PropertyAccess) {
         _resolveConstructorReference(node);
         return;
       } else if (element is InterfaceElementImpl) {
@@ -690,7 +690,7 @@ class FunctionReferenceResolver {
       // A type-instantiated constructor tearoff like `C<int>.name` or
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
-      if (node.parent is PropertyAccess) {
+      if (node.parent2 is PropertyAccess) {
         if (element is TypeAliasElementImpl &&
             element.aliasedType is FunctionType) {
           function.element = element;

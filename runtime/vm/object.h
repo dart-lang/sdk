@@ -338,15 +338,15 @@ namespace RTN = dart::compiler::target;
 #define HANDLE_DISCRIMINATOR 0x1234
 
 #if defined(HOST_ARCH_ARM64E)
-#define NO_VTABLE_EXTRA_DISCRIMINATION                                         \
+#define KNOWN_VTABLE_DISCRIMINATOR                                             \
   [[clang::ptrauth_vtable_pointer(default_key, address_discrimination,         \
                                   custom_discrimination,                       \
                                   HANDLE_DISCRIMINATOR)]]
 #else
-#define NO_VTABLE_EXTRA_DISCRIMINATION
+#define KNOWN_VTABLE_DISCRIMINATOR
 #endif
 
-class NO_VTABLE_EXTRA_DISCRIMINATION Object {
+class KNOWN_VTABLE_DISCRIMINATOR Object {
  public:
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
@@ -725,11 +725,10 @@ class NO_VTABLE_EXTRA_DISCRIMINATION Object {
 #if defined(HOST_ARCH_ARM64E)
     // Adjust the vtable pointer so it doesn't depend on the address of the
     // prototype handle.
-    // Bad! Leaves the raw pointer in builtin_vtables_!
-    // TODO(63420): Why doesn't ptrauth_auth_and_resign work here?
-    data = ptrauth_auth_data(
+    data = ptrauth_auth_and_resign(
         data, ptrauth_key_cxx_vtable_pointer,
-        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR));
+        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR),
+        ptrauth_key_cxx_vtable_pointer, 0x4321);
 #endif
     return reinterpret_cast<cpp_vtable>(data);
   }
@@ -737,11 +736,16 @@ class NO_VTABLE_EXTRA_DISCRIMINATION Object {
     void* data = reinterpret_cast<void*>(data_in);
 #if defined(HOST_ARCH_ARM64E)
     // Resign the vtable pointer for the new handle's address.
-    // TODO(63420): Why doesn't ptrauth_auth_and_resign work here?
-    data = ptrauth_sign_unauthenticated(
-        data, ptrauth_key_cxx_vtable_pointer,
+    data = ptrauth_auth_and_resign(
+        data, ptrauth_key_cxx_vtable_pointer, 0x4321,
+        ptrauth_key_cxx_vtable_pointer,
         ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR));
 #endif
+    memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
+           sizeof(cpp_vtable));
+  }
+  void set_vtable_invalid() {
+    void* data = nullptr;
     memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
            sizeof(cpp_vtable));
   }
@@ -1101,7 +1105,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& Handle(ObjectPtr ptr) {
@@ -1117,7 +1121,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateZoneHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& ZoneHandle(ObjectPtr ptr) {

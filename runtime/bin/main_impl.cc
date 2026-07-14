@@ -42,7 +42,7 @@
 
 extern "C" {
 extern const uint8_t kDartCoreSnapshotData[];
-extern const uint8_t kDartCoreSnapshotText[];
+extern void kDartCoreSnapshotText();
 }
 
 namespace dart {
@@ -50,7 +50,8 @@ namespace bin {
 
 // Snapshot pieces we link in a snapshot.
 const uint8_t* core_snapshot_data = kDartCoreSnapshotData;
-const uint8_t* core_snapshot_text = kDartCoreSnapshotText;
+const uint8_t* core_snapshot_text =
+    reinterpret_cast<const uint8_t*>(kDartCoreSnapshotText);
 
 /**
  * Global state used to control and store generation of application snapshots.

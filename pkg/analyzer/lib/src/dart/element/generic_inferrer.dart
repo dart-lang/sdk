@@ -587,8 +587,8 @@ class GenericInferrer {
       return;
     }
     if (errorEntity is AstNode &&
-        errorEntity.parent is InvocationExpression &&
-        errorEntity.parent?.parent is AsExpression) {
+        errorEntity.parent2 is InvocationExpression &&
+        errorEntity.parent2?.parent2 is AsExpression) {
       // Casts via `as` do not play a part in downward inference. We allow an
       // exception when inference has "failed" but the return value is
       // immediately cast with `as`.

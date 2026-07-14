@@ -1521,10 +1521,10 @@ void f() {
   /// @return the root of the AST structure containing the identifier
   AstNode _topMostNode(SimpleIdentifier identifier) {
     AstNode child = identifier;
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     while (parent != null) {
       child = parent;
-      parent = parent.parent;
+      parent = parent.parent2;
     }
     return child;
   }

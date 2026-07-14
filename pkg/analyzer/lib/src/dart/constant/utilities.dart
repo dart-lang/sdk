@@ -135,9 +135,9 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
       // Analyzer ignores annotations on "part of" directives and on enum
       // constant declarations.
       assert(
-        node.parent is PartDirective ||
-            node.parent is PartOfDirective ||
-            node.parent is EnumConstantDeclaration,
+        node.parent2 is PartDirective ||
+            node.parent2 is PartOfDirective ||
+            node.parent2 is EnumConstantDeclaration,
       );
     } else {
       constantsToCompute.add(elementAnnotation);

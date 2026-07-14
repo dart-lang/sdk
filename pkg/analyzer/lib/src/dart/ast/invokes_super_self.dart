@@ -53,7 +53,7 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     if (_usage == _Usage.reading) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is AssignmentExpression && parent.leftHandSide == node) {
         // Not reading, skip.
       } else {

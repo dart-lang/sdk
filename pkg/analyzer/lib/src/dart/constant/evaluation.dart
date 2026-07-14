@@ -2134,7 +2134,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
           return diag.constInitializedWithNonConstantValueFromDeferredLibrary;
         }
         previous = current;
-        current = current.parent;
+        current = current.parent2;
       }
     }();
     if (errorCode != null) {
@@ -3797,8 +3797,8 @@ class _RedirectionResult {
 
 extension on NamedType {
   bool get isTypeLiteralInConstantPattern {
-    var parent = this.parent;
-    return parent is TypeLiteral && parent.parent?.parent is ConstantPattern;
+    var parent = parent2;
+    return parent is TypeLiteral && parent.parent2?.parent2 is ConstantPattern;
   }
 }
 

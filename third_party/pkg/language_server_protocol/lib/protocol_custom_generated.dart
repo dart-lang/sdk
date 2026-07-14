@@ -552,6 +552,33 @@ bool _canParseListOutline(
   return true;
 }
 
+bool _canParseListRegexValidator(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !RegexValidator.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<StringValidator>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListString(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -890,6 +917,31 @@ bool _canParseUri(
   return true;
 }
 
+bool _canParseValidationSeverity(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !ValidationSeverity.canParse(value, reporter)) {
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseWorkspaceEdit(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -930,6 +982,9 @@ typedef LSPAny = Object?;
 typedef LSPObject = Object;
 
 typedef LSPUri = Uri;
+
+/// Validators applicable to string fields.
+typedef StringValidator = RegexValidator;
 
 typedef TextDocumentEditEdits = List<
     Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit,
@@ -3257,14 +3312,14 @@ sealed class FormFieldType implements ToJsonable {
     if (FormFieldTypeFile.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeFile.fromJson(json);
     }
+    if (FormFieldTypeString.canParse(json, nullLspJsonReporter)) {
+      return FormFieldTypeString.fromJson(json);
+    }
     if (FormFieldTypeBool.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeBool.fromJson(json);
     }
     if (FormFieldTypeNumber.canParse(json, nullLspJsonReporter)) {
       return FormFieldTypeNumber.fromJson(json);
-    }
-    if (FormFieldTypeString.canParse(json, nullLspJsonReporter)) {
-      return FormFieldTypeString.fromJson(json);
     }
     throw ArgumentError(
         'Supplied map is not valid for any subclass of FormFieldType');
@@ -3518,28 +3573,42 @@ class FormFieldTypeString implements FormFieldType, ToJsonable {
   @override
   final String kind;
 
+  /// Validators for this form field.Field validators only validate the
+  /// input/answer to a field in isolation and cannot depend on the answers to
+  /// other fields. For example a string field may have a regex validator, or a
+  /// numeric field may have a range validator.Clients must ignore validators
+  /// they do not support.
+  final List<StringValidator>? validators;
+
   FormFieldTypeString({
     this.kind = 'string',
+    this.validators,
   }) {
     if (kind != 'string') {
       throw 'kind may only be the literal \'string\'';
     }
   }
-
   @override
-  int get hashCode => kind.hashCode;
+  int get hashCode => Object.hash(
+        kind,
+        lspHashCode(validators),
+      );
 
   @override
   bool operator ==(Object other) {
     return other is FormFieldTypeString &&
         other.runtimeType == FormFieldTypeString &&
-        kind == other.kind;
+        kind == other.kind &&
+        const DeepCollectionEquality().equals(validators, other.validators);
   }
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['kind'] = kind;
+    if (validators != null) {
+      result['validators'] = validators?.map((item) => item.toJson()).toList();
+    }
     return result;
   }
 
@@ -3548,8 +3617,12 @@ class FormFieldTypeString implements FormFieldType, ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      return _canParseLiteral(obj, reporter, 'kind',
-          allowsUndefined: false, allowsNull: false, literal: 'string');
+      if (!_canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'string')) {
+        return false;
+      }
+      return _canParseListRegexValidator(obj, reporter, 'validators',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type FormFieldTypeString');
       return false;
@@ -3559,8 +3632,13 @@ class FormFieldTypeString implements FormFieldType, ToJsonable {
   static FormFieldTypeString fromJson(Map<String, Object?> json) {
     final kindJson = json['kind'];
     final kind = kindJson as String;
+    final validatorsJson = json['validators'];
+    final validators = (validatorsJson as List<Object?>?)
+        ?.map((item) => RegexValidator.fromJson(item as Map<String, Object?>))
+        .toList();
     return FormFieldTypeString(
       kind: kind,
+      validators: validators,
     );
   }
 }
@@ -4591,6 +4669,127 @@ class PubPackageCompletionItemResolutionInfo
   }
 }
 
+/// A regex-based validator that ensures an answer matches a given regex.
+class RegexValidator implements Validator, ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    RegexValidator.canParse,
+    RegexValidator.fromJson,
+  );
+
+  final String kind;
+
+  /// Whether the answer matching the pattern means it is valid (no message
+  /// reported) or invalid (message reported).
+  final bool matchIsValid;
+
+  /// The message to show if the answer is not valid according to `pattern` and
+  /// `matchIsValid`.
+  @override
+  final String message;
+
+  /// The regex pattern to validate the input.
+  ///
+  /// The server must only provide regular expressions for the engine supported
+  /// by the client in the `general.regularExpressions` client capability. If
+  /// the server cannot provide an appropriate regular expression it should not
+  /// provide the regex validator.
+  final String pattern;
+
+  /// The severity of a violation of this validator.
+  @override
+  final ValidationSeverity severity;
+  RegexValidator({
+    this.kind = 'regex',
+    required this.matchIsValid,
+    required this.message,
+    required this.pattern,
+    required this.severity,
+  }) {
+    if (kind != 'regex') {
+      throw 'kind may only be the literal \'regex\'';
+    }
+  }
+  @override
+  int get hashCode => Object.hash(
+        kind,
+        matchIsValid,
+        message,
+        pattern,
+        severity,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is RegexValidator &&
+        other.runtimeType == RegexValidator &&
+        kind == other.kind &&
+        matchIsValid == other.matchIsValid &&
+        message == other.message &&
+        pattern == other.pattern &&
+        severity == other.severity;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['kind'] = kind;
+    result['matchIsValid'] = matchIsValid;
+    result['message'] = message;
+    result['pattern'] = pattern;
+    result['severity'] = severity.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseLiteral(obj, reporter, 'kind',
+          allowsUndefined: false, allowsNull: false, literal: 'regex')) {
+        return false;
+      }
+      if (!_canParseBool(obj, reporter, 'matchIsValid',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'message',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'pattern',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseValidationSeverity(obj, reporter, 'severity',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type RegexValidator');
+      return false;
+    }
+  }
+
+  static RegexValidator fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final matchIsValidJson = json['matchIsValid'];
+    final matchIsValid = matchIsValidJson as bool;
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final patternJson = json['pattern'];
+    final pattern = patternJson as String;
+    final severityJson = json['severity'];
+    final severity = ValidationSeverity.fromJson(severityJson as int);
+    return RegexValidator(
+      kind: kind,
+      matchIsValid: matchIsValid,
+      message: message,
+      pattern: pattern,
+      severity: severity,
+    );
+  }
+}
+
 class RequestMessage implements IncomingMessage, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     RequestMessage.canParse,
@@ -5139,6 +5338,106 @@ class ValidateRefactorResult implements ToJsonable {
     return ValidateRefactorResult(
       message: message,
       valid: valid,
+    );
+  }
+}
+
+/// The severity of a violation of a validator.
+class ValidationSeverity implements ToJsonable {
+  /// An error message that prevents submission of the value.
+  static const Error = ValidationSeverity(3);
+
+  /// An informational message that does not block submission of the value.
+  static const Info = ValidationSeverity(1);
+
+  /// A warning message that does not block submission of the value.
+  static const Warning = ValidationSeverity(2);
+
+  final int _value;
+  const ValidationSeverity(this._value);
+  const ValidationSeverity.fromJson(this._value);
+  @override
+  int get hashCode => _value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ValidationSeverity && other._value == _value;
+
+  @override
+  int toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) => obj is int;
+}
+
+class Validator implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    Validator.canParse,
+    Validator.fromJson,
+  );
+
+  /// The message to show if the answer fails this validator.
+  final String message;
+
+  /// The severity of a violation of this validator.
+  final ValidationSeverity severity;
+
+  Validator({
+    required this.message,
+    required this.severity,
+  });
+  @override
+  int get hashCode => Object.hash(
+        message,
+        severity,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is Validator &&
+        other.runtimeType == Validator &&
+        message == other.message &&
+        severity == other.severity;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['message'] = message;
+    result['severity'] = severity.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'message',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseValidationSeverity(obj, reporter, 'severity',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type Validator');
+      return false;
+    }
+  }
+
+  static Validator fromJson(Map<String, Object?> json) {
+    if (RegexValidator.canParse(json, nullLspJsonReporter)) {
+      return RegexValidator.fromJson(json);
+    }
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final severityJson = json['severity'];
+    final severity = ValidationSeverity.fromJson(severityJson as int);
+    return Validator(
+      message: message,
+      severity: severity,
     );
   }
 }

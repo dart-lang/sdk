@@ -378,15 +378,17 @@ $experiments
 }
 
 mixin ClientCapabilitiesHelperMixin {
-  final emptyTextDocumentClientCapabilities = TextDocumentClientCapabilities();
-
-  final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities();
-
-  final emptyWindowClientCapabilities = WindowClientCapabilities();
-
   /// The set of TextDocument capabilities used if no explicit instance is
   /// passed to [initialize].
   var textDocumentCapabilities = TextDocumentClientCapabilities();
+
+  /// The set of General capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var generalCapabilties = GeneralClientCapabilities(
+    regularExpressions: RegularExpressionsClientCapabilities(
+      engine: 'ECMAScript',
+    ),
+  );
 
   /// The set of Workspace capabilities used if no explicit instance is
   /// passed to [initialize].
@@ -1127,9 +1129,10 @@ mixin LspAnalysisServerTestMixin
     });
 
     var clientCapabilities = ClientCapabilities(
-      workspace: workspaceCapabilities,
+      general: generalCapabilties,
       textDocument: textDocumentCapabilities,
       window: windowCapabilities,
+      workspace: workspaceCapabilities,
       experimental: experimentalCapabilities ?? this.experimentalCapabilities,
     );
     _clientCapabilities = clientCapabilities;

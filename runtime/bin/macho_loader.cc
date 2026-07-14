@@ -486,15 +486,27 @@ bool LoadedMachODylib::ResolveSymbols(const uint8_t** data,
     const auto& sym = external_symbols_[i];
     const char* name = string_table_ + sym.n_idx;
     const uint8_t** output = nullptr;
+    bool is_text = false;
 
     if (strcmp(name, kSnapshotDataAsmSymbol) == 0) {
       output = data;
     } else if (strcmp(name, kSnapshotTextAsmSymbol) == 0) {
       output = text;
+      // dyld decides based on the section the symbol comes from, but our loader
+      // doesn't keep track of the sections.
+      is_text = true;
     }
 
     if (output != nullptr) {
-      *output = reinterpret_cast<const uint8_t*>(base_->start() + sym.n_value);
+      auto* addr =
+          reinterpret_cast<const uint8_t*>(base_->start() + sym.n_value);
+#if defined(HOST_ARCH_ARM64E)
+      if (is_text) {
+        addr =
+            ptrauth_sign_unauthenticated(addr, ptrauth_key_function_pointer, 0);
+      }
+#endif
+      *output = addr;
     }
   }
 

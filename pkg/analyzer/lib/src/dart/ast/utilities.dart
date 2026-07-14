@@ -228,7 +228,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor2<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent is! FunctionDeclarationStatement) {
+    if (node.parent2 is! FunctionDeclarationStatement) {
       _declarationNode = node;
     } else {
       super.visitFunctionDeclaration(node);
@@ -262,7 +262,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor2<void> {
   @override
   void visitNode(AstNode node) {
     _immediateChild = node;
-    node.parent?.accept2(this);
+    node.parent2?.accept2(this);
   }
 
   @override

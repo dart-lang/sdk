@@ -38,7 +38,7 @@ mov x12, #1
 mov x13, #1
 mov x14, #1
 
-blr x0
+blraaz x0
 
 ldp x24, x27, [sp], #16
 ldp lr, x26, [sp], #16

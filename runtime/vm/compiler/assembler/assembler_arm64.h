@@ -1812,30 +1812,38 @@ class Assembler : public AssemblerBase {
     });
 #undef __
   }
-  void CallNativeWrapper(Address target) {
-    // CLOBBERS_LR uses __ to access the assembler.
-#define __ this->
-    CLOBBERS_LR({
-      ldr(LR, target);
-#if defined(TARGET_ARCH_ARM64E)
-      ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
-      ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
-             0);
-      blraaz(LR);
-#else
-      blr(LR);
-#endif
-    });
-#undef __
-  }
   void Call(const Code& code) { BranchLink(code); }
 
   // Clobbers LR.
-  void CallCFunction(Address target) { Call(target); }
+  void CallCFunction(Address target) {
+#define __ this->
+    CLOBBERS_LR({
+      ldr(LR, target);
+      CallCFunction(LR);
+    });
+#undef __
+  }
   void CallCFunction(Register target) {
 #define __ this->
+#if defined(TARGET_ARCH_ARM64E)
+    ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
+    ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
+           0);
+    CLOBBERS_LR({ blraaz(target); });
+#else
     CLOBBERS_LR({ blr(target); });
+#endif
 #undef __
+  }
+  void TailCallCFunction(Register target) {
+#if defined(TARGET_ARCH_ARM64E)
+    ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
+    ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
+           0);
+    braaz(target);
+#else
+    br(target);
+#endif
   }
 
   void AddImmediate(Register dest, int64_t imm) {

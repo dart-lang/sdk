@@ -1148,6 +1148,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
     AstNode? currentNode = node;
     var first = true;
+    // AnalysisRuleVisitor uses V1 traversal, so keep this parent walk in V1.
     while (currentNode != null) {
       if (first) {
         first = false;

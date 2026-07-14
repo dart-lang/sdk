@@ -2028,7 +2028,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       fragmentName = _getFragmentName(nameToken) ?? 'new';
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     var isAugmentation =
         parent is ExtensionTypeDeclarationImpl && parent.augmentKeyword != null;
 
@@ -2038,7 +2038,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     fragment.isConst =
         node.constKeyword != null || parent is EnumDeclarationImpl;
     fragment.isPrimary = true;
-    fragment.isComplete = true;
+    fragment.isComplete = node.isComplete;
     fragment.typeName = node.typeName.lexeme;
 
     node.declaredFragment = fragment;

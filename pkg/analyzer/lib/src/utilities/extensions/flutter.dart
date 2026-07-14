@@ -85,19 +85,19 @@ extension AstNodeExtension on AstNode? {
   InstanceCreationExpression? get findInstanceCreationExpression {
     var node = this;
     if (node is ImportPrefixReference) {
-      node = node.parent;
+      node = node.parent2;
     }
     if (node is SimpleIdentifier) {
-      node = node.parent;
+      node = node.parent2;
     }
     if (node is PrefixedIdentifier) {
-      node = node.parent;
+      node = node.parent2;
     }
     if (node is NamedType) {
-      node = node.parent;
+      node = node.parent2;
     }
     if (node is ConstructorName) {
-      node = node.parent;
+      node = node.parent2;
     }
     if (node is InstanceCreationExpression) {
       return node;
@@ -110,7 +110,7 @@ extension AstNodeExtension on AstNode? {
   ///
   /// Returns `null` if nothing is found.
   Expression? get findWidgetExpression {
-    for (var node = this; node != null; node = node.parent) {
+    for (var node = this; node != null; node = node.parent2) {
       if (!node.isWidgetExpression) {
         if (node is ArgumentList || node is Statement || node is FunctionBody) {
           return null;
@@ -122,7 +122,7 @@ extension AstNodeExtension on AstNode? {
         return null;
       }
 
-      var parent = node.parent;
+      var parent = node.parent2;
 
       if (parent is AssignmentExpression) {
         if (parent.rightHandSide == node) {
@@ -153,9 +153,9 @@ extension AstNodeExtension on AstNode? {
   bool get isWidgetExpression {
     return switch (this) {
       null => false,
-      AstNode(parent: NamedType()) ||
-      AstNode(parent: AstNode(parent: NamedType())) => false,
-      AstNode(parent: ConstructorName()) => false,
+      AstNode(parent2: NamedType()) ||
+      AstNode(parent2: AstNode(parent2: NamedType())) => false,
+      AstNode(parent2: ConstructorName()) => false,
       NamedArgument() => false,
       Expression(:var staticType) => staticType.isWidgetType,
       _ => false,
@@ -171,12 +171,12 @@ extension AstNodeExtension on AstNode? {
     NamedArgument? argument;
     if (self is NamedArgument) {
       argument = self;
-    } else if (self?.parent case NamedArgument parent) {
+    } else if (self?.parent2 case NamedArgument parent) {
       argument = parent;
     } else if (self is SimpleIdentifier) {
-      var parent = self.parent;
-      if (parent is Label && parent.parent is NamedArgument) {
-        argument = parent.parent as NamedArgument;
+      var parent = self.parent2;
+      if (parent is Label && parent.parent2 is NamedArgument) {
+        argument = parent.parent2 as NamedArgument;
       }
     }
 
@@ -184,7 +184,7 @@ extension AstNodeExtension on AstNode? {
       return null;
     }
 
-    var invocation = argument.parent?.parent;
+    var invocation = argument.parent2?.parent2;
     if (invocation is! InstanceCreationExpression ||
         !invocation.isWidgetCreation) {
       return null;

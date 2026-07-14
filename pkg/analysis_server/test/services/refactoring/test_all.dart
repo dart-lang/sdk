@@ -5,11 +5,13 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'agnostic/test_all.dart' as agnostic;
+import 'client_side_validation_test.dart' as client_side_validation;
 import 'legacy/test_all.dart' as legacy;
 
 void main() {
   defineReflectiveSuite(() {
     agnostic.main();
+    client_side_validation.main();
     legacy.main();
   }, name: 'refactoring');
 }

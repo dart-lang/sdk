@@ -422,7 +422,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitExtendsClause(covariant ExtendsClauseImpl node) {
     _resolveType(
-      declaration: node.parent as Declaration?,
+      declaration: node.parent2 as Declaration?,
       clause: node,
       namedType: node.superclass,
     );
@@ -604,7 +604,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitImplementsClause(covariant ImplementsClauseImpl node) {
     _resolveImplementsClause(
-      declaration: node.parent as Declaration,
+      declaration: node.parent2 as Declaration,
       clause: node,
     );
   }
@@ -698,7 +698,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitMixinOnClause(covariant MixinOnClauseImpl node) {
     _resolveMixinOnClause(
-      declaration: node.parent as Declaration,
+      declaration: node.parent2 as Declaration,
       clause: node,
     );
   }
@@ -968,7 +968,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     var element = node.declaredFragment!.element;
 
     if (element is LocalVariableElementImpl) {
-      var varList = node.parent as VariableDeclarationListImpl;
+      var varList = node.parent2 as VariableDeclarationListImpl;
       if (varList.type case var typeNode?) {
         element.type = typeNode.typeOrThrow;
       } else {
@@ -997,7 +997,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitWithClause(covariant WithClauseImpl node) {
-    _resolveWithClause(declaration: node.parent as Declaration?, clause: node);
+    _resolveWithClause(declaration: node.parent2 as Declaration?, clause: node);
   }
 
   List<BindPatternVariableElementImpl> _computeDeclaredPatternVariables(
