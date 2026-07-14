@@ -299,6 +299,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #else
   Label body;
 
+  // Padding for ubsan target function pointer validation
+  __ Breakpoint();
+  __ Breakpoint();
+  ASSERT_EQUAL(FfiCallbackMetadata::kUbsanTargetValidationPaddingSize,
+               __ CodeSize());
+
   // TMP is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
   for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
@@ -310,8 +316,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT(__ CodeSize() ==
-         FfiCallbackMetadata::kNativeCallbackTrampolineSize *
-             FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
+         FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+             FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                 FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   __ Bind(&body);
 
@@ -396,7 +403,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
-                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+                       FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                           FfiCallbackMetadata::kNativeCallbackSharedStubSize);
   ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)

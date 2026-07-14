@@ -50,7 +50,8 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
     if (status != ZX_OK) {
       FATAL("fdio_get_vmo_exec failed %s\n", zx_status_get_string(status));
     }
-    offset_of_first_trampoline_in_page_ = 0;
+    offset_of_first_trampoline_in_page_ =
+        FfiCallbackMetadata::kUbsanTargetValidationPaddingSize;
   }
   return;
 #endif
@@ -87,7 +88,9 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
   stub_page_ = VirtualMemory::ForImagePage(reinterpret_cast<void*>(page_start),
                                            code_end - page_start);
 
-  offset_of_first_trampoline_in_page_ = code_start - page_start;
+  offset_of_first_trampoline_in_page_ =
+      code_start - page_start +
+      FfiCallbackMetadata::kUbsanTargetValidationPaddingSize;
 }
 
 FfiCallbackMetadata::~FfiCallbackMetadata() {
