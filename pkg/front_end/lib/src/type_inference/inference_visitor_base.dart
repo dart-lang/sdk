@@ -5271,6 +5271,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required bool isThisReceiver,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
     bool? isImplicitThis,
+    required ExpressionInfo? expressionInfo,
   }) {
     Expression read;
     ExpressionInferenceResult? readResult;
@@ -5499,7 +5500,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       readType = promotedReadType;
     }
 
-    readResult ??= new ExpressionInferenceResult(readType, read);
+    if (readResult == null) {
+      storeExpressionInfo(read, expressionInfo);
+      readResult = new ExpressionInferenceResult(readType, read);
+    }
     if (readTarget.isNullable) {
       readResult = wrapExpressionInferenceResultInProblem(
         readResult,

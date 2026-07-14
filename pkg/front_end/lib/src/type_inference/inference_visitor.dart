@@ -11375,6 +11375,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isThisReceiver: isThisReceiver,
       whyNotPromoted: whyNotPromoted,
       isImplicitThis: isImplicitThis,
+      expressionInfo: expressionInfo,
     );
     storeExpressionInfo(
       result.expressionInferenceResult.expression,
@@ -12533,14 +12534,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isThisReceiver: _isInternalThisExpression(node.receiver),
       isImplicitThis: node.isImplicitThis,
     );
-    ExpressionInferenceResult readResult =
-        propertyGetInferenceResult.expressionInferenceResult;
-    ExpressionInferenceResult expressionInferenceResult =
-        new ExpressionInferenceResult(
-          readResult.inferredType,
-          readResult.expression,
-        );
-    return expressionInferenceResult;
+    return propertyGetInferenceResult.expressionInferenceResult;
   }
 
   InitializerInferenceResult visitInternalRedirectingInitializer(
