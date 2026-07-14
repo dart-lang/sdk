@@ -28,12 +28,29 @@
 
 namespace dart {
 
+static PointerPtr WrapFunctionPointer(uword raw) {
+#if defined(HOST_ARCH_ARM64E)
+  raw = reinterpret_cast<uword>(ptrauth_sign_unauthenticated(
+      reinterpret_cast<void*>(raw), ptrauth_key_function_pointer, 0));
+#endif
+  return Pointer::New(raw);
+}
+
+static uword UnwrapFunctionPointer(const Pointer& pointer) {
+  uword raw = pointer.NativeAddress();
+#if defined(HOST_ARCH_ARM64E)
+  raw = reinterpret_cast<uword>(ptrauth_auth_data(
+      reinterpret_cast<void*>(raw), ptrauth_key_function_pointer, 0));
+#endif
+  return raw;
+}
+
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
   const auto& send_function =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& port =
       ReceivePort::CheckedHandle(zone, arguments->NativeArgAt(1));
-  return Pointer::New(
+  return WrapFunctionPointer(
       isolate->CreateAsyncFfiCallback(zone, send_function, port.Id()));
 }
 
@@ -43,7 +60,7 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateLocal, 1, 3) {
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
   const bool keep_isolate_alive =
       Bool::CheckedHandle(zone, arguments->NativeArgAt(2)).value();
-  return Pointer::New(isolate->CreateIsolateLocalFfiCallback(
+  return WrapFunctionPointer(isolate->CreateIsolateLocalFfiCallback(
       zone, trampoline, target, keep_isolate_alive));
 }
 
@@ -51,20 +68,20 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupBound, 1, 2) {
   const auto& trampoline =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
-  return Pointer::New(
+  return WrapFunctionPointer(
       thread->isolate_group()->CreateIsolateGroupBoundFfiCallback(
           zone, trampoline, target));
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_deleteNativeCallable, 1, 1) {
   const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
-  isolate->DeleteFfiCallback(pointer.NativeAddress());
+  isolate->DeleteFfiCallback(UnwrapFunctionPointer(pointer));
   return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_deleteIsolateGroupNativeCallable, 1, 1) {
   const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
-  thread->isolate_group()->DeleteFfiCallback(pointer.NativeAddress());
+  thread->isolate_group()->DeleteFfiCallback(UnwrapFunctionPointer(pointer));
   return Object::null();
 }
 

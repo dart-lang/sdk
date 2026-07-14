@@ -349,7 +349,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ mov(CSP, SP);
 
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
-  __ blr(R0);
+  __ CallCFunction(R0);
 
   __ mov(SP, CALLEE_SAVED_TEMP2);
   __ mov(CSP, CALLEE_SAVED_TEMP);
@@ -375,7 +375,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(R0);
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
-  __ blr(R0);
+  __ CallCFunction(R0);
 
   __ mov(SP, CALLEE_SAVED_TEMP2);
   __ mov(CSP, CALLEE_SAVED_TEMP);
@@ -421,7 +421,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
     __ Emit(Instr::kSimulatorFfiRedirectInstruction);
   }
 #endif
-  __ blr(R9);
+  __ CallCFunction(R9);
 
   __ mov(SP, CSP);
   __ mov(CSP, R25);
@@ -503,7 +503,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
     __ mov(CSP, SP);
-    __ blr(R4);  // DLRT_GetFfiCallbackMetadata
+    __ CallCFunction(R4);  // DLRT_GetFfiCallbackMetadata
     __ mov(SP, CSP);
 
     __ mov(THR, R0);
@@ -533,9 +533,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(R0, THR);
     __ mov(R1, R21);
     __ mov(R2, R22);
-    __ blr(R20);  // DLRT_ExitSyncCallback, etc
+    __ CallCFunction(R20);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
-      __ blr(R0);  // dart_msan_unpoison_retval
+      __ CallCFunction(R0);  // dart_msan_unpoison_retval
     }
     __ fldp(V2, V3, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ fldp(V0, V1, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
@@ -564,7 +564,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ br(R1);  // DLRT_ExitTemporaryIsolate.
+    __ TailCallCFunction(R1);  // DLRT_ExitTemporaryIsolate.
     __ brk(0);
   }
 

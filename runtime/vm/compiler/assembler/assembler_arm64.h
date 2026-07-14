@@ -1837,6 +1837,16 @@ class Assembler : public AssemblerBase {
     });
 #undef __
   }
+  void TailCallCFunction(Register target) {
+#if defined(TARGET_ARCH_ARM64E)
+    ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
+    ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
+           0);
+    braaz(target);
+#else
+    br(target);
+#endif
+  }
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
