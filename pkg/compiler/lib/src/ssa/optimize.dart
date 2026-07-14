@@ -336,19 +336,25 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       HInstruction? next = instruction.next;
       HInstruction replacement = instruction.accept(this);
       if (replacement != instruction) {
+        bool isNew = !replacement.isInBasicBlock();
         node.rewrite(instruction, replacement);
 
+        // Only replace the type with the intersection if the replacement
+        // is a new, unused node. If we reuse an existing node we need to
+        // maintain the type so it doesn't affect other usages.
+        //
         // The intersection of double and int return conflicting, and
         // because of our number implementation for JavaScript, it
         // might be that an operation thought to return double, can be
         // simplified to an int. For example:
         // `2.5 * 10`.
-        if (!(replacement
-                .isNumberOrNull(_abstractValueDomain)
-                .isDefinitelyTrue &&
-            instruction
-                .isNumberOrNull(_abstractValueDomain)
-                .isDefinitelyTrue)) {
+        if (isNew &&
+            !(replacement
+                    .isNumberOrNull(_abstractValueDomain)
+                    .isDefinitelyTrue &&
+                instruction
+                    .isNumberOrNull(_abstractValueDomain)
+                    .isDefinitelyTrue)) {
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           AbstractValue newType = _abstractValueDomain.intersection(
