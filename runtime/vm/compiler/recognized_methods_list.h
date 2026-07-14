@@ -77,9 +77,9 @@ namespace dart {
     0xc70c51ba)                                                                \
   V(CoreLibrary, _Smi, get:hashCode, Smi_hashCode, 0x75c3b512)                 \
   V(CoreLibrary, _IntegerImplementation, get:trailingZeroBitCount,             \
-    Integer_trailingZeroBitCount, 0xea8b2826)                                  \
+    Integer_trailingZeroBitCount, 0xea8b2be7)                                  \
   V(CoreLibrary, _IntegerImplementation, get:oneBitCount,                      \
-    Integer_oneBitCount, 0x60c41821)                                           \
+    Integer_oneBitCount, 0x60c41be2)                                           \
   V(CoreLibrary, _Mint, get:hashCode, Mint_hashCode, 0x75c3b512)               \
   V(CoreLibrary, _Double, get:hashCode, Double_hashCode, 0x75c3b8d3)           \
   V(CompactHashLibrary, _LinkedHashBase, get:_index, LinkedHashBase_getIndex,  \
