@@ -1237,7 +1237,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   @override
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');
@@ -1804,7 +1804,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   @override
   List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');

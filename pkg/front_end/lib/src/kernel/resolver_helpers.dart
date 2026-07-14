@@ -112,7 +112,7 @@ class _ResolverContext {
   /// Returns a list of the inferred annotations.
   List<Expression> _inferAnnotations({
     required Annotatable annotatable,
-    required List<Expression> annotations,
+    required List<InternalExpression> annotations,
   }) {
     return typeInferrer.inferMetadata(
       fileUri: fileUri,

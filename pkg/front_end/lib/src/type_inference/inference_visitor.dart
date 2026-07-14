@@ -28,16 +28,15 @@ import '../base/messages.dart';
 import '../base/problems.dart'
     as problems
     show internalProblem, unhandled, unimplemented, unsupported;
-import '../base/uri_offset.dart';
 import '../builder/library_builder.dart';
 import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_library_builder.dart';
 import '../kernel/external_ast_helper.dart' as extern;
 import '../kernel/external_ast_helper.dart';
-import '../kernel/inferred_collections.dart';
-import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/hierarchy/class_member.dart';
+import '../kernel/inferred_collections.dart';
 import '../kernel/internal_ast.dart';
+import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../source/check_helper.dart';
 import '../source/source_library_builder.dart';
@@ -67,7 +66,7 @@ abstract class InferenceVisitor {
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
   ExpressionInferenceResult inferExpression(
-    Expression expression,
+    InternalExpression expression,
     DartType typeContext, {
     bool isVoidAllowed = false,
     bool forEffect = false,
@@ -120,14 +119,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           TypeDeclaration
         >,
         NullShortingMixin<NullAwareGuard, Expression, InternalVariable>,
-        StackChecker,
-        ExpressionVisitor1ExperimentExclusionMixin<
-          ExpressionInferenceResult,
-          DartType
-        >
-    implements
-        ExpressionVisitor1<ExpressionInferenceResult, DartType>,
-        InferenceVisitor {
+        StackChecker
+    implements InferenceVisitor {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
   /// [popRewrite] and [pushRewrite] will be printed.
   static const bool _debugRewriteStack = false;
@@ -385,13 +378,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }) {
     registerIfUnreachableForTesting(expression);
 
-    ExpressionInferenceResult result;
-    if (expression is InternalExpression) {
-      result = expression.acceptInference(this, typeContext);
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      result = expression.accept1(this, typeContext);
-    }
+    ExpressionInferenceResult result = (expression as InternalExpression)
+        .acceptInference(this, typeContext);
+
     DartType inferredType = result.inferredType;
     if (inferredType is VoidType && !isVoidAllowed) {
       problemReporting.addProblem(
@@ -449,35 +438,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return initializer.acceptInference(this);
   }
 
-  // Coverage-ignore(suite): Not run.
-  /// Computes uri and offset for [node] for internal errors in a way that is
-  /// safe for both top-level and full inference.
-  UriOffset _computeUriOffset(TreeNode node) {
-    Uri uri = fileUri;
-    int fileOffset = node.fileOffset;
-    return new UriOffset(uri, fileOffset);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Never _unhandledExpression(Expression node, DartType typeContext) {
-    UriOffset uriOffset = _computeUriOffset(node);
-    problems.unhandled(
-      "$node (${node.runtimeType})",
-      "InferenceVisitor",
-      uriOffset.fileOffset,
-      uriOffset.fileUri,
-    );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitBlockExpression(
-    BlockExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalBlockExpression(
     InternalBlockExpression node,
     DartType typeContext,
@@ -517,132 +477,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitConstantExpression(
-    ConstantExpression node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitDynamicGet(
-    DynamicGet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInstanceGet(
-    InstanceGet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInstanceTearOff(
-    InstanceTearOff node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitDynamicInvocation(
-    DynamicInvocation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitDynamicSet(
-    DynamicSet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitEqualsCall(
-    EqualsCall node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitEqualsNull(
-    EqualsNull node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitFunctionInvocation(
-    FunctionInvocation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInstanceInvocation(
-    InstanceInvocation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInstanceGetterInvocation(
-    InstanceGetterInvocation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInstanceSet(
-    InstanceSet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitLocalFunctionInvocation(
-    LocalFunctionInvocation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitStaticTearOff(
-    StaticTearOff node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalStaticTearOff(
     InternalStaticTearOff node,
     DartType typeContext,
@@ -656,24 +490,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       extern.createStaticTearOff(node.target, fileOffset: node.fileOffset),
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitFunctionTearOff(
-    FunctionTearOff node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitFileUriExpression(
-    FileUriExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalFileUriExpression(
@@ -695,24 +511,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInstanceCreation(
-    InstanceCreation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitConstructorTearOff(
-    ConstructorTearOff node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalConstructorTearOff(
     InternalConstructorTearOff node,
     DartType typeContext,
@@ -731,15 +529,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return instantiateTearOff(type, typeContext, replacement);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitRedirectingFactoryTearOff(
-    RedirectingFactoryTearOff node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalRedirectingFactoryTearOff(
     InternalRedirectingFactoryTearOff node,
     DartType typeContext,
@@ -756,15 +545,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return instantiateTearOff(type, typeContext, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitTypedefTearOff(
-    TypedefTearOff node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalTypedefTearOff(
@@ -815,42 +595,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return ensureAssignableResult(typeContext, inferredResult);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitRedirectingFactoryInvocation(
-    RedirectingFactoryInvocation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitListConcatenation(
-    ListConcatenation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitMapConcatenation(
-    MapConcatenation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitSetConcatenation(
-    SetConcatenation node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
   InitializerInferenceResult visitInternalInvalidInitializer(
     InternalInvalidInitializer node,
   ) {
@@ -862,15 +606,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isSuperInitializer: node.isSuperInitializer,
       ),
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInvalidExpression(
-    InvalidExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalInvalidExpression(
@@ -892,15 +627,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     );
     return new ExpressionInferenceResult(const InvalidType(), replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitInstantiation(
-    Instantiation node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalInstantiation(
@@ -1068,24 +794,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(resultType, result);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitIntLiteral(
-    IntLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAsExpression(
-    AsExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalAsExpression(
     InternalAsExpression node,
     DartType typeContext,
@@ -1213,15 +921,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAwaitExpression(
-    AwaitExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalAwaitExpression(
     InternalAwaitExpression node,
     DartType typeContext,
@@ -1310,15 +1009,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement.scope = scopeProviderInfo.scope;
     }
     return new StatementInferenceResult.single(replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitBoolLiteral(
-    BoolLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalBoolLiteral(
@@ -1414,7 +1104,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _enclosingCascade = node;
     List<ExpressionInferenceResult> expressionResults =
         <ExpressionInferenceResult>[];
-    for (Expression expression in node.expressions) {
+    for (InternalExpression expression in node.expressions) {
       expressionResults.add(
         inferExpression(
           expression,
@@ -1490,15 +1180,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(expression.fileOffset != TreeNode.noOffset);
     return new ExpressionStatement(expression)
       ..fileOffset = expression.fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitConditionalExpression(
-    ConditionalExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalConditionalExpression(
@@ -1594,15 +1275,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitConstructorInvocation(
-    ConstructorInvocation node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalConstructorInvocation(
@@ -1854,7 +1526,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExtensionSetData computeExtensionSetData({
     required Extension extension,
     required List<DartType>? knownTypeArguments,
-    required Expression receiver,
+    required InternalExpression receiver,
     required int? extensionTypeArgumentOffset,
     required Procedure setter,
     required bool isNullAware,
@@ -1871,13 +1543,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
 
-    receiver = receiverResult.expression;
+    Expression inferredReceiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
     if (isNullAware) {
       DartType nonNullReceiverType = receiverType.toNonNull();
-      receiver = _createNonNullReceiver(
-        receiver,
+      inferredReceiver = _createNonNullReceiver(
+        inferredReceiver,
         receiverType,
         nonNullReceiverType,
       );
@@ -1914,12 +1586,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       extensionTypeArguments,
     );
 
-    receiver = ensureAssignable(extensionOnType, receiverType, receiver);
+    inferredReceiver = ensureAssignable(
+      extensionOnType,
+      receiverType,
+      inferredReceiver,
+    );
     receiverType = extensionOnType;
 
     DartType valueType = target.getSetterType(this);
     return new ExtensionSetData(
-      receiver: receiver,
+      receiver: inferredReceiver,
       inferredReceiverType: receiverResult.inferredType,
       valueType: valueType,
       extensionTypeArguments: extensionTypeArguments,
@@ -2424,7 +2100,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: _isThisExpression(node.receiver),
+      isThisReceiver: _isInternalThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -2726,15 +2402,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return new StatementInferenceResult.single(replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitDoubleLiteral(
-    DoubleLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalDoubleLiteral(
@@ -3386,7 +3053,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   ExpressionInferenceResult inferForInIterable(
-    Expression iterable,
+    InternalExpression iterable,
     DartType elementType, {
     required bool isAsync,
   }) {
@@ -3404,12 +3071,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
     DartType iterableType = iterableResult.inferredType;
-    iterable = iterableResult.expression;
+    Expression inferredIterable = iterableResult.expression;
     DartType inferredExpressionType = iterableType.nonTypeParameterBound;
-    iterable = ensureAssignable(
+    inferredIterable = ensureAssignable(
       wrapType(const DynamicType(), iterableClass, Nullability.nonNullable),
       inferredExpressionType,
-      iterable,
+      inferredIterable,
       errorTemplate: diag.forInLoopTypeNotIterable,
     );
     DartType inferredType = const DynamicType();
@@ -3422,14 +3089,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferredType = supertypeArguments[0];
       }
     }
-    return new ExpressionInferenceResult(inferredType, iterable);
+    return new ExpressionInferenceResult(inferredType, inferredIterable);
   }
 
   @override
   PatternForInData inferPatternForInHeader({
     required TreeNode node,
     required InternalPattern pattern,
-    required Expression iterable,
+    required InternalExpression iterable,
     required bool isAsync,
     required int inOffset,
   }) {
@@ -3463,20 +3130,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Pattern outputPattern = popRewrite() as Pattern;
 
-    Object? rewrite = popRewrite();
-    if (!identical(rewrite, iterable)) {
-      iterable = rewrite as Expression;
-    }
+    Expression inferredIterable = popRewrite() as Expression;
 
     DartType elementType = result.elementType.unwrapTypeView();
-    iterable = ensureAssignable(
+    inferredIterable = ensureAssignable(
       wrapType(
         const DynamicType(),
         isAsync ? coreTypes.streamClass : coreTypes.iterableClass,
         Nullability.nonNullable,
       ),
       result.expressionType.unwrapTypeView(),
-      iterable,
+      inferredIterable,
       errorTemplate: diag.forInLoopTypeNotIterable,
     );
 
@@ -3488,7 +3152,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     return new PatternForInData(
       loopVariable: loopVariable,
-      iterable: iterable,
+      iterable: inferredIterable,
       computePatternVariableDeclaration: () =>
           extern.createPatternVariableDeclaration(
             pattern: outputPattern,
@@ -3865,15 +3529,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitFunctionExpression(
-    FunctionExpression node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitIfNullExpression(
     IfNullExpression node,
     DartType typeContext,
@@ -3943,7 +3598,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     Expression replacement;
-    if (_isThisExpression(left)) {
+    if (_isInternalThisExpression(node.left)) {
       replacement = left;
     } else {
       SyntheticVariable variable = createVariable(left, t1);
@@ -4166,15 +3821,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ?.registerAlias(node, replacement);
     DartType inferredType = coreTypes.intRawType(Nullability.nonNullable);
     return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitIsExpression(
-    IsExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalIsExpression(
@@ -4993,15 +4639,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitListLiteral(
-    ListLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalListLiteral(
     InternalListLiteral node,
     DartType typeContext,
@@ -5122,24 +4759,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             ?.externalToInternalNodeMap[result] =
         node;
     return new ExpressionInferenceResult(inferredType, result);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitRecordLiteral(
-    RecordLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitLogicalExpression(
-    LogicalExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalLogicalExpression(
@@ -7464,16 +7083,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             spreadType is! DynamicType &&
             spreadType is! NullType &&
             !entry.isNullAware) {
-          Expression receiver = entry.expression;
           Expression problem = extern.createInvalidExpressionFromErrorText(
             problemReporting.buildProblem(
               compilerContext: compilerContext,
               message: diag.nullableSpreadError,
               fileUri: fileUri,
-              fileOffset: receiver.fileOffset,
+              fileOffset: expression.fileOffset,
               length: 1,
               context: getWhyNotPromotedContext(
-                flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
+                flowAnalysis.whyNotPromoted(getExpressionInfo(expression))(),
                 entry,
                 // Coverage-ignore(suite): Not run.
                 (type) => !type.isPotentiallyNullable,
@@ -7490,7 +7108,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // error is reported in checkMapEntry if it's disambiguated as map.
         offsets.iterableSpreadType = spreadType;
       } else {
-        Expression receiver = entry.expression;
         Expression problem = extern.createInvalidExpressionFromErrorText(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
@@ -7498,10 +7115,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               spreadType: spreadType,
             ),
             fileUri: fileUri,
-            fileOffset: receiver.fileOffset,
+            fileOffset: expression.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
+              flowAnalysis.whyNotPromoted(getExpressionInfo(expression))(),
               entry,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -7550,16 +7167,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           spreadType is! DynamicType &&
           spreadType is! NullType &&
           !entry.isNullAware) {
-        Expression receiver = entry.expression;
         keyError = extern.createInvalidExpressionFromErrorText(
           problemReporting.buildProblem(
             compilerContext: compilerContext,
             message: diag.nullableSpreadError,
             fileUri: fileUri,
-            fileOffset: receiver.fileOffset,
+            fileOffset: expression.fileOffset,
             length: 1,
             context: getWhyNotPromotedContext(
-              flowAnalysis.whyNotPromoted(getExpressionInfo(receiver))(),
+              flowAnalysis.whyNotPromoted(getExpressionInfo(expression))(),
               entry,
               // Coverage-ignore(suite): Not run.
               (type) => !type.isPotentiallyNullable,
@@ -8076,7 +7692,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         conditionResult.inferredType,
         conditionResult.expression,
       );
-      inferredConditionTypes[entry.condition!] = conditionResult.inferredType;
+      inferredConditionTypes[condition] = conditionResult.inferredType;
     }
     flowAnalysis.for_bodyBegin(null, switch (condition) {
       null => flowAnalysis.booleanLiteral(true),
@@ -8438,15 +8054,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Do nothing.  Assignability checks are done during type inference.
     }
     return replacement;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitMapLiteral(
-    MapLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalMapLiteral(
@@ -8958,12 +8565,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitNot(Not node, DartType typeContext) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalNot(
     InternalNot node,
     DartType typeContext,
@@ -8990,15 +8591,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, replacement);
     return new ExpressionInferenceResult(boolType, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitNullCheck(
-    NullCheck node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalNullCheck(
@@ -9284,7 +8876,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.name,
       const UnknownType(),
-      isThisReceiver: _isThisExpression(node.receiver),
+      isThisReceiver: _isInternalThisExpression(node.receiver),
       isImplicitThis: node.isImplicitThis,
     ).expressionInferenceResult;
 
@@ -9416,7 +9008,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: _isThisExpression(node.receiver),
+      isThisReceiver: _isInternalThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -9506,7 +9098,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.propertyName,
       const UnknownType(),
-      isThisReceiver: _isThisExpression(node.receiver),
+      isThisReceiver: _isInternalThisExpression(node.receiver),
     ).expressionInferenceResult;
 
     Expression read = readResult.expression;
@@ -9721,8 +9313,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   bool _isThisExpression(Expression expression) {
     return expression is ThisExpression ||
-        expression is InternalThisExpression ||
         expression is VariableGet && expression.variable is ThisVariable;
+  }
+
+  bool _isInternalThisExpression(InternalExpression expression) {
+    return expression is InternalThisExpression;
   }
 
   ExpressionInferenceResult visitIndexGet(IndexGet node, DartType typeContext) {
@@ -9760,7 +9355,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         preCheckInvocationContravariance(
           receiverType,
           indexGetTarget,
-          isThisReceiver: _isThisExpression(node.receiver),
+          isThisReceiver: _isInternalThisExpression(node.receiver),
         );
 
     ExpressionInferenceResult indexResult = inferExpression(
@@ -10259,7 +9854,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
       receiverType,
       readTarget,
-      isThisReceiver: _isThisExpression(node.receiver),
+      isThisReceiver: _isInternalThisExpression(node.receiver),
     );
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
@@ -10864,7 +10459,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int fileOffset,
     Expression left,
     DartType leftType,
-    Expression right, {
+    InternalExpression right, {
     required bool isNot,
   }) {
     ExpressionInfo? equalityInfo = getExpressionInfo(left);
@@ -10880,11 +10475,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
 
+    Expression inferredRight = rightResult.expression;
     Expression? equals;
-    if (_isNull(right)) {
+    if (_isNull(inferredRight)) {
       equals = new EqualsNull(left)..fileOffset = fileOffset;
     } else if (_isNull(left)) {
-      equals = new EqualsNull(rightResult.expression)..fileOffset = fileOffset;
+      equals = new EqualsNull(inferredRight)..fileOffset = fileOffset;
     }
     if (equals != null) {
       if (isNot) {
@@ -10895,7 +10491,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         flowAnalysis.equalityOperation_end(
           equalityInfo,
           new SharedTypeView(leftType),
-          getExpressionInfo(rightResult.expression),
+          getExpressionInfo(inferredRight),
           new SharedTypeView(rightResult.inferredType),
           notEqual: isNot,
         ),
@@ -10932,14 +10528,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       rightResult,
       errorTemplate: diag.argumentTypeNotAssignable,
     );
-    right = rightResult.expression;
+    inferredRight = rightResult.expression;
 
     FunctionType functionType = equalsTarget
         .getFunctionType(this)
         .equalsFunctionType;
     equals = new EqualsCall(
       left,
-      right,
+      inferredRight,
       functionType: functionType,
       interfaceTarget: equalsTarget.classMember as Procedure,
     )..fileOffset = fileOffset;
@@ -10952,7 +10548,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.equalityOperation_end(
         equalityInfo,
         new SharedTypeView(leftType),
-        getExpressionInfo(right),
+        getExpressionInfo(inferredRight),
         new SharedTypeView(rightResult.inferredType),
         notEqual: isNot,
       ),
@@ -10977,7 +10573,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression left,
     DartType leftType,
     Name binaryName,
-    Expression right,
+    InternalExpression right,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   ) {
     assert(binaryName != equalsName);
@@ -11034,7 +10630,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     rightResult = ensureAssignableResult(rightType, rightResult);
-    right = rightResult.expression;
+    Expression inferredRight = rightResult.expression;
 
     if (isSpecialCasedBinaryOperator) {
       binaryType = typeSchemaEnvironment.getTypeOfSpecialCasedBinaryOperator(
@@ -11051,7 +10647,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           left,
           leftType,
           binaryName,
-          right,
+          inferredRight,
         );
         break;
       case ObjectAccessTargetKind.ambiguous:
@@ -11060,7 +10656,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           left,
           leftType,
           binaryName,
-          right,
+          inferredRight,
           extensionAccessCandidates: binaryTarget.candidates,
         );
         break;
@@ -11072,7 +10668,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         binary = new StaticInvocation(
           binaryTarget.member as Procedure,
           new Arguments(
-            <Expression>[left, right],
+            <Expression>[left, inferredRight],
             types: binaryTarget.receiverTypeArguments,
           )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
@@ -11082,7 +10678,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Invalid,
           left,
           binaryName,
-          new Arguments(<Expression>[right])..fileOffset = fileOffset,
+          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
@@ -11092,7 +10688,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Dynamic,
           left,
           binaryName,
-          new Arguments(<Expression>[right])..fileOffset = fileOffset,
+          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
@@ -11100,7 +10696,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Never,
           left,
           binaryName,
-          new Arguments(<Expression>[right])..fileOffset = fileOffset,
+          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
@@ -11112,7 +10708,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           InstanceAccessKind.Instance,
           left,
           binaryName,
-          new Arguments(<Expression>[right])..fileOffset = fileOffset,
+          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
           functionType: new FunctionType(
             [rightType],
             binaryType,
@@ -11764,7 +11360,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         preCheckInvocationContravariance(
           receiverType,
           readTarget,
-          isThisReceiver: _isThisExpression(node.receiver),
+          isThisReceiver: _isInternalThisExpression(node.receiver),
         );
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
@@ -12350,15 +11946,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitNullLiteral(
-    NullLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalNullLiteral(
     InternalNullLiteral node,
     DartType typeContext,
@@ -12372,12 +11959,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.nullLiteral(new SharedTypeView(nullType)),
     );
     return new ExpressionInferenceResult(nullType, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitLet(Let node, DartType typeContext) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalLet(
@@ -12634,6 +12215,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression receiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
+    ExpressionInfo? receiverInfo = getExpressionInfo(receiver);
 
     if (receiverType is VoidType) {
       receiver = extern.createInvalidExpressionFromErrorText(
@@ -12678,7 +12260,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.initialize(
       node.variable,
       new SharedTypeView(node.variable.type),
-      getExpressionInfo(receiver),
+      receiverInfo,
       isFinal: false,
       isLate: false,
       isImplicitlyTyped: node.isImplicitlyTyped,
@@ -12711,7 +12293,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (node.isParameterless) {
-      flow.thisBinding_begin(getExpressionInfo(node.receiver));
+      flow.thisBinding_begin(receiverInfo);
     }
 
     flowAnalysis.labeledStatement_begin(internalLabel);
@@ -12807,7 +12389,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   PropertySetData computePropertySetData({
-    required Expression receiver,
+    required InternalExpression receiver,
     required Name name,
     required bool isNullAware,
     required int fileOffset,
@@ -12819,13 +12401,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       continueNullShorting: true,
     );
 
-    receiver = receiverResult.expression;
+    Expression inferredReceiver = receiverResult.expression;
     DartType receiverType = receiverResult.inferredType;
 
     if (isNullAware) {
       DartType nonNullReceiverType = receiverType.toNonNull();
-      receiver = _createNonNullReceiver(
-        receiver,
+      inferredReceiver = _createNonNullReceiver(
+        inferredReceiver,
         receiverType,
         nonNullReceiverType,
       );
@@ -12842,7 +12424,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     DartType writeContext = target.getSetterType(this);
     return new PropertySetData(
-      receiver: receiver,
+      receiver: inferredReceiver,
       receiverType: receiverType,
       writeContext: writeContext,
       target: target,
@@ -12878,7 +12460,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       node.name,
       typeContext,
-      isThisReceiver: _isThisExpression(node.receiver),
+      isThisReceiver: _isInternalThisExpression(node.receiver),
       propertyGetNode: node,
       isImplicitThis: node.isImplicitThis,
     );
@@ -12894,24 +12476,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       getExpressionInfo(node),
     );
     return expressionInferenceResult;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitRecordIndexGet(
-    RecordIndexGet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitRecordNameGet(
-    RecordNameGet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
   }
 
   InitializerInferenceResult visitInternalRedirectingInitializer(
@@ -13076,12 +12640,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new SuccessfulInitializerInferenceResult(replacement);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitRethrow(Rethrow node, DartType typeContext) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalRethrow(
     InternalRethrow node,
     DartType typeContext,
@@ -13165,15 +12723,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bodyContext.handleReturn(replacement, inferredType, node.isArrow);
     flowAnalysis.handleReturn();
     return new StatementInferenceResult.single(replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitSetLiteral(
-    SetLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalSetLiteral(
@@ -13353,15 +12902,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ..fileOffset = node.fileOffset;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitStaticSet(
-    StaticSet node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalStaticSet(
     InternalStaticSet node,
     DartType typeContext,
@@ -13385,15 +12925,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return result;
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitStaticGet(
-    StaticGet node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalStaticGet(
     InternalStaticGet node,
     DartType typeContext,
@@ -13407,15 +12938,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerAlias(node, result.expression);
     return result;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitStaticInvocation(
-    StaticInvocation node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalStaticInvocation(
@@ -13471,15 +12993,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitStringConcatenation(
-    StringConcatenation node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalStringConcatenation(
     InternalStringConcatenation node,
     DartType typeContext,
@@ -13504,15 +13017,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       coreTypes.stringRawType(Nullability.nonNullable),
       replacement,
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitStringLiteral(
-    StringLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalStringLiteral(
@@ -13598,24 +13102,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAbstractSuperMethodInvocation(
-    AbstractSuperMethodInvocation node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitSuperMethodInvocation(
-    SuperMethodInvocation node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalSuperMethodInvocation(
     InternalSuperMethodInvocation node,
     DartType typeContext,
@@ -13631,24 +13117,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAbstractSuperPropertyGet(
-    AbstractSuperPropertyGet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitSuperPropertyGet(
-    SuperPropertyGet node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalSuperPropertyGet(
     InternalSuperPropertyGet node,
     DartType typeContext,
@@ -13660,24 +13128,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       member: node.interfaceTarget,
       nameOffset: node.fileOffset,
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAbstractSuperPropertySet(
-    AbstractSuperPropertySet node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitSuperPropertySet(
-    SuperPropertySet node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalSuperPropertySet(
@@ -13713,15 +13163,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       assignOffset: node.fileOffset,
       nameOffset: node.fileOffset,
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitSwitchExpression(
-    SwitchExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalSwitchExpression(
@@ -14013,15 +13454,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitSymbolLiteral(
-    SymbolLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalSymbolLiteral(
     InternalSymbolLiteral node,
     DartType typeContext,
@@ -14032,15 +13464,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     );
     return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitThisExpression(
-    ThisExpression node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalThisExpression(
@@ -14078,12 +13501,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       flowAnalysis.thisOrSuper(new SharedTypeView(thisType), isSuper: false),
     );
     return new ExpressionInferenceResult(thisType, loweredExpression);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitThrow(Throw node, DartType typeContext) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalThrow(
@@ -14231,15 +13648,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(result);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitTypeLiteral(
-    TypeLiteral node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalTypeLiteral(
     InternalTypeLiteral node,
     DartType typeContext,
@@ -14250,15 +13658,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     );
     return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitVariableSet(
-    VariableSet node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalVariableSet(
@@ -14368,15 +13767,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitVariableGet(
-    VariableGet node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalVariableGet(
     InternalVariableGet node,
     DartType typeContext,
@@ -14472,15 +13862,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitLoadLibrary(
-    LoadLibrary node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
-  }
-
   ExpressionInferenceResult visitInternalLoadLibrary(
     InternalLoadLibrary node,
     DartType typeContext,
@@ -14529,16 +13910,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement = new StaticTearOff(node.target)
       ..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitCheckLibraryIsLoaded(
-    CheckLibraryIsLoaded node,
-    DartType typeContext,
-  ) {
-    // TODO(cstefantsova): Figure out the suitable nullability for that.
-    return _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitEquals(
@@ -14731,7 +14102,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (RecordField field in fields) {
       switch (field) {
         case PositionalRecordField():
-          Expression expression = field.value;
+          InternalExpression expression = field.value;
           DartType contextType =
               positionalTypeContexts?[positionalIndex] ?? const UnknownType();
           ExpressionInferenceResult expressionResult = inferExpression(
@@ -15723,11 +15094,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       checkStack(node, stackBase, [/* expression = */ ValueKinds.Expression]),
     );
 
-    Object? rewrite = popRewrite();
-    Expression expression = node.expression;
-    if (!identical(node.expression, rewrite)) {
-      expression = rewrite as Expression;
-    }
+    Expression expression = popRewrite() as Expression;
 
     pushRewrite(
       replacement ??
@@ -16468,11 +15835,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
 
-    Object? rewrite = popRewrite();
-    Expression expression = node.expression;
-    if (!identical(rewrite, node.expression)) {
-      expression = rewrite as Expression;
-    }
+    Expression expression = popRewrite() as Expression;
 
     DartType expressionType = analysisResult.operandType.unwrapTypeView();
 
@@ -16859,15 +16222,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitPatternAssignment(
-    PatternAssignment node,
-    DartType typeContext,
-  ) {
-    _unhandledExpression(node, typeContext);
   }
 
   ExpressionInferenceResult visitInternalPatternAssignment(
@@ -17315,11 +16669,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SharedTypeView keyType,
   ) {
     Pattern value = popRewrite() as Pattern;
-    Expression key = entryElement.key;
-    Object? rewrite = popRewrite();
-    if (!identical(rewrite, entryElement.key)) {
-      key = rewrite as Expression;
-    }
+    Expression key = popRewrite() as Expression;
 
     pushRewrite(
       extern.createMapPatternEntry(
@@ -17379,15 +16729,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       parameterType: new SharedTypeView(parameterType),
       returnType: new SharedTypeView(returnType),
     );
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAuxiliaryExpression(
-    AuxiliaryExpression node,
-    DartType typeContext,
-  ) {
-    return _unhandledExpression(node, typeContext);
   }
 
   bool _isPrivateFromAnotherLibrary(TypeDeclaration typeDeclaration) {

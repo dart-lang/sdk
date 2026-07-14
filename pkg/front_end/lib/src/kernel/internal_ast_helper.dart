@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
 import 'package:kernel/ast.dart';
 
 import '../source/check_helper.dart';
@@ -442,20 +441,6 @@ ForInMapEntry createForInMapEntry(
     forOffset: forOffset,
     fileOffset: fileOffset,
   );
-}
-
-// Coverage-ignore(suite): Not run.
-ForInStatement createForInStatement(
-  DeclaredVariable variable,
-  InternalExpression expression,
-  Statement body, {
-  required bool isAsync,
-  required int fileOffset,
-  required int bodyOffset,
-}) {
-  return new ForInStatement(variable, expression, body, isAsync: isAsync)
-    ..fileOffset = fileOffset
-    ..bodyOffset = bodyOffset;
 }
 
 ForMapEntry createForMapEntry(
@@ -1036,10 +1021,10 @@ InternalNamedParameter createNamedParameter({
   bool forSyntheticToken = false,
 }) {
   return new InternalNamedParameter(
+    defaultValue: defaultValue,
     astVariable: extern.createNamedParameter(
       parameterName: parameterName,
       type: type,
-      defaultValue: defaultValue,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isRequired: isRequired,
       isInitializingFormal: isInitializingFormal,
@@ -1294,10 +1279,10 @@ InternalPositionalParameter createPositionalParameter({
   bool forSyntheticToken = false,
 }) {
   return new InternalPositionalParameter(
+    defaultValue: defaultValue,
     astVariable: extern.createPositionalParameter(
       cosmeticName: cosmeticName,
       type: type,
-      defaultValue: defaultValue,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isInitializingFormal: isInitializingFormal,
       isSuperInitializingFormal: isSuperInitializingFormal,
@@ -1774,8 +1759,8 @@ InternalStatement createYieldStatement(
   );
 }
 
-bool isThisExpression(Object node) =>
-    node is InternalExpression && ast_helper.isThisExpression(node);
+// TODO(johnniwinther): This has been broken for some time. Do we need it?
+bool isThisExpression(Object node) => false;
 
 bool isVariablesDeclaration(Object? node) => node is MultiVariableDeclaration;
 

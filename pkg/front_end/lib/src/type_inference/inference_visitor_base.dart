@@ -982,7 +982,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ExtensionSetData computeExtensionSetData({
     required Extension extension,
     required List<DartType>? knownTypeArguments,
-    required Expression receiver,
+    required InternalExpression receiver,
     required int? extensionTypeArgumentOffset,
     required Procedure setter,
     required bool isNullAware,
@@ -1886,7 +1886,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         case NamedArgument():
           formalType = getNamedParameterType(calleeType, argument.name);
       }
-      Expression unparenthesizedExpression = argument.expression;
+      InternalExpression unparenthesizedExpression = argument.expression;
       while (unparenthesizedExpression is ParenthesizedExpression) {
         unparenthesizedExpression = unparenthesizedExpression.expression;
       }
@@ -2339,7 +2339,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           parameter.defaultValue!,
           parameter.type,
         );
-        parameter.updateDefaultValue(initializerResult.expression);
+        parameter.setInferredDefaultValue(initializerResult.expression);
       }
     }
     for (InternalNamedParameter parameter in function.namedParameters) {
@@ -2353,7 +2353,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           parameter.defaultValue!,
           parameter.type,
         );
-        parameter.updateDefaultValue(initializerResult.expression);
+        parameter.setInferredDefaultValue(initializerResult.expression);
       }
     }
 
@@ -2455,7 +2455,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   List<Expression> inferMetadata(
     InferenceVisitor visitor,
     Annotatable annotatable,
-    List<Expression> annotations,
+    List<InternalExpression> annotations,
   ) {
     List<Expression> result = [];
     for (int index = 0; index < annotations.length; index++) {
@@ -2474,7 +2474,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression _inferMetadataAt(
     InferenceVisitor visitor,
     Annotatable annotatable,
-    List<Expression> annotations,
+    List<InternalExpression> annotations,
     int index,
   ) {
     ExpressionInferenceResult result = visitor.inferExpression(
@@ -4507,7 +4507,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Computes [PropertySetData] used for writes to an instance setter as an
   /// expression or as a for-in element.
   PropertySetData computePropertySetData({
-    required Expression receiver,
+    required InternalExpression receiver,
     required Name name,
     required bool isNullAware,
     required int fileOffset,
@@ -4774,7 +4774,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Infers [iterable] as the iterable of a for-in loop with the given
   /// [elementType].
   ExpressionInferenceResult inferForInIterable(
-    Expression iterable,
+    InternalExpression iterable,
     DartType elementType, {
     required bool isAsync,
   });
@@ -4784,7 +4784,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   PatternForInData inferPatternForInHeader({
     required TreeNode node,
     required InternalPattern pattern,
-    required Expression iterable,
+    required InternalExpression iterable,
     required bool isAsync,
     required int inOffset,
   });

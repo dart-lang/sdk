@@ -942,7 +942,7 @@ abstract class FieldFragmentDeclaration {
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    Expression? initializer,
+    InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
   });
 
@@ -998,7 +998,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    Expression? initializer,
+    InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
   }) {
     if (_fieldInitializerCache != null) {
@@ -1015,12 +1015,12 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
               inferenceDefaultType: inferenceDefaultType,
               internalThisVariable: internalThisVariable,
             );
-        initializer =
+        Expression inferredInitializer =
             inferredFieldInitializer.expressionInferenceResult.expression;
         _hasInitializerBeenComputed = true;
         buildBody(
           coreTypes,
-          initializer,
+          inferredInitializer,
           scopeProviderInfo: inferredFieldInitializer.scopeProviderInfo,
         );
       }

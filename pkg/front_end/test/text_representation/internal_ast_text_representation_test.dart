@@ -2008,14 +2008,14 @@ dynamic foo = 0''',
   );
   testVariable(
     new InternalPositionalParameter(
+      defaultValue: new InternalIntLiteral(
+        0,
+        '0',
+        fileOffset: TreeNode.noOffset,
+      ),
       astVariable: new PositionalParameter(
         cosmeticName: 'foo',
         type: const VoidType(),
-        defaultValue: new InternalIntLiteral(
-          0,
-          '0',
-          fileOffset: TreeNode.noOffset,
-        ),
         isFinal: true,
         isRequired: true,
       ),

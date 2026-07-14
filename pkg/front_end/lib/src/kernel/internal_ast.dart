@@ -1470,6 +1470,10 @@ class InternalConstVariable extends InternalDeclaredVariable {
 }
 
 sealed class InternalFunctionParameter extends InternalVariable {
+  InternalExpression? _defaultValue;
+
+  new({required this._defaultValue});
+
   @override
   FunctionParameter get astVariable;
 
@@ -1493,9 +1497,15 @@ sealed class InternalFunctionParameter extends InternalVariable {
   // Coverage-ignore(suite): Not run.
   bool get hasDeclaredDefaultValue => _astVariable.hasDeclaredDefaultValue;
 
-  Expression? get defaultValue => _astVariable.defaultValue;
+  InternalExpression? get defaultValue => _defaultValue;
 
-  void updateDefaultValue(Expression? value) {
+  void updateDefaultValue(InternalExpression? value) {
+    _defaultValue = value;
+  }
+
+  Expression? get inferredDefaultValue => _astVariable.defaultValue;
+
+  void setInferredDefaultValue(Expression? value) {
     _astVariable.defaultValue = value?..parent = _astVariable;
   }
 }
@@ -1514,6 +1524,7 @@ class InternalPositionalParameter extends InternalFunctionParameter {
   final bool isLocalFunction;
 
   new({
+    required super.defaultValue,
     required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -1560,6 +1571,7 @@ class InternalNamedParameter extends InternalFunctionParameter {
   final bool isLocalFunction;
 
   new({
+    required super.defaultValue,
     required this._astVariable,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
@@ -5627,7 +5639,7 @@ sealed class InternalForInElement {
   ForInHeaderResult inferForInHeader(
     InferenceVisitorBase visitor, {
     required TreeNode node,
-    required Expression iterable,
+    required InternalExpression iterable,
     required bool isAsync,
     required int forOffset,
   });
@@ -5690,7 +5702,7 @@ sealed class _BaseForInElement extends InternalForInElement {
   ForInHeaderResult inferForInHeader(
     InferenceVisitorBase visitor, {
     required TreeNode node,
-    required Expression iterable,
+    required InternalExpression iterable,
     required bool isAsync,
     required int forOffset,
   }) {
@@ -5881,7 +5893,6 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
           extern.createVariableStatement(
             extern.createVariableDeclaration(
               variableDeclaration.variable._astVariable,
-              initializer: variableDeclaration.initializer,
               fileOffset: variableDeclaration.fileOffset,
             ),
           ),
@@ -5962,7 +5973,7 @@ class PatternForInElement extends InternalForInElement {
   ForInHeaderResult inferForInHeader(
     InferenceVisitorBase visitor, {
     required TreeNode node,
-    required Expression iterable,
+    required InternalExpression iterable,
     required bool isAsync,
     required int forOffset,
   }) {
