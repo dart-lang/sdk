@@ -83,7 +83,7 @@ vars = {
   "clang_version": "git_revision:deb6854eec93529b2bd30178d400ad2ee7665cd4",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:d2f537b1e397daa13e02a8085feb32f5ad7c5dec",
+  "gn_version": "git_revision:bbfe0f948f4ac84f671acdf6ab008a6ce1bfb257",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -102,7 +102,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "a945a3ea4cdf8cd683a9d3ad3a66bd3f04a514e6",
+  "boringssl_rev": "9ae3188aba2cc3cd5c48014a47135f046ea0aea6",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "12d595649f189f1896722623f72599077f476848",
@@ -137,7 +137,7 @@ vars = {
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "577be33957f3ae13d91f9c5288d812d1b2182ba9", # rolled manually while record_use is experimental
-  "protobuf_rev": "84079e8b8531309e06ba7276b1c28bdca9210ad6",
+  "protobuf_rev": "91efb90f437bb6a30e6726c3369a2fcb9bba06e7",
   "pub_rev": "ec276d10a7fa0f6c6ec005340fb9ad29f3b012d0", # rolled manually
   "shelf_rev": "71248e727317930f244c4b4535e9733bcfc66677",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
@@ -575,7 +575,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "s5_gZFJ8De9AJalTwS3VILkwjTVBmULlkblMqcXLheYC",
+      "version": "wLST_A-xfOeGT_5mje7Wi3mmnxOddKpEWQ9PDbQl6QEC",
       }
     ],
     "condition": 'download_fuchsia_deps',
