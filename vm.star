@@ -154,16 +154,6 @@ _vm_builder(
     category = "vm|jit|mac|ra",
     dimensions = [mac, arm64],
 )
-_nightly_builder(
-    "vm-mac-debug-arm64e",
-    category = "vm|jit|mac|de",
-    dimensions = [mac, arm64],
-)
-_nightly_builder(
-    "vm-mac-release-arm64e",
-    category = "vm|jit|mac|re",
-    dimensions = [mac, arm64],
-)
 _vm_builder(
     "vm-win-debug-x64",
     category = "vm|jit|windows|d",
@@ -257,16 +247,6 @@ _nightly_builder(
 _vm_builder(
     "vm-aot-mac-release-arm64",
     category = "vm|aot|mac|ra",
-    dimensions = [mac, arm64],
-)
-_nightly_builder(
-    "vm-aot-mac-debug-arm64e",
-    category = "vm|aot|mac|de",
-    dimensions = [mac, arm64],
-)
-_nightly_builder(
-    "vm-aot-mac-release-arm64e",
-    category = "vm|aot|mac|re",
     dimensions = [mac, arm64],
 )
 _nightly_builder(
