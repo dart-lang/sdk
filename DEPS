@@ -75,7 +75,7 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:15.1.137",
+  "d8_tag": "version:15.2.80",
   "jsshell_tag": "version:152.0",
   "jsc_tag": "version:316404",
 
@@ -158,7 +158,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "150.0.7871.46",
+  "chrome_tag": "151.0.7922.19",
   "download_firefox": False,
   "firefox_tag": "152.0",
 
