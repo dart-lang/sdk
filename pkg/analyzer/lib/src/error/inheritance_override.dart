@@ -392,7 +392,6 @@ class _ClassVerifier {
 
         _checkDeclaredMember(
           member.name,
-          libraryUri,
           member.declaredFragment!.element,
           methodParameterNodes: member.parameters?.parameters,
         );
@@ -494,16 +493,14 @@ class _ClassVerifier {
   }
 
   void _checkDeclaredField(Token name, FieldElementImpl field) {
-    _checkDeclaredMember(name, libraryUri, field.getter);
-    _checkDeclaredMember(name, libraryUri, field.setter);
+    _checkDeclaredMember(name, field.getter);
+    _checkDeclaredMember(name, field.setter);
   }
 
   /// Check that the given [member] is a valid override of the corresponding
-  /// instance members in each of [directSuperInterfaces].  The [libraryUri] is
-  /// the URI of the library containing the [member].
+  /// instance members in each of [directSuperInterfaces].
   void _checkDeclaredMember(
     SyntacticEntity node,
-    Uri libraryUri,
     InternalExecutableElement? member, {
     List<FormalParameter>? methodParameterNodes,
     int mixinIndex = -1,
@@ -559,15 +556,14 @@ class _ClassVerifier {
     InterfaceTypeImpl type, {
     required int mixinIndex,
   }) {
-    var libraryUri = type.element.library.uri;
     for (var method in type.methods) {
-      _checkDeclaredMember(node, libraryUri, method, mixinIndex: mixinIndex);
+      _checkDeclaredMember(node, method, mixinIndex: mixinIndex);
     }
     for (var getter in type.getters) {
-      _checkDeclaredMember(node, libraryUri, getter, mixinIndex: mixinIndex);
+      _checkDeclaredMember(node, getter, mixinIndex: mixinIndex);
     }
     for (var setter in type.setters) {
-      _checkDeclaredMember(node, libraryUri, setter, mixinIndex: mixinIndex);
+      _checkDeclaredMember(node, setter, mixinIndex: mixinIndex);
     }
   }
 
