@@ -240,6 +240,19 @@ class C {
 ''');
   }
 
+  test_class_secondaryConstructor_constFactory_emptyBody_augmentation_redirecting() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  const C.named();
+  const factory();
+}
+
+augment class C {
+  augment const factory() = C.named;
+}
+''');
+  }
+
   test_class_secondaryConstructor_constFactory_emptyBody_language305() async {
     await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.5

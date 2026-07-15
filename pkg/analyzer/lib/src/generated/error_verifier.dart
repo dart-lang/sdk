@@ -714,11 +714,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             element: element,
             constKeyword: node.constKeyword,
             externalKeyword: node.externalKeyword,
-            isRedirecting:
-                node.redirectedConstructor != null ||
-                node.initializers
-                    .whereType<RedirectingConstructorInvocation>()
-                    .isNotEmpty,
+            isRedirecting: element.isRedirecting,
             body: node.body,
           );
         }
