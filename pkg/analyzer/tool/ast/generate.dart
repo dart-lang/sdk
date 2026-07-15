@@ -17,7 +17,7 @@ void main() async {
   await GeneratedContent.generateAll(pkg_root.packageRoot, await allTargets);
 }
 
-const _astVersionPolicy = _AstVersionPolicy.v2MigrationSdk;
+const _astVersionPolicy = _AstVersionPolicy.v2MigrationPublishExperimental;
 
 Future<List<GeneratedContent>> get allTargets async {
   var astLibrary = await _getAstLibrary();
@@ -151,6 +151,18 @@ enum _AstVersionPolicy {
       v2AliasesOnly => false,
     };
   }
+
+  String v1AnnotationCode(String v2Name) {
+    return switch (this) {
+      v1Only || v2AliasesOnly => throw StateError(
+        'No V1 migration annotations in $this.',
+      ),
+      v2MigrationSdk ||
+      v2MigrationPublishStable => "@Deprecated('Use $v2Name instead')",
+      v2MigrationPublishExperimental =>
+        "@ToBeDeprecated('Use $v2Name instead')",
+    };
+  }
 }
 
 class _AstVisitorGenerator {
@@ -194,6 +206,7 @@ part of 'ast.dart';
 /// - ThrowingAstVisitor which implements every visit method by throwing an
 ///   exception.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+${_astVersionPolicy.v1AnnotationCode('AstVisitor2')}
 abstract class AstVisitor<R> {
 ''');
     for (var node in astLibrary.nodes) {
@@ -309,6 +322,7 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
+${_astVersionPolicy.v1AnnotationCode('GeneralizingAstVisitor2')}
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const GeneralizingAstVisitor();
@@ -445,7 +459,7 @@ R? visit$name($name node) => visit${superNode.apiElementName}(node);
   }
 
   void _writeRecursive() {
-    out.writeln(r'''
+    out.write(r'''
 /// An AST visitor that will recursively visit all of the nodes in an AST
 /// structure. For example, using an instance of this class to visit a [Block]
 /// will also cause all of the statements in the block to be visited.
@@ -456,7 +470,9 @@ R? visit$name($name node) => visit${superNode.apiElementName}(node);
 /// visited.
 ///
 /// Clients may extend this class.
-class RecursiveAstVisitor<R> implements AstVisitor<R> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('RecursiveAstVisitor2'));
+    out.writeln(r'''class RecursiveAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const RecursiveAstVisitor();
 ''');
@@ -532,6 +548,7 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 /// a whole structure) and that only need to visit a small number of node types.
 ///
 /// Clients may extend this class.
+${_astVersionPolicy.v1AnnotationCode('SimpleAstVisitor2')}
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const SimpleAstVisitor();
@@ -599,7 +616,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 /// want to catch when any other visit methods have been invoked.
 ///
 /// Clients may extend this class.
-class ThrowingAstVisitor<R> implements AstVisitor<R> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('ThrowingAstVisitor2'));
+    out.write(r'''class ThrowingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const ThrowingAstVisitor();
 
@@ -675,11 +694,13 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   void _writeTimed() {
-    out.writeln(r'''
+    out.write(r'''
 /// An AST visitor that captures visit call timings.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class TimedAstVisitor<T> implements AstVisitor<T> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('TimedAstVisitor2'));
+    out.writeln(r'''class TimedAstVisitor<T> implements AstVisitor<T> {
   /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
 
@@ -761,7 +782,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   void _writeUnifying() {
-    out.writeln(r'''
+    out.write(r'''
 /// An AST visitor that will recursively visit all of the nodes in an AST
 /// structure (like instances of the class [RecursiveAstVisitor]). In addition,
 /// every node will also be visited by using a single unified [visitNode]
@@ -773,7 +794,9 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 /// visited.
 ///
 /// Clients may extend this class.
-class UnifyingAstVisitor<R> implements AstVisitor<R> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('UnifyingAstVisitor2'));
+    out.writeln(r'''class UnifyingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const UnifyingAstVisitor();
 
@@ -879,6 +902,7 @@ part of 'linter_visitor.dart';
   void _writeLinterVisitor() {
     out.write('''
 /// The AST visitor that runs handlers for nodes from the [_registry].
+${_astVersionPolicy.v1AnnotationCode('AnalysisRuleVisitor2')}
 class AnalysisRuleVisitor implements AstVisitor<void> {
   final RuleVisitorRegistryImpl _registry;
 
@@ -1067,6 +1091,7 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   void _writeRuleVisitorRegistryImpl() {
     out.write('''
+${_astVersionPolicy.v1AnnotationCode('RuleVisitorRegistryImpl2')}
 class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];
@@ -1249,6 +1274,7 @@ part of 'rule_visitor_registry.dart';
 /// [AbstractAnalysisRule.registerNodeProcessors] and calls `add*` for each of
 /// the node types it needs to visit with an [AstVisitor], which registers that
 /// visitor.
+${_astVersionPolicy.v1AnnotationCode('RuleVisitorRegistry2')}
 abstract class RuleVisitorRegistry {
   void afterLibrary(AbstractAnalysisRule rule, void Function() callback);
 ''');

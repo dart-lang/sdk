@@ -16,6 +16,7 @@ part of 'rule_visitor_registry.dart';
 /// [AbstractAnalysisRule.registerNodeProcessors] and calls `add*` for each of
 /// the node types it needs to visit with an [AstVisitor], which registers that
 /// visitor.
+@ToBeDeprecated('Use RuleVisitorRegistry2 instead')
 abstract class RuleVisitorRegistry {
   void addAdjacentStrings(AbstractAnalysisRule rule, AstVisitor visitor);
   void addAnnotation(AbstractAnalysisRule rule, AstVisitor visitor);

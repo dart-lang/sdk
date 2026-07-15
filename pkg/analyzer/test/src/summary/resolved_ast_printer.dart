@@ -18,8 +18,8 @@ import 'package:test/test.dart';
 import '../../util/element_printer.dart';
 
 /// Prints AST as a tree, with properties and children.
-class ResolvedAstPrinter extends ThrowingAstVisitor<void>
-    implements AstVisitor2<void> {
+class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
+    implements AstVisitor<void> {
   final TreeStringSink _sink;
   final ElementPrinter _elementPrinter;
   final ResolvedNodeTextConfiguration configuration;

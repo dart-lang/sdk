@@ -66,7 +66,7 @@ enum ExpressionVisitCodePath {
   analyzeExpression,
 
   /// The expression is the identifier in a "for each" loop, so it is not a true
-  /// expression, and it is being visited directly using [Expression.accept].
+  /// expression, and it is being visited directly using [Expression.accept2].
   forEachIdentifier,
 }
 

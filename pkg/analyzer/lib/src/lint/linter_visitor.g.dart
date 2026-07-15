@@ -9,6 +9,7 @@
 part of 'linter_visitor.dart';
 
 /// The AST visitor that runs handlers for nodes from the [_registry].
+@ToBeDeprecated('Use AnalysisRuleVisitor2 instead')
 class AnalysisRuleVisitor implements AstVisitor<void> {
   final RuleVisitorRegistryImpl _registry;
 
@@ -2381,6 +2382,7 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 }
 
+@ToBeDeprecated('Use RuleVisitorRegistryImpl2 instead')
 class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];

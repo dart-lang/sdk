@@ -6,6 +6,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:meta/meta.dart';
@@ -13,6 +14,7 @@ import 'package:meta/meta.dart';
 part 'linter_visitor.g.dart';
 
 /// The soon-to-be-deprecated alias for a [RuleVisitorRegistry].
+@ToBeDeprecated('Use RuleVisitorRegistry2 instead')
 typedef NodeLintRegistry = RuleVisitorRegistry;
 
 class _AfterLibrarySubscription {
@@ -24,6 +26,7 @@ class _AfterLibrarySubscription {
 }
 
 /// A single subscription for a node type, by the specified [rule].
+@ToBeDeprecated('Use _Subscription2 instead')
 class _Subscription<T> {
   final AbstractAnalysisRule rule;
   final AstVisitor visitor;
