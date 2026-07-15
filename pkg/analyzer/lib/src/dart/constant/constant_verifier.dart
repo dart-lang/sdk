@@ -655,6 +655,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           }
         }
       }
+    } else if (type is RecordTypeAnnotation) {
+      for (var field in type.fields) {
+        _checkForConstWithTypeParameters(
+          field.type,
+          locatableDiagnostic,
+          allowedTypeParameters: allowedTypeParameters,
+        );
+      }
     }
   }
 

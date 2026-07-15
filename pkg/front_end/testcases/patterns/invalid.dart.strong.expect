@@ -14,7 +14,6 @@ import self as self;
 import "dart:core" as core;
 
 static method method(invalid-type o) → dynamic {
-  #L1:
   {
     final synthesized invalid-type #0#0 = o;
     synthesized core::int #0#2;

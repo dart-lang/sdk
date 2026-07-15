@@ -29,7 +29,7 @@ sealed class ControlFlowElement extends InternalExpression {
 
 /// A spread element in a list or set literal.
 class SpreadElement extends ControlFlowElement {
-  final Expression expression;
+  final InternalExpression expression;
   final bool isNullAware;
 
   new(this.expression, {required this.isNullAware}) {
@@ -56,12 +56,12 @@ class SpreadElement extends ControlFlowElement {
     if (isNullAware) {
       printer.write('?');
     }
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 }
 
 class NullAwareElement extends ControlFlowElement {
-  final Expression expression;
+  final InternalExpression expression;
 
   new(this.expression);
 
@@ -77,7 +77,7 @@ class NullAwareElement extends ControlFlowElement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('?');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
   }
 
   @override
@@ -88,9 +88,9 @@ class NullAwareElement extends ControlFlowElement {
 
 /// An 'if' element in a list or set literal.
 class IfElement extends ControlFlowElement {
-  final Expression condition;
-  final Expression then;
-  final Expression? otherwise;
+  final InternalExpression condition;
+  final InternalExpression then;
+  final InternalExpression? otherwise;
 
   new(this.condition, this.then, this.otherwise) {
     condition.parent = this;
@@ -103,14 +103,14 @@ class IfElement extends ControlFlowElement {
     void onConvertElement(TreeNode from, TreeNode to),
   ) {
     InternalMapLiteralEntry? thenEntry;
-    Expression then = this.then;
+    InternalExpression then = this.then;
     if (then is ControlFlowElement) {
       ControlFlowElement thenElement = then;
       thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
     }
     if (thenEntry == null) return null;
     InternalMapLiteralEntry? otherwiseEntry;
-    Expression? otherwise = this.otherwise;
+    InternalExpression? otherwise = this.otherwise;
     if (otherwise != null) {
       // Coverage-ignore-block(suite): Not run.
       if (otherwise is ControlFlowElement) {
@@ -134,12 +134,12 @@ class IfElement extends ControlFlowElement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('if (');
-    printer.writeExpression(condition);
+    condition.toTextInternal(printer);
     printer.write(') ');
-    printer.writeExpression(then);
+    then.toTextInternal(printer);
     if (otherwise != null) {
       printer.write(' else ');
-      printer.writeExpression(otherwise!);
+      otherwise!.toTextInternal(printer);
     }
   }
 }
@@ -151,13 +151,13 @@ class ForElement extends ControlFlowElement implements ForElementBase {
   final List<InternalVariableDeclaration> variables;
 
   @override
-  final Expression? condition; // May be null.
+  final InternalExpression? condition; // May be null.
 
   @override
-  final List<Expression> updates; // May be empty, but not null.
+  final List<InternalExpression> updates; // May be empty, but not null.
 
   @override
-  final Expression body;
+  final InternalExpression body;
 
   new(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
@@ -171,7 +171,7 @@ class ForElement extends ControlFlowElement implements ForElementBase {
     void onConvertElement(TreeNode from, TreeNode to),
   ) {
     InternalMapLiteralEntry? bodyEntry;
-    Expression body = this.body;
+    InternalExpression body = this.body;
     if (body is ControlFlowElement) {
       ControlFlowElement bodyElement = body;
       bodyEntry = bodyElement.toMapLiteralEntry(onConvertElement);
@@ -208,20 +208,20 @@ class ForElement extends ControlFlowElement implements ForElementBase {
     }
     printer.write('; ');
     if (condition != null) {
-      printer.writeExpression(condition!);
+      condition!.toTextInternal(printer);
     }
     printer.write('; ');
-    printer.writeExpressions(updates);
+    updates.toTextInternal(printer);
     printer.write(') ');
-    printer.writeExpression(body);
+    body.toTextInternal(printer);
   }
 }
 
 /// A 'for-in' element in a list or set literal.
 class ForInElement extends ControlFlowElement {
   final InternalForInElement element;
-  final Expression iterable;
-  final Expression body;
+  final InternalExpression iterable;
+  final InternalExpression body;
   final bool isAsync; // True if this is an 'await for' loop.
 
   /// File offset for the `for` keyword.
@@ -256,7 +256,7 @@ class ForInElement extends ControlFlowElement {
     void Function(TreeNode from, TreeNode to) onConvertElement,
   ) {
     InternalMapLiteralEntry? bodyEntry;
-    Expression body = this.body;
+    InternalExpression body = this.body;
     if (body is ControlFlowElement) {
       bodyEntry = body.toMapLiteralEntry(onConvertElement);
     }
@@ -275,10 +275,10 @@ class ForInElement extends ControlFlowElement {
 }
 
 class IfCaseElement extends ControlFlowElement {
-  final Expression expression;
+  final InternalExpression expression;
   final InternalPatternGuard patternGuard;
-  final Expression then;
-  final Expression? otherwise;
+  final InternalExpression then;
+  final InternalExpression? otherwise;
 
   new({
     required this.expression,
@@ -296,14 +296,14 @@ class IfCaseElement extends ControlFlowElement {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('if (');
-    printer.writeExpression(expression);
+    expression.toTextInternal(printer);
     printer.write(' case ');
     patternGuard.toTextInternal(printer);
     printer.write(') ');
-    printer.writeExpression(then);
+    then.toTextInternal(printer);
     if (otherwise != null) {
       printer.write(' else ');
-      printer.writeExpression(otherwise!);
+      otherwise!.toTextInternal(printer);
     }
   }
 
@@ -312,14 +312,14 @@ class IfCaseElement extends ControlFlowElement {
     void Function(TreeNode from, TreeNode to) onConvertElement,
   ) {
     InternalMapLiteralEntry? thenEntry;
-    Expression then = this.then;
+    InternalExpression then = this.then;
     if (then is ControlFlowElement) {
       ControlFlowElement thenElement = then;
       thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
     }
     if (thenEntry == null) return null;
     InternalMapLiteralEntry? otherwiseEntry;
-    Expression? otherwise = this.otherwise;
+    InternalExpression? otherwise = this.otherwise;
     if (otherwise != null) {
       // Coverage-ignore-block(suite): Not run.
       if (otherwise is ControlFlowElement) {
@@ -344,14 +344,14 @@ class IfCaseElement extends ControlFlowElement {
   }
 }
 
-abstract interface class ForElementBase implements AuxiliaryExpression {
+abstract interface class ForElementBase implements InternalExpression {
   List<InternalVariableDeclaration> get variables;
 
-  Expression? get condition;
+  InternalExpression? get condition;
 
-  List<Expression> get updates;
+  List<InternalExpression> get updates;
 
-  Expression get body;
+  InternalExpression get body;
 }
 
 class PatternForElement extends ControlFlowElement implements ForElementBase {
@@ -363,13 +363,13 @@ class PatternForElement extends ControlFlowElement implements ForElementBase {
   final List<InternalVariableDeclaration> variables;
 
   @override
-  final Expression? condition; // May be null.
+  final InternalExpression? condition; // May be null.
 
   @override
-  final List<Expression> updates; // May be empty, but not null.
+  final List<InternalExpression> updates; // May be empty, but not null.
 
   @override
-  final Expression body;
+  final InternalExpression body;
 
   new({
     required this.patternVariableDeclaration,
@@ -397,12 +397,12 @@ class PatternForElement extends ControlFlowElement implements ForElementBase {
     }
     printer.write('; ');
     if (condition != null) {
-      printer.writeExpression(condition!);
+      condition!.toTextInternal(printer);
     }
     printer.write('; ');
-    printer.writeExpressions(updates);
+    updates.toTextInternal(printer);
     printer.write(') ');
-    printer.writeExpression(body);
+    body.toTextInternal(printer);
   }
 
   @override
@@ -442,12 +442,12 @@ class NullAwareMapEntry extends ControlFlowMapEntry {
   /// `true` if the key expression is null-aware, that is, marked with `?`.
   final bool isKeyNullAware;
 
-  final Expression key;
+  final InternalExpression key;
 
   /// `true` if the value expression is null-aware, that is, marked with `?`.
   final bool isValueNullAware;
 
-  final Expression value;
+  final InternalExpression value;
 
   new({
     required this.isKeyNullAware,
@@ -478,7 +478,7 @@ class NullAwareMapEntry extends ControlFlowMapEntry {
 
 /// A spread element in a map literal.
 class SpreadMapEntry extends ControlFlowMapEntry {
-  final Expression expression;
+  final InternalExpression expression;
   final bool isNullAware;
 
   new(this.expression, {required this.isNullAware}) {
@@ -500,7 +500,7 @@ class SpreadMapEntry extends ControlFlowMapEntry {
 
 /// An 'if' element in a map literal.
 class IfMapEntry extends ControlFlowMapEntry {
-  final Expression condition;
+  final InternalExpression condition;
   final InternalMapLiteralEntry then;
   final InternalMapLiteralEntry? otherwise;
 
@@ -532,9 +532,9 @@ class IfMapEntry extends ControlFlowMapEntry {
 sealed class ForMapEntryBase implements TreeNode, InternalMapLiteralEntry {
   List<InternalVariableDeclaration> get variables;
 
-  Expression? get condition;
+  InternalExpression? get condition;
 
-  List<Expression> get updates;
+  List<InternalExpression> get updates;
 
   InternalMapLiteralEntry get body;
 }
@@ -546,10 +546,10 @@ class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
   final List<InternalVariableDeclaration> variables;
 
   @override
-  final Expression? condition; // May be null.
+  final InternalExpression? condition; // May be null.
 
   @override
-  final List<Expression> updates; // May be empty, but not null.
+  final List<InternalExpression> updates; // May be empty, but not null.
 
   @override
   final InternalMapLiteralEntry body;
@@ -582,10 +582,10 @@ class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
     }
     printer.write('; ');
     if (condition != null) {
-      printer.writeExpression(condition!);
+      condition!.toTextInternal(printer);
     }
     printer.write('; ');
-    printer.writeExpressions(updates);
+    updates.toTextInternal(printer);
     printer.write(') ');
     body.toTextInternal(printer);
   }
@@ -600,10 +600,10 @@ class PatternForMapEntry extends ControlFlowMapEntry
   final List<InternalVariableDeclaration> variables;
 
   @override
-  final Expression? condition;
+  final InternalExpression? condition;
 
   @override
-  final List<Expression> updates;
+  final List<InternalExpression> updates;
 
   @override
   final InternalMapLiteralEntry body;
@@ -634,10 +634,10 @@ class PatternForMapEntry extends ControlFlowMapEntry
     }
     printer.write('; ');
     if (condition != null) {
-      printer.writeExpression(condition!);
+      condition!.toTextInternal(printer);
     }
     printer.write('; ');
-    printer.writeExpressions(updates);
+    updates.toTextInternal(printer);
     printer.write(') ');
     body.toTextInternal(printer);
   }
@@ -651,7 +651,7 @@ class PatternForMapEntry extends ControlFlowMapEntry
 /// A 'for-in' element in a map literal.
 class ForInMapEntry extends ControlFlowMapEntry {
   final InternalForInElement element;
-  final Expression iterable;
+  final InternalExpression iterable;
   final InternalMapLiteralEntry body;
   final bool isAsync; // True if this is an 'await for' loop.
 
@@ -684,7 +684,7 @@ class ForInMapEntry extends ControlFlowMapEntry {
 }
 
 class IfCaseMapEntry extends ControlFlowMapEntry {
-  final Expression expression;
+  final InternalExpression expression;
   final InternalPatternGuard patternGuard;
   final InternalMapLiteralEntry then;
   final InternalMapLiteralEntry? otherwise;
@@ -722,7 +722,7 @@ class IfCaseMapEntry extends ControlFlowMapEntry {
   }
 }
 
-bool isConvertibleToMapEntry(Expression element) {
+bool isConvertibleToMapEntry(InternalExpression element) {
   if (element is ControlFlowElement) {
     switch (element) {
       case SpreadElement():
@@ -757,7 +757,7 @@ bool isConvertibleToMapEntry(Expression element) {
 /// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
 /// [IfMapEntry], respectively.
 InternalMapLiteralEntry convertToMapEntry(
-  Expression element,
+  InternalExpression element,
   ProblemReporting problemReporting,
   CompilerContext compilerContext,
   Uri fileUri,
@@ -890,7 +890,7 @@ InternalMapLiteralEntry convertToMapEntry(
 }
 
 InternalMapLiteralEntry _convertToErroneousMapEntry(
-  Expression element,
+  InternalExpression element,
   ProblemReporting problemReporting,
   CompilerContext compilerContext,
   Uri fileUri,

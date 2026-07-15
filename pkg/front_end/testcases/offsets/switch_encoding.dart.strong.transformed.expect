@@ -475,21 +475,20 @@ import "dart:core" as core;
   }
 }
 [2845]static method [2876] [3069] switchStatementEnumWithContinue([2879, -1] self::E o) → dynamic {
-[2886]  #L28:
 [2886]  switch([2894] [2894] o) /* isExplicitlyExhaustive, self::E */ {
-[2903]    #L29:
+[2903]    #L28:
     case [2910] [2910] #C3:
 [2903]      {
 [2919]        [2919] [2919] core::print [2924]([2925] "a");
-[2937]        continue #L30;
+[2937]        continue #L29;
       }
-[2958]    #L30:
+[2958]    #L29:
     case [2977] [2977] #C6:
 [2958]      {
 [2986]        [2986] [2986] core::print [2991]([2992] "b");
-[3004]        continue #L31;
+[3004]        continue #L30;
       }
-[3025]    #L31:
+[3025]    #L30:
     case [3044] [3044] #C9:
 [3025]      {
 [3053]        [3053] [3053] core::print [3058]([3059] "c");
@@ -497,15 +496,15 @@ import "dart:core" as core;
   }
 }
 [3072]static method [3102] [3233] switchStatementPrimitiveEquals([3103, -1] dynamic o) → dynamic {
-[3110]  #L32:
+[3110]  #L31:
 [3110]  switch([3118] [3118] o) /* dynamic */ {
-[3127]    #L33:
+[3127]    #L32:
     case [3138] [3138] #C11:
 [3127]      {
 [3164]        [3164] [3164] core::print [3169]([3170] "a");
-[-1]        break #L32;
+[-1]        break #L31;
       }
-[3180]    #L34:
+[3180]    #L33:
     case [3191] [3191] #C12:
 [3180]      {
 [3217]        [3217] [3217] core::print [3222]([3223] "b");
@@ -513,7 +512,7 @@ import "dart:core" as core;
   }
 }
 [3236]static method [3269] [3406] switchStatementNonPrimitiveEquals([3270, -1] dynamic o) → dynamic {
-[3277]  #L35:
+[3277]  #L34:
 [3277]  {
 [3285]    [3285, -1] final synthesized dynamic #0#0 = [3285] [3285] o;
 [3305]    [3305, -1] final const synthesized self::NonPrimitiveEquals #0#1 = [3305] [3305] #C13;
@@ -522,7 +521,7 @@ import "dart:core" as core;
 [3294]      if([3305] [3305] [-1] [-1] #C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [3294]        {
 [3334]          [3334] [3334] core::print [3339]([3340] "a");
-[-1]          break #L35;
+[-1]          break #L34;
         }
       }
     }
@@ -542,14 +541,14 @@ import "dart:core" as core;
 [3457]    [3457, -1] final const synthesized core::int #0#3 = [3457] [3457] #C4;
 [-1]    [-1, -1] synthesized dynamic #0#9;
 [-1]    [-1, -1] synthesized core::bool #0#9#isSet = [3477] [3477] false;
-[3440]    #L36:
+[3440]    #L35:
 [3440]    {
 [3465]      {
 [3462]        [3462, -1] hoisted dynamic a;
 [3465]        if([3457] [3457] [3457] [3457] [-1] [-1] #0#0 is core::List<dynamic> && [3457] [3457] [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4) {
 [3462]          [3462] [3462] a = [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[3457]([3457] 0){(core::int) → dynamic};
 [-1]          [-1] [-1] #t59 = [3468] [3468] a;
-[3465]          break #L36;
+[3465]          break #L35;
         }
       }
 [3486]      {
@@ -557,13 +556,13 @@ import "dart:core" as core;
 [3486]        if([3477] [3477] [3475] [3475] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [3477]([3477] [3477] [3477]![3477]([3477] [3477]([3477] [-1] [-1] #0#9#isSet ?{dynamic} [3477] [3477] #0#9 : [3477] [3477] let [3477, -1] final dynamic #t60 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic}) == null) || [3477] [3477] [3477] [3477] [3477] [3477] null is dynamic && [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[3477]([-1] #C4){(core::Object?) → core::bool})) {
 [3483]          [3483] [3483] a = [3477] [3477] [-1] [-1] #0#9#isSet ?{dynamic} [3477] [3477] #0#9 : [3477] [3477] let [3477, -1] final dynamic #t61 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic};
 [-1]          [-1] [-1] #t59 = [3489] [3489] a;
-[3486]          break #L36;
+[3486]          break #L35;
         }
       }
 [3498]      {
 [3498]        if([3496] [3496] true) {
 [-1]          [-1] [-1] #t59 = [3501] [3501] null;
-[3498]          break #L36;
+[3498]          break #L35;
         }
       }
     }
@@ -572,25 +571,25 @@ import "dart:core" as core;
 [3515]static method [3535] [3612] switchExpressionEnum([3538, -1] self::E o) → dynamic {
 [3545]  return [3552] [3552] block {
 [-1]    [-1, -1] core::int #t62;
-[3552]    #L37:
+[3552]    #L36:
 [3552]    switch([3560] [3560] o) /* isExplicitlyExhaustive, self::E */ {
-[3573]      #L38:
+[3573]      #L37:
       case [3571] [3571] #C3:
 [3573]        {
 [3576]          [3576] [3576] #t62 = [3576] [3576] 0;
-[3576]          break #L37;
+[3576]          break #L36;
         }
-[3587]      #L39:
+[3587]      #L38:
       case [3585] [3585] #C6:
 [3587]        {
 [3590]          [3590] [3590] #t62 = [3590] [3590] 1;
-[3590]          break #L37;
+[3590]          break #L36;
         }
-[3601]      #L40:
+[3601]      #L39:
       case [3599] [3599] #C9:
 [3601]        {
 [3604]          [3604] [3604] #t62 = [3604] [3604] 2;
-[3604]          break #L37;
+[3604]          break #L36;
         }
     }
   } =>[-1] [-1] #t62;
@@ -601,24 +600,24 @@ import "dart:core" as core;
 [3669]    [3669, -1] final synthesized self::E #0#0 = [3669] [3669] o;
 [3680]    [3680, -1] final const synthesized self::E #0#1 = [3680] [3680] #C3;
 [3704]    [3704, -1] final const synthesized self::E #0#3 = [3704] [3704] #C6;
-[3661]    #L41:
+[3661]    #L40:
 [3661]    {
 [3692]      {
 [3692]        if([-1] [-1] [3680] [3680] [-1] [-1] #C3 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0 && [3687] [3687] true) {
 [-1]          [-1] [-1] #t63 = [3695] [3695] 0;
-[3692]          break #L41;
+[3692]          break #L40;
         }
       }
 [3706]      {
 [3706]        if([3704] [3704] [-1] [-1] #C6 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t63 = [3709] [3709] 1;
-[3706]          break #L41;
+[3706]          break #L40;
         }
       }
 [3718]      {
 [3718]        if([3716] [3716] true) {
 [-1]          [-1] [-1] #t63 = [3721] [3721] 2;
-[3718]          break #L41;
+[3718]          break #L40;
         }
       }
     }
@@ -630,24 +629,24 @@ import "dart:core" as core;
 [3786]    [3786, -1] final synthesized dynamic #0#0 = [3786] [3786] o;
 [3801]    [3801, -1] final const synthesized self::PrimitiveEquals #0#1 = [3801] [3801] #C11;
 [3836]    [3836, -1] final const synthesized self::PrimitiveEquals #0#3 = [3836] [3836] #C12;
-[3778]    #L42:
+[3778]    #L41:
 [3778]    {
 [3820]      {
 [3820]        if([3801] [3801] [-1] [-1] #C11 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t64 = [3823] [3823] 0;
-[3820]          break #L42;
+[3820]          break #L41;
         }
       }
 [3855]      {
 [3855]        if([3836] [3836] [-1] [-1] #C12 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t64 = [3858] [3858] 1;
-[3855]          break #L42;
+[3855]          break #L41;
         }
       }
 [3867]      {
 [3867]        if([3865] [3865] true) {
 [-1]          [-1] [-1] #t64 = [3870] [3870] 2;
-[3867]          break #L42;
+[3867]          break #L41;
         }
       }
     }
@@ -659,31 +658,30 @@ import "dart:core" as core;
 [3938]    [3938, -1] final synthesized dynamic #0#0 = [3938] [3938] o;
 [3953]    [3953, -1] final const synthesized self::NonPrimitiveEquals #0#1 = [3953] [3953] #C13;
 [3991]    [3991, -1] final const synthesized self::NonPrimitiveEquals #0#3 = [3991] [3991] #C14;
-[3930]    #L43:
+[3930]    #L42:
 [3930]    {
 [3975]      {
 [3975]        if([3953] [3953] [-1] [-1] #C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t65 = [3978] [3978] 0;
-[3975]          break #L43;
+[3975]          break #L42;
         }
       }
 [4013]      {
 [4013]        if([3991] [3991] [-1] [-1] #C14 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t65 = [4016] [4016] 1;
-[4013]          break #L43;
+[4013]          break #L42;
         }
       }
 [4025]      {
 [4025]        if([4023] [4023] true) {
 [-1]          [-1] [-1] #t65 = [4028] [4028] 2;
-[4025]          break #L43;
+[4025]          break #L42;
         }
       }
     }
   } =>[-1] [-1] #t65;
 }
 [4039]static method [4060] [4194] switchStatementSymbol([4068, -1] core::Symbol s) → dynamic {
-[4075]  #L44:
 [4075]  {
 [4083]    [4083, -1] final synthesized core::Symbol #0#0 = [4083] [4083] s;
 [4097]    [4097, -1] final const synthesized core::Symbol #0#1 = [4097] [4097] #C15;
@@ -717,24 +715,24 @@ import "dart:core" as core;
 [4249]    [4249, -1] final synthesized core::Symbol #0#0 = [4249] [4249] s;
 [4258]    [4258, -1] final const synthesized core::Symbol #0#1 = [4258] [4258] #C15;
 [4277]    [4277, -1] final const synthesized core::Symbol #0#3 = [4277] [4277] #C16;
-[4241]    #L45:
+[4241]    #L43:
 [4241]    {
 [4261]      {
 [4261]        if([4258] [4258] [-1] [-1] #C15 =={core::Symbol::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t66 = [4264] [4264] 0;
-[4261]          break #L45;
+[4261]          break #L43;
         }
       }
 [4289]      {
 [4289]        if([4277] [4277] [-1] [-1] #C16 =={core::Symbol::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t66 = [4292] [4292] 1;
-[4289]          break #L45;
+[4289]          break #L43;
         }
       }
 [4301]      {
 [4301]        if([4299] [4299] true) {
 [-1]          [-1] [-1] #t66 = [4304] [4304] 2;
-[4301]          break #L45;
+[4301]          break #L43;
         }
       }
     }

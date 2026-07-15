@@ -5,12 +5,11 @@ import "dart:core" as core;
 static method main() → dynamic {
   core::int i = 0;
   core::int j = 0;
-  #L1:
   while ((i = i.{core::num::+}(1){(core::num) → core::int}).{core::num::<}(10){(core::num) → core::bool})
-    #L2:
+    #L1:
     {
       if(i.{core::num::<}(4){(core::num) → core::bool})
-        break #L2;
+        break #L1;
       j = j.{core::num::+}(1){(core::num) → core::int};
     }
   if(!(i =={core::num::==}{(core::Object) → core::bool} 10))

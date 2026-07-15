@@ -17,6 +17,18 @@
       "exclude": []
     },
     {
+      "name": "sourcemaps_canary",
+      "kind": "Chain",
+      "source": "sourcemaps_canary_suite.dart",
+      "root": "testfiles",
+      "status": "sourcemaps_canary.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.unformatteddart$"
+      ],
+      "exclude": []
+    },
+    {
       "name": "stacktrace",
       "kind": "Chain",
       "source": "stacktrace_suite.dart",
@@ -28,11 +40,11 @@
       "exclude": []
     },
     {
-      "name": "stacktrace_ddc_library_bundle",
+      "name": "stacktrace_canary",
       "kind": "Chain",
-      "source": "stacktrace_ddc_library_bundle_suite.dart",
+      "source": "stacktrace_canary_suite.dart",
       "root": "stacktrace_testfiles",
-      "status": "stacktrace_ddc_library_bundle.status",
+      "status": "stacktrace_canary.status",
       "pattern": [
         "\\.dart$"
       ],

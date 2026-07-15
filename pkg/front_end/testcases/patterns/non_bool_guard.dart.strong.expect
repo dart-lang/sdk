@@ -21,7 +21,6 @@ import self as self;
 import "dart:core" as core;
 
 static method test1(core::List<core::int> v) → core::String {
-  #L1:
   {
     final synthesized core::List<core::int> #0#0 = v;
     final const synthesized core::int #0#2 = #C1;
@@ -66,7 +65,7 @@ static method test3(core::List<core::int> v) → core::String
     core::String #t3;
     final synthesized core::List<core::int> #0#0 = v;
     final const synthesized core::int #0#2 = #C1;
-    #L2:
+    #L1:
     {
       {
         hoisted core::int a;
@@ -75,13 +74,13 @@ Try changing the condition.
   [var a, _] when a - 1 => \"match\",
                     ^") {
           #t3 = "match";
-          break #L2;
+          break #L1;
         }
       }
       {
         if(true) {
           #t3 = "no match";
-          break #L2;
+          break #L1;
         }
       }
     }

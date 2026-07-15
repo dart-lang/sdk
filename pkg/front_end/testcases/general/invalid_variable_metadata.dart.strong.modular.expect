@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_variable_metadata.dart:14:3: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   @annotation // Error
+//   ^
+//
+// pkg/front_end/testcases/general/invalid_variable_metadata.dart:13:9: Error: Expected ';' after this.
+//   i1 = 0,
+//         ^
+//
+// pkg/front_end/testcases/general/invalid_variable_metadata.dart:14:3: Error: Unexpected token '@'.
+//   @annotation // Error
+//   ^
+//
+// pkg/front_end/testcases/general/invalid_variable_metadata.dart:17:9: Error: Undefined name 'i2'.
+//     use(i2);
+//         ^^
+//
+// pkg/front_end/testcases/general/invalid_variable_metadata.dart:25:3: Error: Expected an identifier, but got '@'.
+// Try inserting an identifier before '@'.
+//   @annotation // Error
+//   ^
+//
+// pkg/front_end/testcases/general/invalid_variable_metadata.dart:24:9: Error: Expected ';' after this.
+//   i1 = 0,
+//         ^
+//
+// pkg/front_end/testcases/general/invalid_variable_metadata.dart:26:3: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   i2 = 0;
+//   ^^
+//
+import self as self;
+
+static const field dynamic annotation = #C1;
+static method use(dynamic x) → dynamic
+  return x;
+static method test0() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/invalid_variable_metadata.dart: Error: This couldn't be parsed.";
+}
+static method test2() → dynamic {}
+
+constants  {
+  #C1 = null
+}

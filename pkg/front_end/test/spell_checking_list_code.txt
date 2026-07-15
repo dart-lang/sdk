@@ -197,6 +197,7 @@ boundness
 boxed
 breach
 breadcrumbs
+breakable
 brevity
 brianwilkerson
 bridge
@@ -367,6 +368,7 @@ container
 containers
 containment
 contextually
+continuable
 continuations
 contra
 contrary

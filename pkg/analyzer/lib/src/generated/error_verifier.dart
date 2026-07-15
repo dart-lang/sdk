@@ -991,11 +991,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       );
 
       var members = node.body.members;
-      _checkForRepeatedType(
-        libraryContext.setOfImplements(firstFragment.asElement2),
-        node.implementsClause?.interfaces,
-        diag.implementsRepeated,
-      );
+      if (!_featureSet.isEnabled(Feature.augmentations)) {
+        _checkForRepeatedType(
+          libraryContext.setOfImplements(firstFragment.asElement2),
+          node.implementsClause?.interfaces,
+          diag.implementsRepeated,
+        );
+      }
       _checkForConflictingClassMembers(declaredFragment);
       _checkForConflictingGenerics(
         node: node,
@@ -2341,11 +2343,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         !_checkForAllMixinErrorCodes(declarationFragment, withClause) &&
         !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
       _checkForExtendsDeferredClass(superclass);
-      _checkForRepeatedType(
-        libraryContext.setOfImplements(declarationFragment.asElement2),
-        implementsClause?.interfaces,
-        diag.implementsRepeated,
-      );
+      if (!_featureSet.isEnabled(Feature.augmentations)) {
+        _checkForRepeatedType(
+          libraryContext.setOfImplements(declarationFragment.asElement2),
+          implementsClause?.interfaces,
+          diag.implementsRepeated,
+        );
+      }
       _checkImplementsSuperClass(implementsClause);
       _checkMixinsSuperClass(withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
@@ -7879,11 +7883,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         onClause?.superclassConstraints,
         diag.onRepeated,
       );
-      _checkForRepeatedType(
-        libraryContext.setOfImplements(declarationFragment.asElement2),
-        implementsClause?.interfaces,
-        diag.implementsRepeated,
-      );
+      if (!_featureSet.isEnabled(Feature.augmentations)) {
+        _checkForRepeatedType(
+          libraryContext.setOfImplements(declarationFragment.asElement2),
+          implementsClause?.interfaces,
+          diag.implementsRepeated,
+        );
+      }
       _checkImplementsSuperClassConstraint(onClause, implementsClause);
       _checkForConflictingGenerics(node: node, nameToken: node.name);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);

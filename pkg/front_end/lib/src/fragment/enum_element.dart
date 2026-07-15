@@ -197,7 +197,7 @@ class EnumElementDeclaration
   @override
   List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError("${runtimeType}.buildInitializer");

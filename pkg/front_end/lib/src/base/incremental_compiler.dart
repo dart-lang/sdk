@@ -36,7 +36,6 @@ import 'package:kernel/kernel.dart'
         Field,
         FunctionNode,
         InterfaceType,
-        InvalidExpression,
         Library,
         LibraryDependency,
         LibraryPart,
@@ -106,7 +105,9 @@ import '../kernel/internal_ast.dart'
         InternalVariableGet,
         InternalVariableSet,
         InternalVariable,
-        InternalConstVariable;
+        InternalConstVariable,
+        InternalExpression,
+        InternalInvalidExpression;
 import '../kernel/internal_ast_helper.dart' as intern;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
 import '../source/check_helper.dart';
@@ -2678,7 +2679,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
-    Expression node,
+    InternalExpression node,
     InternalVariable variable,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
@@ -2694,7 +2695,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
           fileUri: fileUri,
           fileOffset: node.fileOffset,
           length: variable.cosmeticName!.length,
-          errorHasBeenReported: node is InvalidExpression,
+          errorHasBeenReported: node is InternalInvalidExpression,
         ),
       ),
     );

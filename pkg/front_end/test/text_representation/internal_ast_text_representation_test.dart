@@ -93,7 +93,7 @@ void testVariableDeclaration(
 }
 
 void testExpression(
-  Expression node,
+  InternalExpression node,
   String normal, {
   String? verbose,
   String? limited,
@@ -116,7 +116,7 @@ void testExpression(
 }
 
 void testPattern(
-  Pattern node,
+  InternalPattern node,
   String normal, {
   String? verbose,
   String? limited,
@@ -1100,43 +1100,61 @@ switch (null) { case 0: case 1: return; label: case 2 when 3: default: return; }
 }
 
 void _testSwitchExpression() {
-  Expression expression = new InternalNullLiteral(
+  InternalExpression expression = new InternalNullLiteral(
     fileOffset: TreeNode.noOffset,
   );
-  PatternGuard case0 = new PatternGuard(
-    new ConstantPattern(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+  InternalPatternGuard case0 = new InternalPatternGuard(
+    pattern: new InternalConstantPattern(
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
+    guard: null,
+    fileOffset: TreeNode.noOffset,
   );
-  PatternGuard case1 = new PatternGuard(
-    new ConstantPattern(
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+  InternalPatternGuard case1 = new InternalPatternGuard(
+    pattern: new InternalConstantPattern(
+      expression: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
+    guard: null,
+    fileOffset: TreeNode.noOffset,
   );
-  PatternGuard case2 = new PatternGuard(
-    new ConstantPattern(
-      new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+  InternalPatternGuard case2 = new InternalPatternGuard(
+    pattern: new InternalConstantPattern(
+      expression: new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
-    new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+    guard: new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+    fileOffset: TreeNode.noOffset,
   );
-  Expression body0 = new InternalIntLiteral(
+  InternalExpression body0 = new InternalIntLiteral(
     4,
     '4',
     fileOffset: TreeNode.noOffset,
   );
-  Expression body1 = new InternalIntLiteral(
+  InternalExpression body1 = new InternalIntLiteral(
     5,
     '5',
     fileOffset: TreeNode.noOffset,
   );
-  Expression body2 = new InternalIntLiteral(
+  InternalExpression body2 = new InternalIntLiteral(
     6,
     '6',
     fileOffset: TreeNode.noOffset,
   );
 
   testExpression(
-    new SwitchExpression(expression, [new SwitchExpressionCase(case0, body0)]),
+    new InternalSwitchExpression(
+      expression: expression,
+      cases: [
+        new InternalSwitchExpressionCase(
+          patternGuard: case0,
+          expression: body0,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) { case 0 => 4 }''',
     limited: '''
@@ -1144,10 +1162,22 @@ switch (null) { case 0 => 4 }''',
   );
 
   testExpression(
-    new SwitchExpression(expression, [
-      new SwitchExpressionCase(case0, body0),
-      new SwitchExpressionCase(case1, body1),
-    ]),
+    new InternalSwitchExpression(
+      expression: expression,
+      cases: [
+        new InternalSwitchExpressionCase(
+          patternGuard: case0,
+          expression: body0,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchExpressionCase(
+          patternGuard: case1,
+          expression: body1,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) { case 0 => 4, case 1 => 5 }''',
     limited: '''
@@ -1155,11 +1185,27 @@ switch (null) { case 0 => 4, case 1 => 5 }''',
   );
 
   testExpression(
-    new SwitchExpression(expression, [
-      new SwitchExpressionCase(case0, body0),
-      new SwitchExpressionCase(case1, body1),
-      new SwitchExpressionCase(case2, body2),
-    ]),
+    new InternalSwitchExpression(
+      expression: expression,
+      cases: [
+        new InternalSwitchExpressionCase(
+          patternGuard: case0,
+          expression: body0,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchExpressionCase(
+          patternGuard: case1,
+          expression: body1,
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalSwitchExpressionCase(
+          patternGuard: case2,
+          expression: body2,
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 switch (null) { case 0 => 4, case 1 => 5, case 2 when 3 => 6 }''',
     limited: '''
@@ -1228,10 +1274,10 @@ let final dynamic #0 = 0 in cascade {} => #0''');
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  (#0).foo = 1;
+  #0.foo = 1;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { (#0).foo = 1; } => #0''',
+let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''',
   );
 
   cascade.addCascadeExpression(
@@ -1249,11 +1295,11 @@ let final dynamic #0 = 0 in cascade { (#0).foo = 1; } => #0''',
     cascade,
     '''
 let final dynamic #0 = 0 in cascade {
-  (#0).foo = 1;
-  (#0).bar = 2;
+  #0.foo = 1;
+  #0.bar = 2;
 } => #0''',
     limited: '''
-let final dynamic #0 = 0 in cascade { (#0).foo = 1; (#0).bar = 2; } => #0''',
+let final dynamic #0 = 0 in cascade { #0.foo = 1; #0.bar = 2; } => #0''',
   );
 }
 
@@ -1658,7 +1704,7 @@ void _testIfNullExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) ?? (1)''',
+0 ?? 1''',
   );
 }
 
@@ -1689,7 +1735,7 @@ void _testInternalMethodInvocation() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz()''',
+0.boz()''',
   );
 
   InternalExpression positionalArgument = new InternalIntLiteral(
@@ -1727,7 +1773,7 @@ void _testInternalMethodInvocation() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz<void, dynamic>(1, foo: 2, bar: 3)''',
+0.boz<void, dynamic>(1, foo: 2, bar: 3)''',
   );
   testExpression(
     new MethodInvocation(
@@ -1740,7 +1786,7 @@ void _testInternalMethodInvocation() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz()''',
+0?.boz()''',
   );
   testExpression(
     new MethodInvocation(
@@ -1761,7 +1807,7 @@ void _testInternalMethodInvocation() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz<void, dynamic>(1, foo: 2, bar: 3)''',
+0?.boz<void, dynamic>(1, foo: 2, bar: 3)''',
   );
 }
 
@@ -1775,7 +1821,7 @@ void _testPropertyGet() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz''',
+0.boz''',
   );
 
   testExpression(
@@ -1787,7 +1833,7 @@ void _testPropertyGet() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz''',
+0?.boz''',
   );
 }
 
@@ -1804,7 +1850,7 @@ void _testPropertySet() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).boz = 1''',
+0.boz = 1''',
   );
 
   testExpression(
@@ -1819,7 +1865,7 @@ void _testPropertySet() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.boz = 1''',
+0?.boz = 1''',
   );
 }
 
@@ -1881,7 +1927,7 @@ void _testMethodInvocation() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0).foo()''',
+0.foo()''',
   );
 
   testExpression(
@@ -1895,7 +1941,7 @@ void _testMethodInvocation() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0)?.foo()''',
+0?.foo()''',
   );
 }
 
@@ -1962,14 +2008,14 @@ dynamic foo = 0''',
   );
   testVariable(
     new InternalPositionalParameter(
+      defaultValue: new InternalIntLiteral(
+        0,
+        '0',
+        fileOffset: TreeNode.noOffset,
+      ),
       astVariable: new PositionalParameter(
         cosmeticName: 'foo',
         type: const VoidType(),
-        defaultValue: new InternalIntLiteral(
-          0,
-          '0',
-          fileOffset: TreeNode.noOffset,
-        ),
         isFinal: true,
         isRequired: true,
       ),
@@ -4251,7 +4297,7 @@ void _testEqualsExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) == (1)''',
+0 == 1''',
   );
   testExpression(
     new EqualsExpression(
@@ -4261,7 +4307,7 @@ void _testEqualsExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) != (1)''',
+0 != 1''',
   );
 }
 
@@ -4274,7 +4320,7 @@ void _testBinaryExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) + (1)''',
+0 + 1''',
   );
   testExpression(
     new BinaryExpression(
@@ -4292,7 +4338,7 @@ void _testBinaryExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) - (1) + (2) - (3)''',
+0 - 1 + 2 - 3''',
   );
   testExpression(
     new BinaryExpression(
@@ -4310,7 +4356,7 @@ void _testBinaryExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-(0) * (1) + (2) / (3)''',
+0 * 1 + 2 / 3''',
   );
   testExpression(
     new BinaryExpression(
@@ -4328,7 +4374,7 @@ void _testBinaryExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-((0) + (1)) * ((2) - (3))''',
+0 + 1 * 2 - 3''',
   );
 }
 
@@ -4340,7 +4386,7 @@ void _testUnaryExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
--(0)''',
+-0''',
   );
   testExpression(
     new UnaryExpression(
@@ -4349,7 +4395,7 @@ void _testUnaryExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
-~(0)''',
+~0''',
   );
 
   testExpression(
@@ -4363,7 +4409,7 @@ void _testUnaryExpression() {
     ),
     // TODO(johnniwinther): Support precedence in internal expressions.
     '''
--((0) + (1))''',
+-0 + 1''',
   );
 }
 
@@ -4431,40 +4477,69 @@ void _testForInMapEntry() {}
 
 void _testExpressionMatcher() {
   testPattern(
-    new ConstantPattern(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalConstantPattern(
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0''',
   );
 
-  testPattern(new ConstantPattern(new BoolLiteral(true)), '''
-true''');
+  testPattern(
+    new InternalConstantPattern(
+      expression: new InternalBoolLiteral(true, fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+true''',
+  );
 }
 
 void _testBinaryMatcher() {
   testPattern(
-    new AndPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalAndPattern(
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
-      new ConstantPattern(
-        new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0 && 1''',
   );
 
   testPattern(
-    new OrPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalOrPattern(
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
-      new ConstantPattern(
-        new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
       orPatternJointVariables: [],
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0 || 1''',
@@ -4473,11 +4548,17 @@ void _testBinaryMatcher() {
 
 void _testCastMatcher() {
   testPattern(
-    new CastPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalCastPattern(
+      new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
       const DynamicType(),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0 as dynamic''',
@@ -4486,10 +4567,16 @@ void _testCastMatcher() {
 
 void _testNullAssertMatcher() {
   testPattern(
-    new NullAssertPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalNullAssertPattern(
+      pattern: new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0!''',
@@ -4498,10 +4585,16 @@ void _testNullAssertMatcher() {
 
 void _testNullCheckMatcher() {
   testPattern(
-    new NullCheckPattern(
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalNullCheckPattern(
+      pattern: new InternalConstantPattern(
+        expression: new InternalIntLiteral(
+          0,
+          '0',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
       ),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 0?''',
@@ -4510,14 +4603,28 @@ void _testNullCheckMatcher() {
 
 void _testListMatcher() {
   testPattern(
-    new ListPattern(const DynamicType(), [
-      new ConstantPattern(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      ),
-      new ConstantPattern(
-        new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
-      ),
-    ]),
+    new InternalListPattern(
+      typeArgument: const DynamicType(),
+      patterns: [
+        new InternalConstantPattern(
+          expression: new InternalIntLiteral(
+            0,
+            '0',
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
+        ),
+        new InternalConstantPattern(
+          expression: new InternalIntLiteral(
+            1,
+            '1',
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
+        ),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 <dynamic>[0, 1]''',
   );
@@ -4525,25 +4632,28 @@ void _testListMatcher() {
 
 void _testRelationalMatcher() {
   testPattern(
-    new RelationalPattern(
-      RelationalPatternKind.equals,
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+    new InternalRelationalPattern(
+      kind: RelationalPatternKind.equals,
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 == 0''',
   );
   testPattern(
-    new RelationalPattern(
-      RelationalPatternKind.notEquals,
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+    new InternalRelationalPattern(
+      kind: RelationalPatternKind.notEquals,
+      expression: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 != 1''',
   );
   testPattern(
-    new RelationalPattern(
-      RelationalPatternKind.lessThan,
-      new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+    new InternalRelationalPattern(
+      kind: RelationalPatternKind.lessThan,
+      expression: new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+      fileOffset: TreeNode.noOffset,
     ),
     '''
 < 2''',
@@ -4551,37 +4661,81 @@ void _testRelationalMatcher() {
 }
 
 void _testMapMatcher() {
-  testPattern(new MapPattern(null, null, []), '''
-{}''');
-  testPattern(new MapPattern(const DynamicType(), const DynamicType(), []), '''
-<dynamic, dynamic>{}''');
   testPattern(
-    new MapPattern(null, null, [
-      new MapPatternEntry(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-        new ConstantPattern(
-          new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+    new InternalMapPattern(
+      keyType: null,
+      valueType: null,
+      entries: [],
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+{}''',
+  );
+  testPattern(
+    new InternalMapPattern(
+      keyType: const DynamicType(),
+      valueType: const DynamicType(),
+      entries: [],
+      fileOffset: TreeNode.noOffset,
+    ),
+    '''
+<dynamic, dynamic>{}''',
+  );
+  testPattern(
+    new InternalMapPattern(
+      keyType: null,
+      valueType: null,
+      entries: [
+        new InternalMapPatternEntry(
+          key: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+          value: new InternalConstantPattern(
+            expression: new InternalIntLiteral(
+              1,
+              '1',
+              fileOffset: TreeNode.noOffset,
+            ),
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
         ),
-      ),
-    ]),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 {0: 1}''',
   );
   testPattern(
-    new MapPattern(null, null, [
-      new MapPatternEntry(
-        new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-        new ConstantPattern(
-          new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+    new InternalMapPattern(
+      keyType: null,
+      valueType: null,
+      entries: [
+        new InternalMapPatternEntry(
+          key: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+          value: new InternalConstantPattern(
+            expression: new InternalIntLiteral(
+              1,
+              '1',
+              fileOffset: TreeNode.noOffset,
+            ),
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
         ),
-      ),
-      new MapPatternEntry(
-        new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
-        new ConstantPattern(
-          new InternalIntLiteral(3, '3', fileOffset: TreeNode.noOffset),
+        new InternalMapPatternEntry(
+          key: new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+          value: new InternalConstantPattern(
+            expression: new InternalIntLiteral(
+              3,
+              '3',
+              fileOffset: TreeNode.noOffset,
+            ),
+            fileOffset: TreeNode.noOffset,
+          ),
+          fileOffset: TreeNode.noOffset,
         ),
-      ),
-    ]),
+      ],
+      fileOffset: TreeNode.noOffset,
+    ),
     '''
 {0: 1, 2: 3}''',
   );

@@ -1,0 +1,7 @@
+const annotation = null;
+
+use(x) => x;
+
+test0() {}
+
+test2() {}

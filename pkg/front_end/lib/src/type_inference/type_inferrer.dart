@@ -42,7 +42,12 @@ abstract class TypeInferrer {
   ExtensionScope get extensionScope;
 
   /// Returns the [FlowAnalysis] used during inference.
-  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
+  FlowAnalysis<
+    TreeNode,
+    InternalStatement,
+    InternalExpression,
+    InternalVariable
+  >
   get flowAnalysis;
 
   AssignedVariablesImpl get assignedVariables;
@@ -55,7 +60,7 @@ abstract class TypeInferrer {
   InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
-    required Expression initializer,
+    required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
   });
@@ -87,14 +92,14 @@ abstract class TypeInferrer {
   List<Expression> inferMetadata({
     required Uri fileUri,
     required Annotatable annotatable,
-    required List<Expression> annotations,
+    required List<InternalExpression> annotations,
   });
 
   /// Performs type inference on the given function parameter default value
   /// expression.
   Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression defaultValue,
+    required InternalExpression defaultValue,
     required DartType declaredType,
     required bool hasDeclaredDefaultValue,
   });
@@ -126,7 +131,7 @@ class TypeInferrerImpl implements TypeInferrer {
   late final FlowAnalysis<
     TreeNode,
     InternalStatement,
-    Expression,
+    InternalExpression,
     InternalVariable
   >
   flowAnalysis = new FlowAnalysis(
@@ -214,7 +219,7 @@ class TypeInferrerImpl implements TypeInferrer {
   InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
-    required Expression initializer,
+    required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
   }) {
@@ -329,6 +334,7 @@ class TypeInferrerImpl implements TypeInferrer {
       for (PositionalParameter positionalParameter
           in redirectingFactoryFunction.positionalParameters)
         new InternalPositionalParameter(
+          defaultValue: null,
           astVariable: positionalParameter,
           isImplicitlyTyped: false,
           fileOffset: positionalParameter.fileOffset,
@@ -338,6 +344,7 @@ class TypeInferrerImpl implements TypeInferrer {
       for (NamedParameter namedParameter
           in redirectingFactoryFunction.namedParameters)
         new InternalNamedParameter(
+          defaultValue: null,
           astVariable: namedParameter,
           isImplicitlyTyped: false,
           fileOffset: namedParameter.fileOffset,
@@ -451,7 +458,7 @@ class TypeInferrerImpl implements TypeInferrer {
   List<Expression> inferMetadata({
     required Uri fileUri,
     required Annotatable annotatable,
-    required List<Expression> annotations,
+    required List<InternalExpression> annotations,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
@@ -470,7 +477,7 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression defaultValue,
+    required InternalExpression defaultValue,
     required DartType declaredType,
     required bool hasDeclaredDefaultValue,
   }) {
@@ -483,15 +490,16 @@ class TypeInferrerImpl implements TypeInferrer {
       defaultValue,
       declaredType,
     );
+    Expression inferredDefaultValue;
     if (hasDeclaredDefaultValue) {
-      defaultValue = visitor
+      inferredDefaultValue = visitor
           .ensureAssignableResult(declaredType, result)
           .expression;
     } else {
-      defaultValue = result.expression;
+      inferredDefaultValue = result.expression;
     }
     visitor.checkCleanState();
-    return defaultValue;
+    return inferredDefaultValue;
   }
 
   @override
@@ -541,7 +549,12 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   AssignedVariablesImpl get assignedVariables => impl.assignedVariables;
 
   @override
-  FlowAnalysis<TreeNode, InternalStatement, Expression, InternalVariable>
+  FlowAnalysis<
+    TreeNode,
+    InternalStatement,
+    InternalExpression,
+    InternalVariable
+  >
   get flowAnalysis => impl.flowAnalysis;
 
   @override
@@ -551,7 +564,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
-    required Expression initializer,
+    required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
   }) {
@@ -616,7 +629,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   List<Expression> inferMetadata({
     required Uri fileUri,
     required Annotatable annotatable,
-    required List<Expression> annotations,
+    required List<InternalExpression> annotations,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
     List<Expression> result = impl.inferMetadata(
@@ -631,7 +644,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   @override
   Expression inferParameterDefaultValue({
     required Uri fileUri,
-    required Expression defaultValue,
+    required InternalExpression defaultValue,
     required DartType declaredType,
     required bool hasDeclaredDefaultValue,
   }) {

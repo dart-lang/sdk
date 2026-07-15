@@ -988,6 +988,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
+        @override
         int get a => super.[!a!];
       }
       ```
@@ -996,8 +997,6 @@ CompileTimeErrorCode:
 
       Remove the invocation of the abstract member, possibly replacing it with an
       invocation of a concrete member.
-      TODO(brianwilkerson): This either needs to be generalized (use 'member'
-       rather than '{0}') or split into multiple codes.
   ambiguousExport:
     type: compileTimeError
     parameters:
@@ -1425,7 +1424,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         C(int x) : [!assert(x > 0)!], this.name();
-        C.name() {}
+        C.name();
       }
       ```
 
@@ -1436,7 +1435,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         C(int x) : this.name();
-        C.name() {}
+        C.name();
       }
       ```
 
@@ -1449,7 +1448,7 @@ CompileTimeErrorCode:
           assert(x > 0);
           return C.name();
         }
-        C.name() {}
+        C.name();
       }
       ```
   assignmentToConst:
@@ -1741,7 +1740,7 @@ CompileTimeErrorCode:
       class C {}
 
       void f() {
-        [!C!] = null;
+        [!C!] = 0;
       }
       ```
 
@@ -1754,7 +1753,7 @@ CompileTimeErrorCode:
       void f() {}
 
       void g() {
-        var c = null;
+        var c = 0;
         print(c);
       }
       ```
@@ -2053,8 +2052,8 @@ CompileTimeErrorCode:
       is used in the initializer for `v`, a local variable that is marked `late`:
 
       ```dart
-      Future<int> f() async {
-        late var v = [!await!] 42;
+      Future<int> f(Future<int> future) async {
+        late var v = [!await!] future;
         return v;
       }
       ```
@@ -2064,8 +2063,8 @@ CompileTimeErrorCode:
       If the initializer can be rewritten to not use `await`, then rewrite it:
 
       ```dart
-      Future<int> f() async {
-        late var v = 42;
+      Future<int> f(Future<int> future) async {
+        late var v = future;
         return v;
       }
       ```
@@ -2073,8 +2072,8 @@ CompileTimeErrorCode:
       If the initializer can't be rewritten, then remove the `late` modifier:
 
       ```dart
-      Future<int> f() async {
-        var v = await 42;
+      Future<int> f(Future<int> future) async {
+        var v = await future;
         return v;
       }
       ```
@@ -2508,6 +2507,7 @@ CompileTimeErrorCode:
 
         const C(this.value);
 
+        @override
         bool operator ==(Object other) {
           return false;
         }
@@ -2532,6 +2532,7 @@ CompileTimeErrorCode:
 
         const C(this.value);
 
+        @override
         bool operator ==(Object other) {
           return false;
         }
@@ -2573,6 +2574,7 @@ CompileTimeErrorCode:
 
         const C(this.value);
 
+        @override
         bool operator ==(Object other) {
           return false;
         }
@@ -4018,6 +4020,7 @@ CompileTimeErrorCode:
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4032,6 +4035,7 @@ CompileTimeErrorCode:
       class C {
         const C();
 
+        @override
         int get hashCode => 3;
       }
 
@@ -4058,6 +4062,7 @@ CompileTimeErrorCode:
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4081,7 +4086,7 @@ CompileTimeErrorCode:
       The following code produces this diagnostic because `c` isn't initialized:
 
       ```dart
-      const [!c!];
+      const String [!c!];
       ```
 
       #### Common fixes
@@ -4089,7 +4094,7 @@ CompileTimeErrorCode:
       Add an initializer:
 
       ```dart
-      const c = 'c';
+      const String c = 'c';
       ```
   constSetElementNotPrimitiveEquality:
     type: compileTimeError
@@ -4119,6 +4124,7 @@ CompileTimeErrorCode:
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4133,6 +4139,7 @@ CompileTimeErrorCode:
       class C {
         const C();
 
+        @override
         int get hashCode => 3;
       }
 
@@ -4159,6 +4166,7 @@ CompileTimeErrorCode:
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4632,7 +4640,7 @@ CompileTimeErrorCode:
       }
 
       class B implements A {
-        B([int x = 1]) {}
+        B([int x = 1]);
       }
       ```
 
@@ -4646,7 +4654,7 @@ CompileTimeErrorCode:
       }
 
       class B implements A {
-        B([int x = 1]) {}
+        B([int x = 1]);
       }
       ```
 
@@ -4660,7 +4668,7 @@ CompileTimeErrorCode:
       }
 
       class B implements A {
-        B([int x = 1]) {}
+        B([int x = 1]);
       }
       ```
   defaultValueOnRequiredParameter:
@@ -5150,7 +5158,7 @@ CompileTimeErrorCode:
       class C {
         int f;
 
-        C(this.f, this.[!f!]) {}
+        C(this.f, this.[!f!]);
       }
       ```
 
@@ -5162,7 +5170,7 @@ CompileTimeErrorCode:
       class C {
         int f;
 
-        C(this.f) {}
+        C(this.f);
       }
       ```
   functionAlreadyComplete:
@@ -6041,6 +6049,9 @@ CompileTimeErrorCode:
       String uri: the URI pointing to a library
     problemMessage: "The library '#uri' is internal and can't be exported."
     hasPublishedDocs: true
+    # In the documentation, the `uri_does_not_exist` diagnostic is being ignored
+    # because it shouldn't be produced here. The library exists, and reporting
+    # that it doesn't is inaccurate.
     documentation: |-
       #### Description
 
@@ -6049,12 +6060,12 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic because `_interceptors` is an
+      The following code produces this diagnostic because `_internal` is an
       internal library:
 
       ```dart
       %ignore=uri_does_not_exist
-      [!export 'dart:_interceptors';!]
+      [!export 'dart:_internal';!]
       ```
 
       #### Common fixes
@@ -6140,8 +6151,6 @@ CompileTimeErrorCode:
       a part, and only libraries can be exported:
 
       ```dart
-      library lib;
-
       export [!'part.dart'!];
       ```
 
@@ -8268,6 +8277,7 @@ CompileTimeErrorCode:
       enum E {
         v;
 
+        @override
         int get [!index!] => 0;
       }
       ```
@@ -8277,6 +8287,7 @@ CompileTimeErrorCode:
 
       ```dart
       abstract class C implements Enum {
+        @override
         int [!hashCode!] = 0;
       }
       ```
@@ -8289,6 +8300,7 @@ CompileTimeErrorCode:
       abstract class A implements Enum {}
 
       abstract class C implements A {
+        @override
         int get [!hashCode!] => 0;
       }
       ```
@@ -8298,6 +8310,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M on Enum {
+        @override
         bool operator [!==!](Object other) => false;
       }
       ```
@@ -8379,7 +8392,7 @@ CompileTimeErrorCode:
       rather than a class or mixin:
 
       ```dart
-      var x;
+      var x = 0;
 
       class C implements [!x!] {}
       ```
@@ -8416,6 +8429,7 @@ CompileTimeErrorCode:
       twice:
 
       ```dart
+      // @dart = 3.5
       class A {}
 
       class B implements A, [!A!] {}
@@ -8426,6 +8440,7 @@ CompileTimeErrorCode:
       Remove all except one occurrence of the class name:
 
       ```dart
+      // @dart = 3.5
       class A {}
 
       class B implements A {}
@@ -8637,6 +8652,9 @@ CompileTimeErrorCode:
       String uri: the URI pointing to a library
     problemMessage: "The library '#uri' is internal and can't be imported."
     hasPublishedDocs: true
+    # In the documentation, the `uri_does_not_exist` diagnostic is being ignored
+    # because it shouldn't be produced here. The library exists, and reporting
+    # that it doesn't is inaccurate.
     documentation: |-
       #### Description
 
@@ -8645,12 +8663,12 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic because `_interceptors` is an
+      The following code produces this diagnostic because `_internal` is an
       internal library:
 
       ```dart
       %ignore=uri_does_not_exist
-      import [!'dart:_interceptors'!];
+      import [!'dart:_internal'!];
       ```
 
       #### Common fixes
@@ -8682,8 +8700,6 @@ CompileTimeErrorCode:
       have a part-of directive:
 
       ```dart
-      library lib;
-
       import [!'part.dart'!];
       ```
 
@@ -9249,7 +9265,7 @@ CompileTimeErrorCode:
       ```dart
       abstract class C {}
 
-      var c = new [!C!]();
+      var c = [!C!]();
       ```
 
       #### Common fixes
@@ -9582,7 +9598,7 @@ CompileTimeErrorCode:
       annotation with a different constant:
 
       ```dart
-      @deprecated
+      @Deprecated('...')
       void f() {}
       ```
   invalidAssignment:
@@ -9974,6 +9990,7 @@ CompileTimeErrorCode:
       class A {
         int add(int a) => a;
       }
+
       class [!B!] extends A {
         int add(num a);
       }
@@ -10002,7 +10019,8 @@ CompileTimeErrorCode:
       class A {
         int add(int a) => a;
       }
-      class B	extends A {
+
+      class B extends A {
         int add(int a);
       }
       ```
@@ -10015,7 +10033,8 @@ CompileTimeErrorCode:
       class A {
         int add(num a) => a.floor();
       }
-      class B	extends A {
+
+      class B extends A {
         int add(num a);
       }
       ```
@@ -10028,7 +10047,8 @@ CompileTimeErrorCode:
       class A {
         int add(int a) => a;
       }
-      class B	extends A {
+
+      class B extends A {
         int add(num a) => a.floor();
       }
       ```
@@ -10196,11 +10216,12 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        void m(int i) {}
+        void m(int p) {}
       }
 
       class B extends A {
-        void [!m!](String s) {}
+        @override
+        void [!m!](String p) {}
       }
       ```
 
@@ -10211,11 +10232,12 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        void m(int i) {}
+        void m(int p) {}
       }
 
       class B extends A {
-        void m(int i) {}
+        @override
+        void m(int p) {}
       }
       ```
 
@@ -10224,11 +10246,11 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        void m(int i) {}
+        void m(int p) {}
       }
 
       class B extends A {
-        void m2(String s) {}
+        void m2(String p) {}
       }
       ```
   invalidOverrideSetter:
@@ -11737,6 +11759,7 @@ CompileTimeErrorCode:
       }
 
       class C implements A {
+        @override
         void m() {}
       }
 
@@ -12007,7 +12030,7 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        A() {}
+        A();
       }
 
       // A separate mixin for mixing in behavior
@@ -12481,6 +12504,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
+        @override
         void m() {}
       }
       ```
@@ -14228,7 +14252,7 @@ CompileTimeErrorCode:
       }
 
       [!@C!]
-      var x;
+      var x = 0;
       ```
 
       #### Common fixes
@@ -14241,7 +14265,7 @@ CompileTimeErrorCode:
       }
 
       @C()
-      var x;
+      var x = 0;
       ```
   noCombinedSuperSignature:
     type: compileTimeError
@@ -14927,7 +14951,7 @@ CompileTimeErrorCode:
 
       ```dart
       void f(int x) {
-        var b;
+        var b = 0;
         if (x case var a when (b = 1) > 0) {
           print(a + b);
         }
@@ -15211,7 +15235,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
-        B(int x, int y) : super(x, y);
+        B(int x, int y) : super(x + 1, y);
       }
       ```
   prefixCollidesWithTopLevelMember:
@@ -15479,7 +15503,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        int? _x;
+        final int? _x;
         C({int? x, this.[!_x!]});
         int? get x => _x;
       }
@@ -15682,6 +15706,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = [!B!];
       }
+
       class B implements A {
         factory B() = [!A!];
         B.named();
@@ -15709,6 +15734,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = B;
       }
+
       class B implements A {
         factory B() = B.named;
         B.named();
@@ -15721,6 +15747,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = B;
       }
+
       class B implements A {
         factory B() {
           return B.named();
@@ -15736,6 +15763,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = B;
       }
+
       class B implements A {
         B();
         B.named();
@@ -15769,6 +15797,7 @@ CompileTimeErrorCode:
 
       ```dart
       class [!A!] extends B {}
+
       class B implements A {}
       ```
 
@@ -16612,7 +16641,7 @@ CompileTimeErrorCode:
           return _instance;
         }
 
-        static C _instance = C._();
+        static final C _instance = C._();
 
         C._();
       }
@@ -17452,7 +17481,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
-        B(int x) : [!super!](x), assert(x >= 0);
+        B(int x) : [!super!](x + 1), assert(x >= 0);
       }
       ```
 
@@ -17467,7 +17496,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
-        B(int x) : assert(x >= 0), super(x);
+        B(int x) : assert(x >= 0), super(x + 1);
       }
       ```
   superInEnumConstructor:
@@ -18290,7 +18319,7 @@ CompileTimeErrorCode:
       If the name is wrong, replace the name with the name of a valid constant:
 
       ```dart
-      @deprecated
+      @Deprecated('...')
       void f() {}
       ```
 
@@ -19163,6 +19192,7 @@ CompileTimeErrorCode:
       }
 
       class D extends C {
+        @override
         m({int? a, int? b}) {}
       }
 
@@ -19292,7 +19322,7 @@ CompileTimeErrorCode:
       class C {
         int x = 0;
         void m(int y) {
-          this.x = y;
+          x = y;
         }
       }
       ```
@@ -21027,6 +21057,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
+
       import 'package:ffi/ffi.dart';
 
       final class C extends Struct {
@@ -21695,6 +21726,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
+
       import 'package:ffi/ffi.dart';
 
       final class C extends Struct {
@@ -21994,6 +22026,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
+
       import 'package:ffi/ffi.dart';
 
       final class C extends Struct {
@@ -22840,7 +22873,7 @@ HintCode:
       before the default value of the optional parameter `i`:
 
       ```dart
-      void f({int i [!:!] 0}) {}
+      void f({int i[!:!] 0}) {}
       ```
 
       #### Common fixes
@@ -25647,6 +25680,7 @@ WarningCode:
         try {
           // ...
         } catch (e) {
+          // Not reached.
         } [!on String {
           // ...
         }!]
@@ -27462,6 +27496,8 @@ WarningCode:
     parameters: none
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
     hasPublishedDocs: true
+    # In the documentation, the `unused_element` diagnostic is being ignored
+    # because adding a use of `_C` unnecessarily complicates the example.
     documentation: |-
       #### Description
 
@@ -27487,12 +27523,11 @@ WarningCode:
       applied to declarations with private names:
 
       ```dart
+      %ignore=unused_element
       import 'package:meta/meta.dart';
 
       @[!internal!]
       class _C {}
-
-      void f(_C c) {}
       ```
 
       #### Common fixes
@@ -27500,9 +27535,8 @@ WarningCode:
       If the declaration has a private name, then remove the annotation:
 
       ```dart
+      %ignore=unused_element
       class _C {}
-
-      void f(_C c) {}
       ```
 
       If the declaration has a public name and is intended to be internal to the
@@ -27651,7 +27685,7 @@ WarningCode:
       annotation:
 
       ```dart
-      var x;
+      var x = 0;
       ```
   invalidNonVirtualAnnotation:
     type: staticWarning
@@ -28454,10 +28488,10 @@ WarningCode:
       class PublicWidget extends StatelessWidget {
         // Invalid application to a private constructor.
         @[!Preview!]()
-        PublicWidget._();
+        const PublicWidget._();
 
         @override
-        Widget build(BuildContext) => Text('Foo');
+        Widget build(BuildContext context) => Text('Foo');
       }
       ```
 
@@ -28469,6 +28503,8 @@ WarningCode:
       import 'package:flutter/widget_previews.dart';
 
       class PublicWidget extends StatelessWidget {
+        const new();
+
         // Invalid application to a instance member.
         @[!Preview!]()
         Widget instancePreview() => PublicWidget();
@@ -28489,7 +28525,7 @@ WarningCode:
       class _PrivateWidget extends StatelessWidget {
         // Invalid application to a constructor of a private class.
         @[!Preview!]()
-        _PrivateWidget();
+        const _PrivateWidget();
 
         @override
         Widget build(BuildContext context) => Text('Foo');
@@ -28505,6 +28541,8 @@ WarningCode:
 
       // ignore: unused_element
       class _PrivateWidget extends StatelessWidget {
+        const new();
+
         // Invalid application to a static method of a private class.
         @[!Preview!]()
         Widget privateStatic() => _PrivateWidget();
@@ -28846,7 +28884,7 @@ WarningCode:
       class C {
         final int x;
 
-        C(this.x);
+        const C(this.x);
       }
       ```
 
@@ -28902,12 +28940,12 @@ WarningCode:
 
       class A {
         @mustCallSuper
-        m() {}
+        void m() {}
       }
 
       class B extends A {
         @override
-        m() {
+        void m() {
           super.m();
         }
       }
@@ -30669,13 +30707,13 @@ WarningCode:
       ```dart
       class A {
         @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+        dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
       }
 
       class B extends A {
         @override
-        dynamic [!noSuchMethod!](y) {
-          return super.noSuchMethod(y);
+        dynamic [!noSuchMethod!](invocation) {
+          return super.noSuchMethod(invocation);
         }
       }
       ```
@@ -30687,7 +30725,7 @@ WarningCode:
       ```dart
       class A {
         @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+        dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
       }
 
       class B extends A {}
@@ -31242,17 +31280,18 @@ WarningCode:
       #### Common fixes
 
       If the parameter is still necessary, but the associated field is not, then
-      remove the `final` or `var` keyword:
+      remove the `final` or `var` keyword and use a wildcard in place of the
+      parameter:
 
       ```dart
-      class C(int _i);
+      class C(int _);
       ```
 
       If the parameter is also unnecessary, then remove it (which also removes
       the associated field).
 
       ```dart
-      class C {}
+      class C();
       ```
 
       If the field was intended to be used, then add the missing code.

@@ -366,7 +366,7 @@ final class _ParseRequest {
         applyState: applyState,
         file: initialParsedFileNode,
         isInitialFile: true,
-        handled: {},
+        includeChain: {initialParsedFileNode.file},
       );
       analysisOptions = applyState.build();
     } else {
@@ -385,19 +385,19 @@ final class _ParseRequest {
     required _ApplyState applyState,
     required _ParsedFileNode file,
     required bool isInitialFile,
-    required Set<File> handled,
+    required Set<File> includeChain,
   }) {
     for (var include in file.includeResolutions) {
       switch (include) {
         case _MissingInclude() || _MalformedInclude():
           break;
         case _ParsedInclude(file: var includedFile):
-          if (handled.add(includedFile.file)) {
+          if (!includeChain.contains(includedFile.file)) {
             _applyParsedFiles(
               applyState: applyState,
               file: includedFile,
               isInitialFile: false,
-              handled: handled,
+              includeChain: {...includeChain, includedFile.file},
             );
           }
       }

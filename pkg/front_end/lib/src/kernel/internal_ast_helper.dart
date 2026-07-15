@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
 import 'package:kernel/ast.dart';
 
 import '../source/check_helper.dart';
@@ -278,7 +277,7 @@ InternalContinueSwitchStatement createContinueSwitchStatement({
 }
 
 /// Return a representation of a do statement.
-InternalStatement createDoStatement(
+InternalLoopStatement createDoStatement(
   int fileOffset,
   InternalStatement body,
   InternalExpression condition,
@@ -444,20 +443,6 @@ ForInMapEntry createForInMapEntry(
   );
 }
 
-// Coverage-ignore(suite): Not run.
-ForInStatement createForInStatement(
-  DeclaredVariable variable,
-  InternalExpression expression,
-  Statement body, {
-  required bool isAsync,
-  required int fileOffset,
-  required int bodyOffset,
-}) {
-  return new ForInStatement(variable, expression, body, isAsync: isAsync)
-    ..fileOffset = fileOffset
-    ..bodyOffset = bodyOffset;
-}
-
 ForMapEntry createForMapEntry(
   int fileOffset,
   List<InternalVariableDeclaration> variables,
@@ -470,7 +455,7 @@ ForMapEntry createForMapEntry(
 }
 
 /// Return a representation of a for statement.
-InternalStatement createForStatement(
+InternalLoopStatement createForStatement(
   int fileOffset,
   List<InternalVariableDeclaration>? variables,
   InternalExpression? condition,
@@ -1036,10 +1021,10 @@ InternalNamedParameter createNamedParameter({
   bool forSyntheticToken = false,
 }) {
   return new InternalNamedParameter(
+    defaultValue: defaultValue,
     astVariable: extern.createNamedParameter(
       parameterName: parameterName,
       type: type,
-      defaultValue: defaultValue,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isRequired: isRequired,
       isInitializingFormal: isInitializingFormal,
@@ -1250,7 +1235,7 @@ InternalPatternSwitchCase createPatternSwitchCase(
   );
 }
 
-InternalStatement createPatternSwitchStatement(
+InternalSwitchStatement createPatternSwitchStatement(
   int fileOffset,
   InternalExpression expression,
   List<InternalPatternSwitchCase> cases,
@@ -1294,10 +1279,10 @@ InternalPositionalParameter createPositionalParameter({
   bool forSyntheticToken = false,
 }) {
   return new InternalPositionalParameter(
+    defaultValue: defaultValue,
     astVariable: extern.createPositionalParameter(
       cosmeticName: cosmeticName,
       type: type,
-      defaultValue: defaultValue,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isInitializingFormal: isInitializingFormal,
       isSuperInitializingFormal: isSuperInitializingFormal,
@@ -1585,7 +1570,7 @@ InternalSwitchExpressionCase createSwitchExpressionCase(
   );
 }
 
-InternalStatement createSwitchStatement(
+InternalSwitchStatement createSwitchStatement(
   InternalExpression expression,
   List<InternalSwitchStatementCase> cases, {
   required int fileOffset,
@@ -1747,7 +1732,7 @@ InternalVariableStatement createVariableStatement(
 
 /// Return a representation of a while statement at the given [fileOffset]
 /// consisting of the given [condition] and [body].
-InternalStatement createWhileStatement(
+InternalLoopStatement createWhileStatement(
   int fileOffset,
   InternalExpression condition,
   InternalStatement body,
@@ -1774,8 +1759,8 @@ InternalStatement createYieldStatement(
   );
 }
 
-bool isThisExpression(Object node) =>
-    node is InternalExpression && ast_helper.isThisExpression(node);
+// TODO(johnniwinther): This has been broken for some time. Do we need it?
+bool isThisExpression(Object node) => false;
 
 bool isVariablesDeclaration(Object? node) => node is MultiVariableDeclaration;
 

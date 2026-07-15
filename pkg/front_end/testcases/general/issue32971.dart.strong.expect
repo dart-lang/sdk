@@ -22,9 +22,8 @@ class B extends core::Object {
     : super core::Object::•()
     ;
   method f() → core::bool {
-    #L1:
     switch(true) /* core::bool */ {
-      #L2:
+      #L1:
       default:
         {
           return true;
@@ -38,9 +37,8 @@ class M extends core::Object {
     : super core::Object::•()
     ;
   method g() → core::bool {
-    #L3:
     switch(true) /* core::bool */ {
-      #L4:
+      #L2:
       default:
         {
           return true;
