@@ -393,7 +393,16 @@ void f() {
       isA<FormFieldTypeString>().having(
         (type) => type.validators,
         'validators',
-        isNotEmpty,
+        allOf(
+          isNotEmpty,
+          everyElement(
+            isA<RegexValidator>().having(
+              (e) => e.message,
+              'message',
+              startsWith('Constructor name'),
+            ),
+          ),
+        ),
       ),
     );
   }
