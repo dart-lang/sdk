@@ -131,6 +131,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(idle_duration_micros, int, kMaxInt32,                                      \
     "Allow idle tasks to run for this long.")                                  \
   C(interpreter, false, false, bool, false, "Use bytecode interpreter")        \
+  D(trace_interpreter_after, uint64_t, ULLONG_MAX,                             \
+    "Trace interpreter execution after instruction count reached.")            \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \

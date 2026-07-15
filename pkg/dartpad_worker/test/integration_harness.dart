@@ -57,11 +57,8 @@ void testDartIntegration(
 
     // Initialize DartPad Worker
     printOnFailure('# Creating worker');
-    final dartpad = await DartPad.create(
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: Uri.parse('dart/'),
-      pubHostedUrl: server.baseUrl,
-    );
+    final sdk = DartPadSdk(assetBaseUrl: server.baseUrl.resolve('dart/'));
+    final dartpad = await sdk.dedicatedWorker(pubHostedUrl: server.baseUrl);
 
     printOnFailure('# Creating workspace');
     final workspace = await dartpad.createWorkspace();
@@ -70,8 +67,7 @@ void testDartIntegration(
     printOnFailure('# Initializing sandbox');
     final sandbox = await Sandbox.createIFrame(
       web.document.body!,
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: server.assetUrl.resolve('dart/'),
+      assetBaseUrl: server.baseUrl.resolve('dart/'),
     );
 
     try {
@@ -107,11 +103,8 @@ void testFlutterIntegration(
 
     // Initialize DartPad Worker
     printOnFailure('# Creating worker');
-    final dartpad = await DartPad.create(
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: Uri.parse('flutter/'),
-      pubHostedUrl: server.baseUrl,
-    );
+    final sdk = DartPadSdk(assetBaseUrl: server.baseUrl.resolve('flutter/'));
+    final dartpad = await sdk.dedicatedWorker(pubHostedUrl: server.baseUrl);
 
     printOnFailure('# Creating workspace');
     final workspace = await dartpad.createWorkspace();
@@ -120,8 +113,7 @@ void testFlutterIntegration(
     printOnFailure('# Initializing sandbox');
     final sandbox = await Sandbox.createIFrame(
       web.document.body!,
-      assetBaseUrl: server.assetUrl,
-      sdkLocation: server.assetUrl.resolve('flutter/'),
+      assetBaseUrl: server.baseUrl.resolve('flutter/'),
     );
 
     try {

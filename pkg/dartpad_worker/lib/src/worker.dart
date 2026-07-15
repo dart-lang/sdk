@@ -22,6 +22,7 @@ import 'tools/file_watch.dart';
 import 'tools/hot_reload_compiler.dart' show HotReloadCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
+import 'util/jsonify.dart';
 
 final class Worker {
   final _rp = MemoryResourceProvider(context: p.posix);
@@ -60,7 +61,7 @@ final class Worker {
     return w;
   }
 
-  void connect(StreamChannel<String> channel) {
+  void session(StreamChannel<Object?> channel) {
     _Session(channel, this);
   }
 }
@@ -70,8 +71,8 @@ class _Session {
   late final Peer _rpc;
   final _workspaces = <int, _Workspace>{};
 
-  _Session(StreamChannel<String> channel, this._worker) {
-    _rpc = Peer(channel, onUnhandledError: _onUnhandledError);
+  _Session(StreamChannel<Object?> channel, this._worker) {
+    _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
     _rpc.registerMethod('createWorkspace', _createWorkspace);
     _rpc.registerMethod('workspace/dispose', _disposeWorkspace);
     _rpc.registerMethod(
@@ -519,7 +520,7 @@ class _Workspace {
       _session._rpc.sendNotification('workspace/languageServer/message', {
         'workspaceId': _workspaceId,
         'languageServerId': languageServerId,
-        'message': m,
+        'message': jsonify(m),
       });
     });
     unawaited(
@@ -546,7 +547,7 @@ class _Workspace {
       );
     }
     await languageServer.handle(
-      params['message'].asMap as Map<String, Object?>,
+      jsonify(params['message'].asMap) as Map<String, Object?>,
     );
     return <String, Object?>{};
   }

@@ -390,6 +390,23 @@ class A {
 ''');
   }
 
+  test_class_constructor_rn1D__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A({int n1 = 0});
+//^
+// [context 1] The declaration being augmented.
+//       ^^
+// [context 2] The formal parameter is here.
+  augment A(int p1) {}
+//              ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 0.
+//                ^
+// [diag.augmentationNamedFormalParameterMissing][context 2] The augmentation is missing the named formal parameter 'n1' from the declaration.
+}
+''');
+  }
+
   test_class_constructor_rP1__rp1() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -874,6 +891,21 @@ void f({int? n1, int? n2, int? n3});
 augment void f({int? n1, int? n3}) {}
 //                               ^
 // [diag.augmentationNamedFormalParameterMissing][context 1] The augmentation is missing the named formal parameter 'n2' from the declaration.
+''');
+  }
+
+  test_topLevelFunction_rn1D__rP1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f({int n1 = 0});
+//   ^
+// [context 1] The declaration being augmented.
+//          ^^
+// [context 2] The formal parameter is here.
+augment void f(int p1) {}
+//                 ^^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 0.
+//                   ^
+// [diag.augmentationNamedFormalParameterMissing][context 2] The augmentation is missing the named formal parameter 'n1' from the declaration.
 ''');
   }
 

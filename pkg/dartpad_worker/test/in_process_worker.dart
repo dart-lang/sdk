@@ -13,9 +13,9 @@ import 'asset_server/asset_server_client.dart';
 /// Create a worker in the same process.
 Future<WorkerClient> createInprocessWorker(
   AssetServerClient server,
-  Uri sdkLocation,
+  String sdkPath,
 ) async {
-  final sdkTarUri = server.assetUrl.resolveUri(sdkLocation.resolve('sdk.tar'));
+  final sdkTarUri = server.baseUrl.resolve('$sdkPath/sdk.tar');
   final r = await http.get(sdkTarUri);
   if (r.statusCode != 200) {
     fail('Unable to fetch "$sdkTarUri" (${r.statusCode})');
@@ -28,6 +28,6 @@ Future<WorkerClient> createInprocessWorker(
   );
 
   final channelController = StreamChannelController<Object?>();
-  worker.connect(channelController.foreign.cast());
-  return WorkerClient(channelController.local.cast());
+  worker.session(channelController.foreign);
+  return WorkerClient(channelController.local);
 }

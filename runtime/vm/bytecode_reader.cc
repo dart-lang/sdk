@@ -581,7 +581,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kInstantiatedInterfaceCall,
     kDynamicCall,
     kExternalCall,
-    kFfiCall,
+    kNativeFunction,
     kDeferredLibraryPrefix,
     kAllocateClosure,
   };
@@ -753,8 +753,8 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         pool.SetRawValueAt(i, 0);
         continue;
       }
-      case ConstantPoolTag::kFfiCall: {
-        // FfiCall constant has 1 raw value entry.
+      case ConstantPoolTag::kNativeFunction: {
+        // NativeFunction constant has 1 raw value entry.
         pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
                        ObjectPool::Patchability::kNotPatchable,
                        ObjectPool::SnapshotBehavior::kNotSnapshotable);

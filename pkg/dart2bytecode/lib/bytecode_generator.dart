@@ -985,8 +985,22 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (target != null) {
       _generateNode(target);
     }
-    final ffiCallCpIndex = cp.addFfiCall();
-    asm.emitFfiCall(ffiCallCpIndex);
+    final nativeFunctionCpIndex = cp.addNativeFunction();
+    asm.emitFfiCall(nativeFunctionCpIndex);
+  }
+
+  void _generateFfiNativeAddressOf(DartType type, Expression target) {
+    _genTypeArguments(const [NeverType.nonNullable()]);
+
+    _genPushConstant((target as ConstantExpression).constant);
+    final nativeFunctionCpIndex = cp.addNativeFunction();
+    asm.emitResolveNativeFunction(nativeFunctionCpIndex);
+
+    _genDirectCall(
+      _ffiPointerFromAddress!,
+      objectTable.getArgDescHandle(1, 1),
+      2,
+    );
   }
 
   LibraryIndex get libraryIndex => coreTypes.index;
@@ -1216,6 +1230,14 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Procedure? ffiCall = (dartFfiLibrary != null)
       ? ffiLibraryIndex.getTopLevelProcedure('dart:ffi', '_ffiCall')
+      : null;
+
+  late Procedure? _ffiPointerFromAddress = (dartFfiLibrary != null)
+      ? ffiLibraryIndex.getProcedure('dart:ffi', 'Pointer', 'fromAddress')
+      : null;
+
+  late Procedure? _ffiNativeAddressOf = (dartFfiLibrary != null)
+      ? ffiLibraryIndex.getProcedure('dart:ffi', 'Native', '_addressOf')
       : null;
 
   late Library? dartDeveloperLibrary = developerLibraryIndex.tryGetLibrary(
@@ -4009,6 +4031,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     } else if (target == ffiCall) {
       assert(args.named.isEmpty);
       _generateFfiCall(args.positional.single);
+      return;
+    } else if (target == _ffiNativeAddressOf) {
+      assert(args.named.isEmpty);
+      _generateFfiNativeAddressOf(args.types.single, args.positional.single);
       return;
     }
     _genArguments(null, args);

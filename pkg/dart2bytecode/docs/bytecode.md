@@ -819,7 +819,7 @@ type ConstantExternalCall extends ConstantPoolEntry {
   Byte tag = 15;
 }
 
-type ConstantFfiCall extends ConstantPoolEntry {
+type ConstantNativeFunction extends ConstantPoolEntry {
   Byte tag = 16;
 }
 
@@ -1353,7 +1353,14 @@ ContantPool[D] is a ConstantExternalCall.
 #### FfiCall D
 
 Invoke native target of FFI call.
-ContantPool[D] is a ConstantFfiCall.
+ContantPool[D] is a ConstantNativeFunction that is used to cache
+the resolved function's entry point.
+
+#### ResolveNativeFunction D
+
+Resolve the native function for the constant Native instance at SP[0].
+ContantPool[D] is a ConstantNativeFunction that is used to cache
+the resolved function's entry point.
 
 #### ReturnTOS
 

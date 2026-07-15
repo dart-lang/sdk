@@ -40,7 +40,7 @@ export 'checks_ext.dart';
 /// we also test with the DartPad worker running as a _Web Worker_ the
 /// `integration/test_worker_integration.dart` will override [createWorker] and
 /// run all the worker tests with the worker running in a _Web Worker_.
-Future<WorkerClient> Function(AssetServerClient server, Uri sdkLocation)
+Future<WorkerClient> Function(AssetServerClient server, String sdkPath)
 createWorker = (_, _) =>
     throw StateError('createWorker function must be defined!');
 
@@ -58,7 +58,7 @@ void testDartWorker(
       sc = _serverClient = await AssetServerClient.spawnHybrid(stayAlive: true);
     }
 
-    final worker = await createWorker(sc, Uri.parse('dart/'));
+    final worker = await createWorker(sc, 'dart');
 
     try {
       await body(worker);
@@ -113,7 +113,7 @@ void testFlutterWorker(
       return;
     }
 
-    final worker = await createWorker(sc, Uri.parse('flutter/'));
+    final worker = await createWorker(sc, 'flutter');
 
     try {
       await body(worker);

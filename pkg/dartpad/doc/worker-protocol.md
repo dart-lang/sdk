@@ -1,12 +1,11 @@
-# DartPad Worker Protocol
+# DartPad SDK Protocol
 
-The `bin/shared_worker.dart` program is intended to run as a [SharedWorker][1]
-in the browser. The client can communicate with the worker over the
-[MessagePort][2] created when connecting to the [SharedWorker][1]. This document
-describes the protocol for communication over this port.
+This document specifies what a "DartPad SDK" is, how it is instantiated, and how
+one interacts with it. `package:dartpad` is the official client for this
+protocol.
 
-In the description below the _worker_ is `bin/shared_worker.dart` and _client_
-is the web page that connected to the [SharedWorker][1].
+At a high-level a _DartPad SDK_ provides a worker that a dartpad-like
+environment can use to fetch dependencies, analyze, compile and run Dart code.
 
 **Concepts:**
  * _Session_, when a client connects to the worker, a session is created.
@@ -19,13 +18,69 @@ is the web page that connected to the [SharedWorker][1].
  * _Hot-reload compiler_, a process running with a workspace that faciliates
    incremental compilation of a single entry-point.
 
-## JSON-RPC 2.0
 
-Communication with the worker uses [JSON-RPC 2.0][3]. Communication over the
-[MessagePort][2] takes place using raw JSON objects (utilizing the browser's
-structured clone algorithm), not JSON-encoded strings.
+## DartPad SDK
 
-The following sections outline which methods are offered by the worker...
+A _DartPad SDK_ is an `assetBaseUrl` that points to a directory that hosts:
+ * `worker.js`, script for running a dartpad environment in the browser.
+ * `sandbox.js`, script for running compiled code in a sandboxed iframe.
+ * SDK specific assets referenced by `worker.js` and `sandbox.js`.
+
+The `worker.js` script must export a `Worker` class that can be instantiated as
+follows:
+
+```js
+import {Worker} from 'worker.js';
+const worker = await Worker.create();
+
+// Create a session communicating over workerMessagePort
+worker.session(workerMessagePort);
+```
+
+Once instantiated, one or more sessions can be created using `worker.session()`,
+which will communicate over the given [MessagePort][2] using the protocol
+specified in this document.
+
+// TODO(jonasfj): Refactor sandbox.js into this shape later.
+
+The `sandbox.js` script is to be injected into a sandboxed iframe as follows:
+```
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="sandbox.js"></script>
+</head>
+<body></body>
+</html>
+```
+
+The `sandbox.js` script must use [window.postMessage][4] to send, either:
+ * `{action: 'error', message: '...'}`, if loading failed, or,
+ * `{action: 'connect'}` with a [MessagePort][2] attached, if loading succeeded.
+
+The attached [MessagePort][2] must be forwarded to the worker as outline in the
+protocol below. The communication protocol between `sandbox.js` and `worker.js`
+is private, though messages will never carry a `MessagePort`, thus, they can
+be serialized (with care taken to wrap `Uint8Array` instances).
+
+
+## JSON-RPC 2.0 over `MessagePort`
+
+Communication with the worker is conducted over a [MessagePort][2] using an
+extension of the [JSON-RPC 2.0][3] protocol.
+
+While the official JSON-RPC 2.0 specification mandates that messages be JSON,
+we leverage the browser's [Structured Clone][5] algorithm to transmit JSON-like
+JavaScript objects. The message structures conform to JSON-RPC 2.0, with two
+extensions:
+
+ * **MessagePort transfer:** `params.port` and `result.port`, if present,
+   may be a [MessagePort][2].
+ * **Binary data support:** The JSON-like structure may include `Uint8Array`
+   objects.
+
+These extensions means that messages cannot be serialized as JSON.
 
 [JSON-RPC 2.0][3] requests are usually on the form:
 ```js
@@ -34,6 +89,7 @@ The following sections outline which methods are offered by the worker...
   "method": "<name-of-method>",
   "params": {
     // parameters for the method
+    "port": /* [Optional] MessagePort instance */
   },
   "id": 42 // unique ID per request, omitted for notifications!
 }
@@ -49,6 +105,7 @@ Response objects are usually on the form:
   "jsonrpc": "2.0",
   "result": {
     // result values from the method
+    "port": /* [Optional] MessagePort instance */
   },
   "id": 42 // ID from the request
 }
@@ -78,6 +135,7 @@ into a single message by sending an array of requests and notifications.
 
 For further details about JSON-RPC 2.0, refer to the [specification][3].
 
+
 ## Server Methods and Notifications
 
 Methods are prefixed based on what objects they operate on. Thus, all methods
@@ -88,6 +146,7 @@ prefixed `workspace/` require a `workspaceId` parameter.
 | :--- | :--- |
 | `workspace/` | `workspaceId` |
 | `workspace/languageServer/` | `workspaceId` and `languageServerId` |
+| `workspace/watcher/` | `workspaceId` and `watcherId` |
 | `workspace/hotReloadCompiler/` | `workspaceId` and `hotReloadCompilerId` |
 
 
@@ -575,3 +634,5 @@ Errors returned by the worker use the following codes.
 [1]: https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker
 [2]: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
 [3]: https://www.jsonrpc.org/specification
+[4]: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+[5]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm

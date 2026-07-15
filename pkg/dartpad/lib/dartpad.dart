@@ -13,82 +13,56 @@ import 'dart:js_interop_unsafe';
 
 import 'package:web/web.dart' as web;
 
-import 'src/util/message_port_channel.dart';
+import 'src/util/json_rpc_message_port_channel.dart';
 import 'src/worker_client.dart';
 
 export 'src/dartpad_config.dart' show DartPadConfig;
 export 'src/exceptions.dart' hide rethrowAsDartPadException;
-export 'src/sandbox.dart' show Sandbox;
+export 'src/sandbox.dart' show ConsoleLevel, ConsoleMessage, Sandbox;
 export 'src/worker_client.dart'
-    show HotReloadCompiler, LanguageServer, Workspace;
+    show
+        FileAddedEvent,
+        FileChangeEvent,
+        FileModifiedEvent,
+        FileRemovedEvent,
+        HotReloadCompiler,
+        LanguageServer,
+        Workspace,
+        WorkspaceWatcher;
 
-/// A client for interacting with a DartPad Web Worker.
-final class DartPad extends WorkerClient {
-  final web.Worker _worker;
-  final String _blobUrl;
+/// Reference to a _DartPad SDK_.
+final class DartPadSdk {
+  late final Uri _assetBaseUrl;
 
-  DartPad._(super.channel, this._worker, this._blobUrl);
-
-  /// Create a _Web Worker_ running a DartPad development environment.
+  /// Create a _DartPad SDK_ given an [assetBaseUrl] pointing to a folder
+  /// containing the _DartPad SDK_ assets.
   ///
-  /// The [assetBaseUrl] should point to the directory containing
-  /// `worker.loader.js` and `worker.wasm`.
-  /// The [sdkLocation] should point to the directory containing the `sdk.tar`
-  /// to load (relative to the worker script, or an absolute URL).
-  /// Defaults to `./dart/`.
-  static Future<DartPad> create({
-    required Uri assetBaseUrl,
-    required Uri sdkLocation,
-    Uri? pubHostedUrl,
-  }) async {
+  /// A _DartPad SDK_ must contain entrypoints:
+  ///  * `worker.js`, satisfying `doc/worker-protocol.md`, and,
+  ///  * `sandbox.js`.
+  ///
+  /// A _DartPad SDK_ may contain additional assets that are also resolved from
+  /// the [assetBaseUrl] by `worker.js` or `sandbox.js`.
+  DartPadSdk({required Uri assetBaseUrl}) {
     if (!assetBaseUrl.path.endsWith('/')) {
       assetBaseUrl = assetBaseUrl.replace(path: '${assetBaseUrl.path}/');
     }
-    sdkLocation = assetBaseUrl.resolveUri(sdkLocation);
-    if (!sdkLocation.path.endsWith('/')) {
-      sdkLocation = sdkLocation.replace(path: '${sdkLocation.path}/');
-    }
+    _assetBaseUrl = Uri.base.resolveUri(assetBaseUrl);
+  }
 
-    var workerScript = assetBaseUrl.resolve('worker.loader.js');
-
-    // Since we workerScript might be on a different origin we cannot just
-    // create from it. So we must create a blob and start the worker from this
-    // blob. We also cannot inject querystring parameters on a blob.
-    // So we must inject these directly into the global scope, for the worker
-    // to pick up.
+  Future<DartPad> dedicatedWorker({Uri? pubHostedUrl}) async {
+    // The assetBaseUrl might be on a different origin, so we'll create a small
+    // blob object URL importing worker.js and setting up a session.
     //
-    // If in the future we want to make a SharedWorker, we have two options:
-    // (A) We ask the user host a dartpad-worker.js file that imports
-    //     our worker script. This file must be hosted on the users origin.
-    //     Then the user will have a SharedWorker, that shared for instances
-    //     of their origin. And querystring can be used for parameterization.
-    //     Ensuring that there is one SharedWorker per set of parameters.
-    // (B) We host a dartpad-worker.html page, which we then embed into the
-    //     users page as a hidden iframe. Inside this iframe we create a
-    //     SharedWorker and we can again use querystring parameters.
-    //     This gives a single SharedWorker across all origins, and would allow
-    //     a persisted PUB_CACHE to be shared across dartpads everywhere.
-    //     Again, we could have a SharedWorker for each set of parameters.
-    //
-    // For now we don't support launching a SharedWorker, but in the future we
-    // explore supporting a SharedWorker strategy. Option (B) would be rather
-    // attractive, if we could use Origin-Private-File-System (OPFS) to retain
-    // the PUB_CACHE. Granted to actually use OPFS with sync I/O, we can't use
-    // SharedWorkers, so we'd have to make a SharedWorker that owns a
-    // dedicated worker and forwards the port to this worker. The overhead of
-    // this is probably not bad, it's just (B) does become a fairly complex
-    // setup.
+    // If we ever want to support using a SharedWorker, we have to ask the user
+    // to host a shared-worker.js that import worker.js, read settings from
+    // querystring, and creates a session for each 'connect' event.
+    final script = _workerLoader(_assetBaseUrl.resolve('worker.js'), {
+      'pubHostedUrl': ?pubHostedUrl?.toString(),
+    });
     final blobUrl = web.URL.createObjectURL(
       web.Blob(
-        [
-          [
-            'import \'$workerScript\';',
-            'self.assetBaseUrl = ${jsonEncode(assetBaseUrl.toString())};',
-            'self.sdkLocation = ${jsonEncode(sdkLocation.toString())};',
-            'self.pubHostedUrl = ${jsonEncode(pubHostedUrl?.toString())};',
-            '',
-          ].join('\n').toJS,
-        ].toJS,
+        [script.toJS].toJS,
         web.BlobPropertyBag(type: 'application/javascript'),
       ),
     );
@@ -103,21 +77,49 @@ final class DartPad extends WorkerClient {
         web.console.error(event);
       }.toJS,
     );
+    final session = Completer<web.MessagePort>();
     worker.onmessage = (web.MessageEvent event) {
-      final data = event.data as JSObject;
-      final action = data.getProperty<JSString>('action'.toJS).toDart;
-      if (action == 'error') {
-        final m = data.getProperty<JSString>('message'.toJS).toDart;
-        throw StateError('Failed to start worker: $m');
+      final data = event.data as JSObject?;
+      final action = data?['action'] as JSString?;
+      switch (action?.toDart) {
+        case 'session':
+          session.complete(event.ports[0]);
+        case 'error':
+          final m = (data?['message'] as JSString?)?.toDart ?? 'Unknown error';
+          // TODO(jonasfj): Find an appropriate exception / error to throw!
+          session.completeError(Exception('Failed loading worker: $m'));
       }
     }.toJS;
 
-    final web.MessageChannel(:port1, :port2) = web.MessageChannel();
-    worker.postMessage({'action': 'connect'}.jsify(), [port2].toJS);
-    return DartPad._(messagePortChannel(port1).cast(), worker, blobUrl);
+    return DartPad._(
+      jsonRpcMessagePortChannel(await session.future),
+      worker,
+      blobUrl,
+    );
   }
 
-  /// Terminates the underlying Web Worker.
+  String _workerLoader(Uri workerJs, Map<String, Object?> options) =>
+      '''
+        import {Worker} from '$workerJs';
+        try {
+          const worker = await Worker.create(${jsonEncode(options)});
+          const channel = new MessageChannel();
+          worker.session(channel.port1);
+          self.postMessage({action: 'session'}, [channel.port2]);
+        } catch (e) {
+          console.error(e);
+          self.postMessage({action: 'error', message: e.toString()});
+        }
+    ''';
+}
+
+/// A client for interacting with a DartPad Web Worker.
+final class DartPad extends WorkerClient {
+  final web.Worker _worker;
+  final String _blobUrl;
+
+  DartPad._(super.channel, this._worker, this._blobUrl);
+
   @override
   Future<void> dispose() async {
     try {

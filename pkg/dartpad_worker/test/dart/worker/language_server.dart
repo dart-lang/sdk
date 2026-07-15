@@ -161,4 +161,185 @@ void main() {
 
     await ls.stop();
   });
+
+  testDartWorkspace('publishDiagnostics reports lints', (ws) async {
+    final ls = await ws.startLanguageServer();
+    try {
+      final lsp = Peer.withoutJson(ls.languageServerChannel);
+      unawaited(lsp.listen());
+
+      await lsp.sendRequest('initialize', {
+        'processId': null,
+        'rootUri': ws.workspaceFolder.toString(),
+        'capabilities': {
+          'textDocument': {'publishDiagnostics': <String, Object?>{}},
+        },
+      });
+      lsp.sendNotification('initialized', {});
+
+      final diagnosticsQueue = check(
+        lsp,
+      ).withNotificationQueue('textDocument/publishDiagnostics');
+
+      await ws.writeFileFromText('analysis_options.yaml', '''
+linter:
+  rules:
+    - prefer_single_quotes
+''');
+
+      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final code = 'void main() { print("hello"); }';
+
+      lsp.sendNotification('textDocument/didOpen', {
+        'textDocument': {
+          'uri': fileUri.toString(),
+          'languageId': 'dart',
+          'version': 1,
+          'text': code,
+        },
+      });
+
+      await diagnosticsQueue.emitsThrough(
+        (e) => e.isA<Map>()['diagnostics'].isA<List>().any(
+          (d) =>
+              d.isA<Map>()['code'].isA<String>().equals('prefer_single_quotes'),
+        ),
+      );
+    } finally {
+      await ls.stop();
+    }
+  });
+
+  testDartWorkspace('codeAction returns assists', (ws) async {
+    final ls = await ws.startLanguageServer();
+    try {
+      final lsp = Peer.withoutJson(ls.languageServerChannel);
+
+      unawaited(lsp.listen());
+
+      await lsp.sendRequest('initialize', {
+        'processId': null,
+        'rootUri': ws.workspaceFolder.toString(),
+        'capabilities': {
+          'textDocument': {
+            'codeAction': {
+              'codeActionLiteralSupport': {
+                'codeActionKind': {
+                  'valueSet': ['refactor'],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      lsp.sendNotification('initialized', {});
+
+      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final code = 'void main() { print("hello"); }';
+
+      lsp.sendNotification('textDocument/didOpen', {
+        'textDocument': {
+          'uri': fileUri.toString(),
+          'languageId': 'dart',
+          'version': 1,
+          'text': code,
+        },
+      });
+
+      final codeActions = await lsp.sendRequest('textDocument/codeAction', {
+        'textDocument': {'uri': fileUri.toString()},
+        'range': {
+          'start': {'line': 0, 'character': 5},
+          'end': {'line': 0, 'character': 5},
+        },
+        'context': {'diagnostics': <Map<String, Object?>>[]},
+      });
+
+      check(codeActions).isA<List>().any(
+        (action) => action.isA<Map>()['title'].isA<String>().contains(
+          'Convert to expression body',
+        ),
+      );
+    } finally {
+      await ls.stop();
+    }
+  });
+
+  testDartWorkspace('codeAction returns fixes', (ws) async {
+    final ls = await ws.startLanguageServer();
+    try {
+      final lsp = Peer.withoutJson(ls.languageServerChannel);
+
+      final diagnosticsCompleter = Completer<Map<String, Object?>>();
+      lsp.registerMethod('textDocument/publishDiagnostics', (
+        Parameters params,
+      ) {
+        if (!diagnosticsCompleter.isCompleted) {
+          diagnosticsCompleter.complete(params.value as Map<String, Object?>);
+        }
+      });
+
+      unawaited(lsp.listen());
+
+      await lsp.sendRequest('initialize', {
+        'processId': null,
+        'rootUri': ws.workspaceFolder.toString(),
+        'capabilities': {
+          'textDocument': {
+            'publishDiagnostics': <String, Object?>{},
+            'codeAction': {
+              'codeActionLiteralSupport': {
+                'codeActionKind': {
+                  'valueSet': ['quickfix'],
+                },
+              },
+            },
+          },
+        },
+      });
+      lsp.sendNotification('initialized', {});
+
+      await ws.writeFileFromText('analysis_options.yaml', '''
+linter:
+  rules:
+    - prefer_single_quotes
+''');
+
+      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final code = 'void main() { print("hello"); }';
+
+      lsp.sendNotification('textDocument/didOpen', {
+        'textDocument': {
+          'uri': fileUri.toString(),
+          'languageId': 'dart',
+          'version': 1,
+          'text': code,
+        },
+      });
+
+      final diagnosticsResponse = await diagnosticsCompleter.future;
+      final diagnostics = (diagnosticsResponse['diagnostics'] as List)
+          .cast<Map>();
+      final diagnostic = diagnostics.firstWhere(
+        (d) => d['code'] == 'prefer_single_quotes',
+      );
+
+      final codeActions = await lsp.sendRequest('textDocument/codeAction', {
+        'textDocument': {'uri': fileUri.toString()},
+        'range': diagnostic['range'],
+        'context': {
+          'diagnostics': [diagnostic],
+        },
+      });
+
+      check(codeActions).isA<List>().any(
+        (action) => action.isA<Map>()['title'].isA<String>().contains(
+          'Convert to single quoted string',
+        ),
+      );
+    } finally {
+      await ls.stop();
+    }
+  });
 }
