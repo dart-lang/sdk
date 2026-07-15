@@ -45,6 +45,19 @@ int b = 2;
     expect(code.positions[2].offset, 16);
   }
 
+  void test_positions_escapedShorthand() {
+    var markedCode = '''
+int a = b ^/**/ c;
+''';
+    var expectedCode = '''
+int a = b ^ c;
+''';
+    var code = TestCode.parse(markedCode);
+    expect(code.code, expectedCode);
+    expect(code.positions, isEmpty);
+    expect(code.ranges, isEmpty);
+  }
+
   void test_positions_nonShorthandCaret() {
     var markedCode = '''
 String /*0*/a = '^^^';
@@ -200,5 +213,18 @@ int /*[0*/b = 2/*0]*/;
 /*[0*/
 ''';
     expect(() => TestCode.parse(markedCode), throwsArgumentError);
+  }
+
+  void test_zeroWidthMarker() {
+    var markedCode = '''
+int a = [/**/!1!/**/];
+''';
+    var expectedCode = '''
+int a = [!1!];
+''';
+    var code = TestCode.parse(markedCode);
+    expect(code.code, expectedCode);
+    expect(code.positions, isEmpty);
+    expect(code.ranges, isEmpty);
   }
 }
