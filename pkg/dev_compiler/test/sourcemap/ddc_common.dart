@@ -109,6 +109,9 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     // Hack for DDC naming scheme.
     var result = name;
     if (result.startsWith('new ')) result = result.substring(4);
+    if (result.startsWith('dartDevEmbedder.defineLibrary.')) {
+      result = result.substring(30);
+    }
     if (result.startsWith('Object.')) result = result.substring(7);
     var inputName = inputFileName.substring(0, inputFileName.indexOf('.') + 1);
     if (result.startsWith(inputName)) {
