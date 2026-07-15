@@ -866,7 +866,9 @@ part of 'linter_visitor.dart';
 
   Future<String> generate() async {
     _writeLinterVisitor();
+    _writeLinterVisitor2();
     _writeRuleVisitorRegistryImpl();
+    _writeRuleVisitorRegistryImpl2();
 
     var resultPath = normalize(
       join(_analyzerPath, 'lib', 'src', 'lint', 'linter_visitor.g.dart'),
@@ -968,14 +970,112 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     out.writeln('}');
   }
 
+  void _writeLinterVisitor2() {
+    out.write('''
+/// The AST visitor that runs [AstVisitor2] handlers from the [_registry].
+class AnalysisRuleVisitor2 implements AstVisitor2<void> {
+  final RuleVisitorRegistryImpl2 _registry;
+
+  /// Whether exceptions should be propagated (by rethrowing them).
+  final bool _shouldPropagateExceptions;
+
+  AnalysisRuleVisitor2(
+    this._registry, {
+    bool shouldPropagateExceptions = false,
+  }) : _shouldPropagateExceptions = shouldPropagateExceptions;
+
+  void afterLibrary() {
+    _runAfterLibrarySubscriptions(_registry._afterLibrary);
+  }
+
+  void _runAfterLibrarySubscriptions(
+    List<_AfterLibrarySubscription> subscriptions,
+  ) {
+    for (var subscription in subscriptions) {
+      var timer = subscription.timer;
+      timer?.start();
+      subscription.callback();
+      timer?.stop();
+    }
+  }
+
+  void _runSubscriptions<T extends AstNode>(
+    T node,
+    List<_Subscription2<T>> subscriptions,
+  ) {
+    for (var subscription in subscriptions) {
+      var timer = subscription.timer;
+      timer?.start();
+      try {
+        node.accept2(subscription.visitor);
+      } catch (exception, stackTrace) {
+        _logException(node, subscription.rule, exception, stackTrace);
+        if (_shouldPropagateExceptions) {
+          rethrow;
+        }
+      }
+      timer?.stop();
+    }
+  }
+
+  /// Handles exceptions that occur during the execution of an [AnalysisRule].
+  void _logException(
+    AstNode node,
+    AbstractAnalysisRule visitor,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
+    var buffer = StringBuffer();
+    buffer.write('Exception while using a \${visitor.runtimeType} to visit a ');
+    AstNode? currentNode = node;
+    var first = true;
+    while (currentNode != null) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(' in ');
+      }
+      buffer.write(currentNode.runtimeType);
+      currentNode = currentNode.parent2;
+    }
+    // TODO(39284): should this exception be silent?
+    AnalysisEngine.instance.instrumentationService.logException(
+      SilentException(buffer.toString(), exception, stackTrace),
+    );
+  }
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  void visit$name($name node) {
+    _runSubscriptions(node, _registry._for$name);
+    node.visitChildren2(this);
+  }
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
   void _writeRuleVisitorRegistryImpl() {
     out.write('''
 class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];
+  bool _hasNodeProcessors = false;
+
+  bool get hasNodeProcessors => _hasNodeProcessors;
 
   RuleVisitorRegistryImpl({required bool enableTiming})
-  : _enableTiming = enableTiming;
+    : _enableTiming = enableTiming;
 
   /// Get the timer associated with the given [rule].
   Stopwatch? _getTimer(AbstractAnalysisRule rule) {
@@ -1009,7 +1109,61 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
         }
         out.writeln('''
   void add$name(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _hasNodeProcessors = true;
     _for$name.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeRuleVisitorRegistryImpl2() {
+    out.write('''
+class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
+  final bool _enableTiming;
+  final List<_AfterLibrarySubscription> _afterLibrary = [];
+  bool _hasNodeProcessors = false;
+
+  bool get hasNodeProcessors => _hasNodeProcessors;
+
+  RuleVisitorRegistryImpl2({required bool enableTiming})
+    : _enableTiming = enableTiming;
+
+  /// Get the timer associated with the given [rule].
+  Stopwatch? _getTimer(AbstractAnalysisRule rule) {
+    if (_enableTiming) {
+      return analysisRuleTimers.getTimer(rule);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  void afterLibrary(AbstractAnalysisRule rule, void Function() callback) {
+    _afterLibrary.add(
+      _AfterLibrarySubscription(rule, callback, _getTimer(rule)),
+    );
+  }
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
+        var name = node.apiElementName;
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('  final List<_Subscription2<$name>> _for$name = [];');
+
+        out.writeln();
+
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  void add$name(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _for$name.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 ''');
       }
@@ -1072,6 +1226,7 @@ part of 'rule_visitor_registry.dart';
 
   Future<String> generate() async {
     _writeRuleVisitor();
+    _writeRuleVisitor2();
 
     var resultPath = normalize(
       join(
@@ -1108,6 +1263,36 @@ abstract class RuleVisitorRegistry {
         }
         out.writeln('''
 void add$name(AbstractAnalysisRule rule, AstVisitor visitor);
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeRuleVisitor2() {
+    out.write('''
+/// The container to register [AstVisitor2]s for separate AST node types.
+///
+/// Each analysis rule using this visitor API overrides
+/// [AbstractAnalysisRule.registerNodeProcessors2] and calls `add*` for each
+/// node type it needs to visit with an [AstVisitor2].
+''');
+    _writeV2ExperimentalAnnotation(out);
+    out.write('''
+abstract class RuleVisitorRegistry2 {
+  void afterLibrary(AbstractAnalysisRule rule, void Function() callback);
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('@experimental');
+        }
+        if (node.isDeprecated) {
+          out.writeln("@Deprecated('See ${node.apiElementName} for details')");
+        }
+        out.writeln('''
+void add$name(AbstractAnalysisRule rule, AstVisitor2 visitor);
 ''');
       }
     }

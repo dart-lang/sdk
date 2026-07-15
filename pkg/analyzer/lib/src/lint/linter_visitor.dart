@@ -31,3 +31,12 @@ class _Subscription<T> {
 
   _Subscription(this.rule, this.visitor, this.timer);
 }
+
+/// A single subscription using [AstVisitor2], by the specified [rule].
+class _Subscription2<T> {
+  final AbstractAnalysisRule rule;
+  final AstVisitor2 visitor;
+  final Stopwatch? timer;
+
+  _Subscription2(this.rule, this.visitor, this.timer);
+}
