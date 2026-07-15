@@ -239,7 +239,7 @@ class StaticTypeAnalyzer {
   }
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
-    var thisType = _resolver.thisType;
+    var thisType = _resolver.unpromotedThisType;
     _resolver.flowAnalysis.storeExpressionInfo(
       node,
       _resolver.flowAnalysis.flow?.thisOrSuper(
@@ -264,7 +264,7 @@ class StaticTypeAnalyzer {
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
-    var staticType = _resolver.effectiveThisType ?? _dynamicType;
+    var staticType = _resolver.thisType ?? _dynamicType;
     _resolver.flowAnalysis.storeExpressionInfo(
       node,
       _resolver.flowAnalysis.flow?.thisOrSuper(
