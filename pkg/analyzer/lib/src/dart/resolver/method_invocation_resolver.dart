@@ -324,7 +324,7 @@ class MethodInvocationResolver with ScopeHelpers {
   ) {
     var enclosingElement = element.enclosingElement!;
     if (nullReceiver) {
-      if (_resolver.enclosingExtension != null) {
+      if (_resolver.enclosingInstanceElement is ExtensionElementImpl) {
         _resolver.diagnosticReporter.report(
           diag.unqualifiedReferenceToStaticMemberOfExtendedType
               .withArguments(name: enclosingElement.displayString())
@@ -989,8 +989,8 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null ||
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl ||
         SuperContext.of(receiver) != SuperContext.valid) {
       _setInvalidTypeResolution(
         node,
@@ -1001,7 +1001,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     var target = _inheritance.getMember(
-      enclosingClass,
+      enclosingInterface,
       _currentName!,
       forSuper: true,
     );
@@ -1038,7 +1038,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // Otherwise, this is an error.
     // But we would like to give the user at least some resolution.
     // So, we try to find the interface target.
-    target = _inheritance.getInherited(enclosingClass, _currentName!);
+    target = _inheritance.getInherited(enclosingInterface, _currentName!);
     if (target != null) {
       nameNode.element = target;
       _setResolution(
@@ -1067,7 +1067,7 @@ class MethodInvocationResolver with ScopeHelpers {
       diag.undefinedSuperMethod
           .withArguments(
             methodName: name,
-            typeName: enclosingClass.firstFragment.displayName,
+            typeName: enclosingInterface.firstFragment.displayName,
           )
           .at(nameNode),
     );

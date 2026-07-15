@@ -167,7 +167,7 @@ class AstResolver {
     );
 
     _resolverVisitor.prepareEnclosingDeclarations(
-      enclosingClassElement: enclosingClassElement,
+      enclosingInstanceElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
   }
