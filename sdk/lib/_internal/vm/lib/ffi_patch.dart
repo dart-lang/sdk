@@ -236,6 +236,7 @@ external dynamic _nativeIsolateGroupBoundClosureFunction<NS extends Function>(
 @pragma("vm:entry-point")
 final class Pointer<T extends NativeType> implements SizedNativeType {
   @patch
+  @pragma('dyn-module:language-impl:callable')
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
   // All static calls to this method are replaced by the FE into

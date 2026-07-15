@@ -2590,6 +2590,30 @@ SwitchDispatchNoSingleStep:
   }
 
   {
+    BYTECODE(ResolveNativeFunction, D);
+    uword entry_point = LOAD_CONSTANT_RAW(rD);
+
+    if (entry_point == 0) {
+      FunctionPtr function = FrameFunction(FP);
+      // Call the runtime to resolve the function.
+      // SP[0] = annotated constant
+      SP[1] = function;
+      SP[2] = Smi::New(rD);  // Constant pool entry to update.
+      Exit(thread, FP, SP + 3, pc);
+      INVOKE_RUNTIME(DRT_ResolveNativeFunction,
+                     NativeArguments(thread, 3, SP, nullptr));
+
+      // Load the now-filled constant pool entry.
+      entry_point = LOAD_CONSTANT_RAW(rD);
+    }
+
+    ASSERT(entry_point != 0);
+    BOX_INT64_RESULT(static_cast<int64_t>(entry_point));
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(ReturnTOS, 0);
 
     ObjectPtr result;  // result to return to the caller.

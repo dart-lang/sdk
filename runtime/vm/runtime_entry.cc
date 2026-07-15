@@ -1619,9 +1619,8 @@ static ObjectPtr ReceiveFfiCallResult(
   }
 }
 
-static uword ResolveFfiNativeTarget(Thread* thread, const Function& function) {
+static uword ResolveFfiNativeTarget(Thread* thread, const Instance& native) {
   Zone* zone = thread->zone();
-  auto const& native = Instance::Handle(zone, function.GetNativeAnnotation());
   const auto& native_class = Class::Handle(zone, native.clazz());
   ASSERT(String::Handle(native_class.UserVisibleName())
              .Equals(Symbols::FfiNative()));
@@ -1662,6 +1661,33 @@ static uword ResolveFfiNativeTarget(Thread* thread, const Function& function) {
 
 #endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 
+// Resolve a native function from the interpreter.
+// Arg0: constant instance of dart:ffi::Native.
+// Arg1: function containing the ResolveNativeFunction instruction.
+// Arg2: object pool index to store resolved target
+//
+// This method does not return anything, but instead caches the resolved
+// entry point in the object pool entry.
+DEFINE_RUNTIME_ENTRY(ResolveNativeFunction, 3) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& instance = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& function = Function::CheckedZoneHandle(zone, arguments.ArgAt(1));
+  const intptr_t pool_index =
+      Smi::CheckedHandle(zone, arguments.ArgAt(2)).Value();
+
+  const auto& bytecode = Bytecode::Handle(zone, function.GetBytecode());
+  const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  // The interpreter should only call this once for a particular
+  // ResolveNativeFunction instruction, as the resolver is idempotent
+  // and so the result can be cached.
+  const uword target = ResolveFfiNativeTarget(thread, instance);
+  ASSERT(target != 0);
+  pool.SetRawValueAt(pool_index, target);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 // Perform FFI call from the interpreter.
 // Arg0: function.
 // Arg1: constant pool index to store resolved target.
@@ -1695,7 +1721,9 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
     const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
     target = pool.RawValueAt(pool_index);
     if (target == 0) {
-      target = ResolveFfiNativeTarget(thread, function);
+      const auto& annotation =
+          Instance::Handle(zone, function.GetNativeAnnotation());
+      target = ResolveFfiNativeTarget(thread, annotation);
       ASSERT(target != 0);
       pool.SetRawValueAt(pool_index, target);
     }
