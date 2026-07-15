@@ -29,6 +29,7 @@ dependencies:
   perf_witness: any
   platform: any
   pub_semver: any
+  source_span: any
   stream_channel: any
   telemetry: any
   unified_analytics: any

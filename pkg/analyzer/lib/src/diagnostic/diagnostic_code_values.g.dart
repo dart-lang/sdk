@@ -496,6 +496,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.incompatibleLint,
   diag.incompatibleLintFiles,
   diag.incompatibleLintIncluded,
+  diag.incompatiblePluginSource,
   diag.inconsistentInheritance,
   diag.inconsistentInheritanceGetterAndMethod,
   diag.inconsistentLanguageVersionOverride,

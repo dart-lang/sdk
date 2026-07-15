@@ -100,6 +100,12 @@ incompatible_lint_included:
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
+incompatible_plugin_source:
+  status: needsFix
+  notes: |-
+    The fix is pretty simple; change this plugin source to be the same as the
+    other. We could even offer two fixes; the second would be to change the
+    other plugin source to match this one.
 invalid_option:
   status: needsFix
   notes: |-
