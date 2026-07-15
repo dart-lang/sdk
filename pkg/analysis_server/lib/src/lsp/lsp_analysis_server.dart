@@ -386,7 +386,7 @@ class LspAnalysisServer extends AnalysisServer {
   FutureOr<void> handleAnalysisStatusChange(
     analysis.AnalysisStatus status,
   ) async {
-    await super.handleAnalysisStatusChange(status);
+    super.handleAnalysisStatusChange(status);
     await sendStatusNotification(status);
   }
 
@@ -869,10 +869,10 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     if (isAnalyzing) {
-      analyzingProgressReporter ??=
-          ProgressReporter.serverCreated(this, analyzingProgressToken)
-            // ignore: unawaited_futures
-            ..begin('Analyzing…');
+      analyzingProgressReporter ??= ProgressReporter.serverCreated(
+        this,
+        analyzingProgressToken,
+      )..begin('Analyzing…');
     } else {
       if (analyzingProgressReporter != null) {
         // Do not null this out until after end completes, otherwise we may try

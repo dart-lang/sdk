@@ -6,6 +6,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -17,14 +18,11 @@ const _desc =
     r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `dart:async`.';
 
-class UnawaitedFutures extends MultiAnalysisRule {
+class UnawaitedFutures extends AnalysisRule {
   new() : super(name: LintNames.unawaited_futures, description: _desc);
 
   @override
-  List<DiagnosticCode> get diagnosticCodes => [
-    diag.unawaitedFutures,
-    diag.unawaitedFutureOr,
-  ];
+  DiagnosticCode get diagnosticCode => diag.unawaitedFutures;
 
   @override
   void registerNodeProcessors(
@@ -32,18 +30,31 @@ class UnawaitedFutures extends MultiAnalysisRule {
     RuleContext context,
   ) {
     var visitor = UnusedFuturesVisitor(
-      reportAt: (node, type) =>
-          reportAtNode(node, diagnosticCode: _diagnosticFromType(type)),
+      rule: this,
       typeProvider: context.typeProvider,
-      isInteresting: (node) =>
-          // This rule is only concerned with code in async functions.
-          node.thisOrAncestorOfType<FunctionBody>()?.isAsynchronous ?? false,
+      isInteresting: (node) {
+        var type = node.staticType;
+        // This rule is not currently concerned with `FutureOr`.
+        if (type == null || !type.isOrImplementsFuture) {
+          return false;
+        }
+        // This rule is only concerned with code in async functions.
+        return node.thisOrAncestorOfType<FunctionBody>()?.isAsynchronous ??
+            false;
+      },
     );
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
     registry.addInterpolationExpression(this, visitor);
   }
+}
 
-  DiagnosticCode _diagnosticFromType(DartType type) =>
-      type.isDartAsyncFutureOr ? diag.unawaitedFutureOr : diag.unawaitedFutures;
+extension on DartType {
+  /// Whether this type is `Future` from dart:async, or is a subtype thereof.
+  bool get isOrImplementsFuture {
+    var typeElement = element;
+    if (typeElement is! InterfaceElement) return false;
+    return isDartAsyncFuture ||
+        typeElement.allSupertypes.any((t) => t.isDartAsyncFuture);
+  }
 }

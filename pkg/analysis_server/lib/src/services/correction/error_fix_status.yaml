@@ -2183,8 +2183,6 @@ directives_ordering_exports:
   status: hasFix
 directives_ordering_package_before_relative:
   status: hasFix
-discarded_future_or:
-  status: hasFix
 discarded_futures:
   status: hasFix
 do_not_use_environment:
@@ -2546,8 +2544,6 @@ type_annotate_public_apis:
 type_init_formals:
   status: hasFix
 type_literal_in_constant_pattern:
-  status: hasFix
-unawaited_future_or:
   status: hasFix
 unawaited_futures:
   status: hasFix
