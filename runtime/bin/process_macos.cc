@@ -328,16 +328,16 @@ class ProcessStarter {
     if (Process::ModeIsAttached(mode_)) {
       RegisterProcess(pid);
       ExitCodeHandler::ProcessStarted();
-    }
 
-    // Notify child process to start. This is done to delay the call to exec
-    // until the process is registered above, and we are ready to receive the
-    // exit code.
-    char msg = '1';
-    int bytes_written =
-        FDUtils::WriteToBlocking(read_in_[1], &msg, sizeof(msg));
-    if (bytes_written != sizeof(msg)) {
-      return CleanupAndReturnError();
+      // Notify child process to start. This is done to delay the call to exec
+      // until the process is registered above, and we are ready to receive the
+      // exit code.
+      char msg = '1';
+      int bytes_written =
+          FDUtils::WriteToBlocking(read_in_[1], &msg, sizeof(msg));
+      if (bytes_written != sizeof(msg)) {
+        return CleanupAndReturnError();
+      }
     }
 
     // Read the result of executing the child process.
@@ -379,8 +379,7 @@ class ProcessStarter {
       close(read_err_[1]);
     } else {
       // Close all fds.
-      close(read_in_[0]);
-      close(read_in_[1]);
+      ClosePipe(read_in_);
       ASSERT(write_out_[0] == -1);
       ASSERT(write_out_[1] == -1);
       ASSERT(read_err_[0] == -1);
@@ -405,14 +404,18 @@ class ProcessStarter {
     FDUtils::SetCloseOnExec(exec_control_[0]);
     FDUtils::SetCloseOnExec(exec_control_[1]);
 
-    // For a detached process the pipe to connect stdout is still used for
-    // signaling when to do the first fork.
-    result = TEMP_FAILURE_RETRY(pipe(read_in_));
-    if (result < 0) {
-      return CleanupAndReturnError();
+    // The read_in_ pipe is used for connecting stdout when ModeHasStdio is true
+    // (kNormal, kDetachedWithStdio), and also for the 1-byte synchronization
+    // message when ModeIsAttached is true (kNormal, kInheritStdio). Only in
+    // kDetached mode is read_in_ not needed at all.
+    if (Process::ModeHasStdio(mode_) || Process::ModeIsAttached(mode_)) {
+      result = TEMP_FAILURE_RETRY(pipe(read_in_));
+      if (result < 0) {
+        return CleanupAndReturnError();
+      }
+      FDUtils::SetCloseOnExec(read_in_[0]);
+      FDUtils::SetCloseOnExec(read_in_[1]);
     }
-    FDUtils::SetCloseOnExec(read_in_[0]);
-    FDUtils::SetCloseOnExec(read_in_[1]);
 
     // For detached processes the pipe to connect stderr and stdin are not used.
     if (Process::ModeHasStdio(mode_)) {
@@ -444,14 +447,15 @@ class ProcessStarter {
   }
 
   void NewProcess() {
-    // Wait for parent process before setting up the child process.
-    char msg;
-    int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
-    if (bytes_read != sizeof(msg)) {
-      perror("Failed receiving notification message");
-      _Exit(1);
-    }
     if (Process::ModeIsAttached(mode_)) {
+      // Wait for parent process before setting up the child process.
+      char msg;
+      int bytes_read =
+          FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
+      if (bytes_read != sizeof(msg)) {
+        perror("Failed receiving notification message");
+        _Exit(1);
+      }
       ExecProcess();
     } else {
       ExecDetachedProcess();
@@ -503,12 +507,8 @@ class ProcessStarter {
       ASSERT(write_out_[1] == -1);
       ASSERT(read_err_[0] == -1);
       ASSERT(read_err_[1] == -1);
-      // For a detached process the pipe to connect stdout is only used for
-      // signaling when to do the first fork.
-      close(read_in_[0]);
-      read_in_[0] = -1;
-      close(read_in_[1]);
-      read_in_[1] = -1;
+      ASSERT(read_in_[0] == -1);
+      ASSERT(read_in_[1] == -1);
     } else {
       // Don't close any fds if keeping stdio open to the detached process.
       ASSERT(mode_ == kDetachedWithStdio);
