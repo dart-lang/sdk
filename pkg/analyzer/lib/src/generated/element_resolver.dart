@@ -362,7 +362,7 @@ class ElementResolver {
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
-    var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var declaration = node.thisOrAncestorOfType2<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
         _resolver.libraryFragment.shouldIgnoreUndefinedNamedType(

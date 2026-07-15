@@ -13,7 +13,9 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/lint/pub.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Describes a static analysis rule, either a lint rule (which must be enabled
@@ -77,8 +79,19 @@ sealed class AbstractAnalysisRule {
   ///
   /// The node processors may use the provided [context] to access information
   /// that is not available from the AST nodes or their associated elements.
+  @ToBeDeprecated('Use registerNodeProcessors2 instead')
   void registerNodeProcessors(
     RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {}
+
+  /// Registers node processors in the given [registry].
+  ///
+  /// The node processors may use the provided [context] to access information
+  /// that is not available from the AST nodes or their associated elements.
+  @experimental
+  void registerNodeProcessors2(
+    RuleVisitorRegistry2 registry,
     RuleContext context,
   ) {}
 

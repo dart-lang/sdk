@@ -25,6 +25,7 @@
   V(AbstractType)                                                              \
   V(ApiError)                                                                  \
   V(Bool)                                                                      \
+  V(Bytecode)                                                                  \
   V(CallSiteData)                                                              \
   V(Capability)                                                                \
   V(Class)                                                                     \
@@ -33,7 +34,7 @@
   V(CodeSourceMap)                                                             \
   V(CompressedStackMaps)                                                       \
   V(ContextScope)                                                              \
-  V(Bytecode)                                                                  \
+  V(Double)                                                                    \
   V(DynamicLibrary)                                                            \
   V(Error)                                                                     \
   V(ExceptionHandlers)                                                         \
@@ -42,7 +43,8 @@
   V(Finalizer)                                                                 \
   V(FinalizerBase)                                                             \
   V(FinalizerEntry)                                                            \
-  V(NativeFinalizer)                                                           \
+  V(Float32x4)                                                                 \
+  V(Float64x2)                                                                 \
   V(Function)                                                                  \
   V(FunctionType)                                                              \
   V(FutureOr)                                                                  \
@@ -64,6 +66,7 @@
   V(MirrorReference)                                                           \
   V(MonomorphicSmiableCall)                                                    \
   V(Namespace)                                                                 \
+  V(NativeFinalizer)                                                           \
   V(Number)                                                                    \
   V(ObjectPool)                                                                \
   V(PatchClass)                                                                \
@@ -73,8 +76,8 @@
   V(RecordType)                                                                \
   V(RegExp)                                                                    \
   V(Script)                                                                    \
-  V(Sentinel)                                                                  \
   V(SendPort)                                                                  \
+  V(Sentinel)                                                                  \
   V(SingleTargetCache)                                                         \
   V(Smi)                                                                       \
   V(StackTrace)                                                                \
@@ -1922,45 +1925,6 @@ class ObjectCopy : public Base {
   void CopySet(typename Types::Set from, typename Types::Set to) {
     CopyLinkedHashBase<1, typename Types::Set>(from, to, UntagSet(from),
                                                UntagSet(to));
-  }
-
-  void CopyDouble(typename Types::Double from, typename Types::Double to) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    auto raw_from = UntagDouble(from);
-    auto raw_to = UntagDouble(to);
-    raw_to->value_ = raw_from->value_;
-#else
-    // Will be shared and not copied.
-    UNREACHABLE();
-#endif
-  }
-
-  void CopyFloat32x4(typename Types::Float32x4 from,
-                     typename Types::Float32x4 to) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    auto raw_from = UntagFloat32x4(from);
-    auto raw_to = UntagFloat32x4(to);
-    raw_to->value_[0] = raw_from->value_[0];
-    raw_to->value_[1] = raw_from->value_[1];
-    raw_to->value_[2] = raw_from->value_[2];
-    raw_to->value_[3] = raw_from->value_[3];
-#else
-    // Will be shared and not copied.
-    UNREACHABLE();
-#endif
-  }
-
-  void CopyFloat64x2(typename Types::Float64x2 from,
-                     typename Types::Float64x2 to) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    auto raw_from = UntagFloat64x2(from);
-    auto raw_to = UntagFloat64x2(to);
-    raw_to->value_[0] = raw_from->value_[0];
-    raw_to->value_[1] = raw_from->value_[1];
-#else
-    // Will be shared and not copied.
-    UNREACHABLE();
-#endif
   }
 
   void CopyTypedData(TypedDataPtr from, TypedDataPtr to) {

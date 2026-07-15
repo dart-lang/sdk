@@ -898,7 +898,7 @@ if (is_win) {
     }
   }
 
-  if (is_clang && !using_sanitizer) {
+  if (is_clang && !using_sanitizer && current_cpu != "arm64e") {
     # Identical code folding to reduce size.
     # Warning: This changes C/C++ semantics of function pointer comparison.
     # Needs lld/gold/mold instead of GNU ld/Mac ld.

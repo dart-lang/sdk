@@ -2619,7 +2619,7 @@ import 'dart:math';
 
   Future<Element> _findElement(int offset, File file) async {
     var resolvedUnit = await fileResolver.resolve(path: file.path);
-    var node = resolvedUnit.unit.nodeCovering(offset: offset);
+    var node = resolvedUnit.unit.nodeCovering2(offset: offset);
     var element = getElementOfNode2(node);
     return element!;
   }

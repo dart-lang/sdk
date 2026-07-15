@@ -559,12 +559,12 @@ class _File {
       lineInfo: lineInfo,
       requestedLine: invocationLine,
     );
-    unit.accept(visitor);
+    unit.accept2(visitor);
     return visitor.result;
   }
 }
 
-class _InvocationVisitor extends RecursiveAstVisitor<void> {
+class _InvocationVisitor extends RecursiveAstVisitor2<void> {
   final LineInfo lineInfo;
   final int requestedLine;
   MethodInvocation? result;

@@ -25,6 +25,7 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
+@ToBeDeprecated('Use GeneralizingAstVisitor2 instead')
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const GeneralizingAstVisitor();
@@ -1483,6 +1484,7 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
 /// visited.
 ///
 /// Clients may extend this class.
+@ToBeDeprecated('Use RecursiveAstVisitor2 instead')
 class RecursiveAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const RecursiveAstVisitor();
@@ -3736,6 +3738,7 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 /// a whole structure) and that only need to visit a small number of node types.
 ///
 /// Clients may extend this class.
+@ToBeDeprecated('Use SimpleAstVisitor2 instead')
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const SimpleAstVisitor();
@@ -4900,6 +4903,7 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 /// want to catch when any other visit methods have been invoked.
 ///
 /// Clients may extend this class.
+@ToBeDeprecated('Use ThrowingAstVisitor2 instead')
 class ThrowingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const ThrowingAstVisitor();
@@ -6099,6 +6103,7 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 /// An AST visitor that captures visit call timings.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@ToBeDeprecated('Use TimedAstVisitor2 instead')
 class TimedAstVisitor<T> implements AstVisitor<T> {
   /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
@@ -9098,6 +9103,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 /// visited.
 ///
 /// Clients may extend this class.
+@ToBeDeprecated('Use UnifyingAstVisitor2 instead')
 class UnifyingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const UnifyingAstVisitor();

@@ -88,8 +88,7 @@ bundle/
   bin/
     <executable>
   lib/
-    <dynamic libraries>
-''',
+    <dynamic libraries>''',
          verbose,
        ) {
     final binDirectory = Directory.fromUri(

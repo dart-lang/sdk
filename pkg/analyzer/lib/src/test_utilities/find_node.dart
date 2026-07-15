@@ -1104,7 +1104,7 @@ class FindNode {
       );
     }
 
-    var result = node.thisOrAncestorMatching(predicate);
+    var result = node.thisOrAncestorMatching2(predicate);
     if (result == null) {
       throw StateError(
         'The node for |$search| had no matching ancestor in:\n$content\n$unit',

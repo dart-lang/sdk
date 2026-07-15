@@ -1026,13 +1026,13 @@ class Search {
     }
     var unit = unitResult.unit;
 
-    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset!);
+    var node = unit.nodeCovering2(offset: element.firstFragment.nameOffset!);
     if (node == null) {
       return const <SearchResult>[];
     }
 
     // Prepare the enclosing node.
-    var enclosingNode = node.thisOrAncestorMatching(
+    var enclosingNode = node.thisOrAncestorMatching2(
       (node) => isRootNode(node) || node is CompilationUnit,
     );
     assert(
@@ -1089,7 +1089,7 @@ class Search {
     }
 
     // Prepare the root node for search.
-    var rootNode = bindElement.node.thisOrAncestorMatching(
+    var rootNode = bindElement.node.thisOrAncestorMatching2(
       (node) =>
           node is SwitchExpression ||
           node is Block ||

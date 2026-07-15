@@ -158,7 +158,7 @@ class TypePropertyResolver {
             )(),
           );
         } else {
-          var thisType = _resolver.thisType;
+          var thisType = _resolver.unpromotedThisType;
           if (thisType != null) {
             messages = _resolver.computeWhyNotPromotedMessages(
               nameErrorEntity,

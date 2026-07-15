@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 
 /// A visitor used to write a source representation of a visited AST node (and
 /// all of it's children) to a sink.
-class ToSourceVisitor implements AstVisitor<void> {
+class ToSourceVisitor implements AstVisitor2<void> {
   /// The sink to which the source is to be written.
   @protected
   final StringSink sink;
@@ -607,7 +607,7 @@ class ToSourceVisitor implements AstVisitor<void> {
         groupEnd = node.rightDelimiter!.lexeme;
         sink.write(node.leftDelimiter!.lexeme);
       }
-      parameter.accept(this);
+      parameter.accept2(this);
     }
     if (groupEnd != null) {
       sink.write(groupEnd);
@@ -1285,7 +1285,7 @@ class ToSourceVisitor implements AstVisitor<void> {
       sink.write('return;');
     } else {
       sink.write('return ');
-      expression.accept(this);
+      expression.accept2(this);
       sink.write(';');
     }
   }
@@ -1561,7 +1561,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void _visitNode(AstNode? node, {String prefix = '', String suffix = ''}) {
     if (node != null) {
       sink.write(prefix);
-      node.accept(this);
+      node.accept2(this);
       sink.write(suffix);
     }
   }
@@ -1582,7 +1582,7 @@ class ToSourceVisitor implements AstVisitor<void> {
         if (i > 0) {
           sink.write(separator);
         }
-        nodes[i].accept(this);
+        nodes[i].accept2(this);
       }
       sink.write(suffix);
     }
@@ -1602,7 +1602,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     if (needsParenthesis) {
       sink.write('(');
     }
-    operand.accept(this);
+    operand.accept2(this);
     if (needsParenthesis) {
       sink.write(')');
     }

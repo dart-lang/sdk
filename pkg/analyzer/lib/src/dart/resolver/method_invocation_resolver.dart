@@ -837,7 +837,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    var receiverType = _resolver.effectiveThisType;
+    var receiverType = _resolver.thisType;
     if (receiverType == null) {
       _reportUndefinedFunction(
         node,

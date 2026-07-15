@@ -1439,16 +1439,53 @@ FunctionReference
 ''');
   }
 
-  test_instanceGetter_functionTyped_class_self() async {
-    var result = await resolveTestCodeWithDiagnostics('''
+  test_instanceGetter_functionTyped_implicitReceiver_promotedThis() async {
+    var result = await resolveTestCode('''
 abstract class A {
-  late void Function<T>(T) foo;
-
-  bar() {
-    foo<int>;
+  void f() {
+    if (this is B) {
+      foo<int>;
+    }
   }
 }
 
+abstract class B extends A {
+  late void Function<T>(T) foo;
+}
+''');
+
+    var node = result.findNode.functionReference('foo<int>;');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::B::@getter::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceGetter_functionTyped_implicitReceiver_superClass() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  late void Function<T>(T) foo;
+}
+
+abstract class B extends A {
+  void f() {
+    foo<int>;
+  }
+}
 ''');
 
     var node = result.findNode.functionReference('foo<int>;');
@@ -1472,17 +1509,16 @@ FunctionReference
 ''');
   }
 
-  test_instanceGetter_functionTyped_class_superClass() async {
+  test_instanceGetter_functionTyped_implicitReceiver_thisClass() async {
     var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {
   late void Function<T>(T) foo;
-}
 
-abstract class B extends A {
-  void f() {
+  bar() {
     foo<int>;
   }
 }
+
 ''');
 
     var node = result.findNode.functionReference('foo<int>;');

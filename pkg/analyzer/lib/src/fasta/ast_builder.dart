@@ -1321,7 +1321,7 @@ class AstBuilder extends StackListener {
     var libraryUri = pop() as StringLiteralImpl;
     var value = popIfNotNull(equalSign) as StringLiteralImpl?;
     if (value is StringInterpolationImpl) {
-      for (var child in value.childEntities) {
+      for (var child in value.childEntities2) {
         if (child is InterpolationExpressionImpl) {
           // This error is reported in OutlineBuilder.endLiteralString
           handleRecoverableError(

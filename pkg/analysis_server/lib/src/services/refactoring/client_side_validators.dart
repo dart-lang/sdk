@@ -33,38 +33,66 @@ class ClientSideValidators {
   /// These are based approximately on the Dart version in
   /// [validateConstructorName].
   List<StringValidator> get constructorName {
+    return _lowerCamelCase('Constructor name', allowBuiltIn: true);
+  }
+
+  /// Validators for import prefixes.
+  ///
+  /// These are based approximately on the Dart version in
+  /// [validateImportPrefixName].
+  List<StringValidator> get importPrefix {
+    return _lowerCamelCase('Import prefix');
+  }
+
+  List<StringValidator> _lowerCamelCase(
+    String desc, {
+    bool allowBuiltIn = false,
+  }) {
     // All of these validators are currently ECMAScript regexes.
     if (!_clientSupportsEcmaScriptRegex) return [];
 
     var keywords = Keyword.keywords.values
         .where((keyword) => !keyword.isBuiltInOrPseudo)
         .map((keyword) => keyword.lexeme);
-    var keywordRegex = '^${keywords.join("|")}\$';
+    var keywordRegex = '^(?:${keywords.join("|")})\$';
+
+    var builtins = Keyword.keywords.values
+        .where((keyword) => keyword.isBuiltInOrPseudo)
+        .map((keyword) => keyword.lexeme);
+    var builtinRegex = '^(?:${builtins.join("|")})\$';
 
     return [
-      // Fatal errors
       RegexValidator(
         pattern: keywordRegex,
-        message: 'Constructor name must not be a keyword.',
+        message: '$desc must not be a keyword.',
         matchIsValid: false,
         severity: .Error,
       ),
       RegexValidator(
         pattern: r'^[a-zA-Z0-9_$]*$',
-        message: 'Constructor name must only include letters, digits, underscores and dollars.',
+        message:
+            '$desc must only include letters, digits, underscores and dollars.',
         matchIsValid: true,
         severity: .Error,
       ),
       RegexValidator(
         pattern: r'^[0-9]',
-        message: 'Constructor name must not begin with a number.',
+        message: '$desc must not begin with a number.',
         matchIsValid: false,
         severity: .Error,
       ),
-      // Warnings
+      // For built-ins, they're either not allowed at all, or produce a warning.
+      RegexValidator(
+        pattern: builtinRegex,
+        message: allowBuiltIn
+            ? '$desc should not be a built-in identifier.'
+            : '$desc must not be a built-in identifier.',
+        matchIsValid: false,
+        severity: allowBuiltIn ? .Warning : .Error,
+      ),
       RegexValidator(
         pattern: r'^[a-z_]',
-        message: 'Constructor name should begin with a lowercase letter or underscore.',
+        message: '$desc should begin with a lowercase letter or underscore.',
         matchIsValid: true,
         severity: .Warning,
       ),

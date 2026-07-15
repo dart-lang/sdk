@@ -257,9 +257,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// current node is inside a function body.
   BodyInferenceContext? _bodyContext;
 
-  /// If a class, or mixin, is being resolved, the type of the class.
-  /// Otherwise `null`.
-  TypeImpl? _thisType;
+  /// The type of the current `this` binding, before applying type promotion.
+  ///
+  /// If there is no `this` binding, `null`.
+  TypeImpl? _unpromotedThisType;
 
   final FlowAnalysisHelper flowAnalysis;
 
@@ -398,20 +399,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   BodyInferenceContext? get bodyContext => _bodyContext;
 
-  /// If a class, or mixin, is being resolved, the type of the class, after
-  /// applying type promotion of `this`.
-  ///
-  /// If an extension is being resolved, the type of `this`, the declared
-  /// extended type.
-  ///
-  /// If the feature `this-promotion` is disabled, this getter returns the same
-  /// value as [thisType].
-  ///
-  /// Otherwise `null`.
-  TypeImpl? get effectiveThisType =>
-      flowAnalysis.flow?.promotedTypeOfThis?.unwrapTypeView() as TypeImpl? ??
-      thisType;
-
   @override
   FlowAnalysis<
     AstNodeImpl,
@@ -448,19 +435,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   bool get strictCasts => analysisOptions.strictCasts;
 
-  /// If a class, or mixin, is being resolved, the type of the class, before
-  /// applying type promotion of `this`.
+  /// The type of the current `this` binding, after applying type promotion.
   ///
-  /// If an extension is being resolved, the type of `this`, the declared
-  /// extended type.
+  /// If there is no `this` binding, `null`.
+  TypeImpl? get thisType =>
+      flowAnalysis.flow?.promotedTypeOfThis?.unwrapTypeView<TypeImpl>() ??
+      _unpromotedThisType;
+
+  /// The type of the current `this` binding, before applying type promotion.
   ///
-  /// If the feature `this-promotion` is disabled, this getter returns the same
-  /// value as [effectiveThisType].
-  ///
-  /// Otherwise `null`.
-  TypeImpl? get thisType {
-    return _thisType;
-  }
+  /// If there is no `this` binding, `null`.
+  TypeImpl? get unpromotedThisType => _unpromotedThisType;
 
   @override
   ExpressionTypeAnalysisResult analyzeExpression(
@@ -2030,8 +2015,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     TypeImpl returnedType;
     if (parameters == null) {
-      var oldThisType = _thisType;
-      _thisType = parameterType;
+      var oldThisType = _unpromotedThisType;
+      _unpromotedThisType = parameterType;
       var target = node.target;
       var targetInfo = target != null
           ? flowAnalysis.getExpressionInfo(target)
@@ -2042,7 +2027,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         returnedType = body.resolve(this, contextType);
       } finally {
         flowAnalysis.flow?.thisBinding_end();
-        _thisType = oldThisType;
+        _unpromotedThisType = oldThisType;
       }
       if (body is AnonymousExpressionBodyImpl) {
         flowAnalysis.storeExpressionInfo(
@@ -2502,7 +2487,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     try {
       enclosingFunction = element;
-      assert(_thisType == null);
+      assert(_unpromotedThisType == null);
       _setupThisType();
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
@@ -2530,7 +2515,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       enclosingFunction = outerFunction;
-      _thisType = null;
+      _unpromotedThisType = null;
     }
   }
 
@@ -3023,13 +3008,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     try {
-      assert(_thisType == null);
+      assert(_unpromotedThisType == null);
       _setupThisType();
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitFieldDeclaration(node);
     } finally {
-      _thisType = null;
+      _unpromotedThisType = null;
     }
   }
 
@@ -3558,7 +3543,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     try {
       enclosingFunction = element;
-      assert(_thisType == null);
+      assert(_unpromotedThisType == null);
       _setupThisType();
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
@@ -3585,7 +3570,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       enclosingFunction = outerFunction;
-      _thisType = null;
+      _unpromotedThisType = null;
     }
   }
 
@@ -3937,7 +3922,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     try {
       enclosingFunction = element;
-      assert(_thisType == null);
+      assert(_unpromotedThisType == null);
       _setupThisType();
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
@@ -3962,7 +3947,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       nullSafetyDeadCodeVerifier.flowEnd(node);
     } finally {
       enclosingFunction = outerFunction;
-      _thisType = null;
+      _unpromotedThisType = null;
     }
   }
 
@@ -4768,11 +4753,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void _setupThisType() {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      _thisType = enclosingClass.thisType;
+      _unpromotedThisType = enclosingClass.thisType;
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {
-        _thisType = enclosingExtension.extendedType;
+        _unpromotedThisType = enclosingExtension.extendedType;
       }
     }
   }
