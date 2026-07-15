@@ -645,8 +645,8 @@ constexpr double MicrosecondsToMilliseconds(int64_t micros) {
 
 // The USE(x) template is used to silence C++ compiler warnings issued
 // for unused variables.
-template <typename T>
-static inline void USE(T&&) {}
+template <typename... T>
+static DART_FORCE_INLINE void USE(T&&...) {}
 
 using std::bit_cast;
 

@@ -1209,7 +1209,9 @@ DEFINE_RUNTIME_ENTRY(ResolveExternalCall, 2) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
-#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 struct FfiCallArguments {
   uword stack_area;
@@ -1656,10 +1658,14 @@ static uword ResolveFfiNativeTarget(Thread* thread, const Instance& native) {
   const auto& result =
       Object::Handle(zone, DartEntry::InvokeFunction(ffi_resolver, args));
   ThrowIfError(result);
-  return static_cast<uword>(Integer::Cast(result).Value());
+  auto const address = static_cast<uword>(Integer::Cast(result).Value());
+  PRINT_IF_TRACING_INTERPRETER("resolved (%s, %s, %s) to %#" Px "\n",
+                               symbol.ToCString(), asset_id.ToCString(),
+                               native_type.ToCString(), address);
+  return address;
 }
-
-#endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_DYNAMIC_MODULES)
 
 // Resolve a native function from the interpreter.
 // Arg0: constant instance of dart:ffi::Native.
@@ -1721,6 +1727,8 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
     const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
     target = pool.RawValueAt(pool_index);
     if (target == 0) {
+      PRINT_IF_TRACING_INTERPRETER("resolving FFI native %s\n",
+                                   function.ToFullyQualifiedCString());
       const auto& annotation =
           Instance::Handle(zone, function.GetNativeAnnotation());
       target = ResolveFfiNativeTarget(thread, annotation);
@@ -1764,6 +1772,7 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
 
   argv = argv - first_argument_parameter_offset - marshaller.num_args();
 
+  PRINT_IF_TRACING_INTERPRETER("calling native entry point %#" Px "\n", target);
   if (is_leaf) {
     NoSafepointScope no_safepoint;
 
@@ -1775,6 +1784,8 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
     TransitionVMToNative transition(thread);
     FfiCallTrampoline(&args);
   }
+  PRINT_IF_TRACING_INTERPRETER("returned from native entry point %#" Px "\n",
+                               target);
 
   arguments.SetReturn(
       Object::Handle(zone, ReceiveFfiCallResult(thread, marshaller, args)));
@@ -5110,6 +5121,8 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
     // Propagating an error may cause allocation. Check if we need to block for
     // a safepoint by switching to "in VM" execution state.
     TransitionGeneratedToVM transition(thread);
+    PRINT_IF_TRACING_INTERPRETER("throwing exception: %s\n",
+                                 error.ToErrorCString());
     Exceptions::PropagateError(error);
   }
   return static_cast<uword>(result);
