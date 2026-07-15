@@ -13,7 +13,8 @@ import '../core.dart';
 /// stdin/stdout using the Debug Adapter Protocol to allow editors to run debug
 /// sessions in a standard way.
 class DebugAdapterCommand extends DartdevCommand {
-  static const String cmdName = 'debug_adapter';
+  static const String cmdName = 'debug-adapter';
+  static const String legacyCmdName = 'debug_adapter';
 
   static const argIpv6 = 'ipv6';
   static const argDds = 'dds';
@@ -61,6 +62,9 @@ class DebugAdapterCommand extends DartdevCommand {
   }
 
   @override
+  List<String> get aliases => const [legacyCmdName];
+
+  @override
   CommandCategory get commandCategory => CommandCategory.tools;
 
   @override
@@ -83,7 +87,7 @@ class DebugAdapterCommand extends DartdevCommand {
       // case of a user running this command to explain it's for tools).
       onError: (e) => stderr.writeln(
         'Input could not be parsed as a Debug Adapter Protocol message.\n'
-        'The "dart debug_adapter" command is intended for use by tooling that '
+        'The "dart debug-adapter" command is intended for use by tooling that '
         'communicates using the Debug Adapter Protocol.\n\n'
         '$e',
       ),
