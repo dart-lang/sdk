@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:js_interop';
 
-import 'package:dartpad/src/util/message_port_channel.dart';
+import 'package:dartpad/src/util/json_rpc_message_port_channel.dart';
 import 'package:dartpad_worker/src/util/log.dart';
 import 'package:dartpad_worker/src/worker.dart';
 import 'package:http/http.dart' as http;
@@ -48,7 +48,7 @@ void main() async {
 
     options.resolve(
       ((web.MessagePort port) => worker.session(
-        messagePortChannel(port).cast(),
+        jsonRpcMessagePortChannel(port),
       )).toJS,
     );
   }, (e, st) => logError('uncaught exception: $e\n$st'));

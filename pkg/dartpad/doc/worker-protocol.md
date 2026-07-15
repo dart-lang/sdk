@@ -61,17 +61,26 @@ The `sandbox.js` script must use [window.postMessage][4] to send, either:
 
 The attached [MessagePort][2] must be forwarded to the worker as outline in the
 protocol below. The communication protocol between `sandbox.js` and `worker.js`
-is private, though all values must be JSON serializable, ensuring that they can
-easily be proxied to another host, if need be.
+is private, though messages will never carry a `MessagePort`, thus, they can
+be serialized (with care taken to wrap `Uint8Array` instances).
 
 
 ## JSON-RPC 2.0 over `MessagePort`
 
-Communication with the worker uses [JSON-RPC 2.0][3]. Communication over the
-[MessagePort][2] takes place using raw JSON objects (utilizing the browser's
-structured clone algorithm), not JSON-encoded strings.
+Communication with the worker is conducted over a [MessagePort][2] using an
+extension of the [JSON-RPC 2.0][3] protocol.
 
-The following sections outline which methods are offered by the worker...
+While the official JSON-RPC 2.0 specification mandates that messages be JSON,
+we leverage the browser's [Structured Clone][5] algorithm to transmit JSON-like
+JavaScript objects. The message structures conform to JSON-RPC 2.0, with two
+extensions:
+
+ * **MessagePort transfer:** `params.port` and `result.port`, if present,
+   may be a [MessagePort][2].
+ * **Binary data support:** The JSON-like structure may include `Uint8Array`
+   objects.
+
+These extensions means that messages cannot be serialized as JSON.
 
 [JSON-RPC 2.0][3] requests are usually on the form:
 ```js
@@ -80,6 +89,7 @@ The following sections outline which methods are offered by the worker...
   "method": "<name-of-method>",
   "params": {
     // parameters for the method
+    "port": /* [Optional] MessagePort instance */
   },
   "id": 42 // unique ID per request, omitted for notifications!
 }
@@ -95,6 +105,7 @@ Response objects are usually on the form:
   "jsonrpc": "2.0",
   "result": {
     // result values from the method
+    "port": /* [Optional] MessagePort instance */
   },
   "id": 42 // ID from the request
 }
@@ -124,6 +135,7 @@ into a single message by sending an array of requests and notifications.
 
 For further details about JSON-RPC 2.0, refer to the [specification][3].
 
+
 ## Server Methods and Notifications
 
 Methods are prefixed based on what objects they operate on. Thus, all methods
@@ -134,6 +146,7 @@ prefixed `workspace/` require a `workspaceId` parameter.
 | :--- | :--- |
 | `workspace/` | `workspaceId` |
 | `workspace/languageServer/` | `workspaceId` and `languageServerId` |
+| `workspace/watcher/` | `workspaceId` and `watcherId` |
 | `workspace/hotReloadCompiler/` | `workspaceId` and `hotReloadCompilerId` |
 
 
@@ -622,3 +635,4 @@ Errors returned by the worker use the following codes.
 [2]: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
 [3]: https://www.jsonrpc.org/specification
 [4]: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
+[5]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm

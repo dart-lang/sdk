@@ -28,6 +28,6 @@ Future<WorkerClient> createInprocessWorker(
   );
 
   final channelController = StreamChannelController<Object?>();
-  worker.session(channelController.foreign.cast());
-  return WorkerClient(channelController.local.cast());
+  worker.session(channelController.foreign);
+  return WorkerClient(channelController.local);
 }

@@ -9,7 +9,7 @@ import 'dart:js_interop';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:web/web.dart' as web;
 
-import 'util/message_port_channel.dart';
+import 'util/json_rpc_message_port_channel.dart';
 
 const _defaultHeadHtml = '''
 <style>
@@ -305,6 +305,6 @@ class Sandbox {
       [port2].toJS,
     );
 
-    return Sandbox._(Peer(messagePortChannel(port1).cast()), iframe);
+    return Sandbox._(Peer(jsonRpcMessagePortChannel(port1).cast()), iframe);
   }
 }
