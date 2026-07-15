@@ -88,8 +88,9 @@ void command() {
           stdout.hasTerminal ? stdout.terminalColumns : null,
         );
       } else if (command.name == 'pub') {
-        // TODO(sigurdm): Avoid special casing here.
-        // https://github.com/dart-lang/pub/issues/2700
+        // 'pub' comes from package:pub which defaults usageLineLength to 80
+        // when stdout.hasTerminal is false
+        //(see https://github.com/dart-lang/pub/issues/2700).
         expect(
           command.argParser.usageLineLength,
           stdout.hasTerminal ? stdout.terminalColumns : 80,
