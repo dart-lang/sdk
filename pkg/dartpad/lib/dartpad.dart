@@ -18,9 +18,17 @@ import 'src/worker_client.dart';
 
 export 'src/dartpad_config.dart' show DartPadConfig;
 export 'src/exceptions.dart' hide rethrowAsDartPadException;
-export 'src/sandbox.dart' show Sandbox;
+export 'src/sandbox.dart' show ConsoleLevel, ConsoleMessage, Sandbox;
 export 'src/worker_client.dart'
-    show HotReloadCompiler, LanguageServer, Workspace;
+    show
+        FileAddedEvent,
+        FileChangeEvent,
+        FileModifiedEvent,
+        FileRemovedEvent,
+        HotReloadCompiler,
+        LanguageServer,
+        Workspace,
+        WorkspaceWatcher;
 
 /// Reference to a _DartPad SDK_.
 final class DartPadSdk {
