@@ -60,7 +60,7 @@ final class Worker {
     return w;
   }
 
-  void connect(StreamChannel<String> channel) {
+  void session(StreamChannel<String> channel) {
     _Session(channel, this);
   }
 }

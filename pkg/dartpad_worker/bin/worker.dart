@@ -12,104 +12,60 @@ import 'package:http/http.dart' as http;
 import 'package:http/retry.dart' as http;
 import 'package:web/web.dart' as web;
 
-const _defaultSdkLocation = 'dart/';
+/// Options set by `worker.js`.
+///
+/// The public API for launching a worker lives in `worker.js`, the
+/// [_workerOptions] property is merely a communication bridge between
+/// `worker.js` and [main] in this wasm module.
+///
+/// The public API for launching a worker is specified in:
+/// `pkg/dartpad/doc/worker-protocol.md`.
+@JS()
+external DartPadOptions get _workerOptions;
+
+extension type DartPadOptions._(JSObject _) implements JSObject {
+  external String get assetBaseUrl;
+  external String? get pubHostedUrl;
+
+  /// Callback when creating the worker is successful
+  external void resolve(JSFunction createSession);
+
+  /// Callback when creating the worker fails
+  external void reject(JSString message);
+}
 
 void main() async {
-  await runZonedGuarded(_startWorker, (e, st) {
-    logError('uncaught exception: $e\n$st');
-  });
+  final options = _workerOptions;
+
+  await runZonedGuarded(() async {
+    final Worker worker;
+    try {
+      worker = await _createWorker(_workerOptions);
+    } catch (e) {
+      options.reject(e.toString().toJS);
+      return;
+    }
+
+    options.resolve(
+      ((web.MessagePort port) => worker.session(
+        messagePortChannel(port).cast(),
+      )).toJS,
+    );
+  }, (e, st) => logError('uncaught exception: $e\n$st'));
 }
 
-@JS('assetBaseUrl')
-external String? get assetBaseUrl;
-
-@JS('sdkLocation')
-external String? get sdkLocation;
-
-@JS('pubHostedUrl')
-external String? get pubHostedUrl;
-
-Future<void> _startWorker() async {
-  final workerFuture = _createWorker();
-
-  // Check if we are running in a SharedWorker environment
-  if (globalContext.isA<web.SharedWorkerGlobalScope>()) {
-    final scope = globalContext as web.SharedWorkerGlobalScope;
-
-    scope.onconnect = (web.MessageEvent event) {
-      final port = event.ports.toDart[0];
-      _handleConnect(port, workerFuture);
-    }.toJS;
-  } else {
-    // Running as a standard DedicatedWorker
-    final scope = globalContext as web.DedicatedWorkerGlobalScope;
-
-    scope.onmessage = (web.MessageEvent event) {
-      if (event.ports.toDart.isEmpty) {
-        logError('Message missing MessagePort');
-        return;
-      }
-      if (!event.data.isA<JSObject>()) {
-        logError('Message data is not a JS Object');
-        return;
-      }
-
-      final message = event.data as HandshakeMessage;
-
-      // Check for the explicit handshake action
-      if (message.action == 'connect') {
-        final port = event.ports.toDart[0];
-        _handleConnect(port, workerFuture);
-      } else {
-        logError('Unknown action "${message.action}"');
-      }
-    }.toJS;
-  }
-
-  try {
-    await workerFuture;
-  } catch (e, st) {
-    logError('startup failed: $e\n$st');
-  }
-}
-
-Future<void> _handleConnect(
-  web.MessagePort port,
-  Future<Worker> workerFuture,
-) async {
-  // TODO(jonasfj): Consider tracking and sending progress events
-  final worker = await workerFuture;
-  worker.connect(messagePortChannel(port).cast());
-}
-
-Future<Worker> _createWorker() async {
-  final assetBaseUrl_ = assetBaseUrl;
-  var assetBaseUri = assetBaseUrl_ != null
-      ? Uri.tryParse(assetBaseUrl_) ?? Uri.base
-      : Uri.base;
-
-  if (!assetBaseUri.path.endsWith('/')) {
-    assetBaseUri = assetBaseUri.replace(path: '${assetBaseUri.path}/');
-  }
-  var sdkLocation_ = assetBaseUri.resolve(sdkLocation ?? _defaultSdkLocation);
-  if (!sdkLocation_.path.endsWith('/')) {
-    sdkLocation_ = sdkLocation_.replace(path: '${sdkLocation_.path}/');
-  }
-
+Future<Worker> _createWorker(DartPadOptions options) async {
+  final assetBaseUrl = Uri.parse(options.assetBaseUrl);
   final c = http.RetryClient(http.Client());
   try {
-    final sdkTar = sdkLocation_.resolve('sdk.tar');
+    final sdkTar = assetBaseUrl.resolve('sdk.tar');
     final r = await c.send(http.Request('GET', sdkTar));
     if (r.statusCode != 200) {
       logError('Failed to fetch sdk.tar from: "$sdkTar"');
       throw Exception('unable to fetch sdk.tar');
     }
-    return await Worker.create(r.stream, pubHostedUrl: pubHostedUrl);
+    return await Worker.create(r.stream, pubHostedUrl: options.pubHostedUrl);
   } finally {
     c.close();
   }
-}
-
-extension type HandshakeMessage._(JSObject _) implements JSObject {
-  external String? get action;
 }

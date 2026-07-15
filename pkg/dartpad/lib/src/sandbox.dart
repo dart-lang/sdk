@@ -196,21 +196,14 @@ class Sandbox {
   ///
   /// The [assetBaseUrl] should point to the directory containing `sandbox.js`
   /// and `ddc_module_loader.js`.
-  /// The [sdkLocation] should point to the directory containing the `sdk.js`
-  /// (and `sdk.tar` which we won't use here).
   static Future<Sandbox> createIFrame(
     web.Node container, {
     required Uri assetBaseUrl,
-    required Uri sdkLocation,
     String headHtml = _defaultHeadHtml,
     String bodyHtml = '',
   }) async {
     if (!assetBaseUrl.path.endsWith('/')) {
       assetBaseUrl = assetBaseUrl.replace(path: '${assetBaseUrl.path}/');
-    }
-    sdkLocation = assetBaseUrl.resolveUri(sdkLocation);
-    if (!sdkLocation.path.endsWith('/')) {
-      sdkLocation = sdkLocation.replace(path: '${sdkLocation.path}/');
     }
 
     final iframe = web.HTMLIFrameElement();
@@ -220,7 +213,7 @@ class Sandbox {
     iframe.srcdoc = _iframeHtml(
       sandboxJs: assetBaseUrl.resolve('sandbox.js'),
       ddcModuleLoaderJs: assetBaseUrl.resolve('ddc_module_loader.js'),
-      sdkJs: sdkLocation.resolve('sdk.js'),
+      sdkJs: assetBaseUrl.resolve('sdk.js'),
       headHtml: headHtml,
       bodyHtml: bodyHtml,
     ).toJS;

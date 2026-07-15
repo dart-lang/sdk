@@ -14,7 +14,7 @@ compile_dart2wasm("worker") {
 prebuilt_dart_action("build_sdk_tar") {
   script = "../../pkg/dartpad_worker/tool/build_dart_sdk_tar.dart"
 
-  output = "$root_out_dir/dartpad/dart/sdk.tar"
+  output = "$root_out_dir/dartpad/sdk.tar"
   outputs = [ output ]
 
   # This script reads most of the SDK lib directory.
@@ -34,28 +34,21 @@ copy("copy_sandbox_js") {
   outputs = [ "$root_out_dir/dartpad/sandbox.js" ]
 }
 
-copy("copy_worker_loader") {
-  sources = [ "../../pkg/dartpad_worker/lib/src/asset/worker.loader.js" ]
-  outputs = [ "$root_out_dir/dartpad/worker.loader.js" ]
+copy("copy_worker_js") {
+  sources = [ "../../pkg/dartpad_worker/lib/src/asset/worker.js" ]
+  outputs = [ "$root_out_dir/dartpad/worker.js" ]
 }
 
 copy("copy_dart_sdk_js") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
   sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js" ]
-
-  # Inside the SDK folder for dart/, we are going to put a single
-  # sdk.js file, this is what the sandbox should load to get all the precompiled
-  # DDC modules. For SDKs like flutter we can either concatenate dart_sdk.js
-  # and flutter_web.js into a single sdk.js, or if we want source maps to work
-  # we can make a single sdk.js that imports dart_sdk.js and flutter_web.js.
-  # Using esbuild to minify and concatenate with sourcemaps might be attractive.
-  outputs = [ "$root_out_dir/dartpad/dart/sdk.js" ]
+  outputs = [ "$root_out_dir/dartpad/sdk.js" ]
 }
 
 copy("copy_dart_sdk_js_map") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
   sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js.map" ]
-  outputs = [ "$root_out_dir/dartpad/dart/dart_sdk.js.map" ]
+  outputs = [ "$root_out_dir/dartpad/sdk.js.map" ]
 }
 
 copy("copy_ddc_module_loader") {
@@ -70,7 +63,7 @@ group("dartpad") {
     ":copy_dart_sdk_js_map",
     ":copy_ddc_module_loader",
     ":copy_sandbox_js",
-    ":copy_worker_loader",
+    ":copy_worker_js",
     ":worker",
   ]
 }
