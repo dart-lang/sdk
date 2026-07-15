@@ -66,6 +66,10 @@ dart.ci_sandbox_builder(
     properties = defaults.properties([monorepo_properties, {"config_name": "host_linux"}]),
     triggered_by = ["dart-gitiles-trigger-monorepo"],
     schedule = "triggered",
+    triggering_policy = scheduler.greedy_batching(
+        max_concurrent_invocations = 2,
+        max_batch_size = None,
+    ),
 )
 luci.console_view_entry(
     builder = "flutter-linux",
