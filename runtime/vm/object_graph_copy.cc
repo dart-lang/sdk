@@ -1828,13 +1828,13 @@ class ObjectCopy : public Base {
     if (length_eager_initialized) {
       ASSERT(UntagArray(to)->length_ == UntagArray(from)->length_);
     } else {
+      Base::StoreCompressedPointersNoBarrier(from, to,
+                                             OFFSET_OF(UntaggedArray, length_),
+                                             OFFSET_OF(UntaggedArray, length_));
     }
     Base::StoreCompressedArrayPointers(
         length, from, to, OFFSET_OF(UntaggedArray, type_arguments_),
         OFFSET_OF(UntaggedArray, type_arguments_));
-    Base::StoreCompressedPointersNoBarrier(from, to,
-                                           OFFSET_OF(UntaggedArray, length_),
-                                           OFFSET_OF(UntaggedArray, length_));
     Base::ForwardCompressedArrayPointers(
         length, from, to, Array::data_offset(),
         Array::data_offset() + kCompressedWordSize * length);
