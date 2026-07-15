@@ -6543,7 +6543,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     // prepare statement
-    var statement = literal.thisOrAncestorOfType<ExpressionStatement>();
+    var statement = literal.thisOrAncestorOfType2<ExpressionStatement>();
     if (statement == null) {
       return;
     }

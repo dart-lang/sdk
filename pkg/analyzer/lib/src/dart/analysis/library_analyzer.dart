@@ -153,7 +153,7 @@ class LibraryAnalyzer {
       return _parse(file: file, libraryFragment: libraryFragment);
     });
     var parsedUnit = fileAnalysis.unit;
-    var node = parsedUnit.nodeCovering(offset: offset);
+    var node = parsedUnit.nodeCovering2(offset: offset);
     var diagnosticListener = RecordingDiagnosticListener();
 
     return performance.run('resolve', (performance) {
@@ -220,7 +220,7 @@ class LibraryAnalyzer {
         resolverVisitor.inferenceHelper.dataForTesting!,
       );
 
-      var nodeToResolve = node?.thisOrAncestorMatching((e) {
+      var nodeToResolve = node?.thisOrAncestorMatching2((e) {
         return e.parent2 is ClassBody ||
             e.parent2 is ClassDeclaration ||
             e.parent2 is CompilationUnit ||

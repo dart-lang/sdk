@@ -208,7 +208,7 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    var node = testUnit.nodeCovering(offset: index)! as AstNodeImpl;
+    var node = testUnit.nodeCovering2(offset: index)! as AstNodeImpl;
     expect(node, TypeMatcher<ExpressionImpl>());
     expect(
       (node as ExpressionImpl).inConstantContext,
@@ -1334,7 +1334,7 @@ class IntegerLiteralImplTest {
 class NodeCoveringTest extends PubPackageResolutionTest {
   Future<AstNode> coveringNode(String sourceCode) async {
     var (result, range) = await _range(sourceCode);
-    var node = result.unit.nodeCovering(
+    var node = result.unit.nodeCovering2(
       offset: range.offset,
       length: range.length,
     );
@@ -1345,7 +1345,7 @@ class NodeCoveringTest extends PubPackageResolutionTest {
     var result = await resolveTestCode('''
 library myLib;
 ''');
-    var node = result.unit.nodeCovering(offset: 100, length: 20);
+    var node = result.unit.nodeCovering2(offset: 100, length: 20);
     expect(node, null);
   }
 

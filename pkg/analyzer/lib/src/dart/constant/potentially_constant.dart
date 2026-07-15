@@ -254,11 +254,11 @@ class _Collector {
       var enclosing = element.enclosingElement;
       if (enclosing is ConstructorElement &&
           isConstConstructorElement(enclosing)) {
-        if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
+        if (node.thisOrAncestorOfType2<ConstructorInitializer>() != null) {
           return;
         }
         var fieldElement = node
-            .thisOrAncestorOfType<VariableDeclaration>()
+            .thisOrAncestorOfType2<VariableDeclaration>()
             ?.declaredFragment
             ?.element;
         if (fieldElement is FieldElement &&

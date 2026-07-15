@@ -248,7 +248,7 @@ class StaticTypeAnalyzer {
       ),
     );
     if (thisType == null ||
-        node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
+        node.thisOrAncestorOfType2<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);

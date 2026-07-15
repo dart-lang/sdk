@@ -166,7 +166,7 @@ extension ExpressionImplExtension on ExpressionImpl {
 
 extension FormalParameterExtension on FormalParameter {
   bool get isOfLocalFunction {
-    return thisOrAncestorOfType<FunctionBody>() != null;
+    return thisOrAncestorOfType2<FunctionBody>() != null;
   }
 
   FormalParameterList get parentFormalParameterList {

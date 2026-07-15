@@ -2634,6 +2634,7 @@ abstract final class AstNode implements SyntacticEntity {
   /// An iterator that can be used to iterate through all the entities (either
   /// AST nodes or tokens) that make up the contents of this node, including doc
   /// comments but excluding other comments.
+  @ToBeDeprecated('Use childEntities2 instead')
   Iterable<SyntacticEntity> get childEntities;
 
   /// An iterator that can be used to iterate through all the entities (either
@@ -2688,6 +2689,7 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Note that this method's performance is linear with respect to the depth
   /// of the node in the AST structure (O(depth)).
+  @ToBeDeprecated('Use root2 instead')
   AstNode get root;
 
   /// The node at the root of this node's AST structure.
@@ -2715,6 +2717,7 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns either this node or the most immediate ancestor of this node for
   /// which the [predicate] returns `true`, or `null` if there's no such node.
+  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
   );
@@ -2728,6 +2731,7 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there's no such node.
+  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
   E? thisOrAncestorOfType<E extends AstNode>();
 
   /// Returns either this node or the most immediate ancestor of this node that
@@ -2787,6 +2791,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNodeApi get astNodeApi => _astNodeApi;
 
   @override
+  @ToBeDeprecated('Use childEntities2 instead')
   Iterable<SyntacticEntity> get childEntities =>
       _childEntities.syntacticEntities;
 
@@ -2807,6 +2812,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// The properties (tokens and nodes) of this node, with names, in the order
   /// in which these entities should normally appear, not necessarily in the
   /// order they really are (because of recovery).
+  @ToBeDeprecated('Use namedChildEntities2 instead')
   Iterable<ChildEntity> get namedChildEntities => _childEntities.entities;
 
   /// The properties (tokens and nodes) of this node, with names, in the order
@@ -2833,6 +2839,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   @override
+  @ToBeDeprecated('Use root2 instead')
   AstNode get root {
     _checkV1View();
     AstNodeImpl root = this;
@@ -2926,6 +2933,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     parent.replaceChild(this, newNode);
   }
 
+  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
   @override
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
@@ -2952,6 +2960,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   @override
+  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
   E? thisOrAncestorOfType<E extends AstNode>() {
     _checkV1View();
     AstNode? node = this;
@@ -7035,6 +7044,7 @@ abstract final class CompilationUnit implements AstNode {
   ///
   /// The minimal covering node is the node, rooted at the receiver, with the
   /// shortest length whose range completely includes the given range.
+  @ToBeDeprecated('Use nodeCovering2 instead')
   AstNode? nodeCovering({required int offset, int length = 0});
 
   /// Returns the minimal covering node for the range of characters beginning at
@@ -7180,6 +7190,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCompilationUnit(this);
 
+  @ToBeDeprecated('Use nodeCovering2 instead')
   @override
   AstNode? nodeCovering({required int offset, int length = 0}) {
     var end = offset + length;
@@ -13092,7 +13103,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() {
-    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
+    var unitNode = thisOrAncestorOfType2<CompilationUnitImpl>();
     var unitFragment = unitNode?.declaredFragment;
     if (unitFragment == null) {
       throw ArgumentError('This AST structure has not yet been resolved.');
