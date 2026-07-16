@@ -212,7 +212,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       }
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
-      if (node.name == "await" && _resolver.enclosingFunction != null) {
+      if (node.name == "await" &&
+          _resolver.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,

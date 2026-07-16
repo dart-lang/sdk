@@ -5056,19 +5056,11 @@ LinterLintCode:
     problemMessage: "Place 'package:' #p0 before relative #p0."
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
-  discardedFutureOr:
-    type: lint
-    parameters: none
-    sharedName: discardedFutures
-    problemMessage: "'FutureOr'-returning calls in a non-'async' function."
-    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await'."
-    hasPublishedDocs: false
   discardedFutures:
     type: lint
     parameters: none
-    sharedName: discardedFutures
     problemMessage: "'Future'-returning calls in a non-'async' function."
-    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await', or wrap the expression in 'unawaited'."
+    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future, or wrap the expression in 'unawaited'."
     state:
       stable: "2.18"
     categories: [errorProne]
@@ -13807,19 +13799,11 @@ LinterLintCode:
         }
       }
       ```
-  unawaitedFutureOr:
-    type: lint
-    parameters: none
-    sharedName: unawaitedFutures
-    problemMessage: "Missing an 'await' for the 'FutureOr' computed by this expression."
-    correctionMessage: "Try adding an 'await'."
-    hasPublishedDocs: true
   unawaitedFutures:
     type: lint
     parameters: none
-    sharedName: unawaitedFutures
     problemMessage: "Missing an 'await' for the 'Future' computed by this expression."
-    correctionMessage: "Try adding an 'await' or wrapping the expression with 'unawaited' (if it is a 'Future')."
+    correctionMessage: "Try adding an 'await' or wrapping the expression with 'unawaited'."
     state:
       stable: "2.0"
     categories: [style]
@@ -13828,7 +13812,7 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic on an expression with a `Future`
-      or `FutureOr` type, only in a few specific cases:
+      type, only in a few specific cases:
 
       * when the expression is itself a statement (like `f();`),
       * when the expression is part of a cascade (like `C()..f()`),
@@ -13837,9 +13821,8 @@ LinterLintCode:
       The analyzer only produces this diagnostic on expressions inside an
       `async` or `async*` function.
 
-      The two common corrections are to 'await' the expression, or if it is
-      a `Future` (not `FutureOr`), to wrap the expression in a call to
-      `unawaited()`.
+      The two common corrections are to 'await' the expression, or to wrap the
+      expression in a call to `unawaited()`.
 
       #### Example
 
@@ -13867,7 +13850,7 @@ LinterLintCode:
       Future<int> g() => Future.value(0);
       ```
 
-      If the `Future` doesn't need to complete before the following code is
+      If the future doesn't need to complete before the following code is
       executed, then wrap the `Future`-returning invocation in an invocation of
       the `unawaited` function:
 
@@ -13881,11 +13864,10 @@ LinterLintCode:
       Future<int> g() => Future.value(0);
       ```
     deprecatedDetails: |-
-      **DO** await functions that return a `Future` or `FutureOr` inside of an async
-      function body.
+      **DO** await functions that return a `Future` inside of an async function body.
 
-      It's easy to forget `await` in `async` methods as naming conventions usually don't
-      tell us if a method is sync or `async` (except for some in `dart:io`).
+      It's easy to forget await in async methods as naming conventions usually don't
+      tell us if a method is sync or async (except for some in `dart:io`).
 
       When you really _do_ want to start a fire-and-forget `Future`, the recommended
       way is to use `unawaited` from `dart:async`. The `// ignore` and
@@ -13893,8 +13875,6 @@ LinterLintCode:
 
       **BAD:**
       ```dart
-      Future doSomething() => ...;
-
       void main() async {
         doSomething(); // Likely a bug.
       }
@@ -13908,9 +13888,6 @@ LinterLintCode:
         await doSomething();
 
         unawaited(doSomething()); // Explicitly-ignored fire-and-forget.
-
-        // ignore: unawaited_futures
-        doSomething(); // Explicitly-ignored fire-and-forget.
       }
       ```
   unintendedHtmlInDocComment:

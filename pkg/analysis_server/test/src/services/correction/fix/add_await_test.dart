@@ -147,25 +147,6 @@ void f() async {
 ''');
   }
 
-  Future<void> test_methodInvocation_futureOr() async {
-    await resolveTestCode('''
-import 'dart:async';
-FutureOr doSomething() => Future.value('');
-
-void f() async {
-  doSomething();
-}
-''');
-    await assertHasFix('''
-import 'dart:async';
-FutureOr doSomething() => Future.value('');
-
-void f() async {
-  await doSomething();
-}
-''');
-  }
-
   Future<void> test_methodInvocationWithParserError() async {
     await resolveTestCode('''
 Future doSomething() => Future.value('');

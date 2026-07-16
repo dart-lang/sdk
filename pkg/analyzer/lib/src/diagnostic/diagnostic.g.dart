@@ -422,6 +422,23 @@ analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
+/// A warning code indicating that legacy plugins are deprecated.
+///
+/// No parameters.
+const DiagnosticWithoutArguments analysisOptionsDeprecatedPlugins =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'analysis_options_deprecated_plugins',
+      problemMessage:
+          "Support for legacy plugins is deprecated, and will be removed in an "
+          "upcoming version of Dart.",
+      correctionMessage:
+          "See https://dart.dev/tools/analyzer-plugins for documentation "
+          "regarding the new analyzer plugin system.",
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'analysis_options_deprecated_plugins',
+      expectedTypes: [],
+    );
+
 /// No parameters.
 const DiagnosticWithoutArguments annotationOnPointerField =
     DiagnosticWithoutArgumentsImpl(

@@ -3883,7 +3883,7 @@ SwitchDispatchNoSingleStep:
       SP[1] = 0;  // Unused result of invoking the initializer.
       SP[2] = field;
       Exit(thread, FP, SP + 3, pc);
-      INVOKE_RUNTIME(DRT_InitStaticField,
+      INVOKE_RUNTIME(DRT_InitializeSharedField,
                      NativeArguments(thread, 1, SP + 2, SP + 1));
 
       // Reload objects after the call which may trigger GC.
