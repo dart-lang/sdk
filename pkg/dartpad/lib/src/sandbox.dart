@@ -18,8 +18,6 @@ const _defaultHeadHtml = '''
 ''';
 
 String _iframeHtml({
-  required Uri ddcModuleLoaderJs,
-  required Uri sdkJs,
   required Uri sandboxJs,
   required String headHtml,
   required String bodyHtml,
@@ -29,8 +27,6 @@ String _iframeHtml({
 <html>
 <head>
   <meta charset="utf-8">
-  <script src="$ddcModuleLoaderJs" defer></script>
-  <script src="$sdkJs" defer></script>
   <script src="$sandboxJs" defer></script>
   $headHtml
 </head>
@@ -273,41 +269,36 @@ class Sandbox {
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
     iframe.srcdoc = _iframeHtml(
       sandboxJs: assetBaseUrl.resolve('sandbox.js'),
-      ddcModuleLoaderJs: assetBaseUrl.resolve('ddc_module_loader.js'),
-      sdkJs: assetBaseUrl.resolve('sdk.js'),
       headHtml: headHtml,
       bodyHtml: bodyHtml,
     ).toJS;
     container.appendChild(iframe);
 
-    try {
-      // TODO: Consider loading sandbox.js first, then setup error handlers and
-      //       have it proxy out loading errors, and have it setup the ports
-      //       and send out a port with a ready message when everything is
-      //       loaded. That could be a bit a faster! And provide better error
-      //       reporting, if something goes wrong inside the iframe.
-      await iframe.onLoad.first.timeout(const Duration(seconds: 120));
-    } on TimeoutException {
-      throw Exception('Timeout (120s) while loading sandboxed iframe');
-    }
+    return await Future(() async {
+      await for (final event in web.window.onMessage) {
+        if (event.source != iframe.contentWindow ||
+            !event.data.isA<JSObject>()) {
+          continue;
+        }
 
-    final web.MessageChannel(:port1, :port2) = web.MessageChannel();
-
-    final contentWindow = iframe.contentWindow;
-    if (contentWindow == null) {
-      // This should never happen, unless there some obscure security policy
-      // at play -- but even this is unlikely with srcdoc!
-      throw AssertionError('iframe.contentWindow is null after "load" event');
-    }
-    contentWindow.postMessage(
-      {'action': 'connect'}.jsify(),
-      '*'.toJS,
-      [port2].toJS,
-    );
-
-    return Sandbox._(
-      Peer.withoutJson(jsonRpcMessagePortChannel(port1)),
-      iframe,
-    );
+        final m = event.data as _SandboxMessage;
+        switch (m.action) {
+          case 'connect':
+            return Sandbox._(
+              Peer.withoutJson(jsonRpcMessagePortChannel(m.port)),
+              iframe,
+            );
+          case 'error':
+            throw Exception('Failed to load sandboxed iframe: ${m.message}');
+        }
+      }
+      throw AssertionError('unreachable');
+    }).timeout(const Duration(seconds: 120));
   }
+}
+
+extension type _SandboxMessage._(JSObject _) implements JSObject {
+  external String? get action;
+  external web.MessagePort get port;
+  external String get message;
 }

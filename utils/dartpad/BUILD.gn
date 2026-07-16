@@ -42,13 +42,13 @@ copy("copy_worker_js") {
 copy("copy_dart_sdk_js") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
   sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js" ]
-  outputs = [ "$root_out_dir/dartpad/sdk.js" ]
+  outputs = [ "$root_out_dir/dartpad/dart_sdk.js" ]
 }
 
 copy("copy_dart_sdk_js_map") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
   sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js.map" ]
-  outputs = [ "$root_out_dir/dartpad/sdk.js.map" ]
+  outputs = [ "$root_out_dir/dartpad/dart_sdk.js.map" ]
 }
 
 copy("copy_ddc_module_loader") {

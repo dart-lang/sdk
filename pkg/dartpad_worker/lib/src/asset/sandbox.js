@@ -5,15 +5,20 @@
 // sandbox.js provides a JSON-RPC 2.0 wrapper around functionality exposed
 // by ddc_module.loader.js
 //
-// This is intended to run inside the _sandboxed iframe_ and allows the host to
-// load modules, run code, hot-reload, receive console messages, etc. inside the
-// iframe using RPC over a `MessageChannel` exchanged through `postMessage`.
-//
-// The client side of these RPC calls is wrapped by [Sandbox] from
-// `package:dartpad`.
+// This is intended to run inside the _sandboxed iframe_ and allows the worker
+// to load modules, run code, hot-reload, receive console messages, etc. inside
+// the iframe using RPC over a `MessageChannel` exchanged through `postMessage`.
 (function () {
+  // Scripts to load into the sandbox at startup
+  self.$dartpadSandboxScripts = self.$dartpadSandboxScripts || [
+    './ddc_module_loader.js',
+    './dart_sdk.js',
+  ];
+
   // Port for JSON-RPC 2.0 communication with host.
-  let rpcPort = null;
+  const { port1: remotePort, port2: rpcPort } = new MessageChannel();
+
+  const baseUrl = document.currentScript?.src || self.location.href;
 
   const errorCode = {
     // JSON-RPC 2.0 Spec.
@@ -36,7 +41,6 @@
       this.name = "RpcError";
     }
   }
-
 
   // Registry of RPC methods
   const rpcMethods = {};
@@ -113,9 +117,7 @@
     }
   }
 
-
   function sendNotification(method, params) {
-    if (!rpcPort) return;
     rpcPort.postMessage({
       payload: JSON.stringify({
         jsonrpc: '2.0',
@@ -123,6 +125,47 @@
         params: params
       }),
     });
+  }
+
+  function loadScript(scriptUrl) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = new URL(scriptUrl, baseUrl).href;
+      script.async = false;
+      script.defer = true;
+      script.crossOrigin = 'anonymous';
+      script.onload = () => resolve();
+      script.onerror = () => {
+        reject(new Error(`Failed to load: ${scriptUrl}`));
+        script.remove();
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function initialize() {
+    try {
+      await Promise.all(self.$dartpadSandboxScripts.map(
+        (s) => loadScript(s),
+      ));
+
+      if (!self.dartDevEmbedder) {
+        throw new Error("dartDevEmbedder is not initialized.");
+      }
+
+      rpcPort.onmessage = onRcpMessage;
+      rpcPort.start();
+      window.parent.postMessage(
+        { action: 'connect', port: remotePort },
+        '*',
+        [remotePort],
+      );
+    } catch (e) {
+      window.parent.postMessage(
+        { action: 'error', message: e.toString() },
+        '*',
+      );
+    }
   }
 
   // Serialize arg similar to what console.log would do.
@@ -425,27 +468,5 @@
     }
   };
 
-  function onWindowMessage(ev) {
-    if (ev.source !== window.parent) {
-      console.warn('Rejected connect message from untrusted source.');
-      return;
-    }
-
-    // We expect the Dart host to send {'action': 'connect'}
-    if (ev.data?.action !== 'connect') {
-      console.warn('Received non-connect message:', ev);
-      return;
-    }
-    if (ev.ports?.length !== 1) {
-      console.error('Connect message missing port:', ev);
-      return;
-    }
-    window.removeEventListener('message', onWindowMessage);
-
-    rpcPort = ev.ports[0];
-    rpcPort.onmessage = onRcpMessage;
-    rpcPort.start();
-  }
-
-  window.addEventListener('message', onWindowMessage);
+  initialize();
 })();

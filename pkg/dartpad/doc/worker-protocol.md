@@ -57,7 +57,8 @@ The `sandbox.js` script is to be injected into a sandboxed iframe as follows:
 
 The `sandbox.js` script must use [window.postMessage][4] to send, either:
  * `{action: 'error', message: '...'}`, if loading failed, or,
- * `{action: 'connect'}` with a [MessagePort][2] attached, if loading succeeded.
+ * `{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached,
+ if loading succeeded.
 
 The attached [MessagePort][2] must be forwarded to the worker as outline in the
 protocol below. The communication protocol between `sandbox.js` and `worker.js`

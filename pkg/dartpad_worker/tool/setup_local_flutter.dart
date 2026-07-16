@@ -263,30 +263,32 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     p.join(ctx.flutterAssetDir, 'dart_sdk.js'),
   );
 
-  // Synthesize combined sdk.js
-  print('Synthesizing sdk.js...');
-  File(p.join(ctx.flutterAssetDir, 'sdk.js')).writeAsStringSync(r'''
-const scriptUrl = document.currentScript?.src || self.location.href;
+  // Synthesize sandbox.js
+  print('Synthesizing sandbox.js...');
+  File(p.join(ctx.flutterAssetDir, 'sandbox.js')).writeAsStringSync('''
+(function() {
+  const scriptUrl = document.currentScript?.src || self.location.href;
 
-// Tell the Flutter engine where to find CanvasKit and assets
-self.dartpadFlutterConfiguration = {
-  canvasKitBaseUrl: new URL('./canvaskit/', scriptUrl).href,
-  assetBase: new URL('./', scriptUrl).href,
-};
+  // Tell the Flutter engine where to find CanvasKit and assets
+  self.dartpadFlutterConfiguration = {
+    canvasKitBaseUrl: new URL('./canvaskit/', scriptUrl).href,
+    assetBase: new URL('./', scriptUrl).href,
+  };
 
-const flutterJs = new URL('./flutter.js', scriptUrl);
-const dartSdkJs = new URL('./dart_sdk.js', scriptUrl);
-const flutterWebJs = new URL('./flutter_web.js', scriptUrl);
+  self.\$dartpadSandboxScripts = [
+    './ddc_module_loader.js',
+    './flutter.js',
+    './dart_sdk.js',
+    './flutter_web.js',
+  ];
+})();
 
-self.$dartLoader.forceLoadScript(flutterJs, () => null);
-self.$dartLoader.forceLoadScript(dartSdkJs, () => null);
-self.$dartLoader.forceLoadScript(flutterWebJs, () => null);
+${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
 ''');
 
   // Copy worker from Dart DartPad SDK.
   print('Copying worker...');
   for (final f in [
-    'sandbox.js',
     'ddc_module_loader.js',
     'worker.js',
     'worker.mjs',
