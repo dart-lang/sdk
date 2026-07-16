@@ -22,7 +22,6 @@ import 'tools/file_watch.dart';
 import 'tools/hot_reload_compiler.dart' show HotReloadCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
-import 'util/jsonify.dart';
 
 final class Worker {
   final _rp = MemoryResourceProvider(context: p.posix);
@@ -520,7 +519,7 @@ class _Workspace {
       _session._rpc.sendNotification('workspace/languageServer/message', {
         'workspaceId': _workspaceId,
         'languageServerId': languageServerId,
-        'message': jsonify(m),
+        'message': m,
       });
     });
     unawaited(
@@ -546,9 +545,7 @@ class _Workspace {
         },
       );
     }
-    await languageServer.handle(
-      jsonify(params['message'].asMap) as Map<String, Object?>,
-    );
+    await languageServer.handle(params['message'].asMap.cast());
     return <String, Object?>{};
   }
 

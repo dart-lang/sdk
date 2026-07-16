@@ -42,10 +42,23 @@
   const rpcMethods = {};
 
   async function onRcpMessage(ev) {
-    const m = JSON.parse(ev.data);
+    // Ignore invalid messages from the host
+    if (!ev.data.payload) return;
 
-    // Ignore invalid messages or responses from the host
+    const m = JSON.parse(ev.data.payload);
+
+    // Ignore invalid payloads!
     if (!m || m.jsonrpc !== '2.0' || !m.method) return;
+
+    for (const prop of ['port', 'bytes']) {
+      if (ev.data[prop]) {
+        for (const k of ['params', 'result']) {
+          if (m[k]) {
+            m[k][prop] = ev.data[prop];
+          }
+        }
+      }
+    }
 
     const handler = rpcMethods[m.method];
 
@@ -62,11 +75,25 @@
 
       // If it's a request (has an id), send a success response
       if (m.id !== undefined) {
-        rpcPort.postMessage(JSON.stringify({
-          jsonrpc: '2.0',
-          id: m.id,
-          result: result ?? {}
-        }));
+        var port;
+        if (result.port instanceof MessagePort) {
+          port = result.port;
+          delete result.port;
+        }
+        var bytes;
+        if (result.bytes instanceof Uint8Array) {
+          bytes = result.bytes;
+          delete result.bytes;
+        }
+        rpcPort.postMessage({
+          payload: JSON.stringify({
+            jsonrpc: '2.0',
+            id: m.id,
+            result: result ?? {}
+          }),
+          bytes,
+          port,
+        });
       }
     } catch (e) {
       if (m.id === undefined) {
@@ -76,22 +103,26 @@
       const code = e instanceof RpcError ? e.code : errorCode.SERVER_ERROR;
       const message = e instanceof Error ? e.message : String(e);
 
-      rpcPort.postMessage(JSON.stringify({
-        jsonrpc: '2.0',
-        id: m.id,
-        error: { code, message }
-      }));
+      rpcPort.postMessage({
+        payload: JSON.stringify({
+          jsonrpc: '2.0',
+          id: m.id,
+          error: { code, message }
+        }),
+      });
     }
   }
 
 
   function sendNotification(method, params) {
     if (!rpcPort) return;
-    rpcPort.postMessage(JSON.stringify({
-      jsonrpc: '2.0',
-      method: method,
-      params: params
-    }));
+    rpcPort.postMessage({
+      payload: JSON.stringify({
+        jsonrpc: '2.0',
+        method: method,
+        params: params
+      }),
+    });
   }
 
   // Serialize arg similar to what console.log would do.

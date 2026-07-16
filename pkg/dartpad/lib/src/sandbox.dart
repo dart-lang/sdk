@@ -305,6 +305,9 @@ class Sandbox {
       [port2].toJS,
     );
 
-    return Sandbox._(Peer(jsonRpcMessagePortChannel(port1).cast()), iframe);
+    return Sandbox._(
+      Peer.withoutJson(jsonRpcMessagePortChannel(port1)),
+      iframe,
+    );
   }
 }

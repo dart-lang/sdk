@@ -71,16 +71,28 @@ Communication with the worker is conducted over a [MessagePort][2] using an
 extension of the [JSON-RPC 2.0][3] protocol.
 
 While the official JSON-RPC 2.0 specification mandates that messages be JSON,
-we leverage the browser's [Structured Clone][5] algorithm to transmit JSON-like
-JavaScript objects. The message structures conform to JSON-RPC 2.0, with two
-extensions:
+we want to leverage the browser's [Structured Clone][5] to transfer
+`MessagePort` and `Uint8Array` along with messages. To do this, we encode
+messages as follows:
 
- * **MessagePort transfer:** `params.port` and `result.port`, if present,
-   may be a [MessagePort][2].
- * **Binary data support:** The JSON-like structure may include `Uint8Array`
-   objects.
+```js
+{
+  "payload": JSON.stringify(message),
+  "port": port, /* [Optional] MessagePort instance */
+  "bytes": bytes, /* [Optional] Uint8Array instance */
+}
+```
 
-These extensions means that messages cannot be serialized as JSON.
+Once the `message` has been decoded as JSON, `port` is inserted into
+`params.port` (for requests) and `result.port` (for responses).
+Similarly, `bytes`, is inserted into `params.bytes` (for requests) and
+`result.bytes` (for responses).
+
+Consequently, when reading this protocol `port`/`bytes` in `params`/`result`
+should be treated as special properties that are send alongside the encoded
+JSON message.
+
+The use of `port` and `bytes` is not allowed when making batch requests.
 
 [JSON-RPC 2.0][3] requests are usually on the form:
 ```js
