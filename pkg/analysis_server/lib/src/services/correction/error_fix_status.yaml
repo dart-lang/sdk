@@ -62,6 +62,12 @@ analysis_option_deprecated:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
+analysis_options_deprecated_plugins:
+  status: needsFix
+  notes: |-
+    The fix is to remove the section. But I think there is something maybe also
+    we could do to remove the plugin package from the pubspec file. But that
+    might be conditional...
 analysis_option_deprecated_with_replacement:
   status: hasFix
 deprecated_lint:
