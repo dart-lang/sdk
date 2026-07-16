@@ -37,6 +37,7 @@ dev_dependencies:
   args: any
   async: any
   checks: any
+  dart_style: any
   heap_snapshot: any
   linter: any
   lints: any

@@ -4422,6 +4422,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [errorProne]
     hasPublishedDocs: true
+    # In the documentation, formatting is being ignored because formatting the
+    # `if` to be on a single line would prevent the diagnostic from being
+    # generated.
     documentation: |-
       #### Description
 
@@ -4434,6 +4437,7 @@ LinterLintCode:
       is not enclosed in a block:
 
       ```dart
+      %ignore=formatting
       int f(bool b) {
         if (b)
           [!return 1;!]
