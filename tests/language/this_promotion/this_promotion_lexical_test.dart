@@ -185,7 +185,8 @@ extension Ext on A {
 }
 
 main() {
-  var obj = B();
-  obj.testClass();
-  obj.testExtension();
+  A().testClass();
+  A().testExtension();
+  B().testClass();
+  B().testExtension();
 }

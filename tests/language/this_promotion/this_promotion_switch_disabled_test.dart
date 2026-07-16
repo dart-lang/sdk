@@ -82,8 +82,10 @@ extension Ext on A {
 }
 
 void main() {
-  var obj = B();
-  obj.testClass();
-  obj.testMixin();
-  obj.testExtension();
+  A().testExtension();
+  ClassTest().testClass();
+  ClassTest().testExtension();
+  B().testClass();
+  B().testMixin();
+  B().testExtension();
 }

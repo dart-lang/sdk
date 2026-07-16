@@ -52,4 +52,10 @@ extension on C {
 main() {
   C().test();
   C().testExtension();
+  D().test();
+  D().testExtension();
+  E().test();
+  E().testExtension();
+  F().test();
+  F().testExtension();
 }

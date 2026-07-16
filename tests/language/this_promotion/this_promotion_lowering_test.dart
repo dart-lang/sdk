@@ -178,9 +178,13 @@ extension ExtNullable on A? {
 }
 
 void main() {
-  var obj = B();
-  obj.testMixin();
-  obj.testClass();
-  obj.testExtension();
-  obj.testExtensionNullable();
+  A().testExtension();
+  A().testExtensionNullable();
+  ClassTest().testClass();
+  ClassTest().testExtension();
+  ClassTest().testExtensionNullable();
+  B().testMixin();
+  B().testClass();
+  B().testExtension();
+  B().testExtensionNullable();
 }
