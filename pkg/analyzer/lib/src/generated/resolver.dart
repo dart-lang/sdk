@@ -172,9 +172,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// if we are not in the scope of an instance element.
   InstanceElementImpl? enclosingInstanceElement;
 
-  /// The element representing the function containing the current node, or
-  /// `null` if the current node is not contained in a function.
-  ExecutableElementImpl? enclosingFunction;
+  /// The executable element containing the AST nodes being visited, or `null`
+  /// if we are not in the scope of an executable element.
+  ExecutableElementImpl? enclosingExecutableElement;
 
   /// The manager for the inheritance mappings.
   @override
@@ -1324,7 +1324,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     this.enclosingInstanceElement = enclosingInstanceElement;
     _setupUnpromotedThisType();
-    enclosingFunction = enclosingExecutableElement;
+    this.enclosingExecutableElement = enclosingExecutableElement;
   }
 
   /// We are going to resolve [node], without visiting its parent.
@@ -2475,40 +2475,39 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var returnType = element.type.returnType;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
-      assert(_unpromotedThisType == null);
-      _setupUnpromotedThisType();
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
-      node.typeName?.accept2(this);
-      node.parameters.accept2(this);
+    _withEnclosingExecutableElement(element, () {
+      try {
+        assert(_unpromotedThisType == null);
+        _setupUnpromotedThisType();
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
+        node.typeName?.accept2(this);
+        node.parameters.accept2(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
-      flowAnalysis.executableDeclaration_enter(
-        node,
-        element.formalParameters,
-        isClosure: false,
-      );
+        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          element.formalParameters,
+          isClosure: false,
+        );
 
-      node.initializers.accept2(this);
-      node.redirectedConstructor?.accept2(this);
-      node.body.resolve(this, returnType is DynamicType ? null : returnType);
-      elementResolver.visitConstructorDeclaration(node);
+        node.initializers.accept2(this);
+        node.redirectedConstructor?.accept2(this);
+        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        elementResolver.visitConstructorDeclaration(node);
 
-      if (node.factoryKeyword != null) {
-        checkForBodyMayCompleteNormally(body: node.body, errorNode: node);
+        if (node.factoryKeyword != null) {
+          checkForBodyMayCompleteNormally(body: node.body, errorNode: node);
+        }
+        flowAnalysis.executableDeclaration_exit(node.body, false);
+        flowAnalysis.bodyOrInitializer_exit();
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      } finally {
+        _unpromotedThisType = null;
       }
-      flowAnalysis.executableDeclaration_exit(node.body, false);
-      flowAnalysis.bodyOrInitializer_exit();
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-      _unpromotedThisType = null;
-    }
+    });
   }
 
   @override
@@ -2529,8 +2528,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
       flowAnalysis.getExpressionInfo(expression),
     );
-    if (fieldElement != null && enclosingFunction != null) {
-      var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
+    if (fieldElement != null && enclosingExecutableElement != null) {
+      var enclosingConstructor =
+          enclosingExecutableElement as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
         node,
         fieldElement,
@@ -3044,10 +3044,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var functionType = element.type;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
+    _withEnclosingExecutableElement(element, () {
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
@@ -3087,9 +3085,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         flowAnalysis.bodyOrInitializer_exit();
       }
       nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-    }
+    });
   }
 
   @override
@@ -3106,13 +3102,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    var outerFunction = enclosingFunction;
-    enclosingFunction = node.declaredFragment!.element;
 
-    _functionExpressionResolver.resolve(node, contextType: contextType);
-    insertGenericFunctionInstantiation(node, contextType: contextType);
-
-    enclosingFunction = outerFunction;
+    _withEnclosingExecutableElement(node.declaredFragment!.element, () {
+      _functionExpressionResolver.resolve(node, contextType: contextType);
+      insertGenericFunctionInstantiation(node, contextType: contextType);
+    });
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3519,39 +3513,41 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var returnType = element.returnType;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
-      assert(_unpromotedThisType == null);
-      _setupUnpromotedThisType();
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
-      node.returnType?.accept2(this);
-      node.typeParameters?.accept2(this);
-      node.parameters?.accept2(this);
+    _withEnclosingExecutableElement(element, () {
+      try {
+        assert(_unpromotedThisType == null);
+        _setupUnpromotedThisType();
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
+        node.returnType?.accept2(this);
+        node.typeParameters?.accept2(this);
+        node.parameters?.accept2(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
-      flowAnalysis.executableDeclaration_enter(
-        node,
-        element.formalParameters,
-        isClosure: false,
-      );
+        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          element.formalParameters,
+          isClosure: false,
+        );
 
-      node.body.resolve(this, returnType is DynamicType ? null : returnType);
-      elementResolver.visitMethodDeclaration(node);
+        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        elementResolver.visitMethodDeclaration(node);
 
-      if (!node.isSetter) {
-        checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+        if (!node.isSetter) {
+          checkForBodyMayCompleteNormally(
+            body: node.body,
+            errorNode: node.name,
+          );
+        }
+        flowAnalysis.executableDeclaration_exit(node.body, false);
+        flowAnalysis.bodyOrInitializer_exit();
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      } finally {
+        _unpromotedThisType = null;
       }
-      flowAnalysis.executableDeclaration_exit(node.body, false);
-      flowAnalysis.bodyOrInitializer_exit();
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-      _unpromotedThisType = null;
-    }
+    });
   }
 
   @override
@@ -3894,37 +3890,36 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var element = fragment?.element;
 
     var returnType = element?.type.returnType;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
-      assert(_unpromotedThisType == null);
-      _setupUnpromotedThisType();
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
+    _withEnclosingExecutableElement(element, () {
+      try {
+        assert(_unpromotedThisType == null);
+        _setupUnpromotedThisType();
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
 
-      if (primaryConstructorDeclaration != null) {
-        flowAnalysis.bodyOrInitializer_enter(node, element!.formalParameters);
-        flowAnalysis.executableDeclaration_enter(
-          node,
-          element.formalParameters,
-          isClosure: false,
-        );
+        if (primaryConstructorDeclaration != null) {
+          flowAnalysis.bodyOrInitializer_enter(node, element!.formalParameters);
+          flowAnalysis.executableDeclaration_enter(
+            node,
+            element.formalParameters,
+            isClosure: false,
+          );
+        }
+
+        node.initializers.accept2(this);
+        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+        if (primaryConstructorDeclaration != null) {
+          flowAnalysis.executableDeclaration_exit(node.body, false);
+          flowAnalysis.bodyOrInitializer_exit();
+        }
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      } finally {
+        _unpromotedThisType = null;
       }
-
-      node.initializers.accept2(this);
-      node.body.resolve(this, returnType is DynamicType ? null : returnType);
-
-      if (primaryConstructorDeclaration != null) {
-        flowAnalysis.executableDeclaration_exit(node.body, false);
-        flowAnalysis.bodyOrInitializer_exit();
-      }
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-      _unpromotedThisType = null;
-    }
+    });
   }
 
   @override
@@ -4818,6 +4813,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (node.isOfLocalFunction) {
         fragment.constantInitializer = defaultValue;
       }
+    }
+  }
+
+  void _withEnclosingExecutableElement(
+    ExecutableElementImpl? element,
+    void Function() operation,
+  ) {
+    var previous = enclosingExecutableElement;
+    enclosingExecutableElement = element;
+    try {
+      operation();
+    } finally {
+      enclosingExecutableElement = previous;
     }
   }
 
