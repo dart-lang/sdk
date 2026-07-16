@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:async/async.dart';
 import 'package:dartpad/src/worker_client.dart';
 import 'package:dartpad_worker/src/worker.dart';
 import 'package:http/http.dart' as http;
@@ -26,8 +30,29 @@ Future<WorkerClient> createInprocessWorker(
     Stream.value(sdkTar),
     pubHostedUrl: server.baseUrl.toString(),
   );
+  final channelController = StreamChannelController<String>();
 
-  final channelController = StreamChannelController<Object?>();
-  worker.session(channelController.foreign);
-  return WorkerClient(channelController.local);
+  worker.session(
+    channelController.foreign.transform(_jsonStreamChannelTransform),
+  );
+  return WorkerClient(
+    channelController.local.transform(_jsonStreamChannelTransform),
+  );
 }
+
+final _jsonStreamChannelTransform = StreamChannelTransformer(
+  StreamTransformer.fromBind((Stream<String> messages) async* {
+    await for (final m in messages) {
+      await Future<void>.delayed(Duration.zero);
+      yield jsonDecode(m);
+    }
+  }),
+  StreamSinkTransformer.fromStreamTransformer(
+    StreamTransformer.fromBind((Stream<Object?> messages) async* {
+      await for (final m in messages) {
+        await Future<void>.delayed(Duration.zero);
+        yield jsonEncode(m);
+      }
+    }),
+  ),
+);

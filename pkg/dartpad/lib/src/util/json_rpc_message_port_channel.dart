@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
@@ -13,9 +14,19 @@ import 'package:web/web.dart' as web;
 /// Returns a [StreamChannel] adapter that communicates JSON-RPC 2.0 over a
 /// [web.MessagePort].
 ///
-/// The channel will dartify incoming messages and jsify outgoing messages, and
-/// allow [Uint8List] in messages and transfer [web.MessagePort] objects so long
-/// as they are in `params.port` or `result.port`.
+/// This will encode messages as:
+/// ```js
+/// {
+///   "payload": JSON.stringify(message),
+///   "port": port, /* [Optional] MessagePort instance */
+///   "bytes": bytes, /* [Optional] Uint8Array instance */
+/// }
+/// ```
+///
+/// Extracting `port` and `bytes` from `params` and `result`, ensuring that
+/// they do not get encoded as JSON, and instead are sent separately.
+/// When reconstituting messages `port` and `bytes` will be inserted into
+/// `params` and `result`.
 ///
 /// This is an implementation of the "JSON-RPC 2.0 over MessagePort" as
 /// specified in `doc/worker-protocol.md`.
@@ -24,7 +35,11 @@ StreamChannel<Object?> jsonRpcMessagePortChannel(web.MessagePort port) {
   final output = StreamController<Object?>();
 
   port.onmessage = (web.MessageEvent event) {
-    input.sink.add(_dartifyMessage(event.data));
+    try {
+      input.sink.add(_dartifyMessage(event.data));
+    } on FormatException catch (e, st) {
+      input.sink.addError(e, st);
+    }
   }.toJS;
 
   // This happens if message can't be deserialized on this side of the port
@@ -66,24 +81,36 @@ StreamChannel<Object?> jsonRpcMessagePortChannel(web.MessagePort port) {
 }
 
 JSAny? _jsifyMessage(Object? m, List<JSObject> transferables) {
-  if (m is List) {
-    return m.map((m) => _jsifyMessage(m, transferables)).toList().toJS;
-  }
-
+  web.MessagePort? port;
+  Uint8List? bytes;
   if (m is Map) {
     // If params.port or result.port is a MessagePort, we transfer it!
     for (final k in ['params', 'result']) {
-      if (m[k] case final Map value) {
-        final port = value['port'] as Object?;
-        if (port.isA<web.MessagePort>()) {
-          transferables.add(port as web.MessagePort);
+      if (m[k] case final Map v) {
+        final p = v['port'] as Object?;
+        if (p.isA<web.MessagePort>()) {
+          port = p as web.MessagePort;
+          v.remove('port');
+        }
+      }
+    }
+    if (port != null) {
+      transferables.add(port);
+    }
+
+    // If params.bytes or result.bytes is a Uint8List, we move it to "bytes"
+    for (final k in ['params', 'result']) {
+      if (m[k] case final Map v) {
+        final b = v['bytes'];
+        if (b is Uint8List) {
+          v.remove('bytes');
+          bytes = b;
         }
       }
     }
 
-    // If error.data.request.params.port is a MessagePort, we remove it!
-    // This is automatically added by package:json_rpc_2 when an error is
-    // returned.
+    // package:json_rpc_2 will automatically add error.data.request.params to
+    // error messages, if they contain port or bytes we strip them.
     if (m['error'] case final Map error) {
       if (error['data'] case final Map data) {
         if (data['request'] case final Map request) {
@@ -91,80 +118,53 @@ JSAny? _jsifyMessage(Object? m, List<JSObject> transferables) {
             if ((params['port'] as JSAny?).isA<web.MessagePort>()) {
               params.remove('port');
             }
+            if (params['bytes'] is Uint8List) {
+              params.remove('bytes');
+            }
           }
         }
       }
     }
   }
 
-  return m.jsify();
+  return {'payload': jsonEncode(m), 'port': ?port, 'bytes': ?bytes}.jsify();
 }
 
 Object? _dartifyMessage(JSAny? data) {
-  if (data.isA<JSArray>()) {
-    return (data as JSArray).toDartIterable.map(_dartifyMessage).toList();
+  if (!data.isA<JSObject>()) {
+    return null;
   }
+  data as JSObject;
+  if (!data['payload'].isA<JSString>()) {
+    return null;
+  }
+  final payload = jsonDecode((data['payload'] as JSString).toDart);
 
-  if (data.isA<JSObject>()) {
-    final jsObj = data as JSObject;
-
-    // We extract and delete params.port and result.port, then reinject after
-    // .dartify(), because behavior is undefined for MessagePort in .dartify()
-    web.MessagePort? paramsPort;
-    web.MessagePort? resultPort;
-
-    final params = jsObj.getProperty('params'.toJS);
-    if (params.isA<JSObject>()) {
-      final pObj = params as JSObject;
-      final port = pObj.getProperty('port'.toJS);
-      if (port.isA<web.MessagePort>()) {
-        paramsPort = port as web.MessagePort;
-        pObj.delete('port'.toJS); // hide from .dartify()
+  if (data['port'].isA<web.MessagePort>()) {
+    final port = data['port'] as web.MessagePort;
+    if (payload is! Map) {
+      throw const FormatException('port not allowed in batch mode');
+    }
+    for (final k in ['params', 'result']) {
+      final v = payload[k];
+      if (v is Map) {
+        v['port'] = port;
       }
     }
+  }
 
-    final result = jsObj.getProperty('result'.toJS);
-    if (result.isA<JSObject>()) {
-      final rObj = result as JSObject;
-      final port = rObj.getProperty('port'.toJS);
-      if (port.isA<web.MessagePort>()) {
-        resultPort = port as web.MessagePort;
-        rObj.delete('port'.toJS);
+  if (data['bytes'].isA<JSUint8Array>()) {
+    final bytes = (data['bytes'] as JSUint8Array).toDart;
+    if (payload is! Map) {
+      throw const FormatException('bytes not allowed in batch mode');
+    }
+    for (final k in ['params', 'result']) {
+      final v = payload[k];
+      if (v is Map) {
+        v['bytes'] = bytes;
       }
     }
-
-    // Inject params.port and result.port again
-    final message = jsObj.dartify() as Map;
-    if (paramsPort != null && message['params'] is Map) {
-      (message['params'] as Map)['port'] = paramsPort;
-    }
-    if (resultPort != null && message['result'] is Map) {
-      (message['result'] as Map)['port'] = resultPort;
-    }
-
-    return _restoreIntegers(message);
   }
 
-  return _restoreIntegers(data.dartify());
-}
-
-/// Walk a JSON-like structure converting [double] to [int] whenever feasible.
-///
-/// When numbers move from JavaScript to dart2wasm they always become [double].
-/// This is different from how `jsonDecode` behaves and breaks expectations in
-/// `package:json_rpc_2`, to keep compatibility (and sanity) we restore ints.
-Object? _restoreIntegers(Object? v) {
-  if (v is double && v.isFinite && v == v.truncateToDouble()) {
-    return v.toInt();
-  } else if (v is List && v is! TypedData) {
-    // Traverse standard lists (but skip TypedData like Uint8List!)
-    for (var i = 0; i < v.length; i++) {
-      v[i] = _restoreIntegers(v[i]);
-    }
-  } else if (v is Map) {
-    for (final entry in v.entries) {
-      v[entry.key] = _restoreIntegers(entry.value);
-    }
-  }
-  return v;
+  return payload;
 }
