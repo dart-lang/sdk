@@ -63,6 +63,15 @@ void printNodeOn(Node? node, StringSink sink) {
 }
 
 // Coverage-ignore(suite): Not run.
+void printInternalNodeOn(InternalNode? node, StringSink sink) {
+  if (node == null) {
+    sink.write("null");
+  } else {
+    sink.write(node.toText(defaultAstTextStrategy));
+  }
+}
+
+// Coverage-ignore(suite): Not run.
 void printQualifiedNameOn(Member? member, StringSink sink) {
   if (member == null) {
     sink.write("null");

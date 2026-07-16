@@ -621,7 +621,8 @@ class BodyBuilderImpl extends StackListenerImpl
           variable: variable,
           receiver: expression,
           isNullAware: isNullAware,
-        )..fileOffset = expression.fileOffset,
+          fileOffset: expression.fileOffset,
+        ),
       );
       push(
         _createReadOnlyVariableAccess(
@@ -2141,7 +2142,8 @@ class BodyBuilderImpl extends StackListenerImpl
       target,
       typeArguments,
       arguments,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -2198,12 +2200,13 @@ class BodyBuilderImpl extends StackListenerImpl
         kind: UnresolvedKind.Method,
       );
     } else if (target is Procedure && !target.isAccessor) {
-      return new InternalSuperMethodInvocation(
-        name,
-        typeArguments,
-        arguments,
-        target,
-      )..fileOffset = offset;
+      return intern.createSuperMethodInvocation(
+        name: name,
+        typeArguments: typeArguments,
+        arguments: arguments,
+        procedure: target,
+        fileOffset: offset,
+      );
     }
     if (isImplicitCall) {
       return buildProblem(
@@ -2853,7 +2856,13 @@ class BodyBuilderImpl extends StackListenerImpl
     );
     InternalExpression b = popForValue();
     InternalExpression a = popForValue();
-    push(new IfNullExpression(a, b)..fileOffset = offsetForToken(token));
+    push(
+      intern.createIfNullExpression(
+        left: a,
+        right: b,
+        fileOffset: offsetForToken(token),
+      ),
+    );
     assert(checkState(token, <ValueKind>[ValueKinds.Expression]));
   }
 
@@ -2964,26 +2973,28 @@ class BodyBuilderImpl extends StackListenerImpl
 
     InternalExpression result;
     if (isExpression) {
-      result = new AnonymousMethodExpression(
-        variable,
-        receiver,
-        bodyExpr!,
+      result = intern.createAnonymousMethodExpression(
+        variable: variable,
+        receiver: receiver,
+        body: bodyExpr!,
         isImplicitlyTyped: isImplicitlyTyped,
         isNullAware: isNullAware,
         isCascade: isCascade,
         typeOffset: typeOffset,
-      )..fileOffset = variableOffset;
+        fileOffset: variableOffset,
+      );
     } else {
       InternalStatement bodyStatement = body as InternalStatement;
-      result = new AnonymousMethodBlock(
-        variable,
-        receiver,
-        bodyStatement,
+      result = intern.createAnonymousMethodBlock(
+        variable: variable,
+        receiver: receiver,
+        body: bodyStatement,
         isImplicitlyTyped: isImplicitlyTyped,
         isNullAware: isNullAware,
         isCascade: isCascade,
         typeOffset: typeOffset,
-      )..fileOffset = variableOffset;
+        fileOffset: variableOffset,
+      );
     }
 
     push(result);
@@ -3672,7 +3683,7 @@ class BodyBuilderImpl extends StackListenerImpl
       assert(conditionStatement is InternalEmptyStatement);
     }
     if (entry is InternalMapLiteralEntry) {
-      TreeNode result;
+      InternalNode result;
       if (variableOrExpression is InternalPatternVariableDeclaration) {
         result = intern.createPatternForMapEntry(
           offsetForToken(forToken),
@@ -3695,7 +3706,7 @@ class BodyBuilderImpl extends StackListenerImpl
       assignedVariables.endNode(result);
       push(result);
     } else {
-      TreeNode result;
+      InternalNode result;
       if (variableOrExpression is InternalPatternVariableDeclaration) {
         result = intern.createPatternForElement(
           offsetForToken(forToken),
@@ -4509,7 +4520,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Token ifToken = pop() as Token;
 
     InternalPatternGuard? patternGuard = condition.patternGuard;
-    TreeNode node;
+    InternalNode node;
     if (entry is InternalMapLiteralEntry) {
       if (patternGuard == null) {
         node = intern.createIfMapEntry(
@@ -4576,7 +4587,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Token ifToken = pop() as Token;
 
     InternalPatternGuard? patternGuard = condition.patternGuard;
-    TreeNode node;
+    InternalNode node;
     if (thenEntry is InternalMapLiteralEntry) {
       if (elseEntry is InternalMapLiteralEntry) {
         if (patternGuard == null) {
@@ -5462,11 +5473,11 @@ class BodyBuilderImpl extends StackListenerImpl
 
     push(
       new InternalRecordLiteral(
-        fields,
-        namedFields,
+        fields: fields,
+        namedFields: namedFields,
         isConst:
             constKeyword != null || constantContext == ConstantContext.inferred,
-        offset: token.offset,
+        fileOffset: token.offset,
       ),
     );
   }
@@ -5670,7 +5681,7 @@ class BodyBuilderImpl extends StackListenerImpl
       InternalBlock block = current.body as InternalBlock;
       // [block] is a synthetic block that is added to handle variable
       // declarations in the switch case.
-      TreeNode? lastNode = block.statements.isEmpty
+      InternalNode? lastNode = block.statements.isEmpty
           ? null
           : block.statements.last;
       if (lastNode is InternalBlock) {
@@ -6323,7 +6334,9 @@ class BodyBuilderImpl extends StackListenerImpl
           annotations,
         );
       }
-      push(intern.variablesDeclaration(variables, uri));
+      push(
+        intern.variablesDeclaration(variables, fileOffset: TreeNode.noOffset),
+      );
     }
     _exitLocalState();
   }
@@ -11075,12 +11088,13 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       InternalExpression node;
       if (typeAliasBuilder == null) {
-        node = new InternalConstructorInvocation(
-          target,
-          typeArguments,
-          arguments,
+        node = intern.createConstructorInvocation(
+          target: target,
+          typeArguments: typeArguments,
+          arguments: arguments,
           isConst: isConst,
-        )..fileOffset = fileOffset;
+          fileOffset: fileOffset,
+        );
         if (typeArguments != null) {
           problemReporting.checkBoundsInConstructorInvocation(
             libraryFeatures: libraryFeatures,
@@ -11093,13 +11107,14 @@ class BodyBuilderImpl extends StackListenerImpl
           );
         }
       } else {
-        node = new TypeAliasedConstructorInvocation(
-          typeAliasBuilder,
-          target,
-          typeArguments,
-          arguments,
+        node = intern.createTypeAliasedConstructorInvocation(
+          typeAliasBuilder: typeAliasBuilder,
+          target: target,
+          typeArguments: typeArguments,
+          arguments: arguments,
           isConst: isConst,
-        )..fileOffset = fileOffset;
+          fileOffset: fileOffset,
+        );
         // No type arguments were passed, so we need not check bounds.
         assert(typeArguments == null);
       }
@@ -11136,11 +11151,12 @@ class BodyBuilderImpl extends StackListenerImpl
       if (typeAliasBuilder == null) {
         FactoryConstructorInvocation factoryConstructorInvocation =
             new FactoryConstructorInvocation(
-              target,
-              typeArguments,
-              arguments,
+              target: target,
+              typeArguments: typeArguments,
+              arguments: arguments,
               isConst: isConst,
-            )..fileOffset = fileOffset;
+              fileOffset: fileOffset,
+            );
         if (typeArguments != null) {
           problemReporting.checkBoundsInFactoryInvocation(
             libraryFeatures: libraryFeatures,
@@ -11154,17 +11170,16 @@ class BodyBuilderImpl extends StackListenerImpl
         }
         node = factoryConstructorInvocation;
       } else {
-        TypeAliasedFactoryInvocation typeAliasedFactoryInvocation =
-            new TypeAliasedFactoryInvocation(
-              typeAliasBuilder,
-              target,
-              typeArguments,
-              arguments,
-              isConst: isConst,
-            )..fileOffset = fileOffset;
+        node = intern.createTypeAliasedFactoryInvocation(
+          typeAliasBuilder: typeAliasBuilder,
+          target: target,
+          typeArguments: typeArguments,
+          arguments: arguments,
+          isConst: isConst,
+          fileOffset: fileOffset,
+        );
         // No type arguments were passed, so we need not check bounds.
         assert(typeArguments == null);
-        node = typeAliasedFactoryInvocation;
       }
       return node;
     }

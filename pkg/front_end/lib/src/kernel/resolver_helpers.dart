@@ -280,11 +280,11 @@ class _InitializerBuilder {
               intern.createVariableGet(
                 formals[0].variable,
                 fileOffset: formals[0].fileOffset,
-              )..parent = initializer.arguments,
+              ),
               intern.createVariableGet(
                 formals[1].variable,
                 fileOffset: formals[1].fileOffset,
-              )..parent = initializer.arguments,
+              ),
             ];
             arguments.prependArguments([
               new PositionalArgument(enumSyntheticArguments[0]),
