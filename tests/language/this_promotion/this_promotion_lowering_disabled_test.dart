@@ -8,6 +8,7 @@
 // signatures of instance members remain the same, when the feature isn't
 // enabled.
 
+import 'package:meta/meta.dart';
 import 'package:expect/static_type_helper.dart';
 
 class A {
@@ -171,6 +172,119 @@ extension ExtNullable on A? {
   }
 }
 
+extension type C(A r) {
+  num get x => 1;
+  set x(num value) {}
+
+  num? get z => 1;
+  set z(num? value) {}
+
+  void f(num val) {}
+
+  num operator [](int index) => 1;
+  void operator []=(int index, num value) {}
+}
+
+extension type D(B r) implements E, F {
+  @redeclare
+  int get x => 2;
+  @redeclare
+  set x(Object value) {}
+
+  @redeclare
+  int? get z => 2;
+  @redeclare
+  set z(Object? value) {}
+
+  @redeclare
+  void f(Object val) {}
+
+  @redeclare
+  int operator [](int index) => 2;
+  @redeclare
+  void operator []=(int index, Object value) {}
+
+  void bOnly() {}
+}
+
+extension type E(ClassTest r) implements C {
+  void testExtensionTypeE() {
+    if (this is D) {
+      // 1. Simple member read
+      x.expectStaticType<Exactly<num>>;
+      this.x.expectStaticType<Exactly<num>>;
+
+      // 2. Simple member write (without promotion, expects num)
+      x = contextType(1.5)..expectStaticType<Exactly<num>>;
+      this.x = contextType(1.5)..expectStaticType<Exactly<num>>;
+
+      // 3. Method invocation (without promotion, expects num)
+      f(contextType(1.5)..expectStaticType<Exactly<num>>);
+      this.f(contextType(1.5)..expectStaticType<Exactly<num>>);
+
+      // 4. Compound assignment
+      (x += 1).expectStaticType<Exactly<num>>;
+      (this.x += 1).expectStaticType<Exactly<num>>;
+
+      // 5. Pre/post increment/decrement
+      (x++).expectStaticType<Exactly<num>>;
+      (++x).expectStaticType<Exactly<num>>;
+      (this.x++).expectStaticType<Exactly<num>>;
+      (++this.x).expectStaticType<Exactly<num>>;
+
+      // 6. Null-aware assignment (without promotion, expects num?)
+      (z ??= 1).expectStaticType<Exactly<num>>;
+      (this.z ??= 1).expectStaticType<Exactly<num>>;
+
+      // 8. Index operators
+      this[0].expectStaticType<Exactly<num>>;
+      this[0] = contextType(1.5)..expectStaticType<Exactly<num>>;
+      (this[0] += 1).expectStaticType<Exactly<num>>;
+      (this[0]++).expectStaticType<Exactly<num>>;
+      (++this[0]).expectStaticType<Exactly<num>>;
+    }
+  }
+}
+
+extension type F(M r) implements C {
+  void testExtensionTypeF() {
+    if (this is D) {
+      // 1. Simple member read
+      x.expectStaticType<Exactly<num>>;
+      this.x.expectStaticType<Exactly<num>>;
+
+      // 2. Simple member write (without promotion, expects num)
+      x = contextType(1.5)..expectStaticType<Exactly<num>>;
+      this.x = contextType(1.5)..expectStaticType<Exactly<num>>;
+
+      // 3. Method invocation (without promotion, expects num)
+      f(contextType(1.5)..expectStaticType<Exactly<num>>);
+      this.f(contextType(1.5)..expectStaticType<Exactly<num>>);
+
+      // 4. Compound assignment
+      (x += 1).expectStaticType<Exactly<num>>;
+      (this.x += 1).expectStaticType<Exactly<num>>;
+
+      // 5. Pre/post increment/decrement
+      (x++).expectStaticType<Exactly<num>>;
+      (++x).expectStaticType<Exactly<num>>;
+      (this.x++).expectStaticType<Exactly<num>>;
+      (++this.x).expectStaticType<Exactly<num>>;
+
+      // 6. Null-aware assignment (without promotion, expects num?)
+      (z ??= 1).expectStaticType<Exactly<num>>;
+      (this.z ??= 1).expectStaticType<Exactly<num>>;
+
+      // 8. Index operators
+      this[0].expectStaticType<Exactly<num>>;
+      this[0] = contextType(1.5)..expectStaticType<Exactly<num>>;
+      (this[0] += 1).expectStaticType<Exactly<num>>;
+      (this[0]++).expectStaticType<Exactly<num>>;
+      (++this[0]).expectStaticType<Exactly<num>>;
+    }
+  }
+}
+
 void main() {
   A().testExtension();
   A().testExtensionNullable();
@@ -181,4 +295,9 @@ void main() {
   B().testClass();
   B().testExtension();
   B().testExtensionNullable();
+  D(B()).testExtensionTypeE();
+  D(B()).testExtensionTypeF();
+  E(ClassTest()).testExtensionTypeE();
+  E(B()).testExtensionTypeE();
+  F(B()).testExtensionTypeF();
 }

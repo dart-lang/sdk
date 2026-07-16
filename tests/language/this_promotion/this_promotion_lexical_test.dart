@@ -26,6 +26,7 @@
 // _extension_ that contains an instance declaration named `x` will _not_ be
 // treated as `this.x`, so `this` promotion should not apply.
 
+import 'package:meta/meta.dart';
 import 'package:expect/static_type_helper.dart';
 
 class A {
@@ -184,9 +185,99 @@ extension Ext on A {
   }
 }
 
+extension type C(A r) {
+  num get x => 1;
+  set x(num value) {}
+
+  num? get z => 1;
+  set z(num? value) {}
+
+  void f(num val) {}
+
+  num operator [](int index) => 1;
+  void operator []=(int index, num value) {}
+
+  void testExtensionType() {
+    if (this is D) {
+      // 1. Simple member read
+      x.expectStaticType<Exactly<int>>();
+      this.x.expectStaticType<Exactly<int>>();
+
+      // 2. Simple member write (widen parameter to Object allows String)
+      x = contextType('hello')..expectStaticType<Exactly<Object>>;
+      this.x = contextType('hello')..expectStaticType<Exactly<Object>>;
+
+      // 3. Method invocation (widen parameter to Object allows String)
+      f(contextType('hello')..expectStaticType<Exactly<Object>>);
+      this.f(contextType('hello')..expectStaticType<Exactly<Object>>);
+      bOnly();
+      this.bOnly();
+
+      // 4. Compound assignment
+      (x += contextType(
+        1,
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
+      (x += 1).expectStaticType<Exactly<int>>();
+      (this.x += contextType(
+        1,
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
+      (this.x += 1).expectStaticType<Exactly<int>>();
+
+      // 5. Pre/post increment/decrement
+      (x++).expectStaticType<Exactly<int>>();
+      (++x).expectStaticType<Exactly<int>>();
+      (this.x++).expectStaticType<Exactly<int>>();
+      (++this.x).expectStaticType<Exactly<int>>();
+
+      // 6. Null-aware assignment (widen parameter to Object?)
+      (z ??= contextType(1)..expectStaticType<Exactly<Object?>>)
+          .expectStaticType<Exactly<Object?>>();
+      (z ??= 1).expectStaticType<Exactly<int>>();
+      (this.z ??= contextType(1)..expectStaticType<Exactly<Object?>>)
+          .expectStaticType<Exactly<Object?>>();
+      (this.z ??= 1).expectStaticType<Exactly<int>>();
+
+      // 7. Index operators
+      this[0].expectStaticType<Exactly<int>>();
+      this[0] = contextType('hello')..expectStaticType<Exactly<Object>>;
+      (this[0] += contextType(
+        1,
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
+      (this[0] += 1).expectStaticType<Exactly<int>>();
+      (this[0]++).expectStaticType<Exactly<int>>();
+      (++this[0]).expectStaticType<Exactly<int>>();
+    }
+  }
+}
+
+extension type D(B r) implements C {
+  @redeclare
+  int get x => 2;
+  @redeclare
+  set x(Object value) {}
+
+  @redeclare
+  int? get z => 2;
+  @redeclare
+  set z(Object? value) {}
+
+  @redeclare
+  void f(Object val) {}
+
+  @redeclare
+  int operator [](int index) => 2;
+  @redeclare
+  void operator []=(int index, Object value) {}
+
+  void bOnly() {}
+}
+
 main() {
   A().testClass();
   A().testExtension();
   B().testClass();
   B().testExtension();
+  C(A()).testExtensionType();
+  C(B()).testExtensionType();
+  D(B()).testExtensionType();
 }

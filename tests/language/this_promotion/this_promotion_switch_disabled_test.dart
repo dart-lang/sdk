@@ -81,6 +81,56 @@ extension Ext on A {
   }
 }
 
+extension type C(A r) {
+  void aOnly() {}
+}
+
+extension type D(ClassTest r) implements C {
+  void testExtensionTypeD() {
+    // 1. Switch statement
+    switch (this) {
+      case F():
+        this.expectStaticType<Exactly<D>>();
+    }
+
+    // 2. Switch expression
+    var _ = switch (this) {
+      F() => <void>[this.expectStaticType<Exactly<D>>()],
+      _ => null,
+    };
+
+    // 3. If-case statement
+    if (this case F()) {
+      this.expectStaticType<Exactly<D>>();
+    }
+  }
+}
+
+extension type E(M r) implements C {
+  void testExtensionTypeE() {
+    // 1. Switch statement
+    switch (this) {
+      case F():
+        this.expectStaticType<Exactly<E>>();
+    }
+
+    // 2. Switch expression
+    var _ = switch (this) {
+      F() => <void>[this.expectStaticType<Exactly<E>>()],
+      _ => null,
+    };
+
+    // 3. If-case statement
+    if (this case F()) {
+      this.expectStaticType<Exactly<E>>();
+    }
+  }
+}
+
+extension type F(B r) implements D, E {
+  void bOnly() {}
+}
+
 void main() {
   A().testExtension();
   ClassTest().testClass();
@@ -88,4 +138,9 @@ void main() {
   B().testClass();
   B().testMixin();
   B().testExtension();
+  D(ClassTest()).testExtensionTypeD();
+  D(B()).testExtensionTypeD();
+  E(B()).testExtensionTypeE();
+  F(B()).testExtensionTypeD();
+  F(B()).testExtensionTypeE();
 }

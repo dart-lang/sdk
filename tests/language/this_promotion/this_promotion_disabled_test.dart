@@ -96,6 +96,36 @@ extension on G? {
   }
 }
 
+extension type H(C r) {
+  void equality() {
+    if (this == null) {
+      // Comparison of non-nullable with null doesn't promote (remains H).
+      this.expectStaticType<Exactly<H>>();
+    } else {
+      this.expectStaticType<Exactly<H>>();
+    }
+  }
+
+  void isSameType() {
+    if (this is H) {
+      this.expectStaticType<Exactly<H>>();
+    } else {
+      // Trivially satisfied `is` test doesn't promote (remains H).
+      this.expectStaticType<Exactly<H>>();
+    }
+  }
+
+  void isSubtype() {
+    if (this is I) {
+      this.expectStaticType<Exactly<H>>();
+    } else {
+      this.expectStaticType<Exactly<H>>();
+    }
+  }
+}
+
+extension type I(D r) implements H {}
+
 main() {
   C().equality();
   C().isSameType();
@@ -115,4 +145,13 @@ main() {
   (null as G?).equality();
   (null as G?).isSameType();
   (null as G?).isSubtype();
+  H(C()).equality();
+  H(C()).isSameType();
+  H(C()).isSubtype();
+  H(D()).equality();
+  H(D()).isSameType();
+  H(D()).isSubtype();
+  I(D()).equality();
+  I(D()).isSameType();
+  I(D()).isSubtype();
 }

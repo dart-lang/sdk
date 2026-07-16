@@ -8,6 +8,8 @@
 // explicit or implicit `this`. In this test we try to exercise as many of those
 // lowered representations as we can think of.
 
+import 'package:meta/meta.dart';
+
 class A {
   num get x => 1;
   set x(num value) {}
@@ -141,6 +143,103 @@ extension Ext on A {
     //   ^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
     // [cfe] The method 'bOnly' isn't defined for the type 'A'.
+  }
+}
+
+extension type C(A r) {
+  num get x => 1;
+  set x(num value) {}
+
+  void f(num val) {}
+}
+
+extension type D(B r) implements E, F {
+  @redeclare
+  int get x => 2;
+  @redeclare
+  set x(int value) {}
+
+  @redeclare
+  void f(int val) {}
+
+  void bOnly() {}
+}
+
+extension type E(ClassTest r) implements C {
+  void testClass() {
+    if (this is D) {
+      // 1. Simple member write with double value
+      x = 1.0;
+      //  ^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
+
+      this.x = 1.0;
+      //       ^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
+
+      // 2. Method invocation with double value
+      f(1.0);
+      //^^^
+      // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+
+      this.f(1.0);
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+    }
+
+    // 3. Accessing B-only member without promotion
+    bOnly();
+    // [error column 5, length 5]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'bOnly' isn't defined for the type 'E'.
+
+    this.bOnly();
+    //   ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'bOnly' isn't defined for the type 'E'.
+  }
+}
+
+extension type F(M r) implements C {
+  void testMixin() {
+    if (this is D) {
+      // 1. Simple member write with double value
+      x = 1.0;
+      //  ^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
+
+      this.x = 1.0;
+      //       ^^^
+      // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+      // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
+
+      // 2. Method invocation with double value
+      f(1.0);
+      //^^^
+      // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+
+      this.f(1.0);
+      //     ^^^
+      // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+    }
+
+    // 3. Accessing B-only member without promotion
+    bOnly();
+    // [error column 5, length 5]
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'bOnly' isn't defined for the type 'F'.
+
+    this.bOnly();
+    //   ^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [cfe] The method 'bOnly' isn't defined for the type 'F'.
   }
 }
 
