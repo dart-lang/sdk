@@ -9967,7 +9967,7 @@ library
           initializer: expression_0
             ThisExpression
               thisKeyword: this @14
-              staticType: dynamic
+              staticType: InvalidType
           inducedGetter: #F2
       getters
         #F2 isComplete isOriginVariable isStatic vThis (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -9977,7 +9977,7 @@ library
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer vThis
       reference: <testLibrary>::@topLevelVariable::vThis
       firstFragment: #F1
-      type: dynamic
+      type: InvalidType
       constantInitializer
         fragment: #F1
         expression: expression_0
@@ -9986,7 +9986,7 @@ library
     isOriginVariable isStatic vThis
       reference: <testLibrary>::@getter::vThis
       firstFragment: #F2
-      returnType: dynamic
+      returnType: InvalidType
       variable: <testLibrary>::@topLevelVariable::vThis
 ''');
   }
