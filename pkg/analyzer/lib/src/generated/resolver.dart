@@ -1323,7 +1323,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     ExecutableElementImpl? enclosingExecutableElement,
   }) {
     this.enclosingInstanceElement = enclosingInstanceElement;
-    _setupUnpromotedThisType();
+    _unpromotedThisType = enclosingInstanceElement?.thisType;
     this.enclosingExecutableElement = enclosingExecutableElement;
   }
 
@@ -2011,20 +2011,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     TypeImpl returnedType;
     if (parameters == null) {
-      var oldThisType = _unpromotedThisType;
-      _unpromotedThisType = parameterType;
       var target = node.target;
       var targetInfo = target != null
           ? flowAnalysis.getExpressionInfo(target)
           : null;
       var body = node.body;
-      flowAnalysis.flow?.thisBinding_begin(targetInfo);
-      try {
-        returnedType = body.resolve(this, contextType);
-      } finally {
-        flowAnalysis.flow?.thisBinding_end();
-        _unpromotedThisType = oldThisType;
-      }
+      returnedType = _withUnpromotedThisType(parameterType, () {
+        flowAnalysis.flow?.thisBinding_begin(targetInfo);
+        try {
+          return body.resolve(this, contextType);
+        } finally {
+          flowAnalysis.flow?.thisBinding_end();
+        }
+      });
       if (body is AnonymousExpressionBodyImpl) {
         flowAnalysis.storeExpressionInfo(
           node,
@@ -2477,9 +2476,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var returnType = element.type.returnType;
 
     _withEnclosingExecutableElement(element, () {
-      try {
-        assert(_unpromotedThisType == null);
-        _setupUnpromotedThisType();
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
         checkUnreachableNode(node);
         node.documentationComment?.accept2(this);
         node.metadata.accept2(this);
@@ -2504,9 +2501,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         flowAnalysis.executableDeclaration_exit(node.body, false);
         flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
-      } finally {
-        _unpromotedThisType = null;
-      }
+      });
     });
   }
 
@@ -2987,15 +2982,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    try {
-      assert(_unpromotedThisType == null);
-      _setupUnpromotedThisType();
+    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitFieldDeclaration(node);
-    } finally {
-      _unpromotedThisType = null;
-    }
+    });
   }
 
   @override
@@ -3515,9 +3506,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var returnType = element.returnType;
 
     _withEnclosingExecutableElement(element, () {
-      try {
-        assert(_unpromotedThisType == null);
-        _setupUnpromotedThisType();
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
         checkUnreachableNode(node);
         node.documentationComment?.accept2(this);
         node.metadata.accept2(this);
@@ -3544,9 +3533,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         flowAnalysis.executableDeclaration_exit(node.body, false);
         flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
-      } finally {
-        _unpromotedThisType = null;
-      }
+      });
     });
   }
 
@@ -3892,9 +3879,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var returnType = element?.type.returnType;
 
     _withEnclosingExecutableElement(element, () {
-      try {
-        assert(_unpromotedThisType == null);
-        _setupUnpromotedThisType();
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
         checkUnreachableNode(node);
         node.documentationComment?.accept2(this);
         node.metadata.accept2(this);
@@ -3916,9 +3901,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           flowAnalysis.bodyOrInitializer_exit();
         }
         nullSafetyDeadCodeVerifier.flowEnd(node);
-      } finally {
-        _unpromotedThisType = null;
-      }
+      });
     });
   }
 
@@ -4721,10 +4704,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
-  void _setupUnpromotedThisType() {
-    _unpromotedThisType = enclosingInstanceElement?.thisType;
-  }
-
   bool _shouldSkipImplicitCallReferenceDueToForm(
     Expression expression,
     AstNode? parent,
@@ -4839,6 +4818,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       operation();
     } finally {
       enclosingInstanceElement = previous;
+    }
+  }
+
+  T _withUnpromotedThisType<T>(TypeImpl? type, T Function() operation) {
+    var previous = _unpromotedThisType;
+    _unpromotedThisType = type;
+    try {
+      return operation();
+    } finally {
+      _unpromotedThisType = previous;
     }
   }
 
