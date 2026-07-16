@@ -80,6 +80,7 @@ Future<void> main() async {
       argumentList: [new PositionalArgument(argument)],
       hasNamedBeforePositional: false,
       positionalCount: 1,
+      fileOffset: -1,
     );
     InternalExpression expression = new InternalVariableGet(
       new InternalLocalVariable(
@@ -88,6 +89,7 @@ Future<void> main() async {
         isImplicitlyTyped: false,
         fileOffset: -1,
       ),
+      fileOffset: -1,
     );
     InternalExpression index = new InternalVariableGet(
       new InternalLocalVariable(
@@ -96,6 +98,7 @@ Future<void> main() async {
         isImplicitlyTyped: false,
         fileOffset: -1,
       ),
+      fileOffset: -1,
     );
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLoader loader = new KernelTarget(

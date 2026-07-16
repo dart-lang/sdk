@@ -60,7 +60,7 @@ class JumpTarget {
     assert(isBreakTarget);
     for (InternalStatement user in users) {
       InternalBreakStatement breakStatement = user as InternalBreakStatement;
-      breakStatement.breakableStatement = targetStatement;
+      breakStatement.targetStatement = targetStatement;
     }
     users.clear();
   }
@@ -72,7 +72,7 @@ class JumpTarget {
       InternalContinueStatement continueStatement =
           user as InternalContinueStatement;
       statements.add(continueStatement);
-      continueStatement.continuableStatement = targetStatement;
+      continueStatement.targetStatement = targetStatement;
     }
     users.clear();
   }

@@ -4,9 +4,9 @@
 
 part of 'internal_ast.dart';
 
-// Coverage-ignore(suite): Not run.
 /// Base class for all control-flow elements.
-sealed class ControlFlowElement extends InternalExpression {
+sealed class ControlFlowElement({required super.fileOffset})
+    extends InternalExpression {
   /// Returns this control flow element as a [MapLiteralEntry], or `null` if
   /// this control flow element cannot be converted into a [MapLiteralEntry].
   ///
@@ -15,7 +15,7 @@ sealed class ControlFlowElement extends InternalExpression {
   /// [IfMapEntry], respectively.
   // TODO(johnniwinther): Merge this with [convertToMapEntry].
   InternalMapLiteralEntry? toMapLiteralEntry(
-    void onConvertElement(TreeNode from, TreeNode to),
+    void onConvertElement(ControlFlowElement from, ControlFlowMapEntry to),
   );
 
   @override
@@ -23,7 +23,7 @@ sealed class ControlFlowElement extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return unsupported("acceptInference", fileOffset, getFileUri(this));
+    throw new UnsupportedError('$runtimeType.acceptInference');
   }
 }
 
@@ -32,21 +32,17 @@ class SpreadElement extends ControlFlowElement {
   final InternalExpression expression;
   final bool isNullAware;
 
-  new(this.expression, {required this.isNullAware}) {
-    expression.parent = this;
-  }
+  new(this.expression, {required this.isNullAware, required super.fileOffset});
 
   @override
   SpreadMapEntry toMapLiteralEntry(
-    void onConvertElement(TreeNode from, TreeNode to),
+    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
   ) {
-    return new SpreadMapEntry(expression, isNullAware: isNullAware)
-      ..fileOffset = fileOffset;
-  }
-
-  @override
-  String toString() {
-    return "SpreadElement(${toStringInternal()})";
+    return new SpreadMapEntry(
+      expression,
+      isNullAware: isNullAware,
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -63,14 +59,13 @@ class SpreadElement extends ControlFlowElement {
 class NullAwareElement extends ControlFlowElement {
   final InternalExpression expression;
 
-  new(this.expression);
+  new(this.expression, {required super.fileOffset});
 
   @override
-  // Coverage-ignore(suite): Not run.
   InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(TreeNode from, TreeNode to) onConvertElement,
+    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
   ) {
-    return unsupported("toMapLiteralEntry", fileOffset, getFileUri(this));
+    throw new UnsupportedError('$runtimeType.toMapLiteralEntry');
   }
 
   @override
@@ -78,11 +73,6 @@ class NullAwareElement extends ControlFlowElement {
   void toTextInternal(AstPrinter printer) {
     printer.write('?');
     expression.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "NullAwareElement(${toStringInternal()})";
   }
 }
 
@@ -92,15 +82,11 @@ class IfElement extends ControlFlowElement {
   final InternalExpression then;
   final InternalExpression? otherwise;
 
-  new(this.condition, this.then, this.otherwise) {
-    condition.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
+  new(this.condition, this.then, this.otherwise, {required super.fileOffset});
 
   @override
   InternalMapLiteralEntry? toMapLiteralEntry(
-    void onConvertElement(TreeNode from, TreeNode to),
+    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
   ) {
     InternalMapLiteralEntry? thenEntry;
     InternalExpression then = this.then;
@@ -119,15 +105,14 @@ class IfElement extends ControlFlowElement {
       }
       if (otherwiseEntry == null) return null;
     }
-    IfMapEntry result = new IfMapEntry(condition, thenEntry, otherwiseEntry)
-      ..fileOffset = fileOffset;
+    IfMapEntry result = new IfMapEntry(
+      condition,
+      thenEntry,
+      otherwiseEntry,
+      fileOffset: fileOffset,
+    );
     onConvertElement(this, result);
     return result;
-  }
-
-  @override
-  String toString() {
-    return "IfElement(${toStringInternal()})";
   }
 
   @override
@@ -159,16 +144,17 @@ class ForElement extends ControlFlowElement implements ForElementBase {
   @override
   final InternalExpression body;
 
-  new(this.variables, this.condition, this.updates, this.body) {
-    setParents(variables, this);
-    condition?.parent = this;
-    setParents(updates, this);
-    body.parent = this;
-  }
+  new(
+    this.variables,
+    this.condition,
+    this.updates,
+    this.body, {
+    required super.fileOffset,
+  });
 
   @override
   InternalMapLiteralEntry? toMapLiteralEntry(
-    void onConvertElement(TreeNode from, TreeNode to),
+    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
   ) {
     InternalMapLiteralEntry? bodyEntry;
     InternalExpression body = this.body;
@@ -182,14 +168,10 @@ class ForElement extends ControlFlowElement implements ForElementBase {
       condition,
       updates,
       bodyEntry,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
     onConvertElement(this, result);
     return result;
-  }
-
-  @override
-  String toString() {
-    return "ForElement(${toStringInternal()})";
   }
 
   @override
@@ -232,13 +214,9 @@ class ForInElement extends ControlFlowElement {
     this.iterable,
     this.body, {
     required this.isAsync,
-    required int fileOffset,
+    required super.fileOffset,
     required this.forOffset,
-  }) {
-    this.fileOffset = fileOffset;
-    iterable.parent = this;
-    body.parent = this;
-  }
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -247,13 +225,8 @@ class ForInElement extends ControlFlowElement {
   }
 
   @override
-  String toString() {
-    return "ForInElement(${toStringInternal()})";
-  }
-
-  @override
   InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(TreeNode from, TreeNode to) onConvertElement,
+    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
   ) {
     InternalMapLiteralEntry? bodyEntry;
     InternalExpression body = this.body;
@@ -285,12 +258,8 @@ class IfCaseElement extends ControlFlowElement {
     required this.patternGuard,
     required this.then,
     this.otherwise,
-  }) {
-    expression.parent = this;
-    patternGuard.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -309,7 +278,7 @@ class IfCaseElement extends ControlFlowElement {
 
   @override
   InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(TreeNode from, TreeNode to) onConvertElement,
+    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
   ) {
     InternalMapLiteralEntry? thenEntry;
     InternalExpression then = this.then;
@@ -333,14 +302,10 @@ class IfCaseElement extends ControlFlowElement {
       patternGuard: this.patternGuard,
       then: thenEntry,
       otherwise: otherwiseEntry,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
     onConvertElement(this, result);
     return result;
-  }
-
-  @override
-  String toString() {
-    return "IfCaseElement(${toStringInternal()})";
   }
 }
 
@@ -378,6 +343,7 @@ class PatternForElement extends ControlFlowElement implements ForElementBase {
     required this.condition,
     required this.updates,
     required this.body,
+    required super.fileOffset,
   });
 
   @override
@@ -407,35 +373,16 @@ class PatternForElement extends ControlFlowElement implements ForElementBase {
 
   @override
   InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(TreeNode from, TreeNode to) onConvertElement,
+    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
   ) {
     throw new UnimplementedError("toMapLiteralEntry");
   }
-
-  @override
-  String toString() {
-    return "PatternForElement(${toStringInternal()})";
-  }
 }
 
-// Coverage-ignore(suite): Not run.
 /// Base class for all control-flow map entries.
-sealed class ControlFlowMapEntry extends TreeNode
-    with InternalTreeNode
-    implements InternalMapLiteralEntry {
-  @override
-  R accept<R>(TreeVisitor<R> v) {
-    throw new UnsupportedError('$runtimeType.accept');
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    throw new UnsupportedError('$runtimeType.accept1');
-  }
-
-  @override
-  String toStringInternal() => toText(defaultAstTextStrategy);
-}
+sealed class ControlFlowMapEntry({required super.fileOffset})
+    extends InternalNode
+    implements InternalMapLiteralEntry {}
 
 /// A null-aware entry in a map literal.
 class NullAwareMapEntry extends ControlFlowMapEntry {
@@ -454,6 +401,7 @@ class NullAwareMapEntry extends ControlFlowMapEntry {
     required this.key,
     required this.isValueNullAware,
     required this.value,
+    required super.fileOffset,
   });
 
   @override
@@ -469,11 +417,6 @@ class NullAwareMapEntry extends ControlFlowMapEntry {
     }
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// A spread element in a map literal.
@@ -481,14 +424,7 @@ class SpreadMapEntry extends ControlFlowMapEntry {
   final InternalExpression expression;
   final bool isNullAware;
 
-  new(this.expression, {required this.isNullAware}) {
-    expression.parent = this;
-  }
-
-  @override
-  String toString() {
-    return "SpreadMapEntry(${toStringInternal()})";
-  }
+  new(this.expression, {required this.isNullAware, required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -504,16 +440,7 @@ class IfMapEntry extends ControlFlowMapEntry {
   final InternalMapLiteralEntry then;
   final InternalMapLiteralEntry? otherwise;
 
-  new(this.condition, this.then, this.otherwise) {
-    condition.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
-
-  @override
-  String toString() {
-    return "IfMapEntry(${toStringInternal()})";
-  }
+  new(this.condition, this.then, this.otherwise, {required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -529,7 +456,7 @@ class IfMapEntry extends ControlFlowMapEntry {
   }
 }
 
-sealed class ForMapEntryBase implements TreeNode, InternalMapLiteralEntry {
+sealed class ForMapEntryBase implements InternalMapLiteralEntry {
   List<InternalVariableDeclaration> get variables;
 
   InternalExpression? get condition;
@@ -541,30 +468,25 @@ sealed class ForMapEntryBase implements TreeNode, InternalMapLiteralEntry {
 
 /// A 'for' element in a map literal.
 class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
-  // May be empty, but not null.
   @override
   final List<InternalVariableDeclaration> variables;
 
   @override
-  final InternalExpression? condition; // May be null.
+  final InternalExpression? condition;
 
   @override
-  final List<InternalExpression> updates; // May be empty, but not null.
+  final List<InternalExpression> updates;
 
   @override
   final InternalMapLiteralEntry body;
 
-  new(this.variables, this.condition, this.updates, this.body) {
-    setParents(variables, this);
-    condition?.parent = this;
-    setParents(updates, this);
-    body.parent = this;
-  }
-
-  @override
-  String toString() {
-    return "ForMapEntry(${toStringInternal()})";
-  }
+  new(
+    this.variables,
+    this.condition,
+    this.updates,
+    this.body, {
+    required super.fileOffset,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -615,6 +537,7 @@ class PatternForMapEntry extends ControlFlowMapEntry
     required this.condition,
     required this.updates,
     required this.body,
+    required super.fileOffset,
   });
 
   @override
@@ -641,11 +564,6 @@ class PatternForMapEntry extends ControlFlowMapEntry
     printer.write(') ');
     body.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "PatternForMapEntry(${toStringInternal()})";
-  }
 }
 
 /// A 'for-in' element in a map literal.
@@ -663,23 +581,14 @@ class ForInMapEntry extends ControlFlowMapEntry {
     this.iterable,
     this.body, {
     required this.isAsync,
-    required int fileOffset,
+    required super.fileOffset,
     required this.forOffset,
-  }) {
-    this.fileOffset = fileOffset;
-    iterable.parent = this;
-    body.parent = this;
-  }
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter state) {
     // TODO(johnniwinther): Implement this.
-  }
-
-  @override
-  String toString() {
-    return "ForInMapEntry(${toStringInternal()})";
   }
 }
 
@@ -694,12 +603,8 @@ class IfCaseMapEntry extends ControlFlowMapEntry {
     required this.patternGuard,
     required this.then,
     this.otherwise,
-  }) {
-    expression.parent = this;
-    patternGuard.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -714,11 +619,6 @@ class IfCaseMapEntry extends ControlFlowMapEntry {
       printer.write(' else ');
       otherwise!.toTextInternal(printer);
     }
-  }
-
-  @override
-  String toString() {
-    return "IfCaseMapEntry(${toStringInternal()})";
   }
 }
 
@@ -761,7 +661,8 @@ InternalMapLiteralEntry convertToMapEntry(
   ProblemReporting problemReporting,
   CompilerContext compilerContext,
   Uri fileUri,
-  void onConvertElement(TreeNode from, TreeNode to),
+  void Function(ControlFlowElement from, ControlFlowMapEntry to)
+  onConvertElement,
 ) {
   if (element is ControlFlowElement) {
     switch (element) {
@@ -769,7 +670,8 @@ InternalMapLiteralEntry convertToMapEntry(
         return new SpreadMapEntry(
           element.expression,
           isNullAware: element.isNullAware,
-        )..fileOffset = element.expression.fileOffset;
+          fileOffset: element.expression.fileOffset,
+        );
 
       case NullAwareElement():
         // Coverage-ignore(suite): Not run.
@@ -799,7 +701,8 @@ InternalMapLiteralEntry convertToMapEntry(
                   fileUri,
                   onConvertElement,
                 ),
-        )..fileOffset = element.fileOffset;
+          fileOffset: element.fileOffset,
+        );
         onConvertElement(element, result);
         return result;
 
@@ -823,7 +726,8 @@ InternalMapLiteralEntry convertToMapEntry(
                   fileUri,
                   onConvertElement,
                 ),
-        )..fileOffset = element.fileOffset;
+          fileOffset: element.fileOffset,
+        );
         onConvertElement(element, result);
         return result;
 
@@ -841,7 +745,8 @@ InternalMapLiteralEntry convertToMapEntry(
             fileUri,
             onConvertElement,
           ),
-        )..fileOffset = element.fileOffset;
+          fileOffset: element.fileOffset,
+        );
         onConvertElement(element, result);
         return result;
 
@@ -857,7 +762,8 @@ InternalMapLiteralEntry convertToMapEntry(
             fileUri,
             onConvertElement,
           ),
-        )..fileOffset = element.fileOffset;
+          fileOffset: element.fileOffset,
+        );
         onConvertElement(element, result);
         return result;
 

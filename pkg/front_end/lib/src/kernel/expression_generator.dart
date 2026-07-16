@@ -511,8 +511,12 @@ class VariableUseGenerator extends Generator {
   }) {
     InternalExpression read = _createRead();
     InternalExpression write = _createWrite(fileOffset, value);
-    return new IfNullSet(read, write, forEffect: voidContext)
-      ..fileOffset = offset;
+    return intern.createIfNullSet(
+      read: read,
+      write: write,
+      forEffect: voidContext,
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -542,14 +546,14 @@ class VariableUseGenerator extends Generator {
     _checkAssignment(_nameOffset);
     _helper.registerVariableRead(variable);
     _helper.registerVariableAssignment(variable);
-    return new LocalIncDec(
+    return intern.createLocalIncDec(
       variable: variable,
       forEffect: forEffect,
       isPost: isPost,
       isInc: binaryOperator == plusName,
       nameOffset: _nameOffset,
       operatorOffset: operatorOffset,
-    )..fileOffset = _nameOffset;
+    );
   }
 
   @override
@@ -625,7 +629,7 @@ class VariableUseGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", variable: ");
-    printNodeOn(variable, sink);
+    printInternalNodeOn(variable, sink);
   }
 }
 
@@ -674,13 +678,13 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
     InternalExpression value, {
     bool voidContext = false,
   }) {
-    InternalInvalidExpression error = _makeInvalidWrite()..parent = variable;
+    InternalInvalidExpression error = _makeInvalidWrite();
     InternalExpression assignment = super.buildAssignment(
       value,
       voidContext: voidContext,
     );
     if (assignment is InternalVariableSet) {
-      assignment.value = error..parent = assignment;
+      assignment.value = error;
     }
     return assignment;
   }
@@ -758,7 +762,7 @@ class PropertyAccessGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", receiver: ");
-    printNodeOn(receiver, sink);
+    printInternalNodeOn(receiver, sink);
     sink.write(", name: ");
     sink.write(name.text);
   }
@@ -811,15 +815,16 @@ class PropertyAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return new IfNullPropertySet(
-      receiver,
-      name,
-      value,
+    return intern.createIfNullPropertySet(
+      receiver: receiver,
+      propertyName: name,
+      rhs: value,
       forEffect: voidContext,
       readOffset: fileOffset,
       writeOffset: fileOffset,
       isNullAware: false,
-    )..fileOffset = offset;
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -831,7 +836,7 @@ class PropertyAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    return new CompoundPropertySet(
+    return intern.createCompoundPropertySet(
       receiver: receiver,
       propertyName: name,
       binaryName: binaryOperator,
@@ -841,7 +846,7 @@ class PropertyAccessGenerator extends Generator {
       binaryOffset: operatorOffset,
       writeOffset: fileOffset,
       isNullAware: false,
-    )..fileOffset = operatorOffset;
+    );
   }
 
   InternalExpression _buildPrePostfixIncrement(
@@ -850,9 +855,9 @@ class PropertyAccessGenerator extends Generator {
     required bool forEffect,
     required bool isPost,
   }) {
-    return new PropertyIncDec(
-      receiver,
-      name,
+    return intern.createPropertyIncDec(
+      receiver: receiver,
+      name: name,
       forEffect: forEffect,
       isInc: binaryOperator == plusName,
       isPost: isPost,
@@ -860,7 +865,7 @@ class PropertyAccessGenerator extends Generator {
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
       isImplicitThis: false,
-    )..fileOffset = _nameOffset;
+    );
   }
 
   @override
@@ -1074,11 +1079,12 @@ class ThisPropertyAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return new IfNullSet(
-      _createRead(),
-      _createWrite(offset, value, forEffect: voidContext),
+    return intern.createIfNullSet(
+      read: _createRead(),
+      write: _createWrite(offset, value, forEffect: voidContext),
       forEffect: voidContext,
-    )..fileOffset = offset;
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -1106,9 +1112,9 @@ class ThisPropertyAccessGenerator extends Generator {
     required bool isPost,
   }) {
     _helper.readInternalThisVariable();
-    return new PropertyIncDec(
-      _thisExpression,
-      name,
+    return intern.createPropertyIncDec(
+      receiver: _thisExpression,
+      name: name,
       forEffect: forEffect,
       isInc: binaryOperator == plusName,
       isPost: isPost,
@@ -1116,7 +1122,7 @@ class ThisPropertyAccessGenerator extends Generator {
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
       isImplicitThis: !isThisExplicit,
-    )..fileOffset = fileOffset;
+    );
   }
 
   @override
@@ -1260,15 +1266,16 @@ class NullAwarePropertyAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return new IfNullPropertySet(
-      receiver,
-      name,
-      value,
+    return intern.createIfNullPropertySet(
+      receiver: receiver,
+      propertyName: name,
+      rhs: value,
       forEffect: voidContext,
       readOffset: fileOffset,
       writeOffset: fileOffset,
       isNullAware: true,
-    )..fileOffset = offset;
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -1280,7 +1287,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    return new CompoundPropertySet(
+    return intern.createCompoundPropertySet(
       receiver: receiver,
       propertyName: name,
       binaryName: binaryOperator,
@@ -1290,7 +1297,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       binaryOffset: operatorOffset,
       writeOffset: fileOffset,
       isNullAware: true,
-    )..fileOffset = operatorOffset;
+    );
   }
 
   InternalExpression _buildPrePostfixIncrement(
@@ -1299,9 +1306,9 @@ class NullAwarePropertyAccessGenerator extends Generator {
     required bool forEffect,
     required bool isPost,
   }) {
-    return new PropertyIncDec(
-      receiver,
-      name,
+    return intern.createPropertyIncDec(
+      receiver: receiver,
+      name: name,
       forEffect: forEffect,
       isInc: binaryOperator == plusName,
       isPost: isPost,
@@ -1309,7 +1316,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       operatorOffset: operatorOffset,
       nameOffset: _nameOffset,
       isImplicitThis: false,
-    )..fileOffset = fileOffset;
+    );
   }
 
   @override
@@ -1371,7 +1378,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", receiver: ");
-    printNodeOn(receiver, sink);
+    printInternalNodeOn(receiver, sink);
     sink.write(", name: ");
     sink.write(name.text);
   }
@@ -1512,7 +1519,7 @@ class SuperPropertyAccessGenerator extends Generator {
       );
     }
     _helper.readInternalThisVariable();
-    return new SuperIncDec(
+    return intern.createSuperIncDec(
       receiver: intern.createThisExpression(fileOffset: _nameOffset),
       getter: getter,
       setter: setter,
@@ -1522,7 +1529,7 @@ class SuperPropertyAccessGenerator extends Generator {
       isInc: binaryOperator == plusName,
       nameOffset: _nameOffset,
       operatorOffset: operatorOffset,
-    )..fileOffset = _nameOffset;
+    );
   }
 
   @override
@@ -1560,11 +1567,12 @@ class SuperPropertyAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return new IfNullSet(
-      _createRead(),
-      _createWrite(fileOffset, value),
+    return intern.createIfNullSet(
+      read: _createRead(),
+      write: _createWrite(fileOffset, value),
       forEffect: voidContext,
-    )..fileOffset = offset;
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -1708,7 +1716,7 @@ class IndexedAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return new IfNullIndexSet(
+    return intern.createIfNullIndexSet(
       receiver: receiver,
       index: index,
       value: value,
@@ -1717,7 +1725,7 @@ class IndexedAccessGenerator extends Generator {
       writeOffset: fileOffset,
       forEffect: voidContext,
       isNullAware: isNullAware,
-    )..fileOffset = offset;
+    );
   }
 
   @override
@@ -1729,7 +1737,7 @@ class IndexedAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    return new CompoundIndexSet(
+    return intern.createCompoundIndexSet(
       receiver: receiver,
       index: index,
       binaryName: binaryOperator,
@@ -1740,7 +1748,7 @@ class IndexedAccessGenerator extends Generator {
       forEffect: voidContext,
       forPostIncDec: isPostIncDec,
       isNullAware: isNullAware,
-    )..fileOffset = operatorOffset;
+    );
   }
 
   @override
@@ -1799,9 +1807,9 @@ class IndexedAccessGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", receiver: ");
-    printNodeOn(receiver, sink);
+    printInternalNodeOn(receiver, sink);
     sink.write(", index: ");
-    printNodeOn(index, sink);
+    printInternalNodeOn(index, sink);
     sink.write(", isNullAware: ${isNullAware}");
   }
 
@@ -1915,7 +1923,7 @@ class ThisIndexedAccessGenerator extends Generator {
     InternalExpression receiver = intern.createThisExpression(
       fileOffset: fileOffset,
     );
-    return new IfNullIndexSet(
+    return intern.createIfNullIndexSet(
       receiver: receiver,
       index: index,
       value: value,
@@ -1924,7 +1932,7 @@ class ThisIndexedAccessGenerator extends Generator {
       writeOffset: fileOffset,
       forEffect: voidContext,
       isNullAware: isNullAware,
-    )..fileOffset = offset;
+    );
   }
 
   @override
@@ -1940,7 +1948,7 @@ class ThisIndexedAccessGenerator extends Generator {
     InternalExpression receiver = intern.createThisExpression(
       fileOffset: fileOffset,
     );
-    return new CompoundIndexSet(
+    return intern.createCompoundIndexSet(
       receiver: receiver,
       index: index,
       binaryName: binaryOperator,
@@ -1951,7 +1959,7 @@ class ThisIndexedAccessGenerator extends Generator {
       forEffect: voidContext,
       forPostIncDec: isPostIncDec,
       isNullAware: isNullAware,
-    )..fileOffset = operatorOffset;
+    );
   }
 
   @override
@@ -2010,7 +2018,7 @@ class ThisIndexedAccessGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", index: ");
-    printNodeOn(index, sink);
+    printInternalNodeOn(index, sink);
   }
 }
 
@@ -2051,16 +2059,16 @@ class SuperIndexedAccessGenerator extends Generator {
     } else {
       _helper.readInternalThisVariable();
       return intern.createSuperMethodInvocation(
-        fileOffset,
-        indexGetName,
-        getter,
-        null,
-        intern.createArguments(
+        name: indexGetName,
+        procedure: getter,
+        typeArguments: null,
+        arguments: intern.createArguments(
           fileOffset,
           arguments: [new PositionalArgument(index)],
           hasNamedBeforePositional: false,
           positionalCount: 1,
         ),
+        fileOffset: fileOffset,
       );
     }
   }
@@ -2083,11 +2091,10 @@ class SuperIndexedAccessGenerator extends Generator {
       if (voidContext) {
         _helper.readInternalThisVariable();
         return intern.createSuperMethodInvocation(
-          fileOffset,
-          indexSetName,
-          setter,
-          null,
-          intern.createArguments(
+          name: indexSetName,
+          procedure: setter,
+          typeArguments: null,
+          arguments: intern.createArguments(
             fileOffset,
             arguments: [
               new PositionalArgument(index),
@@ -2096,10 +2103,16 @@ class SuperIndexedAccessGenerator extends Generator {
             hasNamedBeforePositional: false,
             positionalCount: 2,
           ),
+          fileOffset: fileOffset,
         );
       } else {
         _helper.readInternalThisVariable();
-        return new SuperIndexSet(setter, index, value)..fileOffset = fileOffset;
+        return intern.createSuperIndexSet(
+          setter: setter,
+          index: index,
+          value: value,
+          fileOffset: fileOffset,
+        );
       }
     }
   }
@@ -2126,7 +2139,7 @@ class SuperIndexedAccessGenerator extends Generator {
     bool voidContext = false,
   }) {
     _helper.readInternalThisVariable();
-    return new IfNullSuperIndexSet(
+    return intern.createIfNullSuperIndexSet(
       getter: getter,
       setter: setter,
       index: index,
@@ -2135,7 +2148,7 @@ class SuperIndexedAccessGenerator extends Generator {
       testOffset: offset,
       writeOffset: fileOffset,
       forEffect: voidContext,
-    )..fileOffset = offset;
+    );
   }
 
   @override
@@ -2226,7 +2239,7 @@ class SuperIndexedAccessGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", index: ");
-    printNodeOn(index, sink);
+    printInternalNodeOn(index, sink);
     sink.write(", getter: ");
     printQualifiedNameOn(getter, sink);
     sink.write(", setter: ");
@@ -2427,11 +2440,12 @@ class StaticAccessGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return new IfNullSet(
-      _createRead(),
-      _createWrite(offset, value),
+    return intern.createIfNullSet(
+      read: _createRead(),
+      write: _createWrite(offset, value),
       forEffect: voidContext,
-    )..fileOffset = offset;
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -2466,7 +2480,7 @@ class StaticAccessGenerator extends Generator {
       return _makeInvalidRead(unresolvedKind: UnresolvedKind.Setter);
     }
 
-    return new StaticIncDec(
+    return intern.createStaticIncDec(
       getter: getter,
       setter: setter,
       name: targetName,
@@ -2475,7 +2489,7 @@ class StaticAccessGenerator extends Generator {
       isInc: binaryOperator == plusName,
       nameOffset: _nameOffset,
       operatorOffset: operatorOffset,
-    )..fileOffset = _nameOffset;
+    );
   }
 
   @override
@@ -2755,7 +2769,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
         thisAccess: _createThisAccess(),
         name: targetName,
         tearOff: getter,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     } else {
       read = new ExtensionGet.implicit(
         extension: extension,
@@ -2763,7 +2778,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
         thisAccess: _createThisAccess(),
         name: targetName,
         getter: getter,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     }
     return read;
   }
@@ -2793,7 +2809,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
         setter: setter,
         value: value,
         forEffect: forEffect,
-      )..fileOffset = offset;
+        fileOffset: offset,
+      );
     }
   }
 
@@ -2844,7 +2861,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       readOffset: fileOffset,
       binaryOffset: offset,
       writeOffset: fileOffset,
-    )..fileOffset = offset;
+    );
   }
 
   @override
@@ -2904,7 +2921,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
       isPost: isPost,
       isInc: binaryOperator == plusName,
       forEffect: forEffect,
-    )..fileOffset = operatorOffset;
+      fileOffset: operatorOffset,
+    );
   }
 
   @override
@@ -2977,7 +2995,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
         target: method,
         typeArguments: typeArguments,
         arguments: arguments,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     } else if (getter != null) {
       InternalExpression thisAccess = _createThisAccess();
       return new ExtensionGetterInvocation.implicit(
@@ -2988,7 +3007,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
         target: getter,
         typeArguments: typeArguments,
         arguments: arguments,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     } else {
       return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
     }
@@ -3212,7 +3232,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         tearOff: getter,
         isNullAware: isNullAware,
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     } else {
       return new ExtensionGet.explicit(
         extension: extension,
@@ -3222,7 +3243,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         getter: getter,
         isNullAware: isNullAware,
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     }
   }
 
@@ -3262,7 +3284,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         forEffect: forEffect,
         isNullAware: isNullAware,
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-      )..fileOffset = offset;
+        fileOffset: offset,
+      );
     }
   }
 
@@ -3309,7 +3332,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       writeOffset: fileOffset,
       isNullAware: isNullAware,
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-    )..fileOffset = offset;
+    );
   }
 
   @override
@@ -3344,7 +3367,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       writeOffset: fileOffset,
       isNullAware: isNullAware,
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-    )..fileOffset = operatorOffset;
+    );
   }
 
   InternalExpression _buildPrePostfixIncrement(
@@ -3373,7 +3396,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       forEffect: forEffect,
       isNullAware: isNullAware,
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-    )..fileOffset = operatorOffset;
+      fileOffset: operatorOffset,
+    );
   }
 
   @override
@@ -3446,7 +3470,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         arguments: arguments,
         isNullAware: isNullAware,
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     } else if (getter != null) {
       return new ExtensionGetterInvocation.explicit(
         extension: extension,
@@ -3458,7 +3483,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         arguments: arguments,
         isNullAware: isNullAware,
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
     } else {
       return _makeInvalidRead(unresolvedKind: UnresolvedKind.Getter);
     }
@@ -3592,7 +3618,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       index,
       isNullAware: isNullAware,
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -3615,7 +3642,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       isNullAware: isNullAware,
       forEffect: voidContext,
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
   }
 
   @override
@@ -3662,7 +3690,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       forEffect: voidContext,
       isNullAware: isNullAware,
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
-    )..fileOffset = offset;
+    );
   }
 
   @override
@@ -3757,7 +3785,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", index: ");
-    printNodeOn(index, sink);
+    printInternalNodeOn(index, sink);
     sink.write(", readTarget: ");
     printQualifiedNameOn(readTarget, sink);
     sink.write(", writeTarget: ");
@@ -4105,7 +4133,8 @@ class LoadLibraryGenerator extends Generator {
     LoadLibraryTearOff read = new LoadLibraryTearOff(
       builder.importDependency,
       builder.createTearoffMethod(),
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
     return read;
   }
 
@@ -4137,8 +4166,12 @@ class LoadLibraryGenerator extends Generator {
   }) {
     InternalExpression read = buildSimpleRead();
     InternalExpression write = _makeInvalidWrite();
-    return new IfNullSet(read, write, forEffect: voidContext)
-      ..fileOffset = offset;
+    return new IfNullSet(
+      read: read,
+      write: write,
+      forEffect: voidContext,
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -5367,8 +5400,12 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   }) {
     InternalExpression read = _createRead();
     InternalExpression write = _makeInvalidWrite();
-    return new IfNullSet(read, write, forEffect: voidContext)
-      ..fileOffset = offset;
+    return new IfNullSet(
+      read: read,
+      write: write,
+      forEffect: voidContext,
+      fileOffset: offset,
+    );
   }
 
   @override
@@ -5447,7 +5484,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", expression: ");
-    printNodeOn(expression, sink);
+    printInternalNodeOn(expression, sink);
     sink.write(", plainNameForRead: ");
     sink.write(targetName);
     sink.write(", kind: ");
@@ -5538,7 +5575,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    return buildError(kind: UnresolvedKind.Getter)..fileOffset = operatorOffset;
+    return buildError(kind: UnresolvedKind.Getter);
   }
 
   @override
@@ -5547,7 +5584,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     required int operatorOffset,
     bool voidContext = false,
   }) {
-    return buildError(kind: UnresolvedKind.Getter)..fileOffset = operatorOffset;
+    return buildError(kind: UnresolvedKind.Getter);
   }
 
   @override
@@ -6178,7 +6215,7 @@ class DelayedAssignment extends ContextAwareGenerator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {
     sink.write(", value: ");
-    printNodeOn(value, sink);
+    printInternalNodeOn(value, sink);
     sink.write(", assignmentOperator: ");
     sink.write(assignmentOperator);
   }
@@ -7340,7 +7377,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
 
   @override
   InternalExpression buildSimpleRead() {
-    return buildError(kind: UnresolvedKind.Member)..fileOffset = fileOffset;
+    return buildError(kind: UnresolvedKind.Member);
   }
 
   @override
@@ -7560,7 +7597,7 @@ class InvocationSelector(
     sink.write(", name: ");
     sink.write(name.text);
     sink.write(", arguments: ");
-    printNodeOn(arguments, sink);
+    printInternalNodeOn(arguments, sink);
   }
 }
 

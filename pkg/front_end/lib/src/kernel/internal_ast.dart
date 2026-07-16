@@ -31,7 +31,7 @@ import 'package:kernel/text/ast_to_text.dart' show Precedence;
 
 import '../base/compiler_context.dart';
 import '../base/messages.dart' show noLength, ProblemReporting;
-import '../base/problems.dart' show getFileUri, unsupported;
+import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
 import '../codes/diagnostic.dart' as diag;
 import '../source/check_helper.dart';
@@ -53,94 +53,92 @@ typedef SharedMatchContext =
       InternalVariable
     >;
 
-mixin InternalTreeNode implements TreeNode {
+abstract class InternalNode({required int fileOffset}) extends TreeNode {
+  this {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept<R>(TreeVisitor<R> v) =>
+      throw new UnsupportedError("${runtimeType}.accept");
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      throw new UnsupportedError("${runtimeType}.accept1");
+
   @override
   // Coverage-ignore(suite): Not run.
   void replaceChild(TreeNode child, TreeNode replacement) =>
-      unsupported("${runtimeType}.replaceChild", -1, null);
+      throw new UnsupportedError("${runtimeType}.replaceChild");
 
   @override
-  // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
-    unsupported(
-      "${runtimeType}.transformChildren on ${v.runtimeType}",
-      -1,
-      null,
-    );
+    throw new UnsupportedError("${runtimeType}.transformChildren");
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported(
-      "${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-      -1,
-      null,
-    );
-  }
+  void transformOrRemoveChildren(RemovingTransformer v) =>
+      throw new UnsupportedError("${runtimeType}.transformOrRemoveChildren");
 
   @override
   // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor v) {
-    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  void visitChildren(Visitor v) =>
+      throw new UnsupportedError("${runtimeType}.visitChildren");
+
+  /// Returns the textual representation of this node for use in debugging.
+  ///
+  /// [toStringInternal] should only be used for debugging, but should not leak.
+  ///
+  /// The data is generally bare-bones, but can easily be updated for your
+  /// specific debugging needs.
+  ///
+  /// This method is called internally by toString methods to create conciser
+  /// textual representations.
+  @override
+  // Coverage-ignore(suite): Not run.
+  String toStringInternal() => toText(defaultAstTextStrategy);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer);
+
+  @override
+  String toString() {
+    return '$runtimeType(${toStringInternal()}';
   }
 }
 
-// Coverage-ignore(suite): Not run.
 /// Common base class for internal statements.
-abstract class InternalStatement extends TreeNode with InternalTreeNode {
-  @override
-  R accept<R>(TreeVisitor<R> v) =>
-      unsupported("${runtimeType}.accept", -1, null);
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
-      unsupported("${runtimeType}.accept1", -1, null);
-
-  @override
-  void replaceChild(TreeNode child, TreeNode replacement) =>
-      unsupported("${runtimeType}.replaceChild", -1, null);
-
-  @override
-  void transformChildren(Transformer v) => unsupported(
-    "${runtimeType}.transformChildren on ${v.runtimeType}",
-    -1,
-    null,
-  );
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) => unsupported(
-    "${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
-    -1,
-    null,
-  );
-
-  @override
-  void visitChildren(Visitor v) =>
-      unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
-
+abstract class InternalStatement({required super.fileOffset})
+    extends InternalNode {
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor);
 }
 
 class TryStatement extends InternalStatement {
-  InternalStatement tryBlock;
-  List<InternalCatch> catchBlocks;
-  InternalStatement? finallyBlock;
+  final InternalStatement tryBlock;
+  final List<InternalCatch> catchBlocks;
+  final InternalStatement? finallyBlock;
 
-  new(this.tryBlock, this.catchBlocks, this.finallyBlock) {
-    tryBlock.parent = this;
-    setParents(catchBlocks, this);
-    finallyBlock?.parent = this;
-  }
+  new(
+    this.tryBlock,
+    this.catchBlocks,
+    this.finallyBlock, {
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitTryStatement(this);
-  }
-
-  @override
-  String toString() {
-    return "TryStatement(${toStringInternal()})";
   }
 
   @override
@@ -159,7 +157,8 @@ class TryStatement extends InternalStatement {
   }
 }
 
-sealed class InternalSwitchCase extends TreeNode with InternalTreeNode {
+sealed class InternalSwitchCase({required super.fileOffset})
+    extends InternalNode {
   List<Label>? get labels;
   InternalStatement get body;
 
@@ -224,26 +223,10 @@ class InternalSwitchStatementCase extends InternalSwitchCase {
     required this.body,
     required this.isDefault,
     required this.labels,
-    required int fileOffset,
-  }) {
-    setParents(expressions, this);
-    body.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   int get caseHeadCount => expressions.length;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -287,11 +270,6 @@ class InternalSwitchStatementCase extends InternalSwitchCase {
     }
     printer.decIndentation();
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalRegularSwitchStatement extends InternalStatement
@@ -307,12 +285,8 @@ class InternalRegularSwitchStatement extends InternalStatement
   new({
     required this.expression,
     required this.cases,
-    required int fileOffset,
-  }) {
-    expression.parent = this;
-    setParents(cases, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -333,11 +307,6 @@ class InternalRegularSwitchStatement extends InternalStatement
     printer.decIndentation();
     printer.newLine();
     printer.write('}');
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -362,14 +331,12 @@ sealed class InternalContinuableStatement implements InternalStatement {
 class InternalBreakStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late InternalBreakableStatement breakableStatement;
+  late InternalBreakableStatement targetStatement;
 
   @override
   InternalInvalidExpression? error;
 
-  new({required this.label, required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required this.label, required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -386,24 +353,17 @@ class InternalBreakStatement extends InternalStatement
     }
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalContinueStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late InternalContinuableStatement continuableStatement;
+  late InternalContinuableStatement targetStatement;
 
   @override
   InternalInvalidExpression? error;
 
-  new({required this.label, required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required this.label, required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -420,11 +380,6 @@ class InternalContinueStatement extends InternalStatement
     }
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 // Coverage-ignore(suite): Not run.
@@ -439,38 +394,10 @@ extension on List<InternalExpression> {
   }
 }
 
-// Coverage-ignore(suite): Not run.
 /// Common base class for internal expressions.
-abstract class InternalExpression extends TreeNode with InternalTreeNode {
-  @override
+abstract class InternalExpression({required super.fileOffset})
+    extends InternalNode {
   // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  void replaceChild(TreeNode child, TreeNode replacement) =>
-      unsupported("${runtimeType}.replaceChild", -1, null);
-
-  @override
-  void visitChildren(Visitor<dynamic> v) =>
-      unsupported("${runtimeType}.visitChildren", -1, null);
-
-  @override
-  void transformChildren(Transformer v) =>
-      unsupported("${runtimeType}.transformChildren", -1, null);
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
-  }
-
   // TODO(johnniwinther): Implement this in subclasses.
   int get precedence => Precedence.PRIMARY;
 
@@ -480,22 +407,10 @@ abstract class InternalExpression extends TreeNode with InternalTreeNode {
   );
 }
 
-// Coverage-ignore(suite): Not run.
 /// Common base class for internal initializers.
-sealed class InternalInitializer {
+sealed class InternalInitializer({required super.fileOffset})
+    extends InternalNode {
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);
-
-  String toText(AstTextStrategy strategy) {
-    AstPrinter printer = new AstPrinter(strategy);
-    toTextInternal(printer);
-    return printer.getText();
-  }
-
-  int get fileOffset;
-
-  void toTextInternal(AstPrinter printer);
-
-  String toStringInternal() => toText(defaultAstTextStrategy);
 }
 
 // Coverage-ignore(suite): Not run.
@@ -557,7 +472,7 @@ class PositionalArgument extends Argument {
   }
 
   @override
-  String toString() => 'PositionalArgument($expression)';
+  String toString() => '$runtimeType($expression)';
 }
 
 class SuperPositionalArgument extends PositionalArgument {
@@ -587,7 +502,7 @@ class NamedArgument extends Argument {
   }
 
   @override
-  String toString() => 'NamedArgument($namedExpression)';
+  String toString() => '$runtimeType($namedExpression)';
 }
 
 class SuperNamedArgument extends NamedArgument {
@@ -598,7 +513,7 @@ class SuperNamedArgument extends NamedArgument {
 }
 
 /// Front end specific implementation of [Argument].
-class ActualArguments extends TreeNode with InternalTreeNode {
+class ActualArguments extends InternalNode {
   final List<Argument> argumentList;
 
   bool _hasNamedBeforePositional;
@@ -608,14 +523,9 @@ class ActualArguments extends TreeNode with InternalTreeNode {
     required this.argumentList,
     required bool hasNamedBeforePositional,
     required int positionalCount,
+    required super.fileOffset,
   }) : _hasNamedBeforePositional = hasNamedBeforePositional,
        _positionalCount = positionalCount;
-
-  // Coverage-ignore(suite): Not run.
-  new empty()
-    : this.argumentList = [],
-      this._hasNamedBeforePositional = false,
-      this._positionalCount = 0;
 
   int get positionalCount => _positionalCount;
 
@@ -696,21 +606,6 @@ class ActualArguments extends TreeNode with InternalTreeNode {
     }
     printer.write(')');
   }
-
-  @override
-  String toString() {
-    return "ArgumentsImpl(${toStringInternal()})";
-  }
-
-  @override
-  R accept<R>(TreeVisitor<R> v) {
-    throw new UnimplementedError('${runtimeType}.accept');
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError('${runtimeType}.accept1');
-  }
 }
 
 /// Internal expression representing a cascade expression.
@@ -747,10 +642,8 @@ class Cascade extends InternalExpression {
     required this.variable,
     required this.receiver,
     required this.isNullAware,
-  }) {
-    variable.parent = this;
-    receiver.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -763,12 +656,6 @@ class Cascade extends InternalExpression {
   /// Adds [expression] to the list of [expressions] performed on [variable].
   void addCascadeExpression(InternalExpression expression) {
     expressions.add(expression);
-    expression.parent = this;
-  }
-
-  @override
-  String toString() {
-    return "Cascade(${toStringInternal()})";
   }
 
   @override
@@ -803,19 +690,16 @@ class AnonymousMethodExpression extends InternalExpression {
   final bool isParameterless;
   final int typeOffset;
 
-  new(
-    this.variable,
-    this.receiver,
-    this.body, {
+  new({
+    required this.variable,
+    required this.receiver,
+    required this.body,
     required this.isImplicitlyTyped,
     required this.isNullAware,
     required this.isCascade,
     required this.typeOffset,
-  }) : isParameterless = variable.isSynthesized {
-    variable.parent = this;
-    receiver.parent = this;
-    body.parent = this;
-  }
+    required super.fileOffset,
+  }) : isParameterless = variable.isSynthesized;
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -823,11 +707,6 @@ class AnonymousMethodExpression extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitAnonymousMethodExpression(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "AnonymousMethodExpression(${toStringInternal()})";
   }
 
   @override
@@ -851,19 +730,16 @@ class AnonymousMethodBlock extends InternalExpression {
   final bool isParameterless;
   final int typeOffset;
 
-  new(
-    this.variable,
-    this.receiver,
-    this.body, {
+  new({
+    required this.variable,
+    required this.receiver,
+    required this.body,
     required this.isImplicitlyTyped,
     required this.isNullAware,
     required this.isCascade,
     required this.typeOffset,
-  }) : isParameterless = variable.isSynthesized {
-    variable.parent = this;
-    receiver.parent = this;
-    body.parent = this;
-  }
+    required super.fileOffset,
+  }) : isParameterless = variable.isSynthesized;
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -871,11 +747,6 @@ class AnonymousMethodBlock extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitAnonymousMethodBlock(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "AnonymousMethodBlock(${toStringInternal()})";
   }
 
   @override
@@ -898,11 +769,8 @@ class DeferredCheck extends InternalExpression {
   new({
     required this.dependency,
     required this.expression,
-    required int fileOffset,
-  }) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -910,11 +778,6 @@ class DeferredCheck extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitDeferredCheck(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "DeferredCheck(${toStringInternal()})";
   }
 
   @override
@@ -929,22 +792,20 @@ class DeferredCheck extends InternalExpression {
 
 /// Internal expression for an invocation of a factory constructor.
 class FactoryConstructorInvocation extends InternalExpression {
-  bool hasBeenInferred = false;
   final Procedure target;
   final TypeArguments? typeArguments;
-  ActualArguments arguments;
+  final ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
-  new(
-    this.target,
-    this.typeArguments,
-    this.arguments, {
+  new({
+    required this.target,
+    required this.typeArguments,
+    required this.arguments,
     required this.isConst,
-  }) {
-    arguments.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -952,11 +813,6 @@ class FactoryConstructorInvocation extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitFactoryConstructorInvocation(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "FactoryConstructorInvocation(${toStringInternal()})";
   }
 
   @override
@@ -979,22 +835,20 @@ class FactoryConstructorInvocation extends InternalExpression {
 
 /// Internal expression for an invocation of a type aliased constructor.
 class TypeAliasedConstructorInvocation extends InternalExpression {
-  bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Constructor target;
   final TypeArguments? typeArguments;
-  ActualArguments arguments;
+  final ActualArguments arguments;
   final bool isConst;
 
-  new(
-    this.typeAliasBuilder,
-    this.target,
-    this.typeArguments,
-    this.arguments, {
-    this.isConst = false,
-  }) {
-    arguments.parent = this;
-  }
+  new({
+    required this.typeAliasBuilder,
+    required this.target,
+    required this.typeArguments,
+    required this.arguments,
+    required this.isConst,
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -1002,11 +856,6 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitTypeAliasedConstructorInvocation(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "TypeAliasedConstructorInvocation(${toStringInternal()})";
   }
 
   @override
@@ -1029,24 +878,22 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
 
 /// Internal expression for an invocation of a type aliased factory constructor.
 class TypeAliasedFactoryInvocation extends InternalExpression {
-  bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Procedure target;
   final TypeArguments? typeArguments;
-  ActualArguments arguments;
+  final ActualArguments arguments;
 
   /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
-  new(
-    this.typeAliasBuilder,
-    this.target,
-    this.typeArguments,
-    this.arguments, {
+  new({
+    required this.typeAliasBuilder,
+    required this.target,
+    required this.typeArguments,
+    required this.arguments,
     required this.isConst,
-  }) {
-    arguments.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -1054,11 +901,6 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitTypeAliasedFactoryInvocation(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "TypeAliasedFactoryInvocation(${toStringInternal()})";
   }
 
   @override
@@ -1086,13 +928,10 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
 ///     let v = a in v == null ? b : v
 ///
 class IfNullExpression extends InternalExpression {
-  InternalExpression left;
-  InternalExpression right;
+  final InternalExpression left;
+  final InternalExpression right;
 
-  new(this.left, this.right) {
-    left.parent = this;
-    right.parent = this;
-  }
+  new(this.left, this.right, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -1100,11 +939,6 @@ class IfNullExpression extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitIfNullExpression(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "IfNullExpression(${toStringInternal()})";
   }
 
   @override
@@ -1131,9 +965,7 @@ class InternalIntLiteral extends InternalExpression {
   /// `int.parse`).
   final String? literal;
 
-  new(this.value, this.literal, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.value, this.literal, {required super.fileOffset});
 
   double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
@@ -1150,11 +982,6 @@ class InternalIntLiteral extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitInternalIntLiteral(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "InternalIntLiteral(${toStringInternal()})";
   }
 
   @override
@@ -1177,9 +1004,7 @@ class LargeIntLiteral extends InternalExpression {
 
   bool isParenthesized = false;
 
-  new(this._strippedLiteral, this.literal, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this._strippedLiteral, this.literal, {required super.fileOffset});
 
   double? asDouble({bool negated = false}) {
     BigInt? intValue = BigInt.tryParse(
@@ -1209,11 +1034,6 @@ class LargeIntLiteral extends InternalExpression {
   }
 
   @override
-  String toString() {
-    return "LargeIntLiteral(${toStringInternal()})";
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write(literal);
@@ -1221,14 +1041,16 @@ class LargeIntLiteral extends InternalExpression {
 }
 
 class ExpressionInvocation extends InternalExpression {
-  InternalExpression expression;
+  final InternalExpression expression;
   final TypeArguments? typeArguments;
-  ActualArguments arguments;
+  final ActualArguments arguments;
 
-  new(this.expression, this.typeArguments, this.arguments) {
-    expression.parent = this;
-    arguments.parent = this;
-  }
+  new(
+    this.expression,
+    this.typeArguments,
+    this.arguments, {
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -1236,11 +1058,6 @@ class ExpressionInvocation extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitExpressionInvocation(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "ExpressionInvocation(${toStringInternal()})";
   }
 
   @override
@@ -1257,9 +1074,7 @@ class InternalReturnStatement extends InternalStatement {
   final InternalExpression? expression; // May be null.
   final bool isArrow;
 
-  new({this.expression, required this.isArrow, required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({this.expression, required this.isArrow, required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -1279,11 +1094,6 @@ class InternalReturnStatement extends InternalStatement {
       expression!.toTextInternal(printer);
     }
     printer.write(';');
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -1306,7 +1116,7 @@ class InternalLocalVariable extends InternalDeclaredVariable {
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     bool isStaticLate = false,
-    required int fileOffset,
+    required super.fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
   }) : _astVariable = extern.createLocalVariable(
          name: name,
@@ -1317,7 +1127,6 @@ class InternalLocalVariable extends InternalDeclaredVariable {
          fileOffset: fileOffset,
          fileEqualsOffset: fileEqualsOffset,
        ) {
-    this.fileOffset = fileOffset;
     this.isStaticLate = isStaticLate;
   }
 
@@ -1331,11 +1140,6 @@ class InternalLocalVariable extends InternalDeclaredVariable {
   bool get isAssignable {
     if (isStaticLate) return true;
     return super.isAssignable;
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -1355,7 +1159,7 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
     bool isWildcard = false,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
-    required int fileOffset,
+    required super.fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
   }) : _astVariable = extern.createLocalFunctionVariable(
          name: name,
@@ -1364,9 +1168,7 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
          isLowered: false,
          fileOffset: fileOffset,
          fileEqualsOffset: fileEqualsOffset,
-       ) {
-    this.fileOffset = fileOffset;
-  }
+       );
 
   @override
   bool get isLocalFunction => true;
@@ -1378,11 +1180,6 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
   bool get isAssignable {
     if (isStaticLate) return true;
     return super.isAssignable;
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -1405,7 +1202,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     bool isStaticLate = false,
-    required int fileOffset,
+    required super.fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
   }) : _astVariable = extern.createLateVariable(
          name: name,
@@ -1416,7 +1213,6 @@ class InternalLateVariable extends InternalDeclaredVariable {
          fileOffset: fileOffset,
          fileEqualsOffset: fileEqualsOffset,
        ) {
-    this.fileOffset = fileOffset;
     this.isStaticLate = isStaticLate;
   }
 
@@ -1430,11 +1226,6 @@ class InternalLateVariable extends InternalDeclaredVariable {
   bool get isAssignable {
     if (isStaticLate) return true;
     return super.isAssignable;
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -1456,7 +1247,7 @@ class InternalConstVariable extends InternalDeclaredVariable {
     bool hasDeclaredInitializer = false,
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
-    required int fileOffset,
+    required super.fileOffset,
     int fileEqualsOffset = TreeNode.noOffset,
   }) : _astVariable = extern.createConstVariable(
          name: name,
@@ -1466,9 +1257,7 @@ class InternalConstVariable extends InternalDeclaredVariable {
          hasDeclaredInitializer: hasDeclaredInitializer,
          fileOffset: fileOffset,
          fileEqualsOffset: fileEqualsOffset,
-       ) {
-    this.fileOffset = fileOffset;
-  }
+       );
 
   @override
   bool get isLocalFunction => false;
@@ -1481,17 +1270,12 @@ class InternalConstVariable extends InternalDeclaredVariable {
     if (isStaticLate) return true;
     return super.isAssignable;
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 sealed class InternalFunctionParameter extends InternalVariable {
   InternalExpression? _defaultValue;
 
-  new({required this._defaultValue});
+  new({required this._defaultValue, required super.fileOffset});
 
   @override
   FunctionParameter get astVariable;
@@ -1548,18 +1332,11 @@ class InternalPositionalParameter extends InternalFunctionParameter {
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-    required int fileOffset,
-  }) {
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   PositionalParameter get astVariable => _astVariable;
-
-  @override
-  String toString() {
-    return "InternalPositionalParameter(${toStringInternal()})";
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1595,18 +1372,11 @@ class InternalNamedParameter extends InternalFunctionParameter {
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-    required int fileOffset,
-  }) {
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   NamedParameter get astVariable => _astVariable;
-
-  @override
-  String toString() {
-    return "InternalNamedParameter(${toStringInternal()})";
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1647,16 +1417,14 @@ class InternalCatchVariable extends InternalVariable {
     required this.isImplicitlyTyped,
     this.forSyntheticToken = false,
     this.isLocalFunction = false,
-    required int fileOffset,
+    required super.fileOffset,
   }) : _astVariable = extern.createCatchVariable(
          name: name,
          type: type,
          isWildcard: isWildcard,
          isFinal: isFinal,
          fileOffset: fileOffset,
-       ) {
-    this.fileOffset = fileOffset;
-  }
+       );
 
   @override
   CatchVariable get astVariable => _astVariable;
@@ -1677,11 +1445,6 @@ class InternalCatchVariable extends InternalVariable {
 
   // Coverage-ignore(suite): Not run.
   String get catchVariableName => _astVariable.catchVariableName;
-
-  @override
-  String toString() {
-    return "InternalCatchVariable(${toStringInternal()})";
-  }
 }
 
 class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
@@ -1705,23 +1468,16 @@ class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
     required bool isSynthesized,
     this.forSyntheticToken = false,
     required this.isWildcard,
-    required int fileOffset,
+    required super.fileOffset,
   }) : _astVariable = new SyntheticVariable(
          cosmeticName: name,
          isFinal: isFinal,
          isSynthesized: isSynthesized,
          type: type,
-       )..fileOffset = fileOffset {
-    this.fileOffset = fileOffset;
-  }
+       )..fileOffset = fileOffset;
 
   @override
   bool get isLocalFunction => false;
-
-  @override
-  String toString() {
-    return "InternalCatchVariable(${toStringInternal()})";
-  }
 
   @override
   SyntheticVariable get astVariable => _astVariable;
@@ -1745,30 +1501,24 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
     bool isFinal = false,
     bool isLowered = false,
     bool isSynthesized = true,
-    required int fileOffset,
+    required super.fileOffset,
   }) : _astVariable = new SyntheticVariable(
          cosmeticName: name,
          type: type ?? const DynamicType(),
          isFinal: isFinal,
          isLowered: isLowered,
          isSynthesized: isSynthesized,
-       )..fileOffset = fileOffset {
-    this.fileOffset = fileOffset;
-  }
+       )..fileOffset = fileOffset;
 
   @override
   bool get isLocalFunction => false;
 
   @override
-  String toString() {
-    return "InternalSyntheticVariable(${toStringInternal()})";
-  }
-
-  @override
   SyntheticVariable get astVariable => _astVariable;
 }
 
-sealed class InternalVariable extends TreeNode with InternalTreeNode {
+sealed class InternalVariable({required super.fileOffset})
+    extends InternalNode {
   /// This is the output variable that the clients receive.
   ///
   /// Most of the calls to variable properties are delegated to [astVariable],
@@ -1913,22 +1663,10 @@ sealed class InternalVariable extends TreeNode with InternalTreeNode {
   }
 
   bool get hasInitializer => _astVariable.initializer != null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(VariableVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(VariableVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
-  }
 }
 
-// Coverage-ignore(suite): Not run.
-sealed class InternalDeclaredVariable extends InternalVariable {
+sealed class InternalDeclaredVariable({required super.fileOffset})
+    extends InternalVariable {
   @override
   DeclaredVariable get astVariable;
 
@@ -1941,6 +1679,7 @@ sealed class InternalDeclaredVariable extends InternalVariable {
   /// the modifiers and declared type of the variable. Otherwise only the
   /// name and the [initializer], if present, are included.
   @override
+  // Coverage-ignore(suite): Not run.
   void toTextInternal(
     AstPrinter printer, {
     bool includeModifiersAndType = true,
@@ -1980,9 +1719,7 @@ class InternalLoadLibrary extends InternalExpression {
 
   final ActualArguments? arguments;
 
-  new(this.import, this.arguments, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.import, this.arguments, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2003,19 +1740,14 @@ class InternalLoadLibrary extends InternalExpression {
       printer.write('()');
     }
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing a tear-off of a `loadLibrary` function.
 class LoadLibraryTearOff extends InternalExpression {
-  LibraryDependency import;
-  Procedure target;
+  final LibraryDependency import;
+  final Procedure target;
 
-  new(this.import, this.target);
+  new(this.import, this.target, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2023,11 +1755,6 @@ class LoadLibraryTearOff extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitLoadLibraryTearOff(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "LoadLibraryTearOff(${toStringInternal()})";
   }
 
   @override
@@ -2051,13 +1778,13 @@ class LoadLibraryTearOff extends InternalExpression {
 ///
 class IfNullPropertySet extends InternalExpression {
   /// The receiver used for the read/write operations.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// Name of the property.
-  Name propertyName;
+  final Name propertyName;
 
   /// The right-hand side of the binary operation.
-  InternalExpression rhs;
+  final InternalExpression rhs;
 
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
@@ -2071,18 +1798,16 @@ class IfNullPropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a ??= b`.
   final bool isNullAware;
 
-  new(
-    this.receiver,
-    this.propertyName,
-    this.rhs, {
+  new({
+    required this.receiver,
+    required this.propertyName,
+    required this.rhs,
     required this.forEffect,
     required this.readOffset,
     required this.writeOffset,
     required this.isNullAware,
-  }) {
-    receiver.parent = this;
-    rhs.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2090,11 +1815,6 @@ class IfNullPropertySet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitIfNullPropertySet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "IfNullPropertySet(${toStringInternal()})";
   }
 
   @override
@@ -2124,18 +1844,20 @@ class IfNullPropertySet extends InternalExpression {
 ///
 class IfNullSet extends InternalExpression {
   /// The expression that reads the property from [variable].
-  InternalExpression read;
+  final InternalExpression read;
 
   /// The expression that writes the value to the property on [variable].
-  InternalExpression write;
+  final InternalExpression write;
 
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  new(this.read, this.write, {required this.forEffect}) {
-    read.parent = this;
-    write.parent = this;
-  }
+  new({
+    required this.read,
+    required this.write,
+    required this.forEffect,
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2143,11 +1865,6 @@ class IfNullSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitIfNullSet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "IfNullSet(${toStringInternal()})";
   }
 
   @override
@@ -2194,7 +1911,7 @@ class ExtensionIfNullSet extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The receiver used for the read/write operations.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of property.
   ///
@@ -2205,7 +1922,7 @@ class ExtensionIfNullSet extends InternalExpression {
   final Member getter;
 
   /// The right-hand side of the binary operation.
-  InternalExpression rhs;
+  final InternalExpression rhs;
 
   /// The member used for the write operation.
   final Member setter;
@@ -2313,10 +2030,8 @@ class ExtensionIfNullSet extends InternalExpression {
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    rhs.parent = this;
-  }
+       ),
+       super(fileOffset: binaryOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2347,11 +2062,6 @@ class ExtensionIfNullSet extends InternalExpression {
     printer.writeName(propertyName);
     printer.write(' ??= ');
     rhs.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "ExtensionIfNullSet(${toStringInternal()})";
   }
 }
 
@@ -2386,7 +2096,7 @@ class ExtensionCompoundSet extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The receiver used for the read/write operations.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of property.
   ///
@@ -2400,7 +2110,7 @@ class ExtensionCompoundSet extends InternalExpression {
   final Name binaryName;
 
   /// The right-hand side of the binary operation.
-  InternalExpression rhs;
+  final InternalExpression rhs;
 
   /// The member used for the write operation.
   final Member setter;
@@ -2513,10 +2223,8 @@ class ExtensionCompoundSet extends InternalExpression {
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    rhs.parent = this;
-  }
+       ),
+       super(fileOffset: binaryOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2550,11 +2258,6 @@ class ExtensionCompoundSet extends InternalExpression {
     printer.write('= ');
     rhs.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "ExtensionCompoundSet(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing an compound property assignment.
@@ -2570,7 +2273,7 @@ class ExtensionCompoundSet extends InternalExpression {
 ///
 class CompoundPropertySet extends InternalExpression {
   /// The receiver used for the read/write operations.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of the property accessed by the read/write operations.
   final Name propertyName;
@@ -2579,7 +2282,7 @@ class CompoundPropertySet extends InternalExpression {
   final Name binaryName;
 
   /// The right-hand side of the binary operation.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
@@ -2606,10 +2309,7 @@ class CompoundPropertySet extends InternalExpression {
     required this.binaryOffset,
     required this.writeOffset,
     required this.isNullAware,
-  }) {
-    receiver.parent = this;
-    value.parent = this;
-  }
+  }) : super(fileOffset: binaryOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2617,11 +2317,6 @@ class CompoundPropertySet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitCompoundPropertySet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "CompoundPropertySet(${toStringInternal()})";
   }
 
   @override
@@ -2655,10 +2350,10 @@ class CompoundPropertySet extends InternalExpression {
 ///
 class PropertyIncDec extends InternalExpression {
   /// The receiver of the assigned property.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of the assigned property.
-  Name name;
+  final Name name;
 
   /// `true` if the inc/dec is a postfix expression, i.e. of the form `o.a++` as
   /// opposed the prefix expression `++o.a`.
@@ -2682,9 +2377,9 @@ class PropertyIncDec extends InternalExpression {
   /// `true` if the access is an implicit `this` access.
   final bool isImplicitThis;
 
-  new(
-    this.receiver,
-    this.name, {
+  new({
+    required this.receiver,
+    required this.name,
     required this.forEffect,
     required this.isPost,
     required this.isInc,
@@ -2692,9 +2387,7 @@ class PropertyIncDec extends InternalExpression {
     required this.nameOffset,
     required this.operatorOffset,
     required this.isImplicitThis,
-  }) {
-    receiver.parent = this;
-  }
+  }) : super(fileOffset: nameOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2727,11 +2420,6 @@ class PropertyIncDec extends InternalExpression {
         printer.write('--');
       }
     }
-  }
-
-  @override
-  String toString() {
-    return "PropertyIncDec(${toStringInternal()})";
   }
 }
 
@@ -2800,6 +2488,7 @@ class ExtensionIncDec extends InternalExpression {
     required bool forEffect,
     required bool isNullAware,
     required int? extensionTypeArgumentOffset,
+    required int fileOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -2813,6 +2502,7 @@ class ExtensionIncDec extends InternalExpression {
          isNullAware: isNullAware,
          isExplicit: true,
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
+         fileOffset: fileOffset,
        );
 
   new implicit({
@@ -2825,6 +2515,7 @@ class ExtensionIncDec extends InternalExpression {
     required bool isPost,
     required bool isInc,
     required bool forEffect,
+    required int fileOffset,
   }) : this._(
          extension,
          thisTypeArguments,
@@ -2838,6 +2529,7 @@ class ExtensionIncDec extends InternalExpression {
          isNullAware: false,
          isExplicit: false,
          extensionTypeArgumentOffset: null,
+         fileOffset: fileOffset,
        );
 
   new _(
@@ -2853,14 +2545,13 @@ class ExtensionIncDec extends InternalExpression {
     required this.isNullAware,
     required bool isExplicit,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2895,11 +2586,6 @@ class ExtensionIncDec extends InternalExpression {
     if (isPost) {
       printer.write(isInc ? '++' : '--');
     }
-  }
-
-  @override
-  String toString() {
-    return "ExtensionPostIncDec(${toStringInternal()})";
   }
 }
 
@@ -2937,7 +2623,7 @@ class LocalIncDec extends InternalExpression {
     required this.isInc,
     required this.nameOffset,
     required this.operatorOffset,
-  });
+  }) : super(fileOffset: nameOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -2965,11 +2651,6 @@ class LocalIncDec extends InternalExpression {
         printer.write('--');
       }
     }
-  }
-
-  @override
-  String toString() {
-    return "LocalIncDec(${toStringInternal()})";
   }
 }
 
@@ -3020,7 +2701,7 @@ class StaticIncDec extends InternalExpression {
     required this.isInc,
     required this.nameOffset,
     required this.operatorOffset,
-  });
+  }) : super(fileOffset: nameOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3048,11 +2729,6 @@ class StaticIncDec extends InternalExpression {
         printer.write('--');
       }
     }
-  }
-
-  @override
-  String toString() {
-    return "StaticIncDec(${toStringInternal()})";
   }
 }
 
@@ -3108,7 +2784,7 @@ class SuperIncDec extends InternalExpression {
     required this.isInc,
     required this.nameOffset,
     required this.operatorOffset,
-  });
+  }) : super(fileOffset: nameOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3138,28 +2814,25 @@ class SuperIncDec extends InternalExpression {
       }
     }
   }
-
-  @override
-  String toString() {
-    return "SuperIncDec(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing an index get expression, `o[a]`.
 class IndexGet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// `true` if the access is null-aware, i.e. of the form `o?[a]`.
   final bool isNullAware;
 
-  new(this.receiver, this.index, {required this.isNullAware}) {
-    receiver.parent = this;
-    index.parent = this;
-  }
+  new(
+    this.receiver,
+    this.index, {
+    required this.isNullAware,
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3167,11 +2840,6 @@ class IndexGet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitIndexGet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "IndexGet(${toStringInternal()})";
   }
 
   @override
@@ -3202,13 +2870,13 @@ class IndexGet extends InternalExpression {
 ///
 class IndexSet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The value expression of the operation.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// `true` if the assignment is for effect only, i.e the result value of the
   /// assignment is _not_ used.
@@ -3223,11 +2891,8 @@ class IndexSet extends InternalExpression {
     this.value, {
     required this.forEffect,
     required this.isNullAware,
-  }) {
-    receiver.parent = this;
-    index.parent = this;
-    value.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3235,11 +2900,6 @@ class IndexSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitIndexSet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "IndexSet(${toStringInternal()})";
   }
 
   @override
@@ -3271,18 +2931,20 @@ class IndexSet extends InternalExpression {
 ///
 class SuperIndexSet extends InternalExpression {
   /// The []= member.
-  Member setter;
+  final Member setter;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The value expression of the operation.
-  InternalExpression value;
+  final InternalExpression value;
 
-  new(this.setter, this.index, this.value) {
-    index.parent = this;
-    value.parent = this;
-  }
+  new({
+    required this.setter,
+    required this.index,
+    required this.value,
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3299,11 +2961,6 @@ class SuperIndexSet extends InternalExpression {
     index.toTextInternal(printer);
     printer.write('] = ');
     value.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "SuperIndexSet(${toStringInternal()})";
   }
 }
 
@@ -3325,13 +2982,13 @@ class ExtensionIndexGet extends InternalExpression {
   final TypeArguments? explicitTypeArguments;
 
   /// The receiver of the extension access.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The [] procedure.
-  Procedure getter;
+  final Procedure getter;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// `true` if the access is null-aware, i.e. of the form
   /// `Extension(o)?[a]`.
@@ -3348,14 +3005,12 @@ class ExtensionIndexGet extends InternalExpression {
     this.index, {
     required this.isNullAware,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : assert(
          explicitTypeArguments == null ||
              explicitTypeArguments.types.length ==
                  extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    index.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3363,11 +3018,6 @@ class ExtensionIndexGet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitExtensionIndexGet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "ExtensionIndexGet(${toStringInternal()})";
   }
 
   @override
@@ -3414,16 +3064,16 @@ class ExtensionIndexSet extends InternalExpression {
   final TypeArguments? explicitTypeArguments;
 
   /// The receiver of the extension access.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The []= procedure.
-  Procedure setter;
+  final Procedure setter;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The value expression of the operation.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// `true` if the access is null-aware, i.e. of the form
   /// `Extension(o)?[a] = b`.
@@ -3445,15 +3095,12 @@ class ExtensionIndexSet extends InternalExpression {
     required this.isNullAware,
     required this.forEffect,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : assert(
          explicitTypeArguments == null ||
              explicitTypeArguments.types.length ==
                  extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    index.parent = this;
-    value.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3461,11 +3108,6 @@ class ExtensionIndexSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitExtensionIndexSet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "ExtensionIndexSet(${toStringInternal()})";
   }
 
   @override
@@ -3513,13 +3155,13 @@ class ExtensionIndexSet extends InternalExpression {
 /// receiver and its use is inlined.
 class IfNullIndexSet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The value expression of the operation.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -3545,11 +3187,7 @@ class IfNullIndexSet extends InternalExpression {
     required this.writeOffset,
     required this.forEffect,
     required this.isNullAware,
-  }) {
-    receiver.parent = this;
-    index.parent = this;
-    value.parent = this;
-  }
+  }) : super(fileOffset: testOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3570,11 +3208,6 @@ class IfNullIndexSet extends InternalExpression {
     index.toTextInternal(printer);
     printer.write('] ??= ');
     value.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "IfNullIndexSet(${toStringInternal()})";
   }
 }
 
@@ -3599,16 +3232,16 @@ class IfNullIndexSet extends InternalExpression {
 ///
 class IfNullSuperIndexSet extends InternalExpression {
   /// The [] member;
-  Member? getter;
+  final Member? getter;
 
   /// The []= member;
-  Member? setter;
+  final Member? setter;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The value expression of the operation.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -3631,10 +3264,7 @@ class IfNullSuperIndexSet extends InternalExpression {
     required this.testOffset,
     required this.writeOffset,
     required this.forEffect,
-  }) {
-    index.parent = this;
-    value.parent = this;
-  }
+  }) : super(fileOffset: testOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3651,11 +3281,6 @@ class IfNullSuperIndexSet extends InternalExpression {
     index.toTextInternal(printer);
     printer.write('] ??= ');
     value.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "IfNullSuperIndexSet(${toStringInternal()})";
   }
 }
 
@@ -3688,19 +3313,19 @@ class ExtensionIfNullIndexSet extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The extension receiver;
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The [] member;
-  Member getter;
+  final Member getter;
 
   /// The []= member;
-  Member setter;
+  final Member setter;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The value expression of the operation.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -3738,11 +3363,8 @@ class ExtensionIfNullIndexSet extends InternalExpression {
   }) : assert(
          knownTypeArguments == null ||
              knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    index.parent = this;
-    value.parent = this;
-  }
+       ),
+       super(fileOffset: testOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3771,11 +3393,6 @@ class ExtensionIfNullIndexSet extends InternalExpression {
     printer.write(' ??= ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "ExtensionIfNullIndexSet(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing a compound index assignment.
@@ -3794,16 +3411,16 @@ class ExtensionIfNullIndexSet extends InternalExpression {
 ///
 class CompoundIndexSet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The name of the binary operation.
-  Name binaryName;
+  final Name binaryName;
 
   /// The right-hand side of the binary expression.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -3834,12 +3451,7 @@ class CompoundIndexSet extends InternalExpression {
     required this.forEffect,
     required this.forPostIncDec,
     required this.isNullAware,
-  }) {
-    receiver.parent = this;
-    index.parent = this;
-    value.parent = this;
-    fileOffset = binaryOffset;
-  }
+  }) : super(fileOffset: binaryOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3847,11 +3459,6 @@ class CompoundIndexSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitCompoundIndexSet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "CompoundIndexSet(${toStringInternal()})";
   }
 
   @override
@@ -3897,19 +3504,19 @@ class CompoundIndexSet extends InternalExpression {
 ///
 class CompoundSuperIndexSet extends InternalExpression {
   /// The [] member.
-  Member getter;
+  final Member getter;
 
   /// The []= member.
-  Member setter;
+  final Member setter;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The name of the binary operation.
-  Name binaryName;
+  final Name binaryName;
 
   /// The right-hand side of the binary expression.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -3937,11 +3544,7 @@ class CompoundSuperIndexSet extends InternalExpression {
     required this.writeOffset,
     required this.forEffect,
     required this.forPostIncDec,
-  }) {
-    index.parent = this;
-    value.parent = this;
-    fileOffset = binaryOffset;
-  }
+  }) : super(fileOffset: binaryOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -3973,11 +3576,6 @@ class CompoundSuperIndexSet extends InternalExpression {
       value.toTextInternal(printer);
     }
   }
-
-  @override
-  String toString() {
-    return "CompoundSuperIndexSet(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing a compound extension index assignment.
@@ -4008,22 +3606,22 @@ class ExtensionCompoundIndexSet extends InternalExpression {
   final TypeArguments? explicitTypeArguments;
 
   /// The receiver used for the read/write operations.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The [] member.
-  Member getter;
+  final Member getter;
 
   /// The []= member.
-  Member setter;
+  final Member setter;
 
   /// The index expression of the operation.
-  InternalExpression index;
+  final InternalExpression index;
 
   /// The name of the binary operation.
-  Name binaryName;
+  final Name binaryName;
 
   /// The right-hand side of the binary expression.
-  InternalExpression rhs;
+  final InternalExpression rhs;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -4067,12 +3665,8 @@ class ExtensionCompoundIndexSet extends InternalExpression {
          explicitTypeArguments == null ||
              explicitTypeArguments.types.length ==
                  extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    index.parent = this;
-    rhs.parent = this;
-    fileOffset = binaryOffset;
-  }
+       ),
+       super(fileOffset: binaryOffset);
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4107,11 +3701,6 @@ class ExtensionCompoundIndexSet extends InternalExpression {
       rhs.toTextInternal(printer);
     }
   }
-
-  @override
-  String toString() {
-    return "ExtensionCompoundIndexSet(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing a read of an explicit extension getter,
@@ -4132,7 +3721,7 @@ class ExtensionGet extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The receiver for the read.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of getter.
   ///
@@ -4140,7 +3729,7 @@ class ExtensionGet extends InternalExpression {
   final Name name;
 
   /// The extension member called for the assignment.
-  Procedure getter;
+  final Procedure getter;
 
   /// `true` if the access is null-aware, i.e. of the form
   /// `Extension(o)?.a`.
@@ -4159,6 +3748,7 @@ class ExtensionGet extends InternalExpression {
     required InternalExpression thisAccess,
     required Name name,
     required Procedure getter,
+    required int fileOffset,
   }) : this._(
          extension,
          thisTypeArguments,
@@ -4168,6 +3758,7 @@ class ExtensionGet extends InternalExpression {
          isNullAware: false,
          isExplicit: false,
          extensionTypeArgumentOffset: null,
+         fileOffset: fileOffset,
        );
 
   new explicit({
@@ -4178,6 +3769,7 @@ class ExtensionGet extends InternalExpression {
     required Procedure getter,
     required bool isNullAware,
     required int? extensionTypeArgumentOffset,
+    required int fileOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -4187,6 +3779,7 @@ class ExtensionGet extends InternalExpression {
          isNullAware: isNullAware,
          isExplicit: true,
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
+         fileOffset: fileOffset,
        );
 
   new _(
@@ -4198,14 +3791,13 @@ class ExtensionGet extends InternalExpression {
     required this.isNullAware,
     required bool isExplicit,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4234,11 +3826,6 @@ class ExtensionGet extends InternalExpression {
     }
     printer.write('.');
     printer.writeName(name);
-  }
-
-  @override
-  String toString() {
-    return "ExtensionGet(${toStringInternal()})";
   }
 }
 
@@ -4273,7 +3860,7 @@ class ExtensionSet extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The receiver for the assignment.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of setter.
   ///
@@ -4281,10 +3868,10 @@ class ExtensionSet extends InternalExpression {
   final Name name;
 
   /// The extension member called for the assignment.
-  Procedure setter;
+  final Procedure setter;
 
   /// The right-hand side value of the assignment.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// If `true` the assignment is only needed for effect and not its result
   /// value.
@@ -4309,6 +3896,7 @@ class ExtensionSet extends InternalExpression {
     required Procedure setter,
     required InternalExpression value,
     required bool forEffect,
+    required int fileOffset,
   }) : this._(
          extension,
          thisTypeArguments,
@@ -4320,6 +3908,7 @@ class ExtensionSet extends InternalExpression {
          isNullAware: false,
          isExplicit: false,
          extensionTypeArgumentOffset: null,
+         fileOffset: fileOffset,
        );
 
   new explicit({
@@ -4332,6 +3921,7 @@ class ExtensionSet extends InternalExpression {
     required bool forEffect,
     required bool isNullAware,
     required int? extensionTypeArgumentOffset,
+    required int fileOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -4343,6 +3933,7 @@ class ExtensionSet extends InternalExpression {
          isNullAware: isNullAware,
          isExplicit: true,
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
+         fileOffset: fileOffset,
        );
 
   new _(
@@ -4356,15 +3947,13 @@ class ExtensionSet extends InternalExpression {
     required this.isNullAware,
     required bool isExplicit,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    value.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4396,11 +3985,6 @@ class ExtensionSet extends InternalExpression {
     printer.write(' = ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "ExtensionSet(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing an invocation of an extension method.
@@ -4420,7 +4004,7 @@ class ExtensionMethodInvocation extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The receiver for the invocation.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of method.
   ///
@@ -4428,13 +4012,13 @@ class ExtensionMethodInvocation extends InternalExpression {
   final Name name;
 
   /// The extension method called for the assignment.
-  Procedure method;
+  final Procedure method;
 
   /// The type arguments provided to the method, if any.
   final TypeArguments? typeArguments;
 
   /// The arguments provided to the method.
-  ActualArguments arguments;
+  final ActualArguments arguments;
 
   /// `true` if the extension access is explicit, i.e. `E(o).a()` and
   /// not implicit like `a()` inside the extension `E`.
@@ -4455,6 +4039,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     required Procedure target,
     required TypeArguments? typeArguments,
     required ActualArguments arguments,
+    required int fileOffset,
   }) : this._(
          extension,
          thisAccess,
@@ -4466,6 +4051,7 @@ class ExtensionMethodInvocation extends InternalExpression {
          knownTypeArguments: thisTypeArguments,
          extensionTypeArgumentOffset: null,
          isNullAware: false,
+         fileOffset: fileOffset,
        );
 
   new explicit({
@@ -4478,6 +4064,7 @@ class ExtensionMethodInvocation extends InternalExpression {
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
     required bool isNullAware,
+    required int fileOffset,
   }) : this._(
          extension,
          receiver,
@@ -4489,6 +4076,7 @@ class ExtensionMethodInvocation extends InternalExpression {
          knownTypeArguments: explicitTypeArguments,
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
          isNullAware: isNullAware,
+         fileOffset: fileOffset,
        );
 
   new _(
@@ -4502,15 +4090,13 @@ class ExtensionMethodInvocation extends InternalExpression {
     required bool isExplicit,
     required this.isNullAware,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    arguments.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4542,11 +4128,6 @@ class ExtensionMethodInvocation extends InternalExpression {
     typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "ExtensionMethodInvocation(${toStringInternal()})";
-  }
 }
 
 /// Internal expression representing an invocation of an explicit extension
@@ -4567,7 +4148,7 @@ class ExtensionGetterInvocation extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The receiver for the invocation.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of getter.
   ///
@@ -4575,13 +4156,13 @@ class ExtensionGetterInvocation extends InternalExpression {
   final Name name;
 
   /// The extension getter called for the assignment.
-  Procedure getter;
+  final Procedure getter;
 
   /// The type arguments provided to the getter, if any.
   final TypeArguments? typeArguments;
 
   /// The arguments provided to the getter.
-  ActualArguments arguments;
+  final ActualArguments arguments;
 
   /// `true` if the extension access is explicit, i.e. `E(o).a()` and
   /// not implicit like `a()` inside the extension `E`.
@@ -4602,6 +4183,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     required Procedure target,
     required TypeArguments? typeArguments,
     required ActualArguments arguments,
+    required int fileOffset,
   }) : this._(
          extension,
          thisAccess,
@@ -4613,6 +4195,7 @@ class ExtensionGetterInvocation extends InternalExpression {
          knownTypeArguments: thisTypeArguments,
          extensionTypeArgumentOffset: null,
          isNullAware: false,
+         fileOffset: fileOffset,
        );
 
   new explicit({
@@ -4625,6 +4208,7 @@ class ExtensionGetterInvocation extends InternalExpression {
     required List<DartType>? explicitTypeArguments,
     required int? extensionTypeArgumentOffset,
     required bool isNullAware,
+    required int fileOffset,
   }) : this._(
          extension,
          receiver,
@@ -4636,6 +4220,7 @@ class ExtensionGetterInvocation extends InternalExpression {
          knownTypeArguments: explicitTypeArguments,
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
          isNullAware: isNullAware,
+         fileOffset: fileOffset,
        );
 
   new _(
@@ -4649,15 +4234,13 @@ class ExtensionGetterInvocation extends InternalExpression {
     required bool isExplicit,
     required this.isNullAware,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-    arguments.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4689,11 +4272,6 @@ class ExtensionGetterInvocation extends InternalExpression {
     typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "ExtensionGetterInvocation(${toStringInternal()})";
-  }
 }
 
 /// Internal representation of a tear-foo of an extension instance method.
@@ -4715,7 +4293,7 @@ class ExtensionTearOff extends InternalExpression {
   final List<DartType>? knownTypeArguments;
 
   /// The receiver for the tear-off.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of method.
   ///
@@ -4723,7 +4301,7 @@ class ExtensionTearOff extends InternalExpression {
   final Name name;
 
   /// The top-level method that is that target for the read operation.
-  Procedure tearOff;
+  final Procedure tearOff;
 
   /// `true` if the access is null-aware, i.e. of the form `Extension(o)?.a`.
   final bool isNullAware;
@@ -4741,6 +4319,7 @@ class ExtensionTearOff extends InternalExpression {
     required InternalExpression thisAccess,
     required Name name,
     required Procedure tearOff,
+    required int fileOffset,
   }) : this._(
          extension,
          thisTypeArguments,
@@ -4750,6 +4329,7 @@ class ExtensionTearOff extends InternalExpression {
          isNullAware: false,
          isExplicit: false,
          extensionTypeArgumentOffset: null,
+         fileOffset: fileOffset,
        );
 
   new explicit({
@@ -4760,6 +4340,7 @@ class ExtensionTearOff extends InternalExpression {
     required Procedure tearOff,
     required bool isNullAware,
     required int? extensionTypeArgumentOffset,
+    required int fileOffset,
   }) : this._(
          extension,
          explicitTypeArguments,
@@ -4769,6 +4350,7 @@ class ExtensionTearOff extends InternalExpression {
          isNullAware: isNullAware,
          isExplicit: true,
          extensionTypeArgumentOffset: extensionTypeArgumentOffset,
+         fileOffset: fileOffset,
        );
 
   new _(
@@ -4780,14 +4362,13 @@ class ExtensionTearOff extends InternalExpression {
     required this.isNullAware,
     required bool isExplicit,
     required this.extensionTypeArgumentOffset,
+    required super.fileOffset,
   }) : _isExplicit = isExplicit,
        assert(
          knownTypeArguments == null ||
              extension.typeParameters.isNotEmpty &&
                  knownTypeArguments.length == extension.typeParameters.length,
-       ) {
-    receiver.parent = this;
-  }
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4817,23 +4398,15 @@ class ExtensionTearOff extends InternalExpression {
     printer.write('.');
     printer.writeName(name);
   }
-
-  @override
-  String toString() {
-    return "ExtensionTearOff(${toStringInternal()})";
-  }
 }
 
 /// Internal expression for an equals or not-equals expression.
 class EqualsExpression extends InternalExpression {
-  InternalExpression left;
-  InternalExpression right;
-  bool isNot;
+  final InternalExpression left;
+  final InternalExpression right;
+  final bool isNot;
 
-  new(this.left, this.right, {required this.isNot}) {
-    left.parent = this;
-    right.parent = this;
-  }
+  new(this.left, this.right, {required this.isNot, required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4841,11 +4414,6 @@ class EqualsExpression extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitEquals(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "EqualsExpression(${toStringInternal()})";
   }
 
   @override
@@ -4866,14 +4434,11 @@ class EqualsExpression extends InternalExpression {
 
 /// Internal expression for a binary expression.
 class BinaryExpression extends InternalExpression {
-  InternalExpression left;
-  Name binaryName;
-  InternalExpression right;
+  final InternalExpression left;
+  final Name binaryName;
+  final InternalExpression right;
 
-  new(this.left, this.binaryName, this.right) {
-    left.parent = this;
-    right.parent = this;
-  }
+  new(this.left, this.binaryName, this.right, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4881,11 +4446,6 @@ class BinaryExpression extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitBinary(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "BinaryExpression(${toStringInternal()})";
   }
 
   @override
@@ -4904,12 +4464,10 @@ class BinaryExpression extends InternalExpression {
 
 /// Internal expression for a unary expression.
 class UnaryExpression extends InternalExpression {
-  Name unaryName;
-  InternalExpression expression;
+  final Name unaryName;
+  final InternalExpression expression;
 
-  new(this.unaryName, this.expression) {
-    expression.parent = this;
-  }
+  new(this.unaryName, this.expression, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4922,11 +4480,6 @@ class UnaryExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.PREFIX;
-
-  @override
-  String toString() {
-    return "UnaryExpression(${toStringInternal()})";
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -4943,11 +4496,9 @@ class UnaryExpression extends InternalExpression {
 
 /// Internal expression for a parenthesized expression.
 class ParenthesizedExpression extends InternalExpression {
-  InternalExpression expression;
+  final InternalExpression expression;
 
-  new(this.expression) {
-    expression.parent = this;
-  }
+  new(this.expression, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4960,11 +4511,6 @@ class ParenthesizedExpression extends InternalExpression {
   @override
   // Coverage-ignore(suite): Not run.
   int get precedence => Precedence.CALLEE;
-
-  @override
-  String toString() {
-    return "ParenthesizedExpression(${toStringInternal()})";
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -4982,16 +4528,16 @@ class ParenthesizedExpression extends InternalExpression {
 /// invocation) after type inference.
 class MethodInvocation extends InternalExpression {
   /// The receiver of the invocation.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of the invoked method or property.
-  Name name;
+  final Name name;
 
   /// The type arguments applied at the invocation, if any.
   final TypeArguments? typeArguments;
 
   /// The arguments applied at the invocation.
-  ActualArguments arguments;
+  final ActualArguments arguments;
 
   /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
   final bool isNullAware;
@@ -5006,10 +4552,8 @@ class MethodInvocation extends InternalExpression {
     this.arguments, {
     required this.isNullAware,
     required this.isImplicitThis,
-  }) {
-    receiver.parent = this;
-    arguments.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5017,11 +4561,6 @@ class MethodInvocation extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitMethodInvocation(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "MethodInvocation(${toStringInternal()})";
   }
 
   @override
@@ -5052,7 +4591,7 @@ class MethodInvocation extends InternalExpression {
 /// extension member access) after type inference.
 class PropertyGet extends InternalExpression {
   /// The receiver of the property access.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of the accessed property.
   final Name name;
@@ -5068,9 +4607,8 @@ class PropertyGet extends InternalExpression {
     this.name, {
     required this.isNullAware,
     required this.isImplicitThis,
-  }) {
-    receiver.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5078,11 +4616,6 @@ class PropertyGet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitPropertyGet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "PropertyGet(${toStringInternal()})";
   }
 
   @override
@@ -5111,13 +4644,13 @@ class PropertyGet extends InternalExpression {
 /// inference.
 class PropertySet extends InternalExpression {
   /// The receiver of the assigned property.
-  InternalExpression receiver;
+  final InternalExpression receiver;
 
   /// The name of the assigned property.
-  Name name;
+  final Name name;
 
   /// The value assigned to the property.
-  InternalExpression value;
+  final InternalExpression value;
 
   /// If `true` the assignment is need for its effect and not for its value.
   final bool forEffect;
@@ -5140,10 +4673,8 @@ class PropertySet extends InternalExpression {
     required this.readOnlyReceiver,
     required this.isNullAware,
     required this.isImplicitThis,
-  }) {
-    receiver.parent = this;
-    value.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5151,11 +4682,6 @@ class PropertySet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitPropertySet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "PropertySet(${toStringInternal()})";
   }
 
   @override
@@ -5194,14 +4720,12 @@ class InternalRecordLiteral extends InternalExpression {
   final Map<String, NamedRecordField>? namedFields;
   final bool isConst;
 
-  new(
-    this.fields,
-    this.namedFields, {
+  new({
+    required this.fields,
+    required this.namedFields,
     required this.isConst,
-    required int offset,
-  }) {
-    fileOffset = offset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5209,11 +4733,6 @@ class InternalRecordLiteral extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitInternalRecordLiteral(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 
   @override
@@ -5244,10 +4763,7 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   final Procedure target;
   final ActualArguments arguments;
 
-  @override
-  final int fileOffset;
-
-  new(this.target, this.arguments, {required this.fileOffset});
+  new(this.target, this.arguments, {required super.fileOffset});
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -5264,10 +4780,6 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
     }
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() =>
-      'ExtensionTypeRedirectingInitializer(${toStringInternal()})';
 }
 
 class ExternalExtensionTypeRedirectingInitializer extends ExternalInitializer {
@@ -5303,10 +4815,8 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
   /// [Procedure] that represents the representation field.
   final Procedure field;
   final InternalExpression value;
-  @override
-  final int fileOffset;
 
-  new(this.field, this.value, {required this.fileOffset})
+  new(this.field, this.value, {required super.fileOffset})
     : assert(field.stubKind == ProcedureStubKind.RepresentationField);
 
   @override
@@ -5321,10 +4831,6 @@ class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
     printer.write(" = ");
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() =>
-      'ExtensionTypeRepresentationFieldInitializer(${toStringInternal()})';
 }
 
 /// Internal expression for an explicit initialization of an extension type
@@ -5359,9 +4865,9 @@ class ExternalExtensionTypeRepresentationFieldInitializer
 /// [InferenceVisitor] that we need to save the context type of the expression.
 class DotShorthand extends InternalExpression {
   /// The entire dot shorthand expression (e.g. `.zero` or `.parse(input)`).
-  InternalExpression innerExpression;
+  final InternalExpression innerExpression;
 
-  new(this.innerExpression);
+  new(this.innerExpression, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5369,11 +4875,6 @@ class DotShorthand extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitDotShorthand(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "DotShorthand(${toStringInternal()})";
   }
 
   @override
@@ -5403,6 +4904,7 @@ class DotShorthandInvocation extends InternalExpression {
     this.arguments, {
     required this.nameOffset,
     required this.isConst,
+    required super.fileOffset,
   });
 
   @override
@@ -5411,11 +4913,6 @@ class DotShorthandInvocation extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitDotShorthandInvocation(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "DotShorthandInvocation(${toStringInternal()})";
   }
 
   @override
@@ -5445,7 +4942,12 @@ class DotShorthandPropertyGet extends InternalExpression {
   /// [InferenceVisitor].
   bool hasTypeParameters;
 
-  new(this.name, {required this.nameOffset, this.hasTypeParameters = false});
+  new(
+    this.name, {
+    required this.nameOffset,
+    this.hasTypeParameters = false,
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5461,11 +4963,6 @@ class DotShorthandPropertyGet extends InternalExpression {
     printer.write('.');
     printer.writeName(name);
   }
-
-  @override
-  String toString() {
-    return "DotShorthandPropertyGet(${toStringInternal()})";
-  }
 }
 
 class InternalConstructorInvocation extends InternalExpression {
@@ -5474,14 +4971,13 @@ class InternalConstructorInvocation extends InternalExpression {
   final ActualArguments arguments;
   final bool isConst;
 
-  new(
-    this.target,
-    this.typeArguments,
-    this.arguments, {
+  new({
+    required this.target,
+    required this.typeArguments,
+    required this.arguments,
     required this.isConst,
-  }) {
-    arguments.parent = this;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5507,11 +5003,6 @@ class InternalConstructorInvocation extends InternalExpression {
     }
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "InternalConstructorInvocation(${toStringInternal()})";
-  }
 }
 
 class InternalStaticInvocation extends InternalExpression {
@@ -5520,9 +5011,13 @@ class InternalStaticInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
   final ActualArguments arguments;
 
-  new(this.name, this.target, this.typeArguments, this.arguments) {
-    arguments.parent = this;
-  }
+  new(
+    this.name,
+    this.target,
+    this.typeArguments,
+    this.arguments, {
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5539,11 +5034,6 @@ class InternalStaticInvocation extends InternalExpression {
     typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "InternalStaticInvocation(${toStringInternal()})";
-  }
 }
 
 class InternalSuperMethodInvocation extends InternalExpression {
@@ -5552,9 +5042,13 @@ class InternalSuperMethodInvocation extends InternalExpression {
   final TypeArguments? typeArguments;
   final ActualArguments arguments;
 
-  new(this.name, this.typeArguments, this.arguments, this.target) {
-    arguments.parent = this;
-  }
+  new(
+    this.name,
+    this.typeArguments,
+    this.arguments,
+    this.target, {
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5572,21 +5066,13 @@ class InternalSuperMethodInvocation extends InternalExpression {
     typeArguments?.toText(printer);
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "InternalSuperMethodInvocation(${toStringInternal()})";
-  }
 }
 
 class InternalRedirectingInitializer extends InternalInitializer {
   final Constructor target;
   final ActualArguments arguments;
 
-  @override
-  final int fileOffset;
-
-  new(this.target, this.arguments, {required this.fileOffset});
+  new(this.target, this.arguments, {required super.fileOffset});
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -5603,11 +5089,6 @@ class InternalRedirectingInitializer extends InternalInitializer {
     }
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "InternalRedirectingInitializer(${toStringInternal()})";
-  }
 }
 
 class InternalSuperInitializer extends InternalInitializer {
@@ -5616,14 +5097,11 @@ class InternalSuperInitializer extends InternalInitializer {
 
   final bool isSynthetic;
 
-  @override
-  final int fileOffset;
-
   new(
     this.target,
     this.arguments, {
     required this.isSynthetic,
-    required this.fileOffset,
+    required super.fileOffset,
   });
 
   @override
@@ -5641,11 +5119,6 @@ class InternalSuperInitializer extends InternalInitializer {
     }
     arguments.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 // Coverage-ignore(suite): Not run.
@@ -5657,7 +5130,7 @@ sealed class InternalForInElement {
   /// Infers the for-in element and the [iterable].
   ForInHeaderResult inferForInHeader(
     InferenceVisitorBase visitor, {
-    required TreeNode node,
+    required InternalNode node,
     required InternalExpression iterable,
     required bool isAsync,
     required int forOffset,
@@ -5720,7 +5193,7 @@ sealed class _BaseForInElement extends InternalForInElement {
   @override
   ForInHeaderResult inferForInHeader(
     InferenceVisitorBase visitor, {
-    required TreeNode node,
+    required InternalNode node,
     required InternalExpression iterable,
     required bool isAsync,
     required int forOffset,
@@ -5991,7 +5464,7 @@ class PatternForInElement extends InternalForInElement {
   @override
   ForInHeaderResult inferForInHeader(
     InferenceVisitorBase visitor, {
-    required TreeNode node,
+    required InternalNode node,
     required InternalExpression iterable,
     required bool isAsync,
     required int forOffset,
@@ -6442,8 +5915,7 @@ class InternalForInStatement extends InternalLoopStatement {
   final InternalExpression iterable;
 
   /// The for-in loop body.
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
   /// Whether the for-in loop is asynchronous.
   final bool isAsync;
@@ -6456,11 +5928,9 @@ class InternalForInStatement extends InternalLoopStatement {
     this.iterable,
     this.body, {
     required this.isAsync,
-    required int fileOffset,
+    required super.fileOffset,
     required this.bodyOffset,
-  }) {
-    this.fileOffset = fileOffset;
-  }
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -6480,18 +5950,13 @@ class InternalForInStatement extends InternalLoopStatement {
     printer.write(') ');
     body.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalVariableGet extends InternalExpression {
   /// The target variable.
   final InternalVariable variable;
 
-  new(this.variable);
+  new(this.variable, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -6506,11 +5971,6 @@ class InternalVariableGet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write(variable.cosmeticName ?? '<unnamed-variable>');
   }
-
-  @override
-  String toString() {
-    return "InternalVariableGet(${toStringInternal()})";
-  }
 }
 
 class InternalVariableSet extends InternalExpression {
@@ -6519,9 +5979,7 @@ class InternalVariableSet extends InternalExpression {
 
   InternalExpression value;
 
-  new(this.variable, this.value) {
-    value.parent = this;
-  }
+  new(this.variable, this.value, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -6538,14 +5996,9 @@ class InternalVariableSet extends InternalExpression {
     printer.write(' = ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "InternalVariableSet(${toStringInternal()})";
-  }
 }
 
-class InternalFunctionNode {
+class InternalFunctionNode extends InternalNode {
   final DartType? returnType;
   final List<TypeParameter> typeParameters;
   final List<InternalPositionalParameter> positionalParameters;
@@ -6553,7 +6006,6 @@ class InternalFunctionNode {
   final int requiredParameterCount;
   final AsyncMarker asyncMarker;
   final InternalStatement? body;
-  final int fileOffset;
   final int fileEndOffset;
 
   new({
@@ -6564,7 +6016,7 @@ class InternalFunctionNode {
     required this.requiredParameterCount,
     required this.asyncMarker,
     required this.body,
-    required this.fileOffset,
+    required super.fileOffset,
     required this.fileEndOffset,
   });
 
@@ -6586,6 +6038,7 @@ class InternalFunctionNode {
     );
   }
 
+  @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer, {String name = ''}) {
     if (returnType != null) {
@@ -6650,9 +6103,7 @@ class InternalFunctionNode {
 class InternalFunctionExpression extends InternalExpression {
   final InternalFunctionNode function;
 
-  new({required this.function, required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required this.function, required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -6667,11 +6118,6 @@ class InternalFunctionExpression extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     function.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()}";
-  }
 }
 
 class InternalFunctionDeclaration extends InternalStatement {
@@ -6679,9 +6125,7 @@ class InternalFunctionDeclaration extends InternalStatement {
   late final InternalFunctionNode function;
   late final bool hasImplicitReturnType;
 
-  new({required this.variable, required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required this.variable, required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -6696,14 +6140,9 @@ class InternalFunctionDeclaration extends InternalStatement {
       printer.write(';');
     }
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()}";
-  }
 }
 
-sealed class InternalPattern extends TreeNode with InternalTreeNode {
+sealed class InternalPattern({required super.fileOffset}) extends InternalNode {
   /// Returns the variable name that this pattern defines, if any.
   ///
   /// This is used to derive an implicit variable name from a pattern to use
@@ -6719,37 +6158,6 @@ sealed class InternalPattern extends TreeNode with InternalTreeNode {
   /// These variables are initialized to the values captured by the variable
   /// patterns nested in the pattern.
   List<InternalDeclaredVariable> get declaredVariables;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) =>
-      unsupported("${runtimeType}.accept", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
-      unsupported("${runtimeType}.accept", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void replaceChild(TreeNode child, TreeNode replacement) =>
-      unsupported("${runtimeType}.replaceChild", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void visitChildren(Visitor<dynamic> v) =>
-      unsupported("${runtimeType}.visitChildren", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformChildren(Transformer v) =>
-      unsupported("${runtimeType}.transformChildren", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
-  }
 
   shared.PatternResult acceptInference(
     InferenceVisitorImpl visitor,
@@ -6772,12 +6180,8 @@ class InternalOrPattern extends InternalPattern {
     this.left,
     this.right, {
     required this.orPatternJointVariables,
-    required int fileOffset,
-  }) {
-    left.parent = this;
-    right.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   shared.PatternResult acceptInference(
@@ -6794,11 +6198,6 @@ class InternalOrPattern extends InternalPattern {
     printer.write(' || ');
     right.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// An [InternalPattern] for `pattern && pattern`.
@@ -6812,11 +6211,7 @@ class InternalAndPattern extends InternalPattern {
     ...right.declaredVariables,
   ];
 
-  new(this.left, this.right, {required int fileOffset}) {
-    left.parent = this;
-    right.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.left, this.right, {required super.fileOffset});
 
   @override
   shared.PatternResult acceptInference(
@@ -6833,21 +6228,13 @@ class InternalAndPattern extends InternalPattern {
     printer.write(' && ');
     right.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// An [InternalPattern] based on a constant [InternalExpression].
 class InternalConstantPattern extends InternalPattern {
   final InternalExpression expression;
 
-  new({required this.expression, required int fileOffset}) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new({required this.expression, required super.fileOffset});
 
   @override
   List<InternalDeclaredVariable> get declaredVariables => const [];
@@ -6865,19 +6252,12 @@ class InternalConstantPattern extends InternalPattern {
   void toTextInternal(AstPrinter printer) {
     expression.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "ConstantPattern(${toStringInternal()})";
-  }
 }
 
 class InternalAssignedVariablePattern extends InternalPattern {
   final InternalVariable variable;
 
-  new(this.variable, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.variable, {required super.fileOffset});
 
   @override
   List<InternalDeclaredVariable> get declaredVariables => const [];
@@ -6898,11 +6278,6 @@ class InternalAssignedVariablePattern extends InternalPattern {
   void toTextInternal(AstPrinter printer) {
     printer.write(variable.cosmeticName!);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// An [InternalPattern] for `pattern as type`.
@@ -6910,10 +6285,7 @@ class InternalCastPattern extends InternalPattern {
   final InternalPattern pattern;
   final DartType type;
 
-  new(this.pattern, this.type, {required int fileOffset}) {
-    pattern.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.pattern, this.type, {required super.fileOffset});
 
   @override
   String? get variableName => pattern.variableName;
@@ -6937,11 +6309,6 @@ class InternalCastPattern extends InternalPattern {
     printer.write(' as ');
     printer.writeType(type);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalInvalidPattern extends InternalPattern {
@@ -6953,11 +6320,8 @@ class InternalInvalidPattern extends InternalPattern {
   new({
     required this.invalidExpression,
     required this.declaredVariables,
-    required int fileOffset,
-  }) {
-    invalidExpression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   shared.PatternResult acceptInference(
@@ -6971,11 +6335,6 @@ class InternalInvalidPattern extends InternalPattern {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     invalidExpression.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -6994,11 +6353,8 @@ class InternalListPattern extends InternalPattern {
   new({
     required this.typeArgument,
     required this.patterns,
-    required int fileOffset,
-  }) {
-    setParents(patterns, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   shared.PatternResult acceptInference(
@@ -7025,11 +6381,6 @@ class InternalListPattern extends InternalPattern {
     }
     printer.write(']');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalMapPattern extends InternalPattern {
@@ -7052,11 +6403,8 @@ class InternalMapPattern extends InternalPattern {
     required this.keyType,
     required this.valueType,
     required this.entries,
-    required int fileOffset,
-  }) : assert((keyType == null) == (valueType == null)) {
-    setParents(entries, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  }) : assert((keyType == null) == (valueType == null));
 
   @override
   shared.PatternResult acceptInference(
@@ -7081,31 +6429,13 @@ class InternalMapPattern extends InternalPattern {
     }
     printer.write('}');
   }
-
-  @override
-  String toString() {
-    return '$runtimeType(${toStringInternal()})';
-  }
 }
 
-class InternalMapPatternEntry extends TreeNode with InternalTreeNode {
+class InternalMapPatternEntry extends InternalNode {
   final InternalExpression key;
   final InternalPattern value;
 
-  new({required this.key, required this.value, required int fileOffset}) {
-    value.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  R accept<R>(TreeVisitor<R> v) {
-    throw new UnimplementedError('${runtimeType}.accept');
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError('${runtimeType}.accept1');
-  }
+  new({required this.key, required this.value, required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7114,19 +6444,11 @@ class InternalMapPatternEntry extends TreeNode with InternalTreeNode {
     printer.write(': ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return 'MapPatternEntry(${toStringInternal()})';
-  }
 }
 
-class InternalMapPatternRestEntry extends TreeNode
-    with InternalTreeNode
+class InternalMapPatternRestEntry extends InternalNode
     implements InternalMapPatternEntry {
-  new({required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7137,24 +6459,9 @@ class InternalMapPatternRestEntry extends TreeNode
   InternalPattern get value => throw new UnsupportedError('$runtimeType.value');
 
   @override
-  R accept<R>(TreeVisitor<R> v) {
-    throw new UnimplementedError('${runtimeType}.accept');
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    throw new UnimplementedError('${runtimeType}.accept1');
-  }
-
-  @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('...');
-  }
-
-  @override
-  String toString() {
-    return '$runtimeType(${toStringInternal()})';
   }
 }
 
@@ -7166,10 +6473,7 @@ class InternalNamedPattern extends InternalPattern {
   List<InternalDeclaredVariable> get declaredVariables =>
       pattern.declaredVariables;
 
-  new({required this.name, required this.pattern, required int fileOffset}) {
-    pattern.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new({required this.name, required this.pattern, required super.fileOffset});
 
   @override
   shared.PatternResult acceptInference(
@@ -7190,21 +6494,13 @@ class InternalNamedPattern extends InternalPattern {
     printer.write(': ');
     pattern.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return '$runtimeType(${toStringInternal()})';
-  }
 }
 
 /// An [InternalPattern] for `pattern!`.
 class InternalNullAssertPattern extends InternalPattern {
   final InternalPattern pattern;
 
-  new({required this.pattern, required int fileOffset}) {
-    pattern.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new({required this.pattern, required super.fileOffset});
 
   @override
   String? get variableName => pattern.variableName;
@@ -7227,21 +6523,13 @@ class InternalNullAssertPattern extends InternalPattern {
     pattern.toTextInternal(printer);
     printer.write('!');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// An [InternalPattern] for `pattern?`.
 class InternalNullCheckPattern extends InternalPattern {
   final InternalPattern pattern;
 
-  new({required this.pattern, required int fileOffset}) {
-    pattern.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new({required this.pattern, required super.fileOffset});
 
   @override
   String? get variableName => pattern.variableName;
@@ -7264,11 +6552,6 @@ class InternalNullCheckPattern extends InternalPattern {
     pattern.toTextInternal(printer);
     printer.write('?');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalObjectPattern extends InternalPattern {
@@ -7290,11 +6573,8 @@ class InternalObjectPattern extends InternalPattern {
     required this.fields,
     required this.typedef,
     required this.hasExplicitTypeArguments,
-    required int fileOffset,
-  }) {
-    setParents(fields, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   List<InternalDeclaredVariable> get declaredVariables {
@@ -7324,11 +6604,6 @@ class InternalObjectPattern extends InternalPattern {
     }
     printer.write(')');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalRecordPattern extends InternalPattern {
@@ -7339,10 +6614,7 @@ class InternalRecordPattern extends InternalPattern {
     for (InternalPattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
-  new({required this.patterns, required int fileOffset}) {
-    setParents(patterns, this);
-    this.fileOffset = fileOffset;
-  }
+  new({required this.patterns, required super.fileOffset});
 
   @override
   shared.PatternResult acceptInference(
@@ -7364,11 +6636,6 @@ class InternalRecordPattern extends InternalPattern {
     }
     printer.write(')');
   }
-
-  @override
-  String toString() {
-    return '$runtimeType(${toStringInternal()})';
-  }
 }
 
 /// An [InternalPattern] for `operator expression` where `operator  is either
@@ -7377,10 +6644,11 @@ class InternalRelationalPattern extends InternalPattern {
   final RelationalPatternKind kind;
   final InternalExpression expression;
 
-  new({required this.kind, required this.expression, required int fileOffset}) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new({
+    required this.kind,
+    required this.expression,
+    required super.fileOffset,
+  });
 
   @override
   List<InternalDeclaredVariable> get declaredVariables => const [];
@@ -7418,20 +6686,12 @@ class InternalRelationalPattern extends InternalPattern {
     }
     expression.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalRestPattern extends InternalPattern {
   InternalPattern? subPattern;
 
-  new({required this.subPattern, required int fileOffset}) {
-    subPattern?.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new({required this.subPattern, required super.fileOffset});
 
   @override
   List<InternalDeclaredVariable> get declaredVariables =>
@@ -7457,11 +6717,6 @@ class InternalRestPattern extends InternalPattern {
       subPattern!.toTextInternal(printer);
     }
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalVariablePattern extends InternalPattern {
@@ -7472,10 +6727,7 @@ class InternalVariablePattern extends InternalPattern {
   @override
   List<InternalDeclaredVariable> get declaredVariables => [variable];
 
-  new({required this.type, required this.variable, required int fileOffset}) {
-    variable.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new({required this.type, required this.variable, required super.fileOffset});
 
   @override
   String get variableName => variable.cosmeticName!;
@@ -7499,19 +6751,13 @@ class InternalVariablePattern extends InternalPattern {
     }
     printer.write(variable.cosmeticName!);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalWildcardPattern extends InternalPattern {
   final DartType? type;
 
-  new({required this.type, required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required this.type, required super.fileOffset});
+
   @override
   List<InternalDeclaredVariable> get declaredVariables => const [];
 
@@ -7532,35 +6778,14 @@ class InternalWildcardPattern extends InternalPattern {
     }
     printer.write("_");
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// A [InternalPattern] with an optional guard [InternalExpression].
-class InternalPatternGuard extends TreeNode with InternalTreeNode {
+class InternalPatternGuard extends InternalNode {
   final InternalPattern pattern;
   final InternalExpression? guard;
 
-  new({required this.pattern, required this.guard, required int fileOffset}) {
-    pattern.parent = this;
-    guard?.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
+  new({required this.pattern, required this.guard, required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7571,9 +6796,6 @@ class InternalPatternGuard extends TreeNode with InternalTreeNode {
       guard!.toTextInternal(printer);
     }
   }
-
-  @override
-  String toString() => '$runtimeType(${toStringInternal()})';
 }
 
 class InternalPatternSwitchCase extends InternalSwitchCase {
@@ -7600,27 +6822,10 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
     required this.labels,
     required this.jointVariables,
     required this.jointVariableFirstUseOffsets,
-    required int fileOffset,
-  }) {
-    setParents(patternGuards, this);
-    setParents(jointVariables, this);
-    body.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   int get caseHeadCount => patternGuards.length;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7664,11 +6869,6 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
     }
     printer.decIndentation();
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalPatternSwitchStatement extends InternalStatement
@@ -7684,12 +6884,8 @@ class InternalPatternSwitchStatement extends InternalStatement
   new({
     required this.expression,
     required this.cases,
-    required int fileOffset,
-  }) {
-    expression.parent = this;
-    setParents(cases, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -7711,45 +6907,24 @@ class InternalPatternSwitchStatement extends InternalStatement
     printer.newLine();
     printer.write('}');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
-sealed class InternalSwitch implements TreeNode {}
+sealed class InternalSwitch implements InternalNode {}
 
 sealed class InternalSwitchStatement
     implements InternalSwitch, InternalStatement, InternalBreakableStatement {
   List<InternalSwitchCase> get cases;
 }
 
-class InternalSwitchExpressionCase extends TreeNode with InternalTreeNode {
+class InternalSwitchExpressionCase extends InternalNode {
   final InternalPatternGuard patternGuard;
   final InternalExpression expression;
 
   new({
     required this.patternGuard,
     required this.expression,
-    required int fileOffset,
-  }) {
-    patternGuard.parent = this;
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
+    required super.fileOffset,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7758,11 +6933,6 @@ class InternalSwitchExpressionCase extends TreeNode with InternalTreeNode {
     patternGuard.toTextInternal(printer);
     printer.write(' => ');
     expression.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return '$runtimeType(${toStringInternal()})';
   }
 }
 
@@ -7774,12 +6944,8 @@ class InternalSwitchExpression extends InternalExpression
   new({
     required this.expression,
     required this.cases,
-    required int fileOffset,
-  }) {
-    expression.parent = this;
-    setParents(cases, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -7803,9 +6969,6 @@ class InternalSwitchExpression extends InternalExpression
     }
     printer.write(' }');
   }
-
-  @override
-  String toString() => '$runtimeType(${toStringInternal()})';
 }
 
 class InternalPatternVariableDeclaration extends InternalStatement {
@@ -7817,12 +6980,8 @@ class InternalPatternVariableDeclaration extends InternalStatement {
     required this.pattern,
     required this.initializer,
     required this.isFinal,
-    required int fileOffset,
-  }) {
-    pattern.parent = this;
-    initializer.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -7842,11 +7001,6 @@ class InternalPatternVariableDeclaration extends InternalStatement {
     initializer.toTextInternal(printer);
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalPatternAssignment extends InternalExpression {
@@ -7856,12 +7010,8 @@ class InternalPatternAssignment extends InternalExpression {
   new({
     required this.pattern,
     required this.expression,
-    required int fileOffset,
-  }) {
-    pattern.parent = this;
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -7877,11 +7027,6 @@ class InternalPatternAssignment extends InternalExpression {
     pattern.toTextInternal(printer);
     printer.write(' = ');
     expression.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -7903,14 +7048,8 @@ class InternalIfCaseStatement extends InternalStatement {
     required this.patternGuard,
     required this.then,
     required this.otherwise,
-    required int fileOffset,
-  }) {
-    expression.parent = this;
-    patternGuard.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -7931,11 +7070,6 @@ class InternalIfCaseStatement extends InternalStatement {
       otherwise!.toTextInternal(printer);
     }
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalContinueSwitchStatement extends InternalStatement
@@ -7945,9 +7079,7 @@ class InternalContinueSwitchStatement extends InternalStatement
   @override
   InternalInvalidExpression? error;
 
-  new({required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -7961,17 +7093,12 @@ class InternalContinueSwitchStatement extends InternalStatement
   }
 
   @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
-
-  @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitInternalContinueSwitchStatement(this);
   }
 }
 
-class InternalCatch extends TreeNode with InternalTreeNode {
+class InternalCatch extends InternalNode {
   final DartType guard; // Not null, defaults to dynamic.
   final InternalCatchVariable? exception;
   final InternalCatchVariable? stackTrace;
@@ -7982,25 +7109,8 @@ class InternalCatch extends TreeNode with InternalTreeNode {
     required this.body,
     this.guard = const DynamicType(),
     this.stackTrace,
-    required int fileOffset,
-  }) {
-    exception?.parent = this;
-    stackTrace?.parent = this;
-    body.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
-  }
+    required super.fileOffset,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -8046,38 +7156,18 @@ class InternalCatch extends TreeNode with InternalTreeNode {
     }
     body.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// Declaration of a variable with an initial value.
-class InternalVariableDeclaration extends TreeNode with InternalTreeNode {
+class InternalVariableDeclaration extends InternalNode {
   /// The declared variable.
   final InternalDeclaredVariable variable;
   InternalExpression? initializer;
 
-  new(this.variable, {this.initializer}) {
-    variable.parent = this;
-    initializer?.parent = this;
-  }
+  new(this.variable, {this.initializer, required super.fileOffset});
 
   void updateInitializer(InternalExpression? value) {
-    initializer = value?..parent = this;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) {
-    unsupported("${runtimeType}.accept on ${v.runtimeType}", -1, null);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    unsupported("${runtimeType}.accept1 on ${v.runtimeType}", -1, null);
+    initializer = value;
   }
 
   @override
@@ -8085,9 +7175,6 @@ class InternalVariableDeclaration extends TreeNode with InternalTreeNode {
   void toTextInternal(AstPrinter printer) {
     variable.toTextInternal(printer, initializer: initializer);
   }
-
-  @override
-  String toString() => 'InternalVariableDeclaration(${toStringInternal()}';
 }
 
 /// Declaration of a local variable.
@@ -8095,9 +7182,7 @@ class InternalVariableStatement extends InternalStatement {
   /// The declared variable.
   final InternalVariableDeclaration declaration;
 
-  new(this.declaration) {
-    declaration.parent = this;
-  }
+  new(this.declaration, {required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8110,17 +7195,11 @@ class InternalVariableStatement extends InternalStatement {
     declaration.toTextInternal(printer);
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
-sealed class InternalLoopStatement extends InternalStatement
+sealed class InternalLoopStatement({required super.fileOffset})
+    extends InternalStatement
     implements InternalBreakableStatement, InternalContinuableStatement {
-  abstract InternalStatement body;
-
   @override
   final List<BreakStatement> breakStatements = [];
 
@@ -8134,15 +7213,15 @@ class InternalForStatement extends InternalLoopStatement {
   final InternalExpression? condition; // May be null.
   final List<InternalExpression> updates; // May be empty, but not null.
 
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
-  new(this.variables, this.condition, this.updates, this.body) {
-    setParents(variables, this);
-    condition?.parent = this;
-    setParents(updates, this);
-    body.parent = this;
-  }
+  new(
+    this.variables,
+    this.condition,
+    this.updates,
+    this.body, {
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8172,11 +7251,6 @@ class InternalForStatement extends InternalLoopStatement {
     printer.write(') ');
     body.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// Synthetic expression of form `let v = x in y`
@@ -8190,12 +7264,8 @@ class InternalLet extends InternalExpression {
     required this.value,
     required this.valueType,
     required this.body,
-    required int fileOffset,
-  }) {
-    value.parent = this;
-    body.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8215,21 +7285,14 @@ class InternalLet extends InternalExpression {
     printer.write(' in ');
     body.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "Let(${toStringInternal()})";
-  }
 }
 
 class InternalThisVariable extends InternalVariable {
   @override
   final ThisVariable _astVariable;
 
-  new({required DartType type, required int fileOffset})
-    : _astVariable = new ThisVariable(type: type)..fileOffset = fileOffset {
-    this.fileOffset = fileOffset;
-  }
+  new({required DartType type, required super.fileOffset})
+    : _astVariable = new ThisVariable(type: type)..fileOffset = fileOffset;
 
   @override
   ThisVariable get astVariable => _astVariable;
@@ -8254,11 +7317,6 @@ class InternalThisVariable extends InternalVariable {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('this');
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -8312,7 +7370,10 @@ final InternalSyntheticVariable dummyInternalVariable =
     );
 
 final InternalVariableDeclaration dummyInternalVariableDeclaration =
-    new InternalVariableDeclaration(dummyInternalVariable);
+    new InternalVariableDeclaration(
+      dummyInternalVariable,
+      fileOffset: TreeNode.noOffset,
+    );
 
 class InternalFieldInitializer extends InternalInitializer {
   /// Reference to the field being initialized.  Not null.
@@ -8321,14 +7382,11 @@ class InternalFieldInitializer extends InternalInitializer {
 
   final bool isSynthetic;
 
-  @override
-  final int fileOffset;
-
   new(
     this.field,
     this.value, {
     required this.isSynthetic,
-    required this.fileOffset,
+    required super.fileOffset,
   });
 
   @override
@@ -8340,11 +7398,6 @@ class InternalFieldInitializer extends InternalInitializer {
   }
 
   @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
-
-  @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
     return visitor.visitInternalFieldInitializer(this);
   }
@@ -8353,10 +7406,7 @@ class InternalFieldInitializer extends InternalInitializer {
 class InternalAssertInitializer extends InternalInitializer {
   final InternalAssertStatement statement;
 
-  @override
-  final int fileOffset;
-
-  new(this.statement, {required this.fileOffset});
+  new(this.statement, {required super.fileOffset});
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8368,11 +7418,6 @@ class InternalAssertInitializer extends InternalInitializer {
   void toTextInternal(AstPrinter printer) {
     statement.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 /// An initializer with a compile-time error.
@@ -8383,12 +7428,9 @@ class InternalInvalidInitializer extends InternalInitializer {
   final bool isSuperInitializer;
   final bool isRedirectingInitializer;
 
-  @override
-  final int fileOffset;
-
   new(
     this.message, {
-    required this.fileOffset,
+    required super.fileOffset,
     required this.isSuperInitializer,
     required this.isRedirectingInitializer,
   });
@@ -8404,11 +7446,6 @@ class InternalInvalidInitializer extends InternalInitializer {
     printer.write('<invalid:');
     printer.write(message);
     printer.write('>');
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -8431,12 +7468,8 @@ class InternalAssertStatement extends InternalStatement {
     this.message,
     required this.conditionStartOffset,
     required this.conditionEndOffset,
-    required int fileOffset,
-  }) {
-    condition.parent = this;
-    message?.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8454,17 +7487,10 @@ class InternalAssertStatement extends InternalStatement {
     }
     printer.write(');');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalEmptyStatement extends InternalStatement {
-  new({required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8476,20 +7502,12 @@ class InternalEmptyStatement extends InternalStatement {
   void toTextInternal(AstPrinter printer) {
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalExpressionStatement extends InternalStatement {
   final InternalExpression expression;
 
-  new(this.expression, {required int fileOffset}) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.expression, {required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8502,11 +7520,6 @@ class InternalExpressionStatement extends InternalStatement {
     expression.toTextInternal(printer);
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalIfStatement extends InternalStatement {
@@ -8514,12 +7527,7 @@ class InternalIfStatement extends InternalStatement {
   final InternalStatement then;
   final InternalStatement? otherwise;
 
-  new(this.condition, this.then, this.otherwise, {required int fileOffset}) {
-    condition.parent = this;
-    then.parent = this;
-    otherwise?.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.condition, this.then, this.otherwise, {required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8538,21 +7546,13 @@ class InternalIfStatement extends InternalStatement {
       otherwise!.toTextInternal(printer);
     }
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalYieldStatement extends InternalStatement {
   final InternalExpression expression;
   final bool isYieldStar;
 
-  new(this.expression, {required this.isYieldStar, required int fileOffset}) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.expression, {required this.isYieldStar, required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8570,24 +7570,14 @@ class InternalYieldStatement extends InternalStatement {
     expression.toTextInternal(printer);
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalDoStatement extends InternalLoopStatement {
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
   final InternalExpression condition;
 
-  new(this.body, this.condition, {required int fileOffset}) {
-    body.parent = this;
-    condition.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.body, this.condition, {required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8603,24 +7593,14 @@ class InternalDoStatement extends InternalLoopStatement {
     condition.toTextInternal(printer);
     printer.write(');');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalWhileStatement extends InternalLoopStatement {
-  InternalExpression condition;
+  final InternalExpression condition;
 
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
-  new(this.condition, this.body, {required int fileOffset}) {
-    condition.parent = this;
-    body.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.condition, this.body, {required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8635,26 +7615,16 @@ class InternalWhileStatement extends InternalLoopStatement {
     printer.write(') ');
     body.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalLabeledStatement extends InternalStatement
     implements InternalBreakableStatement {
-  late InternalStatement body;
+  final InternalStatement body;
 
   @override
   final List<BreakStatement> breakStatements = [];
 
-  new(InternalStatement? body, {required int fileOffset}) {
-    if (body != null) {
-      this.body = body..parent = this;
-    }
-    this.fileOffset = fileOffset;
-  }
+  new(this.body, {required super.fileOffset});
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8668,11 +7638,6 @@ class InternalLabeledStatement extends InternalStatement
     printer.newLine();
     body.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalBlock extends InternalStatement {
@@ -8681,14 +7646,13 @@ class InternalBlock extends InternalStatement {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
-  int fileEndOffset = TreeNode.noOffset;
+  final int fileEndOffset;
 
-  new(this.statements, {required this.fileEndOffset, required int fileOffset}) {
-    // Ensure statements is mutable.
-    assert(checkListIsMutable(statements, dummyInternalStatement));
-    setParents(statements, this);
-    this.fileOffset = fileOffset;
-  }
+  new(
+    this.statements, {
+    required this.fileEndOffset,
+    required super.fileOffset,
+  });
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
@@ -8712,22 +7676,13 @@ class InternalBlock extends InternalStatement {
       printer.write('}');
     }
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalBlockExpression extends InternalExpression {
   final InternalBlock body;
   final InternalExpression value;
 
-  new(this.body, this.value, {required int fileOffset}) {
-    body.parent = this;
-    value.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.body, this.value, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8745,25 +7700,16 @@ class InternalBlockExpression extends InternalExpression {
     printer.write(' => ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class MultiVariableDeclaration extends InternalStatement {
   final List<InternalVariableDeclaration> declarations;
-  final Uri uri;
 
-  new(this.declarations, this.uri) {
-    setParents(declarations, this);
-  }
+  new(this.declarations, {required super.fileOffset});
 
   @override
-  // Coverage-ignore(suite): Not run.
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    unsupported("acceptInference", fileOffset, uri);
+    throw new UnsupportedError('$runtimeType.acceptInference');
   }
 
   @override
@@ -8781,11 +7727,6 @@ class MultiVariableDeclaration extends InternalStatement {
     }
     printer.write(';');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 final InternalStatement dummyInternalStatement = new InternalEmptyStatement(
@@ -8796,10 +7737,7 @@ class InternalAsExpression extends InternalExpression {
   final InternalExpression operand;
   final DartType type;
 
-  new(this.operand, this.type, {required int fileOffset}) {
-    operand.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.operand, this.type, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8820,20 +7758,12 @@ class InternalAsExpression extends InternalExpression {
     printer.write(' ');
     printer.writeType(type);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalAwaitExpression extends InternalExpression {
   final InternalExpression operand;
 
-  new(this.operand, {required int fileOffset}) {
-    operand.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.operand, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8849,19 +7779,12 @@ class InternalAwaitExpression extends InternalExpression {
     printer.write('await ');
     operand.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalBoolLiteral extends InternalExpression {
   final bool value;
 
-  new(this.value, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.value, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8876,11 +7799,6 @@ class InternalBoolLiteral extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('$value');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalConditionalExpression extends InternalExpression {
@@ -8888,12 +7806,7 @@ class InternalConditionalExpression extends InternalExpression {
   final InternalExpression then;
   final InternalExpression otherwise;
 
-  new(this.condition, this.then, this.otherwise, {required int fileOffset}) {
-    condition.parent = this;
-    then.parent = this;
-    otherwise.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.condition, this.then, this.otherwise, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8916,23 +7829,16 @@ class InternalConditionalExpression extends InternalExpression {
     printer.write(' : ');
     otherwise.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalConstructorTearOff extends InternalExpression {
   final Member target;
 
-  new(this.target, {required int fileOffset})
+  new(this.target, {required super.fileOffset})
     : assert(
         target is Constructor || (target is Procedure && target.isFactory),
         "Unexpected constructor tear off target: $target",
-      ) {
-    this.fileOffset = fileOffset;
-  }
+      );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8947,19 +7853,12 @@ class InternalConstructorTearOff extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(target.reference);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalDoubleLiteral extends InternalExpression {
   final double value;
 
-  new(this.value, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.value, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -8974,11 +7873,6 @@ class InternalDoubleLiteral extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('$value');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalFileUriExpression extends InternalExpression {
@@ -8989,11 +7883,8 @@ class InternalFileUriExpression extends InternalExpression {
   new({
     required this.expression,
     required this.fileUri,
-    required int fileOffset,
-  }) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9013,21 +7904,13 @@ class InternalFileUriExpression extends InternalExpression {
     }
     expression.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalInstantiation extends InternalExpression {
   final InternalExpression expression;
   final List<DartType> typeArguments;
 
-  new(this.expression, this.typeArguments, {required int fileOffset}) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.expression, this.typeArguments, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9043,21 +7926,13 @@ class InternalInstantiation extends InternalExpression {
     expression.toTextInternal(printer);
     printer.writeTypeArguments(typeArguments);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalInvalidExpression extends InternalExpression {
   final String message;
   final InternalExpression? expression;
 
-  new(this.message, {this.expression, required int fileOffset}) {
-    expression?.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.message, {this.expression, required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9074,11 +7949,6 @@ class InternalInvalidExpression extends InternalExpression {
     printer.write(message);
     printer.write('>');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalIsExpression extends InternalExpression {
@@ -9090,11 +7960,8 @@ class InternalIsExpression extends InternalExpression {
     this.operand,
     this.type, {
     required this.notFileOffset,
-    required int fileOffset,
-  }) {
-    operand.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   bool get isNot => notFileOffset != null;
 
@@ -9120,11 +7987,6 @@ class InternalIsExpression extends InternalExpression {
     printer.write(' ');
     printer.writeType(type);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalListLiteral extends InternalExpression {
@@ -9136,11 +7998,8 @@ class InternalListLiteral extends InternalExpression {
     this.expressions, {
     this.typeArgument,
     this.isConst = false,
-    required int fileOffset,
-  }) {
-    setParents(expressions, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9165,11 +8024,6 @@ class InternalListLiteral extends InternalExpression {
     expressions.toTextInternal(printer);
     printer.write(']');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalLogicalExpression extends InternalExpression {
@@ -9177,11 +8031,7 @@ class InternalLogicalExpression extends InternalExpression {
   final LogicalExpressionOperator operator; // AND (&&) or OR (||).
   final InternalExpression right;
 
-  new(this.left, this.operator, this.right, {required int fileOffset}) {
-    left.parent = this;
-    right.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.left, this.operator, this.right, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9202,11 +8052,6 @@ class InternalLogicalExpression extends InternalExpression {
       printer /*, minimumPrecedence: minimumPrecedence + 1*/,
     );
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalMapLiteral extends InternalExpression {
@@ -9220,11 +8065,8 @@ class InternalMapLiteral extends InternalExpression {
     this.keyType,
     this.valueType,
     this.isConst = false,
-    required int fileOffset,
-  }) : assert((keyType == null) == (valueType == null)) {
-    setParents(entries, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  }) : assert((keyType == null) == (valueType == null));
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9256,20 +8098,12 @@ class InternalMapLiteral extends InternalExpression {
     }
     printer.write('}');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalNot extends InternalExpression {
   final InternalExpression operand;
 
-  new(this.operand, {required int fileOffset}) {
-    operand.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.operand, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9286,20 +8120,12 @@ class InternalNot extends InternalExpression {
     // TODO(johnniwinther): Support precedence on internal expressions.
     operand.toTextInternal(printer /*, minimumPrecedence: Precedence.PREFIX*/);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalNullCheck extends InternalExpression {
   final InternalExpression operand;
 
-  new(this.operand, {required int fileOffset}) {
-    operand.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.operand, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9316,17 +8142,10 @@ class InternalNullCheck extends InternalExpression {
     operand.toTextInternal(printer /*, minimumPrecedence: Precedence.POSTFIX*/);
     printer.write('!');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalNullLiteral extends InternalExpression {
-  new({required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9341,17 +8160,10 @@ class InternalNullLiteral extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('null');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalRethrow extends InternalExpression {
-  new({required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9366,11 +8178,6 @@ class InternalRethrow extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('rethrow');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalSetLiteral extends InternalExpression {
@@ -9382,11 +8189,8 @@ class InternalSetLiteral extends InternalExpression {
     this.expressions, {
     this.typeArgument,
     this.isConst = false,
-    required int fileOffset,
-  }) {
-    setParents(expressions, this);
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9411,23 +8215,16 @@ class InternalSetLiteral extends InternalExpression {
     expressions.toTextInternal(printer);
     printer.write('}');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalStaticGet extends InternalExpression {
   final Member target;
 
-  new(this.target, {required int fileOffset})
+  new(this.target, {required super.fileOffset})
     : assert(
         target is Field || (target is Procedure && target.isGetter),
         "Unexpected static get target $target",
-      ) {
-    this.fileOffset = fileOffset;
-  }
+      );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9442,25 +8239,17 @@ class InternalStaticGet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(target.reference);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalStaticSet extends InternalExpression {
   final Member target;
   final InternalExpression value;
 
-  new(this.target, this.value, {required int fileOffset})
+  new(this.target, this.value, {required super.fileOffset})
     : assert(
         target is Field || (target is Procedure && target.isSetter),
         "Unexpected static set target $target",
-      ) {
-    value.parent = this;
-    this.fileOffset = fileOffset;
-  }
+      );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9477,24 +8266,17 @@ class InternalStaticSet extends InternalExpression {
     printer.write(' = ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalStaticTearOff extends InternalExpression {
   final Procedure target;
 
-  new(this.target, {required int fileOffset})
+  new(this.target, {required super.fileOffset})
     : assert(target.isStatic, "Unexpected static tear off target: $target"),
       assert(
         target.kind == ProcedureKind.Method,
         "Unexpected static tear off target: $target",
-      ) {
-    this.fileOffset = fileOffset;
-  }
+      );
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9509,20 +8291,12 @@ class InternalStaticTearOff extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(target.reference);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalStringConcatenation extends InternalExpression {
   final List<InternalExpression> expressions;
 
-  new(this.expressions, {required int fileOffset}) {
-    setParents(expressions, this);
-    this.fileOffset = fileOffset;
-  }
+  new(this.expressions, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9547,19 +8321,12 @@ class InternalStringConcatenation extends InternalExpression {
     }
     printer.write('"');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalStringLiteral extends InternalExpression {
   final String value;
 
-  new(this.value, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.value, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9576,11 +8343,6 @@ class InternalStringLiteral extends InternalExpression {
     printer.write(escapeString(value));
     printer.write('"');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalSuperPropertyGet extends InternalExpression {
@@ -9595,11 +8357,8 @@ class InternalSuperPropertyGet extends InternalExpression {
     required this.receiver,
     required this.name,
     required this.interfaceTarget,
-    required int fileOffset,
-  }) {
-    receiver.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9615,11 +8374,6 @@ class InternalSuperPropertyGet extends InternalExpression {
     printer.write('super.');
     printer.writeInterfaceMemberName(interfaceTarget.reference, name);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalSuperPropertySet extends InternalExpression {
@@ -9634,12 +8388,8 @@ class InternalSuperPropertySet extends InternalExpression {
     required this.name,
     required this.value,
     required this.interfaceTarget,
-    required int fileOffset,
-  }) {
-    receiver.parent = this;
-    value.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9657,19 +8407,12 @@ class InternalSuperPropertySet extends InternalExpression {
     printer.write(' = ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalSymbolLiteral extends InternalExpression {
   final String value; // Everything strictly after the '#'.
 
-  new(this.value, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.value, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9685,17 +8428,10 @@ class InternalSymbolLiteral extends InternalExpression {
     printer.write('#');
     printer.write(value);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalThisExpression extends InternalExpression {
-  new({required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new({required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9710,20 +8446,12 @@ class InternalThisExpression extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('this');
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalThrow extends InternalExpression {
   final InternalExpression expression;
 
-  new(this.expression, {required int fileOffset}) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+  new(this.expression, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9739,11 +8467,6 @@ class InternalThrow extends InternalExpression {
     printer.write('throw ');
     expression.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalTypedefTearOff extends InternalExpression {
@@ -9755,11 +8478,8 @@ class InternalTypedefTearOff extends InternalExpression {
     required this.structuralParameters,
     required this.expression,
     required this.typeArguments,
-    required int fileOffset,
-  }) {
-    expression.parent = this;
-    this.fileOffset = fileOffset;
-  }
+    required super.fileOffset,
+  });
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9778,19 +8498,12 @@ class InternalTypedefTearOff extends InternalExpression {
     printer.writeTypeArguments(typeArguments);
     printer.write(")");
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
 class InternalTypeLiteral extends InternalExpression {
   final DartType type;
 
-  new(this.type, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.type, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9805,40 +8518,14 @@ class InternalTypeLiteral extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.writeType(type);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
-class InternalNamedExpression extends TreeNode with InternalTreeNode {
+class InternalNamedExpression extends InternalNode {
   final String name;
 
   InternalExpression value;
 
-  new({required this.name, required this.value, required int fileOffset}) {
-    value.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) =>
-      unsupported("${runtimeType}.accept", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
-      unsupported("${runtimeType}.accept1", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String toText(AstTextStrategy strategy) {
-    AstPrinter printer = new AstPrinter(strategy);
-    toTextInternal(printer);
-    return printer.getText();
-  }
+  new({required this.name, required this.value, required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -9847,44 +8534,17 @@ class InternalNamedExpression extends TreeNode with InternalTreeNode {
     printer.write(': ');
     value.toTextInternal(printer);
   }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
-  }
 }
 
-sealed class InternalMapLiteralEntry extends TreeNode {}
+sealed class InternalMapLiteralEntry({required super.fileOffset})
+    extends InternalNode {}
 
-class RegularMapLiteralEntry extends InternalMapLiteralEntry
-    with InternalTreeNode {
+class RegularMapLiteralEntry extends InternalMapLiteralEntry {
   final InternalExpression key;
 
   final InternalExpression value;
 
-  new({required this.key, required this.value, required int fileOffset}) {
-    key.parent = this;
-    value.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(TreeVisitor<R> v) =>
-      unsupported("${runtimeType}.accept", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
-      unsupported("${runtimeType}.accept1", -1, null);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  String toText(AstTextStrategy strategy) {
-    AstPrinter printer = new AstPrinter(strategy);
-    toTextInternal(printer);
-    return printer.getText();
-  }
+  new({required this.key, required this.value, required super.fileOffset});
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -9892,11 +8552,6 @@ class RegularMapLiteralEntry extends InternalMapLiteralEntry
     key.toTextInternal(printer);
     printer.write(': ');
     value.toTextInternal(printer);
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
 
@@ -9914,9 +8569,7 @@ final InternalMapLiteralEntry dummyInternalMapLiteralEntry =
 class InternalRedirectingFactoryTearOff extends InternalExpression {
   final Procedure target;
 
-  new(this.target, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
+  new(this.target, {required super.fileOffset});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -9930,10 +8583,5 @@ class InternalRedirectingFactoryTearOff extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeMemberName(target.reference);
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType(${toStringInternal()})";
   }
 }
