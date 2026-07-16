@@ -362,7 +362,7 @@ sealed class InternalContinuableStatement implements InternalStatement {
 class InternalBreakStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late InternalBreakableStatement breakableStatement;
+  late InternalBreakableStatement targetStatement;
 
   @override
   InternalInvalidExpression? error;
@@ -396,7 +396,7 @@ class InternalBreakStatement extends InternalStatement
 class InternalContinueStatement extends InternalStatement
     implements InternalGotoStatement {
   final String? label;
-  late InternalContinuableStatement continuableStatement;
+  late InternalContinuableStatement targetStatement;
 
   @override
   InternalInvalidExpression? error;
@@ -6442,8 +6442,7 @@ class InternalForInStatement extends InternalLoopStatement {
   final InternalExpression iterable;
 
   /// The for-in loop body.
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
   /// Whether the for-in loop is asynchronous.
   final bool isAsync;
@@ -8119,8 +8118,6 @@ class InternalVariableStatement extends InternalStatement {
 
 sealed class InternalLoopStatement extends InternalStatement
     implements InternalBreakableStatement, InternalContinuableStatement {
-  abstract InternalStatement body;
-
   @override
   final List<BreakStatement> breakStatements = [];
 
@@ -8134,8 +8131,7 @@ class InternalForStatement extends InternalLoopStatement {
   final InternalExpression? condition; // May be null.
   final List<InternalExpression> updates; // May be empty, but not null.
 
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
   new(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
@@ -8578,8 +8574,7 @@ class InternalYieldStatement extends InternalStatement {
 }
 
 class InternalDoStatement extends InternalLoopStatement {
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
   final InternalExpression condition;
 
@@ -8611,10 +8606,9 @@ class InternalDoStatement extends InternalLoopStatement {
 }
 
 class InternalWhileStatement extends InternalLoopStatement {
-  InternalExpression condition;
+  final InternalExpression condition;
 
-  @override
-  InternalStatement body;
+  final InternalStatement body;
 
   new(this.condition, this.body, {required int fileOffset}) {
     condition.parent = this;

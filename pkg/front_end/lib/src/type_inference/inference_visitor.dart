@@ -1048,12 +1048,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
       );
     }
-    flowAnalysis.handleBreak(node.breakableStatement);
+    flowAnalysis.handleBreak(node.targetStatement);
     BreakStatement replacement = extern.createBreakStatement(
       dummyLabeledStatement,
       fileOffset: node.fileOffset,
     );
-    node.breakableStatement.breakStatements.add(replacement);
+    node.targetStatement.breakStatements.add(replacement);
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -1071,12 +1071,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
       );
     }
-    flowAnalysis.handleContinue(node.continuableStatement);
+    flowAnalysis.handleContinue(node.targetStatement);
     BreakStatement replacement = extern.createBreakStatement(
       dummyLabeledStatement,
       fileOffset: node.fileOffset,
     );
-    node.continuableStatement.continueStatements.add(replacement);
+    node.targetStatement.continueStatements.add(replacement);
     return new StatementInferenceResult.single(replacement);
   }
 
