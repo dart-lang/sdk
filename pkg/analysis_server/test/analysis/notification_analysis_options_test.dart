@@ -6,9 +6,12 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
+import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,6 +20,7 @@ import '../analysis_server_base.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisOptionsFileNotificationTest);
+    defineReflectiveTests(PluginConflictsNotificationTest);
   });
 }
 
@@ -225,5 +229,202 @@ linter:
     expect(options.lint, true);
     var rules = options.lintRules.map((rule) => rule.name);
     expect(rules, unorderedEquals(lints));
+  }
+}
+
+@reflectiveTest
+class PluginConflictsNotificationTest extends PubPackageAnalysisServerTest {
+  @override
+  late final TestPluginManager pluginManager =
+      _TestPluginManagerWithStateFolder(resourceProvider);
+
+  Map<File, List<AnalysisError>?> filesErrors = {};
+
+  @override
+  void processNotification(Notification notification) {
+    if (notification.event == analysisNotificationErrors) {
+      var decoded = AnalysisErrorsParams.fromNotification(
+        notification,
+        clientUriConverter: server.uriConverter,
+      );
+      filesErrors[getFile(decoded.file)] = decoded.errors;
+    }
+  }
+
+  @override
+  void setUp() {
+    registerLintRules();
+    super.setUp();
+  }
+
+  Future<void> test_plugin_conflict_different_sources() async {
+    var optionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var nestedOptionsFile = newAnalysisOptionsYamlFile(
+      join(testPackageRootPath, 'sub'),
+      '''
+plugins:
+  foo:
+    path: ../foo
+''',
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    var rootErrors = filesErrors[optionsFile]!;
+    expect(rootErrors, hasLength(1));
+    expect(rootErrors[0].code, 'incompatible_plugin_source');
+
+    // We only report one file in the conflict, not the second.
+    var nestedErrors = filesErrors[nestedOptionsFile]!;
+
+    // TODO(srawlins): This is temporary. By the end of this arc of work, we
+    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
+    expect(nestedErrors, hasLength(1));
+    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+  }
+
+  Future<void> test_plugin_conflict_different_versions() async {
+    var optionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var nestedOptionsFile = newAnalysisOptionsYamlFile(
+      join(testPackageRootPath, 'sub'),
+      '''
+plugins:
+  foo: ^2.0.0
+''',
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    var rootErrors = filesErrors[optionsFile]!;
+    expect(rootErrors, hasLength(1));
+    expect(rootErrors[0].code, 'incompatible_plugin_source');
+
+    // We only report one file in the conflict, not the second.
+    var nestedErrors = filesErrors[nestedOptionsFile]!;
+    // TODO(srawlins): This is temporary. By the end of this arc of work, we
+    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
+    expect(nestedErrors, hasLength(1));
+    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+  }
+
+  Future<void> test_plugin_conflict_resolved_on_update() async {
+    var optionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var nestedOptionsFile = newAnalysisOptionsYamlFile(
+      join(testPackageRootPath, 'sub'),
+      '''
+plugins:
+  foo: ^2.0.0
+''',
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    expect(filesErrors[optionsFile]!, hasLength(1));
+    // TODO(srawlins): This is temporary. By the end of this arc of work, we
+    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
+    expect(filesErrors[nestedOptionsFile]!, hasLength(1));
+    expect(filesErrors[nestedOptionsFile]![0].code, 'plugins_in_inner_options');
+
+    newAnalysisOptionsYamlFile(join(testPackageRootPath, 'sub'), '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    await pumpEventQueue();
+    await waitForTasksFinished();
+
+    expect(filesErrors[optionsFile]!, isEmpty);
+    // TODO(srawlins): This is temporary. By the end of this arc of work, we
+    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
+    expect(filesErrors[nestedOptionsFile]!, hasLength(1));
+    expect(filesErrors[nestedOptionsFile]![0].code, 'plugins_in_inner_options');
+  }
+
+  Future<void> test_plugin_no_conflict_different_plugins() async {
+    var optionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var nestedOptionsFile = newAnalysisOptionsYamlFile(
+      join(testPackageRootPath, 'sub'),
+      '''
+plugins:
+  bar: ^1.0.0
+''',
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    var rootErrors = filesErrors[optionsFile]!;
+    expect(rootErrors, isEmpty);
+
+    var nestedErrors = filesErrors[nestedOptionsFile]!;
+    // TODO(srawlins): This is temporary. By the end of this arc of work, we
+    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
+    expect(nestedErrors, hasLength(1));
+    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+  }
+
+  Future<void> test_plugin_no_conflict_identical_sources() async {
+    var optionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    var nestedOptionsFile = newAnalysisOptionsYamlFile(
+      join(testPackageRootPath, 'sub'),
+      '''
+plugins:
+  foo: ^1.0.0
+''',
+    );
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    var rootErrors = filesErrors[optionsFile]!;
+    expect(rootErrors, isEmpty);
+
+    var nestedErrors = filesErrors[nestedOptionsFile]!;
+    // TODO(srawlins): This is temporary. By the end of this arc of work, we
+    // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
+    expect(nestedErrors, hasLength(1));
+    expect(nestedErrors[0].code, 'plugins_in_inner_options');
+  }
+}
+
+class _TestPluginManagerWithStateFolder(final ResourceProvider resourceProvider)
+    extends TestPluginManager {
+  @override
+  InstrumentationService get instrumentationService =>
+      InstrumentationService.NULL_SERVICE;
+
+  @override
+  Folder pluginStateFolder(String contextRootPath) {
+    return resourceProvider.getFolder(
+      resourceProvider.pathContext.join(contextRootPath, '.plugin_state'),
+    );
   }
 }

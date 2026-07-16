@@ -1,3 +1,7 @@
+## 0.3.5-dev
+
+- Require version `14.2.0-dev` of the `analyzer` package.
+
 ## 0.3.4
 
 - Require version `14.1.0` of the `analyzer` package.

@@ -1692,7 +1692,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
   SlowForwardMap slow_forward_map_;
 };
 
-template <typename Base>
+template <typename Base, bool length_eager_initialized>
 class ObjectCopy : public Base {
  public:
   using Types = typename Base::Types;
@@ -1787,9 +1787,17 @@ class ObjectCopy : public Base {
   }
   void CopyClosure(typename Types::Closure from, typename Types::Closure to) {
     const intptr_t length = Closure::LengthOf(Types::GetClosurePtr(from));
-    Base::StoreCompressedPointersNoBarrier(
-        from, to, OFFSET_OF(UntaggedClosure, length_and_flags_),
-        OFFSET_OF(UntaggedClosure, hash_));
+    if (length_eager_initialized) {
+      ASSERT(UntagClosure(to)->length_and_flags_ ==
+             UntagClosure(from)->length_and_flags_);
+      Base::StoreCompressedPointersNoBarrier(from, to,
+                                             OFFSET_OF(UntaggedClosure, hash_),
+                                             OFFSET_OF(UntaggedClosure, hash_));
+    } else {
+      Base::StoreCompressedPointersNoBarrier(
+          from, to, OFFSET_OF(UntaggedClosure, length_and_flags_),
+          OFFSET_OF(UntaggedClosure, hash_));
+    }
     Base::StoreCompressedPointers(from, to,
                                   OFFSET_OF(UntaggedClosure, function_),
                                   OFFSET_OF(UntaggedClosure, function_));
@@ -1802,9 +1810,12 @@ class ObjectCopy : public Base {
 
   void CopyContext(typename Types::Context from, typename Types::Context to) {
     const intptr_t length = Context::NumVariables(Types::GetContextPtr(from));
-
-    UntagContext(to)->num_variables_ = UntagContext(from)->num_variables_;
-
+    if (length_eager_initialized) {
+      ASSERT(UntagContext(to)->num_variables_ ==
+             UntagContext(from)->num_variables_);
+    } else {
+      UntagContext(to)->num_variables_ = UntagContext(from)->num_variables_;
+    }
     Base::ForwardCompressedPointer(from, to,
                                    OFFSET_OF(UntaggedContext, parent_));
     Base::ForwardCompressedContextPointers(
@@ -1814,12 +1825,16 @@ class ObjectCopy : public Base {
 
   void CopyArray(typename Types::Array from, typename Types::Array to) {
     const intptr_t length = Smi::Value(UntagArray(from)->length());
+    if (length_eager_initialized) {
+      ASSERT(UntagArray(to)->length_ == UntagArray(from)->length_);
+    } else {
+      Base::StoreCompressedPointersNoBarrier(from, to,
+                                             OFFSET_OF(UntaggedArray, length_),
+                                             OFFSET_OF(UntaggedArray, length_));
+    }
     Base::StoreCompressedArrayPointers(
         length, from, to, OFFSET_OF(UntaggedArray, type_arguments_),
         OFFSET_OF(UntaggedArray, type_arguments_));
-    Base::StoreCompressedPointersNoBarrier(from, to,
-                                           OFFSET_OF(UntaggedArray, length_),
-                                           OFFSET_OF(UntaggedArray, length_));
     Base::ForwardCompressedArrayPointers(
         length, from, to, Array::data_offset(),
         Array::data_offset() + kCompressedWordSize * length);
@@ -1839,9 +1854,13 @@ class ObjectCopy : public Base {
 
   void CopyRecord(typename Types::Record from, typename Types::Record to) {
     const intptr_t num_fields = Record::NumFields(Types::GetRecordPtr(from));
-    Base::StoreCompressedPointersNoBarrier(from, to,
-                                           OFFSET_OF(UntaggedRecord, shape_),
-                                           OFFSET_OF(UntaggedRecord, shape_));
+    if (length_eager_initialized) {
+      ASSERT(UntagRecord(to)->shape_ == UntagRecord(from)->shape_);
+    } else {
+      Base::StoreCompressedPointersNoBarrier(from, to,
+                                             OFFSET_OF(UntaggedRecord, shape_),
+                                             OFFSET_OF(UntaggedRecord, shape_));
+    }
     Base::ForwardCompressedPointers(
         from, to, Record::field_offset(0),
         Record::field_offset(0) + Record::kBytesPerElement * num_fields);
@@ -2085,7 +2104,7 @@ class ObjectCopy : public Base {
 #undef DO
 };
 
-class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
+class FastObjectCopy : public ObjectCopy<FastObjectCopyBase, false> {
  public:
   FastObjectCopy(Thread* thread, IdentityMap* map) : ObjectCopy(thread, map) {}
   ~FastObjectCopy() {}
@@ -2254,7 +2273,7 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
   ArrayPtr raw_expandos_to_rehash_ = Array::null();
 };
 
-class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
+class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase, true> {
  public:
   SlowObjectCopy(Thread* thread, IdentityMap* map)
       : ObjectCopy(thread, map),

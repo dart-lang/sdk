@@ -159,7 +159,7 @@ class FunctionReferenceResolver {
   }) {
     var enclosingElement = element.enclosingElement!;
     if (implicitReceiver) {
-      if (_resolver.enclosingExtension != null) {
+      if (_resolver.enclosingInstanceElement is ExtensionElementImpl) {
         _resolver.diagnosticReporter.report(
           diag.unqualifiedReferenceToStaticMemberOfExtendedType
               .withArguments(name: enclosingElement.displayName)

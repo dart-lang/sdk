@@ -168,13 +168,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// The analysis options used by this resolver.
   final AnalysisOptions analysisOptions;
 
-  /// The class containing the AST nodes being visited,
-  /// or `null` if we are not in the scope of a class.
-  InterfaceElementImpl? enclosingClass;
-
-  /// The element representing the extension containing the AST nodes being
-  /// visited, or `null` if we are not in the scope of an extension.
-  ExtensionElementImpl? enclosingExtension;
+  /// The instance element containing the AST nodes being visited, or `null`
+  /// if we are not in the scope of an instance element.
+  InstanceElementImpl? enclosingInstanceElement;
 
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
@@ -1323,11 +1319,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
-    InterfaceElementImpl? enclosingClassElement,
+    InterfaceElementImpl? enclosingInstanceElement,
     ExecutableElementImpl? enclosingExecutableElement,
   }) {
-    enclosingClass = enclosingClassElement;
-    _setupThisType();
+    this.enclosingInstanceElement = enclosingInstanceElement;
+    _setupUnpromotedThisType();
     enclosingFunction = enclosingExecutableElement;
   }
 
@@ -1353,17 +1349,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     if (parent is ClassDeclarationImpl) {
-      enclosingClass = parent.declaredFragment!.element;
+      enclosingInstanceElement = parent.declaredFragment!.element;
       return true;
     }
 
     if (parent is ExtensionDeclarationImpl) {
-      enclosingExtension = parent.declaredFragment!.element;
+      enclosingInstanceElement = parent.declaredFragment!.element;
       return true;
     }
 
     if (parent is MixinDeclarationImpl) {
-      enclosingClass = parent.declaredFragment!.element;
+      enclosingInstanceElement = parent.declaredFragment!.element;
       return true;
     }
 
@@ -2342,15 +2338,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     // Continue the class resolution.
     //
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = declaredElement;
+    _withEnclosingInstanceElement(declaredElement, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitClassDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
 
     baseOrFinalTypeVerifier.checkElement(
       declaredElement,
@@ -2488,7 +2480,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     try {
       enclosingFunction = element;
       assert(_unpromotedThisType == null);
-      _setupThisType();
+      _setupUnpromotedThisType();
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
@@ -2528,7 +2520,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // to be visited in the context of the constructor field initializer node.
     //
     var fieldName = node.fieldName;
-    var fieldElement = enclosingClass!.getField(fieldName.name);
+    var fieldElement = enclosingInstanceElement!.getField(fieldName.name);
     fieldName.element = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
@@ -2863,15 +2855,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     // Continue the enum resolution.
     //
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitEnumDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
   }
 
   @override
@@ -2929,15 +2917,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var outerExtension = enclosingExtension;
-    try {
-      enclosingExtension = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitExtensionDeclaration(node);
-    } finally {
-      enclosingExtension = outerExtension;
-    }
+    });
   }
 
   @override
@@ -2994,22 +2978,18 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitExtensionTypeDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
   }
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     try {
       assert(_unpromotedThisType == null);
-      _setupThisType();
+      _setupUnpromotedThisType();
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitFieldDeclaration(node);
@@ -3544,7 +3524,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     try {
       enclosingFunction = element;
       assert(_unpromotedThisType == null);
-      _setupThisType();
+      _setupUnpromotedThisType();
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
@@ -3637,15 +3617,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     // Continue the class resolution.
     //
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitMixinDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
 
     baseOrFinalTypeVerifier.checkElement(
       declaredElement,
@@ -3923,7 +3899,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     try {
       enclosingFunction = element;
       assert(_unpromotedThisType == null);
-      _setupThisType();
+      _setupUnpromotedThisType();
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
@@ -4750,16 +4726,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
-  void _setupThisType() {
-    var enclosingClass = this.enclosingClass;
-    if (enclosingClass != null) {
-      _unpromotedThisType = enclosingClass.thisType;
-    } else {
-      var enclosingExtension = this.enclosingExtension;
-      if (enclosingExtension != null) {
-        _unpromotedThisType = enclosingExtension.extendedType;
-      }
-    }
+  void _setupUnpromotedThisType() {
+    _unpromotedThisType = enclosingInstanceElement?.thisType;
   }
 
   bool _shouldSkipImplicitCallReferenceDueToForm(
@@ -4850,6 +4818,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (node.isOfLocalFunction) {
         fragment.constantInitializer = defaultValue;
       }
+    }
+  }
+
+  void _withEnclosingInstanceElement(
+    InstanceElementImpl element,
+    void Function() operation,
+  ) {
+    var previous = enclosingInstanceElement;
+    enclosingInstanceElement = element;
+    try {
+      operation();
+    } finally {
+      enclosingInstanceElement = previous;
     }
   }
 

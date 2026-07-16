@@ -459,7 +459,17 @@ AnalysisOptionsWarningCode:
     hasPublishedDocs: true
     comment: |-
       An error code indicating an incompatible rule.
-
+  incompatiblePluginSource:
+    type: staticWarning
+    parameters:
+      String pluginName: the name of the plugin
+      String otherOptionsPath: the path to the other analysis options file
+    problemMessage: "The plugin '#pluginName' is specified with a different source in '#otherOptionsPath'."
+    correctionMessage: "Ensure that all specifications of the same plugin use an identical source."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating that a plugin has been specified with different
+      sources in different analysis options files.
   invalidOption:
     type: staticWarning
     parameters:

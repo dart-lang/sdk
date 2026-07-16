@@ -194,12 +194,12 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var element = hasRead ? result.readElement2 : result.writeElement2;
 
-    var enclosingClass = _resolver.enclosingClass;
+    var enclosingInstanceElement = _resolver.enclosingInstanceElement;
     if (_isFactoryConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
+        !identical(element, enclosingInstanceElement)) {
       diagnosticReporter.report(diag.invalidFactoryNameNotAClass.at(node));
     } else if (_isConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
+        !identical(element, enclosingInstanceElement)) {
       // This error is now reported by the parser.
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {

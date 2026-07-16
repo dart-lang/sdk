@@ -131,7 +131,9 @@ class TestCode {
 
     while (!scanner.isDone) {
       start = codeBuffer.length;
-      if (positionShorthand && scanner.scan(_positionShorthand)) {
+      if (positionShorthand && zeroWidthMarker && scanner.scan('^/**/')) {
+        codeBuffer.write('^');
+      } else if (positionShorthand && scanner.scan(_positionShorthand)) {
         recordPosition(0);
       } else if (scanner.scan(_positionPattern)) {
         recordPosition(scannedNumber());

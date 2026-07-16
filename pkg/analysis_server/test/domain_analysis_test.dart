@@ -647,11 +647,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1097,11 +1097,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1786,11 +1786,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty

@@ -282,17 +282,17 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
   ) {
-    var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl) {
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
     ConstructorElementImpl? element;
     var name = node.constructorName;
     if (name == null) {
-      element = enclosingClass.unnamedConstructor;
+      element = enclosingInterface.unnamedConstructor;
     } else {
-      element = enclosingClass.getNamedConstructor(name.name);
+      element = enclosingInterface.getNamedConstructor(name.name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to
@@ -315,12 +315,12 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
   ) {
-    var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl) {
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    var superType = enclosingClass.supertype;
+    var superType = enclosingInterface.supertype;
     if (superType == null) {
       // TODO(brianwilkerson): Report this error.
       return;
