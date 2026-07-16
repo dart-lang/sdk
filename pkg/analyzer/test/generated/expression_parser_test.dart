@@ -1755,7 +1755,7 @@ FunctionExpressionInvocation
   function: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           name: a
       rightParenthesis: )
@@ -2086,7 +2086,7 @@ var v = (int i) => i++;
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: int
@@ -2125,7 +2125,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: E
@@ -2189,7 +2189,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: E
@@ -3077,7 +3077,7 @@ var v = (int i) => i + 1;
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: int
@@ -3135,7 +3135,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: Map
@@ -3511,7 +3511,7 @@ AsExpression
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3541,7 +3541,7 @@ AsExpression
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int

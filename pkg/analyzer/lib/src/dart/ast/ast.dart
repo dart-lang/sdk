@@ -3018,9 +3018,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   /// Returns the [child] node after making this node the parent of the [child]
   /// node in the V1 tree view.
-  // ignore: unused_element
   T _becomeParentOf1<T extends AstNodeImpl?>(T child) {
-    assert(child == null || child._parent2 == null);
     child?._parent = this;
     return child;
   }
@@ -3035,11 +3033,21 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   /// Returns the [child] node after making this node the parent of the [child]
   /// node in the V2 tree view.
-  // ignore: unused_element
   T _becomeParentOf2<T extends AstNodeImpl?>(T child) {
-    assert(child == null || child._parent == null);
     child?._parent2 = this;
     return child;
+  }
+
+  /// Makes this node the parent in every tree view in which it exists.
+  T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
+    switch (_astNodeApi) {
+      case AstNodeApi.v1:
+        return _becomeParentOf1<T>(child);
+      case AstNodeApi.v2:
+        return _becomeParentOf2<T>(child);
+      case AstNodeApi.shared:
+        return _becomeParentOf12<T>(child);
+    }
   }
 
   void _checkV1View() {
@@ -3116,7 +3124,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
           stack.addAll(tokenList.reversed);
         case AstNodeImpl node:
           // Push in reverse order, so process in source order.
-          var entities = node._childEntities.entities;
+          var entities = node._childEntities2.entities;
           stack.addAll(entities.reversed.map((e) => e.value));
         case NodeListImpl nodeList:
           // Push in reverse order, so process in source order.
@@ -8472,7 +8480,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     if (externalKeyword != null) return true;
     if (body is! EmptyFunctionBody) return true;
     if (redirectedConstructor != null || initializers.isNotEmpty) return true;
-    return parameters.parameters.any((parameter) {
+    return parameters.allFormalParameters.any((parameter) {
       return parameter is FieldFormalParameterImpl ||
           parameter is SuperFormalParameterImpl;
     });
@@ -8489,7 +8497,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// and isn't external.
   bool get isTrivial =>
       redirectedConstructor == null &&
-      parameters.parameters.isEmpty &&
+      parameters.allFormalParameters.isEmpty &&
       initializers.isEmpty &&
       body is EmptyFunctionBody &&
       externalKeyword == null;
@@ -10285,6 +10293,186 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       if (type._containsOffset(rangeOffset, rangeEnd)) {
         return type;
       }
+    }
+    return null;
+  }
+}
+
+/// Formal parameters enclosed in square or curly brackets.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DelimitedFormalParameters implements AstNode {
+  /// The formal parameters between the delimiters.
+  NodeList<FormalParameter> get formalParameters;
+
+  /// Whether these are named formal parameters.
+  ///
+  /// If `false`, these are optional positional formal parameters.
+  bool get isNamed;
+
+  /// The left square bracket (`[`) or left curly brace (`{`).
+  Token get leftDelimiter;
+
+  /// The right square bracket (`]`) or right curly brace (`}`).
+  Token get rightDelimiter;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftDelimiter'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('rightDelimiter'),
+  ],
+)
+final class DelimitedFormalParametersImpl extends AstNodeImpl
+    implements DelimitedFormalParameters {
+  @generated
+  @override
+  final Token leftDelimiter;
+
+  @generated
+  @override
+  final NodeListImpl<FormalParameterImpl> formalParameters = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightDelimiter;
+
+  @generated
+  DelimitedFormalParametersImpl({
+    required this.leftDelimiter,
+    required List<FormalParameterImpl> formalParameters,
+    required this.rightDelimiter,
+  }) {
+    this.formalParameters._initialize(this, formalParameters);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftDelimiter;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightDelimiter;
+  }
+
+  @override
+  bool get isNamed => leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftDelimiter', leftDelimiter)
+    ..addNodeList('formalParameters', formalParameters)
+    ..addToken('rightDelimiter', rightDelimiter);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitDelimitedFormalParameters(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (formalParameters.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'formalParameters' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (formalParameters.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    formalParameters.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(NodeListImpl<FormalParameterImpl>)? visitFormalParameters,
+  }) {
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+  }
+
+  @override
+  T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
+    _becomeParentOf2(child);
+    if (_parent2 case FormalParameterListImpl formalParameterList) {
+      formalParameterList._becomeParentOf1(child);
+    }
+    return child;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (formalParameters._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
     }
     return null;
   }
@@ -14642,7 +14830,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     }
 
     var formalParameters = primaryConstructor.formalParameters;
-    return formalParameters.parameters.firstOrNull.tryCast();
+    return formalParameters.allFormalParameters.firstOrNull.tryCast();
   }
 
   @generated
@@ -16830,11 +17018,14 @@ sealed class FormalParameterImpl extends AstNodeImpl
 /// The formal parameter list of a method declaration, function declaration, or
 /// function type alias.
 ///
-/// While the grammar requires all required positional parameters to be first,
-/// optionally being followed by either optional positional parameters or named
-/// parameters (but not both), this class doesn't enforce those constraints. All
-/// parameters are flattened into a single list, which can have any or all kinds
-/// of parameters (normal, named, and positional) in any order.
+/// Required positional parameters are represented by
+/// [requiredPositionalFormalParameters]. Optional positional or named
+/// parameters are represented by [delimitedFormalParameters], whose
+/// [DelimitedFormalParameters.isNamed] getter identifies the form of the
+/// delimited group.
+///
+/// The compatibility [parameters] getter projects both structural positions as
+/// a single, fixed-length list.
 ///
 ///    formalParameterList ::=
 ///        '(' ')'
@@ -16855,9 +17046,15 @@ sealed class FormalParameterImpl extends AstNodeImpl
 ///        '{' [FormalParameter] (',' [FormalParameter])* '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FormalParameterList implements AstNode {
+  /// The optional positional or named formal parameters, or `null` if there
+  /// are no delimited formal parameters.
+  @experimental
+  DelimitedFormalParameters? get delimitedFormalParameters;
+
   /// The left square bracket ('[') or left curly brace ('{') introducing the
   /// optional or named parameters, or `null` if there are neither optional nor
   /// named parameters.
+  @ToBeDeprecated('Use delimitedFormalParameters instead')
   Token? get leftDelimiter;
 
   /// The left parenthesis.
@@ -16870,11 +17067,20 @@ abstract final class FormalParameterList implements AstNode {
   List<FormalParameterFragment?> get parameterFragments;
 
   /// The parameters associated with the method.
+  @ToBeDeprecated(
+    'Use requiredPositionalFormalParameters and delimitedFormalParameters '
+    'instead',
+  )
   NodeList<FormalParameter> get parameters;
+
+  /// The required positional formal parameters at the start of this list.
+  @experimental
+  NodeList<FormalParameter> get requiredPositionalFormalParameters;
 
   /// The right square bracket (']') or right curly brace ('}') terminating the
   /// optional or named parameters, or `null` if there are neither optional nor
   /// named parameters.
+  @ToBeDeprecated('Use delimitedFormalParameters instead')
   Token? get rightDelimiter;
 
   /// The right parenthesis.
@@ -16884,9 +17090,8 @@ abstract final class FormalParameterList implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftParenthesis'),
-    GenerateNodeProperty('parameters'),
-    GenerateNodeProperty('leftDelimiter'),
-    GenerateNodeProperty('rightDelimiter'),
+    GenerateNodeProperty('requiredPositionalFormalParameters'),
+    GenerateNodeProperty('delimitedFormalParameters'),
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
@@ -16898,29 +17103,45 @@ final class FormalParameterListImpl extends AstNodeImpl
 
   @generated
   @override
-  final NodeListImpl<FormalParameterImpl> parameters = NodeListImpl._();
-
-  @generated
-  @override
-  final Token? leftDelimiter;
-
-  @generated
-  @override
-  final Token? rightDelimiter;
+  final NodeListImpl<FormalParameterImpl> requiredPositionalFormalParameters =
+      NodeListImpl._();
 
   @generated
   @override
   final Token rightParenthesis;
 
-  @generated
+  @DoNotGenerate(reason: 'The V2 child has custom parent handling')
+  DelimitedFormalParametersImpl? _delimitedFormalParameters;
+
+  @Deprecated(
+    'Use requiredPositionalFormalParameters and delimitedFormalParameters '
+    'instead',
+  )
+  @override
+  late final NodeListImpl<FormalParameterImpl> parameters =
+      _FormalParameterListV1NodeList(this);
+
+  /// A fixed-length view of all formal parameters, in lexical order.
+  late final List<FormalParameterImpl> allFormalParameters =
+      _FormalParameterListView(this);
+
+  @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
   FormalParameterListImpl({
     required this.leftParenthesis,
-    required List<FormalParameterImpl> parameters,
-    required this.leftDelimiter,
-    required this.rightDelimiter,
+    required List<FormalParameterImpl> requiredPositionalFormalParameters,
+    required DelimitedFormalParametersImpl? delimitedFormalParameters,
     required this.rightParenthesis,
-  }) {
-    this.parameters._initialize(this, parameters);
+  }) : _delimitedFormalParameters = delimitedFormalParameters {
+    this.requiredPositionalFormalParameters._initialize(
+      this,
+      requiredPositionalFormalParameters,
+    );
+    _becomeParentOf2(delimitedFormalParameters);
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      for (var parameter in delimitedFormalParameters.formalParameters) {
+        _becomeParentOf1(parameter);
+      }
+    }
   }
 
   @generated
@@ -16929,44 +17150,74 @@ final class FormalParameterListImpl extends AstNodeImpl
     return leftParenthesis;
   }
 
+  @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
+  @experimental
+  @override
+  DelimitedFormalParametersImpl? get delimitedFormalParameters =>
+      _delimitedFormalParameters;
+
+  @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
+  @experimental
+  set delimitedFormalParameters(
+    DelimitedFormalParametersImpl? delimitedFormalParameters,
+  ) {
+    _delimitedFormalParameters = _becomeParentOf2(delimitedFormalParameters);
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      for (var parameter in delimitedFormalParameters.formalParameters) {
+        _becomeParentOf1(parameter);
+      }
+    }
+  }
+
   @generated
   @override
   Token get endToken {
     return rightParenthesis;
   }
 
+  @Deprecated('Use delimitedFormalParameters instead')
   @override
-  List<FormalParameterFragmentImpl?> get parameterFragments {
-    return parameters.map((node) => node.declaredFragment).toList();
-  }
+  Token? get leftDelimiter => delimitedFormalParameters?.leftDelimiter;
 
   @override
-  @DoNotGenerate(reason: 'Has special logic for delimiters')
+  List<FormalParameterFragmentImpl?> get parameterFragments {
+    return allFormalParameters.map((node) => node.declaredFragment).toList();
+  }
+
+  @Deprecated('Use delimitedFormalParameters instead')
+  @override
+  Token? get rightDelimiter => delimitedFormalParameters?.rightDelimiter;
+
+  @override
+  @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
   ChildEntities get _childEntities {
     // TODO(paulberry): include commas.
     var result = ChildEntities()..addToken('leftParenthesis', leftParenthesis);
-    bool leftDelimiterNeeded = leftDelimiter != null;
-    int length = parameters.length;
-    for (int i = 0; i < length; i++) {
-      FormalParameter parameter = parameters[i];
-      if (leftDelimiterNeeded && leftDelimiter!.offset < parameter.offset) {
-        result.addToken('leftDelimiter', leftDelimiter);
-        leftDelimiterNeeded = false;
-      }
+    for (var parameter in requiredPositionalFormalParameters) {
       result.addNode('parameter', parameter);
     }
-    return result
-      ..addToken('rightDelimiter', rightDelimiter)
-      ..addToken('rightParenthesis', rightParenthesis);
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      result.addToken('leftDelimiter', delimitedFormalParameters.leftDelimiter);
+      for (var parameter in delimitedFormalParameters.formalParameters) {
+        result.addNode('parameter', parameter);
+      }
+      result.addToken(
+        'rightDelimiter',
+        delimitedFormalParameters.rightDelimiter,
+      );
+    }
+    return result..addToken('rightParenthesis', rightParenthesis);
   }
 
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
-    ..addNodeList('parameters', parameters)
-    ..addToken('leftDelimiter', leftDelimiter)
-    ..addToken('rightDelimiter', rightDelimiter)
+    ..addNodeList(
+      'requiredPositionalFormalParameters',
+      requiredPositionalFormalParameters,
+    )
+    ..addNode('delimitedFormalParameters', delimitedFormalParameters)
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
@@ -16990,10 +17241,14 @@ final class FormalParameterListImpl extends AstNodeImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (parameters.containsChild(oldNode)) {
+    if (requiredPositionalFormalParameters.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'parameters' because NodeList cannot be resized.",
+        "Cannot remove child 'requiredPositionalFormalParameters' because NodeList cannot be resized.",
       );
+    }
+    if (identical(delimitedFormalParameters, oldNode)) {
+      delimitedFormalParameters = null;
+      return;
     }
     super.removeChild(oldNode);
   }
@@ -17001,16 +17256,21 @@ final class FormalParameterListImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (parameters.replaceChild(oldNode, newNode)) {
+    if (requiredPositionalFormalParameters.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    if (identical(delimitedFormalParameters, oldNode)) {
+      delimitedFormalParameters = newNode as DelimitedFormalParametersImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
+    // ignore: deprecated_member_use_from_same_package
     parameters.accept(visitor);
   }
 
@@ -17018,7 +17278,8 @@ final class FormalParameterListImpl extends AstNodeImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    parameters.accept2(visitor);
+    requiredPositionalFormalParameters.accept2(visitor);
+    delimitedFormalParameters?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -17030,18 +17291,31 @@ final class FormalParameterListImpl extends AstNodeImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<FormalParameterImpl>)? visitParameters,
+    void Function(NodeListImpl<FormalParameterImpl>)?
+    visitRequiredPositionalFormalParameters,
+    void Function(DelimitedFormalParametersImpl)?
+    visitDelimitedFormalParameters,
   }) {
-    if (visitParameters != null) {
-      visitParameters(parameters);
+    if (visitRequiredPositionalFormalParameters != null) {
+      visitRequiredPositionalFormalParameters(
+        requiredPositionalFormalParameters,
+      );
     } else {
-      parameters.accept2(visitor);
+      requiredPositionalFormalParameters.accept2(visitor);
+    }
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      if (visitDelimitedFormalParameters != null) {
+        visitDelimitedFormalParameters(delimitedFormalParameters);
+      } else {
+        delimitedFormalParameters.accept2(visitor);
+      }
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    // ignore: deprecated_member_use_from_same_package
     if (parameters._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -17052,9 +17326,17 @@ final class FormalParameterListImpl extends AstNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (parameters._elementContainingRange(rangeOffset, rangeEnd)
+    if (requiredPositionalFormalParameters._elementContainingRange(
+          rangeOffset,
+          rangeEnd,
+        )
         case var result?) {
       return result;
+    }
+    if (delimitedFormalParameters case var delimitedFormalParameters?) {
+      if (delimitedFormalParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return delimitedFormalParameters;
+      }
     }
     return null;
   }
@@ -28614,7 +28896,7 @@ final class NodeListImpl<E extends AstNodeImpl>
       throw RangeError("Index: $index, Size: ${_elements.length}");
     }
     _elements[index] = node;
-    _owner._becomeParentOf12(node as AstNodeImpl);
+    _owner._becomeParentOfOwnedView(node as AstNodeImpl);
   }
 
   @override
@@ -28720,7 +29002,7 @@ final class NodeListImpl<E extends AstNodeImpl>
       var length = elements.length;
       for (var i = 0; i < length; i++) {
         var node = elements[i];
-        owner._becomeParentOf12(node as AstNodeImpl);
+        owner._becomeParentOfOwnedView(node as AstNodeImpl);
       }
     }
   }
@@ -32355,7 +32637,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
       return true;
     }
 
-    return formalParameters.parameters.any((formalParameter) {
+    return formalParameters.allFormalParameters.any((formalParameter) {
       return formalParameter is FieldFormalParameterImpl ||
           formalParameter is SuperFormalParameterImpl ||
           formalParameter is RegularFormalParameterImpl &&
@@ -32368,7 +32650,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   /// A trivial primary constructor declares no parameters, has no initializer
   /// list, and has no body (or an empty one).
   bool get isTrivial {
-    if (formalParameters.parameters.isNotEmpty) {
+    if (formalParameters.allFormalParameters.isNotEmpty) {
       return false;
     }
     if (body case var body?) {
@@ -42653,6 +42935,120 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
         children[i].accept2(visitor);
       }
     }
+  }
+}
+
+final class _FormalParameterListV1NodeList
+    extends NodeListImpl<FormalParameterImpl> {
+  final FormalParameterListImpl _ownerNode;
+
+  _FormalParameterListV1NodeList(this._ownerNode) : super._();
+
+  @override
+  Token? get beginToken => isEmpty ? null : this[0].beginToken;
+
+  @override
+  Token? get endToken => isEmpty ? null : this[length - 1].endToken;
+
+  @override
+  int get length => _ownerNode.allFormalParameters.length;
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  set length(int newLength) {
+    throw UnsupportedError('Cannot resize NodeList.');
+  }
+
+  @override
+  FormalParameterListImpl get owner => _ownerNode;
+
+  NodeListImpl<FormalParameterImpl>? get _delimited =>
+      _ownerNode._delimitedFormalParameters?.formalParameters;
+
+  @override
+  FormalParameterImpl operator [](int index) =>
+      _ownerNode.allFormalParameters[index];
+
+  @override
+  void operator []=(int index, FormalParameterImpl node) {
+    throw UnsupportedError('Cannot mutate a projected V1 NodeList.');
+  }
+
+  @override
+  @ToBeDeprecated('Use accept2 instead.')
+  void accept(AstVisitor visitor) {
+    for (var parameter in this) {
+      parameter.accept(visitor);
+    }
+  }
+
+  @experimental
+  @override
+  void accept2(AstVisitor2 visitor) {
+    throw UnsupportedError('Cannot visit a projected V1 NodeList as V2.');
+  }
+
+  @override
+  bool containsChild(AstNodeImpl oldNode) {
+    return any((parameter) => identical(parameter, oldNode));
+  }
+
+  @override
+  bool replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('Cannot mutate a projected V1 NodeList.');
+  }
+
+  @override
+  AstNodeImpl? _elementContainingRange(int rangeOffset, int rangeEnd) {
+    if (_ownerNode.requiredPositionalFormalParameters._elementContainingRange(
+          rangeOffset,
+          rangeEnd,
+        )
+        case var result?) {
+      return result;
+    }
+    return _delimited?._elementContainingRange(rangeOffset, rangeEnd);
+  }
+}
+
+final class _FormalParameterListView extends ListBase<FormalParameterImpl> {
+  final FormalParameterListImpl _node;
+
+  _FormalParameterListView(this._node);
+
+  @override
+  int get length =>
+      _node.requiredPositionalFormalParameters.length +
+      (_delimited?.length ?? 0);
+
+  @override
+  set length(int newLength) {
+    throw UnsupportedError('Cannot resize a formal parameter list view.');
+  }
+
+  NodeListImpl<FormalParameterImpl>? get _delimited =>
+      _node._delimitedFormalParameters?.formalParameters;
+
+  @override
+  FormalParameterImpl operator [](int index) {
+    var required = _node.requiredPositionalFormalParameters;
+    if (index >= 0 && index < required.length) {
+      return required[index];
+    }
+
+    if (_delimited case var delimited?) {
+      var delimitedIndex = index - required.length;
+      if (delimitedIndex >= 0 && delimitedIndex < delimited.length) {
+        return delimited[delimitedIndex];
+      }
+    }
+
+    throw RangeError('Index: $index, Size: $length');
+  }
+
+  @override
+  void operator []=(int index, FormalParameterImpl node) {
+    throw UnsupportedError('Cannot mutate a formal parameter list view.');
   }
 }
 

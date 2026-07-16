@@ -1967,20 +1967,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       nullSafetyDeadCodeVerifier.visitNode(parameters ?? node.body);
     }
     if (parameters != null) {
-      for (var parameter in parameters.parameters) {
+      var formalParameters = parameters.allFormalParameters;
+      for (var parameter in formalParameters) {
         if (parameter is RegularFormalParameterImpl &&
             parameter.functionTypedSuffix == null &&
             parameter.type == null) {
-          if (parameter == parameters.parameters.first) {
+          if (parameter == formalParameters.first) {
             parameter.declaredFragment?.element.type = parameterType;
           }
         }
       }
       parameters.accept2(this);
-      for (var parameter in parameters.parameters) {
+      for (var parameter in formalParameters) {
         var element = parameter.declaredFragment?.element;
         if (element != null) {
-          if (parameter == parameters.parameters.first) {
+          if (parameter == formalParameters.first) {
             flow.declare(
               element,
               SharedTypeView(element.type),
@@ -2041,7 +2042,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     node.recordStaticType(returnedType, resolver: this);
 
     if (parameters != null) {
-      var parameter = parameters.parameters.firstOrNull;
+      var parameter = parameters.allFormalParameters.firstOrNull;
       if (parameter is RegularFormalParameterImpl &&
           parameter.functionTypedSuffix == null) {
         var declaredParameterType = parameter.type;
@@ -2573,6 +2574,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     node.visitChildren2(this);
     elementResolver.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    node.visitChildren2(this);
   }
 
   @override

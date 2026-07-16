@@ -724,7 +724,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     switch (node.parent2) {
       case ClassDeclarationImpl():
       case EnumDeclarationImpl():
-        for (var parameter in node.formalParameters.parameters) {
+        for (var parameter in node.formalParameters.allFormalParameters) {
           var element = parameter.declaredFragment!.element;
           if (element is FieldFormalParameterElementImpl &&
               element.isDeclaring) {

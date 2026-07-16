@@ -9,6 +9,8 @@ import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/lint_messages.dart';
 import 'package:analyzer_utilities/messages.dart';
+import 'package:dart_style/dart_style.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,8 +31,16 @@ class DocumentationValidator {
   /// The sequence used to mark the end of an error range.
   static const String errorRangeEnd = '!]';
 
+  /// Whether the formatting of the snippets should be validated.
+  ///
+  /// This should always be `true` except when rolling in a new version of
+  /// `dart_style`. To ease the process, this flag can be set to `false` prior
+  /// to the roll, and then reverted to `true` in a follow-on CL in which all
+  /// of the impacted doc snippets are updated to conform.
+  static const bool validateFormatting = true;
+
   /// A list of the diagnostic codes that are not being verified. These should
-  /// ony include docs that cannot be verified because of missing support in the
+  /// ony include docs that can't be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
     // The following diagnostics can't be verified because the examples aren't
@@ -282,18 +292,24 @@ class DocumentationValidator {
     }
   }
 
-  _SnippetData _extractSnippetData(
-    String snippet,
-    bool errorRequired,
-    Map<String, String> auxiliaryFiles,
-    List<String> experiments,
-    List<String> ignores,
-    String? languageVersion,
-  ) {
+  _SnippetData _extractSnippetData({
+    required String snippet,
+    required int index,
+    required bool errorRequired,
+    required bool onlyValidateFormatting,
+    required Map<String, String> auxiliaryFiles,
+    required List<String> experiments,
+    required List<String> ignores,
+    required String? languageVersion,
+  }) {
+    // TODO(brianwilkerson): This doesn't check to ensure that there are no
+    //  ranges specified in fixes (when `errorRequired` is `false`), but it
+    //  probably should.
+    var section = errorRequired ? _Section.examples : _Section.fixes;
     int rangeStart = snippet.indexOf(errorRangeStart);
     if (rangeStart < 0) {
-      if (errorRequired) {
-        _reportProblem('No error range in example');
+      if (errorRequired && !onlyValidateFormatting) {
+        _reportProblem('No error range in $section $index');
       }
       return _SnippetData(
         snippet,
@@ -307,7 +323,9 @@ class DocumentationValidator {
     }
     int rangeEnd = snippet.indexOf(errorRangeEnd, rangeStart + 1);
     if (rangeEnd < 0) {
-      _reportProblem('No end of error range in example');
+      if (!onlyValidateFormatting) {
+        _reportProblem('No end of error range in $section $index');
+      }
       return _SnippetData(
         snippet,
         -1,
@@ -318,7 +336,9 @@ class DocumentationValidator {
         languageVersion,
       );
     } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
-      _reportProblem('More than one error range in example');
+      if (!onlyValidateFormatting) {
+        _reportProblem('More than one error range in $section $index');
+      }
     }
     String content;
     try {
@@ -327,7 +347,7 @@ class DocumentationValidator {
           snippet.substring(rangeStart + errorRangeStart.length, rangeEnd) +
           snippet.substring(rangeEnd + errorRangeEnd.length);
     } on RangeError catch (exception) {
-      _reportProblem(exception.message.toString());
+      _reportProblem('${exception.message} in $section $index');
       content = '';
     }
     return _SnippetData(
@@ -346,6 +366,7 @@ class DocumentationValidator {
   List<_SnippetData> _extractSnippets(
     List<ErrorCodeDocumentationPart> documentationParts,
     BlockSection blockSection,
+    bool onlyValidateFormatting,
   ) {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
@@ -361,12 +382,14 @@ class DocumentationValidator {
           if (documentationPart.fileType == 'dart') {
             snippets.add(
               _extractSnippetData(
-                documentationPart.text,
-                blockSection == BlockSection.examples,
-                auxiliaryFiles,
-                documentationPart.experiments,
-                documentationPart.ignores,
-                documentationPart.languageVersion,
+                snippet: documentationPart.text,
+                index: snippets.length,
+                errorRequired: blockSection == BlockSection.examples,
+                onlyValidateFormatting: onlyValidateFormatting,
+                auxiliaryFiles: auxiliaryFiles,
+                experiments: documentationPart.experiments,
+                ignores: documentationPart.ignores,
+                languageVersion: documentationPart.languageVersion,
               ),
             );
           }
@@ -389,13 +412,52 @@ class DocumentationValidator {
     buffer.writeln('    $problem');
     for (Diagnostic diagnostic in diagnostics) {
       buffer.write('      ');
-      buffer.write(diagnostic.diagnosticCode);
+      buffer.write(diagnostic.diagnosticCode.lowerCaseName);
       buffer.write(' (');
       buffer.write(diagnostic.offset);
       buffer.write(', ');
       buffer.write(diagnostic.length);
       buffer.write(') ');
       buffer.writeln(diagnostic.message);
+    }
+  }
+
+  /// Validates that the [snippet] is formatted correctly.
+  ///
+  /// The snippet is identified for reporting purposes by the [section] and
+  /// [index].
+  void _validateFormatting(_SnippetData snippet, _Section section, int index) {
+    if (!validateFormatting) return;
+    var ignoreFormatting = snippet.ignores.contains('formatting');
+    String? formattedContent;
+    try {
+      var formatter = DartFormatter(languageVersion: Version(3, 13, 0));
+      formattedContent = formatter.format(snippet.content).trimRight();
+      if (formattedContent != snippet.content) {
+        if (!ignoreFormatting) {
+          _reportProblem('''
+Snippet is not formatted ($section $index). Content is:
+    ${snippet.content}
+
+Formatted content is:
+    $formattedContent''');
+        }
+      } else if (ignoreFormatting) {
+        _reportProblem('Formatting is unnecessarily ignored ($section $index)');
+      }
+    } catch (e) {
+      if (section != _Section.examples) {
+        // The assumption is that the examples will only fail to format when the
+        // diagnostic is an expected symtactic error, in which case we don't
+        // need to report the problem.
+        _reportProblem('''
+Exception while formatting ($section $index): $e
+Content is:
+    ${snippet.content}
+
+Formatted content is:
+    $formattedContent''');
+      }
     }
   }
 
@@ -413,19 +475,27 @@ class DocumentationValidator {
       );
       if (docs != null) {
         codeName = (message.sharedName ?? message.analyzerCode).snakeCaseName;
-        variableName = message.analyzerCode.snakeCaseName;
-        if (unverifiedDocs.contains(variableName)) {
+        // Even if the message has been exempted from other verification,
+        // the formatting of the code will still be verified.
+        var onlyValidateFormatting = unverifiedDocs.contains(
+          message.analyzerCode.snakeCaseName,
+        );
+        if (onlyValidateFormatting && !validateFormatting) {
           continue;
         }
+        variableName = message.analyzerCode.camelCaseName;
         hasWrittenVariableName = false;
 
         List<_SnippetData> exampleSnippets = _extractSnippets(
           docs,
           BlockSection.examples,
+          onlyValidateFormatting,
         );
         _SnippetData? firstExample;
         if (exampleSnippets.isEmpty) {
-          _reportProblem('No example.');
+          if (!onlyValidateFormatting) {
+            _reportProblem('No example.');
+          }
         } else {
           firstExample = exampleSnippets[0];
         }
@@ -434,12 +504,16 @@ class DocumentationValidator {
           if (message.type == AnalyzerDiagnosticType.lint) {
             snippet.lintCode = codeName;
           }
-          await _validateSnippet('example', i, snippet);
+          _validateFormatting(snippet, _Section.examples, i);
+          if (!onlyValidateFormatting) {
+            await _validateSnippet(snippet, _Section.examples, i);
+          }
         }
 
         List<_SnippetData> fixesSnippets = _extractSnippets(
           docs,
           BlockSection.commonFixes,
+          onlyValidateFormatting,
         );
         for (int i = 0; i < fixesSnippets.length; i++) {
           _SnippetData snippet = fixesSnippets[i];
@@ -449,7 +523,10 @@ class DocumentationValidator {
           if (message.type == AnalyzerDiagnosticType.lint) {
             snippet.lintCode = codeName;
           }
-          await _validateSnippet('fixes', i, snippet);
+          _validateFormatting(snippet, _Section.fixes, i);
+          if (!onlyValidateFormatting) {
+            await _validateSnippet(snippet, _Section.fixes, i);
+          }
         }
       }
     }
@@ -460,9 +537,9 @@ class DocumentationValidator {
   /// equal to zero, verify that one error whose name matches the current code
   /// is reported at that offset with the expected length.
   Future<void> _validateSnippet(
-    String section,
-    int index,
     _SnippetData snippet,
+    _Section section,
+    int index,
   ) async {
     var test = _SnippetTest(snippet);
     test.setUp();
@@ -470,7 +547,7 @@ class DocumentationValidator {
     var diagnostics = result.diagnostics;
     var filteredDiagnostics = <Diagnostic>[];
     var errorCount = 0;
-    var unneededIgnores = snippet.ignores.toList();
+    var unneededIgnores = snippet.ignores.toList()..remove('formatting');
     for (var diagnostic in diagnostics) {
       var diagnosticName = diagnostic.diagnosticCode.lowerCaseName;
       if (snippet.ignores.contains(diagnosticName)) {
@@ -496,7 +573,7 @@ class DocumentationValidator {
         if (diagnostic.diagnosticCode.lowerCaseName != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '
-            'found ${diagnostic.diagnosticCode} ($section $index).',
+            'found ${diagnostic.diagnosticCode.lowerCaseName} ($section $index).',
           );
         }
         if (diagnostic.offset != snippet.offset) {
@@ -573,6 +650,14 @@ class VerifyDiagnosticsTest {
       fail(buffer.toString());
     }
   }
+}
+
+enum _Section {
+  examples,
+  fixes;
+
+  @override
+  String toString() => name;
 }
 
 /// A data holder used to return multiple values when extracting an error range

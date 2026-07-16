@@ -32,7 +32,8 @@ import 'package:collection/collection.dart';
 /// example, if the test code includes `[!` (such as in a list literal whose
 /// first element begins with a unary prefix operator), you can use `[/**/!` to
 /// prevent the `[!` from being interpreted as markup. Similarly, you can use
-/// `!/**/]` in places where `!]` should appear in the unmarked code.
+/// `!/**/]` in places where `!]` should appear in the unmarked code. To
+/// prevent a `^` from being interpreted as markup, you can use `^/**/`.
 ///
 /// Second, it can be used at the end of a line of code that contains trailing
 /// whitespace. Without some form of marker the formatter will remove the

@@ -170,7 +170,11 @@ extension FormalParameterExtension on FormalParameter {
   }
 
   FormalParameterList get parentFormalParameterList {
-    return parent2 as FormalParameterList;
+    return switch (parent2) {
+      FormalParameterList parent => parent,
+      DelimitedFormalParameters(parent2: FormalParameterList parent) => parent,
+      _ => throw StateError('Formal parameter has no formal parameter list'),
+    };
   }
 
   AstNode get typeOrSelf {

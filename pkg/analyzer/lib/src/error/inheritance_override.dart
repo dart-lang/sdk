@@ -393,7 +393,7 @@ class _ClassVerifier {
         _checkDeclaredMember(
           member.name,
           member.declaredFragment!.element,
-          methodParameterNodes: member.parameters?.parameters,
+          methodParameterNodes: member.parameters?.allFormalParameters,
         );
         if (!(member.isStatic || !member.isComplete || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
@@ -572,7 +572,7 @@ class _ClassVerifier {
     if (primaryConstructor == null) return;
 
     for (var formalParameter
-        in primaryConstructor.formalParameters.parameters) {
+        in primaryConstructor.formalParameters.allFormalParameters) {
       var formalParameterElement = formalParameter.declaredFragment?.element;
       if (formalParameterElement is FieldFormalParameterElementImpl &&
           formalParameterElement.isDeclaring) {

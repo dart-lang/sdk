@@ -20160,6 +20160,8 @@ CompileTimeErrorCode:
     problemMessage: "Yield-each statements must be in a generator function (one marked with either 'async*' or 'sync*')."
     correctionMessage: "Try adding 'async*' or 'sync*' to the enclosing function."
     hasPublishedDocs: true
+    # In the documentation, formatting is being ignored because adding the space
+    # between `yield` and `*` would obscure the intent of the code.
     documentation: |-
       #### Description
 
@@ -20173,6 +20175,7 @@ CompileTimeErrorCode:
       in a function whose body doesn't have a modifier:
 
       ```dart
+      %ignore=formatting
       Iterable<int> get digits {
         yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
       }

@@ -97,6 +97,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         Declaration,
         DeclaredIdentifier,
         DeclaredVariablePattern,
+        DelimitedFormalParameters,
         Directive,
         DoStatement,
         DotShorthandInvocation,

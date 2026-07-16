@@ -438,6 +438,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    _sink.writeln('DelimitedFormalParameters');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     _sink.writeln('DoStatement');
     _sink.withIndent(() {
@@ -1764,7 +1772,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _acceptInView(node);
     });
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
-    if (node case FormalParameterListImpl(parameters: [_, ...])) {
+    if (node is FormalParameterListImpl &&
+        node.allFormalParameters.isNotEmpty) {
       _sink.writeln('FormalParameterList(v1)');
       _sink.withIndent(() {
         _withView(_AstView.v1, () {
@@ -2055,7 +2064,7 @@ Expected parent: (${parent.runtimeType}) $parent
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
       if (entity2.value is FormalParameterListImpl &&
           entityValue is FormalParameterListImpl &&
-          entityValue.parameters.isNotEmpty) {
+          entityValue.allFormalParameters.isNotEmpty) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });

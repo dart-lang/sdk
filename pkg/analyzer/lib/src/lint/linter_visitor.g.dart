@@ -1453,6 +1453,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    _runSubscriptions(node, _registry._forDelimitedFormalParameters);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitDoStatement(DoStatement node) {
     _runSubscriptions(node, _registry._forDoStatement);
@@ -4221,6 +4228,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<DeclaredVariablePattern>>
   _forDeclaredVariablePattern = [];
 
+  final List<_Subscription2<DelimitedFormalParameters>>
+  _forDelimitedFormalParameters = [];
+
   final List<_Subscription2<DoStatement>> _forDoStatement = [];
 
   final List<_Subscription2<DotShorthandConstructorInvocation>>
@@ -4832,6 +4842,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forDeclaredVariablePattern.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addDelimitedFormalParameters(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forDelimitedFormalParameters.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

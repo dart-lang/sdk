@@ -1913,6 +1913,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    _tokenOrNull(node.leftDelimiter);
+    _tokenOrNull(node.rightDelimiter);
+    node.formalParameters.accept2(this);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -1948,8 +1955,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     _tokenOrNull(node.leftParenthesis);
-    _tokenOrNull(node.leftDelimiter);
-    _tokenOrNull(node.rightDelimiter);
     _tokenOrNull(node.rightParenthesis);
     super.visitFormalParameterList(node);
   }

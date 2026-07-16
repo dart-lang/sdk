@@ -50,7 +50,7 @@ VariableDeclaration
         FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameters
+            requiredPositionalFormalParameters
               RegularFormalParameter
                 name: z
                 declaredFragment: <testLibraryFragment> z@100
@@ -126,7 +126,7 @@ VariableDeclaration
         FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            parameters
+            requiredPositionalFormalParameters
               RegularFormalParameter
                 name: z
                 declaredFragment: <testLibraryFragment> z@108

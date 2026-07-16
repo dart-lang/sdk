@@ -3688,7 +3688,7 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T
@@ -3758,7 +3758,7 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T
@@ -3835,7 +3835,7 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: T
@@ -4355,7 +4355,7 @@ MethodInvocation
       FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: e
               declaredFragment: <testLibraryFragment> e@93
@@ -4410,7 +4410,7 @@ MethodInvocation
       FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: e
               declaredFragment: <testLibraryFragment> e@115
@@ -4718,7 +4718,7 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: T

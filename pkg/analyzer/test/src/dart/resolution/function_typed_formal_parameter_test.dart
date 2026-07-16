@@ -45,7 +45,7 @@ RegularFormalParameter
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: U
@@ -108,7 +108,7 @@ RegularFormalParameter
   functionTypedSuffix: FunctionTypedFormalParameterSuffix
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int

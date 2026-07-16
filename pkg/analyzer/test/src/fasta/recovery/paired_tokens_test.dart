@@ -543,7 +543,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -590,7 +590,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -654,7 +654,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -697,7 +697,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -716,7 +716,7 @@ CompilationUnit
                   functionExpression: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
-                      parameters
+                      requiredPositionalFormalParameters
                         RegularFormalParameter
                           name: y
                       rightParenthesis: )
@@ -748,7 +748,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -779,7 +779,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -827,7 +827,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -865,7 +865,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -1050,7 +1050,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -1095,7 +1095,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: )
@@ -1147,7 +1147,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: ) <synthetic>
@@ -1186,7 +1186,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: x
           rightParenthesis: ) <synthetic>

@@ -31,13 +31,13 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: Function
               functionTypedSuffix: FunctionTypedFormalParameterSuffix
                 formalParameters: FormalParameterList
                   leftParenthesis: (
-                  parameters
+                  requiredPositionalFormalParameters
                     RegularFormalParameter
                       type: NamedType
                         name: void
@@ -101,7 +101,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: C
           rightParenthesis: )

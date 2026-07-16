@@ -1290,7 +1290,8 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
             typeParameter.declaredFragment!.element,
         ],
         formalParameters: [
-          for (var parameter in functionTypedSuffix.formalParameters.parameters)
+          for (var parameter
+              in functionTypedSuffix.formalParameters.allFormalParameters)
             parameter.declaredFragment!.element,
         ],
         returnType: node.type?.type ?? _typeProvider.dynamicType,

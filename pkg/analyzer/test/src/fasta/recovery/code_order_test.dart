@@ -796,11 +796,12 @@ CompilationUnit
               token: A
             parameters: FormalParameterList
               leftParenthesis: (
-              parameters
-                RegularFormalParameter
-                  name: x
-              leftDelimiter: [
-              rightDelimiter: ]
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: x
+                rightDelimiter: ]
               rightParenthesis: )
             parameters(v1): FormalParameterList
               leftParenthesis: (

@@ -471,7 +471,7 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: int
@@ -599,7 +599,7 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: String

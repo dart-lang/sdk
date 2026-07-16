@@ -1757,7 +1757,8 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    node.parameters.accept2(this);
+    node.requiredPositionalFormalParameters.accept2(this);
+    node.delimitedFormalParameters?.formalParameters.accept2(this);
   }
 
   @override
@@ -2054,7 +2055,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     }
 
     // Handle declaring formal parameters.
-    var formalParameters = node.formalParameters.parameters;
+    var formalParameters = node.formalParameters.allFormalParameters;
 
     var isFirstFormalExtensionTypeRepresentation = false;
     if (parent is ExtensionTypeDeclarationImpl) {

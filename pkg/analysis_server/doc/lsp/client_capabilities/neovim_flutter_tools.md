@@ -1,96 +1,20 @@
-# VS Code (Dart-Code extension)
+# Neovim (nvim-flutter/flutter-tools)
 
-This LSP client is an NPM package bundled with Dart-Code and therefore updated/versioned along with Dart-Code.
-
-**Version**: Dart-Code 3.139.20260702
-**Date**: 2026-07-15
+**Version**: Neovim 0.12.4, nvim-flutter/flutter-tools 7d1acfd
+**Date**: 2026-07-16
 
 ```js
 {
-	"experimental": {
-		"commands": [
-			"dart.goToLocation"
-		],
-		"dartCodeAction": {
-			"commandParameterSupport": {
-				"supportedKinds": [
-					"saveUri"
-				]
-			}
-		},
-		"interactiveResolve": {
-			"inputTypes": [
-				"bool",
-				"file",
-				"enum",
-				"lazyEnum",
-				"number",
-				"string"
-			]
-		},
-		"snippetTextEdit": true,
-		"supportsWindowShowMessageRequest": true
-	},
 	"general": {
-		"markdown": {
-			"allowedTags": [
-				"ul",
-				"li",
-				"p",
-				"code",
-				"blockquote",
-				"ol",
-				"h1",
-				"h2",
-				"h3",
-				"h4",
-				"h5",
-				"h6",
-				"hr",
-				"em",
-				"pre",
-				"table",
-				"thead",
-				"tbody",
-				"tr",
-				"th",
-				"td",
-				"div",
-				"del",
-				"a",
-				"strong",
-				"br",
-				"img",
-				"span"
-			],
-			"parser": "marked",
-			"version": "1.1.0"
-		},
 		"positionEncodings": [
-			"utf-16"
-		],
-		"regularExpressions": {
-			"engine": "ECMAScript",
-			"version": "ES2020"
-		},
-		"staleRequestSupport": {
-			"cancel": true,
-			"retryOnContentModified": [
-				"textDocument/semanticTokens/full",
-				"textDocument/semanticTokens/range",
-				"textDocument/semanticTokens/full/delta"
-			]
-		}
-	},
-	"notebookDocument": {
-		"synchronization": {
-			"dynamicRegistration": true,
-			"executionSummarySupport": true
-		}
+			"utf-8",
+			"utf-16",
+			"utf-32"
+		]
 	},
 	"textDocument": {
 		"callHierarchy": {
-			"dynamicRegistration": true
+			"dynamicRegistration": false
 		},
 		"codeAction": {
 			"codeActionLiteralSupport": {
@@ -101,17 +25,14 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 						"refactor",
 						"refactor.extract",
 						"refactor.inline",
-						"refactor.move",
 						"refactor.rewrite",
 						"source",
-						"source.organizeImports",
-						"notebook"
+						"source.organizeImports"
 					]
 				}
 			},
 			"dataSupport": true,
 			"disabledSupport": true,
-			"documentationSupport": true,
 			"dynamicRegistration": true,
 			"honorsChangeAnnotations": true,
 			"isPreferredSupport": true,
@@ -120,15 +41,10 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 					"edit",
 					"command"
 				]
-			},
-			"tagSupport": {
-				"valueSet": [
-					1
-				]
 			}
 		},
 		"codeLens": {
-			"dynamicRegistration": true,
+			"dynamicRegistration": false,
 			"resolveSupport": {
 				"properties": [
 					"command"
@@ -140,21 +56,15 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 		},
 		"completion": {
 			"completionItem": {
-				"commitCharactersSupport": true,
+				"commitCharactersSupport": false,
 				"deprecatedSupport": true,
 				"documentationFormat": [
 					"markdown",
 					"plaintext"
 				],
 				"insertReplaceSupport": true,
-				"insertTextModeSupport": {
-					"valueSet": [
-						1,
-						2
-					]
-				},
 				"labelDetailsSupport": true,
-				"preselectSupport": true,
+				"preselectSupport": false,
 				"resolveSupport": {
 					"properties": [
 						"documentation",
@@ -199,9 +109,7 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 				]
 			},
 			"completionList": {
-				"applyKindSupport": true,
 				"itemDefaults": [
-					"commitCharacters",
 					"editRange",
 					"insertTextFormat",
 					"insertTextMode",
@@ -209,11 +117,9 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 				]
 			},
 			"contextSupport": true,
-			"dynamicRegistration": true,
-			"insertTextMode": 2
+			"dynamicRegistration": false
 		},
 		"declaration": {
-			"dynamicRegistration": true,
 			"linkSupport": true
 		},
 		"definition": {
@@ -221,11 +127,9 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 			"linkSupport": true
 		},
 		"diagnostic": {
-			"codeDescriptionSupport": true,
 			"dataSupport": true,
 			"dynamicRegistration": true,
-			"markupMessageSupport": false,
-			"relatedDocumentSupport": false,
+			"relatedDocumentSupport": true,
 			"relatedInformation": true,
 			"tagSupport": {
 				"valueSet": [
@@ -234,17 +138,19 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 				]
 			}
 		},
-		"documentHighlight": {
+		"documentColor": {
 			"dynamicRegistration": true
 		},
+		"documentHighlight": {
+			"dynamicRegistration": false
+		},
 		"documentLink": {
-			"dynamicRegistration": true,
-			"tooltipSupport": true
+			"dynamicRegistration": false,
+			"tooltipSupport": false
 		},
 		"documentSymbol": {
-			"dynamicRegistration": true,
+			"dynamicRegistration": false,
 			"hierarchicalDocumentSymbolSupport": true,
-			"labelSupport": true,
 			"symbolKind": {
 				"valueSet": [
 					1,
@@ -281,13 +187,10 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 				]
 			}
 		},
-		"filters": {
-			"relativePatternSupport": true
-		},
 		"foldingRange": {
-			"dynamicRegistration": true,
+			"dynamicRegistration": false,
 			"foldingRange": {
-				"collapsedText": false
+				"collapsedText": true
 			},
 			"foldingRangeKind": {
 				"valueSet": [
@@ -296,8 +199,7 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 					"region"
 				]
 			},
-			"lineFoldingOnly": true,
-			"rangeLimit": 5000
+			"lineFoldingOnly": true
 		},
 		"formatting": {
 			"dynamicRegistration": true
@@ -310,32 +212,29 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 			"dynamicRegistration": true
 		},
 		"implementation": {
-			"dynamicRegistration": true,
 			"linkSupport": true
 		},
 		"inlayHint": {
 			"dynamicRegistration": true,
 			"resolveSupport": {
 				"properties": [
-					"tooltip",
 					"textEdits",
-					"label.tooltip",
-					"label.location",
-					"label.command"
+					"tooltip",
+					"location",
+					"command"
 				]
 			}
 		},
-		"inlineValue": {
-			"dynamicRegistration": true
+		"inlineCompletion": {
+			"dynamicRegistration": false
 		},
 		"linkedEditingRange": {
-			"dynamicRegistration": true
+			"dynamicRegistration": false
 		},
 		"onTypeFormatting": {
-			"dynamicRegistration": true
+			"dynamicRegistration": false
 		},
 		"publishDiagnostics": {
-			"codeDescriptionSupport": true,
 			"dataSupport": true,
 			"relatedInformation": true,
 			"tagSupport": {
@@ -343,40 +242,38 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 					1,
 					2
 				]
-			},
-			"versionSupport": false
+			}
 		},
 		"rangeFormatting": {
 			"dynamicRegistration": true,
 			"rangesSupport": true
 		},
 		"references": {
-			"dynamicRegistration": true
+			"dynamicRegistration": false
 		},
 		"rename": {
 			"dynamicRegistration": true,
 			"honorsChangeAnnotations": true,
-			"prepareSupport": true,
-			"prepareSupportDefaultBehavior": 1
+			"prepareSupport": true
 		},
 		"selectionRange": {
-			"dynamicRegistration": true
+			"dynamicRegistration": false
 		},
 		"semanticTokens": {
 			"augmentsSyntaxTokens": true,
-			"dynamicRegistration": true,
+			"dynamicRegistration": false,
 			"formats": [
 				"relative"
 			],
-			"multilineTokenSupport": false,
-			"overlappingTokenSupport": false,
+			"multilineTokenSupport": true,
+			"overlappingTokenSupport": true,
 			"requests": {
 				"full": {
 					"delta": true
 				},
 				"range": true
 			},
-			"serverCancelSupport": true,
+			"serverCancelSupport": false,
 			"tokenModifiers": [
 				"declaration",
 				"definition",
@@ -406,18 +303,17 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 				"method",
 				"macro",
 				"keyword",
+				"modifier",
 				"comment",
 				"string",
 				"number",
 				"regexp",
 				"operator",
-				"decorator",
-				"label"
+				"decorator"
 			]
 		},
 		"signatureHelp": {
-			"contextSupport": true,
-			"dynamicRegistration": true,
+			"dynamicRegistration": false,
 			"signatureInformation": {
 				"activeParameterSupport": true,
 				"documentationFormat": [
@@ -432,16 +328,12 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 		},
 		"synchronization": {
 			"didSave": true,
-			"dynamicRegistration": true,
+			"dynamicRegistration": false,
 			"willSave": true,
 			"willSaveWaitUntil": true
 		},
 		"typeDefinition": {
-			"dynamicRegistration": true,
 			"linkSupport": true
-		},
-		"typeHierarchy": {
-			"dynamicRegistration": true
 		}
 	},
 	"window": {
@@ -465,43 +357,29 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 			"refreshSupport": true
 		},
 		"didChangeConfiguration": {
-			"dynamicRegistration": true
+			"dynamicRegistration": false
 		},
 		"didChangeWatchedFiles": {
-			"dynamicRegistration": true,
+			"dynamicRegistration": false,
 			"relativePatternSupport": true
 		},
-		"executeCommand": {
-			"dynamicRegistration": true
-		},
 		"fileOperations": {
-			"didCreate": true,
-			"didDelete": true,
-			"didRename": true,
-			"dynamicRegistration": true,
-			"willCreate": true,
-			"willDelete": true,
-			"willRename": true
-		},
-		"foldingRange": {
-			"refreshSupport": true
+			"didCreate": false,
+			"didDelete": false,
+			"didRename": false,
+			"dynamicRegistration": false,
+			"willCreate": false,
+			"willDelete": false,
+			"willRename": false
 		},
 		"inlayHint": {
-			"refreshSupport": true
-		},
-		"inlineValue": {
 			"refreshSupport": true
 		},
 		"semanticTokens": {
 			"refreshSupport": true
 		},
 		"symbol": {
-			"dynamicRegistration": true,
-			"resolveSupport": {
-				"properties": [
-					"location.range"
-				]
-			},
+			"dynamicRegistration": false,
 			"symbolKind": {
 				"valueSet": [
 					1,
@@ -531,11 +409,6 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 					25,
 					26
 				]
-			},
-			"tagSupport": {
-				"valueSet": [
-					1
-				]
 			}
 		},
 		"workspaceEdit": {
@@ -543,15 +416,12 @@ This LSP client is an NPM package bundled with Dart-Code and therefore updated/v
 				"groupsOnLabel": true
 			},
 			"documentChanges": true,
-			"failureHandling": "textOnlyTransactional",
-			"metadataSupport": true,
 			"normalizesLineEndings": true,
 			"resourceOperations": [
-				"create",
 				"rename",
+				"create",
 				"delete"
-			],
-			"snippetEditSupport": true
+			]
 		},
 		"workspaceFolders": true
 	}

@@ -69,7 +69,9 @@ class ConstructorFieldsVerifier {
     constructorState.secondaryConstructors.add(node);
 
     if (!fragment.isAugmentation) {
-      constructorState.updateWithParameters(node.parameters.parameters);
+      constructorState.updateWithParameters(
+        node.parameters.allFormalParameters,
+      );
     }
 
     constructorState.updateWithInitializers(
@@ -93,7 +95,7 @@ class ConstructorFieldsVerifier {
     constructorState.primaryConstructors.add(primaryConstructor);
 
     constructorState.updateWithParameters(
-      primaryConstructor.formalParameters.parameters,
+      primaryConstructor.formalParameters.allFormalParameters,
     );
 
     var body = primaryConstructor.body;
@@ -293,7 +295,7 @@ class _Constructor {
     }
   }
 
-  void updateWithParameters(NodeList<FormalParameter> formalParameters) {
+  void updateWithParameters(List<FormalParameter> formalParameters) {
     for (var formalParameter in formalParameters) {
       var parameterFragment = formalParameter.declaredFragment!;
       var parameterElement = parameterFragment.element;

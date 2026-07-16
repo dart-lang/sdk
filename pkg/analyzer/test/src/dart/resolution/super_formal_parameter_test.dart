@@ -83,7 +83,7 @@ SuperFormalParameter
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int

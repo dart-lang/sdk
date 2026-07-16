@@ -37,8 +37,9 @@ class AstBinaryReader {
   ) {
     fragment.constantInitializer = node.defaultClause?.value;
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
-      for (var parameter in functionTypedSuffix.formalParameters.parameters) {
-        parameter.declaredFragment!.initElement();
+      for (var formalParameter
+          in functionTypedSuffix.formalParameters.allFormalParameters) {
+        formalParameter.declaredFragment!.initElement();
       }
     }
     node.declaredFragment = fragment;
@@ -254,6 +255,21 @@ class AstBinaryReader {
     );
   }
 
+  DelimitedFormalParametersImpl _readDelimitedFormalParameters() {
+    var flags = _readByte();
+    var formalParameters = _readNodeList<FormalParameterImpl>();
+    var isNamed = AstBinaryFlags.isNamed(flags);
+    return DelimitedFormalParametersImpl(
+      leftDelimiter: isNamed
+          ? Tokens.openCurlyBracket()
+          : Tokens.openSquareBracket(),
+      formalParameters: formalParameters,
+      rightDelimiter: isNamed
+          ? Tokens.closeCurlyBracket()
+          : Tokens.closeSquareBracket(),
+    );
+  }
+
   DotShorthandConstructorInvocation _readDotShorthandConstructorInvocation() {
     var flags = _readByte();
     var constructorName = _readNode() as SimpleIdentifierImpl;
@@ -442,34 +458,25 @@ class AstBinaryReader {
   }
 
   FormalParameterListImpl _readFormalParameterList() {
-    var flags = _readByte();
-    var parameters = _readNodeList<FormalParameterImpl>();
+    var requiredPositionalFormalParameters =
+        _readNodeList<FormalParameterImpl>();
+    var delimitedFormalParameters =
+        _readOptionalNode() as DelimitedFormalParametersImpl?;
 
     return FormalParameterListImpl(
       leftParenthesis: Tokens.openParenthesis(),
-      parameters: parameters,
-      leftDelimiter: Tokens.choose(
-        AstBinaryFlags.isDelimiterCurly(flags),
-        Tokens.openCurlyBracket(),
-        AstBinaryFlags.isDelimiterSquare(flags),
-        Tokens.openSquareBracket(),
-      ),
-      rightDelimiter: Tokens.choose(
-        AstBinaryFlags.isDelimiterCurly(flags),
-        Tokens.closeCurlyBracket(),
-        AstBinaryFlags.isDelimiterSquare(flags),
-        Tokens.closeSquareBracket(),
-      ),
+      requiredPositionalFormalParameters: requiredPositionalFormalParameters,
+      delimitedFormalParameters: delimitedFormalParameters,
       rightParenthesis: Tokens.closeParenthesis(),
     );
   }
 
   void _readFormalParameterListResolution(FormalParameterListImpl node) {
-    for (var parameter in node.parameters) {
-      var fragment = parameter.declaredFragment!;
+    for (var formalParameter in node.allFormalParameters) {
+      var fragment = formalParameter.declaredFragment!;
       assert(fragment.nextFragment == null);
       fragment.element.type = _reader.readRequiredType();
-      if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
+      if (formalParameter.functionTypedSuffix case var functionTypedSuffix?) {
         _readFormalParameterListResolution(
           functionTypedSuffix.formalParameters,
         );
@@ -552,8 +559,8 @@ class AstBinaryReader {
     node.type = type;
 
     var fragment = GenericFunctionTypeFragmentImpl();
-    fragment.formalParameters = formalParameters.parameters
-        .map((parameter) => parameter.declaredFragment!)
+    fragment.formalParameters = formalParameters.allFormalParameters
+        .map((formalParameter) => formalParameter.declaredFragment!)
         .toList();
     node.declaredFragment = fragment;
     _reader.currentLibraryFragment.encloseElement(fragment);
@@ -847,6 +854,8 @@ class AstBinaryReader {
         return _readConstructorReference();
       case Tag.DeclaredIdentifier:
         return _readDeclaredIdentifier();
+      case Tag.DelimitedFormalParameters:
+        return _readDelimitedFormalParameters();
       case Tag.DotShorthandConstructorInvocation:
         return _readDotShorthandConstructorInvocation();
       case Tag.DotShorthandInvocation:

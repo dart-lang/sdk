@@ -916,17 +916,19 @@ class AstBuilder extends StackListener {
     var formals = pop(NullValues.FormalParameters) as FormalParameterListImpl?;
     var target = pop() as ExpressionImpl?;
 
-    if (formals != null &&
-        (formals.parameters.isEmpty ||
-            formals.parameters.length > 1 ||
-            formals.parameters.first.isNamed ||
-            formals.parameters.first.isOptional)) {
-      handleRecoverableError(
-        fe_diag.anonymousMethodWrongParameterList,
-        formals.leftParenthesis,
-        formals.rightParenthesis,
-      );
-      formals = null;
+    if (formals != null) {
+      var formalParameters = formals.allFormalParameters;
+      if (formalParameters.isEmpty ||
+          formalParameters.length > 1 ||
+          formalParameters.first.isNamed ||
+          formalParameters.first.isOptional) {
+        handleRecoverableError(
+          fe_diag.anonymousMethodWrongParameterList,
+          formals.leftParenthesis,
+          formals.rightParenthesis,
+        );
+        formals = null;
+      }
     }
 
     AnonymousMethodBodyImpl methodBody;
@@ -1935,24 +1937,20 @@ class AstBuilder extends StackListener {
     debugEvent("FormalParameters");
 
     var rawParameters = popTypedList(count) ?? const <Object>[];
-    var parameters = <FormalParameterImpl>[];
-    Token? leftDelimiter;
-    Token? rightDelimiter;
+    var requiredPositionalFormalParameters = <FormalParameterImpl>[];
+    DelimitedFormalParametersImpl? delimitedFormalParameters;
     for (Object raw in rawParameters) {
-      if (raw is _OptionalFormalParameters) {
-        parameters.addAll(raw.parameters ?? const []);
-        leftDelimiter = raw.leftDelimiter;
-        rightDelimiter = raw.rightDelimiter;
+      if (raw is DelimitedFormalParametersImpl) {
+        delimitedFormalParameters = raw;
       } else {
-        parameters.add(raw as FormalParameterImpl);
+        requiredPositionalFormalParameters.add(raw as FormalParameterImpl);
       }
     }
     push(
       FormalParameterListImpl(
         leftParenthesis: leftParenthesis,
-        parameters: parameters,
-        leftDelimiter: leftDelimiter,
-        rightDelimiter: rightDelimiter,
+        requiredPositionalFormalParameters: requiredPositionalFormalParameters,
+        delimitedFormalParameters: delimitedFormalParameters,
         rightParenthesis: rightParenthesis,
       ),
     );
@@ -2602,11 +2600,12 @@ class AstBuilder extends StackListener {
     );
     debugEvent("OptionalFormalParameters");
 
+    var formalParameters = popTypedList2<FormalParameterImpl>(count);
     push(
-      _OptionalFormalParameters(
-        popTypedList2<FormalParameterImpl>(count),
-        leftDelimiter,
-        rightDelimiter,
+      DelimitedFormalParametersImpl(
+        leftDelimiter: leftDelimiter,
+        formalParameters: formalParameters,
+        rightDelimiter: rightDelimiter,
       ),
     );
   }
@@ -3742,7 +3741,7 @@ class AstBuilder extends StackListener {
     Token? exception;
     Token? stackTrace;
     if (catchParameterList != null) {
-      var catchParameters = catchParameterList.parameters;
+      var catchParameters = catchParameterList.allFormalParameters;
       if (catchParameters.isNotEmpty) {
         exception = catchParameters[0].name;
       }
@@ -5908,7 +5907,7 @@ class AstBuilder extends StackListener {
     }
 
     if (modifiers?.externalKeyword != null) {
-      for (var formalParameter in parameters.parameters) {
+      for (var formalParameter in parameters.allFormalParameters) {
         if (formalParameter is FieldFormalParameterImpl) {
           diagnosticReporter.diagnosticReporter?.report(
             diag.externalConstructorWithFieldInitializers.at(
@@ -6211,25 +6210,26 @@ class AstBuilder extends StackListener {
 
   FormalParameterListImpl? _ensureSetterFormalParameter(
     SimpleIdentifierImpl setterName,
-    FormalParameterListImpl? formalParameters,
+    FormalParameterListImpl? formalParameterList,
   ) {
-    formalParameters ??= throw StateError(
+    formalParameterList ??= throw StateError(
       'Parser has recovery, this never happens.',
     );
 
-    var valueFormalParameter = formalParameters.parameters.firstOrNull;
+    var formalParameters = formalParameterList.allFormalParameters;
+    var valueFormalParameter = formalParameters.firstOrNull;
     if (valueFormalParameter == null) {
-      if (!formalParameters.leftParenthesis.isSynthetic) {
+      if (!formalParameterList.leftParenthesis.isSynthetic) {
         diagnosticReporter.diagnosticReporter?.report(
           diag.wrongNumberOfParametersForSetter.at(setterName.token),
         );
       }
       var valueNameToken = parser.rewriter.insertSyntheticIdentifier(
-        formalParameters.leftParenthesis,
+        formalParameterList.leftParenthesis,
       );
       return FormalParameterListImpl(
-        leftParenthesis: formalParameters.leftParenthesis,
-        parameters: [
+        leftParenthesis: formalParameterList.leftParenthesis,
+        requiredPositionalFormalParameters: [
           RegularFormalParameterImpl(
             comment: null,
             metadata: null,
@@ -6243,26 +6243,24 @@ class AstBuilder extends StackListener {
             defaultClause: null,
           ),
         ],
-        leftDelimiter: null,
-        rightDelimiter: null,
-        rightParenthesis: formalParameters.rightParenthesis,
+        delimitedFormalParameters: null,
+        rightParenthesis: formalParameterList.rightParenthesis,
       );
     }
 
     if (valueFormalParameter.isRequiredPositional &&
-        formalParameters.parameters.length == 1) {
-      return formalParameters;
+        formalParameters.length == 1) {
+      return formalParameterList;
     }
 
     diagnosticReporter.diagnosticReporter?.report(
       diag.wrongNumberOfParametersForSetter.at(setterName.token),
     );
     return FormalParameterListImpl(
-      leftParenthesis: formalParameters.leftParenthesis,
-      parameters: [valueFormalParameter],
-      leftDelimiter: null,
-      rightDelimiter: null,
-      rightParenthesis: formalParameters.rightParenthesis,
+      leftParenthesis: formalParameterList.leftParenthesis,
+      requiredPositionalFormalParameters: [valueFormalParameter],
+      delimitedFormalParameters: null,
+      rightParenthesis: formalParameterList.rightParenthesis,
     );
   }
 
@@ -6362,9 +6360,8 @@ class AstBuilder extends StackListener {
     var right = left.endGroup!;
     return FormalParameterListImpl(
       leftParenthesis: left,
-      parameters: [],
-      leftDelimiter: null,
-      rightDelimiter: null,
+      requiredPositionalFormalParameters: [],
+      delimitedFormalParameters: null,
       rightParenthesis: right,
     );
   }
@@ -6793,19 +6790,6 @@ class _OperatorName {
   final SimpleIdentifierImpl name;
 
   _OperatorName(this.operatorKeyword, this.name);
-}
-
-/// Data structure placed on the stack as a container for optional parameters.
-class _OptionalFormalParameters {
-  final List<FormalParameterImpl>? parameters;
-  final Token leftDelimiter;
-  final Token rightDelimiter;
-
-  _OptionalFormalParameters(
-    this.parameters,
-    this.leftDelimiter,
-    this.rightDelimiter,
-  );
 }
 
 /// Data structure placed on the stack to represent the parenthesized condition

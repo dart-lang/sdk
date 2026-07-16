@@ -272,7 +272,7 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: double
@@ -768,7 +768,7 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: T
@@ -978,25 +978,26 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          constFinalOrVarKeyword: final
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-              staticType: int
-          declaredFragment: <testLibraryFragment> a@18
-            element: isFinal isPublic
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
               type: int
-              field: <testLibrary>::@enum::A::@field::a
-      leftDelimiter: {
-      rightDelimiter: }
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+                staticType: int
+            declaredFragment: <testLibraryFragment> a@18
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@enum::A::@field::a
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -1059,21 +1060,22 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          requiredKeyword: required
-          constFinalOrVarKeyword: final
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          declaredFragment: <testLibraryFragment> a@27
-            element: isFinal isPublic
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
               type: int
-              field: <testLibrary>::@enum::A::@field::a
-      leftDelimiter: {
-      rightDelimiter: }
+            name: a
+            declaredFragment: <testLibraryFragment> a@27
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@enum::A::@field::a
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -1133,7 +1135,7 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           type: NamedType
@@ -1144,7 +1146,7 @@ EnumDeclaration
           functionTypedSuffix: FunctionTypedFormalParameterSuffix
             formalParameters: FormalParameterList
               leftParenthesis: (
-              parameters
+              requiredPositionalFormalParameters
                 RegularFormalParameter
                   type: NamedType
                     name: String
@@ -1237,7 +1239,7 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           type: NamedType
@@ -1304,7 +1306,7 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         FieldFormalParameter
           type: NamedType
             name: int
@@ -1387,7 +1389,7 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         metadata
           Annotation
@@ -1448,7 +1450,7 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: int
@@ -1501,7 +1503,7 @@ EnumDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T
@@ -1579,7 +1581,7 @@ EnumDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T
@@ -1646,7 +1648,7 @@ EnumDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1712,7 +1714,7 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1790,32 +1792,33 @@ PrimaryConstructorDeclaration
     rightBracket: >
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameters
-      RegularFormalParameter
-        metadata
-          Annotation
-            atSign: @
-            name: SimpleIdentifier
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: [
+      formalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: foo
+                element: <testLibrary>::@enum::A::@getter::foo
+                staticType: null
+              element: <testLibrary>::@enum::A::@getter::foo
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: x
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value: SimpleIdentifier
               token: foo
               element: <testLibrary>::@enum::A::@getter::foo
-              staticType: null
-            element: <testLibrary>::@enum::A::@getter::foo
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: x
-        defaultClause: FormalParameterDefaultClause
-          separator: =
-          value: SimpleIdentifier
-            token: foo
-            element: <testLibrary>::@enum::A::@getter::foo
-            staticType: int
-        declaredFragment: <testLibraryFragment> x@40
-          element: isPublic
-            type: int
-    leftDelimiter: [
-    rightDelimiter: ]
+              staticType: int
+          declaredFragment: <testLibraryFragment> x@40
+            element: isPublic
+              type: int
+      rightDelimiter: ]
     rightParenthesis: )
   formalParameters(v1): FormalParameterList
     leftParenthesis: (
@@ -1886,7 +1889,7 @@ PrimaryConstructorDeclaration
     rightBracket: >
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: T
@@ -1958,7 +1961,7 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: bool
@@ -2396,7 +2399,7 @@ MethodDeclaration
   name: foo
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: T

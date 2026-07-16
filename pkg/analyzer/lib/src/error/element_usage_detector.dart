@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -228,9 +229,8 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void formalParameter(FormalParameter node) {
-    var parent = node.parent2;
-    if (parent is! FormalParameterList) return;
-    if (parent.parent2 case ConstructorDeclaration constructor) {
+    var parameterList = node.parentFormalParameterList;
+    if (parameterList.parent2 case ConstructorDeclaration constructor) {
       if (constructor.redirectedConstructor?.element
           case var redirectedConstructor?) {
         if (node.isNamed) {
@@ -241,7 +241,7 @@ class ElementUsageDetector<TagInfo extends Object> {
           checkUsage(redirectedParameter, node);
         } else {
           // Positional.
-          var position = parent.parameters.indexOf(node);
+          var position = parameterList.parameters.indexOf(node);
           if (position < 0) return;
           if (position >= redirectedConstructor.formalParameters.length) {
             return;
