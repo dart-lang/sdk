@@ -4353,7 +4353,7 @@ FunctionReference
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameters
+        requiredPositionalFormalParameters
           RegularFormalParameter
             type: NamedType
               name: T
@@ -4593,7 +4593,7 @@ FunctionReference
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T

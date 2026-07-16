@@ -1375,7 +1375,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               name: <empty> <synthetic>
           rightParenthesis: )
@@ -1693,7 +1693,7 @@ CompilationUnit
                       FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
-                          parameters
+                          requiredPositionalFormalParameters
                             RegularFormalParameter
                               name: name
                             RegularFormalParameter
@@ -2556,7 +2556,7 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
-              parameters
+              requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
               rightParenthesis: )
@@ -3344,7 +3344,7 @@ CompilationUnit
             name: b
             parameters: FormalParameterList
               leftParenthesis: (
-              parameters
+              requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: c
                   defaultClause: FormalParameterDefaultClause

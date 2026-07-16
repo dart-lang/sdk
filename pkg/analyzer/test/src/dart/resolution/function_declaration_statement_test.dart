@@ -50,7 +50,7 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameters
+        requiredPositionalFormalParameters
           RegularFormalParameter
             type: NamedType
               name: T
@@ -155,7 +155,7 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameters
+        requiredPositionalFormalParameters
           RegularFormalParameter
             type: NamedType
               name: T
@@ -257,19 +257,20 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameters
-          RegularFormalParameter
-            type: NamedType
-              name: T
-              question: ?
-              element: #E0 T
-              type: T?
-            name: a
-            declaredFragment: <testLibraryFragment> a@27
-              element: isPublic
+        delimitedFormalParameters: DelimitedFormalParameters
+          leftDelimiter: {
+          formalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: T
+                question: ?
+                element: #E0 T
                 type: T?
-        leftDelimiter: {
-        rightDelimiter: }
+              name: a
+              declaredFragment: <testLibraryFragment> a@27
+                element: isPublic
+                  type: T?
+          rightDelimiter: }
         rightParenthesis: )
       parameters(v1): FormalParameterList
         leftParenthesis: (
@@ -329,19 +330,20 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameters
-          RegularFormalParameter
-            type: NamedType
-              name: T
-              question: ?
-              element: #E0 T
-              type: T?
-            name: a
-            declaredFragment: <testLibraryFragment> a@27
-              element: isPublic
+        delimitedFormalParameters: DelimitedFormalParameters
+          leftDelimiter: [
+          formalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: T
+                question: ?
+                element: #E0 T
                 type: T?
-        leftDelimiter: [
-        rightDelimiter: ]
+              name: a
+              declaredFragment: <testLibraryFragment> a@27
+                element: isPublic
+                  type: T?
+          rightDelimiter: ]
         rightParenthesis: )
       parameters(v1): FormalParameterList
         leftParenthesis: (
@@ -401,20 +403,21 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameters
-          RegularFormalParameter
-            requiredKeyword: required
-            type: NamedType
-              name: T
-              question: ?
-              element: #E0 T
-              type: T?
-            name: a
-            declaredFragment: <testLibraryFragment> a@36
-              element: isPublic
+        delimitedFormalParameters: DelimitedFormalParameters
+          leftDelimiter: {
+          formalParameters
+            RegularFormalParameter
+              requiredKeyword: required
+              type: NamedType
+                name: T
+                question: ?
+                element: #E0 T
                 type: T?
-        leftDelimiter: {
-        rightDelimiter: }
+              name: a
+              declaredFragment: <testLibraryFragment> a@36
+                element: isPublic
+                  type: T?
+          rightDelimiter: }
         rightParenthesis: )
       parameters(v1): FormalParameterList
         leftParenthesis: (
@@ -475,7 +478,7 @@ FunctionDeclarationStatement
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameters
+        requiredPositionalFormalParameters
           RegularFormalParameter
             type: NamedType
               name: T

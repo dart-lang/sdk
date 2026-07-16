@@ -37,7 +37,7 @@ FieldFormalParameter
   functionTypedSuffix: FunctionTypedFormalParameterSuffix
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -98,7 +98,7 @@ FieldFormalParameter
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: U
@@ -161,7 +161,7 @@ FieldFormalParameter
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: U

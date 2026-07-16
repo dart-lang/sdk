@@ -185,6 +185,13 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    _writeByte(Tag.DelimitedFormalParameters);
+    _writeByte(AstBinaryFlags.encode(isNamed: node.isNamed));
+    _writeNodeList(node.formalParameters);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
   ) {
@@ -271,16 +278,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     _writeByte(Tag.FormalParameterList);
-
-    var leftDelimiter = node.leftDelimiter?.type;
-    _writeByte(
-      AstBinaryFlags.encode(
-        isDelimiterCurly: leftDelimiter == TokenType.OPEN_CURLY_BRACKET,
-        isDelimiterSquare: leftDelimiter == TokenType.OPEN_SQUARE_BRACKET,
-      ),
-    );
-
-    _writeNodeList(node.parameters);
+    _writeNodeList(node.requiredPositionalFormalParameters);
+    _writeOptionalNode(node.delimitedFormalParameters);
   }
 
   @override
@@ -885,7 +884,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   void _storeFormalParameterListResolution(FormalParameterListImpl node) {
-    for (var formalParameter in node.parameters) {
+    for (var formalParameter in node.allFormalParameters) {
       var functionTypedSuffix = formalParameter.functionTypedSuffix;
       _withTypeParameters(functionTypedSuffix?.typeParameters, () {
         _storeFormalParameter(formalParameter);

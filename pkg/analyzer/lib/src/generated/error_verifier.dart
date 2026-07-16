@@ -2815,7 +2815,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         .length;
 
     FormalParameter? formalParameterAtPositionalIndex(int index) {
-      return formalParameterList.parameters
+      return formalParameterList.allFormalParameters
           .where((parameter) => parameter.isPositional)
           .elementAtOrNull(index);
     }
@@ -2921,7 +2921,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             )
             .withContextMessages(firstExecutableContextMessages)
             .at(
-              formalParameterList.leftDelimiter ??
+              formalParameterList.delimitedFormalParameters?.leftDelimiter ??
                   formalParameterErrorEntity(
                     formalParameterAtPositionalIndex(
                       currentRequiredPositionalCount,
@@ -2965,7 +2965,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               .withContextMessages(firstExecutableContextMessages)
               .at(
                 firstOptionalPositionalCount == 0
-                    ? formalParameterList.leftDelimiter ??
+                    ? formalParameterList
+                              .delimitedFormalParameters
+                              ?.leftDelimiter ??
                           formalParameterErrorEntity(
                             formalParameterAtPositionalIndex(
                               firstRequiredPositionalCount,
@@ -2988,7 +2990,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         currentRequiredPositionalCount == firstRequiredPositionalCount &&
         currentOptionalPositionalCount == firstOptionalPositionalCount;
     if (positionalShapeMatches) {
-      for (var formalParameter in formalParameterList.parameters) {
+      for (var formalParameter in formalParameterList.allFormalParameters) {
         if (!formalParameter.isPositional) {
           continue;
         }
@@ -3037,7 +3039,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     if (positionalShapeMatches) {
       forCorrespondingPairs(
-        formalParameterList.parameters.where((f) => f.isPositional),
+        formalParameterList.allFormalParameters.where((f) => f.isPositional),
         firstParameters.where((f) => f.isPositional),
         (formalParameter, firstParameter) {
           checkFormalParameterPair(
@@ -3057,7 +3059,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     var currentNamedParametersByName = <String, FormalParameterImpl>{};
-    for (var formalParameter in formalParameterList.parameters) {
+    for (var formalParameter in formalParameterList.allFormalParameters) {
       var parameter = formalParameter.declaredFragment;
       if (parameter is FormalParameterFragmentImpl && parameter.isNamed) {
         var name = parameter.name;
@@ -4978,7 +4980,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     var formalParameterList = primaryConstructor.formalParameters;
-    var formalParameters = formalParameterList.parameters;
+    var formalParameters = formalParameterList.allFormalParameters;
 
     if (formalParameters.isEmpty) {
       diagnosticReporter.report(
@@ -5041,7 +5043,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       }
     } else {
-      if (formalParameterList.leftDelimiter case var leftDelimiter?) {
+      if (formalParameterList.delimitedFormalParameters?.leftDelimiter
+          case var leftDelimiter?) {
         diagnosticReporter.report(
           diag.expectedRepresentationField.at(leftDelimiter),
         );
@@ -5866,7 +5869,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    var parameters = parameterList.parameters;
+    var parameters = parameterList.allFormalParameters;
     var positional = parameters.where((e) => e.isPositional).toList();
     var requiredPositional = parameters
         .where((e) => e.isRequiredPositional)
@@ -6060,7 +6063,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       if (node is ClassDeclarationImpl) {
         if (node.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
-          if (primaryConstructor.formalParameters.parameters.isNotEmpty) {
+          if (primaryConstructor
+              .formalParameters
+              .allFormalParameters
+              .isNotEmpty) {
             diagnosticReporter.report(
               diag.mixinClassDeclaresNonTrivialGenerativeConstructor
                   .withArguments(className: className)
@@ -6608,7 +6614,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       }
     } else if (primaryConstructor != null) {
-      for (var parameter in primaryConstructor.formalParameters.parameters) {
+      for (var parameter
+          in primaryConstructor.formalParameters.allFormalParameters) {
         var formalParameter = parameter;
         var element = formalParameter.declaredFragment?.element;
         if (element is FieldFormalParameterElementImpl && element.isDeclaring) {
@@ -7682,7 +7689,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       }
 
-      var methodParameters = method.parameters?.parameters;
+      var methodParameters = method.parameters?.allFormalParameters;
       if (methodParameters != null) {
         for (var methodParameter in methodParameters) {
           var methodParameterFragment = methodParameter.declaredFragment!;

@@ -436,7 +436,7 @@ void f(List<int> items) {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         name: item
         declaredFragment: <testLibraryFragment> item@43
@@ -484,7 +484,7 @@ main() {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         name: x
         declaredFragment: <testLibraryFragment> x@53
@@ -525,7 +525,7 @@ main() {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         name: x
         declaredFragment: <testLibraryFragment> x@52
@@ -574,7 +574,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: T

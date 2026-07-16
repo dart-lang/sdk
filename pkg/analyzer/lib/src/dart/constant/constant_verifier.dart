@@ -893,8 +893,8 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     if (parameters == null) {
       return;
     }
-    for (var parameter in parameters.parameters) {
-      if (parameter.defaultClause case var defaultClause?) {
+    for (var formalParameter in parameters.allFormalParameters) {
+      if (formalParameter.defaultClause case var defaultClause?) {
         var defaultValue = defaultClause.value;
         Constant? result;
         if (defaultValue.typeOrThrow is InvalidType) {
@@ -905,7 +905,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
             diag.nonConstantDefaultValue,
           );
         }
-        var element = parameter.declaredFragment!.element;
+        var element = formalParameter.declaredFragment!.element;
         element.evaluationResult = result;
       }
     }

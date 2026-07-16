@@ -58,7 +58,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -91,7 +91,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -481,7 +481,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -503,7 +503,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               covariantKeyword: covariant
               type: NamedType
@@ -544,7 +544,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -567,7 +567,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               covariantKeyword: covariant
               type: NamedType
@@ -637,7 +637,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -660,7 +660,7 @@ ExtensionTypeDeclaration
         name: named
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             FieldFormalParameter
               thisKeyword: this
               period: .
@@ -832,7 +832,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -880,7 +880,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -928,7 +928,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1043,7 +1043,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1171,7 +1171,7 @@ ExtensionTypeDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               type: NamedType
                 name: int
@@ -1210,7 +1210,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1231,7 +1231,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               type: NamedType
                 name: int
@@ -1276,7 +1276,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               type: NamedType
                 name: int
@@ -1323,7 +1323,7 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               type: NamedType
                 name: int
@@ -1365,7 +1365,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1410,7 +1410,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1452,7 +1452,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1489,7 +1489,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1523,7 +1523,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1579,17 +1579,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: a
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -1624,17 +1625,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: a
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-      leftDelimiter: [
-      rightDelimiter: ]
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -1672,7 +1674,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           documentationComment: Comment
             tokens
@@ -1684,7 +1686,7 @@ ExtensionTypeDeclaration
           functionTypedSuffix: FunctionTypedFormalParameterSuffix
             formalParameters: FormalParameterList
               leftParenthesis: (
-              parameters
+              requiredPositionalFormalParameters
                 RegularFormalParameter
                   type: NamedType
                     name: String
@@ -1740,22 +1742,23 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          documentationComment: Comment
-            tokens
-              /// aaa
-          requiredKeyword: required
-          constFinalOrVarKeyword: final
-          type: NamedType
-            name: int
-          name: a
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            documentationComment: Comment
+              tokens
+                /// aaa
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -1798,7 +1801,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           documentationComment: Comment
             tokens
@@ -1839,7 +1842,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         FieldFormalParameter
           thisKeyword: this
           period: .
@@ -1872,7 +1875,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1915,7 +1918,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: const
           type: NamedType
@@ -1952,7 +1955,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           covariantKeyword: covariant
           type: NamedType
@@ -1989,7 +1992,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           covariantKeyword: covariant
           constFinalOrVarKeyword: final
@@ -2029,7 +2032,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           covariantKeyword: covariant
           type: NamedType
@@ -2064,7 +2067,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           covariantKeyword: covariant
           constFinalOrVarKeyword: var
@@ -2101,7 +2104,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           type: NamedType
@@ -2137,7 +2140,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           type: NamedType
@@ -2172,7 +2175,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           name: it
@@ -2204,7 +2207,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           name: it
@@ -2237,7 +2240,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           requiredKeyword: required
           type: NamedType
@@ -2274,7 +2277,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -2307,7 +2310,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: var
           name: it
@@ -2339,7 +2342,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: var
           name: it
@@ -2370,17 +2373,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: it
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2416,17 +2420,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: it
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2461,19 +2466,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2511,19 +2517,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2560,19 +2567,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-        RegularFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: b
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: b
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2609,17 +2617,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: it
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-      leftDelimiter: [
-      rightDelimiter: ]
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2655,17 +2664,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: it
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-      leftDelimiter: [
-      rightDelimiter: ]
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2700,19 +2710,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: [
-      rightDelimiter: ]
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2750,19 +2761,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: [
-      rightDelimiter: ]
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2799,14 +2811,15 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: it
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: it
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2839,14 +2852,15 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: it
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: it
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2878,19 +2892,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2927,19 +2942,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: a
-        RegularFormalParameter
-          requiredKeyword: required
-          type: NamedType
-            name: int
-          name: b
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: a
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: b
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -2976,7 +2992,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3010,7 +3026,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3043,18 +3059,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
           name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -3091,18 +3109,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
           name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: {
-      rightDelimiter: }
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -3138,18 +3158,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
           name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: [
-      rightDelimiter: ]
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -3186,18 +3208,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
           name: a
-        RegularFormalParameter
-          type: NamedType
-            name: int
-            question: ?
-          name: b
-      leftDelimiter: [
-      rightDelimiter: ]
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -3233,7 +3257,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3275,7 +3299,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3316,7 +3340,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3349,7 +3373,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           metadata
             Annotation
@@ -3435,7 +3459,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           name: it
       rightParenthesis: )
@@ -3465,7 +3489,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           name: it
       rightParenthesis: )
@@ -3494,7 +3518,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           metadata
             Annotation
@@ -3533,7 +3557,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         SuperFormalParameter
           superKeyword: super
           period: .
@@ -3566,7 +3590,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3600,7 +3624,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3667,7 +3691,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3708,7 +3732,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3744,7 +3768,7 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3777,7 +3801,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3812,7 +3836,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3850,7 +3874,7 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -3896,7 +3920,7 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int

@@ -924,6 +924,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node) =>
       visitVariablePattern(node);
 
+  @experimental
+  @override
+  R? visitDelimitedFormalParameters(DelimitedFormalParameters node) =>
+      visitNode(node);
+
   R? visitDirective(Directive node) => visitAnnotatedNode(node);
 
   @override
@@ -2861,6 +2866,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitDoStatement(DoStatement node) {
     node.visitChildren2(this);
@@ -4448,6 +4460,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => null;
 
+  @experimental
+  @override
+  R? visitDelimitedFormalParameters(DelimitedFormalParameters node) => null;
+
   @override
   R? visitDoStatement(DoStatement node) => null;
 
@@ -5634,6 +5650,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitDelimitedFormalParameters(DelimitedFormalParameters node) =>
+      _throw(node);
 
   @override
   R? visitDoStatement(DoStatement node) => _throw(node);
@@ -7935,6 +7956,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitDelimitedFormalParameters(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitDoStatement(DoStatement node) {
     stopwatch.start();
@@ -9855,6 +9885,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitDelimitedFormalParameters(DelimitedFormalParameters node) =>
       visitNode(node);
 
   @override

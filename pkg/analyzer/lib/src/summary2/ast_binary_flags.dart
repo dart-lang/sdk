@@ -92,10 +92,6 @@ class AstBinaryFlags {
 
   static final _isDeferred = _checkBit(0, ImportDirective);
 
-  static final _isDelimiterCurly = _checkBit(0, FormalParameterList);
-
-  static final _isDelimiterSquare = _checkBit(1, FormalParameterList);
-
   static final _isExternal = _checkBit(
     7,
     ConstructorDeclaration,
@@ -120,6 +116,8 @@ class AstBinaryFlags {
   static final _isGet = _checkBit(4, FunctionDeclaration, MethodDeclaration);
 
   static final _isLate = _checkBit(0, VariableDeclarationList);
+
+  static final _isNamed = _checkBit(0, DelimitedFormalParameters);
 
   static final _isNative = _checkBit(8, MethodDeclaration);
 
@@ -185,8 +183,6 @@ class AstBinaryFlags {
     bool isCovariant = false,
     bool isDeclaration = false,
     bool isDeferred = false,
-    bool isDelimiterCurly = false,
-    bool isDelimiterSquare = false,
     bool isDotShorthand = false,
     bool isExternal = false,
     bool isFactory = false,
@@ -194,6 +190,7 @@ class AstBinaryFlags {
     bool isGenerator = false,
     bool isGet = false,
     bool isLate = false,
+    bool isNamed = false,
     bool isNative = false,
     bool isNew = false,
     bool isOperator = false,
@@ -263,12 +260,6 @@ class AstBinaryFlags {
     if (isDeferred) {
       result |= _isDeferred;
     }
-    if (isDelimiterCurly) {
-      result |= _isDelimiterCurly;
-    }
-    if (isDelimiterSquare) {
-      result |= _isDelimiterSquare;
-    }
     if (isDotShorthand) {
       result |= _isDotShorthand;
     }
@@ -292,6 +283,9 @@ class AstBinaryFlags {
     }
     if (isLate) {
       result |= _isLate;
+    }
+    if (isNamed) {
+      result |= _isNamed;
     }
     if (isNative) {
       result |= _isNative;
@@ -479,14 +473,6 @@ class AstBinaryFlags {
     return (flags & _isDeferred) != 0;
   }
 
-  static bool isDelimiterCurly(int flags) {
-    return (flags & _isDelimiterCurly) != 0;
-  }
-
-  static bool isDelimiterSquare(int flags) {
-    return (flags & _isDelimiterSquare) != 0;
-  }
-
   static bool isDotShorthand(int flags) {
     return (flags & _isDotShorthand) != 0;
   }
@@ -513,6 +499,10 @@ class AstBinaryFlags {
 
   static bool isLate(int flags) {
     return (flags & _isLate) != 0;
+  }
+
+  static bool isNamed(int flags) {
+    return (flags & _isNamed) != 0;
   }
 
   static bool isNative(int flags) {

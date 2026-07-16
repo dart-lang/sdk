@@ -1207,7 +1207,6 @@ void visitChildren2(AstVisitor2 visitor) {''');
       return p.typeKind is _PropertyTypeKindNode ||
           p.typeKind is _PropertyTypeKindNodeList;
     }).toList();
-
     if (hookProperties.isEmpty) {
       buffer.write('''
 \n/// Visits the children of this node.

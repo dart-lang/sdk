@@ -93,7 +93,7 @@ ConstructorDeclaration
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: a
@@ -180,17 +180,18 @@ ConstructorDeclaration
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
-      FieldFormalParameter
-        thisKeyword: this
-        period: .
-        name: _x
-        declaredFragment: <testLibraryFragment> x@31
-          element: hasImplicitType isFinal isPublic
-            type: int?
-            field: <testLibrary>::@class::C::@field::_x
-    leftDelimiter: {
-    rightDelimiter: }
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: {
+      formalParameters
+        FieldFormalParameter
+          thisKeyword: this
+          period: .
+          name: _x
+          declaredFragment: <testLibraryFragment> x@31
+            element: hasImplicitType isFinal isPublic
+              type: int?
+              field: <testLibrary>::@class::C::@field::_x
+      rightDelimiter: }
     rightParenthesis: )
   parameters(v1): FormalParameterList
     leftParenthesis: (
@@ -233,19 +234,20 @@ ConstructorDeclaration
     staticType: null
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
-      RegularFormalParameter
-        type: NamedType
-          name: int
-          question: ?
-          element: dart:core::@class::int
-          type: int?
-        name: _x
-        declaredFragment: <testLibraryFragment> _x@20
-          element: isPrivate
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: {
+      formalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            question: ?
+            element: dart:core::@class::int
             type: int?
-    leftDelimiter: {
-    rightDelimiter: }
+          name: _x
+          declaredFragment: <testLibraryFragment> _x@20
+            element: isPrivate
+              type: int?
+      rightDelimiter: }
     rightParenthesis: )
   parameters(v1): FormalParameterList
     leftParenthesis: (

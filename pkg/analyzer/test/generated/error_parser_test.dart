@@ -686,17 +686,18 @@ typedef F = void Function({int x : 0});
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: int
-      name: x
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: x
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -725,17 +726,18 @@ typedef F = void Function({int x = 0});
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: int
-      name: x
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: x
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -764,17 +766,18 @@ typedef F = void Function([int x = 0]);
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: int
-      name: x
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: x
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2303,7 +2306,7 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         name: E
     rightParenthesis: )
@@ -2768,17 +2771,18 @@ typedef F = void Function({int : 0});
     assertParsedNodeText(parameter, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: int
-      name: <empty> <synthetic>
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: <empty> <synthetic>
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2808,17 +2812,18 @@ typedef F = void Function({int = 0});
     assertParsedNodeText(parameter, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: int
-      name: <empty> <synthetic>
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: <empty> <synthetic>
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2847,13 +2852,14 @@ typedef F = void Function({int});
     assertParsedNodeText(parameter, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: int
-      name: <empty> <synthetic>
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: <empty> <synthetic>
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -3091,7 +3097,7 @@ void f(a, b : 0) {}
     assertParsedNodeText(list, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       name: a
     RegularFormalParameter
@@ -3259,7 +3265,7 @@ void f(a, b = 0) {}
     assertParsedNodeText(list, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       name: a
     RegularFormalParameter

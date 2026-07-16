@@ -28,7 +28,7 @@ extension type E(int it) {
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     FieldFormalParameter
       thisKeyword: this
       period: .
@@ -37,15 +37,17 @@ FormalParameterList
         element: hasImplicitType isFinal isPublic
           type: int
           field: <testLibrary>::@extensionType::E::@field::it
-    SuperFormalParameter
-      superKeyword: super
-      period: .
-      name: foo
-      declaredFragment: <testLibraryFragment> foo@53
-        element: hasImplicitType isFinal isPublic
-          type: dynamic
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      SuperFormalParameter
+        superKeyword: super
+        period: .
+        name: foo
+        declaredFragment: <testLibraryFragment> foo@53
+          element: hasImplicitType isFinal isPublic
+            type: dynamic
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -83,7 +85,7 @@ extension type E(int it) {
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     FieldFormalParameter
       thisKeyword: this
       period: .

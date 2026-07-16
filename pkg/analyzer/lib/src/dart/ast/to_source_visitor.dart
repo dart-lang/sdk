@@ -361,6 +361,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  @experimental
+  void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
+    sink.write(node.leftDelimiter.lexeme);
+    _visitNodeList(node.formalParameters, separator: ', ');
+    sink.write(node.rightDelimiter.lexeme);
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     sink.write('do ');
     _visitNode(node.body);
@@ -592,25 +600,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    String? groupEnd;
     sink.write('(');
-    NodeList<FormalParameter> parameters = node.parameters;
-    int size = parameters.length;
-    for (int i = 0; i < size; i++) {
-      FormalParameter parameter = parameters[i];
-      if (i > 0) {
+    _visitNodeList(node.requiredPositionalFormalParameters, separator: ', ');
+    if (node.delimitedFormalParameters case var delimitedFormalParameters?) {
+      if (node.requiredPositionalFormalParameters.isNotEmpty) {
         sink.write(', ');
       }
-      if (groupEnd == null &&
-          node.leftDelimiter != null &&
-          !parameter.isRequiredPositional) {
-        groupEnd = node.rightDelimiter!.lexeme;
-        sink.write(node.leftDelimiter!.lexeme);
-      }
-      parameter.accept2(this);
-    }
-    if (groupEnd != null) {
-      sink.write(groupEnd);
+      delimitedFormalParameters.accept2(this);
     }
     sink.write(')');
   }

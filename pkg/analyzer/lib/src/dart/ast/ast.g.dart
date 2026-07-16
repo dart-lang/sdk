@@ -499,6 +499,9 @@ abstract class AstVisitor2<R> {
 
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node);
 
+  @experimental
+  R? visitDelimitedFormalParameters(DelimitedFormalParameters node);
+
   R? visitDoStatement(DoStatement node);
 
   R? visitDotShorthandConstructorInvocation(

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/annotation_target.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -225,11 +226,7 @@ class AnnotationVerifier {
   void _checkDeprecatedOptional(Annotation node) {
     var parent = node.parent2;
     if (parent is FormalParameter) {
-      if (parent.parent2 is! FormalParameterList) {
-        // We shouldn't get here; if we do, don't report the annotation.
-        return;
-      }
-      var parameterList = parent.parent2 as FormalParameterList;
+      var parameterList = parent.parentFormalParameterList;
 
       // This annotation is only valid on method declarations, constructor
       // declarations, and top-level function declarations.

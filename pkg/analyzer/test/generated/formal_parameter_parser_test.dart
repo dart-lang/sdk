@@ -32,19 +32,20 @@ class A {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    FieldFormalParameter
-      type: NamedType
-        name: int
-      thisKeyword: this
-      period: .
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      FieldFormalParameter
+        type: NamedType
+          name: int
+        thisKeyword: this
+        period: .
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -76,14 +77,15 @@ class A {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    FieldFormalParameter
-      requiredKeyword: required
-      thisKeyword: this
-      period: .
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      FieldFormalParameter
+        requiredKeyword: required
+        thisKeyword: this
+        period: .
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -110,16 +112,17 @@ class A {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    FieldFormalParameter
-      requiredKeyword: required
-      type: NamedType
-        name: int
-      thisKeyword: this
-      period: .
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      FieldFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        thisKeyword: this
+        period: .
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -149,20 +152,21 @@ class A {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    FieldFormalParameter
-      requiredKeyword: required
-      type: NamedType
-        name: int
-      thisKeyword: this
-      period: .
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      FieldFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        thisKeyword: this
+        period: .
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -322,7 +326,7 @@ FieldFormalParameter
   functionTypedSuffix: FunctionTypedFormalParameterSuffix
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -464,7 +468,7 @@ FieldFormalParameter
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: num
@@ -554,29 +558,30 @@ void f({A a : 1, B b, C c : 3}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: IntegerLiteral
-          literal: 1
-    RegularFormalParameter
-      type: NamedType
-        name: B
-      name: b
-    RegularFormalParameter
-      type: NamedType
-        name: C
-      name: c
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: IntegerLiteral
-          literal: 3
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: IntegerLiteral
+            literal: 1
+      RegularFormalParameter
+        type: NamedType
+          name: B
+        name: b
+      RegularFormalParameter
+        type: NamedType
+          name: C
+        name: c
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: IntegerLiteral
+            literal: 3
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -616,17 +621,19 @@ void f(A a, {B b,}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: A
       name: a
-    RegularFormalParameter
-      type: NamedType
-        name: B
-      name: b
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: B
+        name: b
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -654,29 +661,30 @@ void f([A a = null, B b, C c = null]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-    RegularFormalParameter
-      type: NamedType
-        name: B
-      name: b
-    RegularFormalParameter
-      type: NamedType
-        name: C
-      name: c
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+      RegularFormalParameter
+        type: NamedType
+          name: B
+        name: b
+      RegularFormalParameter
+        type: NamedType
+          name: C
+        name: c
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -716,17 +724,19 @@ void f(A a, [B b,]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: A
       name: a
-    RegularFormalParameter
-      type: NamedType
-        name: B
-      name: b
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: B
+        name: b
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -768,7 +778,7 @@ void f(A a, B b, C c) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: A
@@ -810,17 +820,19 @@ void f(A a, {B b}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: A
       name: a
-    RegularFormalParameter
-      type: NamedType
-        name: B
-      name: b
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: B
+        name: b
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -848,16 +860,18 @@ typedef F = void Function(A, {B b});
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: A
-    RegularFormalParameter
-      type: NamedType
-        name: B
-      name: b
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: B
+        name: b
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -884,17 +898,19 @@ void f(A a, [B b]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: A
       name: a
-    RegularFormalParameter
-      type: NamedType
-        name: B
-      name: b
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: B
+        name: b
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -922,7 +938,7 @@ void f(A a,) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: A
@@ -951,7 +967,7 @@ void f(io.,a) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         importPrefix: ImportPrefixReference
@@ -988,13 +1004,14 @@ void f({int a int b}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: int
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1019,7 +1036,7 @@ void f(int a int b) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: int
@@ -1092,17 +1109,18 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      constFinalOrVarKeyword: final
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        constFinalOrVarKeyword: final
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1133,19 +1151,20 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      constFinalOrVarKeyword: final
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1176,18 +1195,19 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1219,17 +1239,18 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      constFinalOrVarKeyword: var
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        constFinalOrVarKeyword: var
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1258,16 +1279,17 @@ void f({final a : null}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      constFinalOrVarKeyword: final
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: final
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1295,18 +1317,19 @@ void f({final A a = null}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      constFinalOrVarKeyword: final
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1335,19 +1358,20 @@ void f({a() = null}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      name: a
-      functionTypedSuffix: FunctionTypedFormalParameterSuffix
-        formalParameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        name: a
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1380,20 +1404,21 @@ void f({a()? : null}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      name: a
-      functionTypedSuffix: FunctionTypedFormalParameterSuffix
-        formalParameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
-        question: ?
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        name: a
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1428,26 +1453,27 @@ void f({a<T>()? : null}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      name: a
-      functionTypedSuffix: FunctionTypedFormalParameterSuffix
-        typeParameters: TypeParameterList
-          leftBracket: <
-          typeParameters
-            TypeParameter
-              name: T
-          rightBracket: >
-        formalParameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
-        question: ?
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        name: a
+        functionTypedSuffix: FunctionTypedFormalParameterSuffix
+          typeParameters: TypeParameterList
+            leftBracket: <
+            typeParameters
+              TypeParameter
+                name: T
+            rightBracket: >
+          formalParameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1483,17 +1509,18 @@ void f({A a : null}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1520,13 +1547,14 @@ void f({A a}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: A
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: A
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1551,16 +1579,17 @@ void f({var a : null}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      constFinalOrVarKeyword: var
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: :
-        value: NullLiteral
-          literal: null
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: var
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value: NullLiteral
+            literal: null
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1590,17 +1619,18 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      constFinalOrVarKeyword: final
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        constFinalOrVarKeyword: final
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1631,19 +1661,20 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      constFinalOrVarKeyword: final
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1674,18 +1705,19 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1717,17 +1749,18 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      covariantKeyword: covariant
-      constFinalOrVarKeyword: var
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        covariantKeyword: covariant
+        constFinalOrVarKeyword: var
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1756,16 +1789,17 @@ void f([final a = null]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      constFinalOrVarKeyword: final
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: final
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1793,18 +1827,19 @@ void f([final A a = null]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      constFinalOrVarKeyword: final
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1832,17 +1867,18 @@ void f([A a = null]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: A
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: A
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1869,13 +1905,14 @@ void f([A a]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      type: NamedType
-        name: A
-      name: a
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: A
+        name: a
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1900,16 +1937,17 @@ void f([var a = null]) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      constFinalOrVarKeyword: var
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: NullLiteral
-          literal: null
-  leftDelimiter: [
-  rightDelimiter: ]
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        constFinalOrVarKeyword: var
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: NullLiteral
+            literal: null
+    rightDelimiter: ]
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1937,15 +1975,16 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      covariantKeyword: covariant
-      type: NamedType
-        name: A
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        covariantKeyword: covariant
+        type: NamedType
+          name: A
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -1974,15 +2013,16 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      covariantKeyword: covariant
-      type: NamedType
-        name: A
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        covariantKeyword: covariant
+        type: NamedType
+          name: A
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2009,13 +2049,14 @@ void f({required final a}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      constFinalOrVarKeyword: final
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2042,13 +2083,14 @@ void f({final required a}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      constFinalOrVarKeyword: final
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: final
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2071,14 +2113,15 @@ void f({required A a}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      type: NamedType
-        name: A
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: A
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2103,18 +2146,19 @@ void f({required int a = 0}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      type: NamedType
-        name: int
-      name: a
-      defaultClause: FormalParameterDefaultClause
-        separator: =
-        value: IntegerLiteral
-          literal: 0
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: a
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2143,14 +2187,15 @@ void f({required int a}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      type: NamedType
-        name: int
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        type: NamedType
+          name: int
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2176,13 +2221,14 @@ void f({required var a}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      constFinalOrVarKeyword: var
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: var
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2209,13 +2255,14 @@ void f({var required a}) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
-    RegularFormalParameter
-      requiredKeyword: required
-      constFinalOrVarKeyword: var
-      name: a
-  leftDelimiter: {
-  rightDelimiter: }
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        requiredKeyword: required
+        constFinalOrVarKeyword: var
+        name: a
+    rightDelimiter: }
   rightParenthesis: )
 FormalParameterList(v1)
   leftParenthesis: (
@@ -2340,7 +2387,7 @@ class C {
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       covariantKeyword: covariant
       type: GenericFunctionType
@@ -2349,7 +2396,7 @@ FormalParameterList
         functionKeyword: Function
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               type: NamedType
                 name: int
@@ -2751,7 +2798,7 @@ void f(Function f) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         name: Function
@@ -2776,7 +2823,7 @@ void f(io.File f) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         importPrefix: ImportPrefixReference
@@ -2810,7 +2857,7 @@ void f(io.File) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         importPrefix: ImportPrefixReference
@@ -2845,7 +2892,7 @@ void f(io.) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: NamedType
         importPrefix: ImportPrefixReference
@@ -2894,7 +2941,7 @@ void f(String Function(int) a) {}
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameters
+  requiredPositionalFormalParameters
     RegularFormalParameter
       type: GenericFunctionType
         returnType: NamedType
@@ -2902,7 +2949,7 @@ FormalParameterList
         functionKeyword: Function
         parameters: FormalParameterList
           leftParenthesis: (
-          parameters
+          requiredPositionalFormalParameters
             RegularFormalParameter
               type: NamedType
                 name: int

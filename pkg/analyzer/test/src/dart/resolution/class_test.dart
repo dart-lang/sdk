@@ -299,25 +299,26 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          constFinalOrVarKeyword: final
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          defaultClause: FormalParameterDefaultClause
-            separator: =
-            value: IntegerLiteral
-              literal: 0
-              staticType: int
-          declaredFragment: <testLibraryFragment> a@19
-            element: isFinal isPublic
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
               type: int
-              field: <testLibrary>::@class::A::@field::a
-      leftDelimiter: {
-      rightDelimiter: }
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value: IntegerLiteral
+                literal: 0
+                staticType: int
+            declaredFragment: <testLibraryFragment> a@19
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@class::A::@field::a
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -362,21 +363,22 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
-        RegularFormalParameter
-          requiredKeyword: required
-          constFinalOrVarKeyword: final
-          type: NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-          name: a
-          declaredFragment: <testLibraryFragment> a@28
-            element: isFinal isPublic
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
               type: int
-              field: <testLibrary>::@class::A::@field::a
-      leftDelimiter: {
-      rightDelimiter: }
+            name: a
+            declaredFragment: <testLibraryFragment> a@28
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@class::A::@field::a
+        rightDelimiter: }
       rightParenthesis: )
     formalParameters(v1): FormalParameterList
       leftParenthesis: (
@@ -417,7 +419,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           type: NamedType
@@ -428,7 +430,7 @@ ClassDeclaration
           functionTypedSuffix: FunctionTypedFormalParameterSuffix
             formalParameters: FormalParameterList
               leftParenthesis: (
-              parameters
+              requiredPositionalFormalParameters
                 RegularFormalParameter
                   type: NamedType
                     name: String
@@ -505,7 +507,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           type: NamedType
@@ -555,7 +557,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: var
           type: NamedType
@@ -608,7 +610,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           constFinalOrVarKeyword: final
           type: NamedType
@@ -719,7 +721,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         FieldFormalParameter
           type: NamedType
             name: int
@@ -786,7 +788,7 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         metadata
           Annotation
@@ -846,7 +848,7 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameters
+    requiredPositionalFormalParameters
       RegularFormalParameter
         type: NamedType
           name: int
@@ -899,7 +901,7 @@ ClassDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T
@@ -953,7 +955,7 @@ ClassDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T
@@ -1002,7 +1004,7 @@ ClassDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1048,7 +1050,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: int
@@ -1111,32 +1113,33 @@ PrimaryConstructorDeclaration
     rightBracket: >
   formalParameters: FormalParameterList
     leftParenthesis: (
-    parameters
-      RegularFormalParameter
-        metadata
-          Annotation
-            atSign: @
-            name: SimpleIdentifier
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: [
+      formalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: foo
+                element: <testLibrary>::@class::A::@getter::foo
+                staticType: null
+              element: <testLibrary>::@class::A::@getter::foo
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: x
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value: SimpleIdentifier
               token: foo
               element: <testLibrary>::@class::A::@getter::foo
-              staticType: null
-            element: <testLibrary>::@class::A::@getter::foo
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        name: x
-        defaultClause: FormalParameterDefaultClause
-          separator: =
-          value: SimpleIdentifier
-            token: foo
-            element: <testLibrary>::@class::A::@getter::foo
-            staticType: int
-        declaredFragment: <testLibraryFragment> x@41
-          element: isPublic
-            type: int
-    leftDelimiter: [
-    rightDelimiter: ]
+              staticType: int
+          declaredFragment: <testLibraryFragment> x@41
+            element: isPublic
+              type: int
+      rightDelimiter: ]
     rightParenthesis: )
   formalParameters(v1): FormalParameterList
     leftParenthesis: (
@@ -1186,7 +1189,7 @@ ClassDeclaration
     typeName: B
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         SuperFormalParameter
           superKeyword: super
           period: .
@@ -1255,7 +1258,7 @@ ClassDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: T
@@ -1327,7 +1330,7 @@ ClassDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameters
+      requiredPositionalFormalParameters
         RegularFormalParameter
           type: NamedType
             name: bool

@@ -139,7 +139,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   static List<FormalParameterElementImpl> getParameters(
     FormalParameterListImpl node,
   ) {
-    return node.parameters.map((parameter) {
+    return node.allFormalParameters.map((parameter) {
       return FormalParameterElementImpl.synthetic(
         parameter.name?.lexeme.nullIfEmpty,
         _getParameterType(parameter),

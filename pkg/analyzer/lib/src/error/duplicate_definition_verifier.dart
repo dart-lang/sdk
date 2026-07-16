@@ -55,7 +55,7 @@ class DuplicateDefinitionVerifier {
   /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterListImpl node) {
     var scope = _FormalParameterDuplicateIdentifierScope(this);
-    for (var parameter in node.parameters) {
+    for (var parameter in node.allFormalParameters) {
       // The identifier can be null if this is a parameter list for a generic
       // function type.
       var identifier = parameter.name;
@@ -68,7 +68,7 @@ class DuplicateDefinitionVerifier {
 
     // For private named parameters, also look for collisions with their public
     // name and other parameters.
-    for (var parameter in node.parameters) {
+    for (var parameter in node.allFormalParameters) {
       if (parameter.declaredFragment
           case FieldFormalParameterFragment fragment) {
         if (fragment.privateName != null) {
