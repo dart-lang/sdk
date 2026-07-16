@@ -37,6 +37,7 @@ environment:
 ''',
     );
     await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 1 package(s):
@@ -54,6 +55,7 @@ environment:
     await _setupProject(pubspecContent: '');
     await _assertMigrationResult(
       apply: true,
+      steps: [MigrationStep.Bump],
       expectedSummary: 'No SDK constraints were bumped.',
     );
   }
@@ -78,6 +80,7 @@ environment:
 
     await _assertMigrationResult(
       uris: [Uri.file(project1Path), Uri.file(project2Path)],
+      steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
 Bumped SDK constraints in 2 package(s):
@@ -938,13 +941,585 @@ environment:
     );
   }
 
-  Future<void> test_validDirectory() async {
+  Future<void> test_step_all() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C(final int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new(int x);
+  new name(String s);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_step_bump() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, 'void m(int x) {}\n');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_step_bump_error_prepareNeeded() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, 'void m(final int x) {}\n');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary: allOf(
+        contains(
+          '- test_project:\n'
+          '    Failed version bump with error: Package "test_project" requires '
+          'pre-bump fixes before the SDK constraint can be bumped.',
+        ),
+        contains('No SDK constraints were bumped.'),
+      ),
+    );
+  }
+
+  Future<void> test_step_bump_error_prepareNeeded_multiplePackages() async {
+    failTestOnErrorDiagnostic = false;
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, 'void m(final int x) {}\n');
+
+    newFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(otherFilePath, 'void f(int y) {}\n');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary: allOf(
+        contains(
+          'Bumped SDK constraints in 1 package(s):\n'
+          '  - other_package: ^3.12.0 -> ^3.13.0',
+        ),
+        contains(
+          '- test_project:\n'
+          '    Failed version bump with error: Package "test_project" requires '
+          'pre-bump fixes before the SDK constraint can be bumped.',
+        ),
+      ),
+      expectedEdit: '''
+>>>>>>>>>> ../other_package/pubspec.yaml
+name: other_package
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_step_bumpAndCleanup() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump, MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new();
+  new name();
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void>
+  test_step_bumpAndCleanup_error_prepareNeeded_multiplePackages() async {
+    failTestOnErrorDiagnostic = false;
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, 'void m(final int x) {}\n');
+
+    newFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(otherFilePath, '''
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      steps: [MigrationStep.Bump, MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+- test_project:
+    Failed version bump with error: Package "test_project" requires pre-bump fixes before the SDK constraint can be bumped.
+Bumped SDK constraints in 1 package(s):
+  - other_package: ^3.12.0 -> ^3.13.0
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  other_package/lib/other.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> ../other_package/lib/other.dart
+class C {
+  new();
+  new name();
+}
+>>>>>>>>>> ../other_package/pubspec.yaml
+name: other_package
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_step_cleanup() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new();
+  new name();
+}
+''',
+    );
+  }
+
+  Future<void> test_step_cleanup_error_missingSdkConstraint() async {
     await _setupProject(pubspecContent: 'name: test_project');
-    await _assertMigrationResult(apply: true);
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+- test_project:
+    Failed cleanup with error: Unknown SDK version.''',
+    );
+  }
+
+  Future<void> test_step_cleanup_multiplePackages_oneSkipped() async {
+    failTestOnErrorDiagnostic = false;
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C();
+  C.name();
+}
+''');
+
+    newFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(otherFilePath, 'void f(int y) {}\n');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+- other_package: Skipped cleanup (No cleanup fixes registered for SDK version 3.12.0)
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new();
+  new name();
+}
+''',
+    );
+  }
+
+  Future<void> test_step_cleanup_noCleanupFixesRegistered_skipped() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^2.12.0'
+''');
+    newFile(mainFilePath, 'void m(int x) {}\n');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+- test_project: Skipped cleanup (No cleanup fixes registered for SDK version 2.12.0)''',
+    );
+  }
+
+  Future<void> test_step_empty() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(final int x) {}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(steps: [], apply: true, expectedSummary: '');
+  }
+
+  Future<void> test_step_prepare() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(final int x) {}
+
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare],
+      apply: true,
+      expectedSummary: '''
+Pre-migration fixes:
+  1 fix made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+void m(int x) {}
+
+class C {
+  C();
+  C.name();
+}
+''',
+    );
+  }
+
+  Future<void> test_step_prepareAndBump() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(final int x) {}
+
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare, MigrationStep.Bump],
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  1 fix made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+void m(int x) {}
+
+class C {
+  C();
+  C.name();
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_step_prepareAndCleanup_noBump() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(final int x) {}
+
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare, MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+- test_project: Skipped cleanup (No cleanup fixes registered for SDK version 3.12.0)
+
+Pre-migration fixes:
+  1 fix made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 1 fix''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+void m(int x) {}
+
+class C {
+  C();
+  C.name();
+}
+''',
+    );
+  }
+
+  Future<void> test_step_prepareBumpAndCleanup() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C(final int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare, MigrationStep.Bump, MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0
+
+Pre-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    extraneous_modifier • 2 fixes
+
+Post-migration fixes:
+  2 fixes made in 1 file.
+
+  my_project/lib/main.dart
+    unnecessary_type_name_in_constructor • 2 fixes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new(int x);
+  new name(String s);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_validDirectory() async {
+    await _setupProject(
+      pubspecContent: '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''',
+    );
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.12.0 -> ^3.13.0''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
   }
 
   Future<void> _assertMigrationResult({
     List<Uri>? uris,
+    List<MigrationStep>? steps,
     Object? expectedSummary,
     String? expectedEdit,
     bool apply = false,
@@ -952,7 +1527,11 @@ environment:
     await initialAnalysis;
     var request = makeRequest(
       CustomMethods.migrate,
-      DartMigrateParams(uris: uris ?? [projectFolderUri], apply: apply),
+      DartMigrateParams(
+        uris: uris ?? [projectFolderUri],
+        apply: apply,
+        steps: steps,
+      ),
     );
     var response = await sendRequestToServer(request);
 
