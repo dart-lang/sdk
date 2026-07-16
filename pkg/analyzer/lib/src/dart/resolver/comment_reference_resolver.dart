@@ -172,25 +172,20 @@ class CommentReferenceResolver {
     }
 
     if (element == null) {
+      var enclosingInstanceElement = _resolver.enclosingInstanceElement;
+      if (enclosingInstanceElement == null) {
+        return null;
+      }
+      var thisType = _typeSystem.resolveToBound(
+        enclosingInstanceElement.thisType,
+      );
       InterfaceTypeImpl enclosingType;
-      var enclosingClass = _resolver.enclosingClass;
-      if (enclosingClass != null) {
-        enclosingType = enclosingClass.thisType;
+      if (thisType is InterfaceTypeImpl) {
+        enclosingType = thisType;
+      } else if (thisType is FunctionType) {
+        enclosingType = _typeProvider.functionType;
       } else {
-        var enclosingExtension = _resolver.enclosingExtension;
-        if (enclosingExtension == null) {
-          return null;
-        }
-        var extendedType = _typeSystem.resolveToBound(
-          enclosingExtension.extendedType,
-        );
-        if (extendedType is InterfaceTypeImpl) {
-          enclosingType = extendedType;
-        } else if (extendedType is FunctionType) {
-          enclosingType = _typeProvider.functionType;
-        } else {
-          return null;
-        }
+        return null;
       }
       var result = _typePropertyResolver.resolve(
         receiver: null,

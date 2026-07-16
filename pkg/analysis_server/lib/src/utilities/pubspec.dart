@@ -25,6 +25,28 @@ List<String> checkDependencyCompatibility({
     var constraint = extractor.constraint();
     if (constraint == null) continue;
 
+    // Apply Dart 3 package compatibility re-interpretation:
+    // If the package is null-safe (min SDK >= 2.12.0) and has max constraint
+    // <3.0.0 (which is parsed as max: 3.0.0-0, includeMax: false),
+    // re-interpret the max constraint as <4.0.0.
+    // https://dart.dev/resources/dart-3-migration#dart-3-backwards-compatibility
+    if (constraint is VersionRange) {
+      var min = constraint.min;
+      var max = constraint.max;
+      var nullSafetyVersion = Version(2, 12, 0).firstPreRelease;
+      var dart3Version = Version(3, 0, 0).firstPreRelease;
+      if (min != null &&
+          min >= nullSafetyVersion &&
+          max == dart3Version &&
+          !constraint.includeMax) {
+        constraint = VersionRange(
+          min: min,
+          includeMin: constraint.includeMin,
+          max: Version(4, 0, 0),
+        );
+      }
+    }
+
     // Check if the dependency's SDK constraint allows the target version.
     if (!constraint.allows(targetVersion)) {
       incompatible.add(package.name);

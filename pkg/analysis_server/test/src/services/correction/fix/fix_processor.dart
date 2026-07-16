@@ -400,11 +400,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     String? matchFixMessage,
     bool allowFixAllFixes = false,
   }) async {
-    parsedExpectedCode = TestCode.parseNormalized(
-      expectedContent,
-      positionShorthand: allowTestCodeShorthand,
-      rangeShorthand: allowTestCodeShorthand,
-    );
+    parsedExpectedCode = TestCode.parseNormalized(expectedContent);
     var diagnostic = await _findDiagnosticToFix(filter: filter);
     var fix = await _assertHasFix(
       diagnostic,

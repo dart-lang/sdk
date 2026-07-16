@@ -153,7 +153,7 @@ class LibraryAnalyzer {
       return _parse(file: file, libraryFragment: libraryFragment);
     });
     var parsedUnit = fileAnalysis.unit;
-    var node = parsedUnit.nodeCovering(offset: offset);
+    var node = parsedUnit.nodeCovering2(offset: offset);
     var diagnosticListener = RecordingDiagnosticListener();
 
     return performance.run('resolve', (performance) {
@@ -220,7 +220,7 @@ class LibraryAnalyzer {
         resolverVisitor.inferenceHelper.dataForTesting!,
       );
 
-      var nodeToResolve = node?.thisOrAncestorMatching((e) {
+      var nodeToResolve = node?.thisOrAncestorMatching2((e) {
         return e.parent2 is ClassBody ||
             e.parent2 is ClassDeclaration ||
             e.parent2 is CompilationUnit ||
@@ -422,6 +422,9 @@ class LibraryAnalyzer {
     var nodeRegistry = RuleVisitorRegistryImpl(
       enableTiming: _enableLintRuleTiming,
     );
+    var nodeRegistry2 = RuleVisitorRegistryImpl2(
+      enableTiming: _enableLintRuleTiming,
+    );
     var context = RuleContextWithResolvedResults(
       allUnits,
       definingContextUnit,
@@ -436,6 +439,7 @@ class LibraryAnalyzer {
           : null;
       timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
+      linter.registerNodeProcessors2(nodeRegistry2, context);
       timer?.stop();
     }
 
@@ -454,18 +458,34 @@ class LibraryAnalyzer {
 
       // Run lint rules that handle specific node types.
       context.currentUnit = currentUnit;
-      unit.accept(
-        AnalysisRuleVisitor(
-          nodeRegistry,
-          shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
-        ),
-      );
+      if (nodeRegistry.hasNodeProcessors) {
+        unit.accept(
+          AnalysisRuleVisitor(
+            nodeRegistry,
+            shouldPropagateExceptions:
+                _analysisOptions.propagateLinterExceptions,
+          ),
+        );
+      }
+      if (nodeRegistry2.hasNodeProcessors) {
+        unit.accept2(
+          AnalysisRuleVisitor2(
+            nodeRegistry2,
+            shouldPropagateExceptions:
+                _analysisOptions.propagateLinterExceptions,
+          ),
+        );
+      }
     }
 
     // Now that all lint rules have visited the code in each of the compilation
     // units, we can accept each lint rule's `afterLibrary` hook.
     AnalysisRuleVisitor(
       nodeRegistry,
+      shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
+    ).afterLibrary();
+    AnalysisRuleVisitor2(
+      nodeRegistry2,
       shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
     ).afterLibrary();
   }

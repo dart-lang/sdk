@@ -179,6 +179,46 @@ No SDK constraints were bumped.''',
     );
   }
 
+  Future<void> test_dependencyConflict_dart3BackwardsCompatibility() async {
+    failTestOnErrorDiagnostic = false;
+
+    newFile(pubspecFilePath, '''
+name: test
+environment:
+  sdk: '^3.12.0'
+''');
+
+    var depPath = convertPath('/dep_package');
+    newFile(join(depPath, 'pubspec.yaml'), '''
+name: dep_package
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+''');
+    newFile(join(depPath, 'lib', 'dep.dart'), '');
+
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: 'dep_package',
+      rootFolder: resourceProvider.getFolder(depPath),
+    );
+    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+Bumped SDK constraints in 1 package(s):
+  - test: ^3.12.0 -> ^3.13.0''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
   Future<void> test_dependencyConflict_multiple() async {
     failTestOnErrorDiagnostic = false;
 

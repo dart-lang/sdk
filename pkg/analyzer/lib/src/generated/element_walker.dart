@@ -86,7 +86,9 @@ class ElementWalker {
   /// unit element.
   ElementWalker.forExecutable(ExecutableFragmentImpl this.fragment)
     : _functions = const <ExecutableFragmentImpl>[],
-      _parameters = fragment.formalParameters,
+      _parameters = fragment.formalParameters
+          .where((f) => f.isOriginDeclaration)
+          .toList(),
       _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of an extension

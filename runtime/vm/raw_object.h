@@ -175,7 +175,7 @@ enum TypedDataElementType {
   friend class object##MessageDeserializationCluster;                          \
   friend class Serializer;                                                     \
   friend class Deserializer;                                                   \
-  template <typename Base>                                                     \
+  template <typename Base, bool>                                               \
   friend class ObjectCopy;                                                     \
   friend class Pass2Visitor;
 

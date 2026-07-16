@@ -168,17 +168,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// The analysis options used by this resolver.
   final AnalysisOptions analysisOptions;
 
-  /// The class containing the AST nodes being visited,
-  /// or `null` if we are not in the scope of a class.
-  InterfaceElementImpl? enclosingClass;
+  /// The instance element containing the AST nodes being visited, or `null`
+  /// if we are not in the scope of an instance element.
+  InstanceElementImpl? enclosingInstanceElement;
 
-  /// The element representing the extension containing the AST nodes being
-  /// visited, or `null` if we are not in the scope of an extension.
-  ExtensionElementImpl? enclosingExtension;
-
-  /// The element representing the function containing the current node, or
-  /// `null` if the current node is not contained in a function.
-  ExecutableElementImpl? enclosingFunction;
+  /// The executable element containing the AST nodes being visited, or `null`
+  /// if we are not in the scope of an executable element.
+  ExecutableElementImpl? enclosingExecutableElement;
 
   /// The manager for the inheritance mappings.
   @override
@@ -257,9 +253,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// current node is inside a function body.
   BodyInferenceContext? _bodyContext;
 
-  /// If a class, or mixin, is being resolved, the type of the class.
-  /// Otherwise `null`.
-  TypeImpl? _thisType;
+  /// The type of the current `this` binding, before applying type promotion.
+  ///
+  /// If there is no `this` binding, `null`.
+  TypeImpl? _unpromotedThisType;
 
   final FlowAnalysisHelper flowAnalysis;
 
@@ -398,20 +395,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   BodyInferenceContext? get bodyContext => _bodyContext;
 
-  /// If a class, or mixin, is being resolved, the type of the class, after
-  /// applying type promotion of `this`.
-  ///
-  /// If an extension is being resolved, the type of `this`, the declared
-  /// extended type.
-  ///
-  /// If the feature `this-promotion` is disabled, this getter returns the same
-  /// value as [thisType].
-  ///
-  /// Otherwise `null`.
-  TypeImpl? get effectiveThisType =>
-      flowAnalysis.flow?.promotedTypeOfThis?.unwrapTypeView() as TypeImpl? ??
-      thisType;
-
   @override
   FlowAnalysis<
     AstNodeImpl,
@@ -448,19 +431,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   bool get strictCasts => analysisOptions.strictCasts;
 
-  /// If a class, or mixin, is being resolved, the type of the class, before
-  /// applying type promotion of `this`.
+  /// The type of the current `this` binding, after applying type promotion.
   ///
-  /// If an extension is being resolved, the type of `this`, the declared
-  /// extended type.
+  /// If there is no `this` binding, `null`.
+  TypeImpl? get thisType =>
+      flowAnalysis.flow?.promotedTypeOfThis?.unwrapTypeView<TypeImpl>() ??
+      _unpromotedThisType;
+
+  /// The type of the current `this` binding, before applying type promotion.
   ///
-  /// If the feature `this-promotion` is disabled, this getter returns the same
-  /// value as [effectiveThisType].
-  ///
-  /// Otherwise `null`.
-  TypeImpl? get thisType {
-    return _thisType;
-  }
+  /// If there is no `this` binding, `null`.
+  TypeImpl? get unpromotedThisType => _unpromotedThisType;
 
   @override
   ExpressionTypeAnalysisResult analyzeExpression(
@@ -1338,12 +1319,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
-    InterfaceElementImpl? enclosingClassElement,
+    InterfaceElementImpl? enclosingInstanceElement,
     ExecutableElementImpl? enclosingExecutableElement,
   }) {
-    enclosingClass = enclosingClassElement;
-    _setupThisType();
-    enclosingFunction = enclosingExecutableElement;
+    this.enclosingInstanceElement = enclosingInstanceElement;
+    _unpromotedThisType = enclosingInstanceElement?.thisType;
+    this.enclosingExecutableElement = enclosingExecutableElement;
   }
 
   /// We are going to resolve [node], without visiting its parent.
@@ -1368,17 +1349,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     if (parent is ClassDeclarationImpl) {
-      enclosingClass = parent.declaredFragment!.element;
+      enclosingInstanceElement = parent.declaredFragment!.element;
       return true;
     }
 
     if (parent is ExtensionDeclarationImpl) {
-      enclosingExtension = parent.declaredFragment!.element;
+      enclosingInstanceElement = parent.declaredFragment!.element;
       return true;
     }
 
     if (parent is MixinDeclarationImpl) {
-      enclosingClass = parent.declaredFragment!.element;
+      enclosingInstanceElement = parent.declaredFragment!.element;
       return true;
     }
 
@@ -2030,20 +2011,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     TypeImpl returnedType;
     if (parameters == null) {
-      var oldThisType = _thisType;
-      _thisType = parameterType;
       var target = node.target;
       var targetInfo = target != null
           ? flowAnalysis.getExpressionInfo(target)
           : null;
       var body = node.body;
-      flowAnalysis.flow?.thisBinding_begin(targetInfo);
-      try {
-        returnedType = body.resolve(this, contextType);
-      } finally {
-        flowAnalysis.flow?.thisBinding_end();
-        _thisType = oldThisType;
-      }
+      returnedType = _withUnpromotedThisType(parameterType, () {
+        flowAnalysis.flow?.thisBinding_begin(targetInfo);
+        try {
+          return body.resolve(this, contextType);
+        } finally {
+          flowAnalysis.flow?.thisBinding_end();
+        }
+      });
       if (body is AnonymousExpressionBodyImpl) {
         flowAnalysis.storeExpressionInfo(
           node,
@@ -2357,15 +2337,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     // Continue the class resolution.
     //
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = declaredElement;
+    _withEnclosingInstanceElement(declaredElement, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitClassDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
 
     baseOrFinalTypeVerifier.checkElement(
       declaredElement,
@@ -2498,40 +2474,35 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var returnType = element.type.returnType;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
-      assert(_thisType == null);
-      _setupThisType();
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
-      node.typeName?.accept2(this);
-      node.parameters.accept2(this);
+    _withEnclosingExecutableElement(element, () {
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
+        node.typeName?.accept2(this);
+        node.parameters.accept2(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
-      flowAnalysis.executableDeclaration_enter(
-        node,
-        element.formalParameters,
-        isClosure: false,
-      );
+        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          element.formalParameters,
+          isClosure: false,
+        );
 
-      node.initializers.accept2(this);
-      node.redirectedConstructor?.accept2(this);
-      node.body.resolve(this, returnType is DynamicType ? null : returnType);
-      elementResolver.visitConstructorDeclaration(node);
+        node.initializers.accept2(this);
+        node.redirectedConstructor?.accept2(this);
+        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        elementResolver.visitConstructorDeclaration(node);
 
-      if (node.factoryKeyword != null) {
-        checkForBodyMayCompleteNormally(body: node.body, errorNode: node);
-      }
-      flowAnalysis.executableDeclaration_exit(node.body, false);
-      flowAnalysis.bodyOrInitializer_exit();
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-      _thisType = null;
-    }
+        if (node.factoryKeyword != null) {
+          checkForBodyMayCompleteNormally(body: node.body, errorNode: node);
+        }
+        flowAnalysis.executableDeclaration_exit(node.body, false);
+        flowAnalysis.bodyOrInitializer_exit();
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      });
+    });
   }
 
   @override
@@ -2543,7 +2514,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // to be visited in the context of the constructor field initializer node.
     //
     var fieldName = node.fieldName;
-    var fieldElement = enclosingClass!.getField(fieldName.name);
+    var fieldElement = enclosingInstanceElement!.getField(fieldName.name);
     fieldName.element = fieldElement;
     var fieldType = fieldElement?.type ?? UnknownInferredType.instance;
     var expression = node.expression;
@@ -2552,8 +2523,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
       flowAnalysis.getExpressionInfo(expression),
     );
-    if (fieldElement != null && enclosingFunction != null) {
-      var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
+    if (fieldElement != null && enclosingExecutableElement != null) {
+      var enclosingConstructor =
+          enclosingExecutableElement as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
         node,
         fieldElement,
@@ -2878,15 +2850,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     // Continue the enum resolution.
     //
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitEnumDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
   }
 
   @override
@@ -2944,15 +2912,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var outerExtension = enclosingExtension;
-    try {
-      enclosingExtension = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitExtensionDeclaration(node);
-    } finally {
-      enclosingExtension = outerExtension;
-    }
+    });
   }
 
   @override
@@ -3009,28 +2973,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitExtensionTypeDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
   }
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    try {
-      assert(_thisType == null);
-      _setupThisType();
+    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitFieldDeclaration(node);
-    } finally {
-      _thisType = null;
-    }
+    });
   }
 
   @override
@@ -3079,10 +3035,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var functionType = element.type;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
+    _withEnclosingExecutableElement(element, () {
       checkUnreachableNode(node);
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
@@ -3122,9 +3076,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         flowAnalysis.bodyOrInitializer_exit();
       }
       nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-    }
+    });
   }
 
   @override
@@ -3141,13 +3093,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    var outerFunction = enclosingFunction;
-    enclosingFunction = node.declaredFragment!.element;
 
-    _functionExpressionResolver.resolve(node, contextType: contextType);
-    insertGenericFunctionInstantiation(node, contextType: contextType);
-
-    enclosingFunction = outerFunction;
+    _withEnclosingExecutableElement(node.declaredFragment!.element, () {
+      _functionExpressionResolver.resolve(node, contextType: contextType);
+      insertGenericFunctionInstantiation(node, contextType: contextType);
+    });
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3554,39 +3504,37 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var returnType = element.returnType;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
-      assert(_thisType == null);
-      _setupThisType();
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
-      node.returnType?.accept2(this);
-      node.typeParameters?.accept2(this);
-      node.parameters?.accept2(this);
+    _withEnclosingExecutableElement(element, () {
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
+        node.returnType?.accept2(this);
+        node.typeParameters?.accept2(this);
+        node.parameters?.accept2(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
-      flowAnalysis.executableDeclaration_enter(
-        node,
-        element.formalParameters,
-        isClosure: false,
-      );
+        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          element.formalParameters,
+          isClosure: false,
+        );
 
-      node.body.resolve(this, returnType is DynamicType ? null : returnType);
-      elementResolver.visitMethodDeclaration(node);
+        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        elementResolver.visitMethodDeclaration(node);
 
-      if (!node.isSetter) {
-        checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
-      }
-      flowAnalysis.executableDeclaration_exit(node.body, false);
-      flowAnalysis.bodyOrInitializer_exit();
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-      _thisType = null;
-    }
+        if (!node.isSetter) {
+          checkForBodyMayCompleteNormally(
+            body: node.body,
+            errorNode: node.name,
+          );
+        }
+        flowAnalysis.executableDeclaration_exit(node.body, false);
+        flowAnalysis.bodyOrInitializer_exit();
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      });
+    });
   }
 
   @override
@@ -3652,15 +3600,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     // Continue the class resolution.
     //
-    var outerType = enclosingClass;
-    try {
-      enclosingClass = node.declaredFragment!.element;
+    _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
       elementResolver.visitMixinDeclaration(node);
-    } finally {
-      enclosingClass = outerType;
-    }
+    });
 
     baseOrFinalTypeVerifier.checkElement(
       declaredElement,
@@ -3933,37 +3877,32 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var element = fragment?.element;
 
     var returnType = element?.type.returnType;
-    var outerFunction = enclosingFunction;
 
-    try {
-      enclosingFunction = element;
-      assert(_thisType == null);
-      _setupThisType();
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
+    _withEnclosingExecutableElement(element, () {
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
 
-      if (primaryConstructorDeclaration != null) {
-        flowAnalysis.bodyOrInitializer_enter(node, element!.formalParameters);
-        flowAnalysis.executableDeclaration_enter(
-          node,
-          element.formalParameters,
-          isClosure: false,
-        );
-      }
+        if (primaryConstructorDeclaration != null) {
+          flowAnalysis.bodyOrInitializer_enter(node, element!.formalParameters);
+          flowAnalysis.executableDeclaration_enter(
+            node,
+            element.formalParameters,
+            isClosure: false,
+          );
+        }
 
-      node.initializers.accept2(this);
-      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        node.initializers.accept2(this);
+        node.body.resolve(this, returnType is DynamicType ? null : returnType);
 
-      if (primaryConstructorDeclaration != null) {
-        flowAnalysis.executableDeclaration_exit(node.body, false);
-        flowAnalysis.bodyOrInitializer_exit();
-      }
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    } finally {
-      enclosingFunction = outerFunction;
-      _thisType = null;
-    }
+        if (primaryConstructorDeclaration != null) {
+          flowAnalysis.executableDeclaration_exit(node.body, false);
+          flowAnalysis.bodyOrInitializer_exit();
+        }
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      });
+    });
   }
 
   @override
@@ -4765,18 +4704,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     _insertImplicitCallReference(replacement, contextType: contextType);
   }
 
-  void _setupThisType() {
-    var enclosingClass = this.enclosingClass;
-    if (enclosingClass != null) {
-      _thisType = enclosingClass.thisType;
-    } else {
-      var enclosingExtension = this.enclosingExtension;
-      if (enclosingExtension != null) {
-        _thisType = enclosingExtension.extendedType;
-      }
-    }
-  }
-
   bool _shouldSkipImplicitCallReferenceDueToForm(
     Expression expression,
     AstNode? parent,
@@ -4865,6 +4792,42 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (node.isOfLocalFunction) {
         fragment.constantInitializer = defaultValue;
       }
+    }
+  }
+
+  void _withEnclosingExecutableElement(
+    ExecutableElementImpl? element,
+    void Function() operation,
+  ) {
+    var previous = enclosingExecutableElement;
+    enclosingExecutableElement = element;
+    try {
+      operation();
+    } finally {
+      enclosingExecutableElement = previous;
+    }
+  }
+
+  void _withEnclosingInstanceElement(
+    InstanceElementImpl element,
+    void Function() operation,
+  ) {
+    var previous = enclosingInstanceElement;
+    enclosingInstanceElement = element;
+    try {
+      operation();
+    } finally {
+      enclosingInstanceElement = previous;
+    }
+  }
+
+  T _withUnpromotedThisType<T>(TypeImpl? type, T Function() operation) {
+    var previous = _unpromotedThisType;
+    _unpromotedThisType = type;
+    try {
+      return operation();
+    } finally {
+      _unpromotedThisType = previous;
     }
   }
 

@@ -86,7 +86,7 @@ ConstructorElement? _getActualConstructorElement(
 MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent2;
-  var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
+  var unit = prefixNode.thisOrAncestorOfType2<CompilationUnitImpl>();
   var libraryFragment = unit?.declaredFragment;
   if (libraryFragment == null) {
     return null;
@@ -123,7 +123,7 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
   ImportPrefixReference prefixNode,
 ) {
   // prepare environment
-  var unit = prefixNode.thisOrAncestorOfType<CompilationUnitImpl>();
+  var unit = prefixNode.thisOrAncestorOfType2<CompilationUnitImpl>();
   var libraryFragment = unit?.declaredFragment;
   if (libraryFragment == null) {
     return null;

@@ -122,6 +122,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
       ChildEntities()..addNodeList('strings', strings);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
 
@@ -164,6 +165,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     strings.accept(visitor);
@@ -261,6 +263,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
     _initializeCommentAndAnnotations(comment, metadata);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -512,6 +515,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     ..addNode('arguments', arguments);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnnotation(this);
 
@@ -571,6 +575,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
@@ -736,6 +741,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   ChildEntities get _childEntities2 => ChildEntities()..addNode('block', block);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnonymousBlockBody(this);
 
@@ -776,6 +782,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
       resolver.visitAnonymousBlockBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     block.accept(visitor);
@@ -896,6 +903,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAnonymousExpressionBody(this);
@@ -937,6 +945,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
       resolver.visitAnonymousExpressionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -1196,6 +1205,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAnonymousMethodInvocation(this);
@@ -1255,6 +1265,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -1472,6 +1483,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitArgumentList(this);
 
@@ -1508,6 +1520,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
@@ -1678,6 +1691,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     ..addNode('type', type);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
 
@@ -1726,6 +1740,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -1896,6 +1911,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertInitializer(this);
 
@@ -1939,6 +1955,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -2149,6 +2166,7 @@ final class AssertStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertStatement(this);
 
@@ -2192,6 +2210,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -2311,6 +2330,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAssignedVariablePattern(this);
@@ -2351,6 +2371,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -2503,6 +2524,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAssignmentExpression(this);
@@ -2553,6 +2575,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftHandSide.accept(visitor);
@@ -2634,6 +2657,7 @@ abstract final class AstNode implements SyntacticEntity {
   /// An iterator that can be used to iterate through all the entities (either
   /// AST nodes or tokens) that make up the contents of this node, including doc
   /// comments but excluding other comments.
+  @ToBeDeprecated('Use childEntities2 instead')
   Iterable<SyntacticEntity> get childEntities;
 
   /// An iterator that can be used to iterate through all the entities (either
@@ -2688,6 +2712,7 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Note that this method's performance is linear with respect to the depth
   /// of the node in the AST structure (O(depth)).
+  @ToBeDeprecated('Use root2 instead')
   AstNode get root;
 
   /// The node at the root of this node's AST structure.
@@ -2701,6 +2726,7 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Returns the value returned by the visitor as a result of visiting this
   /// node.
+  @ToBeDeprecated('Use accept2 instead')
   E? accept<E>(AstVisitor<E> visitor);
 
   /// Use the given [visitor] to visit this node.
@@ -2715,6 +2741,7 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns either this node or the most immediate ancestor of this node for
   /// which the [predicate] returns `true`, or `null` if there's no such node.
+  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
   );
@@ -2728,6 +2755,7 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there's no such node.
+  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
   E? thisOrAncestorOfType<E extends AstNode>();
 
   /// Returns either this node or the most immediate ancestor of this node that
@@ -2759,6 +2787,7 @@ abstract final class AstNode implements SyntacticEntity {
   /// Use the given [visitor] to visit all of the children of this node.
   ///
   /// The children are visited in lexical order.
+  @ToBeDeprecated('Use visitChildren2 instead')
   void visitChildren(AstVisitor visitor);
 
   /// Use the given [visitor] to visit all of the children of this node.
@@ -2787,6 +2816,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNodeApi get astNodeApi => _astNodeApi;
 
   @override
+  @ToBeDeprecated('Use childEntities2 instead')
   Iterable<SyntacticEntity> get childEntities =>
       _childEntities.syntacticEntities;
 
@@ -2807,6 +2837,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// The properties (tokens and nodes) of this node, with names, in the order
   /// in which these entities should normally appear, not necessarily in the
   /// order they really are (because of recovery).
+  @ToBeDeprecated('Use namedChildEntities2 instead')
   Iterable<ChildEntity> get namedChildEntities => _childEntities.entities;
 
   /// The properties (tokens and nodes) of this node, with names, in the order
@@ -2833,6 +2864,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   @override
+  @ToBeDeprecated('Use root2 instead')
   AstNode get root {
     _checkV1View();
     AstNodeImpl root = this;
@@ -2926,6 +2958,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     parent.replaceChild(this, newNode);
   }
 
+  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
   @override
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
@@ -2952,6 +2985,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   @override
+  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
   E? thisOrAncestorOfType<E extends AstNode>() {
     _checkV1View();
     AstNode? node = this;
@@ -2975,7 +3009,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   @override
   String toSource() {
     StringBuffer buffer = StringBuffer();
-    accept(ToSourceVisitor(buffer));
+    accept2(ToSourceVisitor(buffer));
     return buffer.toString();
   }
 
@@ -3189,6 +3223,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
 
@@ -3230,6 +3265,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -3384,6 +3420,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
     ..addNode('rightOperand', rightOperand);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
 
@@ -3432,6 +3469,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
@@ -3577,6 +3615,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockClassBody(this);
 
@@ -3613,6 +3652,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     members.accept(visitor);
@@ -3750,6 +3790,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockEnumBody(this);
 
@@ -3794,6 +3835,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constants.accept(visitor);
@@ -3951,6 +3993,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
     ..addNode('block', block);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
@@ -3990,6 +4033,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     block.accept(visitor);
@@ -4097,6 +4141,7 @@ final class BlockImpl extends StatementImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlock(this);
 
@@ -4133,6 +4178,7 @@ final class BlockImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     statements.accept(visitor);
@@ -4241,6 +4287,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
       ChildEntities()..addToken('literal', literal);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
 
@@ -4263,6 +4310,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -4385,6 +4433,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBreakStatement(this);
 
@@ -4421,6 +4470,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
@@ -4573,6 +4623,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
     ..addNodeList('cascadeSections', cascadeSections);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
 
@@ -4622,6 +4673,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target.accept(visitor);
@@ -4758,6 +4810,7 @@ final class CaseClauseImpl extends AstNodeImpl
     ..addNode('guardedPattern', guardedPattern);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCaseClause(this);
 
@@ -4793,6 +4846,7 @@ final class CaseClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
@@ -4942,6 +4996,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
     ..addNode('type', type);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
@@ -5016,6 +5071,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -5289,6 +5345,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCatchClause(this);
 
@@ -5348,6 +5405,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     exceptionType?.accept(visitor);
@@ -5503,6 +5561,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitCatchClauseParameter(this);
@@ -5521,6 +5580,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -5924,6 +5984,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
 
@@ -5998,6 +6059,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -6437,6 +6499,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassTypeAlias(this);
 
@@ -6495,6 +6558,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -6732,6 +6796,7 @@ final class CommentImpl extends AstNodeImpl
     ..addNodeList('references', references)
     ..addTokenList('tokens', tokens);
 
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
 
@@ -6757,6 +6822,7 @@ final class CommentImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _references.accept(visitor);
@@ -6873,6 +6939,7 @@ final class CommentReferenceImpl extends AstNodeImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCommentReference(this);
 
@@ -6908,6 +6975,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -7035,6 +7103,7 @@ abstract final class CompilationUnit implements AstNode {
   ///
   /// The minimal covering node is the node, rooted at the receiver, with the
   /// shortest length whose range completely includes the given range.
+  @ToBeDeprecated('Use nodeCovering2 instead')
   AstNode? nodeCovering({required int offset, int length = 0});
 
   /// Returns the minimal covering node for the range of characters beginning at
@@ -7173,6 +7242,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     return lastDirective.offset < firstDeclaration.offset;
   }
 
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
 
@@ -7180,6 +7250,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCompilationUnit(this);
 
+  @ToBeDeprecated('Use nodeCovering2 instead')
   @override
   AstNode? nodeCovering({required int offset, int length = 0}) {
     var end = offset + length;
@@ -7247,6 +7318,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _scriptTag?.accept(visitor);
@@ -7509,6 +7581,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
     ..addNode('elseExpression', elseExpression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConditionalExpression(this);
@@ -7566,6 +7639,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -7803,6 +7877,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
     ..addNode('uri', uri);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConfiguration(this);
 
@@ -7853,6 +7928,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
@@ -8042,6 +8118,7 @@ final class ConstantPatternImpl extends DartPatternImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
@@ -8100,6 +8177,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -8478,6 +8556,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorDeclaration(this);
@@ -8546,6 +8625,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -8795,6 +8875,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorFieldInitializer(this);
@@ -8839,6 +8920,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fieldName.accept(visitor);
@@ -9016,6 +9098,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     ..addNode('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
 
@@ -9059,6 +9142,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
@@ -9189,6 +9273,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
       ChildEntities()..addNode('constructorName', constructorName);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorReference(this);
@@ -9232,6 +9317,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
@@ -9362,6 +9448,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
     ..addNode('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorSelector(this);
 
@@ -9398,6 +9485,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
@@ -9542,6 +9630,7 @@ final class ContinueStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitContinueStatement(this);
 
@@ -9578,6 +9667,7 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
@@ -9865,6 +9955,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     ..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDeclaredIdentifier(this);
 
@@ -9902,6 +9993,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -10067,6 +10159,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     ..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDeclaredVariablePattern(this);
@@ -10141,6 +10234,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
@@ -10357,6 +10451,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoStatement(this);
 
@@ -10399,6 +10494,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
@@ -10603,6 +10699,7 @@ final class DotShorthandConstructorInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandConstructorInvocation(this);
@@ -10664,6 +10761,7 @@ final class DotShorthandConstructorInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
@@ -10835,6 +10933,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandInvocation(this);
@@ -10893,6 +10992,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     memberName.accept(visitor);
@@ -11068,6 +11168,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     ..addNode('propertyName', propertyName);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandPropertyAccess(this);
@@ -11111,6 +11212,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     propertyName.accept(visitor);
@@ -11202,6 +11304,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
       ChildEntities()..addTokenList('tokens', tokens);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDottedName(this);
 
@@ -11218,6 +11321,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -11302,6 +11406,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
       ChildEntities()..addToken('literal', literal);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
 
@@ -11324,6 +11429,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -11393,6 +11499,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyClassBody(this);
 
@@ -11409,6 +11516,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -11482,6 +11590,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyEnumBody(this);
 
@@ -11498,6 +11607,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -11570,6 +11680,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
@@ -11590,6 +11701,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -11661,6 +11773,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyStatement(this);
 
@@ -11677,6 +11790,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -11831,6 +11945,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitEnumConstantArguments(this);
@@ -11884,6 +11999,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -12076,6 +12192,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     ..addNode('arguments', arguments);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitEnumConstantDeclaration(this);
@@ -12114,6 +12231,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -12341,6 +12459,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
 
@@ -12399,6 +12518,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -12586,6 +12706,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExportDirective(this);
 
@@ -12637,6 +12758,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -12938,6 +13060,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
@@ -12979,6 +13102,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -13092,7 +13216,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() {
-    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
+    var unitNode = thisOrAncestorOfType2<CompilationUnitImpl>();
     var unitFragment = unitNode?.declaredFragment;
     if (unitFragment == null) {
       throw ArgumentError('This AST structure has not yet been resolved.');
@@ -13342,6 +13466,7 @@ final class ExpressionStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionStatement(this);
 
@@ -13378,6 +13503,7 @@ final class ExpressionStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -13496,6 +13622,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
     ..addNode('superclass', superclass);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtendsClause(this);
 
@@ -13531,6 +13658,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     superclass.accept(visitor);
@@ -13742,6 +13870,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExtensionDeclaration(this);
@@ -13795,6 +13924,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -13962,6 +14092,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
     ..addNode('extendedType', extendedType);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOnClause(this);
 
@@ -13997,6 +14128,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     extendedType.accept(visitor);
@@ -14206,6 +14338,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOverride(this);
 
@@ -14263,6 +14396,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
@@ -14532,6 +14666,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExtensionTypeDeclaration(this);
@@ -14584,6 +14719,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -14837,6 +14973,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFieldDeclaration(this);
 
@@ -14872,6 +15009,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -15061,6 +15199,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
     ..addNode('defaultClause', defaultClause);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFieldFormalParameter(this);
@@ -15115,6 +15254,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -15261,6 +15401,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
     ..addToken('inKeyword', inKeyword)
     ..addNode('iterable', iterable);
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _iterable.accept(visitor);
@@ -15347,6 +15488,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     ..addNode('iterable', iterable);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForEachPartsWithDeclaration(this);
@@ -15391,6 +15533,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     loopVariable.accept(visitor);
@@ -15526,6 +15669,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     ..addNode('iterable', iterable);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForEachPartsWithIdentifier(this);
@@ -15570,6 +15714,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     identifier.accept(visitor);
@@ -15741,6 +15886,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     ..addNode('iterable', iterable);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForEachPartsWithPattern(this);
@@ -15793,6 +15939,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -15982,6 +16129,7 @@ final class ForElementImpl extends AstNodeImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
 
@@ -16033,6 +16181,7 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
@@ -16329,6 +16478,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
     ..addNode('value', value);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFormalParameterDefaultClause(this);
@@ -16366,6 +16516,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     value.accept(visitor);
@@ -16628,6 +16779,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -16818,6 +16970,7 @@ final class FormalParameterListImpl extends AstNodeImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFormalParameterList(this);
 
@@ -16855,6 +17008,7 @@ final class FormalParameterListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     parameters.accept(visitor);
@@ -16975,6 +17129,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     ..addToken('rightSeparator', rightSeparator)
     ..addNodeList('updaters', updaters);
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _condition?.accept(visitor);
@@ -17077,6 +17232,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     ..addNodeList('updaters', updaters);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForPartsWithDeclarations(this);
@@ -17130,6 +17286,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
@@ -17309,6 +17466,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
     ..addNodeList('updaters', updaters);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForPartsWithExpression(this);
@@ -17363,6 +17521,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     initialization?.accept(visitor);
@@ -17541,6 +17700,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
     ..addNodeList('updaters', updaters);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForPartsWithPattern(this);
 
@@ -17593,6 +17753,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
@@ -17794,6 +17955,7 @@ final class ForStatementImpl extends StatementImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
 
@@ -17836,6 +17998,7 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
@@ -18162,6 +18325,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('functionExpression', functionExpression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionDeclaration(this);
 
@@ -18208,6 +18372,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -18340,6 +18505,7 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
       ChildEntities()..addNode('functionDeclaration', functionDeclaration);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionDeclarationStatement(this);
@@ -18379,6 +18545,7 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     functionDeclaration.accept(visitor);
@@ -18557,6 +18724,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
 
@@ -18615,6 +18783,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -18791,6 +18960,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionExpressionInvocation(this);
@@ -18849,6 +19019,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
@@ -19041,6 +19212,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     ..addNode('typeArguments', typeArguments);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
 
@@ -19090,6 +19262,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
@@ -19293,6 +19466,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
 
@@ -19344,6 +19518,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -19541,6 +19716,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
     ..addToken('question', question);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionTypedFormalParameterSuffix(this);
@@ -19588,6 +19764,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -19909,6 +20086,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
     ..addToken('question', question);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericFunctionType(this);
 
@@ -19961,6 +20139,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     returnType?.accept(visitor);
@@ -20183,6 +20362,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericTypeAlias(this);
 
@@ -20226,6 +20406,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -20390,6 +20571,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
     ..addNode('whenClause', whenClause);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGuardedPattern(this);
 
@@ -20433,6 +20615,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -20561,6 +20744,7 @@ final class HideCombinatorImpl extends CombinatorImpl
     ..addNodeList('hiddenNames', hiddenNames);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitHideCombinator(this);
 
@@ -20597,6 +20781,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     hiddenNames.accept(visitor);
@@ -20861,6 +21046,7 @@ final class IfElementImpl extends AstNodeImpl
     ..addNode('elseElement', elseElement);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
 
@@ -20930,6 +21116,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -21238,6 +21425,7 @@ final class IfStatementImpl extends StatementImpl
     ..addNode('elseStatement', elseStatement);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfStatement(this);
 
@@ -21296,6 +21484,7 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -21464,6 +21653,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
     ..addNodeList('interfaces', interfaces);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImplementsClause(this);
 
@@ -21500,6 +21690,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     interfaces.accept(visitor);
@@ -21659,6 +21850,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     ..addNode('typeArguments', typeArguments);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitImplicitCallReference(this);
@@ -21710,6 +21902,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -21903,6 +22096,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImportDirective(this);
 
@@ -21962,6 +22156,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -22190,6 +22385,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
     ..addToken('period', period);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitImportPrefixReference(this);
@@ -22208,6 +22404,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -22478,6 +22675,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
 
@@ -22554,6 +22752,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -22782,6 +22981,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
@@ -22840,6 +23040,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
@@ -22997,6 +23198,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
       ChildEntities()..addToken('literal', literal);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
 
@@ -23019,6 +23221,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -23202,6 +23405,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInterpolationExpression(this);
@@ -23239,6 +23443,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -23373,6 +23578,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);
 
@@ -23390,6 +23596,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -23600,6 +23807,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     ..addNode('type', type);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
 
@@ -23648,6 +23856,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -23806,6 +24015,7 @@ final class LabeledStatementImpl extends StatementImpl
     ..addNode('statement', statement);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabeledStatement(this);
 
@@ -23849,6 +24059,7 @@ final class LabeledStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -23960,6 +24171,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
     ..addToken('colon', colon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabel(this);
 
@@ -23976,6 +24188,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -24046,6 +24259,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabelReference(this);
 
@@ -24062,6 +24276,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -24180,6 +24395,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryDirective(this);
 
@@ -24216,6 +24432,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -24373,6 +24590,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
 
@@ -24429,6 +24647,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -24613,6 +24832,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
@@ -24682,6 +24902,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -24880,6 +25101,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
     ..addNode('rightOperand', rightOperand);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalAndPattern(this);
 
@@ -24945,6 +25167,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
@@ -25102,6 +25325,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
     ..addNode('rightOperand', rightOperand);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalOrPattern(this);
 
@@ -25168,6 +25392,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
@@ -25350,6 +25575,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
     ..addNode('value', value);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteralEntry(this);
 
@@ -25401,6 +25627,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
@@ -25585,6 +25812,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
     ..addNode('value', value);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPatternEntry(this);
 
@@ -25627,6 +25855,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
@@ -25772,6 +26001,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
@@ -25842,6 +26072,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -26191,6 +26422,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodDeclaration(this);
 
@@ -26250,6 +26482,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -26567,6 +26800,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
@@ -26631,6 +26865,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -26933,6 +27168,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
 
@@ -26992,6 +27228,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -27174,6 +27411,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
     ..addNodeList('superclassConstraints', superclassConstraints);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinOnClause(this);
 
@@ -27210,6 +27448,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     superclassConstraints.accept(visitor);
@@ -27345,6 +27584,7 @@ final class NamedArgumentImpl extends AstNodeImpl
     ..addNode('argumentExpression', argumentExpression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedArgument(this);
 
@@ -27382,6 +27622,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     argumentExpression.accept(visitor);
@@ -27583,6 +27824,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     ..addToken('question', question);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedType(this);
 
@@ -27627,6 +27869,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
@@ -27821,6 +28064,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
     ..addNode('typeParameters', typeParameters);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitNameWithTypeParameters(this);
@@ -27859,6 +28103,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -27986,6 +28231,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
     ..addNode('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeClause(this);
 
@@ -28022,6 +28268,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
@@ -28160,6 +28407,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
@@ -28201,6 +28449,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
       resolver.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     stringLiteral?.accept(visitor);
@@ -28280,6 +28529,7 @@ abstract final class NodeList<E extends AstNode> implements List<E> {
   E operator [](int index);
 
   /// Use the given [visitor] to visit each of the nodes in this list.
+  @ToBeDeprecated('Use accept2 instead.')
   void accept(AstVisitor visitor);
 
   /// Use the given [visitor] to visit each of the nodes in this list.
@@ -28368,6 +28618,7 @@ final class NodeListImpl<E extends AstNodeImpl>
   }
 
   @override
+  @ToBeDeprecated('Use accept2 instead.')
   void accept(AstVisitor visitor) {
     int length = _elements.length;
     for (var i = 0; i < length; i++) {
@@ -28551,6 +28802,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
     ..addToken('operator', operator);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAssertPattern(this);
 
@@ -28609,6 +28861,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -28726,6 +28979,7 @@ final class NullAwareElementImpl extends AstNodeImpl
     ..addNode('value', value);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAwareElement(this);
 
@@ -28770,6 +29024,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     value.accept(visitor);
@@ -28895,6 +29150,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
     ..addToken('operator', operator);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullCheckPattern(this);
 
@@ -28953,6 +29209,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -29044,6 +29301,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
       ChildEntities()..addToken('literal', literal);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
 
@@ -29066,6 +29324,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -29187,6 +29446,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
 
@@ -29263,6 +29523,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
@@ -29423,6 +29684,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
@@ -29466,6 +29728,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -29611,6 +29874,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitParenthesizedPattern(this);
@@ -29666,6 +29930,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -29789,6 +30054,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
 
@@ -29824,6 +30090,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -30000,6 +30267,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartOfDirective(this);
 
@@ -30044,6 +30312,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -30228,6 +30497,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
@@ -30276,6 +30546,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -30449,6 +30720,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     ..addNode('pattern', pattern);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternField(this);
 
@@ -30492,6 +30764,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
@@ -30621,6 +30894,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
     ..addToken('colon', colon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternFieldName(this);
 
@@ -30637,6 +30911,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -30782,6 +31057,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPatternVariableDeclaration(this);
@@ -30826,6 +31102,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -30968,6 +31245,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPatternVariableDeclarationStatement(this);
@@ -31005,6 +31283,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     declaration.accept(visitor);
@@ -31157,6 +31436,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
@@ -31200,6 +31480,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
@@ -31369,6 +31650,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     ..addNode('identifier', identifier);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
 
@@ -31418,6 +31700,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     prefix.accept(visitor);
@@ -31584,6 +31867,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
 
@@ -31627,6 +31911,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
@@ -31809,6 +32094,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorBody(this);
@@ -31854,6 +32140,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -32118,6 +32405,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     ..addNode('formalParameters', formalParameters);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorDeclaration(this);
@@ -32173,6 +32461,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -32316,6 +32605,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
     ..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorName(this);
@@ -32334,6 +32624,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -32519,6 +32810,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     ..addNode('propertyName', propertyName);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
@@ -32568,6 +32860,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -32747,6 +33040,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
 
@@ -32789,6 +33083,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
@@ -32921,6 +33216,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
     ..addNode('fieldExpression', fieldExpression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordLiteralNamedField(this);
@@ -32958,6 +33254,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fieldExpression.accept(visitor);
@@ -33084,6 +33381,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
@@ -33160,6 +33458,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
@@ -33289,6 +33588,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     ..addNode('type', type)
     ..addToken('name', name);
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -33393,6 +33693,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     ..addToken('question', question);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotation(this);
@@ -33439,6 +33740,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     positionalFields.accept(visitor);
@@ -33570,6 +33872,7 @@ final class RecordTypeAnnotationNamedFieldImpl
     ..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedField(this);
@@ -33615,6 +33918,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -33751,6 +34055,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedFields(this);
@@ -33789,6 +34094,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
@@ -33900,6 +34206,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
     ..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotationPositionalField(this);
@@ -33945,6 +34252,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -34120,6 +34428,7 @@ final class RedirectingConstructorInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRedirectingConstructorInvocation(this);
@@ -34165,6 +34474,7 @@ final class RedirectingConstructorInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
@@ -34353,6 +34663,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     ..addNode('defaultClause', defaultClause);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRegularFormalParameter(this);
@@ -34407,6 +34718,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -34594,6 +34906,7 @@ final class RelationalPatternImpl extends DartPatternImpl
     ..addNode('operand', operand);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
 
@@ -34652,6 +34965,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
@@ -34777,6 +35091,7 @@ final class RestPatternElementImpl extends AstNodeImpl
     ..addNode('pattern', pattern);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRestPatternElement(this);
 
@@ -34814,6 +35129,7 @@ final class RestPatternElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern?.accept(visitor);
@@ -34915,6 +35231,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
       ChildEntities()..addToken('rethrowKeyword', rethrowKeyword);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
 
@@ -34937,6 +35254,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -35045,6 +35363,7 @@ final class ReturnStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitReturnStatement(this);
 
@@ -35081,6 +35400,7 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression?.accept(visitor);
@@ -35185,6 +35505,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
       ChildEntities()..addToken('scriptTag', scriptTag);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitScriptTag(this);
 
@@ -35201,6 +35522,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -35372,6 +35694,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSetOrMapLiteral(this);
 
@@ -35442,6 +35765,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -35573,6 +35897,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
     ..addNodeList('shownNames', shownNames);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitShowCombinator(this);
 
@@ -35609,6 +35934,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     shownNames.accept(visitor);
@@ -35791,6 +36117,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       ChildEntities()..addToken('token', token);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleIdentifier(this);
 
@@ -35903,6 +36230,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -36022,6 +36350,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
 
@@ -36045,6 +36374,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -36185,6 +36515,7 @@ final class SpreadElementImpl extends AstNodeImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSpreadElement(this);
 
@@ -36229,6 +36560,7 @@ final class SpreadElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -36422,6 +36754,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
 
@@ -36465,6 +36798,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     elements.accept(visitor);
@@ -36753,6 +37087,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     ..addNode('argumentList', argumentList);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSuperConstructorInvocation(this);
@@ -36798,6 +37133,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
@@ -36913,6 +37249,7 @@ final class SuperExpressionImpl extends ExpressionImpl
       ChildEntities()..addToken('superKeyword', superKeyword);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
 
@@ -36935,6 +37272,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -37093,6 +37431,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
     ..addNode('defaultClause', defaultClause);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSuperFormalParameter(this);
@@ -37147,6 +37486,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -37332,6 +37672,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     ..addNodeList('statements', statements);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchCase(this);
 
@@ -37383,6 +37724,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -37524,6 +37866,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
     ..addNodeList('statements', statements);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchDefault(this);
 
@@ -37568,6 +37911,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -37757,6 +38101,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSwitchExpressionCase(this);
@@ -37801,6 +38146,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
@@ -37965,6 +38311,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
@@ -38014,6 +38361,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -38238,6 +38586,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     ..addNodeList('statements', statements);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchPatternCase(this);
 
@@ -38289,6 +38638,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -38513,6 +38863,7 @@ final class SwitchStatementImpl extends StatementImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchStatement(this);
 
@@ -38556,6 +38907,7 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -38696,6 +39048,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
     ..addTokenList('components', components);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
 
@@ -38718,6 +39071,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -38806,6 +39160,7 @@ final class ThisExpressionImpl extends ExpressionImpl
       ChildEntities()..addToken('thisKeyword', thisKeyword);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
 
@@ -38828,6 +39183,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -38927,6 +39283,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
 
@@ -38968,6 +39325,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -39153,6 +39511,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitTopLevelVariableDeclaration(this);
@@ -39190,6 +39549,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -39375,6 +39735,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
     ..addNode('finallyBlock', finallyBlock);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTryStatement(this);
 
@@ -39426,6 +39787,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
@@ -39662,6 +40024,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeArgumentList(this);
 
@@ -39698,6 +40061,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
@@ -39818,6 +40182,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     ..addToken('constKeyword', constKeyword)
     ..addNode('typeArguments', typeArguments);
 
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _typeArguments?.accept(visitor);
@@ -39901,6 +40266,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   ChildEntities get _childEntities2 => ChildEntities()..addNode('type', type);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
 
@@ -39942,6 +40308,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
@@ -40102,6 +40469,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     ..addNode('bound', bound);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameter(this);
 
@@ -40138,6 +40506,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -40275,6 +40644,7 @@ final class TypeParameterListImpl extends AstNodeImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameterList(this);
 
@@ -40311,6 +40681,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters.accept(visitor);
@@ -40650,6 +41021,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
     ..addNode('initializer', initializer);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariableDeclaration(this);
 
@@ -40687,6 +41059,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -40904,6 +41277,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     ..addNodeList('variables', variables);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitVariableDeclarationList(this);
@@ -40950,6 +41324,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -41101,6 +41476,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitVariableDeclarationStatement(this);
@@ -41138,6 +41514,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
@@ -41281,6 +41658,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
     ..addNode('expression', expression);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhenClause(this);
 
@@ -41316,6 +41694,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -41477,6 +41856,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     ..addNode('body', body);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhileStatement(this);
 
@@ -41519,6 +41899,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -41682,6 +42063,7 @@ final class WildcardPatternImpl extends DartPatternImpl
     ..addToken('name', name);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWildcardPattern(this);
 
@@ -41751,6 +42133,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
@@ -41870,6 +42253,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
     ..addNodeList('mixinTypes', mixinTypes);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWithClause(this);
 
@@ -41906,6 +42290,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     mixinTypes.accept(visitor);
@@ -42048,6 +42433,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
     ..addToken('semicolon', semicolon);
 
   @generated
+  @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitYieldStatement(this);
 
@@ -42083,6 +42469,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -42237,6 +42624,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   /// [metadata] (if any).
   ///
   /// Intended to be called from the [AstNode.visitChildren] method.
+  @ToBeDeprecated('Use _visitCommentAndAnnotations2 instead.')
   void _visitCommentAndAnnotations(AstVisitor<dynamic> visitor) {
     if (_commentIsBeforeAnnotations()) {
       _documentationComment?.accept(visitor);
@@ -42253,7 +42641,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   /// Visits the AST nodes associated with [documentationComment] and
   /// [metadata] (if any).
   ///
-  /// Intended to be called from the [AstNode.visitChildren] method.
+  /// Intended to be called from the [AstNode.visitChildren2] method.
   void _visitCommentAndAnnotations2(AstVisitor2<dynamic> visitor) {
     if (_commentIsBeforeAnnotations()) {
       _documentationComment?.accept2(visitor);
@@ -42338,6 +42726,7 @@ final class _V1ProjectedNodeListImpl<
   }
 
   @override
+  @ToBeDeprecated('Use accept2 instead.')
   void accept(AstVisitor visitor) {
     int length = this.length;
     for (var i = 0; i < length; i++) {

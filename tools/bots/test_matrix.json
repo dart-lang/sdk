@@ -2348,6 +2348,22 @@
           ]
         },
         {
+          "name": "ddc sourcemap tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_canary_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc sourcemap stacktrace tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_canary_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
           "name": "ddc unit tests",
           "arguments": [
             "-nweb-dev-canary-unittest-asserts-linux",

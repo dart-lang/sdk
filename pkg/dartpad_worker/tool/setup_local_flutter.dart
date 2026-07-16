@@ -78,6 +78,7 @@ Future<void> main() async {
         dartSdkRoot: dartSdkRoot,
         dartBin: p.join(dartSdkRoot, 'bin', 'dart'),
         dartAotRuntimeBin: p.join(dartSdkRoot, 'bin', 'dartaotruntime'),
+        dartDartPadSdk: p.join(dartSdkRoot, '..', 'dartpad'),
         flutterRoot: flutterRoot,
         tempDir: tempDir.path,
         flutterBin: flutterBin,
@@ -95,6 +96,7 @@ final class _BuildContext {
   final String dartSdkRoot;
   final String dartBin;
   final String dartAotRuntimeBin;
+  final String dartDartPadSdk;
   final String flutterRoot;
   final String tempDir;
   final String flutterBin;
@@ -106,6 +108,7 @@ final class _BuildContext {
     required this.dartSdkRoot,
     required this.dartBin,
     required this.dartAotRuntimeBin,
+    required this.dartDartPadSdk,
     required this.flutterRoot,
     required this.tempDir,
     required this.flutterBin,
@@ -279,6 +282,20 @@ self.$dartLoader.forceLoadScript(flutterJs, () => null);
 self.$dartLoader.forceLoadScript(dartSdkJs, () => null);
 self.$dartLoader.forceLoadScript(flutterWebJs, () => null);
 ''');
+
+  // Copy worker from Dart DartPad SDK.
+  print('Copying worker...');
+  for (final f in [
+    'sandbox.js',
+    'ddc_module_loader.js',
+    'worker.js',
+    'worker.mjs',
+    'worker.support.js',
+    'worker.wasm',
+    'worker.wasm.map',
+  ]) {
+    _copyFile(p.join(ctx.dartDartPadSdk, f), p.join(ctx.flutterAssetDir, f));
+  }
 
   // Download Dependencies from Pub.dev
   print('Downloading hosted dependencies...');

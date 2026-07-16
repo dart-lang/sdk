@@ -70,7 +70,7 @@ extension AstNodeExtension on AstNode {
   /// Whether [ConstantVerifier] reports an error when computing the value of
   /// `this` as a constant.
   bool get hasConstantVerifierError {
-    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
+    var unitNode = thisOrAncestorOfType2<CompilationUnitImpl>();
     var unitFragment = unitNode?.declaredFragment;
     if (unitFragment == null) return false;
 

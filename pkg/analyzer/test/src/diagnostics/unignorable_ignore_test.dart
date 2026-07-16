@@ -103,8 +103,8 @@ class _AvoidIntRule extends AnalysisRule {
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-    RuleVisitorRegistry registry,
+  void registerNodeProcessors2(
+    RuleVisitorRegistry2 registry,
     RuleContext context,
   ) {
     var visitor = _AvoidIntVisitor(this);
@@ -112,7 +112,7 @@ class _AvoidIntRule extends AnalysisRule {
   }
 }
 
-class _AvoidIntVisitor extends SimpleAstVisitor {
+class _AvoidIntVisitor extends SimpleAstVisitor2 {
   final AnalysisRule rule;
 
   _AvoidIntVisitor(this.rule);

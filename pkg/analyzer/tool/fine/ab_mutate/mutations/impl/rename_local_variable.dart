@@ -24,7 +24,7 @@ class RenameLocalVariableMutation extends Mutation {
 
   @override
   MutationResult apply(CompilationUnit unit, String content) {
-    var declaration = unit.nodeCovering(offset: localOffset);
+    var declaration = unit.nodeCovering2(offset: localOffset);
     if (declaration is! VariableDeclaration ||
         declaration.name.lexeme != localName) {
       throw StateError('Did not find expected local variable.');
@@ -32,7 +32,7 @@ class RenameLocalVariableMutation extends Mutation {
 
     var declarationElement = declaration.declaredFragment!.element;
 
-    var block = declaration.thisOrAncestorOfType<Block>();
+    var block = declaration.thisOrAncestorOfType2<Block>();
     if (block == null) {
       throw StateError('Did not find enclosing block.');
     }

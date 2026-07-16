@@ -4568,7 +4568,7 @@ void f() sync* {
   /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();
-    node.accept(ToSourceVisitor(buffer));
+    node.accept2(ToSourceVisitor(buffer));
     expect(buffer.toString(), expectedSource);
   }
 }

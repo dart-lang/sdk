@@ -1285,7 +1285,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
     if (expressionMap.isNotEmpty) {
       var parent =
-          expression!.thisOrAncestorMatching(
+          expression!.thisOrAncestorMatching2(
                 (e) => e is FunctionDeclaration || e is MethodDeclaration,
               )
               as Declaration?;
@@ -1677,7 +1677,7 @@ class _InvalidAccessVerifier {
       var operator = node.operator;
 
       if (node.leftOperand is SuperExpression) {
-        var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
+        var methodDeclaration = node.thisOrAncestorOfType2<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == operator.lexeme) {
           return;
         }
@@ -1853,7 +1853,7 @@ class _InvalidAccessVerifier {
           parent is PropertyAccess && parent.target is SuperExpression) {
         var grandparent = parent?.parent2;
         var methodDeclaration = grandparent
-            ?.thisOrAncestorOfType<MethodDeclaration>();
+            ?.thisOrAncestorOfType2<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == name) {
           return;
         }

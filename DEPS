@@ -75,7 +75,7 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:15.1.137",
+  "d8_tag": "version:15.2.80",
   "jsshell_tag": "version:152.0",
   "jsc_tag": "version:316404",
 
@@ -136,7 +136,7 @@ vars = {
   "i18n_rev": "d0683bdea253d19a4350f5bc2be9017aba61837f",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "577be33957f3ae13d91f9c5288d812d1b2182ba9", # rolled manually while record_use is experimental
+  "native_rev": "046f63d1d89cd9954623bfa2df9c69d1a395375e", # rolled manually while record_use is experimental
   "protobuf_rev": "91efb90f437bb6a30e6726c3369a2fcb9bba06e7",
   "pub_rev": "ec276d10a7fa0f6c6ec005340fb9ad29f3b012d0", # rolled manually
   "shelf_rev": "71248e727317930f244c4b4535e9733bcfc66677",
@@ -158,7 +158,7 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "150.0.7871.46",
+  "chrome_tag": "151.0.7922.19",
   "download_firefox": False,
   "firefox_tag": "152.0",
 
@@ -575,7 +575,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "wLST_A-xfOeGT_5mje7Wi3mmnxOddKpEWQ9PDbQl6QEC",
+      "version": "K27XuovfeOPCcSmI4aejzqKEhaGSBgnfpqDnFWroEbYC",
       }
     ],
     "condition": 'download_fuchsia_deps',

@@ -69,7 +69,6 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
         manager.begin(cancelableToken);
 
         try {
-          // ignore: unawaited_futures
           reporter.begin('Preparing Refactor…');
           var status = await refactoring.checkInitialConditions();
 
@@ -86,7 +85,6 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
           return failure(fileModifiedError);
         } finally {
           manager.end(cancelableToken);
-          // ignore: unawaited_futures
           reporter.end();
         }
       });

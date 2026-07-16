@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../builder/declaration_builders.dart';
 import '../source/check_helper.dart';
 import 'body_builder.dart';
 import 'external_ast_helper.dart' as extern;
@@ -15,6 +16,50 @@ InternalPattern createAndPattern(
   InternalPattern right,
 ) {
   return new InternalAndPattern(left, right, fileOffset: fileOffset);
+}
+
+AnonymousMethodBlock createAnonymousMethodBlock({
+  required InternalAnonymousMethodParameter variable,
+  required InternalExpression receiver,
+  required InternalStatement body,
+  required bool isImplicitlyTyped,
+  required bool isNullAware,
+  required bool isCascade,
+  required int typeOffset,
+  required int fileOffset,
+}) {
+  return new AnonymousMethodBlock(
+    variable: variable,
+    receiver: receiver,
+    body: body,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isNullAware: isNullAware,
+    isCascade: isCascade,
+    typeOffset: typeOffset,
+    fileOffset: fileOffset,
+  );
+}
+
+AnonymousMethodExpression createAnonymousMethodExpression({
+  required InternalAnonymousMethodParameter variable,
+  required InternalExpression receiver,
+  required InternalExpression body,
+  required bool isImplicitlyTyped,
+  required bool isNullAware,
+  required bool isCascade,
+  required int typeOffset,
+  required int fileOffset,
+}) {
+  return new AnonymousMethodExpression(
+    variable: variable,
+    receiver: receiver,
+    body: body,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isNullAware: isNullAware,
+    isCascade: isCascade,
+    typeOffset: typeOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalAnonymousMethodParameter createAnonymousMethodParameter({
@@ -47,7 +92,8 @@ ActualArguments createArguments(
     argumentList: arguments,
     hasNamedBeforePositional: hasNamedBeforePositional,
     positionalCount: positionalCount,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 ActualArguments createArgumentsEmpty(int fileOffset) {
@@ -113,7 +159,7 @@ BinaryExpression createBinary(
   Name binaryName,
   InternalExpression right,
 ) {
-  return new BinaryExpression(left, binaryName, right)..fileOffset = fileOffset;
+  return new BinaryExpression(left, binaryName, right, fileOffset: fileOffset);
 }
 
 /// Return a representation of a block of [statements] at the given
@@ -205,6 +251,56 @@ InternalCatchVariable createCatchVariable({
   );
 }
 
+InternalExpression createCompoundIndexSet({
+  required InternalExpression receiver,
+  required InternalExpression index,
+  required Name binaryName,
+  required InternalExpression value,
+  required int readOffset,
+  required int binaryOffset,
+  required int writeOffset,
+  required bool forEffect,
+  required bool forPostIncDec,
+  required bool isNullAware,
+}) {
+  return new CompoundIndexSet(
+    receiver: receiver,
+    index: index,
+    binaryName: binaryName,
+    value: value,
+    readOffset: readOffset,
+    binaryOffset: binaryOffset,
+    writeOffset: writeOffset,
+    forEffect: forEffect,
+    forPostIncDec: forPostIncDec,
+    isNullAware: isNullAware,
+  );
+}
+
+InternalExpression createCompoundPropertySet({
+  required InternalExpression receiver,
+  required Name propertyName,
+  required Name binaryName,
+  required InternalExpression value,
+  required bool forEffect,
+  required int readOffset,
+  required int binaryOffset,
+  required int writeOffset,
+  required bool isNullAware,
+}) {
+  return new CompoundPropertySet(
+    receiver: receiver,
+    propertyName: propertyName,
+    binaryName: binaryName,
+    value: value,
+    forEffect: forEffect,
+    readOffset: readOffset,
+    binaryOffset: binaryOffset,
+    writeOffset: writeOffset,
+    isNullAware: isNullAware,
+  );
+}
+
 /// Return a representation of a conditional expression at the given
 /// [fileOffset]. The [condition] is the expression preceding the question
 /// mark. The [thenExpression] is the expression following the question mark.
@@ -227,6 +323,22 @@ InternalPattern createConstantPattern(InternalExpression expression) {
   return new InternalConstantPattern(
     expression: expression,
     fileOffset: expression.fileOffset,
+  );
+}
+
+InternalExpression createConstructorInvocation({
+  required Constructor target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new InternalConstructorInvocation(
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
   );
 }
 
@@ -289,7 +401,7 @@ DotShorthand createDotShorthandContext(
   int fileOffset,
   InternalExpression innerExpression,
 ) {
-  return new DotShorthand(innerExpression)..fileOffset = fileOffset;
+  return new DotShorthand(innerExpression, fileOffset: fileOffset);
 }
 
 DotShorthandInvocation createDotShorthandInvocation(
@@ -306,7 +418,8 @@ DotShorthandInvocation createDotShorthandInvocation(
     arguments,
     nameOffset: nameOffset,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 DotShorthandPropertyGet createDotShorthandPropertyGet(
@@ -314,8 +427,11 @@ DotShorthandPropertyGet createDotShorthandPropertyGet(
   Name name, {
   required int nameOffset,
 }) {
-  return new DotShorthandPropertyGet(name, nameOffset: nameOffset)
-    ..fileOffset = fileOffset;
+  return new DotShorthandPropertyGet(
+    name,
+    nameOffset: nameOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a double literal at the given [fileOffset]. The
@@ -335,8 +451,12 @@ EqualsExpression createEquals(
   InternalExpression right, {
   required bool isNot,
 }) {
-  return new EqualsExpression(left, right, isNot: isNot)
-    ..fileOffset = fileOffset;
+  return new EqualsExpression(
+    left,
+    right,
+    isNot: isNot,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalExpression createExpressionInvocation(
@@ -345,8 +465,12 @@ InternalExpression createExpressionInvocation(
   TypeArguments? typeArguments,
   ActualArguments arguments,
 ) {
-  return new ExpressionInvocation(expression, typeArguments, arguments)
-    ..fileOffset = fileOffset;
+  return new ExpressionInvocation(
+    expression,
+    typeArguments,
+    arguments,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of an expression statement at the given
@@ -366,6 +490,23 @@ ExtensionTypeRedirectingInitializer createExtensionTypeRedirectingInitializer({
   return new ExtensionTypeRedirectingInitializer(
     target,
     arguments,
+    fileOffset: fileOffset,
+  );
+}
+
+// Coverage-ignore(suite): Not run.
+InternalExpression createFactoryConstructorInvocation({
+  required Procedure target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new FactoryConstructorInvocation(
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
     fileOffset: fileOffset,
   );
 }
@@ -403,8 +544,13 @@ ForElement createForElement(
   List<InternalExpression> updates,
   InternalExpression body,
 ) {
-  return new ForElement(variables, condition, updates, body)
-    ..fileOffset = fileOffset;
+  return new ForElement(
+    variables,
+    condition,
+    updates,
+    body,
+    fileOffset: fileOffset,
+  );
 }
 
 ForInElement createForInElement(
@@ -450,8 +596,13 @@ ForMapEntry createForMapEntry(
   List<InternalExpression> updates,
   InternalMapLiteralEntry body,
 ) {
-  return new ForMapEntry(variables, condition, updates, body)
-    ..fileOffset = fileOffset;
+  return new ForMapEntry(
+    variables,
+    condition,
+    updates,
+    body,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a for statement.
@@ -468,7 +619,8 @@ InternalLoopStatement createForStatement(
     condition,
     updaters,
     body,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalStatement createFunctionDeclaration({
@@ -527,7 +679,8 @@ InternalExpression createIfCaseElement(
     patternGuard: patternGuard,
     then: then,
     otherwise: otherwise,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalMapLiteralEntry createIfCaseMapEntry(
@@ -542,7 +695,8 @@ InternalMapLiteralEntry createIfCaseMapEntry(
     patternGuard: patternGuard,
     then: then,
     otherwise: otherwise,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalStatement createIfCaseStatement(
@@ -567,7 +721,7 @@ InternalExpression createIfElement(
   InternalExpression then, [
   InternalExpression? otherwise,
 ]) {
-  return new IfElement(condition, then, otherwise)..fileOffset = fileOffset;
+  return new IfElement(condition, then, otherwise, fileOffset: fileOffset);
 }
 
 InternalMapLiteralEntry createIfMapEntry(
@@ -576,7 +730,73 @@ InternalMapLiteralEntry createIfMapEntry(
   InternalMapLiteralEntry then, [
   InternalMapLiteralEntry? otherwise,
 ]) {
-  return new IfMapEntry(condition, then, otherwise)..fileOffset = fileOffset;
+  return new IfMapEntry(condition, then, otherwise, fileOffset: fileOffset);
+}
+
+InternalExpression createIfNullExpression({
+  required InternalExpression left,
+  required InternalExpression right,
+  required int fileOffset,
+}) {
+  return new IfNullExpression(left, right, fileOffset: fileOffset);
+}
+
+InternalExpression createIfNullIndexSet({
+  required InternalExpression receiver,
+  required InternalExpression index,
+  required InternalExpression value,
+  required int readOffset,
+  required int testOffset,
+  required int writeOffset,
+  required bool forEffect,
+  required bool isNullAware,
+}) {
+  return new IfNullIndexSet(
+    receiver: receiver,
+    index: index,
+    value: value,
+    readOffset: readOffset,
+    testOffset: testOffset,
+    writeOffset: writeOffset,
+    forEffect: forEffect,
+    isNullAware: isNullAware,
+  );
+}
+
+InternalExpression createIfNullPropertySet({
+  required InternalExpression receiver,
+  required Name propertyName,
+  required InternalExpression rhs,
+  required bool forEffect,
+  required int readOffset,
+  required int writeOffset,
+  required bool isNullAware,
+  required int fileOffset,
+}) {
+  return new IfNullPropertySet(
+    receiver: receiver,
+    propertyName: propertyName,
+    rhs: rhs,
+    forEffect: forEffect,
+    readOffset: readOffset,
+    writeOffset: writeOffset,
+    isNullAware: isNullAware,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createIfNullSet({
+  required InternalExpression read,
+  required InternalExpression write,
+  required bool forEffect,
+  required int fileOffset,
+}) {
+  return new IfNullSet(
+    read: read,
+    write: write,
+    forEffect: forEffect,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of an `if` statement.
@@ -600,8 +820,12 @@ IndexGet createIndexGet(
   InternalExpression index, {
   required bool isNullAware,
 }) {
-  return new IndexGet(receiver, index, isNullAware: isNullAware)
-    ..fileOffset = fileOffset;
+  return new IndexGet(
+    receiver,
+    index,
+    isNullAware: isNullAware,
+    fileOffset: fileOffset,
+  );
 }
 
 IndexSet createIndexSet(
@@ -618,7 +842,8 @@ IndexSet createIndexSet(
     value,
     forEffect: forEffect,
     isNullAware: isNullAware,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalExpression createInstantiation(
@@ -852,6 +1077,24 @@ InternalLocalFunctionVariable createLocalFunctionVariable({
   );
 }
 
+InternalExpression createLocalIncDec({
+  required InternalVariable variable,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required int nameOffset,
+  required int operatorOffset,
+}) {
+  return new LocalIncDec(
+    variable: variable,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+  );
+}
+
 InternalLocalVariable createLocalVariable({
   required String name,
   required DartType? type,
@@ -987,7 +1230,8 @@ InternalExpression createMethodInvocation(
     arguments,
     isNullAware: isNullAware,
     isImplicitThis: isImplicitThis,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalNamedExpression createNamedExpression(
@@ -1072,7 +1316,7 @@ InternalExpression createNullAwareElement(
   int fileOffset,
   InternalExpression expression,
 ) {
-  return new NullAwareElement(expression)..fileOffset = fileOffset;
+  return new NullAwareElement(expression, fileOffset: fileOffset);
 }
 
 /// Return a representation of a null-aware key/value pair, were either the
@@ -1092,7 +1336,8 @@ NullAwareMapEntry createNullAwareMapEntry(
     key: key,
     isValueNullAware: isValueNullAware,
     value: value,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalExpression createNullCheck(
@@ -1148,7 +1393,7 @@ ParenthesizedExpression createParenthesized(
   int fileOffset,
   InternalExpression expression,
 ) {
-  return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
+  return new ParenthesizedExpression(expression, fileOffset: fileOffset);
 }
 
 InternalExpression createPatternAssignment(
@@ -1179,7 +1424,8 @@ PatternForElement createPatternForElement(
     condition: condition,
     updates: updates,
     body: body,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 PatternForMapEntry createPatternForMapEntry(
@@ -1198,7 +1444,8 @@ PatternForMapEntry createPatternForMapEntry(
     condition: condition,
     updates: updates,
     body: body,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPatternGuard createPatternGuard(
@@ -1311,7 +1558,32 @@ InternalExpression createPropertyGet(
     name,
     isNullAware: isNullAware,
     isImplicitThis: isImplicitThis,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createPropertyIncDec({
+  required InternalExpression receiver,
+  required Name name,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required bool isNullAware,
+  required int nameOffset,
+  required int operatorOffset,
+  required bool isImplicitThis,
+}) {
+  return new PropertyIncDec(
+    receiver: receiver,
+    name: name,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    isNullAware: isNullAware,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+    isImplicitThis: isImplicitThis,
+  );
 }
 
 InternalExpression createPropertySet(
@@ -1332,7 +1604,23 @@ InternalExpression createPropertySet(
     readOnlyReceiver: readOnlyReceiver,
     isNullAware: isNullAware,
     isImplicitThis: isImplicitThis,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
+}
+
+// Coverage-ignore(suite): Not run.
+InternalExpression createRecordLiteral({
+  required List<PositionalRecordField> fields,
+  required Map<String, NamedRecordField>? namedFields,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new InternalRecordLiteral(
+    fields: fields,
+    namedFields: namedFields,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createRecordPattern(
@@ -1439,8 +1727,11 @@ InternalExpression createSpreadElement(
   InternalExpression expression, {
   required bool isNullAware,
 }) {
-  return new SpreadElement(expression, isNullAware: isNullAware)
-    ..fileOffset = fileOffset;
+  return new SpreadElement(
+    expression,
+    isNullAware: isNullAware,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalExpression createStaticGet(int fileOffset, Member target) {
@@ -1487,6 +1778,30 @@ InternalExpression createStringLiteral(int fileOffset, String value) {
   return new InternalStringLiteral(value, fileOffset: fileOffset);
 }
 
+InternalExpression createSuperIncDec({
+  required InternalThisExpression receiver,
+  required Member getter,
+  required Member setter,
+  required Name name,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required int nameOffset,
+  required int operatorOffset,
+}) {
+  return new SuperIncDec(
+    receiver: receiver,
+    getter: getter,
+    setter: setter,
+    name: name,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+  );
+}
+
 InternalSuperInitializer createSuperInitializer({
   required Constructor target,
   required ActualArguments arguments,
@@ -1501,19 +1816,78 @@ InternalSuperInitializer createSuperInitializer({
   );
 }
 
-InternalExpression createSuperMethodInvocation(
-  int fileOffset,
-  Name name,
-  Procedure procedure,
-  TypeArguments? typeArguments,
-  ActualArguments arguments,
-) {
+InternalExpression createStaticIncDec({
+  required Member getter,
+  required Member setter,
+  required Name name,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required int nameOffset,
+  required int operatorOffset,
+}) {
+  return new StaticIncDec(
+    getter: getter,
+    setter: setter,
+    name: name,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+  );
+}
+
+InternalExpression createIfNullSuperIndexSet({
+  required Member? getter,
+  required Member? setter,
+  required InternalExpression index,
+  required InternalExpression value,
+  required int readOffset,
+  required int testOffset,
+  required int writeOffset,
+  required bool forEffect,
+}) {
+  return new IfNullSuperIndexSet(
+    getter: getter,
+    setter: setter,
+    index: index,
+    value: value,
+    readOffset: readOffset,
+    testOffset: testOffset,
+    writeOffset: writeOffset,
+    forEffect: forEffect,
+  );
+}
+
+InternalExpression createSuperIndexSet({
+  required Member setter,
+  required InternalExpression index,
+  required InternalExpression value,
+  required int fileOffset,
+}) {
+  return new SuperIndexSet(
+    setter: setter,
+    index: index,
+    value: value,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createSuperMethodInvocation({
+  required Name name,
+  required Procedure procedure,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required int fileOffset,
+}) {
   return new InternalSuperMethodInvocation(
     name,
     typeArguments,
     arguments,
     procedure,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalExpression createSuperPropertyGet(
@@ -1649,8 +2023,48 @@ InternalStatement createTryStatement(
   List<InternalCatch>? catchBlocks,
   InternalStatement? finallyBlock,
 ) {
-  return new TryStatement(tryBlock, catchBlocks ?? [], finallyBlock)
-    ..fileOffset = fileOffset;
+  return new TryStatement(
+    tryBlock,
+    catchBlocks ?? [],
+    finallyBlock,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createTypeAliasedConstructorInvocation({
+  required TypeAliasBuilder typeAliasBuilder,
+  required Constructor target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new TypeAliasedConstructorInvocation(
+    typeAliasBuilder: typeAliasBuilder,
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createTypeAliasedFactoryInvocation({
+  required TypeAliasBuilder typeAliasBuilder,
+  required Procedure target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new TypeAliasedFactoryInvocation(
+    typeAliasBuilder: typeAliasBuilder,
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalExpression createTypedefTearOff(
@@ -1683,7 +2097,7 @@ UnaryExpression createUnary(
   Name unaryName,
   InternalExpression expression,
 ) {
-  return new UnaryExpression(unaryName, expression)..fileOffset = fileOffset;
+  return new UnaryExpression(unaryName, expression, fileOffset: fileOffset);
 }
 
 InternalVariableDeclaration createVariableDeclaration(
@@ -1691,15 +2105,18 @@ InternalVariableDeclaration createVariableDeclaration(
   required InternalExpression? initializer,
   int? fileOffset,
 }) {
-  return new InternalVariableDeclaration(variable, initializer: initializer)
-    ..fileOffset = fileOffset ?? variable.fileOffset;
+  return new InternalVariableDeclaration(
+    variable,
+    initializer: initializer,
+    fileOffset: fileOffset ?? variable.fileOffset,
+  );
 }
 
 InternalVariableGet createVariableGet(
   InternalVariable variable, {
   required int fileOffset,
 }) {
-  return new InternalVariableGet(variable)..fileOffset = fileOffset;
+  return new InternalVariableGet(variable, fileOffset: fileOffset);
 }
 
 InternalPattern createVariablePattern(
@@ -1719,15 +2136,17 @@ InternalVariableSet createVariableSet(
   InternalExpression value, {
   required int fileOffset,
 }) {
-  return new InternalVariableSet(variable, value)..fileOffset = fileOffset;
+  return new InternalVariableSet(variable, value, fileOffset: fileOffset);
 }
 
 InternalVariableStatement createVariableStatement(
   InternalVariableDeclaration declaration, {
   int? fileOffset,
 }) {
-  return new InternalVariableStatement(declaration)
-    ..fileOffset = fileOffset ?? declaration.fileOffset;
+  return new InternalVariableStatement(
+    declaration,
+    fileOffset: fileOffset ?? declaration.fileOffset,
+  );
 }
 
 /// Return a representation of a while statement at the given [fileOffset]
@@ -1765,10 +2184,10 @@ bool isThisExpression(Object node) => false;
 bool isVariablesDeclaration(Object? node) => node is MultiVariableDeclaration;
 
 MultiVariableDeclaration variablesDeclaration(
-  List<InternalVariableDeclaration> declarations,
-  Uri uri,
-) {
-  return new MultiVariableDeclaration(declarations, uri);
+  List<InternalVariableDeclaration> declarations, {
+  required int fileOffset,
+}) {
+  return new MultiVariableDeclaration(declarations, fileOffset: fileOffset);
 }
 
 List<InternalVariableDeclaration> variablesDeclarationExtractDeclarations(

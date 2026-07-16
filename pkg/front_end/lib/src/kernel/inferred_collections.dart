@@ -7,28 +7,12 @@ import 'package:kernel/src/printer.dart';
 
 import 'internal_ast.dart';
 
-sealed class InferredMapLiteralEntry({@override required final int fileOffset})
-    extends TreeNode
-    with InternalTreeNode {
-  @override
-  R accept<R>(TreeVisitor<R> v) {
-    throw new UnsupportedError("$runtimeType.accept");
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    throw new UnsupportedError("$runtimeType.accept1");
-  }
-
+sealed class InferredMapLiteralEntry({required super.fileOffset})
+    extends InternalNode {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     // TODO: implement toTextInternal
-  }
-
-  @override
-  String toString() {
-    return '$runtimeType(${toStringInternal()})';
   }
 }
 
@@ -46,7 +30,7 @@ class InferredIfCaseMapEntry({
 
   /// The type of the expression against which this pattern is matched.
   required final DartType matchedValueType,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredMapLiteralEntry;
 
@@ -55,7 +39,7 @@ class InferredForMapEntry({
   required final Expression? condition,
   required final List<Expression> updates,
   required var InferredMapLiteralEntry body,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredMapLiteralEntry;
 
@@ -66,7 +50,7 @@ class InferredForInMapEntry({
   required var InferredMapLiteralEntry body,
   required final bool isAsync,
   required final Scope? scope,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredMapLiteralEntry;
 
@@ -77,7 +61,7 @@ class InferredPatternForMapEntry({
   required final Expression? condition,
   required final List<Expression> updates,
   required var InferredMapLiteralEntry body,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredMapLiteralEntry;
 
@@ -93,7 +77,7 @@ class InferredIfMapEntry({
   required final Expression condition,
   required var InferredMapLiteralEntry then,
   required var InferredMapLiteralEntry? otherwise,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredMapLiteralEntry;
 
@@ -106,7 +90,7 @@ class InferredSpreadMapEntry({
 
   /// The type of the map entries of the map that [expression] evaluates to.
   required final DartType? entryType,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredMapLiteralEntry;
 
@@ -117,28 +101,11 @@ final InferredMapLiteralEntry dummyMapLiteralEntryResult =
       fileOffset: TreeNode.noOffset,
     );
 
-sealed class InferredElement({@override required final int fileOffset})
-    extends TreeNode
-    with InternalTreeNode {
-  @override
-  R accept<R>(TreeVisitor<R> v) {
-    throw new UnsupportedError("$runtimeType.accept");
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) {
-    throw new UnsupportedError("$runtimeType.accept1");
-  }
-
+sealed class InferredElement({required super.fileOffset}) extends InternalNode {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     // TODO: implement toTextInternal
-  }
-
-  @override
-  String toString() {
-    return '$runtimeType(${toStringInternal()})';
   }
 }
 
@@ -151,7 +118,7 @@ class InferredSpreadElement({
 
   /// The type of the elements of the collection that [expression] evaluates to.
   required final DartType? elementType,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredElement;
 
@@ -162,7 +129,7 @@ class InferredPatternForElement({
   required final Expression? condition,
   required final List<Expression> updates,
   required final InferredElement body,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredElement;
 
@@ -171,7 +138,7 @@ class InferredForElement({
   required final Expression? condition,
   required final List<Expression> updates,
   required final InferredElement body,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredElement;
 
@@ -183,7 +150,7 @@ class InferredIfCaseElement({
 
   /// The type of the expression against which this pattern is matched.
   required final DartType? matchedValueType,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredElement;
 
@@ -191,7 +158,7 @@ class InferredIfElement({
   required final Expression condition,
   required final InferredElement then,
   required final InferredElement? otherwise,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredElement;
 
@@ -202,7 +169,7 @@ class InferredForInElement({
   required final InferredElement body,
   required final bool isAsync,
   required final Scope? scope,
-  required final TreeNode nodeForTesting,
+  required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredElement;
 

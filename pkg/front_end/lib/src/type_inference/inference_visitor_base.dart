@@ -4787,7 +4787,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Infers the [pattern] occurring as the element in for-in header with the
   /// given [iterable].
   PatternForInData inferPatternForInHeader({
-    required TreeNode node,
+    required InternalNode node,
     required InternalPattern pattern,
     required InternalExpression iterable,
     required bool isAsync,

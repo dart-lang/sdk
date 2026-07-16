@@ -23,7 +23,10 @@ Future<void> main() async {
   io.File(generator.astPath).writeAsStringSync(code);
 }
 
-const _astVersionPolicy = _AstVersionPolicy.v2MigrationSdk;
+const _astVersionPolicy = _AstVersionPolicy.v2MigrationPublishExperimental;
+
+String _v1TraversalAnnotationCode(String v2Name) =>
+    _astVersionPolicy.v1AnnotationCode(v2Name);
 
 class AstNodeImplGenerator {
   late String newCode;
@@ -205,6 +208,7 @@ class AstNodeImplGenerator {
     if (!implClass.api.hasV1View) {
       buffer.write('''\n
   @generated
+  ${_v1TraversalAnnotationCode('accept2')}
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('${implClass.interfaceName} is not in the V1 AST view.');
@@ -214,6 +218,7 @@ class AstNodeImplGenerator {
     }
     buffer.write('''\n
   @generated
+  ${_v1TraversalAnnotationCode('accept2')}
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
     visitor.visit${implClass.interfaceName}(this);
@@ -1086,9 +1091,12 @@ ChildEntities get $methodName {
       return;
     }
     var experimental = visitorType == 'AstVisitor2' ? '@experimental\n' : '';
+    var deprecated = visitorType == 'AstVisitor'
+        ? '${_v1TraversalAnnotationCode('visitChildren2')}\n'
+        : '';
     buffer.write('''
 \n@generated
-$experimental@override
+$experimental$deprecated@override
 void $methodName($visitorType visitor) {
   throw StateError('${implClass.interfaceName} is not in the $viewName AST view.');
 }
@@ -1112,6 +1120,7 @@ void $methodName($visitorType visitor) {
 
     buffer.write('''
 \n@generated
+${_v1TraversalAnnotationCode('visitChildren2')}
 @override
 void visitChildren(AstVisitor visitor) {''');
 

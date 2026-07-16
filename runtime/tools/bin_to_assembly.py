@@ -106,7 +106,7 @@ def Main():
 
         is64bit = 0
         if options.target_arch:
-            if options.target_arch in ["arm64", "x64", "riscv64"]:
+            if options.target_arch in ["arm64", "arm64e", "x64", "riscv64"]:
                 is64bit = 1
 
         if options.size_symbol_name:

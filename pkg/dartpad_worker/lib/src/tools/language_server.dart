@@ -15,11 +15,16 @@ import 'package:analysis_server/src/lsp/channel/lsp_channel.dart'
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart'
     show CrashReportingAttachmentsBuilder;
+import 'package:analysis_server/src/services/correction/assist_internal.dart'
+    show registerBuiltInAssistGenerators;
+import 'package:analysis_server/src/services/correction/fix_internal.dart'
+    show registerBuiltInFixGenerators;
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:dartpad/src/dartpad_config.dart';
+import 'package:linter/src/rules.dart' as linter;
 import 'package:unified_analytics/unified_analytics.dart' show NoOpAnalytics;
 
 class LanguageServer {
@@ -33,6 +38,10 @@ class LanguageServer {
     required ResourceProvider resourceProvider,
     required DartPadConfig config,
   }) {
+    linter.registerLintRules();
+    registerBuiltInAssistGenerators();
+    registerBuiltInFixGenerators();
+
     _server = lsp.LspAnalysisServer(
       _LspServerCommunicationChannel(_input.stream, _output.sink),
       resourceProvider,

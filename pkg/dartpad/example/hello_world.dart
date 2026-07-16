@@ -5,12 +5,12 @@
 import 'package:dartpad/dartpad.dart';
 
 Future<void> main() async {
-  final dartpad = await DartPad.create(
+  final sdk = DartPadSdk(
     // Absolute URL for files in web/ folder of package:dartpad
     assetBaseUrl: Uri.base.resolve('web/'),
-    sdkLocation: Uri.parse('dart/'), // relative to assetBaseUrl
   );
 
+  final dartpad = await sdk.dedicatedWorker();
   final ws = await dartpad.createWorkspace();
   await ws.writeFileFromText(
     'main.dart',

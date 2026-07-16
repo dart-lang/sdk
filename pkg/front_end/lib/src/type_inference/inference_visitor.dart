@@ -1048,12 +1048,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
       );
     }
-    flowAnalysis.handleBreak(node.breakableStatement);
+    flowAnalysis.handleBreak(node.targetStatement);
     BreakStatement replacement = extern.createBreakStatement(
       dummyLabeledStatement,
       fileOffset: node.fileOffset,
     );
-    node.breakableStatement.breakStatements.add(replacement);
+    node.targetStatement.breakStatements.add(replacement);
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -1071,12 +1071,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
       );
     }
-    flowAnalysis.handleContinue(node.continuableStatement);
+    flowAnalysis.handleContinue(node.targetStatement);
     BreakStatement replacement = extern.createBreakStatement(
       dummyLabeledStatement,
       fileOffset: node.fileOffset,
     );
-    node.continuableStatement.continueStatements.add(replacement);
+    node.targetStatement.continueStatements.add(replacement);
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -2534,7 +2534,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isConst: node.isConst,
       staticTarget: node.target,
     );
-    node.hasBeenInferred = true;
     if (hasInferredTypeArguments) {
       problemReporting.checkBoundsInFactoryInvocation(
         libraryFeatures: libraryFeatures,
@@ -2893,7 +2892,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isConst: node.isConst,
       staticTarget: node.target,
     );
-    node.hasBeenInferred = true;
 
     Expression resolvedExpression =
         _unaliasSingleTypeAliasedConstructorInvocation(
@@ -3041,7 +3039,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     )!;
     Expression resultExpression = result.applyResult(resolvedExpression);
 
-    node.hasBeenInferred = true;
     return new ExpressionInferenceResult(result.inferredType, resultExpression);
   }
 
@@ -3154,7 +3151,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   PatternForInData inferPatternForInHeader({
-    required TreeNode node,
+    required InternalNode node,
     required InternalPattern pattern,
     required InternalExpression iterable,
     required bool isAsync,
@@ -3905,7 +3902,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
       isVoidAllowed: false,
     );
-    Expression operand = operandResult.expression..parent = node;
+    Expression operand = operandResult.expression;
     Expression replacement = extern.createIsExpression(
       operand,
       node.type,
@@ -8270,11 +8267,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         setType = freshTypeParameters.substitute(setType) as InterfaceType;
         for (int i = 0; i < entries.length; ++i) {
           setElements.add(
-            convertToElement(
-              entries[i],
-              (a, b) {} /*assignedVariables.reassignInfo*/,
-              actualType: actualTypesForSet[i],
-            ),
+            convertToElement(entries[i], actualType: actualTypesForSet[i]),
           );
           formalTypesForSet.add(setType.typeArguments[0]);
         }
@@ -8443,8 +8436,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// [IfMapEntry] is converted to a [ForElement], [ForInElement], or
   /// [IfElement], respectively.
   InferredElement convertToElement(
-    InferredMapLiteralEntry entry,
-    void Function(TreeNode from, TreeNode to) onConvertMapEntry, {
+    InferredMapLiteralEntry entry, {
     DartType? actualType,
   }) {
     switch (entry) {
@@ -8460,16 +8452,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case InferredIfMapEntry():
         InferredIfElement result = new InferredIfElement(
           condition: entry.condition,
-          then: convertToElement(entry.then, onConvertMapEntry),
+          then: convertToElement(entry.then),
           otherwise: entry.otherwise == null
               ? null
               :
                 // Coverage-ignore(suite): Not run.
-                convertToElement(entry.otherwise!, onConvertMapEntry),
+                convertToElement(entry.otherwise!),
           nodeForTesting: entry.nodeForTesting,
           fileOffset: entry.fileOffset,
         );
-        onConvertMapEntry(entry, result);
         return result;
       case InferredNullAwareMapEntry():
         // Coverage-ignore(suite): Not run.
@@ -8482,17 +8473,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         InferredIfCaseElement result = new InferredIfCaseElement(
           expression: entry.expression,
           patternGuard: entry.patternGuard,
-          then: convertToElement(entry.then, onConvertMapEntry),
+          then: convertToElement(entry.then),
           otherwise: entry.otherwise == null
               ? null
               :
                 // Coverage-ignore(suite): Not run.
-                convertToElement(entry.otherwise!, onConvertMapEntry),
+                convertToElement(entry.otherwise!),
           matchedValueType: entry.matchedValueType,
           nodeForTesting: entry.nodeForTesting,
           fileOffset: entry.fileOffset,
         );
-        onConvertMapEntry(entry, result);
         return result;
       case InferredPatternForMapEntry():
         InferredPatternForElement result = new InferredPatternForElement(
@@ -8501,35 +8491,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           variables: entry.variables,
           condition: entry.condition,
           updates: entry.updates,
-          body: convertToElement(entry.body, onConvertMapEntry),
+          body: convertToElement(entry.body),
           nodeForTesting: entry.nodeForTesting,
           fileOffset: entry.fileOffset,
         );
-        onConvertMapEntry(entry, result);
         return result;
       case InferredForMapEntry():
         InferredForElement result = new InferredForElement(
           variables: entry.variables,
           condition: entry.condition,
           updates: entry.updates,
-          body: convertToElement(entry.body, onConvertMapEntry),
+          body: convertToElement(entry.body),
           nodeForTesting: entry.nodeForTesting,
           fileOffset: entry.fileOffset,
         );
-        onConvertMapEntry(entry, result);
         return result;
       case InferredForInMapEntry():
         InferredForInElement result = new InferredForInElement(
           variable: entry.variable,
           iterable: entry.iterable,
-          body: convertToElement(entry.body, onConvertMapEntry),
+          body: convertToElement(entry.body),
           isAsync: entry.isAsync,
           nodeForTesting: entry.nodeForTesting,
           fileOffset: entry.fileOffset,
           encoding: entry.encoding,
           scope: entry.scope,
         );
-        onConvertMapEntry(entry, result);
         return result;
       case InferredRegularMapLiteralEntry():
         return _convertToErroneousElement(
@@ -12047,7 +12034,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       isVoidAllowed: true,
     );
-    Expression body = bodyResult.expression..parent = node;
+    Expression body = bodyResult.expression;
     DartType inferredType = bodyResult.inferredType;
     return new ExpressionInferenceResult(
       inferredType,
@@ -12262,7 +12249,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     // TODO(johnniwinther): Avoid the need for this.
     InternalLabeledStatement internalLabel = new InternalLabeledStatement(
-      null,
+      dummyInternalStatement,
       fileOffset: node.fileOffset,
     );
     LabeledStatement label = extern.createLabeledStatement(

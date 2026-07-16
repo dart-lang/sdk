@@ -403,7 +403,8 @@ class TypeInferrerImpl implements TypeInferrer {
       argumentList: arguments,
       hasNamedBeforePositional: false,
       positionalCount: positionalCount,
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
 
     InvocationInferenceResult result = visitor.inferInvocation(
       visitor,

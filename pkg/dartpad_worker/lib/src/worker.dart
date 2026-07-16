@@ -60,7 +60,7 @@ final class Worker {
     return w;
   }
 
-  void connect(StreamChannel<String> channel) {
+  void session(StreamChannel<Object?> channel) {
     _Session(channel, this);
   }
 }
@@ -70,8 +70,8 @@ class _Session {
   late final Peer _rpc;
   final _workspaces = <int, _Workspace>{};
 
-  _Session(StreamChannel<String> channel, this._worker) {
-    _rpc = Peer(channel, onUnhandledError: _onUnhandledError);
+  _Session(StreamChannel<Object?> channel, this._worker) {
+    _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
     _rpc.registerMethod('createWorkspace', _createWorkspace);
     _rpc.registerMethod('workspace/dispose', _disposeWorkspace);
     _rpc.registerMethod(
@@ -545,9 +545,7 @@ class _Workspace {
         },
       );
     }
-    await languageServer.handle(
-      params['message'].asMap as Map<String, Object?>,
-    );
+    await languageServer.handle(params['message'].asMap.cast());
     return <String, Object?>{};
   }
 

@@ -3095,7 +3095,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   @trackedIndirectly
-  DartType get thisType => extendedType;
+  TypeImpl get thisType => extendedType;
 
   List<ExtensionFragmentImpl> get _fragments {
     return [
@@ -5247,6 +5247,9 @@ sealed class InstanceElementImpl extends ElementImpl
   set setters(List<SetterElementImpl> value) {
     _setters = value;
   }
+
+  @override
+  TypeImpl get thisType;
 
   @override
   @trackedIncludedInId

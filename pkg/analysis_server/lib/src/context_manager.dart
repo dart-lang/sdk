@@ -19,6 +19,7 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -27,6 +28,8 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
@@ -34,10 +37,10 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart';
 import 'package:watcher/watcher.dart';
 import 'package:yaml/yaml.dart';
 
@@ -387,40 +390,69 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Use the given analysis [driver] to analyze the content of the analysis
-  /// options file at the given [path].
-  void _analyzeAnalysisOptionsYaml(
+  /// options files at the given [paths], parsing them and reporting any
+  /// diagnostics, including cross-file plugin conflicts.
+  void _analyzeAnalysisOptionsYamlFiles(
     AnalysisDriver driver,
-    WorkspacePackageImpl? package,
-    String path, {
+    List<String> paths, {
     required AnalysisOptionsParseSession parseSession,
   }) {
-    var convertedErrors = const <protocol.AnalysisError>[];
-    try {
-      var file = resourceProvider.getFile(path);
-      var sdkVersionConstraint = (package is PubPackage)
-          ? package.sdkVersionConstraint
-          : null;
-      var parseResult = parseSession.parse(
-        sourceFactory: driver.sourceFactory,
-        contextRoot: driver.currentSession.analysisContext.contextRoot.root,
-        file: file,
-        sdkVersionConstraint: sdkVersionConstraint,
-      );
+    var parseResults = <String, AnalysisOptionsParseResult>{};
+    // Parse all analysis options files in the context.
+    for (var path in paths) {
+      try {
+        var file = resourceProvider.getFile(path);
+        var package = driver.analysisContext!.contextRoot.workspace
+            .findPackageFor(path);
+        var sdkVersionConstraint = (package is PubPackage)
+            ? package.sdkVersionConstraint
+            : null;
+        var parseResult = parseSession.parse(
+          sourceFactory: driver.sourceFactory,
+          contextRoot: driver.currentSession.analysisContext.contextRoot.root,
+          file: file,
+          sdkVersionConstraint: sdkVersionConstraint,
+        );
+        parseResults[path] = parseResult;
+      } catch (_) {
+        // If the file cannot be analyzed, fall through to clear any previous
+        // errors.
+      }
+    }
+
+    var conflictDiagnostics = _computePluginConflicts(parseResults);
+
+    // Convert and record diagnostics for each options file.
+    for (var path in paths) {
+      var parseResult = parseResults[path];
+      if (parseResult == null) continue;
+
       var fileContent = parseResult.content;
       if (fileContent != null) {
+        var file = resourceProvider.getFile(path);
         var lineInfo = fileContent.lineInfo;
         var converter = AnalyzerConverter();
-        convertedErrors = converter.convertAnalysisErrors(
-          parseResult.diagnostics,
+
+        var listener = RecordingDiagnosticListener();
+        var reporter = DiagnosticReporter(listener, FileSource(file));
+
+        var fileConflicts = conflictDiagnostics[path];
+        if (fileConflicts != null) {
+          for (var conflict in fileConflicts) {
+            reporter.report(conflict);
+          }
+        }
+
+        var diagnostics = [...parseResult.diagnostics, ...listener.diagnostics];
+
+        var convertedErrors = converter.convertAnalysisErrors(
+          diagnostics,
           lineInfo: lineInfo,
           options: parseResult.analysisOptions,
         );
+        callbacks.recordAnalysisErrors(path, convertedErrors);
       }
-    } catch (exception) {
-      // If the file cannot be analyzed, fall through to clear any previous
-      // errors.
     }
-    callbacks.recordAnalysisErrors(path, convertedErrors);
   }
 
   /// Use the given analysis [driver] to analyze the content of the
@@ -571,6 +603,87 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
+  /// Computes conflicts between plugins defined in different analysis options
+  /// files, within the same analysis context.
+  ///
+  /// A conflict occurs if the same plugin is specified in multiple options
+  /// files with different sources (e.g. different version constraints).
+  ///
+  /// The returned value maps each analysis option path to the list of
+  /// diagnostics arising from that file, if any.
+  Map<String, List<diag.LocatedDiagnostic>> _computePluginConflicts(
+    Map<String, AnalysisOptionsParseResult> parseResults,
+  ) {
+    var conflicts = <String, List<diag.LocatedDiagnostic>>{};
+    var specsByPlugin = <String, List<_PluginSpecOrigin>>{};
+
+    // Collect all plugin configurations from all parsed options files.
+    for (var MapEntry(key: path, value: parseResult) in parseResults.entries) {
+      var content = parseResult.content;
+      var yaml = content?.yaml;
+      if (yaml is! YamlMap) continue;
+      var pluginsNode = yaml.nodes['plugins'];
+      if (pluginsNode is! YamlMap) continue;
+
+      // Process each plugin configuration in the current options file.
+      for (var configuration
+          in parseResult.analysisOptions.pluginConfigurations) {
+        // Find the YAML node corresponding to the plugin name to get its span.
+        var configurationNode = pluginsNode.nodes.keys
+            .whereType<YamlScalar>()
+            .where((n) => n.value == configuration.name)
+            .firstOrNull;
+        var span = configurationNode?.span ?? pluginsNode.span;
+
+        specsByPlugin
+            .putIfAbsent(configuration.name, () => [])
+            .add(
+              _PluginSpecOrigin(path: path, config: configuration, span: span),
+            );
+      }
+    }
+
+    // Compare plugin sources for the same plugin across different files to
+    // detect conflicts.
+    for (var MapEntry(key: pluginName, value: specs) in specsByPlugin.entries) {
+      if (specs.length < 2) continue;
+
+      // Perform a pairwise comparison of all specifications for this plugin.
+      for (int i = 0; i < specs.length; i++) {
+        // Compare spec i with all subsequent specs.
+        for (int j = i + 1; j < specs.length; j++) {
+          var spec1 = specs[i];
+          var spec2 = specs[j];
+
+          if (spec1.config.source != spec2.config.source) {
+            // If the sources aren't exactly equal, we report a diagnostic.
+            // "Equal" means they are each 'path' and point to the same path, or
+            // each 'git' with the same git configuration, or each the same pub
+            // version constraint with the same value (or omission of a value)
+            // for the 'hosted' key.
+
+            // TODO(srawlins): It would be nice to prefer reporting the
+            // diagnostic in one place over another, at least in some common
+            // situations. Like if one spec comes from the context root, then
+            // report the other one. Or if five conflict with each other, with
+            // four being equal and one "odd man out," then report the
+            // disagreeable one. For now, we just pick the first.
+
+            var diagnostic = diag.incompatiblePluginSource
+                .withArguments(
+                  pluginName: pluginName,
+                  otherOptionsPath: spec2.path,
+                )
+                .atSourceSpan(spec1.span);
+            conflicts.putIfAbsent(spec1.path, () => []).add(diagnostic);
+          }
+        }
+      }
+    }
+
+    return conflicts;
+  }
+
   /// Recreates all analysis contexts.
   ///
   /// If an existing rebuild is in progress, it will be cancelled and this
@@ -631,16 +744,10 @@ class ContextManagerImpl implements ContextManager {
 
           _watchBlazeFilesIfNeeded(rootFolder, driver);
 
+          var optionsFiles = <String>[];
           for (var file in analysisContext.contextRoot.analyzedFiles()) {
             if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
-              var package = analysisContext.contextRoot.workspace
-                  .findPackageFor(file);
-              _analyzeAnalysisOptionsYaml(
-                driver,
-                package,
-                file,
-                parseSession: analysisOptionsParseSession,
-              );
+              optionsFiles.add(file);
             } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {
@@ -649,6 +756,11 @@ class ContextManagerImpl implements ContextManager {
               _analyzePubspecYaml(driver, file);
             }
           }
+          _analyzeAnalysisOptionsYamlFiles(
+            driver,
+            optionsFiles,
+            parseSession: analysisOptionsParseSession,
+          );
 
           var packageName = rootFolder.shortName;
           var fixDataYamlFile = rootFolder
@@ -1067,4 +1179,20 @@ class _CancellingTaskQueue {
       _cancellationToken = null;
     }
   }
+}
+
+/// Represents the location and configuration of a plugin specified in an
+/// analysis options file.
+class _PluginSpecOrigin {
+  /// The path of the `analysis_options.yaml` file where the plugin is configured.
+  final String path;
+
+  /// The parsed configuration of the plugin.
+  final PluginConfiguration config;
+
+  /// The source span where the plugin name is declared in the YAML file,
+  /// used for reporting diagnostics.
+  final SourceSpan span;
+
+  new({required this.path, required this.config, required this.span});
 }

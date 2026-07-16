@@ -24,7 +24,8 @@ base class WorkerClient {
   ///
   /// The [channel] usually connects to a `Worker` instance (in tests) or a
   /// `MessagePort` (in the browser).
-  WorkerClient(StreamChannel<String> channel) : _peer = rpc.Peer(channel) {
+  WorkerClient(StreamChannel<Object?> channel)
+    : _peer = rpc.Peer.withoutJson(channel) {
     _peer.registerMethod('workspace/languageServer/message', _handleLsMessage);
     _peer.registerMethod('workspace/languageServer/exited', _handleLsExited);
     _peer.registerMethod('workspace/watcher/events', _handleWatchEvent);

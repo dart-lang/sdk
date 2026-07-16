@@ -201,6 +201,7 @@ class Resolver {
         argumentList: enumSyntheticArguments,
         hasNamedBeforePositional: false,
         positionalCount: enumSyntheticArguments.length,
+        fileOffset: TreeNode.noOffset,
       );
     }
     Expression initializer;
@@ -1082,12 +1083,13 @@ class Resolver {
           ),
         );
       }
-      InternalExpression node = new InternalConstructorInvocation(
-        target,
-        typeArguments,
-        arguments,
+      InternalExpression node = intern.createConstructorInvocation(
+        target: target,
+        typeArguments: typeArguments,
+        arguments: arguments,
         isConst: true,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
       if (typeArguments != null) {
         problemReporting.checkBoundsInConstructorInvocation(
           libraryFeatures: libraryFeatures,
@@ -1114,12 +1116,13 @@ class Resolver {
           ),
         );
       }
-      FactoryConstructorInvocation node = new FactoryConstructorInvocation(
-        target,
-        typeArguments,
-        arguments,
+      InternalExpression node = intern.createFactoryConstructorInvocation(
+        target: target,
+        typeArguments: typeArguments,
+        arguments: arguments,
         isConst: true,
-      )..fileOffset = fileOffset;
+        fileOffset: fileOffset,
+      );
       if (typeArguments != null) {
         problemReporting.checkBoundsInFactoryInvocation(
           libraryFeatures: libraryFeatures,

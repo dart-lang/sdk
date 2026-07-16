@@ -505,6 +505,8 @@ bool LoadedMachODylib::ResolveSymbols(const uint8_t** data,
         addr =
             ptrauth_sign_unauthenticated(addr, ptrauth_key_function_pointer, 0);
       }
+#else
+      USE(is_text);
 #endif
       *output = addr;
     }
