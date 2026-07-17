@@ -44,8 +44,8 @@ class A {
   void testClass() {
     if (this is B) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<int>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<int>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (widen parameter to Object allows String)
       x = contextType('hello')..expectStaticType<Exactly<Object>>;
@@ -60,36 +60,38 @@ class A {
       // 4. Compound assignment
       (x += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (x += 1).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (x += 1).expectStaticType<Exactly<int>>;
       (this.x += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<int>>();
-      (++x).expectStaticType<Exactly<int>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<int>>;
+      (++x).expectStaticType<Exactly<int>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (widen parameter to Object?)
-      (z ??= contextType(1)..expectStaticType<Exactly<Object?>>)
-          .expectStaticType<Exactly<Object?>>();
-      (z ??= 1).expectStaticType<Exactly<int>>();
-      (this.z ??= contextType(1)..expectStaticType<Exactly<Object?>>)
-          .expectStaticType<Exactly<Object?>>();
-      (this.z ??= 1).expectStaticType<Exactly<int>>();
+      (z ??= contextType(
+        1,
+      )..expectStaticType<Exactly<Object?>>).expectStaticType<Exactly<Object?>>;
+      (z ??= 1).expectStaticType<Exactly<int>>;
+      (this.z ??= contextType(
+        1,
+      )..expectStaticType<Exactly<Object?>>).expectStaticType<Exactly<Object?>>;
+      (this.z ??= 1).expectStaticType<Exactly<int>>;
 
       // 7. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = contextType('hello')..expectStaticType<Exactly<Object>>;
       (this[0] += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
@@ -134,8 +136,8 @@ extension Ext on A {
     // corresponding explicit uses of `this.`.
     if (this is B) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<num>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<num>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (without promotion, expects num)
       x = contextType(1.5)..expectStaticType<Exactly<num>>;
@@ -150,37 +152,38 @@ extension Ext on A {
       // 4. Compound assignment
       (x += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (x += 1).expectStaticType<Exactly<num>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (x += 1).expectStaticType<Exactly<num>>;
       (this.x += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<num>>();
-      (++x).expectStaticType<Exactly<num>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<num>>;
+      (++x).expectStaticType<Exactly<num>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (without promotion, expects num?)
       (z ??= contextType(
         1,
-      )..expectStaticType<Exactly<num?>>).expectStaticType<Exactly<num?>>();
-      (z ??= 1).expectStaticType<Exactly<num>>();
-      (this.z ??= contextType(1)..expectStaticType<Exactly<Object?>>)
-          .expectStaticType<Exactly<Object?>>();
-      (this.z ??= 1).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num?>>).expectStaticType<Exactly<num?>>;
+      (z ??= 1).expectStaticType<Exactly<num>>;
+      (this.z ??= contextType(
+        1,
+      )..expectStaticType<Exactly<Object?>>).expectStaticType<Exactly<Object?>>;
+      (this.z ??= 1).expectStaticType<Exactly<int>>;
 
       // 7. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = contextType('hello')..expectStaticType<Exactly<Object>>;
       (this[0] += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
@@ -200,8 +203,8 @@ extension type C(A r) {
   void testExtensionType() {
     if (this is D) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<int>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<int>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (widen parameter to Object allows String)
       x = contextType('hello')..expectStaticType<Exactly<Object>>;
@@ -216,36 +219,38 @@ extension type C(A r) {
       // 4. Compound assignment
       (x += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (x += 1).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (x += 1).expectStaticType<Exactly<int>>;
       (this.x += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<int>>();
-      (++x).expectStaticType<Exactly<int>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<int>>;
+      (++x).expectStaticType<Exactly<int>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (widen parameter to Object?)
-      (z ??= contextType(1)..expectStaticType<Exactly<Object?>>)
-          .expectStaticType<Exactly<Object?>>();
-      (z ??= 1).expectStaticType<Exactly<int>>();
-      (this.z ??= contextType(1)..expectStaticType<Exactly<Object?>>)
-          .expectStaticType<Exactly<Object?>>();
-      (this.z ??= 1).expectStaticType<Exactly<int>>();
+      (z ??= contextType(
+        1,
+      )..expectStaticType<Exactly<Object?>>).expectStaticType<Exactly<Object?>>;
+      (z ??= 1).expectStaticType<Exactly<int>>;
+      (this.z ??= contextType(
+        1,
+      )..expectStaticType<Exactly<Object?>>).expectStaticType<Exactly<Object?>>;
+      (this.z ??= 1).expectStaticType<Exactly<int>>;
 
       // 7. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = contextType('hello')..expectStaticType<Exactly<Object>>;
       (this[0] += contextType(
         1,
-      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>();
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      )..expectStaticType<Exactly<num>>).expectStaticType<Exactly<num>>;
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
