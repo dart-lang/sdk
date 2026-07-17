@@ -596,6 +596,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   Roots::null_record_type().initRO(RecordType::null());
   Roots::null_type_arguments().initRO(TypeArguments::null());
   Roots::null_closure().initRO(Closure::null());
+  Roots::null_bytecode().initRO(Bytecode::null());
   Roots::empty_type_arguments().initRO(TypeArguments::null());
   Roots::null_abstract_type().initRO(AbstractType::null());
   Roots::null_compressed_stackmaps().initRO(CompressedStackMaps::null());
