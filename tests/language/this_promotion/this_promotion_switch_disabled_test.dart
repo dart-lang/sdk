@@ -19,18 +19,18 @@ class ClassTest extends A {
     // 1. Switch statement
     switch (this) {
       case B():
-        this.expectStaticType<Exactly<ClassTest>>();
+        this.expectStaticType<Exactly<ClassTest>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      B() => <void>[this.expectStaticType<Exactly<ClassTest>>()],
+      B() => <void>[this.expectStaticType<Exactly<ClassTest>>],
       _ => null,
     };
 
     // 3. If-case statement
     if (this case B()) {
-      this.expectStaticType<Exactly<ClassTest>>();
+      this.expectStaticType<Exactly<ClassTest>>;
     }
   }
 }
@@ -40,18 +40,18 @@ mixin M on A {
     // 1. Switch statement
     switch (this) {
       case B():
-        this.expectStaticType<Exactly<M>>();
+        this.expectStaticType<Exactly<M>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      B() => <void>[this.expectStaticType<Exactly<M>>()],
+      B() => <void>[this.expectStaticType<Exactly<M>>],
       _ => null,
     };
 
     // 3. If-case statement
     if (this case B()) {
-      this.expectStaticType<Exactly<M>>();
+      this.expectStaticType<Exactly<M>>;
     }
   }
 }
@@ -65,18 +65,18 @@ extension Ext on A {
     // 1. Switch statement
     switch (this) {
       case B():
-        this.expectStaticType<Exactly<A>>();
+        this.expectStaticType<Exactly<A>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      B() => <void>[this.expectStaticType<Exactly<A>>()],
+      B() => <void>[this.expectStaticType<Exactly<A>>],
       _ => null,
     };
 
     // 3. If-case statement
     if (this case B()) {
-      this.expectStaticType<Exactly<A>>();
+      this.expectStaticType<Exactly<A>>;
     }
   }
 }
@@ -90,18 +90,18 @@ extension type D(ClassTest r) implements C {
     // 1. Switch statement
     switch (this) {
       case F():
-        this.expectStaticType<Exactly<D>>();
+        this.expectStaticType<Exactly<D>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      F() => <void>[this.expectStaticType<Exactly<D>>()],
+      F() => <void>[this.expectStaticType<Exactly<D>>],
       _ => null,
     };
 
     // 3. If-case statement
     if (this case F()) {
-      this.expectStaticType<Exactly<D>>();
+      this.expectStaticType<Exactly<D>>;
     }
   }
 }
@@ -111,18 +111,18 @@ extension type E(M r) implements C {
     // 1. Switch statement
     switch (this) {
       case F():
-        this.expectStaticType<Exactly<E>>();
+        this.expectStaticType<Exactly<E>>;
     }
 
     // 2. Switch expression
     var _ = switch (this) {
-      F() => <void>[this.expectStaticType<Exactly<E>>()],
+      F() => <void>[this.expectStaticType<Exactly<E>>],
       _ => null,
     };
 
     // 3. If-case statement
     if (this case F()) {
-      this.expectStaticType<Exactly<E>>();
+      this.expectStaticType<Exactly<E>>;
     }
   }
 }

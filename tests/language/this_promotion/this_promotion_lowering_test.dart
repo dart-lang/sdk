@@ -50,8 +50,8 @@ class ClassTest extends A {
   void testClass() {
     if (this is B) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<int>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<int>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (widen parameter to Object allows String)
       x = 'hello';
@@ -64,25 +64,25 @@ class ClassTest extends A {
       this.bOnly();
 
       // 4. Compound assignment
-      (x += 1).expectStaticType<Exactly<int>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      (x += 1).expectStaticType<Exactly<int>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<int>>();
-      (++x).expectStaticType<Exactly<int>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<int>>;
+      (++x).expectStaticType<Exactly<int>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (widen parameter to Object? allows String RHS)
-      (z ??= 'hello').expectStaticType<Exactly<Object>>();
-      (this.z ??= 'hello').expectStaticType<Exactly<Object>>();
+      (z ??= 'hello').expectStaticType<Exactly<Object>>;
+      (this.z ??= 'hello').expectStaticType<Exactly<Object>>;
 
       // 8. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = 'hello';
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
@@ -91,8 +91,8 @@ mixin M on A {
   void testMixin() {
     if (this is B) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<int>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<int>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (widen parameter to Object allows String)
       x = 'hello';
@@ -105,25 +105,25 @@ mixin M on A {
       this.bOnly();
 
       // 4. Compound assignment
-      (x += 1).expectStaticType<Exactly<int>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      (x += 1).expectStaticType<Exactly<int>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<int>>();
-      (++x).expectStaticType<Exactly<int>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<int>>;
+      (++x).expectStaticType<Exactly<int>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (widen parameter to Object? allows String RHS)
-      (z ??= 'hello').expectStaticType<Exactly<Object>>();
-      (this.z ??= 'hello').expectStaticType<Exactly<Object>>();
+      (z ??= 'hello').expectStaticType<Exactly<Object>>;
+      (this.z ??= 'hello').expectStaticType<Exactly<Object>>;
 
       // 8. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = 'hello';
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
@@ -132,8 +132,8 @@ extension Ext on A {
   void testExtension() {
     if (this is B) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<int>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<int>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (widen parameter to Object allows String)
       x = 'hello';
@@ -146,25 +146,25 @@ extension Ext on A {
       this.bOnly();
 
       // 4. Compound assignment
-      (x += 1).expectStaticType<Exactly<int>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      (x += 1).expectStaticType<Exactly<int>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<int>>();
-      (++x).expectStaticType<Exactly<int>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<int>>;
+      (++x).expectStaticType<Exactly<int>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (widen parameter to Object? allows String RHS)
-      (z ??= 'hello').expectStaticType<Exactly<Object>>();
-      (this.z ??= 'hello').expectStaticType<Exactly<Object>>();
+      (z ??= 'hello').expectStaticType<Exactly<Object>>;
+      (this.z ??= 'hello').expectStaticType<Exactly<Object>>;
 
       // 8. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = 'hello';
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
@@ -173,7 +173,7 @@ extension ExtNullable on A? {
   void testExtensionNullable() {
     if (this is B?) {
       // 7. Null shorting (tested on nullable `this` promoted to nullable `B?`)
-      (this?.x).expectStaticType<Exactly<int?>>();
+      (this?.x).expectStaticType<Exactly<int?>>;
     }
   }
 }
@@ -217,8 +217,8 @@ extension type E(ClassTest r) implements C {
   void testExtensionTypeE() {
     if (this is D) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<int>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<int>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (widen parameter to Object allows String)
       x = 'hello';
@@ -231,25 +231,25 @@ extension type E(ClassTest r) implements C {
       this.bOnly();
 
       // 4. Compound assignment
-      (x += 1).expectStaticType<Exactly<int>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      (x += 1).expectStaticType<Exactly<int>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<int>>();
-      (++x).expectStaticType<Exactly<int>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<int>>;
+      (++x).expectStaticType<Exactly<int>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (widen parameter to Object? allows String RHS)
-      (z ??= 'hello').expectStaticType<Exactly<Object>>();
-      (this.z ??= 'hello').expectStaticType<Exactly<Object>>();
+      (z ??= 'hello').expectStaticType<Exactly<Object>>;
+      (this.z ??= 'hello').expectStaticType<Exactly<Object>>;
 
       // 8. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = 'hello';
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
@@ -258,8 +258,8 @@ extension type F(M r) implements C {
   void testExtensionTypeF() {
     if (this is D) {
       // 1. Simple member read
-      x.expectStaticType<Exactly<int>>();
-      this.x.expectStaticType<Exactly<int>>();
+      x.expectStaticType<Exactly<int>>;
+      this.x.expectStaticType<Exactly<int>>;
 
       // 2. Simple member write (widen parameter to Object allows String)
       x = 'hello';
@@ -272,25 +272,25 @@ extension type F(M r) implements C {
       this.bOnly();
 
       // 4. Compound assignment
-      (x += 1).expectStaticType<Exactly<int>>();
-      (this.x += 1).expectStaticType<Exactly<int>>();
+      (x += 1).expectStaticType<Exactly<int>>;
+      (this.x += 1).expectStaticType<Exactly<int>>;
 
       // 5. Pre/post increment/decrement
-      (x++).expectStaticType<Exactly<int>>();
-      (++x).expectStaticType<Exactly<int>>();
-      (this.x++).expectStaticType<Exactly<int>>();
-      (++this.x).expectStaticType<Exactly<int>>();
+      (x++).expectStaticType<Exactly<int>>;
+      (++x).expectStaticType<Exactly<int>>;
+      (this.x++).expectStaticType<Exactly<int>>;
+      (++this.x).expectStaticType<Exactly<int>>;
 
       // 6. Null-aware assignment (widen parameter to Object? allows String RHS)
-      (z ??= 'hello').expectStaticType<Exactly<Object>>();
-      (this.z ??= 'hello').expectStaticType<Exactly<Object>>();
+      (z ??= 'hello').expectStaticType<Exactly<Object>>;
+      (this.z ??= 'hello').expectStaticType<Exactly<Object>>;
 
       // 8. Index operators
-      this[0].expectStaticType<Exactly<int>>();
+      this[0].expectStaticType<Exactly<int>>;
       this[0] = 'hello';
-      (this[0] += 1).expectStaticType<Exactly<int>>();
-      (this[0]++).expectStaticType<Exactly<int>>();
-      (++this[0]).expectStaticType<Exactly<int>>();
+      (this[0] += 1).expectStaticType<Exactly<int>>;
+      (this[0]++).expectStaticType<Exactly<int>>;
+      (++this[0]).expectStaticType<Exactly<int>>;
     }
   }
 }
