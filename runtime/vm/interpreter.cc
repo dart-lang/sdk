@@ -2649,8 +2649,26 @@ SwitchDispatchNoSingleStep:
       SP[1] = 0;  // Unused space for result.
       SP[2] = function;
       SP[3] = Smi::New(rD);
+      // Set up the new API scope _prior_ to making the runtime call so that
+      // it is not unwound within Dart_PropagateError due to being associated
+      // with that exit frame. Otherwise, there may not be an appropriate API
+      // scope in place for Dart_PropagateError to use for allocating a handle.
+      //
+      // This is done manually instead of via Api::Scope as an exception being
+      // thrown in native code will go through Exceptions::JumpToFrame, which
+      // unwinds all StackResources before calling Interpreter::JumpToFrame,
+      // including any Api::Scope objects.
+      thread->EnterApiScope();
       Exit(thread, FP, SP + 4, pc);
-      INVOKE_RUNTIME(DRT_FfiCall, NativeArguments(thread, 2, SP + 2, SP + 1));
+      const bool normal_exit =
+          InvokeRuntime(thread, this, DRT_FfiCall,
+                        NativeArguments(thread, 2, SP + 2, SP + 1));
+      thread->ExitApiScope();
+      if (!normal_exit) {
+        HANDLE_EXCEPTION;
+      } else {
+        HANDLE_RETURN;
+      }
       ++SP;
     }
 

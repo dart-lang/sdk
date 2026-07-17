@@ -1295,13 +1295,12 @@ static int64_t TruncateFfiInt(int64_t value,
   }
 }
 
-static const void* GetDataAddress(const Instance& inst,
-                                  intptr_t offset_in_bytes) {
+static void* GetDataAddress(const Instance& inst, intptr_t offset_in_bytes) {
   if (inst.IsTypedDataBase()) {
     return TypedDataBase::Cast(inst).DataAddr(offset_in_bytes);
   } else if (inst.IsPointer()) {
-    return reinterpret_cast<const void*>(
-        reinterpret_cast<const uint8_t*>(Pointer::Cast(inst).NativeAddress()) +
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uint8_t*>(Pointer::Cast(inst).NativeAddress()) +
         offset_in_bytes);
   } else {
     UNIMPLEMENTED();
@@ -1362,7 +1361,8 @@ static void PassFfiCallArguments(
     Thread* thread,
     const compiler::ffi::CallMarshaller& marshaller,
     ObjectPtr* argv,
-    FfiCallArguments* args) {
+    FfiCallArguments* args,
+    bool is_leaf) {
   Zone* zone = thread->zone();
   ApiLocalScope* scope = thread->api_top_scope();
   auto* const stack_top = reinterpret_cast<uint8_t*>(args->stack_area);
@@ -1427,13 +1427,20 @@ static void PassFfiCallArguments(
         value = reinterpret_cast<uword>(handle);
       } else if (marshaller.IsPointerPointer(i)) {
         value = Pointer::Cast(arg).NativeAddress();
-      } else if (marshaller.IsTypedDataPointer(i)) {
-        value = reinterpret_cast<uword>(TypedDataBase::Cast(arg).DataAddr(0));
-      } else if (marshaller.IsCompoundPointer(i)) {
-        compound_contents ^= Instance::Cast(arg).GetField(typed_data_field);
-        intptr_t offset_in_bytes = Smi::Value(
-            Smi::RawCast(Instance::Cast(arg).GetField(offset_in_bytes_field)));
-        NoSafepointScope scope;
+      } else if (marshaller.IsTypedDataPointer(i) ||
+                 marshaller.IsCompoundPointer(i)) {
+        compound_contents ^= arg.ptr();
+        intptr_t offset_in_bytes = 0;
+        if (marshaller.IsCompoundPointer(i)) {
+          offset_in_bytes = Smi::Value(
+              Smi::RawCast(compound_contents.GetField(offset_in_bytes_field)));
+          compound_contents ^= compound_contents.GetField(typed_data_field);
+        }
+        // Object holding the contents should not be moved by GC, and only
+        // Pointers are allowed for non-leaf calls.
+        ASSERT(is_leaf || compound_contents.IsPointer());
+        // The caller of PassFfiCallArgument should have set an appropriate
+        // NoSafepointScope if TypedData is a possibility here (the leaf case).
         value = reinterpret_cast<uword>(
             GetDataAddress(compound_contents, offset_in_bytes));
       } else if (marshaller.IsBool(i)) {
@@ -1768,27 +1775,24 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
   args.stack_area_end = reinterpret_cast<uword>(stack_area + stack_area_size);
   args.target = target;
 
-  Api::Scope api_scope(thread);
-
   argv = argv - first_argument_parameter_offset - marshaller.num_args();
 
   PRINT_IF_TRACING_INTERPRETER("calling native entry point %#" Px "\n", target);
   if (is_leaf) {
     NoSafepointScope no_safepoint;
-
-    PassFfiCallArguments(thread, marshaller, argv, &args);
+    PassFfiCallArguments(thread, marshaller, argv, &args, is_leaf);
     FfiCallTrampoline(&args);
   } else {
-    PassFfiCallArguments(thread, marshaller, argv, &args);
-
+    PassFfiCallArguments(thread, marshaller, argv, &args, is_leaf);
     TransitionVMToNative transition(thread);
     FfiCallTrampoline(&args);
   }
   PRINT_IF_TRACING_INTERPRETER("returned from native entry point %#" Px "\n",
                                target);
-
-  arguments.SetReturn(
-      Object::Handle(zone, ReceiveFfiCallResult(thread, marshaller, args)));
+  const auto& result =
+      Object::Handle(zone, ReceiveFfiCallResult(thread, marshaller, args));
+  ThrowIfError(result);
+  arguments.SetReturn(result);
 #else
   UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -5113,11 +5117,15 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
   if (IsErrorClassId(result->GetClassId())) [[unlikely]] {
-    // Must not leak handles in the caller's zone.
-    HANDLESCOPE(thread);
+    // Since there may not be an active zone (e.g., an isolate group bound
+    // callback), make one. This also ensures that any handles allocated due
+    // to things like debugging prints or throwing exceptions are not leaked
+    // into the caller's zone (when present).
+    StackZone stack_zone(thread);
     // Protect the result in a handle before transitioning, which may trigger
     // GC.
-    const Error& error = Error::Handle(Error::RawCast(result));
+    Zone* const zone = stack_zone.GetZone();
+    const Error& error = Error::Handle(zone, Error::RawCast(result));
     // Propagating an error may cause allocation. Check if we need to block for
     // a safepoint by switching to "in VM" execution state.
     TransitionGeneratedToVM transition(thread);
