@@ -35,7 +35,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -66,7 +66,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -76,7 +76,7 @@ CompilationUnit
                 name: b
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments
+              arguments2
                 SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
@@ -103,14 +103,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
                 name: A
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments
+              arguments2
                 SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
@@ -137,7 +137,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -170,7 +170,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -203,7 +203,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -234,7 +234,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -265,7 +265,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -275,7 +275,7 @@ CompilationUnit
                 name: b
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments
+              arguments2
                 SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
@@ -302,14 +302,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
                 name: A
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments
+              arguments2
                 SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
@@ -336,7 +336,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -369,7 +369,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -402,7 +402,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType

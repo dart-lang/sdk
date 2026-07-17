@@ -40,7 +40,7 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::_foo
     staticType: null
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -62,7 +62,7 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::f
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
     staticType: int
@@ -85,10 +85,10 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression: FunctionExpressionInvocation
-    function: ParenthesizedExpression
+  expression2: FunctionExpressionInvocation
+    function2: ParenthesizedExpression
       leftParenthesis: (
-      expression: FunctionExpression
+      expression2: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
           rightParenthesis: )
@@ -98,13 +98,13 @@ ConstructorFieldInitializer
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: BinaryExpression
-                  leftOperand: SimpleIdentifier
+                expression2: BinaryExpression
+                  leftOperand2: SimpleIdentifier
                     token: a
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                     staticType: int
                   operator: +
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 1
                     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
                     staticType: int
@@ -144,22 +144,22 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression: FunctionExpressionInvocation
-    function: ParenthesizedExpression
+  expression2: FunctionExpressionInvocation
+    function2: ParenthesizedExpression
       leftParenthesis: (
-      expression: FunctionExpression
+      expression2: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
               staticType: int
             operator: +
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 1
               correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
               staticType: int
@@ -200,7 +200,7 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -226,7 +226,7 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -252,7 +252,7 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -280,7 +280,7 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -306,7 +306,7 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -332,7 +332,7 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -358,7 +358,7 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -384,7 +384,7 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -409,7 +409,7 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -434,7 +434,7 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int

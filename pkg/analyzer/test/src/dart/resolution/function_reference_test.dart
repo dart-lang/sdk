@@ -34,9 +34,9 @@ var x = (A.foo)<int>;
     var node = result.findNode.functionReference('(A.foo)<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: ParenthesizedExpression
+  function2: ParenthesizedExpression
     leftParenthesis: (
-    expression: ConstructorReference
+    expression2: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -77,9 +77,9 @@ var x = (A.new)<int>;
     var node = result.findNode.functionReference('(A.new)<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: ParenthesizedExpression
+  function2: ParenthesizedExpression
     leftParenthesis: (
-    expression: ConstructorReference
+    expression2: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -122,7 +122,7 @@ var x = A.foo<int>;
     var node = result.findNode.functionReference('A.foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: ConstructorReference
+  function2: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -157,7 +157,7 @@ var x = a.Future.delayed<int>;
     var node = result.findNode.functionReference('a.Future.delayed<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: ConstructorReference
+  function2: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
         importPrefix: ImportPrefixReference
@@ -200,7 +200,7 @@ void bar() {
     var node = result.findNode.functionReference('i<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: i
     element: <testLibrary>::@getter::i
     staticType: dynamic
@@ -230,7 +230,7 @@ void bar() {
     var node = result.findNode.functionReference('i<int>.foo();');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: i
     element: <testLibrary>::@getter::i
     staticType: dynamic
@@ -260,8 +260,8 @@ foo() {
     var node = result.findNode.functionReference('f().instanceMethod<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: MethodInvocation
+  function2: PropertyAccess
+    target2: MethodInvocation
       methodName: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f
@@ -301,7 +301,7 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <null>
@@ -337,8 +337,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
         element: <null>
@@ -382,7 +382,7 @@ void foo() {
     var node = result.findNode.functionReference('E<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: E
     element: <testLibrary>::@extension::E
     staticType: InvalidType
@@ -415,7 +415,7 @@ void foo() {
     var node = result.findNode.functionReference('E<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -457,12 +457,12 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ExtensionOverride
+  function2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -506,7 +506,7 @@ extension E on A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function<T>(T)
@@ -540,8 +540,8 @@ extension E on A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ThisExpression
+  function2: PropertyAccess
+    target2: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
@@ -582,12 +582,12 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ExtensionOverride
+  function2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -637,7 +637,7 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
+  function2: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -676,12 +676,12 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ExtensionOverride
+  function2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -727,12 +727,12 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ExtensionOverride
+  function2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -776,7 +776,7 @@ extension E on A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function<T>(T)
@@ -810,7 +810,7 @@ extension on double {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <null>
     staticType: InvalidType
@@ -838,7 +838,7 @@ void bar() {
     var node = result.findNode.functionReference('foo.call<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -878,7 +878,7 @@ void bar() {
     var node = result.findNode.functionReference('foo.call<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -919,7 +919,7 @@ void bar() {
     var node = result.findNode.functionReference('foo.call<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -957,7 +957,7 @@ void bar() {
     var node = result.findNode.functionReference('foo.call<String>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1001,7 +1001,7 @@ extension on Function {
     var node = result.findNode.functionReference('foo.m<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1045,7 +1045,7 @@ extension E on Function {
     var node = result.findNode.functionReference('foo.m<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1083,7 +1083,7 @@ foo() {
     var node = result.findNode.implicitCallReference('C()<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: InstanceCreationExpression
+  expression2: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1125,7 +1125,7 @@ void f() {
     var node = result.findNode.implicitCallReference('C.v<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
@@ -1167,7 +1167,7 @@ void foo() {
     var node = result.findNode.implicitCallReference('v<int, String>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: v
     element: <testLibrary>::@getter::v
     staticType: Object?
@@ -1207,7 +1207,7 @@ void f(A a) {
     var node = result.findNode.implicitCallReference('a);');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -1237,8 +1237,8 @@ void f() {
     var node = result.findNode.implicitCallReference('C.v<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -1289,7 +1289,7 @@ bar() {
     var node = result.findNode.implicitCallReference('c<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -1332,7 +1332,7 @@ foo() {
     var node = result.findNode.implicitCallReference('C()<int>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: InstanceCreationExpression
+  expression2: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1375,7 +1375,7 @@ foo() {
     var node = result.findNode.implicitCallReference('C()<int>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: InstanceCreationExpression
+  expression2: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1413,7 +1413,7 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -1457,7 +1457,7 @@ abstract class B extends A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::B::@getter::foo
     staticType: void Function<T>(T)
@@ -1491,7 +1491,7 @@ abstract class B extends A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: void Function<T>(T)
@@ -1524,7 +1524,7 @@ abstract class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: void Function<T>(T)
@@ -1558,7 +1558,7 @@ void foo(A a) {
     var node = result.findNode.functionReference('f<String>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::foo::@formalParameter::a
@@ -1598,10 +1598,10 @@ void foo(A a) {
     var node = result.findNode.functionReference('f<String>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ParenthesizedExpression
+  function2: PropertyAccess
+    target2: ParenthesizedExpression
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::foo::@formalParameter::a
         staticType: A
@@ -1639,7 +1639,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -1674,7 +1674,7 @@ class C {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::C::@method::foo
@@ -1717,8 +1717,8 @@ void bar(C c) {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::bar::@formalParameter::c
@@ -1768,7 +1768,7 @@ class B {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@class::B::@getter::a
@@ -1811,10 +1811,10 @@ void f(A a) {
     var node = result.findNode.functionReference('foo<double>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ParenthesizedExpression
+  function2: PropertyAccess
+    target2: ParenthesizedExpression
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -1852,16 +1852,16 @@ void f(A? a, A b) {
     var node = result.findNode.functionReference('(a ?? b).foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ParenthesizedExpression
+  function2: PropertyAccess
+    target2: ParenthesizedExpression
       leftParenthesis: (
-      expression: BinaryExpression
-        leftOperand: SimpleIdentifier
+      expression2: BinaryExpression
+        leftOperand2: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A?
         operator: ??
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
           correspondingParameter: <null>
           element: <testLibrary>::@function::f::@formalParameter::b
@@ -1912,7 +1912,7 @@ typedef Exactly<T> = T Function(T);
     );
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -1971,9 +1971,9 @@ var a = [].foo.call<int>;
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PropertyAccess
-      target: ListLiteral
+  function2: PropertyAccess
+    target2: PropertyAccess
+      target2: ListLiteral
         leftBracket: [
         rightBracket: ]
         staticType: List<dynamic>
@@ -2018,8 +2018,8 @@ class B extends A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: SuperExpression
+  function2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -2056,8 +2056,8 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: SuperExpression
+  function2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: A
     operator: .
@@ -2090,8 +2090,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: SuperExpression
+  function2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: InvalidType
     operator: .
@@ -2129,7 +2129,7 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -2169,8 +2169,8 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ThisExpression
+  function2: PropertyAccess
+    target2: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
@@ -2208,7 +2208,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
@@ -2252,8 +2252,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -2303,8 +2303,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -2346,7 +2346,7 @@ bar<T>() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: T
       element: #E0 T
@@ -2384,7 +2384,7 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -2424,7 +2424,7 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
+  function2: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -2467,7 +2467,7 @@ typedef Exactly<T> = T Function(T);
     );
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
       element: x@22
@@ -2527,7 +2527,7 @@ class B extends A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -2565,7 +2565,7 @@ abstract class B {
     var node = result.findNode.singleFunctionReference;
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@extension::#0::@getter::foo
@@ -2611,7 +2611,7 @@ abstract class C extends B {
     var node = result.findNode.singleFunctionReference;
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::B::@getter::foo
@@ -2654,7 +2654,7 @@ abstract class B {
     var node = result.findNode.singleFunctionReference;
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::B::@getter::foo
@@ -2697,7 +2697,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -2733,8 +2733,8 @@ class B extends A {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: FunctionReference
-    function: SimpleIdentifier
+  target2: FunctionReference
+    function2: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
       staticType: void Function<T>(T)
@@ -2781,7 +2781,7 @@ enum B with A {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@mixin::A::@method::foo
     staticType: void Function<T>(T)
@@ -2816,7 +2816,7 @@ enum A {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@enum::A::@method::foo
     staticType: void Function<T>(T)
@@ -2850,7 +2850,7 @@ extension E on int {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function<T>(T)
@@ -2884,7 +2884,7 @@ extension type A(int it) {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function<T>(T)
@@ -2920,7 +2920,7 @@ mixin M on A {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -2954,7 +2954,7 @@ mixin M {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function<T>(T)
@@ -2986,7 +2986,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <null>
     staticType: InvalidType
@@ -3018,7 +3018,7 @@ void f() {
     var node = result.findNode.expressionStatement('prefix.loadLibrary');
     assertResolvedNodeText(node, r'''
 ExpressionStatement
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -3046,7 +3046,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: foo@20
     staticType: void Function<T>(T)
@@ -3074,7 +3074,7 @@ void bar(void Function<T>(T a) foo) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: void Function<T>(T)
@@ -3108,7 +3108,7 @@ void bar() {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: fn
       element: fn@40
@@ -3152,7 +3152,7 @@ void bar() {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: fn
       element: fn@55
@@ -3188,7 +3188,7 @@ void bar<T extends Function>(T foo) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: T
@@ -3214,7 +3214,7 @@ void bar<T extends void Function<U>(U)>(T foo) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: T
@@ -3244,7 +3244,7 @@ void bar<T>(T foo) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: T
@@ -3274,7 +3274,7 @@ void bar() {
     var node = result.findNode.functionReference('i<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: i
     element: <testLibrary>::@getter::i
     staticType: Never
@@ -3306,7 +3306,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
@@ -3364,7 +3364,7 @@ bar(dynamic a) {
     var node = result.findNode.functionReference('a.foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -3400,8 +3400,8 @@ void f(({T Function<T>(T) f1, String f2}) r) {
     var node = result.findNode.functionReference(r'.f1;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function2: PropertyAccess
+    target2: SimpleIdentifier
       token: r
       element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({T Function<T>(T) f1, String f2})
@@ -3429,8 +3429,8 @@ void f((T Function<T>(T), String) r) {
     var node = result.findNode.functionReference(r'.$1;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function2: PropertyAccess
+    target2: SimpleIdentifier
       token: r
       element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (T Function<T>(T), String)
@@ -3460,7 +3460,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -3492,7 +3492,7 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -3535,8 +3535,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
         element: <testLibraryFragment>::@prefix::a
@@ -3585,8 +3585,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -3636,8 +3636,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -3684,7 +3684,7 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: TA
       element: <testLibrary>::@typeAlias::TA
@@ -3728,7 +3728,7 @@ class B extends A {
     var node = result.findNode.singleImplicitCallReference;
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: SuperExpression
+  expression2: SuperExpression
     superKeyword: super
     staticType: B
   typeArguments: TypeArgumentList
@@ -3762,7 +3762,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T, U>(T, U)
@@ -3797,7 +3797,7 @@ class A {
     var node = result.findNode.functionReference('foo<int, int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -3831,7 +3831,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
@@ -3864,7 +3864,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -3908,7 +3908,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -3946,7 +3946,7 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <null>
@@ -3982,8 +3982,8 @@ void bar() {
     var node = result.findNode.propertyAccess('.call');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: FunctionReference
-    function: SimpleIdentifier
+  target2: FunctionReference
+    function2: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: void Function<T>(T)
@@ -4022,7 +4022,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
@@ -4055,7 +4055,7 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -4096,8 +4096,8 @@ bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -4139,7 +4139,7 @@ var a = Cb.foo<int>;
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: Cb
       element: <testLibrary>::@typeAlias::Cb
@@ -4175,7 +4175,7 @@ var a = T.foo<int>;
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: T
       element: <testLibrary>::@typeAlias::T
@@ -4211,7 +4211,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <null>
     staticType: InvalidType
@@ -4243,7 +4243,7 @@ class B {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
@@ -4282,7 +4282,7 @@ void bar() {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -4320,11 +4320,11 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('as void Function<T>(T);');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: AsExpression
-    expression: ParenthesizedExpression
+  function2: AsExpression
+    expression2: ParenthesizedExpression
       leftParenthesis: (
-      expression: AsExpression
-        expression: SimpleIdentifier
+      expression2: AsExpression
+        expression2: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::foo::@formalParameter::f
           staticType: void Function<T>(T)
@@ -4401,13 +4401,13 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('g = f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: AssignmentExpression
-    leftHandSide: SimpleIdentifier
+  function2: AssignmentExpression
+    leftHandSide2: SimpleIdentifier
       token: g
       element: <null>
       staticType: null
     operator: =
-    rightHandSide: SimpleIdentifier
+    rightHandSide2: SimpleIdentifier
       token: f
       correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -4440,13 +4440,13 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f += 1');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: AssignmentExpression
-    leftHandSide: SimpleIdentifier
+  function2: AssignmentExpression
+    leftHandSide2: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
     operator: +=
-    rightHandSide: IntegerLiteral
+    rightHandSide2: IntegerLiteral
       literal: 1
       correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::i
       staticType: int
@@ -4472,9 +4472,9 @@ Future<void Function(int)> foo(Future<void Function<T>(T)> f) async {
     var node = result.findNode.functionReference('await f');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: AwaitExpression
+  function2: AwaitExpression
     awaitKeyword: await
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: Future<void Function<T>(T)>
@@ -4501,13 +4501,13 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('c + 1');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: BinaryExpression
-    leftOperand: SimpleIdentifier
+  function2: BinaryExpression
+    leftOperand2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
     operator: +
-    rightOperand: IntegerLiteral
+    rightOperand2: IntegerLiteral
       literal: 1
       correspondingParameter: <testLibrary>::@class::C::@method::+::@formalParameter::i
       staticType: int
@@ -4530,7 +4530,7 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f..toString()');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
@@ -4582,7 +4582,7 @@ Null Function(int) foo() {
     var node = result.findNode.functionReference('<T>(T a) {};');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: FunctionExpression
+  function2: FunctionExpression
     typeParameters: TypeParameterList
       leftBracket: <
       typeParameters
@@ -4640,10 +4640,10 @@ void Function(int) foo(void Function<T>(T) Function() f) {
     var node = result.findNode.functionReference('(f)()');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: FunctionExpressionInvocation
-    function: ParenthesizedExpression
+  function2: FunctionExpressionInvocation
+    function2: ParenthesizedExpression
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::foo::@formalParameter::f
         staticType: void Function<T>(T) Function()
@@ -4673,7 +4673,7 @@ void Function(int) foo(Fn f) {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<U>(U)
@@ -4698,7 +4698,7 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -4719,13 +4719,13 @@ void Function(int) foo(List<void Function<T>(T)> f) {
     var node = result.findNode.functionReference('f[0];');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: IndexExpression
-    target: SimpleIdentifier
+  function2: IndexExpression
+    target2: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: List<void Function<T>(T)>
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 0
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
@@ -4757,8 +4757,8 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('c.m();');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: MethodInvocation
-    target: SimpleIdentifier
+  function2: MethodInvocation
+    target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
@@ -4794,8 +4794,8 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f++');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PostfixExpression
-    operand: SimpleIdentifier
+  function2: PostfixExpression
+    operand2: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
@@ -4826,7 +4826,7 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('c.f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
@@ -4860,9 +4860,9 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('++f');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixExpression
+  function2: PrefixExpression
     operator: ++
-    operand: SimpleIdentifier
+    operand2: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
@@ -4892,10 +4892,10 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('(c).f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: ParenthesizedExpression
+  function2: PropertyAccess
+    target2: ParenthesizedExpression
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::foo::@formalParameter::c
         staticType: C
@@ -4923,7 +4923,7 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
@@ -4953,7 +4953,7 @@ void bar(void Function<T>(T a) foo) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: void Function<T>(T)

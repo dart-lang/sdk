@@ -28,7 +28,7 @@ class VariableDeclarationResolver {
   void resolve(VariableDeclarationImpl node) {
     var parent = node.parent2 as VariableDeclarationList;
 
-    var initializer = node.initializer;
+    var initializer = node.initializer2;
 
     if (initializer == null) {
       if (_strictInference && parent.type == null) {

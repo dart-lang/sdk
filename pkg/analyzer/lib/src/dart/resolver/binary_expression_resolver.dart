@@ -94,7 +94,7 @@ class BinaryExpressionResolver {
 
   void _resolveEqual(BinaryExpressionImpl node, {required bool notEqual}) {
     _resolver.analyzeExpression(
-      node.leftOperand,
+      node.leftOperand2,
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     var left = _resolver.popRewrite()!;
@@ -109,15 +109,15 @@ class BinaryExpressionResolver {
 
     // When evaluating exactly a dot shorthand in the RHS, we save the LHS type
     // to provide the context type for the shorthand.
-    if (_resolver.isDotShorthand(node.rightOperand)) {
+    if (_resolver.isDotShorthand(node.rightOperand2)) {
       _resolver.pushDotShorthandContext(
-        node.rightOperand,
+        node.rightOperand2,
         SharedTypeSchemaView(left.typeOrThrow),
       );
     }
 
     _resolver.analyzeExpression(
-      node.rightOperand,
+      node.rightOperand2,
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     var right = _resolver.popRewrite()!;
@@ -145,7 +145,7 @@ class BinaryExpressionResolver {
     );
     _resolveUserDefinableType(node);
     _resolver.checkForArgumentTypeNotAssignableForArgument(
-      node.rightOperand,
+      node.rightOperand2,
       promoteParameterToNullable: true,
       whyNotPromoted: whyNotPromoted,
     );
@@ -179,8 +179,8 @@ class BinaryExpressionResolver {
     BinaryExpressionImpl node, {
     required TypeImpl contextType,
   }) {
-    var left = node.leftOperand;
-    var right = node.rightOperand;
+    var left = node.leftOperand2;
+    var right = node.rightOperand2;
     var flow = _resolver.flowAnalysis.flow;
 
     // An if-null expression `E` of the form `e1 ?? e2` with context type `K` is
@@ -252,8 +252,8 @@ class BinaryExpressionResolver {
   }
 
   void _resolveLogicalAnd(BinaryExpressionImpl node) {
-    var left = node.leftOperand;
-    var right = node.rightOperand;
+    var left = node.leftOperand2;
+    var right = node.rightOperand2;
     var flow = _resolver.flowAnalysis.flow;
 
     flow?.logicalBinaryOp_begin();
@@ -298,8 +298,8 @@ class BinaryExpressionResolver {
   }
 
   void _resolveLogicalOr(BinaryExpressionImpl node) {
-    var left = node.leftOperand;
-    var right = node.rightOperand;
+    var left = node.leftOperand2;
+    var right = node.rightOperand2;
     var flow = _resolver.flowAnalysis.flow;
 
     flow?.logicalBinaryOp_begin();
@@ -344,7 +344,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveRightOperand(BinaryExpressionImpl node, TypeImpl contextType) {
-    var left = node.leftOperand;
+    var left = node.leftOperand2;
 
     var invokeType = node.staticInvokeType;
     TypeImpl rightContextType;
@@ -363,7 +363,7 @@ class BinaryExpressionResolver {
     }
 
     _resolver.analyzeExpression(
-      node.rightOperand,
+      node.rightOperand2,
       SharedTypeSchemaView(rightContextType),
     );
     var right = _resolver.popRewrite()!;
@@ -380,12 +380,12 @@ class BinaryExpressionResolver {
 
   void _resolveUnsupportedOperator(BinaryExpressionImpl node) {
     _resolver.analyzeExpression(
-      node.leftOperand,
+      node.leftOperand2,
       _resolver.operations.unknownType,
     );
     _resolver.popRewrite();
     _resolver.analyzeExpression(
-      node.rightOperand,
+      node.rightOperand2,
       _resolver.operations.unknownType,
     );
     _resolver.popRewrite();
@@ -396,10 +396,10 @@ class BinaryExpressionResolver {
     BinaryExpressionImpl node, {
     required TypeImpl contextType,
   }) {
-    var left = node.leftOperand;
+    var left = node.leftOperand2;
 
     _resolver.analyzeExpression(
-      node.leftOperand,
+      node.leftOperand2,
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     left = _resolver.popRewrite()!;
@@ -407,7 +407,7 @@ class BinaryExpressionResolver {
     if (left is SuperExpressionImpl) {
       if (SuperContext.of(left) != SuperContext.valid) {
         _resolver.analyzeExpression(
-          node.rightOperand,
+          node.rightOperand2,
           SharedTypeSchemaView(InvalidTypeImpl.instance),
         );
         _resolver.popRewrite();
@@ -427,7 +427,7 @@ class BinaryExpressionResolver {
     String methodName, {
     bool promoteLeftTypeToNonNull = false,
   }) {
-    ExpressionImpl leftOperand = node.leftOperand;
+    ExpressionImpl leftOperand = node.leftOperand2;
 
     if (leftOperand is ExtensionOverrideImpl) {
       var extension = leftOperand.element;
@@ -492,7 +492,7 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinableType(BinaryExpressionImpl node) {
-    var leftOperand = node.leftOperand;
+    var leftOperand = node.leftOperand2;
 
     TypeImpl leftType;
     if (leftOperand is ExtensionOverrideImpl) {
@@ -519,7 +519,7 @@ class BinaryExpressionResolver {
       staticType = _typeSystem.refineBinaryExpressionType(
         leftType,
         node.operator.type,
-        node.rightOperand.typeOrThrow,
+        node.rightOperand2.typeOrThrow,
         staticType,
         node.element,
       );

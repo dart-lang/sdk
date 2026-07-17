@@ -57,7 +57,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: a
       element: a@20
       staticType: int
@@ -101,7 +101,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: dynamic
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic

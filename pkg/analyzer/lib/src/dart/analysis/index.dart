@@ -784,7 +784,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
   @override
   visitCommentReference(CommentReference node) {
-    var expression = node.expression;
+    var expression = node.expression2;
     if (expression is Identifier) {
       var element = expression.element;
       if (element is ConstructorElement) {
@@ -850,7 +850,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     var fieldName = node.fieldName;
     var element = fieldName.element;
     recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, fieldName, true);
-    node.expression.accept2(this);
+    node.expression2.accept2(this);
   }
 
   @override
@@ -1071,7 +1071,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
         ? IndexRelationKind.IS_REFERENCED_BY
         : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
-    node.target?.accept2(this);
+    node.target2?.accept2(this);
     node.typeArguments?.accept2(this);
     node.argumentList.accept2(this);
   }

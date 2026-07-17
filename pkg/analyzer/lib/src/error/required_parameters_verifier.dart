@@ -26,7 +26,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
       if (errorNode != null) {
         _check(
           parameters: element.formalParameters,
-          arguments: argumentList.arguments,
+          arguments: argumentList.arguments2,
           errorEntity: errorNode,
         );
       }
@@ -41,7 +41,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
     if (constructorElement is ConstructorElement) {
       _check(
         parameters: constructorElement.formalParameters,
-        arguments: node.argumentList.arguments,
+        arguments: node.argumentList.arguments2,
         errorEntity: node.constructorName,
       );
     }
@@ -51,7 +51,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _check(
       parameters: _executableElement(node.memberName.element)?.formalParameters,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node.memberName,
     );
   }
@@ -60,7 +60,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
       parameters: node.constructorElement?.formalParameters,
-      arguments: node.arguments?.argumentList.arguments ?? <Argument>[],
+      arguments: node.arguments?.argumentList.arguments2 ?? <Argument>[],
       errorEntity: node.name,
     );
   }
@@ -71,7 +71,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
     if (type is FunctionType) {
       _check(
         parameters: type.formalParameters,
-        arguments: node.argumentList.arguments,
+        arguments: node.argumentList.arguments2,
         errorEntity: node,
       );
     }
@@ -81,7 +81,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _check(
       parameters: node.constructorName.element?.formalParameters,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node.constructorName,
     );
   }
@@ -93,7 +93,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
       if (targetType is FunctionType) {
         _check(
           parameters: targetType.formalParameters,
-          arguments: node.argumentList.arguments,
+          arguments: node.argumentList.arguments2,
           errorEntity: node.argumentList,
         );
         return;
@@ -102,7 +102,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
 
     _check(
       parameters: _executableElement(node.methodName.element)?.formalParameters,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node.methodName,
     );
   }
@@ -113,7 +113,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   ) {
     _check(
       parameters: _executableElement(node.element)?.formalParameters,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node,
     );
   }
@@ -126,7 +126,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
     _check(
       parameters: _executableElement(node.element)?.formalParameters,
       enclosingConstructor: enclosingConstructor,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node,
     );
   }

@@ -421,7 +421,7 @@ class FunctionExpressionInvocationInferrer
   }) : super._();
 
   @override
-  ExpressionImpl get _errorEntity => node.function;
+  ExpressionImpl get _errorEntity => node.function2;
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
@@ -593,7 +593,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     GenericInferrer? inferrer,
   }) {
     var flow = resolver.flowAnalysis.flow;
-    var arguments = argumentList.arguments;
+    var arguments = argumentList.arguments2;
     for (var deferredArgument in deferredFunctionLiterals) {
       var parameter = deferredArgument.parameter;
       TypeImpl parameterContextType;
@@ -614,7 +614,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       );
       expression = resolver.popRewrite()!;
       if (argument is NamedArgumentImpl) {
-        argument.argumentExpression = expression;
+        argument.argumentExpression2 = expression;
       } else {
         arguments[deferredArgument.index] = expression;
       }
@@ -649,14 +649,14 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     resolver.checkUnreachableNode(argumentList);
     var flow = resolver.flowAnalysis.flow;
     var unnamedArgumentIndex = 0;
-    var arguments = argumentList.arguments;
+    var arguments = argumentList.arguments2;
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       Expression value;
       InternalFormalParameterElement? parameter;
       Object parameterKey;
       if (argument is NamedArgumentImpl) {
-        value = argument.argumentExpression;
+        value = argument.argumentExpression2;
         parameterKey = argument.name.lexeme;
       } else {
         value = argument.argumentExpression;
@@ -691,7 +691,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         );
         var rewritten = resolver.popRewrite()!;
         if (argument is NamedArgumentImpl) {
-          argument.argumentExpression = rewritten;
+          argument.argumentExpression2 = rewritten;
         } else {
           arguments[i] = rewritten;
         }
@@ -752,7 +752,7 @@ class MethodInvocationInferrer
     var invokedMethod = node.methodName.element;
     return invokedMethod is TopLevelFunctionElement &&
         invokedMethod.isDartCoreIdentical &&
-        node.argumentList.arguments.length == 2;
+        node.argumentList.arguments2.length == 2;
   }
 
   @override
@@ -776,7 +776,7 @@ class MethodInvocationInferrer
     if (targetType != null) {
       returnType = resolver.typeSystem
           .refineNumericInvocationType(targetType, node.methodName.element, [
-            for (var argument in node.argumentList.arguments)
+            for (var argument in node.argumentList.arguments2)
               argument.argumentExpression.typeOrThrow,
           ], returnType);
     }

@@ -33,7 +33,7 @@ bool hasDependentDotShorthand(AstNode node) {
   } else if (node case MethodInvocation(
     methodName: SimpleIdentifier(:FunctionType staticType),
     typeArguments: null,
-    argumentList: ArgumentList(:var arguments),
+    argumentList: ArgumentList(:var arguments2),
   )) {
     // When the static type of the method invocation is a generic function type
     // with no explicit type arguments given, we will be inferring those types.
@@ -54,7 +54,7 @@ bool hasDependentDotShorthand(AstNode node) {
     // Then looking at every argument in the method invocation, we recursively
     // check the arguments of parameters that have type parameters that are in
     // the set of dependent type parameters that we calculated above.
-    for (var argument in arguments) {
+    for (var argument in arguments2) {
       var parameterTypeParameters = _findTypeParametersForFormalParameter(
         argument.correspondingParameter,
       );
@@ -67,14 +67,14 @@ bool hasDependentDotShorthand(AstNode node) {
       }
     }
   } else if (node
-      case ListLiteral(typeArguments: null, :var elements) ||
-          SetOrMapLiteral(typeArguments: null, :var elements)) {
+      case ListLiteral(typeArguments: null, :var elements2) ||
+          SetOrMapLiteral(typeArguments: null, :var elements2)) {
     // Lists, maps, and sets that have inferred type arguments need their
     // elements verified for dot shorthands that depend on that type inference.
-    for (var element in elements) {
+    for (var element in elements2) {
       if (element is MapLiteralEntry) {
-        if (hasDependentDotShorthand(element.key) ||
-            hasDependentDotShorthand(element.value)) {
+        if (hasDependentDotShorthand(element.key2) ||
+            hasDependentDotShorthand(element.value2)) {
           return true;
         }
       } else if (hasDependentDotShorthand(element)) {
@@ -85,12 +85,12 @@ bool hasDependentDotShorthand(AstNode node) {
     // Check if the return statement(s) of the function expression have a
     // dependent dot shorthand.
     switch (body) {
-      case ExpressionFunctionBody(:var expression):
-        return hasDependentDotShorthand(expression);
+      case ExpressionFunctionBody(:var expression2):
+        return hasDependentDotShorthand(expression2);
       case BlockFunctionBody(block: Block(:var statements)):
         for (var statement in statements) {
           if (statement is ReturnStatement) {
-            var expression = statement.expression;
+            var expression = statement.expression2;
             if (expression != null && hasDependentDotShorthand(expression)) {
               return true;
             }
@@ -107,7 +107,7 @@ bool hasDependentDotShorthand(AstNode node) {
     // inference information is required from any parent declared types.
     if (type.typeArguments != null) return false;
 
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       var parameterTypeParameters = _findTypeParametersForFormalParameter(
         argument.correspondingParameter,
       );

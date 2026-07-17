@@ -33,7 +33,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -41,8 +41,8 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression: MethodInvocation
-        target: SimpleIdentifier
+      expression2: MethodInvocation
+        target2: SimpleIdentifier
           token: y
         operator: .
         methodName: SimpleIdentifier
@@ -71,7 +71,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -79,10 +79,10 @@ Block
           token: <empty> <synthetic>
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression: AwaitExpression
+      expression2: AwaitExpression
         awaitKeyword: await
-        expression: MethodInvocation
-          target: SimpleIdentifier
+        expression2: MethodInvocation
+          target2: SimpleIdentifier
             token: y
           operator: .
           methodName: SimpleIdentifier
@@ -111,7 +111,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -119,7 +119,7 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression: RecordLiteral
+      expression2: RecordLiteral
         leftParenthesis: (
         rightParenthesis: )
       semicolon: ;

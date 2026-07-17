@@ -30,7 +30,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )
@@ -64,7 +64,7 @@ LabeledStatement
   statement: WhileStatement
     whileKeyword: while
     leftParenthesis: (
-    condition: BooleanLiteral
+    condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
@@ -97,7 +97,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )
@@ -131,7 +131,7 @@ class A {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: SuperExpression
+  condition2: SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
@@ -155,7 +155,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )
@@ -189,7 +189,7 @@ LabeledStatement
   statement: WhileStatement
     whileKeyword: while
     leftParenthesis: (
-    condition: BooleanLiteral
+    condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
@@ -222,7 +222,7 @@ void f() {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition: BooleanLiteral
+  condition2: BooleanLiteral
     literal: true
     staticType: bool
   rightParenthesis: )

@@ -38,14 +38,14 @@ class C {
 AssertInitializer
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -58,14 +58,14 @@ AssertInitializer
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -95,14 +95,14 @@ void f() {
 AssertStatement
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -115,14 +115,14 @@ AssertStatement
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -352,7 +352,7 @@ void f() {
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: MethodInvocation
+  leftOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -365,7 +365,7 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand: MethodInvocation
+  rightOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -396,7 +396,7 @@ void f() {
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: MethodInvocation
+  leftOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -409,7 +409,7 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand: MethodInvocation
+  rightOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo

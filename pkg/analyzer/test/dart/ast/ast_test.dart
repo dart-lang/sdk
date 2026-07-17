@@ -1039,7 +1039,7 @@ final x = f();
 ''');
 
     var argumentList = parseResult.findNode.argumentList('()');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     expect(nodeList.beginToken, isNull);
   }
 
@@ -1049,7 +1049,7 @@ final x = f(0, 1);
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     var first = nodeList[0];
     expect(nodeList.beginToken, same(first.beginToken));
   }
@@ -1060,7 +1060,7 @@ final x = f();
 ''');
 
     var argumentList = parseResult.findNode.argumentList('()');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     expect(nodeList.endToken, isNull);
   }
 
@@ -1070,7 +1070,7 @@ final x = f(0, 1);
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     var last = nodeList[nodeList.length - 1];
     expect(nodeList.endToken, same(last.endToken));
   }
@@ -1082,7 +1082,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
 
     var first = nodeList[0];
     var second = nodeList[1];
@@ -1104,7 +1104,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
 
     try {
       nodeList[-1] = nodeList.first;
@@ -1121,7 +1121,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     try {
       nodeList[1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
@@ -1824,13 +1824,13 @@ StringInterpolation
       contents: '
     InterpolationExpression
       leftBracket: $
-      expression: ThisExpression
+      expression2: ThisExpression
         thisKeyword: this
     InterpolationString
       contents: <empty> <synthetic>
     InterpolationExpression
       leftBracket: $
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: foo
     InterpolationString
       contents: '

@@ -27,7 +27,7 @@ const int b = a as int;
     var node = result.findNode.asExpression('as int');
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: num
@@ -51,7 +51,7 @@ void f() {
     var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: v
     element: v@17
     staticType: num
@@ -78,7 +78,7 @@ class A<T> {
     var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression: SuperExpression
+  expression2: SuperExpression
     superKeyword: super
     staticType: A<T>
   asOperator: as
@@ -102,10 +102,10 @@ void f(Object? x) {
     var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression: SwitchExpression
+  expression2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -118,7 +118,7 @@ AsExpression
             name: _
             matchedValueType: Object?
         arrow: =>
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
     rightBracket: }

@@ -68,7 +68,7 @@ class StaticTypeAnalyzer {
   /// of the form <i>e..suffix</i> is equivalent to the expression <i>(t) {t.suffix; return
   /// t;}(e)</i>.</blockquote>
   void visitCascadeExpression(covariant CascadeExpressionImpl node) {
-    node.recordStaticType(node.target.typeOrThrow, resolver: _resolver);
+    node.recordStaticType(node.target2.typeOrThrow, resolver: _resolver);
   }
 
   void visitConditionalExpression(
@@ -79,9 +79,9 @@ class StaticTypeAnalyzer {
     // `K` is analyzed as follows:
     //
     // - Let `T1` be the type of `e1` inferred with context type `K`
-    var t1 = node.thenExpression.typeOrThrow;
+    var t1 = node.thenExpression2.typeOrThrow;
     // - Let `T2` be the type of `e2` inferred with context type `K`
-    var t2 = node.elseExpression.typeOrThrow;
+    var t2 = node.elseExpression2.typeOrThrow;
     // - Let `T` be  `UP(T1, T2)`
     var t = _typeSystem.leastUpperBound(t1, t2);
     // - Let `S` be the greatest closure of `K`
@@ -216,7 +216,7 @@ class StaticTypeAnalyzer {
   void visitParenthesizedExpression(
     covariant ParenthesizedExpressionImpl node,
   ) {
-    Expression expression = node.expression;
+    Expression expression = node.expression2;
     node.recordStaticType(expression.typeOrThrow, resolver: _resolver);
   }
 

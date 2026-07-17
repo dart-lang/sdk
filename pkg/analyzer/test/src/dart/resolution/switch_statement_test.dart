@@ -34,7 +34,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -46,7 +46,7 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: NullCheckPattern
           pattern: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             matchedValueType: Object
@@ -114,7 +114,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -126,7 +126,7 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: NullCheckPattern
           pattern: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             matchedValueType: Object
@@ -138,7 +138,7 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: NullCheckPattern
           pattern: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 1
               staticType: int
             matchedValueType: Object
@@ -154,7 +154,7 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: NullCheckPattern
           pattern: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 2
               staticType: int
             matchedValueType: Object
@@ -188,7 +188,7 @@ class A {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -200,7 +200,7 @@ SwitchStatement
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
           constKeyword: const
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 name: A
@@ -236,7 +236,7 @@ void f(Object? x, bool Function() a) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -247,14 +247,14 @@ SwitchStatement
       keyword: case
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: FunctionExpressionInvocation
-            function: SimpleIdentifier
+          expression2: FunctionExpressionInvocation
+            function2: SimpleIdentifier
               token: a
               element: <testLibrary>::@function::f::@formalParameter::a
               staticType: bool Function()
@@ -289,7 +289,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -311,13 +311,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@48
               staticType: int
             operator: <
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
@@ -340,13 +340,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@75
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -356,7 +356,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -381,7 +381,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -404,13 +404,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@54
               staticType: int
             operator: <
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
@@ -434,13 +434,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@87
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -450,7 +450,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -475,7 +475,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -516,13 +516,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@null
               staticType: int
             operator: <
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
@@ -564,13 +564,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@null
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -580,7 +580,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -607,7 +607,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -630,13 +630,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@54
               staticType: int
             operator: <
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
@@ -659,13 +659,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@81
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -675,7 +675,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -702,7 +702,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -725,13 +725,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@54
               staticType: int
             operator: <
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
@@ -754,13 +754,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@81
               staticType: num
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -770,7 +770,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
@@ -797,7 +797,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -819,13 +819,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@48
               staticType: int
             operator: <
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
@@ -848,13 +848,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@75
               staticType: num
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -864,7 +864,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
@@ -891,7 +891,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -902,7 +902,7 @@ SwitchStatement
       keyword: case
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           matchedValueType: Object?
@@ -922,13 +922,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@60
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -938,7 +938,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -965,7 +965,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -987,13 +987,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@48
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -1005,14 +1005,14 @@ SwitchStatement
       keyword: case
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           matchedValueType: Object?
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1039,7 +1039,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1061,13 +1061,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@48
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -1080,7 +1080,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1113,7 +1113,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1147,7 +1147,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: Object?
@@ -1176,7 +1176,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1203,13 +1203,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@61
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -1219,7 +1219,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1253,7 +1253,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1304,19 +1304,19 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: b
             element: b@null
             staticType: double
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: c
             element: c@null
             staticType: String
@@ -1342,7 +1342,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1386,7 +1386,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1416,7 +1416,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1441,7 +1441,7 @@ SwitchStatement
               matchedValueType: Object?
             RelationalPattern
               operator: ==
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: a
                 element: a@62
                 staticType: int
@@ -1452,13 +1452,13 @@ SwitchStatement
           requiredType: List<Object?>
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@62
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -1468,7 +1468,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@62
             staticType: int
@@ -1492,7 +1492,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1514,13 +1514,13 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: a
               element: a@48
               staticType: int
             operator: >
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 0
               correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
               staticType: int
@@ -1530,7 +1530,7 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@48
             staticType: int
@@ -1554,7 +1554,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1565,13 +1565,13 @@ SwitchStatement
       keyword: case
       guardedPattern: GuardedPattern
         pattern: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression: BooleanLiteral
+          expression2: BooleanLiteral
             literal: true
             staticType: bool
       colon: :
@@ -1604,7 +1604,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1613,7 +1613,7 @@ SwitchStatement
   members
     SwitchCase
       keyword: case
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       colon: :
@@ -1650,7 +1650,7 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1659,13 +1659,13 @@ SwitchStatement
   members
     SwitchCase
       keyword: case
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       colon: :
     SwitchCase
       keyword: case
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 1
         staticType: int
       colon: :
@@ -1675,7 +1675,7 @@ SwitchStatement
           semicolon: ;
     SwitchCase
       keyword: case
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 2
         staticType: int
       colon: :

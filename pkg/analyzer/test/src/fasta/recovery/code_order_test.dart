@@ -834,7 +834,7 @@ CompilationUnit
                   token: A
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
                     InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -1067,12 +1067,12 @@ CompilationUnit
                   leftBracket: {
                   rightBracket: }
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: catch
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       SimpleIdentifier
                         token: e
                     rightParenthesis: )

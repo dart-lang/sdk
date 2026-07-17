@@ -86,7 +86,7 @@ class _Collector {
     if (node is StringInterpolation) {
       for (var component in node.elements) {
         if (component is InterpolationExpression) {
-          collect(component.expression);
+          collect(component.expression2);
         }
       }
       return;
@@ -108,7 +108,7 @@ class _Collector {
     }
 
     if (node is ParenthesizedExpression) {
-      collect(node.expression);
+      collect(node.expression2);
       return;
     }
 
@@ -121,16 +121,16 @@ class _Collector {
     }
 
     if (node is NamedArgument) {
-      return collect(node.argumentExpression);
+      return collect(node.argumentExpression2);
     }
 
     if (node is RecordLiteralNamedField) {
-      return collect(node.fieldExpression);
+      return collect(node.fieldExpression2);
     }
 
     if (node is BinaryExpression) {
-      collect(node.leftOperand);
-      collect(node.rightOperand);
+      collect(node.leftOperand2);
+      collect(node.rightOperand2);
       return;
     }
 
@@ -139,7 +139,7 @@ class _Collector {
       if (operator == TokenType.BANG ||
           operator == TokenType.MINUS ||
           operator == TokenType.TILDE) {
-        collect(node.operand);
+        collect(node.operand2);
         return;
       }
       nodes.add(node);
@@ -147,9 +147,9 @@ class _Collector {
     }
 
     if (node is ConditionalExpression) {
-      collect(node.condition);
-      collect(node.thenExpression);
-      collect(node.elseExpression);
+      collect(node.condition2);
+      collect(node.thenExpression2);
+      collect(node.elseExpression2);
       return;
     }
 
@@ -167,7 +167,7 @@ class _Collector {
           nodes.add(node.type);
         }
       }
-      collect(node.expression);
+      collect(node.expression2);
       return;
     }
 
@@ -181,26 +181,26 @@ class _Collector {
           nodes.add(node.type);
         }
       }
-      collect(node.expression);
+      collect(node.expression2);
       return;
     }
 
     if (node is MapLiteralEntry) {
-      collect(node.key);
-      collect(node.value);
+      collect(node.key2);
+      collect(node.value2);
       return;
     }
 
     if (node is SpreadElement) {
-      collect(node.expression);
+      collect(node.expression2);
       return;
     }
 
     if (node is IfElement) {
-      collect(node.expression);
-      collect(node.thenElement);
-      if (node.elseElement != null) {
-        collect(node.elseElement!);
+      collect(node.expression2);
+      collect(node.thenElement2);
+      if (node.elseElement2 != null) {
+        collect(node.elseElement2!);
       }
       return;
     }
@@ -212,7 +212,7 @@ class _Collector {
 
     if (node is FunctionReference) {
       _typeArgumentList(node.typeArguments);
-      collect(node.function);
+      collect(node.function2);
       return;
     }
 
@@ -301,7 +301,7 @@ class _Collector {
   }
 
   void _methodInvocation(MethodInvocation node) {
-    var arguments = node.argumentList.arguments;
+    var arguments = node.argumentList.arguments2;
     if (arguments.length == 2) {
       var element = node.methodName.element;
       if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
@@ -316,7 +316,7 @@ class _Collector {
 
   void _propertyAccess(PropertyAccess node) {
     // CascadeExpression is not a constant, so the target is never null.
-    var target = node.target!;
+    var target = node.target2!;
 
     if (node.propertyName.name == 'length') {
       collect(target);
@@ -348,7 +348,7 @@ class _Collector {
   }
 
   void _recordLiteral(RecordLiteral node) {
-    for (var field in node.fields) {
+    for (var field in node.fields2) {
       collect(field);
     }
   }
@@ -379,7 +379,7 @@ class _Collector {
         }
       }
 
-      for (var element in node.elements) {
+      for (var element in node.elements2) {
         collect(element);
       }
       return;
@@ -405,7 +405,7 @@ class _Collector {
         }
       }
 
-      for (var element in node.elements) {
+      for (var element in node.elements2) {
         collect(element);
       }
     }

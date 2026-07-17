@@ -208,7 +208,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitIsExpression(IsExpression node) {
     var insideIsExpressionOld = _insideIsExpression;
-    node.expression.accept2(this);
+    node.expression2.accept2(this);
     try {
       _insideIsExpression = true;
       node.type.accept2(this);
@@ -392,7 +392,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _addParametersForArguments(ArgumentList argumentList) {
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
     }
@@ -440,7 +440,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         // ++v;
         return false;
       }
-      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
         // v ??= doSomething();
         //   vs.
         // v += 2;

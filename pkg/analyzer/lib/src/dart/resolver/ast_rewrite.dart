@@ -138,7 +138,7 @@ class AstRewriter {
       return node;
     }
 
-    var target = node.target;
+    var target = node.target2;
     var operator = node.operator;
     if (target == null) {
       // Possible cases: C() or C<>()
@@ -271,7 +271,7 @@ class AstRewriter {
       // [ConstructorReference] at some point.
       return node;
     }
-    if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
+    if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       // A constructor cannot be assigned to, in some expression like
       // `C.new = foo`; do not rewrite.
       return node;
@@ -350,7 +350,7 @@ class AstRewriter {
       // [ConstructorReference] at some point.
       return node;
     }
-    var receiver = node.target!;
+    var receiver = node.target2!;
 
     IdentifierImpl receiverIdentifier;
     TypeArgumentListImpl? typeArguments;
@@ -360,7 +360,7 @@ class AstRewriter {
       // A [ConstructorReference] with explicit type arguments is initially
       // parsed as a [PropertyAccess] with a [FunctionReference] target; for
       // example: `List<int>.filled` or `core.List<int>.filled`.
-      var function = receiver.function;
+      var function = receiver.function2;
       if (function is! IdentifierImpl) {
         // If [receiverIdentifier] is not an Identifier then [node] is not a
         // ConstructorReference.
@@ -699,7 +699,7 @@ class AstRewriter {
     typeName.type = element.aliasedType;
     var typeLiteral = TypeLiteralImpl(type: typeName);
     var methodInvocation = MethodInvocationImpl(
-      target: typeLiteral,
+      target2: typeLiteral,
       operator: node.constructorName.period,
       methodName: node.constructorName.name!,
       typeArguments: null,
@@ -720,11 +720,11 @@ class AstRewriter {
     }
 
     var functionReference = FunctionReferenceImpl(
-      function: function,
+      function2: function,
       typeArguments: node.constructorName.type.typeArguments,
     );
     var methodInvocation = MethodInvocationImpl(
-      target: functionReference,
+      target2: functionReference,
       operator: period,
       methodName: constructorId,
       typeArguments: null,

@@ -254,7 +254,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is FunctionExpressionInvocation) {
       return node.element;
     } else if (node is FunctionReference) {
-      var function = node.function.unParenthesized;
+      var function = node.function2.unParenthesized;
       if (function is Identifier) {
         return function.element;
       } else if (function is PropertyAccess) {

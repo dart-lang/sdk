@@ -160,6 +160,12 @@ class AstNodeImplGenerator {
 
     for (var property in properties) {
       if (property.v1Name case var v1Name?) {
+        if (api != _AstNodeApi.shared) {
+          throw StateError(
+            '${interfaceElement.name}.${property.name}: V1 child projections '
+            'are only supported on nodes shared by both AST views.',
+          );
+        }
         if (!_astVersionPolicy.hasV1Projection) {
           throw StateError(
             '${interfaceElement.name}.${property.name}: v1Name is only '
@@ -632,7 +638,6 @@ required super.metadata,''');
 
     buffer.writeln(' {');
 
-    var becomeParentMethod = implClass.api.becomeParentMethod;
     for (var property in implClass.properties) {
       if (property.isSuper) {
         continue;
@@ -643,10 +648,25 @@ required super.metadata,''');
         case _PropertyTypeKindOther():
           break; // nothing
         case _PropertyTypeKindNode():
-          buffer.writeln('$becomeParentMethod(${property.name});');
+          var name = property.name;
+          if (property.v1Name != null) {
+            buffer.writeln('_becomeParentOf2($name);');
+            buffer.writeln(
+              '_becomeParentOf1(${property.projectToV1Code(name)});',
+            );
+          } else {
+            buffer.writeln('${implClass.api.becomeParentMethod}($name);');
+          }
         case _PropertyTypeKindNodeList():
           var name = property.name;
-          buffer.writeln('this.$name._initialize(this, $name);');
+          if (property.v1Name != null) {
+            buffer.writeln(
+              'this.$name._initializeProjected('
+              'this, $name, ${property.v1ProjectionMethod});',
+            );
+          } else {
+            buffer.writeln('this.$name._initialize(this, $name);');
+          }
       }
     }
 
@@ -900,12 +920,17 @@ $maybeOverride
 ${property.typeCode} get $propertyName => _$propertyName;
 ''');
         var setterAnnotations = property.v2MigrationAnnotations;
-        var becomeParentMethod = implClass.api.becomeParentMethod;
+        var setterBody = property.v1Name == null
+            ? '_$propertyName = '
+                  '${implClass.api.becomeParentMethod}($propertyName);'
+            : '_$propertyName = _becomeParentOf2($propertyName);\n'
+                  '_becomeParentOf1('
+                  '${property.projectToV1Code(propertyName)});';
         buffer.write('''
 \n@generated
 $setterAnnotations
 set $propertyName(${property.typeCode} $propertyName) {
-  _$propertyName = $becomeParentMethod($propertyName);
+  $setterBody
 }
 ''');
         if (property.v1Name case var v1Name?) {
@@ -1595,6 +1620,9 @@ class _ImplClass {
         generatedLookupNames.add('_$propertyName');
         generatedLookupNames.add('$propertyName=');
         if (property.v1Name case var v1Name?) {
+          // Remove the field generated for the property before it was split
+          // into stored V2 and projected V1 getters.
+          generatedLookupNames.add('_$v1Name');
           generatedLookupNames.add('$v1Name=');
         }
       }
@@ -1683,10 +1711,16 @@ class _Property {
         'and node-list properties.',
       );
     }
-    if (v1Projection != _V1ProjectionKind.none && isSuper) {
-      throw StateError(
-        '$name: v1Projection is not supported for super properties.',
-      );
+    if (typeKind case _PropertyTypeKindNodeList typeKind) {
+      var requiredProjection = typeKind.requiredV1Projection;
+      if (_astVersionPolicy.hasV1Projection && requiredProjection != null) {
+        if (v1Projection != requiredProjection) {
+          throw StateError(
+            '$name: NodeList<${typeKind.elementTypeCode}> requires '
+            '$requiredProjection during the V2 migration.',
+          );
+        }
+      }
     }
   }
 
@@ -1733,7 +1767,13 @@ class _Property {
         '$name: Expected a v1 projection.',
       ),
       _V1ProjectionKind.argument => 'V1Projection.toV1Argument',
+      _V1ProjectionKind.collectionElement =>
+        'V1Projection.toV1CollectionElement',
+      _V1ProjectionKind.commentReferableExpression =>
+        'V1Projection.toV1CommentReferableExpression',
       _V1ProjectionKind.expression => 'V1Projection.toV1Expression',
+      _V1ProjectionKind.recordLiteralField =>
+        'V1Projection.toV1RecordLiteralField',
     };
   }
 
@@ -1747,10 +1787,18 @@ class _Property {
   }
 
   String projectToV1Code(String expression) {
+    if (v1Projection != _V1ProjectionKind.none && isNullable) {
+      return 'switch ($expression) { '
+          'var node? => $v1ProjectionMethod(node), _ => null }';
+    }
     return switch (v1Projection) {
       _V1ProjectionKind.none => expression,
       _V1ProjectionKind.argument ||
-      _V1ProjectionKind.expression => '$v1ProjectionMethod($expression)',
+      _V1ProjectionKind.collectionElement ||
+      _V1ProjectionKind.commentReferableExpression ||
+      _V1ProjectionKind.expression ||
+      _V1ProjectionKind.recordLiteralField =>
+        '$v1ProjectionMethod($expression)',
     };
   }
 }
@@ -1788,6 +1836,22 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   String get elementTypeCode {
     return '${elementType.element.name!}Impl';
   }
+
+  _V1ProjectionKind? get requiredV1Projection {
+    var element = elementType.element;
+    if (element.library.uri != _InterfaceElementExtension.uriAst) {
+      return null;
+    }
+    return switch (element.name) {
+      'Argument' => _V1ProjectionKind.argument,
+      'CollectionElement' => _V1ProjectionKind.collectionElement,
+      'CommentReferableExpression' =>
+        _V1ProjectionKind.commentReferableExpression,
+      'Expression' => _V1ProjectionKind.expression,
+      'RecordLiteralField' => _V1ProjectionKind.recordLiteralField,
+      _ => null,
+    };
+  }
 }
 
 class _PropertyTypeKindOther extends _PropertyTypeKind {}
@@ -1807,7 +1871,14 @@ class _Replacement {
   _Replacement(this.offset, this.end, this.text);
 }
 
-enum _V1ProjectionKind { none, argument, expression }
+enum _V1ProjectionKind {
+  none,
+  argument,
+  collectionElement,
+  commentReferableExpression,
+  expression,
+  recordLiteralField,
+}
 
 extension _DartTypeExtension on DartType {
   String get asCode {

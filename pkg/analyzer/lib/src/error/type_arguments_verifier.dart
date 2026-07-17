@@ -181,7 +181,7 @@ class TypeArgumentsVerifier {
     // expressions, the function is on `node`'s `function`.
     // TODO(srawlins): It seems that `node.function`, the Expression, should
     // always have the static type of the `call` method.
-    var functionType = node.element?.type ?? node.function.staticType;
+    var functionType = node.element?.type ?? node.function2.staticType;
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       functionType,
@@ -192,7 +192,7 @@ class TypeArgumentsVerifier {
   void checkFunctionReference(FunctionReference node) {
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
-      node.function.staticType,
+      node.function2.staticType,
       node.staticType,
     );
   }

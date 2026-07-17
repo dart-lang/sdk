@@ -406,10 +406,10 @@ final class _ArgumentIndex extends _Argument {
 
   @override
   Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
-    return argumentList.arguments
+    return argumentList.arguments2
         .whereNotType<NamedArgument>()
         .elementAt(index)
-        .argumentExpression;
+        .argumentExpression2;
   }
 }
 
@@ -434,7 +434,7 @@ final class _ArgumentMapEntryValue extends _Argument {
       fail('Not a map literal: ${mapExpression.runtimeType}');
     }
 
-    var elements = mapExpression.elements;
+    var elements = mapExpression.elements2;
     if (elements.any((element) => element is! MapLiteralEntry)) {
       fail('Only plain map literal entries are supported.');
     }
@@ -443,7 +443,7 @@ final class _ArgumentMapEntryValue extends _Argument {
       fail('Map entry index $index is out of range: ${elements.length}');
     }
 
-    return (elements[index] as MapLiteralEntry).value;
+    return (elements[index] as MapLiteralEntry).value2;
   }
 }
 
@@ -455,11 +455,11 @@ final class _ArgumentNamed extends _Argument {
 
   @override
   Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
-    return argumentList.arguments
+    return argumentList.arguments2
         .whereType<NamedArgument>()
         .where((argument) => argument.name.lexeme == name)
         .single
-        .argumentExpression;
+        .argumentExpression2;
   }
 }
 

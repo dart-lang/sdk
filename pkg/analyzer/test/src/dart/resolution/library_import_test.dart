@@ -201,7 +201,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -287,7 +287,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -353,7 +353,7 @@ Configuration
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString
@@ -483,7 +483,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -603,7 +603,7 @@ ImportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString
@@ -830,7 +830,7 @@ ImportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString

@@ -300,7 +300,7 @@ class PropertyElementResolver with ScopeHelpers {
     return _resolve(
       node: node,
       target: target,
-      isCascaded: node.target == null,
+      isCascaded: node.target2 == null,
       isNullAware: node.isNullAware,
       propertyName: propertyName,
       hasRead: hasRead,
@@ -318,7 +318,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (ancestorCascade != null) {
       return _resolve(
         node: node,
-        target: ancestorCascade.target,
+        target: ancestorCascade.target2,
         isCascaded: true,
         isNullAware: ancestorCascade.isNullAware,
         propertyName: node,

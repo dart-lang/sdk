@@ -38,7 +38,7 @@ class FunctionReferenceResolver {
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   void resolve(FunctionReferenceImpl node) {
-    var function = node.function;
+    var function = node.function2;
     node.typeArguments?.accept2(_resolver);
 
     if (function is SimpleIdentifierImpl) {
@@ -226,7 +226,7 @@ class FunctionReferenceResolver {
       // ConstructorReference child is invalid. E.g. `List.filled<int>`.
       // [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR] is
       // reported elsewhere; don't check type arguments here.
-      if (node.function is ConstructorReference) {
+      if (node.function2 is ConstructorReference) {
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       } else {
         var typeArguments = node.typeArguments;
@@ -250,7 +250,7 @@ class FunctionReferenceResolver {
         // Only report constructor tearoff-related errors if the constructor
         // tearoff feature is enabled.
         _diagnosticReporter.report(
-          diag.disallowedTypeInstantiationExpression.at(node.function),
+          diag.disallowedTypeInstantiationExpression.at(node.function2),
         );
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       } else if (rawType is DynamicType) {
@@ -275,7 +275,7 @@ class FunctionReferenceResolver {
       target: InvocationTargetExecutableElement(callMethod),
     );
     var callReference = ImplicitCallReferenceImpl(
-      expression: node.function,
+      expression2: node.function2,
       element: callMethod,
       typeArguments: node.typeArguments,
       typeArgumentTypes: typeArgumentTypes,
@@ -287,7 +287,7 @@ class FunctionReferenceResolver {
 
   void _resolveConstructorReference(FunctionReferenceImpl node) {
     // TODO(srawlins): Rewrite and resolve [node] as a constructor reference.
-    node.function.accept2(_resolver);
+    node.function2.accept2(_resolver);
     node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
   }
 
@@ -324,7 +324,7 @@ class FunctionReferenceResolver {
       // Only report constructor tearoff-related errors if the constructor
       // tearoff feature is enabled.
       _diagnosticReporter.report(
-        diag.disallowedTypeInstantiationExpression.at(node.function),
+        diag.disallowedTypeInstantiationExpression.at(node.function2),
       );
     }
     _resolve(

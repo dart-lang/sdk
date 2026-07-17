@@ -97,7 +97,7 @@ class TypedLiteralResolver {
     }
 
     node.typeArguments?.accept2(_resolver);
-    _resolveElements(node.elements, context);
+    _resolveElements(node.elements2, context);
     var staticType = _resolveListLiteral2(
       inferrer,
       node,
@@ -183,7 +183,7 @@ class TypedLiteralResolver {
     }
 
     node.typeArguments?.accept2(_resolver);
-    _resolveElements(node.elements, context);
+    _resolveElements(node.elements2, context);
     _resolveSetOrMapLiteral2(
       inferrer,
       literalResolution,
@@ -197,10 +197,10 @@ class TypedLiteralResolver {
       case ExpressionImpl():
         return element.typeOrThrow;
       case ForElementImpl():
-        return _computeElementType(element.body);
+        return _computeElementType(element.body2);
       case IfElementImpl():
-        var thenElement = element.thenElement;
-        var elseElement = element.elseElement;
+        var thenElement = element.thenElement2;
+        var elseElement = element.elseElement2;
 
         var thenType = _computeElementType(thenElement);
         if (elseElement == null) {
@@ -213,7 +213,7 @@ class TypedLiteralResolver {
         // This error will be reported elsewhere.
         return _typeProvider.dynamicType;
       case SpreadElementImpl():
-        var expressionType = element.expression.typeOrThrow;
+        var expressionType = element.expression2.typeOrThrow;
 
         var iterableType = expressionType.asInstanceOf(
           _typeProvider.iterableElement,
@@ -240,7 +240,7 @@ class TypedLiteralResolver {
         // TODO(brianwilkerson): Report this as an error.
         return _typeProvider.dynamicType;
       case NullAwareElementImpl():
-        return _typeSystem.promoteToNonNull(element.value.typeOrThrow);
+        return _typeSystem.promoteToNonNull(element.value2.typeOrThrow);
       default:
         throw UnimplementedError('${element.runtimeType}');
     }
@@ -255,7 +255,7 @@ class TypedLiteralResolver {
       literal.typeArguments?.arguments,
     );
     _LiteralResolution contextResolution = _fromContextType(contextType);
-    _LeafElements elementCounts = _LeafElements(literal.elements);
+    _LeafElements elementCounts = _LeafElements(literal.elements2);
     _LiteralResolution elementResolution = elementCounts.resolution;
 
     List<_LiteralResolution> unambiguousResolutions = [];
@@ -296,7 +296,7 @@ class TypedLiteralResolver {
           : unambiguousResolutions[0];
     } else if (unambiguousResolutions.length == 1) {
       return unambiguousResolutions[0];
-    } else if (literal.elements.isEmpty) {
+    } else if (literal.elements2.isEmpty) {
       return _LiteralResolution(
         _LiteralResolutionKind.map,
         _typeProvider.mapType(_dynamicType, _dynamicType),
@@ -372,26 +372,26 @@ class TypedLiteralResolver {
           elementType: element.typeOrThrow,
         );
       case ForElementImpl():
-        return _inferCollectionElementType(element.body);
+        return _inferCollectionElementType(element.body2);
       case IfElementImpl():
         _InferredCollectionElementTypeInformation thenType =
-            _inferCollectionElementType(element.thenElement);
-        if (element.elseElement == null) {
+            _inferCollectionElementType(element.thenElement2);
+        if (element.elseElement2 == null) {
           return thenType;
         }
         _InferredCollectionElementTypeInformation elseType =
-            _inferCollectionElementType(element.elseElement!);
+            _inferCollectionElementType(element.elseElement2!);
         return _InferredCollectionElementTypeInformation.forIfElement(
           _typeSystem,
           thenType,
           elseType,
         );
       case MapLiteralEntryImpl():
-        var keyType = element.key.staticType;
+        var keyType = element.key2.staticType;
         if (keyType != null && element.keyQuestion != null) {
           keyType = _typeSystem.promoteToNonNull(keyType);
         }
-        var valueType = element.value.staticType;
+        var valueType = element.value2.staticType;
         if (valueType != null && element.valueQuestion != null) {
           valueType = _typeSystem.promoteToNonNull(valueType);
         }
@@ -400,7 +400,7 @@ class TypedLiteralResolver {
           valueType: valueType,
         );
       case SpreadElementImpl():
-        var expressionType = element.expression.typeOrThrow;
+        var expressionType = element.expression2.typeOrThrow;
 
         var iterableType = expressionType.asInstanceOf(
           _typeProvider.iterableElement,
@@ -448,7 +448,7 @@ class TypedLiteralResolver {
         return _InferredCollectionElementTypeInformation();
       case NullAwareElementImpl():
         return _InferredCollectionElementTypeInformation(
-          elementType: _typeSystem.promoteToNonNull(element.value.typeOrThrow),
+          elementType: _typeSystem.promoteToNonNull(element.value2.typeOrThrow),
         );
       default:
         throw UnimplementedError('${element.runtimeType}');
@@ -492,7 +492,7 @@ class TypedLiteralResolver {
     );
 
     // Also use upwards information to infer the type.
-    List<TypeImpl> elementTypes = node.elements
+    List<TypeImpl> elementTypes = node.elements2
         .map(_computeElementType)
         .toList();
     var syntheticParameter = FormalParameterElementImpl.synthetic(
@@ -562,7 +562,7 @@ class TypedLiteralResolver {
     var literalImpl = literal as SetOrMapLiteralImpl;
     var contextType = literalImpl.contextType;
     literalImpl.contextType = null; // Not needed anymore.
-    List<CollectionElementImpl> elements = literal.elements;
+    List<CollectionElementImpl> elements = literal.elements2;
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;
@@ -773,7 +773,7 @@ class TypedLiteralResolver {
       node.becomeSet();
     }
     if (_strictInference &&
-        node.elements.isEmpty &&
+        node.elements2.isEmpty &&
         contextType is UnknownInferredType) {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
@@ -1028,10 +1028,10 @@ class _LeafElements {
         expressionCount++;
       }
     } else if (element is ForElement) {
-      _count(element.body);
+      _count(element.body2);
     } else if (element is IfElement) {
-      _count(element.thenElement);
-      _count(element.elseElement);
+      _count(element.thenElement2);
+      _count(element.elseElement2);
     } else if (element is MapLiteralEntry) {
       if (_isComplete(element)) {
         mapEntryCount++;

@@ -2055,16 +2055,31 @@ Expected parent: (${parent.runtimeType}) $parent
         ? <ChildEntity>[]
         : node.namedChildEntities.toList();
     var entitiesByName = {for (var entity in entities) entity.name: entity};
+    var matchedV1Names = <String>{};
 
     for (var entity2 in entities2) {
+      var entity = entitiesByName[entity2.name];
+      if (entity == null && entity2.name.endsWith('2')) {
+        var v1Name = entity2.name.substring(0, entity2.name.length - 1);
+        entity = entitiesByName[v1Name];
+      }
+      if (entity != null) {
+        matchedV1Names.add(entity.name);
+      }
+
       _writeNamedChildEntity(node, entity2);
 
-      var entity = entitiesByName[entity2.name];
       var entityValue = entity?.value;
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/63806
       if (entity2.value is FormalParameterListImpl &&
           entityValue is FormalParameterListImpl &&
           entityValue.allFormalParameters.isNotEmpty) {
+        _withView(_AstView.v1, () {
+          _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
+        });
+      } else if (entity != null &&
+          entity.name != entity2.name &&
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -2079,10 +2094,9 @@ Expected parent: (${parent.runtimeType}) $parent
       return;
     }
 
-    var names2 = {for (var entity in entities2) entity.name};
     _withView(_AstView.v1, () {
       for (var entity in entities) {
-        if (!names2.contains(entity.name)) {
+        if (!matchedV1Names.contains(entity.name)) {
           _writeNamedChildEntity(node, entity);
         }
       }
@@ -2335,6 +2349,24 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
+  }
+
+  static bool _sameChildEntityValue(Object value2, Object value) {
+    if (identical(value2, value)) {
+      return true;
+    }
+    if (value2 is List<AstNode> && value is List<AstNode>) {
+      if (value2.length != value.length) {
+        return false;
+      }
+      for (var i = 0; i < value2.length; i++) {
+        if (!identical(value2[i], value[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 }
 

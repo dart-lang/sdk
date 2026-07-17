@@ -76,7 +76,7 @@ mixin ErrorDetectionHelpers {
     } else if (argument.parent2
         case ArgumentListImpl(
           parent2: FunctionExpressionInvocationImpl(
-            function: Expression(:var staticType),
+            function2: Expression(:var staticType),
           ),
         )
         when identical(staticType, DynamicTypeImpl.instance) ||
@@ -116,10 +116,10 @@ mixin ErrorDetectionHelpers {
     )) {
       AstNode getErrorNode(AstNode node) {
         if (node is CascadeExpression) {
-          return getErrorNode(node.target);
+          return getErrorNode(node.target2);
         }
         if (node is ParenthesizedExpression) {
-          return getErrorNode(node.expression);
+          return getErrorNode(node.expression2);
         }
         return node;
       }
@@ -171,7 +171,7 @@ mixin ErrorDetectionHelpers {
     // prepare field type
     var fieldType = fieldElement.type;
     // prepare expression type
-    Expression expression = initializer.expression;
+    Expression expression = initializer.expression2;
     // test the static type of the expression
     var staticType = expression.typeOrThrow;
     if (typeSystem.isAssignableTo(

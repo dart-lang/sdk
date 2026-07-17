@@ -71,7 +71,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: f
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> f@34
@@ -112,7 +112,7 @@ ExtensionDeclaration
         name: g
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
             staticType: int
           semicolon: ;

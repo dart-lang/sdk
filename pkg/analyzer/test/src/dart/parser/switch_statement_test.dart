@@ -32,9 +32,9 @@ void f(Object value) {
     assertParsedNodeText(node, r'''
 SwitchCase
   keyword: case
-  expression: ParenthesizedExpression
+  expression2: ParenthesizedExpression
     leftParenthesis: (
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: int
     rightParenthesis: )
   colon: :

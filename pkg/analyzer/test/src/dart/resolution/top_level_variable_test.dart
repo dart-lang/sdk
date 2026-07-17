@@ -32,14 +32,14 @@ final x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer: MethodInvocation
+  initializer2: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: g
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -67,7 +67,7 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@100
@@ -108,14 +108,14 @@ final String? x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer: MethodInvocation
+  initializer2: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: g
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -143,7 +143,7 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@108

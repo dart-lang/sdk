@@ -47,7 +47,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @12
-                    arguments
+                    arguments2
                       SymbolLiteral
                         poundSign: # @13
                         components
@@ -61,7 +61,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -175,7 +175,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::A::@getter::v1
@@ -359,7 +359,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::A::@getter::v1
@@ -558,7 +558,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::A::@getter::v1
@@ -753,7 +753,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -893,7 +893,7 @@ library
                     element: <null>
                   argumentList: ArgumentList
                     leftParenthesis: ( @13
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 1 @14
                         staticType: null
@@ -913,7 +913,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @20
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 2 @21
                         staticType: int
@@ -925,7 +925,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::A::@getter::v1
@@ -976,7 +976,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @79
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 3 @80
                         staticType: int
@@ -1089,7 +1089,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::A::@getter::v1
@@ -1226,7 +1226,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -1326,7 +1326,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -1426,7 +1426,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -1511,7 +1511,7 @@ library
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -1704,7 +1704,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::A::@getter::v1
@@ -1924,7 +1924,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -2085,7 +2085,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -2246,7 +2246,7 @@ library
                       substitution: {T: int}
                   argumentList: ArgumentList
                     leftParenthesis: ( @17
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 1 @18
                         staticType: int
@@ -2267,7 +2267,7 @@ library
                       substitution: {T: String}
                   argumentList: ArgumentList
                     leftParenthesis: ( @30
-                    arguments
+                    arguments2
                       SimpleStringLiteral
                         literal: '2' @31
                     rightParenthesis: ) @34
@@ -2278,7 +2278,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: int @-1
                       element: <testLibrary>::@enum::E::@getter::int
@@ -2416,7 +2416,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -2566,7 +2566,7 @@ library
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @72
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 100 @73
                         staticType: int
@@ -2611,7 +2611,7 @@ library
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @92
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 300 @93
                         staticType: int
@@ -2635,7 +2635,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -2711,7 +2711,7 @@ library
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @72
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 100 @73
                     staticType: int
@@ -2742,7 +2742,7 @@ library
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @92
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 300 @93
                     staticType: int
@@ -2835,7 +2835,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -2954,7 +2954,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -3069,7 +3069,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: _name @-1
                       element: <testLibrary>::@enum::E::@getter::_name
@@ -3172,7 +3172,7 @@ library
                       substitution: {T: double}
                   argumentList: ArgumentList
                     leftParenthesis: ( @23
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 42 @24
                         staticType: double
@@ -3184,7 +3184,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -3289,7 +3289,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: _ @-1
                       element: <testLibrary>::@enum::E::@getter::_
@@ -3391,7 +3391,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -3500,7 +3500,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -3551,7 +3551,7 @@ library
             AssertInitializer
               assertKeyword: assert @26
               leftParenthesis: ( @32
-              condition: BooleanLiteral
+              condition2: BooleanLiteral
                 literal: true @33
                 staticType: bool
               rightParenthesis: ) @37
@@ -3609,7 +3609,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -3674,7 +3674,7 @@ library
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
               equals: = @43
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @45
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -3739,7 +3739,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -3762,7 +3762,7 @@ library
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @45
-                    arguments
+                    arguments2
                       SimpleStringLiteral
                         literal: '0' @46
                     rightParenthesis: ) @49
@@ -3820,7 +3820,7 @@ library
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @45
-                arguments
+                arguments2
                   SimpleStringLiteral
                     literal: '0' @46
                 rightParenthesis: ) @49
@@ -3832,7 +3832,7 @@ library
                 element: <testLibrary>::@enum::E::@field::y
                 staticType: null
               equals: = @62
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @64
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -3886,7 +3886,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @19
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @20
                         staticType: int
@@ -3898,7 +3898,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -4026,7 +4026,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -4078,7 +4078,7 @@ library
             AssertInitializer
               assertKeyword: assert @40
               leftParenthesis: ( @46
-              condition: BooleanLiteral
+              condition2: BooleanLiteral
                 literal: true @47
                 staticType: bool
               rightParenthesis: ) @51
@@ -4135,7 +4135,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -4233,7 +4233,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -4284,7 +4284,7 @@ library
             AssertInitializer
               assertKeyword: assert @26
               leftParenthesis: ( @32
-              condition: BooleanLiteral
+              condition2: BooleanLiteral
                 literal: true @33
                 staticType: bool
               rightParenthesis: ) @37
@@ -4333,7 +4333,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @19
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 1 @20
                         staticType: int
@@ -4345,7 +4345,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -4403,13 +4403,13 @@ library
             AssertInitializer
               assertKeyword: assert @34
               leftParenthesis: ( @40
-              condition: BinaryExpression
-                leftOperand: SimpleIdentifier
+              condition2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: x @41
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: > @43
-                rightOperand: IntegerLiteral
+                rightOperand2: IntegerLiteral
                   literal: 0 @45
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -4459,11 +4459,11 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @30
-                    arguments
+                    arguments2
                       NamedArgument
                         name: foo @31
                         colon: : @34
-                        argumentExpression: IntegerLiteral
+                        argumentExpression2: IntegerLiteral
                           literal: 0 @36
                           staticType: int
                     rightParenthesis: ) @37
@@ -4474,7 +4474,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -4588,7 +4588,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @30
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @31
                         staticType: int
@@ -4600,7 +4600,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -4714,11 +4714,11 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @38
-                    arguments
+                    arguments2
                       NamedArgument
                         name: foo @39
                         colon: : @42
-                        argumentExpression: IntegerLiteral
+                        argumentExpression2: IntegerLiteral
                           literal: 0 @44
                           staticType: int
                     rightParenthesis: ) @45
@@ -4729,7 +4729,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -4855,7 +4855,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -5000,7 +5000,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @69
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @70
                         staticType: int
@@ -5012,7 +5012,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -5153,7 +5153,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @25
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @26
                         staticType: int
@@ -5165,7 +5165,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -5315,7 +5315,7 @@ library
                     element: <testLibrary>::@enum::B::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @69
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @70
                         staticType: int
@@ -5327,7 +5327,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::B::@getter::v
@@ -5468,7 +5468,7 @@ library
                       substitution: {T: int}
                   argumentList: ArgumentList
                     leftParenthesis: ( @28
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @29
                         staticType: int
@@ -5480,7 +5480,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -5599,7 +5599,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @22
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @23
                         staticType: int
@@ -5611,7 +5611,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -5724,7 +5724,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @23
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @24
                         staticType: int
@@ -5736,7 +5736,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -5832,7 +5832,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @21
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @22
                         staticType: int
@@ -5844,7 +5844,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -5953,7 +5953,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -6056,7 +6056,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -6171,7 +6171,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6359,7 +6359,7 @@ library
                       substitution: {T: int, U: int}
                   argumentList: ArgumentList
                     leftParenthesis: ( @50
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @51
                         staticType: int
@@ -6374,7 +6374,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -6490,7 +6490,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -6587,7 +6587,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -6696,7 +6696,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -6825,7 +6825,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -6948,7 +6948,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -7065,7 +7065,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -7173,7 +7173,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -7291,7 +7291,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -7359,7 +7359,7 @@ library
                 element: <testLibrary>::@enum::A::@field::f
                 staticType: null
               equals: = @72
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @74
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -7418,7 +7418,7 @@ library
                     element: <null>
                   argumentList: ArgumentList
                     leftParenthesis: ( @12
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @13
                         staticType: int
@@ -7430,7 +7430,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -7565,7 +7565,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -7687,7 +7687,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7786,7 +7786,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7893,7 +7893,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8004,7 +8004,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8112,7 +8112,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8133,11 +8133,11 @@ library
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   initializer: expression_2
                     BinaryExpression
-                      leftOperand: IntegerLiteral
+                      leftOperand2: IntegerLiteral
                         literal: 1 @50
                         staticType: int
                       operator: + @52
-                      rightOperand: IntegerLiteral
+                      rightOperand2: IntegerLiteral
                         literal: 2 @54
                         staticType: int
                       element: dart:core::@class::num::@method::+
@@ -8251,7 +8251,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8375,7 +8375,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8499,7 +8499,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8623,7 +8623,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8749,7 +8749,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -8888,7 +8888,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9001,7 +9001,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9072,8 +9072,8 @@ library
             AssertInitializer
               assertKeyword: assert @51
               leftParenthesis: ( @57
-              condition: IsExpression
-                expression: SimpleIdentifier
+              condition2: IsExpression
+                expression2: SimpleIdentifier
                   token: a @58
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
                   staticType: T?
@@ -9090,7 +9090,7 @@ library
                 element: <testLibrary>::@enum::E::@field::x
                 staticType: null
               equals: = @69
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @71
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -9154,7 +9154,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9293,7 +9293,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @18
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 42 @19
                         staticType: int
@@ -9305,7 +9305,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9417,7 +9417,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9521,7 +9521,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9620,7 +9620,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9719,7 +9719,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9824,7 +9824,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -9925,7 +9925,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -10016,7 +10016,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @12
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 42 @13
                         staticType: int
@@ -10028,7 +10028,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -10166,7 +10166,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A#1::@getter::v
@@ -10443,7 +10443,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -10632,7 +10632,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -10732,7 +10732,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -10888,7 +10888,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: aaa @-1
                       element: <testLibrary>::@enum::E::@getter::aaa
@@ -11026,7 +11026,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -11382,7 +11382,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -11591,7 +11591,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -11717,7 +11717,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -11863,7 +11863,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -12029,7 +12029,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -12188,7 +12188,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -12330,7 +12330,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -12473,7 +12473,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -12600,7 +12600,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -12850,7 +12850,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -12993,7 +12993,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -13174,7 +13174,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::#0::@getter::v
@@ -13270,7 +13270,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -13384,7 +13384,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -13527,7 +13527,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -13701,7 +13701,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -13831,7 +13831,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -14019,7 +14019,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -14129,7 +14129,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -14248,7 +14248,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -14368,7 +14368,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -14496,7 +14496,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -14628,7 +14628,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -14748,7 +14748,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -15069,7 +15069,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -15480,7 +15480,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::E::@getter::v1
@@ -15596,7 +15596,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: <testLibrary>::@enum::E1::@getter::v1
@@ -15638,7 +15638,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v2 @-1
                       element: <testLibrary>::@enum::E2::@getter::v2
@@ -15773,7 +15773,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -15900,7 +15900,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -16069,7 +16069,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -16217,7 +16217,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -16286,7 +16286,7 @@ library
                 element: <testLibrary>::@enum::A::@field::foo
                 staticType: null
               equals: = @32
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @34
                 staticType: int
           superConstructor: dart:core::@class::Enum::@constructor::new
@@ -16345,7 +16345,7 @@ library
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @12
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @13
                         staticType: int
@@ -16357,7 +16357,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -16491,7 +16491,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -16641,7 +16641,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -16800,7 +16800,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -16968,7 +16968,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -17116,7 +17116,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -17259,7 +17259,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -17411,7 +17411,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -17598,7 +17598,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -17716,7 +17716,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -17867,7 +17867,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -18012,7 +18012,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -18152,7 +18152,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -18291,7 +18291,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -18436,7 +18436,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -18554,7 +18554,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -18690,7 +18690,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -18819,7 +18819,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -18952,7 +18952,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -19088,7 +19088,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -19225,7 +19225,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::B::@getter::v
@@ -19357,7 +19357,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::B::@getter::v
@@ -19489,7 +19489,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::B::@getter::v
@@ -19611,7 +19611,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -19741,7 +19741,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -19881,7 +19881,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -20011,7 +20011,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -20141,7 +20141,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -20267,7 +20267,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -20424,7 +20424,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -20591,7 +20591,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -20745,7 +20745,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -20894,7 +20894,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -20992,7 +20992,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @21
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @22
                         staticType: int
@@ -21004,7 +21004,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -21126,7 +21126,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @27
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @28
                         staticType: int
@@ -21138,7 +21138,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -21278,7 +21278,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @21
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @22
                         staticType: int
@@ -21290,7 +21290,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -21412,7 +21412,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @22
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @23
                         staticType: int
@@ -21424,7 +21424,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -21436,25 +21436,25 @@ library
               element: <testLibrary>::@enum::E::@field::bar
               initializer: expression_2
                 ConditionalExpression
-                  condition: BinaryExpression
-                    leftOperand: SimpleIdentifier
+                  condition2: BinaryExpression
+                    leftOperand2: SimpleIdentifier
                       token: foo @42
                       element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                       staticType: int?
                     operator: != @46
-                    rightOperand: NullLiteral
+                    rightOperand2: NullLiteral
                       literal: null @49
                       staticType: Null
                     element: dart:core::@class::num::@method::==
                     staticInvokeType: bool Function(Object)
                     staticType: bool
                   question: ? @54
-                  thenExpression: SimpleIdentifier
+                  thenExpression2: SimpleIdentifier
                     token: foo @56
                     element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                     staticType: int
                   colon: : @60
-                  elseExpression: IntegerLiteral
+                  elseExpression2: IntegerLiteral
                     literal: 0 @62
                     staticType: int
                   staticType: int
@@ -21565,7 +21565,7 @@ library
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @21
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 0 @22
                         staticType: int
@@ -21577,7 +21577,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -21699,7 +21699,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -21826,7 +21826,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -21980,7 +21980,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -22141,7 +22141,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v
@@ -22288,7 +22288,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::A::@getter::v

@@ -880,7 +880,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -913,7 +913,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -947,7 +947,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -978,7 +978,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1010,7 +1010,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1275,7 +1275,7 @@ EnumDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1499,7 +1499,7 @@ EnumDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -1558,7 +1558,7 @@ EnumDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -1783,7 +1783,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -1831,7 +1831,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -1877,7 +1877,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
             rightParenthesis: )

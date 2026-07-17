@@ -306,7 +306,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
             _addResultForPrefix(node, parent.identifier);
           }
         }
-        if (parent is MethodInvocation && parent.target == node) {
+        if (parent is MethodInvocation && parent.target2 == node) {
           var element = parent.methodName.element?.baseElement;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.methodName);

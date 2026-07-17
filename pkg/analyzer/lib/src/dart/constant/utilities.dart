@@ -23,7 +23,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
 
   @override
   visitConstantPattern(ConstantPattern node) {
-    _find(node.expression);
+    _find(node.expression2);
   }
 
   @override
@@ -57,7 +57,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
 
   @override
   void visitMapPatternEntry(MapPatternEntry node) {
-    _find(node.key);
+    _find(node.key2);
     super.visitMapPatternEntry(node);
   }
 
@@ -72,7 +72,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
 
   @override
   void visitRelationalPattern(RelationalPattern node) {
-    _find(node.operand);
+    _find(node.operand2);
   }
 
   @override
@@ -82,13 +82,13 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
     } else {
       if (node.isMap) {
         // Values of keys are computed to check that they are unique.
-        for (var entry in node.elements) {
+        for (var entry in node.elements2) {
           // TODO(mfairhurst): How do if/for loops/spreads affect this?
           _find(entry);
         }
       } else if (node.isSet) {
         // values of sets are computed to check that they are unique.
-        for (var entry in node.elements) {
+        for (var entry in node.elements2) {
           _find(entry);
         }
       }
@@ -98,7 +98,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _find(node.expression);
+    _find(node.expression2);
     node.statements.accept2(this);
   }
 
@@ -210,7 +210,7 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
-    var initializer = node.initializer;
+    var initializer = node.initializer2;
     var element = node.declaredFragment!.element;
     if (initializer != null &&
         (node.isConst ||
@@ -223,7 +223,7 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
       if (element.constantInitializer case var constantInitializer?) {
         configuration.addErrorNode(
           fromElement: constantInitializer,
-          fromAst: node.initializer,
+          fromAst: node.initializer2,
         );
       }
     }

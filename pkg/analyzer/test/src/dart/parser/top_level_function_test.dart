@@ -280,7 +280,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
       semicolon: ;
 ''');
@@ -341,7 +341,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
       semicolon: ;
 ''');
@@ -425,7 +425,7 @@ FunctionDeclaration
           next: T5 |http|
         statements
           ExpressionStatement
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: T5 http @15
                   previous: T4 |{|

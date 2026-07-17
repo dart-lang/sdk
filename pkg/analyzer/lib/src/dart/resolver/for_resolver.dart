@@ -28,7 +28,7 @@ class ForResolver {
   void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body.resolveElement(_resolver, context);
+      node.body2.resolveElement(_resolver, context);
       _resolver.popRewrite();
     }
 
@@ -40,7 +40,7 @@ class ForResolver {
         awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
-          _resolver.dispatchCollectionElement(node.body, context);
+          _resolver.dispatchCollectionElement(node.body2, context);
         },
       );
     } else if (forLoopParts is ForEachPartsImpl) {
@@ -221,7 +221,7 @@ class ForResolver {
     if (forParts is ForPartsWithDeclarationsImpl) {
       forParts.variables.accept2(_resolver);
     } else if (forParts is ForPartsWithExpressionImpl) {
-      if (forParts.initialization case var initialization?) {
+      if (forParts.initialization2 case var initialization?) {
         _resolver.analyzeExpression(
           initialization,
           _resolver.operations.unknownType,
@@ -259,10 +259,10 @@ class ForResolver {
 
     _resolver.flowAnalysis.flow?.for_updaterBegin();
     _resolver.nullSafetyDeadCodeVerifier.for_updaterBegin(
-      forParts.updaters,
+      forParts.updaters2,
       deadCodeForPartsState,
     );
-    for (var updater in forParts.updaters) {
+    for (var updater in forParts.updaters2) {
       _resolver.analyzeExpression(updater, _resolver.operations.unknownType);
       _resolver.popRewrite();
     }

@@ -81,7 +81,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 0
       staticType: int
@@ -101,7 +101,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 0
       staticType: int

@@ -34,26 +34,26 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
       for (var initializer in initializers) {
         if (initializer is! ConstructorInitializerImpl) continue;
         switch (initializer) {
-          case AssertInitializerImpl(:var condition, :var message):
+          case AssertInitializerImpl(:var condition2, :var message2):
             var conditionReplacement = replaceNotSerializableExpression(
-              condition,
+              condition2,
             );
-            initializer.condition = conditionReplacement;
+            initializer.condition2 = conditionReplacement;
 
-            if (message != null) {
+            if (message2 != null) {
               var messageReplacement = replaceNotSerializableExpression(
-                message,
+                message2,
               );
-              initializer.message = messageReplacement;
+              initializer.message2 = messageReplacement;
             }
-          case ConstructorFieldInitializerImpl(:var expression):
-            var replacement = replaceNotSerializableExpression(expression);
-            initializer.expression = replacement;
+          case ConstructorFieldInitializerImpl(:var expression2):
+            var replacement = replaceNotSerializableExpression(expression2);
+            initializer.expression2 = replacement;
             AstNodeImpl.linkNodeTokens(initializer);
           case RedirectingConstructorInvocationImpl(:var argumentList):
-            _sanitizeArguments(argumentList.arguments);
+            _sanitizeArguments(argumentList.arguments2);
           case SuperConstructorInvocationImpl(:var argumentList):
-            _sanitizeArguments(argumentList.arguments);
+            _sanitizeArguments(argumentList.arguments2);
         }
       }
 
@@ -67,7 +67,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
     for (var annotation in element.metadata.annotations) {
       var ast = (annotation as ElementAnnotationImpl).annotationAst;
       _detachNode(ast);
-      _sanitizeArguments(ast.arguments?.arguments);
+      _sanitizeArguments(ast.arguments?.arguments2);
     }
     super.visitElement(element);
   }
@@ -132,8 +132,8 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
           case ExpressionImpl():
             arguments[i] = replaceNotSerializableExpression(argument);
           case NamedArgumentImpl():
-            argument.argumentExpression = replaceNotSerializableExpression(
-              argument.argumentExpression,
+            argument.argumentExpression2 = replaceNotSerializableExpression(
+              argument.argumentExpression2,
             );
         }
       }

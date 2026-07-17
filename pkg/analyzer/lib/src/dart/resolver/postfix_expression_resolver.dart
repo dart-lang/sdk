@@ -40,14 +40,14 @@ class PostfixExpressionResolver {
     }
 
     var operandResolution = _resolver.resolveForWrite(
-      node: node.operand,
+      node: node.operand2,
       hasRead: true,
     );
 
     var readElement = operandResolution.readElement2;
     var writeElement = operandResolution.writeElement2;
 
-    var operand = node.operand;
+    var operand = node.operand2;
     _resolver.setReadElement(
       operand,
       readElement,
@@ -129,7 +129,7 @@ class PostfixExpressionResolver {
   }
 
   void _resolve1(PostfixExpressionImpl node, TypeImpl receiverType) {
-    ExpressionImpl operand = node.operand;
+    ExpressionImpl operand = node.operand2;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _resolver.diagnosticReporter.report(diag.receiverOfTypeNever.at(operand));
@@ -165,7 +165,7 @@ class PostfixExpressionResolver {
   }
 
   void _resolve2(PostfixExpressionImpl node, TypeImpl receiverType) {
-    Expression operand = node.operand;
+    Expression operand = node.operand2;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
@@ -197,7 +197,7 @@ class PostfixExpressionResolver {
     PostfixExpressionImpl node, {
     required TypeImpl contextType,
   }) {
-    var operand = node.operand;
+    var operand = node.operand2;
 
     if (operand is SuperExpression) {
       _resolver.diagnosticReporter.report(

@@ -58,7 +58,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   void visitArgumentList(ArgumentList node) {
     // Check (optional) positional arguments.
     // Named arguments are checked in [NamedArgument].
-    for (var argument in node.arguments) {
+    for (var argument in node.arguments2) {
       if (argument is! NamedArgument) {
         var parameter = argument.correspondingParameter;
         _checkSinceSdkVersion(parameter, node, errorEntity: argument);
@@ -177,7 +177,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
             return;
           }
           if (target is AssignmentExpression) {
-            target = target.leftHandSide;
+            target = target.leftHandSide2;
           }
           if (target is ConstructorName) {
             errorEntity = target.name?.token ?? target.type.name;

@@ -515,7 +515,7 @@ class MethodInvocationResolver with ScopeHelpers {
       _reportStaticAccessToInstanceMember(getter, nameNode);
       _rewriteAsFunctionExpressionInvocation(
         node,
-        node.target,
+        node.target2,
         node.operator,
         node.methodName,
         node.typeArguments,
@@ -606,7 +606,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (member is InternalPropertyAccessorElement) {
       _rewriteAsFunctionExpressionInvocation(
         node,
-        node.target,
+        node.target2,
         node.operator,
         node.methodName,
         node.typeArguments,
@@ -647,7 +647,7 @@ class MethodInvocationResolver with ScopeHelpers {
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
     } else if (targetElement != null &&
         !targetElement.isStatic &&
-        _hasMatchingObjectMethod(targetElement, node.argumentList.arguments)) {
+        _hasMatchingObjectMethod(targetElement, node.argumentList.arguments2)) {
       nameNode.element = targetElement;
       target = InvocationTargetExecutableElement(targetElement);
       nameNode.setPseudoExpressionStaticType(targetElement.type);
@@ -775,7 +775,7 @@ class MethodInvocationResolver with ScopeHelpers {
       if (element is InternalPropertyAccessorElement) {
         _rewriteAsFunctionExpressionInvocation(
           node,
-          node.target,
+          node.target2,
           node.operator,
           node.methodName,
           node.typeArguments,
@@ -805,7 +805,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
         _rewriteAsFunctionExpressionInvocation(
           node,
-          node.target,
+          node.target2,
           node.operator,
           node.methodName,
           node.typeArguments,
@@ -946,7 +946,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (element is InternalPropertyAccessorElement) {
       _rewriteAsFunctionExpressionInvocation(
         node,
-        node.target,
+        node.target2,
         node.operator,
         node.methodName,
         node.typeArguments,
@@ -1012,7 +1012,7 @@ class MethodInvocationResolver with ScopeHelpers {
       if (target is InternalPropertyAccessorElement) {
         _rewriteAsFunctionExpressionInvocation(
           node,
-          node.target,
+          node.target2,
           node.operator,
           node.methodName,
           node.typeArguments,
@@ -1131,7 +1131,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (recordField != null) {
       _rewriteAsFunctionExpressionInvocation(
         node,
-        node.target,
+        node.target2,
         node.operator,
         node.methodName,
         node.typeArguments,
@@ -1155,7 +1155,7 @@ class MethodInvocationResolver with ScopeHelpers {
       if (target is PropertyAccessorElement) {
         _rewriteAsFunctionExpressionInvocation(
           node,
-          node.target,
+          node.target2,
           node.operator,
           node.methodName,
           node.typeArguments,
@@ -1228,7 +1228,7 @@ class MethodInvocationResolver with ScopeHelpers {
         if (element is InternalPropertyAccessorElement) {
           _rewriteAsFunctionExpressionInvocation(
             node,
-            node.target,
+            node.target2,
             node.operator,
             node.methodName,
             node.typeArguments,
@@ -1375,7 +1375,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       } else if (isCascaded) {
         functionExpression = PropertyAccessImpl(
-          target: null,
+          target2: null,
           operator: operator!,
           propertyName: methodName,
         );
@@ -1412,7 +1412,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       } else {
         functionExpression = PropertyAccessImpl(
-          target: target,
+          target2: target,
           operator: operator!,
           propertyName: methodName,
         );
@@ -1444,7 +1444,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     var invocation = FunctionExpressionInvocationImpl(
-      function: functionExpression,
+      function2: functionExpression,
       typeArguments: typeArguments,
       argumentList: argumentList,
     );
@@ -1561,7 +1561,7 @@ class MethodInvocationResolver with ScopeHelpers {
     inferenceLogWriter?.recordLookupResult(
       expression: node,
       type: type,
-      target: node.target,
+      target: node.target2,
       methodName: node.methodName.name,
     );
     // TODO(scheglov): We need this for StaticTypeAnalyzer to run inference.

@@ -288,7 +288,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer: ListLiteral
+        initializer2: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;
@@ -321,7 +321,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer: ListLiteral
+        initializer2: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;

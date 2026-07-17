@@ -38,13 +38,13 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -74,7 +74,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               Block
@@ -108,7 +108,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               BreakStatement
@@ -142,7 +142,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               ContinueStatement
@@ -174,7 +174,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               DoStatement
@@ -184,7 +184,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -214,7 +214,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -243,7 +243,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               ForStatement
@@ -286,13 +286,13 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -324,7 +324,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               LabeledStatement
@@ -361,7 +361,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -403,7 +403,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -445,7 +445,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -481,7 +481,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               ReturnStatement
@@ -513,13 +513,13 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -550,7 +550,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               TryStatement
@@ -588,13 +588,13 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -624,12 +624,12 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: FunctionExpressionInvocation
-                  function: SimpleIdentifier
+                expression2: FunctionExpressionInvocation
+                  function2: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -660,7 +660,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SetOrMapLiteral
+                expression2: SetOrMapLiteral
                   leftBracket: {
                   rightBracket: }
                   isMap: false
@@ -694,7 +694,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               BreakStatement
@@ -729,7 +729,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ContinueStatement
@@ -763,7 +763,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               DoStatement
@@ -773,7 +773,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -805,7 +805,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -836,7 +836,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ForStatement
@@ -881,13 +881,13 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -922,11 +922,11 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: l
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -960,7 +960,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: FunctionExpression
+                expression2: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -997,7 +997,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: FunctionExpression
+                expression2: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -1034,7 +1034,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -1072,7 +1072,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ;
             rightBracket: }
@@ -1101,10 +1101,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SwitchExpression
+                expression2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -1138,7 +1138,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               TryStatement
@@ -1178,13 +1178,13 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block

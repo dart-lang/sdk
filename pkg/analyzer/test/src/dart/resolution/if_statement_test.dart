@@ -30,7 +30,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -38,7 +38,7 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -63,7 +63,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -101,13 +101,13 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -119,7 +119,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -144,7 +144,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -184,13 +184,13 @@ IfStatement
         requiredType: List<int>
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -202,7 +202,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -227,7 +227,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -266,13 +266,13 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -284,7 +284,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -309,7 +309,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -347,13 +347,13 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: <null>
             staticType: int
@@ -365,7 +365,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: InvalidType
@@ -392,7 +392,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -413,27 +413,27 @@ IfStatement
             matchedValueType: Object?
           operator: ||
           rightOperand: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 2
               staticType: int
             matchedValueType: Object?
           matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 3
             staticType: int
           matchedValueType: Object?
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -445,7 +445,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -470,7 +470,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -503,20 +503,20 @@ IfStatement
           matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 3
             staticType: int
           matchedValueType: Object?
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -528,7 +528,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -551,7 +551,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -596,13 +596,13 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -614,7 +614,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -639,7 +639,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -660,7 +660,7 @@ IfStatement
             matchedValueType: Object?
           operator: ||
           rightOperand: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 2
               staticType: int
             matchedValueType: Object?
@@ -679,13 +679,13 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -697,7 +697,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -724,7 +724,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -734,7 +734,7 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: LogicalOrPattern
           leftOperand: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 1
               staticType: int
             matchedValueType: Object?
@@ -752,20 +752,20 @@ IfStatement
           matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 3
             staticType: int
           matchedValueType: Object?
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -777,7 +777,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -802,7 +802,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -812,7 +812,7 @@ IfStatement
       pattern: LogicalOrPattern
         leftOperand: LogicalOrPattern
           leftOperand: ConstantPattern
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 1
               staticType: int
             matchedValueType: Object?
@@ -842,13 +842,13 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -860,7 +860,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -897,7 +897,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -919,7 +919,7 @@ IfStatement
             matchedValueType: Object?
           RelationalPattern
             operator: ==
-            operand: SimpleIdentifier
+            operand2: SimpleIdentifier
               token: a
               element: a@51
               staticType: int
@@ -930,13 +930,13 @@ IfStatement
         requiredType: List<Object?>
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@51
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -948,7 +948,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@51
           staticType: int
@@ -959,7 +959,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: int
@@ -988,7 +988,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1008,7 +1008,7 @@ IfStatement
           matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
@@ -1016,7 +1016,7 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: bool
@@ -1025,7 +1025,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@null
           staticType: bool
@@ -1036,7 +1036,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: int
@@ -1063,7 +1063,7 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1082,13 +1082,13 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: a
             element: a@37
             staticType: int
           operator: >
-          rightOperand: IntegerLiteral
+          rightOperand2: IntegerLiteral
             literal: 0
             correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
@@ -1100,7 +1100,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@37
           staticType: int
@@ -1111,7 +1111,7 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: <null>
           staticType: InvalidType
@@ -1137,7 +1137,7 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SuperExpression
+  expression2: SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
@@ -1163,7 +1163,7 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -1172,7 +1172,7 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
         constKeyword: const
-        expression: InstanceCreationExpression
+        expression2: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
               name: A
@@ -1203,8 +1203,8 @@ void f(bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: FunctionExpressionInvocation
-    function: SimpleIdentifier
+  expression2: FunctionExpressionInvocation
+    function2: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: bool Function()
@@ -1233,8 +1233,8 @@ void f(int Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: FunctionExpressionInvocation
-    function: SimpleIdentifier
+  expression2: FunctionExpressionInvocation
+    function2: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
@@ -1248,7 +1248,7 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 42
           staticType: int
         matchedValueType: int
@@ -1271,7 +1271,7 @@ void f(x, bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -1279,14 +1279,14 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
       whenClause: WhenClause
         whenKeyword: when
-        expression: FunctionExpressionInvocation
-          function: SimpleIdentifier
+        expression2: FunctionExpressionInvocation
+          function2: SimpleIdentifier
             token: a
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: bool Function()
@@ -1315,7 +1315,7 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -1323,13 +1323,13 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
       whenClause: WhenClause
         whenKeyword: when
-        expression: BooleanLiteral
+        expression2: BooleanLiteral
           literal: true
           staticType: bool
   rightParenthesis: )
@@ -1367,8 +1367,8 @@ f(bool b) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: IsExpression
-    expression: SimpleIdentifier
+  expression2: IsExpression
+    expression2: SimpleIdentifier
       token: x
       element: x@24
       staticType: num
@@ -1383,13 +1383,13 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: FunctionExpression
+        expression2: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@24
@@ -1430,8 +1430,8 @@ f(bool b) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: IsExpression
-    expression: SimpleIdentifier
+  expression2: IsExpression
+    expression2: SimpleIdentifier
       token: x
       element: x@29
       staticType: num
@@ -1446,13 +1446,13 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: FunctionExpression
+        expression2: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@29
@@ -1493,13 +1493,13 @@ f(bool b) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: BinaryExpression
-    leftOperand: SimpleIdentifier
+  expression2: BinaryExpression
+    leftOperand2: SimpleIdentifier
       token: x
       element: x@25
       staticType: int?
     operator: !=
-    rightOperand: NullLiteral
+    rightOperand2: NullLiteral
       literal: null
       correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
       staticType: Null
@@ -1511,13 +1511,13 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: FunctionExpression
+        expression2: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@25
@@ -1558,13 +1558,13 @@ f(bool b) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression: BinaryExpression
-    leftOperand: SimpleIdentifier
+  expression2: BinaryExpression
+    leftOperand2: SimpleIdentifier
       token: x
       element: x@30
       staticType: int?
     operator: !=
-    rightOperand: NullLiteral
+    rightOperand2: NullLiteral
       literal: null
       correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
       staticType: Null
@@ -1576,13 +1576,13 @@ IfStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: FunctionExpression
+        expression2: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@30

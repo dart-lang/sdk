@@ -106,7 +106,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -141,7 +141,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a

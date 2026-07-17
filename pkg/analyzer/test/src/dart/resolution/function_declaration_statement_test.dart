@@ -93,7 +93,7 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@25
           staticType: T
@@ -567,7 +567,7 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         semicolon: ;

@@ -218,7 +218,7 @@ class DeprecatedFunctionalityVerifier {
     required SyntacticEntity errorEntity,
   }) {
     var omittedParameters = element.formalParameters.toList();
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       if (parameter == null) continue;
       omittedParameters.remove(parameter);
@@ -305,7 +305,7 @@ class DeprecatedFunctionalityVerifier {
       // `superConstructorInvocation` or via super-parameters.
       var superConstructorInvocation = superConstructorInvocations.single;
       superConstructorArguments =
-          superConstructorInvocation.argumentList.arguments;
+          superConstructorInvocation.argumentList.arguments2;
 
       var errorEntity =
           superConstructorInvocation.constructorName ??

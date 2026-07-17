@@ -128,7 +128,7 @@ void f() { // ref
 
     var block = findNode.block('{ // ref');
     var statement = block.statements.single as ExpressionStatement;
-    var expression = statement.expression;
+    var expression = statement.expression2;
 
     var actual = ExitDetector.exits(expression);
     expect(actual, expected);

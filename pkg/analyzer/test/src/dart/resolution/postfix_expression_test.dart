@@ -50,7 +50,7 @@ void f(int x) {
     var node = result.findNode.postfix('x--');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -76,8 +76,8 @@ void f(int x) {
     var node = result.findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PostfixExpression
-    operand: SimpleIdentifier
+  operand2: PostfixExpression
+    operand2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
@@ -112,7 +112,7 @@ void f(A a) {
     var node = result.findNode.postfix('++;');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
@@ -136,7 +136,7 @@ void f(dynamic x) {
     var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -163,8 +163,8 @@ void f(int x) {
     assertResolvedNodeText(node, r'''
 PrefixExpression
   operator: ++
-  operand: PostfixExpression
-    operand: SimpleIdentifier
+  operand2: PostfixExpression
+    operand2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
@@ -199,13 +199,13 @@ void f(A a) {
     var node = result.findNode.postfix('a[0]++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: IndexExpression
-    target: SimpleIdentifier
+  operand2: IndexExpression
+    target2: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -239,12 +239,12 @@ class B extends A {
     var node = result.findNode.postfix('[0]++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: IndexExpression
-    target: SuperExpression
+  operand2: IndexExpression
+    target2: SuperExpression
       superKeyword: super
       staticType: B
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -276,12 +276,12 @@ class A {
     var node = result.findNode.postfix('[0]++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: IndexExpression
-    target: ThisExpression
+  operand2: IndexExpression
+    target2: ThisExpression
       thisKeyword: this
       staticType: A
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -310,9 +310,9 @@ void f() {
     var node = result.findNode.postfix('(0)++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: ParenthesizedExpression
+  operand2: ParenthesizedExpression
     leftParenthesis: (
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     rightParenthesis: )
@@ -339,7 +339,7 @@ void f() {
     var node = result.findNode.postfix('int++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: int
     element: <null>
     staticType: null
@@ -365,7 +365,7 @@ void f<T>() {
     var node = result.findNode.postfix('T++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: T
     element: <null>
     staticType: null
@@ -394,7 +394,7 @@ void f(A a) {
     var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PrefixedIdentifier
+  operand2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -430,7 +430,7 @@ void f(A a) {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PrefixedIdentifier
+  operand2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -467,7 +467,7 @@ void f() {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PrefixedIdentifier
+  operand2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -503,8 +503,8 @@ void f() {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PropertyAccess
-    target: InstanceCreationExpression
+  operand2: PropertyAccess
+    target2: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -545,8 +545,8 @@ void f(A? a) {
     var node = result.findNode.postfix('foo++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PropertyAccess
-    target: SimpleIdentifier
+  operand2: PropertyAccess
+    target2: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
@@ -586,8 +586,8 @@ class B extends A {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PropertyAccess
-    target: SuperExpression
+  operand2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -621,8 +621,8 @@ class A {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: PropertyAccess
-    target: ThisExpression
+  operand2: PropertyAccess
+    target2: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
@@ -658,7 +658,7 @@ void f(Object x) {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -684,7 +684,7 @@ void f(double x) {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -708,7 +708,7 @@ void f(int x) {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -732,7 +732,7 @@ void f(num x) {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
@@ -763,7 +763,7 @@ class B extends A {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -791,7 +791,7 @@ void f() {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -821,7 +821,7 @@ class A {
     var node = result.findNode.postfix('x++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -849,7 +849,7 @@ class A {
     var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SuperExpression
+  operand2: SuperExpression
     superKeyword: super
     staticType: A
   operator: ++
@@ -876,10 +876,10 @@ void f(Object? x) {
     var node = result.findNode.postfix('++');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SwitchExpression
+  operand2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -892,7 +892,7 @@ PostfixExpression
             name: _
             matchedValueType: Object?
         arrow: =>
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
     rightBracket: }
@@ -919,7 +919,7 @@ void f() {
     var node = result.findNode.singlePostfixExpression;
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <null>
     staticType: null
@@ -943,7 +943,7 @@ void f(int? x) {
     var node = result.findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
@@ -972,12 +972,12 @@ void f(Map<String, int> a) {
     var node1 = result.findNode.index('a[');
     assertResolvedNodeText(node1, r'''
 IndexExpression
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Map<String, int>
   leftBracket: [
-  index: SimpleStringLiteral
+  index2: SimpleStringLiteral
     literal: 'foo'
   rightBracket: ]
   element: SubstitutedMethodElementImpl
@@ -989,13 +989,13 @@ IndexExpression
     var node2 = result.findNode.postfix(']!');
     assertResolvedNodeText(node2, r'''
 PostfixExpression
-  operand: IndexExpression
-    target: SimpleIdentifier
+  operand2: IndexExpression
+    target2: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: Map<String, int>
     leftBracket: [
-    index: SimpleStringLiteral
+    index2: SimpleStringLiteral
       literal: 'foo'
     rightBracket: ]
     element: SubstitutedMethodElementImpl
@@ -1020,7 +1020,7 @@ void f(A? x) {
     var node = result.findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: String?
@@ -1055,14 +1055,14 @@ int g() => f(null)!;
     var node = result.findNode.postfix('f(null)!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: MethodInvocation
+  operand2: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
       staticType: T Function<T>(T)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         NullLiteral
           literal: null
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1126,7 +1126,7 @@ void test10(Foo? foo, int? a, int b) => foo?[a]![b];
     void assertTestType(int index, String expected) {
       var function = result.findNode.functionDeclaration('test$index(');
       var body = function.functionExpression.body as ExpressionFunctionBody;
-      assertType(body.expression, expected);
+      assertType(body.expression2, expected);
     }
 
     assertTestType(1, 'int?');
@@ -1154,7 +1154,7 @@ void f(A? x) {
     var node = result.findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int,)?
@@ -1185,8 +1185,8 @@ class B extends A {
     var node = result.findNode.methodInvocation('foo();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: PostfixExpression
-    operand: SuperExpression
+  target2: PostfixExpression
+    operand2: SuperExpression
       superKeyword: super
       staticType: dynamic
     operator: !
@@ -1215,7 +1215,7 @@ void f<T>(T? x) {
     var node = result.findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: T?
@@ -1237,7 +1237,7 @@ void f<T>(T? x) {
     var node = result.findNode.postfix('x!');
     assertResolvedNodeText(node, r'''
 PostfixExpression
-  operand: SimpleIdentifier
+  operand2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (T & num?)?

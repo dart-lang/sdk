@@ -17,9 +17,9 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     if (_usage == _Usage.writing) {
-      var left = node.leftHandSide;
+      var left = node.leftHandSide2;
       if (left is PropertyAccess) {
-        if (left.target is SuperExpression && left.propertyName.name == name) {
+        if (left.target2 is SuperExpression && left.propertyName.name == name) {
           hasSuperInvocation = true;
           return;
         }
@@ -31,7 +31,8 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (_usage == _Usage.reading) {
-      if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
+      if (node.leftOperand2 is SuperExpression &&
+          node.operator.lexeme == name) {
         hasSuperInvocation = true;
         return;
       }
@@ -42,7 +43,7 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (_usage == _Usage.reading) {
-      if (node.target is SuperExpression && node.methodName.name == name) {
+      if (node.target2 is SuperExpression && node.methodName.name == name) {
         hasSuperInvocation = true;
         return;
       }
@@ -54,10 +55,10 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   void visitPropertyAccess(PropertyAccess node) {
     if (_usage == _Usage.reading) {
       var parent = node.parent2;
-      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
         // Not reading, skip.
       } else {
-        if (node.target is SuperExpression && node.propertyName.name == name) {
+        if (node.target2 is SuperExpression && node.propertyName.name == name) {
           hasSuperInvocation = true;
           return;
         }

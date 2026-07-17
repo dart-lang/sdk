@@ -126,12 +126,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -180,12 +180,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -240,7 +240,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -271,7 +271,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -300,7 +300,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -330,7 +330,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -357,12 +357,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -388,12 +388,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -426,7 +426,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -456,7 +456,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -732,12 +732,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -772,7 +772,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -808,7 +808,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -857,7 +857,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -905,7 +905,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -951,7 +951,7 @@ ExtensionTypeDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -984,7 +984,7 @@ ExtensionTypeDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1019,7 +1019,7 @@ ExtensionTypeDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1186,7 +1186,7 @@ ExtensionTypeDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1588,7 +1588,7 @@ ExtensionTypeDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -1634,7 +1634,7 @@ ExtensionTypeDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )
@@ -1756,7 +1756,7 @@ ExtensionTypeDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2382,7 +2382,7 @@ ExtensionTypeDeclaration
             name: it
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2429,7 +2429,7 @@ ExtensionTypeDeclaration
             name: it
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2626,7 +2626,7 @@ ExtensionTypeDeclaration
             name: it
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )
@@ -2673,7 +2673,7 @@ ExtensionTypeDeclaration
             name: it
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )

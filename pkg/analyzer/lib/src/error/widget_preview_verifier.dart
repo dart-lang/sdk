@@ -233,10 +233,10 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor
 
   @override
   void visitArgumentList(ArgumentList node) {
-    for (var argument in node.arguments) {
+    for (var argument in node.arguments2) {
       if (argument is NamedArgument) {
         rootArgument = argument;
-        argument.argumentExpression.accept2(this);
+        argument.argumentExpression2.accept2(this);
         rootArgument = null;
       }
     }

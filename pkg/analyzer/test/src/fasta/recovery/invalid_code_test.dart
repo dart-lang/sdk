@@ -41,17 +41,17 @@ CompilationUnit
           VariableDeclaration
             name: fruits
             equals: =
-            initializer: BinaryExpression
-              leftOperand: BinaryExpression
-                leftOperand: SimpleIdentifier
+            initializer2: BinaryExpression
+              leftOperand2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: cont
                 operator: <
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: String
               operator: >
-              rightOperand: ListLiteral
+              rightOperand2: ListLiteral
                 leftBracket: [
-                elements
+                elements2
                   SimpleStringLiteral
                     literal: 'apples'
                   SimpleStringLiteral
@@ -80,7 +80,7 @@ CompilationUnit
           VariableDeclaration
             name: default
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               keyword: const
               constructorName: ConstructorName
                 type: NamedType
@@ -116,7 +116,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: ListLiteral
+                expression2: ListLiteral
                   typeArguments: TypeArgumentList
                     leftBracket: <
                     arguments
@@ -124,7 +124,7 @@ CompilationUnit
                         name: g
                     rightBracket: >
                   leftBracket: [
-                  elements
+                  elements2
                     IntegerLiteral
                       literal: 0
                     IntegerLiteral
@@ -161,7 +161,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: ListLiteral
+                expression2: ListLiteral
                   typeArguments: TypeArgumentList
                     leftBracket: <
                     arguments
@@ -169,7 +169,7 @@ CompilationUnit
                         name: test
                     rightBracket: >
                   leftBracket: [
-                  elements
+                  elements2
                     IntegerLiteral
                       literal: 0
                     IntegerLiteral
@@ -206,7 +206,7 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression: ListLiteral
+                expression2: ListLiteral
                   typeArguments: TypeArgumentList
                     leftBracket: <
                     arguments
@@ -214,7 +214,7 @@ CompilationUnit
                         name: test
                     rightBracket: >
                   leftBracket: [
-                  elements
+                  elements2
                     IntegerLiteral
                       literal: 0
                     IntegerLiteral
@@ -261,16 +261,16 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: f
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       NamedArgument
                         name: with
                         colon: :
-                        argumentExpression: IntegerLiteral
+                        argumentExpression2: IntegerLiteral
                           literal: 3
                     rightParenthesis: )
                 semicolon: ;
@@ -302,7 +302,7 @@ CompilationUnit
                 name: with
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: }
           rightParenthesis: )
@@ -355,7 +355,7 @@ CompilationUnit
           VariableDeclaration
             name: allValues
             equals: =
-            initializer: ListLiteral
+            initializer2: ListLiteral
               leftBracket: [
               rightBracket: ]
       semicolon: ;

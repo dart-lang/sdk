@@ -54,7 +54,7 @@ f() {
     var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -84,7 +84,7 @@ f() {
     var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -116,7 +116,7 @@ f() {
     var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -148,7 +148,7 @@ f() {
     var node = result.findNode.propertyAccess('0.a');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -275,7 +275,7 @@ f() {
     var node = result.findNode.methodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: IntegerLiteral
+  target2: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -499,8 +499,8 @@ f() {
     var node = result.findNode.assignment('= 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: IntegerLiteral
+  leftHandSide2: PropertyAccess
+    target2: IntegerLiteral
       literal: 0
       staticType: int
     operator: .
@@ -510,7 +510,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 3
     correspondingParameter: <null>
     staticType: int

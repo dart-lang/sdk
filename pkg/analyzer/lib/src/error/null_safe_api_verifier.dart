@@ -72,9 +72,9 @@ class NullSafeApiVerifier {
     // If there's more than one argument, something else is wrong (and will
     // generate another diagnostic). Also, only check the argument type if we
     // expect a non-nullable type in the first place.
-    if (args.arguments.length > 1 || !_typeSystem.isNonNullable(type)) return;
+    if (args.arguments2.length > 1 || !_typeSystem.isNonNullable(type)) return;
 
-    var argument = args.arguments.isEmpty ? null : args.arguments.single;
+    var argument = args.arguments2.isEmpty ? null : args.arguments2.single;
     var argumentType = argument?.argumentExpression.staticType;
     // Skip if the type is not currently resolved.
     if (argument != null && argumentType == null) return;

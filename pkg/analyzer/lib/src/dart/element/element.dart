@@ -606,7 +606,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
             : null,
         argumentList: ArgumentListImpl(
           leftParenthesis: Tokens.openParenthesis(),
-          arguments: superInvocationArguments,
+          arguments2: superInvocationArguments,
           rightParenthesis: Tokens.closeParenthesis(),
         ),
       );

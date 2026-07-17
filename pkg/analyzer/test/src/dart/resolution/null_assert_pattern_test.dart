@@ -91,7 +91,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: int?
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?

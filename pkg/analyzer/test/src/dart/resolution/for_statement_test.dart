@@ -57,7 +57,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@52
           staticType: int
@@ -104,7 +104,7 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: <testLibrary>::@function::f::@formalParameter::i
           staticType: int
@@ -145,7 +145,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: num
           element: num@52
           staticType: int
@@ -265,7 +265,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@22
           staticType: InvalidType
@@ -307,7 +307,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@43
           staticType: int
@@ -349,7 +349,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@35
           staticType: InvalidType
@@ -426,7 +426,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@42
           staticType: dynamic
@@ -507,7 +507,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@42
           staticType: int
@@ -546,7 +546,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@38
           staticType: int
@@ -591,7 +591,7 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: <testLibrary>::@function::f::@formalParameter::i
           staticType: int
@@ -640,14 +640,14 @@ ForStatement
             VariableDeclaration
               name: i
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@61
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: i@61
           staticType: String
@@ -687,7 +687,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: i@33
           staticType: int
@@ -727,7 +727,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: num
           element: num@38
           staticType: int
@@ -779,7 +779,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: <testLibrary>::@function::f::@formalParameter::v
           staticType: dynamic
@@ -900,7 +900,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: <testLibrary>::@function::f::@formalParameter::v
           staticType: dynamic
@@ -974,14 +974,14 @@ BlockFunctionBody
           leftBracket: {
           statements
             ExpressionStatement
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: v
                 element: <testLibrary>::@function::f::@formalParameter::v
                 staticType: dynamic
               semicolon: ;
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: <testLibrary>::@function::f::@formalParameter::v
           staticType: dynamic
@@ -1026,7 +1026,7 @@ ForStatement
             VariableDeclaration
               name: v
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: isPublic v@68
@@ -1034,7 +1034,7 @@ ForStatement
                   type: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: v
           element: v@68
           staticType: int
@@ -1126,7 +1126,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@39
           staticType: int
@@ -1181,7 +1181,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@35
           staticType: Object?
@@ -1226,7 +1226,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@36
           staticType: dynamic
@@ -1273,7 +1273,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@43
           staticType: InvalidType
@@ -1318,7 +1318,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@48
           staticType: int
@@ -1396,7 +1396,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@50
           staticType: int
@@ -1445,7 +1445,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@52
           staticType: num
@@ -1497,7 +1497,7 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
@@ -1552,7 +1552,7 @@ ForStatement
             VariableDeclaration
               name: a
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@67
@@ -1560,7 +1560,7 @@ ForStatement
                   type: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@67
           staticType: int
@@ -1606,7 +1606,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: x
           element: x@48
           staticType: int
@@ -1661,7 +1661,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@39
           staticType: int
@@ -1717,7 +1717,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@51
           staticType: int
@@ -1859,7 +1859,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@24
           staticType: dynamic
@@ -1903,7 +1903,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@34
           staticType: int
@@ -1981,7 +1981,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@31
           staticType: InvalidType
@@ -2065,7 +2065,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@36
           staticType: int
@@ -2113,7 +2113,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@38
           staticType: num
@@ -2163,7 +2163,7 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
@@ -2217,7 +2217,7 @@ ForStatement
             VariableDeclaration
               name: a
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@53
@@ -2225,7 +2225,7 @@ ForStatement
                   type: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@53
           staticType: int
@@ -2270,7 +2270,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: x
           element: x@34
           staticType: int
@@ -2307,7 +2307,7 @@ BlockFunctionBody
               VariableDeclaration
                 name: i
                 equals: =
-                initializer: IntegerLiteral
+                initializer2: IntegerLiteral
                   literal: 0
                   staticType: int
                 declaredFragment: isPublic i@27
@@ -2315,12 +2315,12 @@ BlockFunctionBody
                     type: int
           leftSeparator: ;
           condition: BinaryExpression
-            leftOperand: SimpleIdentifier
+            leftOperand2: SimpleIdentifier
               token: i
               element: i@27
               staticType: int
             operator: <
-            rightOperand: IntegerLiteral
+            rightOperand2: IntegerLiteral
               literal: 1
               correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
               staticType: int
@@ -2328,9 +2328,9 @@ BlockFunctionBody
             staticInvokeType: bool Function(num)
             staticType: bool
           rightSeparator: ;
-          updaters
+          updaters2
             PostfixExpression
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: i
                 element: i@27
                 staticType: null
@@ -2346,7 +2346,7 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: <testLibrary>::@function::f::@formalParameter::i
           staticType: int
@@ -2377,7 +2377,7 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: IntegerLiteral
+          initializer2: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@33
@@ -2385,12 +2385,12 @@ ForStatement
               type: int
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: i
         element: i@33
         staticType: int
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 10
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -2398,10 +2398,10 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PrefixExpression
         operator: ++
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: i
           element: i@33
           staticType: null
@@ -2422,14 +2422,14 @@ ForStatement
             VariableDeclaration
               name: i
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@63
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: i@63
           staticType: String
@@ -2459,7 +2459,7 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: IntegerLiteral
+          initializer2: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
@@ -2467,12 +2467,12 @@ ForStatement
               type: int
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: i
         element: i@22
         staticType: int
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 10
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -2480,9 +2480,9 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: i
           element: i@22
           staticType: null
@@ -2498,7 +2498,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: i@22
           staticType: int
@@ -2530,7 +2530,7 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: SimpleIdentifier
             token: i
             element: i@27
             staticType: dynamic
@@ -2539,12 +2539,12 @@ ForStatement
               type: dynamic
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: i
         element: i@27
         staticType: dynamic
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 1
         correspondingParameter: <null>
         staticType: int
@@ -2552,9 +2552,9 @@ ForStatement
       staticInvokeType: null
       staticType: dynamic
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: i
           element: i@27
           staticType: null
@@ -2591,7 +2591,7 @@ ForStatement
         VariableDeclaration
           name: i2
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: SimpleIdentifier
             token: i
             element: <testLibrary>::@function::f::@formalParameter::i
             staticType: int
@@ -2600,12 +2600,12 @@ ForStatement
               type: int
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: i2
         element: i2@27
         staticType: int
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 10
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -2613,10 +2613,10 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PrefixExpression
         operator: ++
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: i2
           element: i2@27
           staticType: null
@@ -2652,7 +2652,7 @@ ForStatement
         VariableDeclaration
           name: i
           equals: =
-          initializer: IntegerLiteral
+          initializer2: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
@@ -2661,7 +2661,7 @@ ForStatement
         VariableDeclaration
           name: j
           equals: =
-          initializer: SimpleIdentifier
+          initializer2: SimpleIdentifier
             token: i
             element: i@22
             staticType: int
@@ -2670,12 +2670,12 @@ ForStatement
               type: int
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: j
         element: j@29
         staticType: int
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 1
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -2683,9 +2683,9 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: j
           element: j@29
           staticType: null
@@ -2722,7 +2722,7 @@ ForStatement
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
     condition: FunctionExpressionInvocation
-      function: SimpleIdentifier
+      function2: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::f::@formalParameter::b
         staticType: bool Function()
@@ -2756,7 +2756,7 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
-    initialization: PatternAssignment
+    initialization2: PatternAssignment
       pattern: ParenthesizedPattern
         leftParenthesis: (
         pattern: AssignedVariablePattern
@@ -2766,7 +2766,7 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       patternTypeSchema: int
@@ -2778,7 +2778,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@17
           staticType: int
@@ -2806,12 +2806,12 @@ ForStatement
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: i
         element: i@17
         staticType: int
       operator: <
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 10
         correspondingParameter: dart:core::@class::num::@method::<::@formalParameter::other
         staticType: int
@@ -2819,9 +2819,9 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: i
           element: i@17
           staticType: null
@@ -2843,14 +2843,14 @@ ForStatement
             VariableDeclaration
               name: i
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@56
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: i
           element: i@56
           staticType: String
@@ -2878,7 +2878,7 @@ ForStatement
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
     rightSeparator: ;
-    updaters
+    updaters2
       SuperExpression
         superKeyword: super
         staticType: A
@@ -2929,9 +2929,9 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: ParenthesizedExpression
+      expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         rightParenthesis: )
@@ -2939,12 +2939,12 @@ ForStatement
       patternTypeSchema: _
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: a
         element: a@35
         staticType: int
       operator: <=
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 2
         correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
         staticType: int
@@ -2952,9 +2952,9 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@35
           staticType: null
@@ -2970,7 +2970,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@35
           staticType: int
@@ -3018,9 +3018,9 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: ParenthesizedExpression
+      expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         rightParenthesis: )
@@ -3028,12 +3028,12 @@ ForStatement
       patternTypeSchema: _
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: a
         element: a@40
         staticType: int
       operator: <=
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 2
         correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
         staticType: int
@@ -3041,9 +3041,9 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@40
           staticType: null
@@ -3059,7 +3059,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@40
           staticType: int
@@ -3110,7 +3110,7 @@ BlockFunctionBody
               rightParenthesis: )
               matchedValueType: (int, bool)
             equals: =
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: x
               element: <testLibrary>::@function::f::@formalParameter::x
               staticType: (int, bool)
@@ -3121,9 +3121,9 @@ BlockFunctionBody
             element: b@46
             staticType: bool
           rightSeparator: ;
-          updaters
+          updaters2
             PostfixExpression
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: a
                 element: a@43
                 staticType: null
@@ -3139,7 +3139,7 @@ BlockFunctionBody
           leftBracket: {
           rightBracket: }
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
@@ -3188,7 +3188,7 @@ ForStatement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: i
         element: <testLibrary>::@function::f::@formalParameter::i
         staticType: (int, bool)
@@ -3199,9 +3199,9 @@ ForStatement
       element: b@39
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3223,14 +3223,14 @@ ForStatement
             VariableDeclaration
               name: a
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic a@65
                 element: hasImplicitType isPublic
                   type: String
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@65
           staticType: String
@@ -3278,7 +3278,7 @@ ForStatement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
@@ -3289,9 +3289,9 @@ ForStatement
       element: b@39
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3307,7 +3307,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: x
           element: <testLibrary>::@function::f::@formalParameter::x
           staticType: (int, bool)
@@ -3356,7 +3356,7 @@ ForStatement
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
@@ -3367,9 +3367,9 @@ ForStatement
       element: b@39
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3385,13 +3385,13 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@36
           staticType: int
         semicolon: ;
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: b
           element: b@39
           staticType: bool
@@ -3438,7 +3438,7 @@ ForStatement
         rightParenthesis: )
         matchedValueType: InvalidType
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: a@36
         staticType: InvalidType
@@ -3449,9 +3449,9 @@ ForStatement
       element: b@39
       staticType: InvalidType
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@36
           staticType: null
@@ -3496,9 +3496,9 @@ ForStatement
         rightParenthesis: )
         matchedValueType: int
       equals: =
-      expression: ParenthesizedExpression
+      expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         rightParenthesis: )
@@ -3506,12 +3506,12 @@ ForStatement
       patternTypeSchema: _
     leftSeparator: ;
     condition: BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: a
         element: a@23
         staticType: int
       operator: <=
-      rightOperand: IntegerLiteral
+      rightOperand2: IntegerLiteral
         literal: 2
         correspondingParameter: dart:core::@class::num::@method::<=::@formalParameter::other
         staticType: int
@@ -3519,9 +3519,9 @@ ForStatement
       staticInvokeType: bool Function(num)
       staticType: bool
     rightSeparator: ;
-    updaters
+    updaters2
       PostfixExpression
-        operand: SimpleIdentifier
+        operand2: SimpleIdentifier
           token: a
           element: a@23
           staticType: null
@@ -3537,7 +3537,7 @@ ForStatement
     leftBracket: {
     statements
       ExpressionStatement
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: a
           element: a@23
           staticType: int

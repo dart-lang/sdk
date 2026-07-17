@@ -706,7 +706,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
       _elementHolder.enclose(fragment);
 
       localFragment.hasImplicitType = variableList.type == null;
-      localFragment.hasInitializer = node.initializer != null;
+      localFragment.hasInitializer = node.initializer2 != null;
       localFragment.isConst = variableList.isConst;
       localFragment.isFinal = variableList.isFinal;
       localFragment.isLate = variableList.isLate;
@@ -821,12 +821,12 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     if (node.defaultClause case var defaultClause?) {
       if (_elementWalker == null) {
-        fragment.constantInitializer = defaultClause.value;
+        fragment.constantInitializer = defaultClause.value2;
       }
 
       _withElementWalker(null, () {
         _withElementHolder(ElementHolder(fragment), () {
-          defaultClause.value.accept2(this);
+          defaultClause.value2.accept2(this);
         });
       });
     }

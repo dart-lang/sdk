@@ -183,7 +183,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     var type = node.type.type;
     if (type != null &&
         _typeSystem.isNonNullable(type) &&
-        node.expression.typeOrThrow.isDartCoreNull) {
+        node.expression2.typeOrThrow.isDartCoreNull) {
       _diagnosticReporter.report(diag.castFromNullAlwaysFails.at(node));
     }
     super.visitAsExpression(node);
@@ -291,7 +291,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitConstantPattern(ConstantPattern node) {
-    if (node.expression.isDoubleNan) {
+    if (node.expression2.isDoubleNan) {
       _diagnosticReporter.report(diag.unnecessaryNanComparisonFalse.at(node));
     }
     super.visitConstantPattern(node);
@@ -369,7 +369,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (!_invalidAccessVerifier._inTestDirectory) {
-      _checkForReturnOfDoNotStore(node.expression);
+      _checkForReturnOfDoNotStore(node.expression2);
     }
     super.visitExpressionFunctionBody(node);
   }
@@ -410,7 +410,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       super.visitFieldDeclaration(node);
       for (var field in node.fields.variables) {
         if (!_invalidAccessVerifier._inTestDirectory) {
-          _checkForAssignmentOfDoNotStore(field.initializer);
+          _checkForAssignmentOfDoNotStore(field.initializer2);
         }
 
         var element = field.declaredFragment!.element;
@@ -750,7 +750,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitPostfixExpression(PostfixExpression node) {
     _elementUsageFrontierDetector.postfixExpression(node);
     if (node.operator.type == TokenType.BANG &&
-        node.operand.typeOrThrow.isDartCoreNull) {
+        node.operand2.typeOrThrow.isDartCoreNull) {
       _diagnosticReporter.report(diag.nullCheckAlwaysFails.at(node));
     }
     super.visitPostfixExpression(node);
@@ -810,7 +810,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitReturnStatement(ReturnStatement node) {
     if (!_invalidAccessVerifier._inTestDirectory) {
-      _checkForReturnOfDoNotStore(node.expression);
+      _checkForReturnOfDoNotStore(node.expression2);
     }
     super.visitReturnStatement(node);
   }
@@ -854,7 +854,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
 
     if (!_invalidAccessVerifier._inTestDirectory) {
       for (var decl in node.variables.variables) {
-        _checkForAssignmentOfDoNotStore(decl.initializer);
+        _checkForAssignmentOfDoNotStore(decl.initializer2);
       }
     }
 
@@ -875,7 +875,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   /// [diag.unnecessaryTypeCheckTrue], and
   /// [diag.unnecessaryTypeCheckFalse].
   bool _checkAllTypeChecks(IsExpressionImpl node) {
-    var leftNode = node.expression;
+    var leftNode = node.expression2;
     var leftType = leftNode.typeOrThrow;
 
     var rightNode = node.type;
@@ -982,8 +982,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
     var expressions = node.isSet
-        ? node.elements.whereType<Expression>()
-        : node.elements.whereType<MapLiteralEntry>().map((entry) => entry.key);
+        ? node.elements2.whereType<Expression>()
+        : node.elements2.whereType<MapLiteralEntry>().map(
+            (entry) => entry.key2,
+          );
     var alreadySeen = <DartObject>{};
     for (var expression in expressions) {
       var constEvaluation = expression.computeConstantValue();
@@ -1106,10 +1108,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
 
     void checkLeftRight(LocatableDiagnostic locatableDiagnostic) {
-      if (node.leftOperand.isDoubleNan) {
-        reportStartEnd(locatableDiagnostic, node.leftOperand, node.operator);
-      } else if (node.rightOperand.isDoubleNan) {
-        reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand);
+      if (node.leftOperand2.isDoubleNan) {
+        reportStartEnd(locatableDiagnostic, node.leftOperand2, node.operator);
+      } else if (node.rightOperand2.isDoubleNan) {
+        reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand2);
       }
     }
 
@@ -1130,10 +1132,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
 
-    if (node.leftOperand is NullLiteral) {
-      var rightType = node.rightOperand.typeOrThrow;
+    if (node.leftOperand2 is NullLiteral) {
+      var rightType = node.rightOperand2.typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(rightType)) {
-        var offset = node.leftOperand.offset;
+        var offset = node.leftOperand2.offset;
         _diagnosticReporter.report(
           locatableDiagnostic.atOffset(
             offset: offset,
@@ -1143,14 +1145,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       }
     }
 
-    if (node.rightOperand is NullLiteral) {
-      var leftType = node.leftOperand.typeOrThrow;
+    if (node.rightOperand2 is NullLiteral) {
+      var leftType = node.leftOperand2.typeOrThrow;
       if (_typeSystem.isStrictlyNonNullable(leftType)) {
         var offset = node.operator.offset;
         _diagnosticReporter.report(
           locatableDiagnostic.atOffset(
             offset: offset,
-            length: node.rightOperand.end - offset,
+            length: node.rightOperand2.end - offset,
           ),
         );
       }
@@ -1318,8 +1320,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
       if (invocation is MethodInvocation &&
-          invocation.target is SuperExpression &&
-          invocation.argumentList.arguments.length == 1) {
+          invocation.target2 is SuperExpression &&
+          invocation.argumentList.arguments2.length == 1) {
         SimpleIdentifier name = invocation.methodName;
         if (name.name == MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
           var methodElement = name.element;
@@ -1334,7 +1336,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
 
     FunctionBody body = node.body;
     if (body is ExpressionFunctionBody) {
-      if (isNonObjectNoSuchMethodInvocation(body.expression)) {
+      if (isNonObjectNoSuchMethodInvocation(body.expression2)) {
         _diagnosticReporter.report(diag.unnecessaryNoSuchMethod.at(node.name));
         return true;
       }
@@ -1343,7 +1345,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       if (statements.length == 1) {
         Statement returnStatement = statements.first;
         if (returnStatement is ReturnStatement &&
-            isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
+            isNonObjectNoSuchMethodInvocation(returnStatement.expression2)) {
           _diagnosticReporter.report(
             diag.unnecessaryNoSuchMethod.at(node.name),
           );
@@ -1386,7 +1388,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
         isReturnVoid = false;
       }
       if (isReturnVoid) {
-        var expression = body.expression;
+        var expression = body.expression2;
         if (expression is SetOrMapLiteralImpl && expression.isSet) {
           _diagnosticReporter.report(diag.unnecessarySetLiteral.at(expression));
         }
@@ -1505,26 +1507,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       }
     } else if (expression is ConditionalExpression) {
       _getSubExpressionsMarkedDoNotStore(
-        expression.elseExpression,
+        expression.elseExpression2,
         addTo: expressions,
       );
       _getSubExpressionsMarkedDoNotStore(
-        expression.thenExpression,
+        expression.thenExpression2,
         addTo: expressions,
       );
     } else if (expression is BinaryExpression) {
       _getSubExpressionsMarkedDoNotStore(
-        expression.leftOperand,
+        expression.leftOperand2,
         addTo: expressions,
       );
       _getSubExpressionsMarkedDoNotStore(
-        expression.rightOperand,
+        expression.rightOperand2,
         addTo: expressions,
       );
     } else if (expression is FunctionExpression) {
       var body = expression.body;
       if (body is ExpressionFunctionBody) {
-        _getSubExpressionsMarkedDoNotStore(body.expression, addTo: expressions);
+        _getSubExpressionsMarkedDoNotStore(
+          body.expression2,
+          addTo: expressions,
+        );
       }
     }
     if (element is PropertyAccessorElement && element.isOriginVariable) {
@@ -1562,7 +1567,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   /// Returns `true` if and only if an unnecessary cast hint should be generated
   /// on [node].  See [diag.unnecessaryCast].
   static bool _isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
-    var leftType = node.expression.typeOrThrow;
+    var leftType = node.expression2.typeOrThrow;
     var rightType = node.type.typeOrThrow;
 
     // `cannotResolve is SomeType` is already reported.
@@ -1676,7 +1681,7 @@ class _InvalidAccessVerifier {
     if (element != null && _hasVisibleForOverriding(element)) {
       var operator = node.operator;
 
-      if (node.leftOperand is SuperExpression) {
+      if (node.leftOperand2 is SuperExpression) {
         var methodDeclaration = node.thisOrAncestorOfType2<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == operator.lexeme) {
           return;
@@ -1849,8 +1854,8 @@ class _InvalidAccessVerifier {
     var hasVisibleForOverriding = _hasVisibleForOverriding(element);
     if (hasVisibleForOverriding) {
       var parent = node.parent2;
-      if (parent is MethodInvocation && parent.target is SuperExpression ||
-          parent is PropertyAccess && parent.target is SuperExpression) {
+      if (parent is MethodInvocation && parent.target2 is SuperExpression ||
+          parent is PropertyAccess && parent.target2 is SuperExpression) {
         var grandparent = parent?.parent2;
         var methodDeclaration = grandparent
             ?.thisOrAncestorOfType2<MethodDeclaration>();

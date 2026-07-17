@@ -192,19 +192,19 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor2<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    var key = node.key as SimpleStringLiteral;
+    var key = node.key2 as SimpleStringLiteral;
     var libraryName = "$_LIBRARY_PREFIX${key.value}";
 
-    Expression value = node.value;
+    Expression value = node.value2;
     if (value is InstanceCreationExpression) {
       SdkLibraryImpl library = SdkLibraryImpl(libraryName);
-      List<Argument> arguments = value.argumentList.arguments;
+      List<Argument> arguments = value.argumentList.arguments2;
       for (Argument argument in arguments) {
         if (argument is SimpleStringLiteral) {
           library.path = argument.value;
         } else if (argument is NamedArgument) {
           String name = argument.name.lexeme;
-          Expression expression = argument.argumentExpression;
+          Expression expression = argument.argumentExpression2;
           if (name == _IMPLEMENTATION) {
             library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {

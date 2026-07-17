@@ -695,7 +695,7 @@ FormalParameterList
         name: x
         defaultClause: FormalParameterDefaultClause
           separator: :
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 0
     rightDelimiter: }
   rightParenthesis: )
@@ -735,7 +735,7 @@ FormalParameterList
         name: x
         defaultClause: FormalParameterDefaultClause
           separator: =
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 0
     rightDelimiter: }
   rightParenthesis: )
@@ -775,7 +775,7 @@ FormalParameterList
         name: x
         defaultClause: FormalParameterDefaultClause
           separator: =
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 0
     rightDelimiter: ]
   rightParenthesis: )
@@ -1060,19 +1060,19 @@ CompilationUnit
           VariableDeclaration
             name: s
             equals: =
-            initializer: StringInterpolation
+            initializer2: StringInterpolation
               elements
                 InterpolationString
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
                   contents: '
@@ -1644,11 +1644,11 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: get
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 semicolon: ; <synthetic>
               Block
@@ -1656,7 +1656,7 @@ CompilationUnit
                 statements
                   ReturnStatement
                     returnKeyword: return
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: _x
                     semicolon: ;
                 rightBracket: }
@@ -1716,7 +1716,7 @@ MethodDeclaration
   name: m
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -2400,7 +2400,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: SuperExpression
+      expression2: SuperExpression
         superKeyword: super
       semicolon: ;
 ''');
@@ -2426,7 +2426,7 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression: SuperExpression
+            expression2: SuperExpression
               superKeyword: super
             semicolon: ;
         rightBracket: }
@@ -2585,7 +2585,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: x
             semicolon: ;
         rightBracket: }
@@ -2611,7 +2611,7 @@ FunctionDeclaration
       rightParenthesis: ) <synthetic>
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       semicolon: ;
 ''');
@@ -2780,7 +2780,7 @@ FormalParameterList
         name: <empty> <synthetic>
         defaultClause: FormalParameterDefaultClause
           separator: :
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 0
     rightDelimiter: }
   rightParenthesis: )
@@ -2821,7 +2821,7 @@ FormalParameterList
         name: <empty> <synthetic>
         defaultClause: FormalParameterDefaultClause
           separator: =
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 0
     rightDelimiter: }
   rightParenthesis: )
@@ -3074,7 +3074,7 @@ var x = (f() {});
     assertParsedNodeText(node, r'''
 ParenthesizedExpression
   leftParenthesis: (
-  expression: FunctionExpression
+  expression2: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
@@ -3104,7 +3104,7 @@ FormalParameterList
       name: b
       defaultClause: FormalParameterDefaultClause
         separator: :
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 0
   rightParenthesis: )
 FormalParameterList(v1)
@@ -3272,7 +3272,7 @@ FormalParameterList
       name: b
       defaultClause: FormalParameterDefaultClause
         separator: =
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 0
   rightParenthesis: )
 FormalParameterList(v1)
@@ -3538,7 +3538,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 7
       semicolon: ;
 ''');
@@ -3812,10 +3812,10 @@ void main() {
     var binaryExpression = result.findNode.singleBinaryExpression;
     assertParsedNodeText(binaryExpression, r'''
 BinaryExpression
-  leftOperand: SimpleIdentifier
+  leftOperand2: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +
-  rightOperand: SimpleIdentifier
+  rightOperand2: SimpleIdentifier
     token: x
 ''');
   }

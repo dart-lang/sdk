@@ -100,7 +100,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (parent is PrefixedIdentifierImpl) {
       return true;
     } else if (parent is MethodInvocationImpl) {
-      return identical(parent.target, node) &&
+      return identical(parent.target2, node) &&
           parent.operator?.type == TokenType.PERIOD;
     }
     return false;
@@ -276,7 +276,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (element is PrefixElement) {
       var parent = node.parent2;
       if (parent is PrefixedIdentifierImpl && parent.prefix == node ||
-          parent is MethodInvocationImpl && parent.target == node) {
+          parent is MethodInvocationImpl && parent.target2 == node) {
         inferenceLogWriter?.recordExpressionWithNoType(node);
         return;
       }
@@ -320,9 +320,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
 
     if (parent is CommentReferenceImpl ||
-        parent is MethodInvocationImpl && parent.target == node ||
+        parent is MethodInvocationImpl && parent.target2 == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
-        parent is PropertyAccessImpl && parent.target == node) {
+        parent is PropertyAccessImpl && parent.target2 == node) {
       return;
     }
 

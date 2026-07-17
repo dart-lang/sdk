@@ -12,22 +12,22 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
   required CascadeExpression cascadeExpression,
 }) {
   cascadeExpression as CascadeExpressionImpl;
-  assert(cascadeExpression.cascadeSections.length == 1);
+  assert(cascadeExpression.cascadeSections2.length == 1);
 
   var newTarget = ParenthesizedExpressionImpl(
     leftParenthesis: Token(TokenType.OPEN_PAREN, 0)
       ..previous = expressionStatement.beginToken.previous
-      ..next = cascadeExpression.target.beginToken,
-    expression: cascadeExpression.target,
+      ..next = cascadeExpression.target2.beginToken,
+    expression2: cascadeExpression.target2,
     rightParenthesis: Token(TokenType.CLOSE_PAREN, 0)
-      ..previous = cascadeExpression.target.endToken
+      ..previous = cascadeExpression.target2.endToken
       ..next = expressionStatement.semicolon,
   );
 
   return ExpressionStatementImpl(
-    expression: CascadeExpressionImpl(
-      target: newTarget,
-      cascadeSections: cascadeExpression.cascadeSections,
+    expression2: CascadeExpressionImpl(
+      target2: newTarget,
+      cascadeSections2: cascadeExpression.cascadeSections2,
     ),
     semicolon: expressionStatement.semicolon,
   );
@@ -48,12 +48,12 @@ ExpressionImpl insertCascadeTargetIntoExpression({
   // Otherwise, copy `expression` and recurse into its LHS.
   if (expression is AssignmentExpressionImpl) {
     return AssignmentExpressionImpl(
-      leftHandSide: insertCascadeTargetIntoExpression(
-        expression: expression.leftHandSide,
+      leftHandSide2: insertCascadeTargetIntoExpression(
+        expression: expression.leftHandSide2,
         cascadeTarget: cascadeTarget,
       ),
       operator: expression.operator,
-      rightHandSide: expression.rightHandSide,
+      rightHandSide2: expression.rightHandSide2,
     );
   } else if (expression is IndexExpressionImpl) {
     var expressionTarget = expression.realTarget;
@@ -66,20 +66,20 @@ ExpressionImpl insertCascadeTargetIntoExpression({
     }
 
     return IndexExpressionImpl(
-      target: insertCascadeTargetIntoExpression(
+      target2: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
         cascadeTarget: cascadeTarget,
       ),
       period: null,
       question: question,
       leftBracket: expression.leftBracket,
-      index: expression.index,
+      index2: expression.index2,
       rightBracket: expression.rightBracket,
     );
   } else if (expression is MethodInvocationImpl) {
     var expressionTarget = expression.realTarget!;
     return MethodInvocationImpl(
-      target: insertCascadeTargetIntoExpression(
+      target2: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
         cascadeTarget: cascadeTarget,
       ),
@@ -94,7 +94,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
   } else if (expression is PropertyAccessImpl) {
     var expressionTarget = expression.realTarget;
     return PropertyAccessImpl(
-      target: insertCascadeTargetIntoExpression(
+      target2: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
         cascadeTarget: cascadeTarget,
       ),

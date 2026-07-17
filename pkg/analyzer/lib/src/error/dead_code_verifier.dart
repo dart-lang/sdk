@@ -118,7 +118,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var initializer = node.initializer;
+    var initializer = node.initializer2;
     if (initializer != null && node.isLate) {
       var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
@@ -241,7 +241,7 @@ class NullSafetyDeadCodeVerifier {
     }
 
     var parent = firstDeadNode.parent2;
-    if (parent is Assertion && identical(firstDeadNode, parent.message)) {
+    if (parent is Assertion && identical(firstDeadNode, parent.message2)) {
       // Don't report "dead code" for the message part of an assert statement,
       // because this causes nuisance warnings for redundant `!= null`
       // asserts.
@@ -307,10 +307,10 @@ class NullSafetyDeadCodeVerifier {
           offset = node.end;
         }
       } else if (parent is ForParts) {
-        if (parent.updaters.lastOrNull case var last?) node = last;
+        if (parent.updaters2.lastOrNull case var last?) node = last;
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
-        node = parent.rightOperand;
+        node = parent.rightOperand2;
       } else if (parent is LogicalOrPattern &&
           firstDeadNode == parent.rightOperand) {
         offset = parent.operator.offset;
@@ -399,13 +399,13 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyCascadeExpression(CascadeExpression node) {
-    var first = node.cascadeSections.firstOrNull;
+    var first = node.cascadeSections2.firstOrNull;
     if (first is PropertyAccess) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first.operator);
     } else if (first is MethodInvocation) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first.operator);
     } else if (first is IndexExpression) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.period);
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first.period);
     }
   }
 
@@ -417,15 +417,15 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyIndexExpression(IndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.question);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
   }
 
   void verifyMethodInvocation(MethodInvocation node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
   }
 
   void verifyPropertyAccess(PropertyAccess node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
   }
 
   void visitNode(AstNode node) {
