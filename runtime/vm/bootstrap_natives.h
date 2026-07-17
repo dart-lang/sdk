@@ -304,6 +304,11 @@ namespace dart {
   V(VMService_OnServerAddressChange, 1)                                        \
   V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
+  V(Ffi_nativeCallbackFunction, 2)                                             \
+  V(Ffi_nativeAsyncCallbackFunction, 0)                                        \
+  V(Ffi_nativeIsolateLocalCallbackFunction, 1)                                 \
+  V(Ffi_nativeIsolateGroupBoundCallbackFunction, 2)                            \
+  V(Ffi_nativeIsolateGroupBoundClosureFunction, 1)                             \
   V(Ffi_createNativeCallableListener, 2)                                       \
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
   V(Ffi_createNativeCallableIsolateGroupBound, 2)                              \

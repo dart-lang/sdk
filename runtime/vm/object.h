@@ -535,6 +535,7 @@ class KNOWN_VTABLE_DISCRIMINATOR Object {
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(Closure, null_closure)                                                     \
+  V(Bytecode, null_bytecode)                                                   \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
