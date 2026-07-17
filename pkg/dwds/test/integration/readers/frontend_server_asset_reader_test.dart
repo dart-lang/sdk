@@ -31,12 +31,10 @@ void main() {
   Future<void> createTempFixtures() async {
     tempFixtures = await Directory.systemTemp.createTemp('dwds_test_fixtures');
     await tempFixtures.create();
-    jsonOriginal = await File(
-      p.join(fixturesDir, 'main.dart.dill.json'),
-    ).copy(p.join(tempFixtures.path, 'main.dart.dill.json'));
-    mapOriginal = await File(
-      p.join(fixturesDir, 'main.dart.dill.map'),
-    ).copy(p.join(tempFixtures.path, 'main.dart.dill.map'));
+    jsonOriginal = await File(p.join(fixturesDir, 'main.dart.dill.json'))
+        .copy(p.join(tempFixtures.path, 'main.dart.dill.json'));
+    mapOriginal = await File(p.join(fixturesDir, 'main.dart.dill.map'))
+        .copy(p.join(tempFixtures.path, 'main.dart.dill.map'));
   }
 
   setUp(() async {
@@ -112,22 +110,20 @@ void main() {
         expect(missingResult, isNull);
 
         // Update fixture.
-        await File(
-          p.join(tempFixtures.path, 'main.dart.dill.incremental.json'),
-        ).writeAsString(
-          (await jsonOriginal.readAsString()).replaceAll(
-            'web/main.dart.lib.js',
-            'web/foo.dart.lib.js',
-          ),
-        );
-        await File(
-          p.join(tempFixtures.path, 'main.dart.dill.incremental.map'),
-        ).writeAsString(
-          (await mapOriginal.readAsString()).replaceAll(
-            'web/main.dart.lib.js',
-            'web/foo.dart.lib.js',
-          ),
-        );
+        await File(p.join(tempFixtures.path, 'main.dart.dill.incremental.json'))
+            .writeAsString(
+              (await jsonOriginal.readAsString()).replaceAll(
+                'web/main.dart.lib.js',
+                'web/foo.dart.lib.js',
+              ),
+            );
+        await File(p.join(tempFixtures.path, 'main.dart.dill.incremental.map'))
+            .writeAsString(
+              (await mapOriginal.readAsString()).replaceAll(
+                'web/main.dart.lib.js',
+                'web/foo.dart.lib.js',
+              ),
+            );
 
         assetReader.updateCaches();
 
