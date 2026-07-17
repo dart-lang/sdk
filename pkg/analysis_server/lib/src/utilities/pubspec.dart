@@ -102,6 +102,19 @@ PubspecEdit? computeVersionBumpEdit(File pubspecFile) {
   return _computeEdit(text, extractor.constraintOffset(), newVersion);
 }
 
+/// Returns the minimum SDK version constraint defined in [pubspecFile], or
+/// `null` if the constraint cannot be found or parsed.
+Version? minimumSdkConstraint(File pubspecFile) {
+  var extractor = SdkConstraintExtractor(pubspecFile);
+  var constraint = extractor.constraint();
+  if (constraint is VersionRange) {
+    return constraint.min;
+  } else if (constraint is Version) {
+    return constraint;
+  }
+  return null;
+}
+
 PubspecEdit? _computeEdit(String? text, int offset, Version minimumVersion) {
   if (text == null || offset < 0) {
     return null;

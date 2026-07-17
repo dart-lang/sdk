@@ -53,6 +53,7 @@ class MigrateHandler
     var targets = validationResult.resultOrNull!;
 
     var apply = params.apply ?? false;
+    var steps = params.steps ?? [MigrationStep.All];
     var migrationRunner = _MigrationRunner(
       server: server,
       pubspecTargets: targets,
@@ -60,7 +61,11 @@ class MigrateHandler
       apply: apply,
     );
 
-    var fileEdits = await migrationRunner.computeEdits();
+    var fileEditsResult = await migrationRunner.computeEdits(steps);
+    if (fileEditsResult.isError) {
+      return failure(fileEditsResult);
+    }
+    var fileEdits = fileEditsResult.resultOrNull!;
 
     WorkspaceEdit? workspaceEdit;
     if (apply) {
@@ -190,11 +195,18 @@ class _MigrationRunner({
   /// Keyed by file path, mapping to diagnostic code names and their count.
   final Map<String, Map<String, int>> _postMigrationFixDetailsMap = {};
 
+  /// Accumulated bumped package SDK constraints logs.
+  final List<String> _bumpedLines = [];
+
   this : super(server);
 
   /// Runs the migration runner with the scheduled analysis pausing enabled.
-  Future<List<SourceFileEdit>> computeEdits() async {
-    return await pauseSchedulerWithTemporaryOverlays(_computeMigrationEdits);
+  Future<ErrorOr<List<SourceFileEdit>>> computeEdits(
+    List<MigrationStep> steps,
+  ) async {
+    return await pauseSchedulerWithTemporaryOverlays(
+      () => _computeMigrationEdits(steps),
+    );
   }
 
   /// Populate file fix occurrences from [details] into the [detailsMap],
@@ -247,67 +259,43 @@ class _MigrationRunner({
     });
   }
 
-  Future<List<SourceFileEdit>> _computeMigrationEdits() async {
-    var bumpedLines = <String>[];
+  Future<ErrorOr<List<SourceFileEdit>>> _computeMigrationEdits(
+    List<MigrationStep> steps,
+  ) async {
+    var runPrepare = steps.runPrepare;
+    var runBump = steps.runBump;
+    var runCleanup = steps.runCleanup;
 
     for (var pubspec in pubspecTargets) {
-      var pubspecFile = pubspec.file;
-      var context = server.contextManager.getContextFor(pubspecFile.path);
-      if (context == null) {
-        summaryBuffer.writeln(
-          '- ${pubspec.displayName}: Skipped (not analyzed)',
+      if (runPrepare || runBump) {
+        var prepareAndBumpOutcome = await _executePrepareAndBump(
+          pubspec: pubspec,
+          runPrepare: runPrepare,
+          runBump: runBump,
         );
-        continue;
+        if (prepareAndBumpOutcome == _ExecutionOutcome.exception) {
+          continue;
+        }
       }
 
-      // TODO(kallentu): If we can't compute the version bump, provide a reason
-      // why for the user running the tool.
-      var versionBumpEdit = computeVersionBumpEdit(pubspecFile);
-      if (versionBumpEdit == null) continue;
-
-      if (_shouldSkipDueToDependencies(context, pubspec, versionBumpEdit)) {
-        continue;
+      if (runCleanup) {
+        var cleanupOutcome = await _executeCleanup(pubspec);
+        if (cleanupOutcome == _ExecutionOutcome.exception) continue;
       }
-
-      var outcome = await _executePrepareAndBump(
-        context: context,
-        pubspec: pubspec,
-        versionBumpEdit: versionBumpEdit,
-        bumpedLines: bumpedLines,
-      );
-      if (outcome == _ExecutionOutcome.exception) continue;
-
-      // Get the updated context.
-      var updatedContext = server.contextManager.getContextFor(
-        pubspecFile.path,
-      );
-
-      if (updatedContext == null) {
-        summaryBuffer.writeln(
-          '- ${pubspec.displayName}: Skipped post-migrations '
-          '(context lost after pubspec update)',
-        );
-        continue;
-      }
-
-      var cleanupOutcome = await _executeCleanup(
-        context: updatedContext,
-        pubspec: pubspec,
-        targetVersion: versionBumpEdit.targetVersion,
-      );
-      if (cleanupOutcome == _ExecutionOutcome.exception) continue;
     }
 
-    if (bumpedLines.isEmpty) {
-      var verb = apply ? 'were' : 'would be';
-      summaryBuffer.writeln('No SDK constraints $verb bumped.');
-    } else {
-      var action = apply ? 'Bumped' : 'Would bump';
-      summaryBuffer.writeln(
-        '$action SDK constraints in ${bumpedLines.length} package(s):',
-      );
-      for (var line in bumpedLines) {
-        summaryBuffer.writeln('  $line');
+    if (runBump) {
+      if (_bumpedLines.isEmpty) {
+        var verb = apply ? 'were' : 'would be';
+        summaryBuffer.writeln('No SDK constraints $verb bumped.');
+      } else {
+        var action = apply ? 'Bumped' : 'Would bump';
+        summaryBuffer.writeln(
+          '$action SDK constraints in ${_bumpedLines.length} package(s):',
+        );
+        for (var line in _bumpedLines) {
+          summaryBuffer.writeln('  $line');
+        }
       }
     }
 
@@ -325,7 +313,7 @@ class _MigrationRunner({
     // Revert all temporary overlays back to their original state.
     await revertOverlays();
 
-    return _fileEdits;
+    return success(_fileEdits);
   }
 
   Future<ChangeBuilder> _createBuilder() async {
@@ -334,16 +322,41 @@ class _MigrationRunner({
     );
   }
 
-  /// Runs post-migration cleanup fixes for the target SDK [targetVersion].
+  /// Runs post-migration cleanup fixes for the package target specified by
+  /// [pubspec].
   ///
   /// Applies the cleanup edits to the temporary overlays and records the
   /// corresponding file edits. Returns [_ExecutionOutcome.exception] if an
   /// error occurs.
-  Future<_ExecutionOutcome> _executeCleanup({
-    required DriverBasedAnalysisContext context,
-    required _PubspecTarget pubspec,
-    required Version targetVersion,
-  }) async {
+  Future<_ExecutionOutcome> _executeCleanup(_PubspecTarget pubspec) async {
+    var pubspecFile = pubspec.file;
+    var targetVersion = minimumSdkConstraint(pubspecFile);
+    if (targetVersion == null) {
+      summaryBuffer.writeln(
+        '- ${pubspec.displayName}:\n'
+        '    Failed cleanup with error: Unknown SDK version.',
+      );
+      return _ExecutionOutcome.success;
+    }
+    if (!postMigrationLintsRegistry.containsKey(targetVersion)) {
+      summaryBuffer.writeln(
+        '- ${pubspec.displayName}: Skipped cleanup '
+        '(No cleanup fixes registered for SDK version $targetVersion)',
+      );
+      return _ExecutionOutcome.success;
+    }
+
+    // Retrieve the updated analysis context to ensure cleanup fixes are
+    // computed against the newly applied overlays and bumped SDK constraint.
+    var context = server.contextManager.getContextFor(pubspecFile.path);
+    if (context == null) {
+      summaryBuffer.writeln(
+        '- ${pubspec.displayName}: Skipped cleanup '
+        '(context lost after pubspec update)',
+      );
+      return _ExecutionOutcome.success;
+    }
+
     // Run post-migration fixes.
     var targetVersionChangeBuilder = await _createBuilder();
     // TODO(kallentu): Allow the user to choose which ones.
@@ -374,42 +387,78 @@ class _MigrationRunner({
   /// corresponding file edits. Returns [_ExecutionOutcome.exception] if an
   /// error occurs.
   Future<_ExecutionOutcome> _executePrepareAndBump({
-    required DriverBasedAnalysisContext context,
     required _PubspecTarget pubspec,
-    required PubspecEdit versionBumpEdit,
-    required List<String> bumpedLines,
+    required bool runPrepare,
+    required bool runBump,
   }) async {
-    // Run pre-migrations fixes.
-    var builder = await _createBuilder();
-    var preMigrationFixDetails = await _runPreMigrations(
-      context,
-      pubspec,
-      versionBumpEdit.targetVersion,
-      builder,
-    );
-    if (preMigrationFixDetails == null) {
+    var pubspecFile = pubspec.file;
+    var context = server.contextManager.getContextFor(pubspecFile.path);
+    if (context == null) {
+      summaryBuffer.writeln('- ${pubspec.displayName}: Skipped (not analyzed)');
       return _ExecutionOutcome.exception;
     }
 
-    _accumulateFixDetails(
-      preMigrationFixDetails,
-      _preMigrationFixDetailsMap,
-      pubspec,
-    );
+    var versionBumpEdit = computeVersionBumpEdit(pubspecFile);
+    if (versionBumpEdit == null) {
+      return _ExecutionOutcome.exception;
+    }
+
+    if (_shouldSkipDueToDependencies(context, pubspec, versionBumpEdit)) {
+      return _ExecutionOutcome.exception;
+    }
+
+    // Run pre-migrations fixes.
+    var builder = await _createBuilder();
+    if (runPrepare || runBump) {
+      // If we are preparing, we write the edits to the main builder.
+      // If we are bumping without preparing, we only check for edits without
+      // applying them, so we write them to a separate temporary builder to
+      // discard them.
+      var preMigrationBuilder = runPrepare ? builder : await _createBuilder();
+      var preMigrationFixDetails = await _runPreMigrations(
+        context,
+        pubspec,
+        versionBumpEdit.targetVersion,
+        preMigrationBuilder,
+      );
+      if (preMigrationFixDetails == null) {
+        return _ExecutionOutcome.exception;
+      }
+
+      // Prevent version bumps when the user needs to migrate their code.
+      if (runBump && !runPrepare && preMigrationFixDetails.isNotEmpty) {
+        summaryBuffer.writeln(
+          '- ${pubspec.displayName}:\n'
+          '    Failed version bump with error: Package "${pubspec.displayName}"'
+          ' requires pre-bump fixes before the SDK constraint can be bumped.',
+        );
+        return _ExecutionOutcome.exception;
+      }
+
+      if (runPrepare) {
+        _accumulateFixDetails(
+          preMigrationFixDetails,
+          _preMigrationFixDetailsMap,
+          pubspec,
+        );
+      }
+    }
 
     // Bump version constraint.
-    await _bumpPubspecConstraint(pubspec.file, versionBumpEdit, builder);
+    if (runBump) {
+      await _bumpPubspecConstraint(pubspecFile, versionBumpEdit, builder);
 
-    _applyAndRecordEdits(builder);
+      _bumpedLines.add(
+        '- ${pubspec.displayName}: ${versionBumpEdit.originalConstraint} -> '
+        '${versionBumpEdit.replacement}',
+      );
+    }
 
-    bumpedLines.add(
-      '- ${pubspec.displayName}: ${versionBumpEdit.originalConstraint} -> '
-      '${versionBumpEdit.replacement}',
-    );
-
-    // Apply the pre-migration and pubspec constraint.
-    await applyOverlays();
-    await server.analysisDriverScheduler.waitForIdle();
+    if (runPrepare || runBump) {
+      _applyAndRecordEdits(builder);
+      await applyOverlays();
+      await server.analysisDriverScheduler.waitForIdle();
+    }
 
     return _ExecutionOutcome.success;
   }
@@ -533,7 +582,9 @@ class _MigrationRunner({
     }
 
     if (totalFixes > 0) {
-      buffer.writeln();
+      if (buffer.isNotEmpty) {
+        buffer.writeln();
+      }
       buffer.writeln(phaseLabel);
 
       var fixPlural = totalFixes == 1 ? 'fix' : 'fixes';
@@ -573,4 +624,13 @@ class _PubspecTarget {
 
   new({required this.file, required YamlMap pubspec})
     : displayName = (pubspec['name'] as String?) ?? file.parent.shortName;
+}
+
+extension on List<MigrationStep> {
+  bool get runBump =>
+      contains(MigrationStep.All) || contains(MigrationStep.Bump);
+  bool get runCleanup =>
+      contains(MigrationStep.All) || contains(MigrationStep.Cleanup);
+  bool get runPrepare =>
+      contains(MigrationStep.All) || contains(MigrationStep.Prepare);
 }

@@ -2207,28 +2207,29 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when a non-overriding, public
-      function has a positional parameter of type `bool`.
+      function has two or more positional parameters of type `bool`.
 
-      Positional boolean parameters can cause ambiguity when
-      the function is invoked because the function of the
-      specified boolean value might not be clear from the value alone.
+      A function with multiple positional Boolean parameters can be a source of
+      ambiguity at call sites because the purpose of the specified
+      Boolean values might not be clear from the values alone.
       Named parameters make their intent explicit.
 
       #### Example
 
       The following code produces this diagnostic because
-      the function `f` has a positional parameter with a type of `bool`:
+      the function `f` has two positional parameters with a type of `bool`:
 
       ```dart
-      void f([!bool b!]) {}
+      void f(bool a, [!bool b!]) {}
       ```
 
       #### Common fixes
 
-      Convert the positional parameter to a named parameter:
+      Convert all of the positional parameters to be named parameters (possibly
+      excepting one):
 
       ```dart
-      void f({bool b = false}) {}
+      void f(bool a, {bool b = false}) {}
       ```
     deprecatedDetails: |-
       From [Effective Dart](https://dart.dev/effective-dart/design#avoid-positional-boolean-parameters):

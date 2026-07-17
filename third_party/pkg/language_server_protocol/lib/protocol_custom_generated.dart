@@ -499,6 +499,33 @@ bool _canParseListFormField(
   return true;
 }
 
+bool _canParseListMigrationStep(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !MigrationStep.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<MigrationStep>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListObjectNullable(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -1674,17 +1701,21 @@ class DartMigrateParams implements ToJsonable {
   /// Whether to apply the migration changes.
   final bool? apply;
 
+  /// The specific migration steps to run.
+  final List<MigrationStep>? steps;
+
   /// The URIs of the directories (packages or workspaces) to migrate.
   /// Individual file URIs are not supported.
   final List<DocumentUri> uris;
-
   DartMigrateParams({
     this.apply,
+    this.steps,
     required this.uris,
   });
   @override
   int get hashCode => Object.hash(
         apply,
+        lspHashCode(steps),
         lspHashCode(uris),
       );
 
@@ -1693,6 +1724,7 @@ class DartMigrateParams implements ToJsonable {
     return other is DartMigrateParams &&
         other.runtimeType == DartMigrateParams &&
         apply == other.apply &&
+        const DeepCollectionEquality().equals(steps, other.steps) &&
         const DeepCollectionEquality().equals(uris, other.uris);
   }
 
@@ -1701,6 +1733,9 @@ class DartMigrateParams implements ToJsonable {
     var result = <String, Object?>{};
     if (apply != null) {
       result['apply'] = apply;
+    }
+    if (steps != null) {
+      result['steps'] = steps?.map((item) => item.toJson()).toList();
     }
     result['uris'] = uris.map((uri) => uri.toString()).toList();
     return result;
@@ -1715,6 +1750,10 @@ class DartMigrateParams implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
+      if (!_canParseListMigrationStep(obj, reporter, 'steps',
+          allowsUndefined: true, allowsNull: false)) {
+        return false;
+      }
       return _canParseListUri(obj, reporter, 'uris',
           allowsUndefined: false, allowsNull: false);
     } else {
@@ -1726,12 +1765,17 @@ class DartMigrateParams implements ToJsonable {
   static DartMigrateParams fromJson(Map<String, Object?> json) {
     final applyJson = json['apply'];
     final apply = applyJson as bool?;
+    final stepsJson = json['steps'];
+    final steps = (stepsJson as List<Object?>?)
+        ?.map((item) => MigrationStep.fromJson(item as String))
+        .toList();
     final urisJson = json['uris'];
     final uris = (urisJson as List<Object?>)
         .map((item) => Uri.parse(item as String))
         .toList();
     return DartMigrateParams(
       apply: apply,
+      steps: steps,
       uris: uris,
     );
   }
@@ -4178,6 +4222,33 @@ class Message implements ToJsonable {
       jsonrpc: jsonrpc,
     );
   }
+}
+
+/// The specific migration step to run.
+class MigrationStep implements ToJsonable {
+  static const All = MigrationStep('all');
+  static const Bump = MigrationStep('bump');
+
+  static const Cleanup = MigrationStep('cleanup');
+
+  static const Prepare = MigrationStep('prepare');
+  final String _value;
+  const MigrationStep(this._value);
+  const MigrationStep.fromJson(this._value);
+  @override
+  int get hashCode => _value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MigrationStep && other._value == _value;
+
+  @override
+  String toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) => obj is String;
 }
 
 class NotificationMessage implements IncomingMessage, ToJsonable {
