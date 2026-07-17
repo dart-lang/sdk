@@ -3084,7 +3084,7 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
 
   LocalVarDescriptorsBuilder vars;
 
-  if (function.IsLocalFunction()) {
+  if (function.IsLocalFunction() && function.token_pos().IsReal()) {
     const auto& parent = Function::Handle(zone, function.parent_function());
     ASSERT(parent.is_declared_in_bytecode() && parent.HasBytecode());
     const auto& parent_bytecode = Bytecode::Handle(zone, parent.GetBytecode());
