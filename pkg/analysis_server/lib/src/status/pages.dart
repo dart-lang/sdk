@@ -11,6 +11,28 @@ import 'package:collection/collection.dart';
 
 String escape(String? text) => text == null ? '' : htmlEscape.convert(text);
 
+/// Formats [bytes] using binary units, e.g. `1.50 MiB`.
+String printBytes(int bytes) {
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  var value = bytes.toDouble();
+  var unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  if (unitIndex == 0) {
+    return '$bytes ${units[unitIndex]}';
+  }
+
+  var fractionDigits = value >= 100
+      ? 0
+      : value >= 10
+      ? 1
+      : 2;
+  return '${value.toStringAsFixed(fractionDigits)} ${units[unitIndex]}';
+}
+
 String printMilliseconds(int value) => '$value ms';
 
 String printPercentage(num value, [int fractionDigits = 1]) =>
