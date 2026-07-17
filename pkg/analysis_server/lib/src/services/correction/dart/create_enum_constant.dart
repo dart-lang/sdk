@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class AddEnumConstant extends ResolvedCorrectionProducer {
+class CreateEnumConstant extends ResolvedCorrectionProducer {
   /// The name of the constant to be created.
   String _constantName = '';
 
@@ -27,7 +27,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_constantName];
 
   @override
-  FixKind get fixKind => DartFixKind.addEnumConstant;
+  FixKind get fixKind => DartFixKind.createEnumConstant;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
