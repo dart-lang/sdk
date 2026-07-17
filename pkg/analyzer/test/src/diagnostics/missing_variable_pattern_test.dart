@@ -140,7 +140,7 @@ void f(int x) {
 LogicalOrPattern
   leftOperand: LogicalAndPattern
     leftOperand: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: int
@@ -191,7 +191,7 @@ LogicalOrPattern
     matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 2
       staticType: int
     matchedValueType: num
@@ -213,7 +213,7 @@ void f(int x) {
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 1
       staticType: int
     matchedValueType: int
@@ -258,14 +258,14 @@ LogicalOrPattern
       matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 2
         staticType: int
       matchedValueType: num
     matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 3
       staticType: int
     matchedValueType: num
@@ -315,7 +315,7 @@ LogicalOrPattern
     matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 3
       staticType: int
     matchedValueType: num
@@ -400,7 +400,7 @@ LogicalOrPattern
       matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 2
         staticType: int
       matchedValueType: num
@@ -438,7 +438,7 @@ void f(num x) {
 LogicalOrPattern
   leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 1
         staticType: int
       matchedValueType: num
@@ -457,7 +457,7 @@ LogicalOrPattern
     matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 3
       staticType: int
     matchedValueType: num
@@ -484,7 +484,7 @@ void f(int x) {
 LogicalOrPattern
   leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 1
         staticType: int
       matchedValueType: int
@@ -524,13 +524,13 @@ void f(int x) {
 LogicalOrPattern
   leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 1
         staticType: int
       matchedValueType: int
     operator: ||
     rightOperand: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 2
         staticType: int
       matchedValueType: int
@@ -615,7 +615,7 @@ LogicalOrPattern
     matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 2
       staticType: int
     matchedValueType: num
@@ -640,7 +640,7 @@ void f(int x) {
     assertResolvedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 1
       staticType: int
     matchedValueType: int

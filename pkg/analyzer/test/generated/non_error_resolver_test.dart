@@ -3279,7 +3279,7 @@ class A {
     assertType(
       result.findNode
           .yieldStatement('yield* Stream.fromIterable([1]);')
-          .expression
+          .expression2
           .staticType,
       'Stream<int>',
     );
@@ -3295,7 +3295,7 @@ class A {
 ''');
 
     assertType(
-      result.findNode.yieldStatement('yield* [1];').expression.staticType,
+      result.findNode.yieldStatement('yield* [1];').expression2.staticType,
       'List<int>',
     );
   }

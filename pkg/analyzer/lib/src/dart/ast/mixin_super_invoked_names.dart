@@ -14,7 +14,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    if (node.leftOperand is SuperExpression) {
+    if (node.leftOperand2 is SuperExpression) {
       _names.add(node.operator.lexeme);
     }
     super.visitBinaryExpression(node);
@@ -22,7 +22,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    if (node.target is SuperExpression) {
+    if (node.target2 is SuperExpression) {
       if (node.inGetterContext()) {
         _names.add('[]');
       }
@@ -35,7 +35,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.target is SuperExpression) {
+    if (node.target2 is SuperExpression) {
       _names.add(node.methodName.name);
     }
     super.visitMethodInvocation(node);
@@ -43,7 +43,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    if (node.operand is SuperExpression) {
+    if (node.operand2 is SuperExpression) {
       TokenType operatorType = node.operator.type;
       if (operatorType == TokenType.MINUS) {
         _names.add('unary-');
@@ -56,7 +56,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.target is SuperExpression) {
+    if (node.target2 is SuperExpression) {
       var name = node.propertyName.name;
       if (node.propertyName.inGetterContext()) {
         _names.add(name);

@@ -386,7 +386,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitAnonymousMethodInvocation(
     covariant AnonymousMethodInvocationImpl node,
   ) {
-    var target = node.target;
+    var target = node.target2;
     if (target != null) {
       checkForUseOfVoidResult(target);
       target.accept2(this);
@@ -444,9 +444,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitAssignmentExpression(covariant AssignmentExpressionImpl node) {
     TokenType operatorType = node.operator.type;
-    Expression lhs = node.leftHandSide;
+    Expression lhs = node.leftHandSide2;
     if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForDeadNullCoalesce(node.readType!, node.rightHandSide);
+      _checkForDeadNullCoalesce(node.readType!, node.rightHandSide2);
     }
     _checkForAssignmentToFinal(lhs);
     _checkForAssignmentToPrimaryConstructorParameter(lhs);
@@ -457,7 +457,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    checkForUseOfVoidResult(node.expression);
+    checkForUseOfVoidResult(node.expression2);
     _checkForAwaitInLateLocalVariableInitializer(node);
     _checkForAwaitOfIncompatibleType(node);
     super.visitAwaitExpression(node);
@@ -468,19 +468,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     Token operator = node.operator;
     TokenType type = operator.type;
     if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      checkForUseOfVoidResult(node.rightOperand);
+      checkForUseOfVoidResult(node.rightOperand2);
     } else {
       // Assignability checking is done by the resolver.
     }
 
     if (type == TokenType.QUESTION_QUESTION) {
       _checkForDeadNullCoalesce(
-        node.leftOperand.staticType!,
-        node.rightOperand,
+        node.leftOperand2.staticType!,
+        node.rightOperand2,
       );
     }
 
-    checkForUseOfVoidResult(node.leftOperand);
+    checkForUseOfVoidResult(node.leftOperand2);
     _constArgumentsVerifier.visitBinaryExpression(node);
 
     super.visitBinaryExpression(node);
@@ -1279,7 +1279,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var functionExpression = node.function;
+    var functionExpression = node.function2;
 
     if (functionExpression is ExtensionOverride) {
       return super.visitFunctionExpressionInvocation(node);
@@ -1425,14 +1425,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    checkForUseOfVoidResult(node.expression);
+    checkForUseOfVoidResult(node.expression2);
     super.visitInterpolationExpression(node);
   }
 
   @override
   void visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
-    checkForUseOfVoidResult(node.expression);
+    checkForUseOfVoidResult(node.expression2);
     super.visitIsExpression(node);
   }
 
@@ -1448,14 +1448,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitMapLiteralEntry(MapLiteralEntry node) {
     if (node.keyQuestion != null) {
       _checkForUnnecessaryNullAware(
-        node.key,
+        node.key2,
         node.keyQuestion!,
         kind: _NullAwareKind.mapEntryKey,
       );
     }
     if (node.valueQuestion != null) {
       _checkForUnnecessaryNullAware(
-        node.value,
+        node.value2,
         node.valueQuestion!,
         kind: _NullAwareKind.mapEntryValue,
       );
@@ -1557,7 +1557,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
         typeReference,
-        node.target,
+        node.target2,
         methodName,
       );
       // Note: `node.isNullAware` produces the wrong behavior because it considers
@@ -1667,7 +1667,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitNullAwareElement(NullAwareElement node) {
     _checkForUnnecessaryNullAware(
-      node.value,
+      node.value2,
       node.question,
       kind: _NullAwareKind.element,
     );
@@ -1686,7 +1686,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitPostfixExpression(covariant PostfixExpressionImpl node) {
-    var operand = node.operand;
+    var operand = node.operand2;
     if (node.operator.type == TokenType.BANG) {
       checkForUseOfVoidResult(node);
       _checkForUnnecessaryNullAware(
@@ -1717,7 +1717,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitPrefixExpression(covariant PrefixExpressionImpl node) {
     var operatorType = node.operator.type;
-    var operand = node.operand;
+    var operand = node.operand2;
     if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
@@ -1819,7 +1819,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
       typeReference,
-      node.target,
+      node.target2,
       propertyName,
     );
     // Note: `node.isNullAware` produces the wrong behavior because it considers
@@ -1864,7 +1864,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    if (node.expression == null) {
+    if (node.expression2 == null) {
       _enclosingExecutable._returnsWithout.add(node);
     } else {
       _enclosingExecutable._returnsWith.add(node);
@@ -1914,7 +1914,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitSpreadElement(SpreadElement node) {
     if (node.isNullAware) {
       _checkForUnnecessaryNullAware(
-        node.expression,
+        node.expression2,
         node.spreadOperator,
         kind: _NullAwareKind.spread,
       );
@@ -2020,7 +2020,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitSwitchExpression(SwitchExpression node) {
-    checkForUseOfVoidResult(node.expression);
+    checkForUseOfVoidResult(node.expression2);
     super.visitSwitchExpression(node);
   }
 
@@ -2034,7 +2034,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    checkForUseOfVoidResult(node.expression);
+    checkForUseOfVoidResult(node.expression2);
     _checkForMissingEnumConstantInSwitch(node);
     super.visitSwitchStatement(node);
   }
@@ -2048,7 +2048,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
-    checkForUseOfVoidResult(node.expression);
+    checkForUseOfVoidResult(node.expression2);
     _checkForThrowOfInvalidType(node);
     super.visitThrowExpression(node);
   }
@@ -2090,7 +2090,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     if (variableList.isConst) {
       for (var variable in variableList.variables) {
-        if (variable.initializer == null) {
+        if (variable.initializer2 == null) {
           diagnosticReporter.report(
             diag.constNotInitialized
                 .withArguments(name: variable.name.lexeme)
@@ -2102,7 +2102,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         node.externalKeyword == null &&
         !variableList.isLate) {
       for (var variable in variableList.variables) {
-        if (variable.initializer == null) {
+        if (variable.initializer2 == null) {
           if (variableList.isFinal) {
             diagnosticReporter.report(
               diag.finalNotInitialized
@@ -2169,7 +2169,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var nameToken = node.name;
-    var initializerNode = node.initializer;
+    var initializerNode = node.initializer2;
     // do checks
     _checkForAbstractOrExternalVariableInitializer(node);
     // visit initializer
@@ -2205,7 +2205,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     if (node.variables.isConst) {
       for (var variable in node.variables.variables) {
-        if (variable.initializer == null) {
+        if (variable.initializer2 == null) {
           diagnosticReporter.report(
             diag.constNotInitialized
                 .withArguments(name: variable.name.lexeme)
@@ -2417,7 +2417,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     VariableDeclaration node,
   ) {
     var declaredElement = node.declaredFragment?.element;
-    if (node.initializer != null) {
+    if (node.initializer2 != null) {
       if (declaredElement is FieldElement) {
         if (declaredElement.isAbstract) {
           diagnosticReporter.report(
@@ -3270,7 +3270,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForAwaitOfIncompatibleType(AwaitExpression node) {
-    var expression = node.expression;
+    var expression = node.expression2;
     var expressionType = expression.typeOrThrow;
     if (typeSystem.isIncompatibleWithAwait(expressionType)) {
       diagnosticReporter.report(
@@ -4390,7 +4390,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   void _checkForDefaultValueAssignableAtType(FormalParameter node) {
     if (node.defaultClause case var defaultClause?) {
-      var defaultValue = defaultClause.value;
+      var defaultValue = defaultClause.value2;
       checkForAssignableExpressionAtType(
         defaultValue,
         defaultValue.typeOrThrow,
@@ -5835,7 +5835,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       elementType: listElementType,
       featureSet: _featureSet,
     );
-    for (CollectionElement element in literal.elements) {
+    for (CollectionElement element in literal.elements2) {
       verifier.verify(element);
     }
   }
@@ -5927,7 +5927,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         mapValueType: valueType,
         featureSet: _featureSet,
       );
-      for (CollectionElement element in literal.elements) {
+      for (CollectionElement element in literal.elements2) {
         verifier.verify(element);
       }
     }
@@ -5944,7 +5944,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     // TODO(brianwilkerson): This needs to be checked after constant values have
     // been computed.
-    var expressionType = statement.expression.staticType;
+    var expressionType = statement.expression2.staticType;
 
     var hasCaseNull = false;
     if (expressionType is InterfaceType) {
@@ -5958,13 +5958,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         for (var member in statement.members) {
           Expression? caseConstant;
           if (member is SwitchCase) {
-            caseConstant = member.expression;
+            caseConstant = member.expression2;
           } else if (member is SwitchPatternCase) {
             var guardedPattern = member.guardedPattern;
             if (guardedPattern.whenClause == null) {
               var pattern = guardedPattern.pattern.unParenthesized;
               if (pattern is ConstantPattern) {
-                caseConstant = pattern.expression;
+                caseConstant = pattern.expression2;
               }
             }
           }
@@ -6699,7 +6699,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     if (variableList.isConst) {
       for (var variable in variableList.variables) {
-        if (variable.initializer == null) {
+        if (variable.initializer2 == null) {
           diagnosticReporter.report(
             diag.constNotInitialized
                 .withArguments(name: variable.name.lexeme)
@@ -6729,7 +6729,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     for (var variable in variableList.variables) {
-      if (variable.initializer != null) {
+      if (variable.initializer2 != null) {
         continue;
       }
 
@@ -7124,7 +7124,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         elementType: setElementType,
         featureSet: _featureSet,
       );
-      for (CollectionElement element in literal.elements) {
+      for (CollectionElement element in literal.elements2) {
         verifier.verify(element);
       }
     }
@@ -7162,8 +7162,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForThrowOfInvalidType(ThrowExpression node) {
-    var expression = node.expression;
-    var type = node.expression.typeOrThrow;
+    var expression = node.expression2;
+    var type = node.expression2.typeOrThrow;
 
     if (!typeSystem.isAssignableTo(
       type,
@@ -7394,9 +7394,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     var targetType = target.staticType;
     if (target is ExtensionOverride) {
-      var arguments = target.argumentList.arguments;
+      var arguments = target.argumentList.arguments2;
       if (arguments.length == 1) {
-        targetType = arguments[0].argumentExpression.typeOrThrow;
+        targetType = arguments[0].argumentExpression2.typeOrThrow;
       } else {
         return;
       }

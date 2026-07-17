@@ -44,7 +44,7 @@ CompilationUnit
           VariableDeclaration
             name: annotation
             equals: =
-            initializer: NullLiteral
+            initializer2: NullLiteral
               literal: null
       semicolon: ;
     ClassDeclaration
@@ -74,7 +74,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: InstanceCreationExpression
+              expression2: InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
                   type: NamedType
@@ -153,7 +153,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -182,34 +182,34 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: b
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       NamedArgument
                         name: c
                         colon: :
-                        argumentExpression: MethodInvocation
+                        argumentExpression2: MethodInvocation
                           methodName: SimpleIdentifier
                             token: c
                           argumentList: ArgumentList
                             leftParenthesis: (
-                            arguments
+                            arguments2
                               NamedArgument
                                 name: d
                                 colon: :
-                                argumentExpression: MethodInvocation
+                                argumentExpression2: MethodInvocation
                                   methodName: SimpleIdentifier
                                     token: d
                                   argumentList: ArgumentList
                                     leftParenthesis: (
-                                    arguments
+                                    arguments2
                                       NamedArgument
                                         name: e
                                         colon: :
-                                        argumentExpression: NullLiteral
+                                        argumentExpression2: NullLiteral
                                           literal: null
                                       SimpleIdentifier
                                         token: f
@@ -254,15 +254,15 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BinaryExpression
-                  leftOperand: BinaryExpression
-                    leftOperand: IntegerLiteral
+                condition2: BinaryExpression
+                  leftOperand2: BinaryExpression
+                    leftOperand2: IntegerLiteral
                       literal: 1
                     operator: <
-                    rightOperand: SimpleIdentifier
+                    rightOperand2: SimpleIdentifier
                       token: x
                   operator: <
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 3
                 rightParenthesis: )
                 body: Block
@@ -296,7 +296,7 @@ CompilationUnit
           VariableDeclaration
             name: ints
             equals: =
-            initializer: ListLiteral
+            initializer2: ListLiteral
               typeArguments: TypeArgumentList
                 leftBracket: <
                 arguments
@@ -335,7 +335,7 @@ CompilationUnit
           VariableDeclaration
             name: map
             equals: =
-            initializer: SetOrMapLiteral
+            initializer2: SetOrMapLiteral
               typeArguments: TypeArgumentList
                 leftBracket: <
                 arguments
@@ -481,20 +481,20 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer: SetOrMapLiteral
+            initializer2: SetOrMapLiteral
               leftBracket: {
-              elements
+              elements2
                 MapLiteralEntry
-                  key: SimpleStringLiteral
+                  key2: SimpleStringLiteral
                     literal: 'a'
                   separator: :
-                  value: FunctionExpression
+                  value2: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression: InstanceCreationExpression
+                      expression2: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -503,16 +503,16 @@ CompilationUnit
                           leftParenthesis: (
                           rightParenthesis: )
                 MapLiteralEntry
-                  key: SimpleStringLiteral
+                  key2: SimpleStringLiteral
                     literal: 'b'
                   separator: :
-                  value: FunctionExpression
+                  value2: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression: InstanceCreationExpression
+                      expression2: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -577,7 +577,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 499
           semicolon: ;
 ''');
@@ -613,7 +613,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 499
           semicolon: ;
 ''');
@@ -656,7 +656,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 499
           semicolon: ;
 ''');

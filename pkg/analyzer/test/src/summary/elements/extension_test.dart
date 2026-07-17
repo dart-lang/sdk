@@ -704,7 +704,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: foo @-1
                       element: <testLibrary>::@enum::A::@getter::foo

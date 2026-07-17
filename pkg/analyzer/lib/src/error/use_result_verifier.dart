@@ -163,7 +163,7 @@ class UseResultVerifier {
     }
 
     if (parent is CascadeExpression) {
-      return parent.target == node;
+      return parent.target2 == node;
     }
 
     if (parent is PrefixedIdentifier) {
@@ -253,7 +253,7 @@ extension on AstNode {
   AstNode get nodeToAnnotate => switch (this) {
     MethodInvocation node => node.methodName,
     PropertyAccess node => node.propertyName,
-    FunctionExpressionInvocation node => node.function.nodeToAnnotate,
+    FunctionExpressionInvocation node => node.function2.nodeToAnnotate,
     _ => this,
   };
 }

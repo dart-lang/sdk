@@ -7044,7 +7044,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: i @-1
                     element: <testLibrary>::@class::C2::@constructor::new::@formalParameter::i
@@ -7071,7 +7071,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: i @-1
                     element: <testLibrary>::@class::C1::@constructor::new::@formalParameter::i
@@ -7247,7 +7247,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c1::@formalParameter::a
@@ -7281,7 +7281,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::a
@@ -7323,7 +7323,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::a
@@ -7509,7 +7509,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
@@ -8858,7 +8858,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
@@ -8886,7 +8886,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
@@ -8914,7 +8914,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
@@ -8942,7 +8942,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
@@ -8970,7 +8970,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
@@ -9083,7 +9083,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: t @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
@@ -9208,7 +9208,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: t @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
@@ -9559,7 +9559,7 @@ library
             AssertInitializer
               assertKeyword: assert @27
               leftParenthesis: ( @33
-              condition: BooleanLiteral
+              condition2: BooleanLiteral
                 literal: true @34
                 staticType: bool
               rightParenthesis: ) @38
@@ -9617,7 +9617,7 @@ library
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
               equals: = @44
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @46
                 staticType: int
       getters
@@ -9687,7 +9687,7 @@ library
               superKeyword: super @54
               argumentList: ArgumentList
                 leftParenthesis: ( @59
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @60
                     staticType: int
@@ -9771,7 +9771,7 @@ library
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @46
-                    arguments
+                    arguments2
                       SimpleStringLiteral
                         literal: '0' @47
                     rightParenthesis: ) @50
@@ -9806,7 +9806,7 @@ library
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @46
-                arguments
+                arguments2
                   SimpleStringLiteral
                     literal: '0' @47
                 rightParenthesis: ) @50
@@ -9818,7 +9818,7 @@ library
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
               equals: = @63
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @65
                 staticType: int
       getters
@@ -9942,7 +9942,7 @@ library
             AssertInitializer
               assertKeyword: assert @33
               leftParenthesis: ( @39
-              condition: BooleanLiteral
+              condition2: BooleanLiteral
                 literal: true @40
                 staticType: bool
               rightParenthesis: ) @44
@@ -10067,13 +10067,13 @@ library
             AssertInitializer
               assertKeyword: assert @38
               leftParenthesis: ( @44
-              condition: BinaryExpression
-                leftOperand: SimpleIdentifier
+              condition2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: x @45
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: > @47
-                rightOperand: IntegerLiteral
+                rightOperand2: IntegerLiteral
                   literal: 0 @49
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -13442,7 +13442,7 @@ library
                 element: <testLibrary>::@class::A::@field::f
                 staticType: null
               equals: = @68
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @70
                 staticType: int
       getters
@@ -23904,13 +23904,13 @@ library
             AssertInitializer
               assertKeyword: assert @29
               leftParenthesis: ( @35
-              condition: BinaryExpression
-                leftOperand: SimpleIdentifier
+              condition2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: x @36
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: >= @38
-                rightOperand: IntegerLiteral
+                rightOperand2: IntegerLiteral
                   literal: 42 @41
                   staticType: int
                 element: dart:core::@class::num::@method::>=
@@ -23959,20 +23959,20 @@ library
             AssertInitializer
               assertKeyword: assert @29
               leftParenthesis: ( @35
-              condition: BinaryExpression
-                leftOperand: SimpleIdentifier
+              condition2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: x @36
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: >= @38
-                rightOperand: IntegerLiteral
+                rightOperand2: IntegerLiteral
                   literal: 42 @41
                   staticType: int
                 element: dart:core::@class::num::@method::>=
                 staticInvokeType: bool Function(num)
                 staticType: bool
               comma: , @43
-              message: SimpleStringLiteral
+              message2: SimpleStringLiteral
                 literal: 'foo' @45
               rightParenthesis: ) @50
 ''');
@@ -24028,7 +24028,7 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 42 @39
                 staticType: int
       getters
@@ -24096,7 +24096,7 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression: MethodInvocation
+              expression2: MethodInvocation
                 methodName: SimpleIdentifier
                   token: foo @39
                   element: <testLibrary>::@function::foo
@@ -24184,7 +24184,7 @@ library
                 element: <testLibrary>::@class::A::@field::_f
                 staticType: null
               equals: = @54
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: f @56
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
                 staticType: int
@@ -24254,9 +24254,9 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @49
-              expression: RecordLiteral
+              expression2: RecordLiteral
                 leftParenthesis: ( @51
-                fields
+                fields2
                   IntegerLiteral
                     literal: 0 @52
                     staticType: int
@@ -24325,13 +24325,13 @@ library
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
               equals: = @37
-              expression: StringInterpolation
+              expression2: StringInterpolation
                 elements
                   InterpolationString
                     contents: ' @39
                   InterpolationExpression
                     leftBracket: ${ @40
-                    expression: IntegerLiteral
+                    expression2: IntegerLiteral
                       literal: 42 @42
                       staticType: int
                     rightBracket: } @44
@@ -24405,13 +24405,13 @@ library
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
               equals: = @42
-              expression: StringInterpolation
+              expression2: StringInterpolation
                 elements
                   InterpolationString
                     contents: ' @44
                   InterpolationExpression
                     leftBracket: $ @45
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: x @46
                       element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                       staticType: int
@@ -24485,12 +24485,12 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @42
-              expression: BinaryExpression
-                leftOperand: IntegerLiteral
+              expression2: BinaryExpression
+                leftOperand2: IntegerLiteral
                   literal: 1 @44
                   staticType: int
                 operator: + @46
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: p @48
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
                   staticType: int
@@ -24579,7 +24579,7 @@ library
               thisKeyword: this @77
               argumentList: ArgumentList
                 leftParenthesis: ( @81
-                arguments
+                arguments2
                   InstanceCreationExpression
                     constructorName: ConstructorName
                       type: NamedType
@@ -24672,7 +24672,7 @@ library
               superKeyword: super @79
               argumentList: ArgumentList
                 leftParenthesis: ( @84
-                arguments
+                arguments2
                   ListLiteral
                     constKeyword: const @85
                     leftBracket: [ @91
@@ -24749,7 +24749,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @78
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 42 @79
                     staticType: int
@@ -24893,14 +24893,14 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @83
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @84
                     staticType: int
                   NamedArgument
                     name: b @87
                     colon: : @88
-                    argumentExpression: IntegerLiteral
+                    argumentExpression2: IntegerLiteral
                       literal: 2 @90
                       staticType: int
                 rightParenthesis: ) @91
@@ -24969,7 +24969,7 @@ library
               superKeyword: super @69
               argumentList: ArgumentList
                 leftParenthesis: ( @74
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 42 @75
                     staticType: int
@@ -25028,7 +25028,7 @@ library
               thisKeyword: this @62
               argumentList: ArgumentList
                 leftParenthesis: ( @66
-                arguments
+                arguments2
                   ListLiteral
                     constKeyword: const @67
                     leftBracket: [ @73
@@ -25089,7 +25089,7 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @35
                     staticType: int
@@ -25160,14 +25160,14 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @35
                     staticType: int
                   NamedArgument
                     name: b @38
                     colon: : @39
-                    argumentExpression: IntegerLiteral
+                    argumentExpression2: IntegerLiteral
                       literal: 2 @41
                       staticType: int
                 rightParenthesis: ) @42
@@ -25230,7 +25230,7 @@ library
               thisKeyword: this @30
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @35
                     staticType: int
@@ -27803,7 +27803,7 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression: InstanceCreationExpression
+              expression2: InstanceCreationExpression
                 keyword: const @39
                 constructorName: ConstructorName
                   type: NamedType
@@ -27841,7 +27841,7 @@ library
                 element: <testLibrary>::@class::D::@field::x
                 staticType: null
               equals: = @90
-              expression: InstanceCreationExpression
+              expression2: InstanceCreationExpression
                 keyword: const @92
                 constructorName: ConstructorName
                   type: NamedType
@@ -28574,7 +28574,7 @@ library
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
               equals: = @28
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @30
                 staticType: int
       getters
@@ -29130,12 +29130,12 @@ library
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
                 BinaryExpression
-                  leftOperand: SimpleIdentifier
+                  leftOperand2: SimpleIdentifier
                     token: augmented @91
                     element: <null>
                     staticType: InvalidType
                   operator: + @101
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 1 @103
                     staticType: int
                   element: <null>
@@ -31679,7 +31679,7 @@ library
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @113
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @114
                       element: <testLibrary>::@getter::a
@@ -37648,7 +37648,7 @@ library
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @73
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 42 @74
                     staticType: int

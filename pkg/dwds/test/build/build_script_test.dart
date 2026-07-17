@@ -15,9 +15,9 @@ import 'test_path_utils.dart';
 void main() {
   group('Committed file integrity tests', () {
     test('injected_client_js.dart is in sync with web/client.dart', () async {
-      final clientDartString = File(
-        await dwdsPath('web/client.dart'),
-      ).readAsStringSync().replaceAll('\r\n', '\n');
+      final clientDartString = File(await dwdsPath('web/client.dart'))
+          .readAsStringSync()
+          .replaceAll('\r\n', '\n');
       final expectedHash = sha256
           .convert(utf8.encode(clientDartString))
           .toString();
@@ -106,9 +106,8 @@ void main() {
       final lines = actualClientJs.split('\n');
       final expectedSafeDartString = [
         for (var i = 0; i < lines.length; i++)
-          jsonEncode(
-            i == lines.length - 1 ? lines[i] : '${lines[i]}\n',
-          ).replaceAll(r'$', r'\$'),
+          jsonEncode(i == lines.length - 1 ? lines[i] : '${lines[i]}\n')
+              .replaceAll(r'$', r'\$'),
       ].join('\n');
 
       expect(

@@ -74,8 +74,8 @@ void f() {
 ''');
       var cascadeExpression = parseResult.findNode.singleCascadeExpression;
       var result = insertCascadeTargetIntoExpression(
-        expression: cascadeExpression.cascadeSections.single,
-        cascadeTarget: cascadeExpression.target,
+        expression: cascadeExpression.cascadeSections2.single,
+        cascadeTarget: cascadeExpression.target2,
       );
       expect(result.toSource(), expected);
     }

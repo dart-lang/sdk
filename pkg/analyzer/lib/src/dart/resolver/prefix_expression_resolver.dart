@@ -45,10 +45,10 @@ class PrefixExpressionResolver {
       return;
     }
 
-    var operand = node.operand;
+    var operand = node.operand2;
     if (operator.isIncrementOperator) {
       var operandResolution = _resolver.resolveForWrite(
-        node: node.operand,
+        node: node.operand2,
         hasRead: true,
       );
 
@@ -66,7 +66,7 @@ class PrefixExpressionResolver {
         atDynamicTarget: operandResolution.atDynamicTarget,
       );
 
-      _assignmentShared.checkFinalAlreadyAssigned(node.operand);
+      _assignmentShared.checkFinalAlreadyAssigned(node.operand2);
     } else {
       TypeImpl innerContextType;
       if (operator == TokenType.MINUS && operand is IntegerLiteralImpl) {
@@ -155,7 +155,7 @@ class PrefixExpressionResolver {
     TokenType operatorType = operator.type;
     if (operatorType.isUserDefinableOperator ||
         operatorType.isIncrementOperator) {
-      ExpressionImpl operand = node.operand;
+      ExpressionImpl operand = node.operand2;
       String methodName = _getPrefixOperator(node);
       if (operand is ExtensionOverrideImpl) {
         var element = operand.element;
@@ -217,7 +217,7 @@ class PrefixExpressionResolver {
 
   void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
-    var readType = node.readType ?? node.operand.staticType;
+    var readType = node.readType ?? node.operand2.staticType;
     if (identical(readType, NeverTypeImpl.instance)) {
       node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     } else {
@@ -231,7 +231,7 @@ class PrefixExpressionResolver {
         var staticMethodElement = node.element;
         staticType = _computeStaticReturnType(staticMethodElement);
       }
-      Expression operand = node.operand;
+      Expression operand = node.operand2;
       if (operand is ExtensionOverride) {
         // No special handling for incremental operators.
       } else if (operator.isIncrementOperator) {
@@ -260,7 +260,7 @@ class PrefixExpressionResolver {
   }
 
   void _resolveNegation(PrefixExpressionImpl node) {
-    var operand = node.operand;
+    var operand = node.operand2;
 
     _resolver.analyzeExpression(
       operand,

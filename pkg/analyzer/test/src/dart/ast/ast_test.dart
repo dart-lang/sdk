@@ -195,7 +195,7 @@ var x = a;
   }
 
   AttemptedConstantEvaluationResult? _evaluateX(TestResolvedUnitResult result) {
-    var node = result.findNode.topVariableDeclarationByName('x').initializer!;
+    var node = result.findNode.topVariableDeclarationByName('x').initializer2!;
     return node.computeConstantValue();
   }
 }

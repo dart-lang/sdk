@@ -33,7 +33,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
@@ -70,7 +70,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
@@ -116,7 +116,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
@@ -167,12 +167,12 @@ MapPattern
     RestPatternElement
       operator: ...
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
       value: ConstantPattern
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: ''
         matchedValueType: String
   rightBracket: }
@@ -195,12 +195,12 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
       value: ConstantPattern
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: ''
         matchedValueType: String
     RestPatternElement
@@ -229,12 +229,12 @@ MapPattern
     RestPatternElement
       operator: ...
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
       value: ConstantPattern
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: ''
         matchedValueType: String
     RestPatternElement
@@ -261,12 +261,12 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
       value: ConstantPattern
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: ''
         matchedValueType: String
     RestPatternElement
@@ -298,7 +298,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 0
         staticType: int
       separator: :
@@ -341,7 +341,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: BooleanLiteral
+      key2: BooleanLiteral
         literal: true
         staticType: bool
       separator: :
@@ -370,12 +370,12 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: BooleanLiteral
+      key2: BooleanLiteral
         literal: true
         staticType: bool
       separator: :
       value: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: Object?
@@ -417,7 +417,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: BooleanLiteral
+      key2: BooleanLiteral
         literal: true
         staticType: bool
       separator: :
@@ -451,7 +451,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: BooleanLiteral
+      key2: BooleanLiteral
         literal: true
         staticType: bool
       separator: :
@@ -492,12 +492,12 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: BooleanLiteral
+      key2: BooleanLiteral
         literal: true
         staticType: bool
       separator: :
       value: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
@@ -533,7 +533,7 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: BooleanLiteral
+      key2: BooleanLiteral
         literal: true
         staticType: bool
       separator: :
@@ -564,8 +564,8 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key: FunctionExpressionInvocation
-        function: SimpleIdentifier
+      key2: FunctionExpressionInvocation
+        function2: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()
@@ -577,7 +577,7 @@ MapPattern
         staticType: bool
       separator: :
       value: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -603,7 +603,7 @@ PatternVariableDeclaration
     leftBracket: {
     elements
       MapPatternEntry
-        key: BooleanLiteral
+        key2: BooleanLiteral
           literal: true
           staticType: bool
         separator: :
@@ -617,7 +617,7 @@ PatternVariableDeclaration
     matchedValueType: Map<bool, int>
     requiredType: Map<bool, int>
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Map<bool, int>
@@ -655,7 +655,7 @@ PatternVariableDeclaration
     leftBracket: {
     elements
       MapPatternEntry
-        key: BooleanLiteral
+        key2: BooleanLiteral
           literal: true
           staticType: bool
         separator: :
@@ -669,7 +669,7 @@ PatternVariableDeclaration
     matchedValueType: Map<bool, int>
     requiredType: Map<bool, int>
   equals: =
-  expression: MethodInvocation
+  expression2: MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g
@@ -703,7 +703,7 @@ PatternVariableDeclaration
     leftBracket: {
     elements
       MapPatternEntry
-        key: BooleanLiteral
+        key2: BooleanLiteral
           literal: true
           staticType: bool
         separator: :
@@ -721,7 +721,7 @@ PatternVariableDeclaration
     matchedValueType: Map<Object?, int>
     requiredType: Map<Object?, int>
   equals: =
-  expression: MethodInvocation
+  expression2: MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g

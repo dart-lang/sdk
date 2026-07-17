@@ -120,7 +120,7 @@ FormalParameterList
         name: x
         defaultClause: FormalParameterDefaultClause
           separator: =
-          value: SimpleIdentifier
+          value2: SimpleIdentifier
             token: x
             element: <null>
             staticType: InvalidType

@@ -47,7 +47,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -98,7 +98,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -149,7 +149,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -188,7 +188,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -234,7 +234,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -247,7 +247,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -283,7 +283,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -296,7 +296,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -332,7 +332,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -345,7 +345,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -381,7 +381,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -404,7 +404,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -440,7 +440,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -498,7 +498,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -557,7 +557,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -598,7 +598,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -646,7 +646,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -699,13 +699,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -758,13 +758,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -805,13 +805,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -859,13 +859,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -878,7 +878,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -916,13 +916,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -935,7 +935,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -973,13 +973,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -990,7 +990,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1028,13 +1028,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1055,7 +1055,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1093,13 +1093,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1159,13 +1159,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: set
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1223,7 +1223,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1264,7 +1264,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1312,7 +1312,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1325,7 +1325,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1363,7 +1363,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1376,7 +1376,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1414,7 +1414,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1427,7 +1427,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1465,8 +1465,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1520,8 +1520,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1563,8 +1563,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1613,8 +1613,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1628,7 +1628,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1666,8 +1666,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1681,7 +1681,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1719,8 +1719,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1734,7 +1734,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1772,8 +1772,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1797,7 +1797,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1835,8 +1835,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1897,8 +1897,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PostfixExpression
-                  operand: SimpleIdentifier
+                expression2: PostfixExpression
+                  operand2: SimpleIdentifier
                     token: f
                   operator: ++
             body: BlockFunctionBody
@@ -1958,7 +1958,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -1981,7 +1981,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2019,7 +2019,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -2079,7 +2079,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -2138,7 +2138,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -2151,7 +2151,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2189,7 +2189,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -2202,7 +2202,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2240,7 +2240,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -2251,7 +2251,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2289,7 +2289,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -2310,7 +2310,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2348,7 +2348,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -2406,7 +2406,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2455,7 +2455,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2492,7 +2492,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2536,7 +2536,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2547,7 +2547,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2583,7 +2583,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2594,7 +2594,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2630,7 +2630,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2641,7 +2641,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2677,7 +2677,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2698,7 +2698,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2734,7 +2734,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2790,7 +2790,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
@@ -2847,7 +2847,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: set
                 equals: = <synthetic>
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
@@ -3113,7 +3113,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: f
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
             body: EmptyFunctionBody
               semicolon: ;
@@ -3167,7 +3167,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3217,7 +3217,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3277,7 +3277,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3532,7 +3532,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3581,7 +3581,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3630,7 +3630,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3689,7 +3689,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3952,7 +3952,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4006,7 +4006,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4058,7 +4058,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4120,7 +4120,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }

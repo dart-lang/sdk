@@ -27,7 +27,7 @@ class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (_withinTryBlock) return;
-    var expression = node.expression;
+    var expression = node.expression2;
     var expressionType = expression.staticType ?? DynamicTypeImpl.instance;
     var body = node.withAncestors.whereType<FunctionBody>().firstOrNull;
     _report(body, expressionType, node.functionDefinition);
@@ -35,7 +35,7 @@ class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    var expression = node.expression;
+    var expression = node.expression2;
     if (expression == null) return;
     if (_withinTryBlock != node.isWithinTryBlock) return;
     var expressionType = expression.staticType ?? DynamicTypeImpl.instance;

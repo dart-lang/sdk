@@ -30,7 +30,7 @@ class A<T> {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression: SuperExpression
+  expression2: SuperExpression
     superKeyword: super
     staticType: A<T>
   isOperator: is
@@ -54,10 +54,10 @@ void f(Object? x) {
     var node = result.findNode.isExpression('is double');
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression: SwitchExpression
+  expression2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -70,7 +70,7 @@ IsExpression
             name: _
             matchedValueType: Object?
         arrow: =>
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
     rightBracket: }
@@ -94,7 +94,7 @@ void f(Object? a) {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?
@@ -117,7 +117,7 @@ void f(Object? a) {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?

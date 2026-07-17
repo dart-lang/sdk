@@ -224,7 +224,7 @@ library
                   substitution: {V: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @135
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: f @136
                     element: <testLibrary>::@function::f
@@ -362,7 +362,7 @@ library
                 element: <testLibrary>::@class::C::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: ( @115
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: f @116
                     element: <testLibrary>::@function::f
@@ -4461,7 +4461,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: value @-1
                     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::value
@@ -6011,7 +6011,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6303,7 +6303,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6507,7 +6507,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6769,7 +6769,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7022,7 +7022,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7469,7 +7469,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v

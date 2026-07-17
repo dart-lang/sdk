@@ -95,7 +95,7 @@ DotShorthandInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -135,7 +135,7 @@ DotShorthandInvocation
     staticType: C Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
@@ -236,7 +236,7 @@ DotShorthandInvocation
     staticType: C Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
@@ -404,7 +404,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandInvocation
+  function2: DotShorthandInvocation
     period: .
     memberName: SimpleIdentifier
       token: member
@@ -440,7 +440,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandInvocation
+  function2: DotShorthandInvocation
     period: .
     memberName: SimpleIdentifier
       token: member
@@ -454,7 +454,7 @@ FunctionExpressionInvocation
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::a
@@ -484,7 +484,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandInvocation
+  function2: DotShorthandInvocation
     period: .
     memberName: SimpleIdentifier
       token: member
@@ -520,7 +520,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandInvocation
+  function2: DotShorthandInvocation
     period: .
     memberName: SimpleIdentifier
       token: member
@@ -542,7 +542,7 @@ FunctionExpressionInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -574,7 +574,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandInvocation
+  function2: DotShorthandInvocation
     period: .
     memberName: SimpleIdentifier
       token: member
@@ -582,7 +582,7 @@ FunctionExpressionInvocation
       staticType: C Function(C)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         DotShorthandInvocation
           period: .
           memberName: SimpleIdentifier
@@ -755,7 +755,7 @@ DotShorthandInvocation
     staticType: C<U> Function<U, V>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       DotShorthandConstructorInvocation
         period: .
         constructorName: SimpleIdentifier
@@ -766,7 +766,7 @@ DotShorthandInvocation
           staticType: null
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments
+          arguments2
             DotShorthandInvocation
               period: .
               memberName: SimpleIdentifier
@@ -1137,7 +1137,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@extensionType::_Private::@constructor::new::@formalParameter::i
@@ -1280,7 +1280,7 @@ DotShorthandInvocation
     staticType: C<X> Function<X>(X)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleStringLiteral
         literal: "String"
     rightParenthesis: )

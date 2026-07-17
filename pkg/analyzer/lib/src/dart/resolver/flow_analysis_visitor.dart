@@ -125,7 +125,7 @@ class FlowAnalysisHelper {
   void asExpression(AsExpressionImpl node) {
     if (flow == null) return;
 
-    var expression = node.expression;
+    var expression = node.expression2;
     var typeAnnotation = node.type;
 
     flow!.asExpression_end(
@@ -312,7 +312,7 @@ class FlowAnalysisHelper {
   void isExpression(IsExpressionImpl node) {
     if (flow == null) return;
 
-    var expression = node.expression;
+    var expression = node.expression2;
     var typeAnnotation = node.type;
 
     storeExpressionInfo(
@@ -371,7 +371,7 @@ class FlowAnalysisHelper {
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
-          initialized: variable.initializer != null,
+          initialized: variable.initializer2 != null,
         );
       }
     }
@@ -1044,7 +1044,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
-    node.target?.accept2(this);
+    node.target2?.accept2(this);
     var parameters = node.parameters;
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
@@ -1068,7 +1068,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var left = node.leftHandSide;
+    var left = node.leftHandSide2;
 
     super.visitAssignmentExpression(node);
 
@@ -1083,9 +1083,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-      node.leftOperand.accept2(this);
+      node.leftOperand2.accept2(this);
       assignedVariables.beginNode();
-      node.rightOperand.accept2(this);
+      node.rightOperand2.accept2(this);
       assignedVariables.endNode(node);
     } else {
       super.visitBinaryExpression(node);
@@ -1107,11 +1107,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    node.condition.accept2(this);
+    node.condition2.accept2(this);
     assignedVariables.beginNode();
-    node.thenExpression.accept2(this);
+    node.thenExpression2.accept2(this);
     assignedVariables.endNode(node);
-    node.elseExpression.accept2(this);
+    node.elseExpression2.accept2(this);
   }
 
   @override
@@ -1128,7 +1128,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitForElement(covariant ForElementImpl node) {
-    _handleFor(node, node.forLoopParts, node.body);
+    _handleFor(node, node.forLoopParts, node.body2);
   }
 
   @override
@@ -1192,7 +1192,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void visitPostfixExpression(PostfixExpression node) {
     super.visitPostfixExpression(node);
     if (node.operator.type.isIncrementOperator) {
-      var operand = node.operand;
+      var operand = node.operand2;
       if (operand is SimpleIdentifier) {
         var element = operand.element;
         if (element is PromotableElementImpl) {
@@ -1206,7 +1206,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void visitPrefixExpression(PrefixExpression node) {
     super.visitPrefixExpression(node);
     if (node.operator.type.isIncrementOperator) {
-      var operand = node.operand;
+      var operand = node.operand2;
       if (operand is SimpleIdentifier) {
         var element = operand.element;
         if (element is PromotableElementImpl) {
@@ -1230,7 +1230,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitSwitchExpression(covariant SwitchExpressionImpl node) {
-    node.expression.accept2(this);
+    node.expression2.accept2(this);
 
     for (var case_ in node.cases) {
       var guardedPattern = case_.guardedPattern;
@@ -1244,13 +1244,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitSwitchStatement(covariant SwitchStatementImpl node) {
-    node.expression.accept2(this);
+    node.expression2.accept2(this);
 
     assignedVariables.beginNode();
     for (var group in node.memberGroups) {
       for (var member in group.members) {
         if (member is SwitchCaseImpl) {
-          member.expression.accept2(this);
+          member.expression2.accept2(this);
         } else if (member is SwitchPatternCaseImpl) {
           var guardedPattern = member.guardedPattern;
           guardedPattern.pattern.accept2(this);
@@ -1295,7 +1295,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     var declaredElement =
         node.declaredFragment?.element as PromotableElementImpl;
     assignedVariables.declare(declaredElement);
-    if (declaredElement.isLate && node.initializer != null) {
+    if (declaredElement.isLate && node.initializer2 != null) {
       assignedVariables.beginNode();
       super.visitVariableDeclaration(node);
       assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
@@ -1321,7 +1321,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void _handleFor(AstNode node, ForLoopPartsImpl forLoopParts, AstNode body) {
     if (forLoopParts is ForPartsImpl) {
       if (forLoopParts is ForPartsWithExpressionImpl) {
-        forLoopParts.initialization?.accept2(this);
+        forLoopParts.initialization2?.accept2(this);
       } else if (forLoopParts is ForPartsWithDeclarationsImpl) {
         forLoopParts.variables.accept2(this);
       } else if (forLoopParts is ForPartsWithPatternImpl) {
@@ -1333,7 +1333,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       assignedVariables.beginNode();
       forLoopParts.condition?.accept2(this);
       body.accept2(this);
-      forLoopParts.updaters.accept2(this);
+      forLoopParts.updaters2.accept2(this);
       assignedVariables.endNode(node);
     } else if (forLoopParts is ForEachPartsImpl) {
       var iterable = forLoopParts.iterable;

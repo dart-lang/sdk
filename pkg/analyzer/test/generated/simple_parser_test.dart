@@ -51,7 +51,7 @@ CompilationUnit
                       token: bar
                   arguments: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       ListLiteral
                         constKeyword: const
                         leftBracket: [
@@ -59,27 +59,27 @@ CompilationUnit
                       ListLiteral
                         constKeyword: const
                         leftBracket: [
-                        elements
+                        elements2
                           IntegerLiteral
                             literal: 1
                         rightBracket: ]
                       SetOrMapLiteral
                         constKeyword: const
                         leftBracket: {
-                        elements
+                        elements2
                           MapLiteralEntry
-                            key: SimpleStringLiteral
+                            key2: SimpleStringLiteral
                               literal: ""
                             separator: :
-                            value: SimpleStringLiteral
+                            value2: SimpleStringLiteral
                               literal: r""
                         rightBracket: }
                         isMap: false
                       BinaryExpression
-                        leftOperand: IntegerLiteral
+                        leftOperand2: IntegerLiteral
                           literal: 0xFF
                         operator: +
-                        rightOperand: IntegerLiteral
+                        rightOperand2: IntegerLiteral
                           literal: 2
                       DoubleLiteral
                         literal: .3
@@ -172,8 +172,8 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression: PropertyAccess
-                  target: ThisExpression
+                expression2: PropertyAccess
+                  target2: ThisExpression
                     thisKeyword: this
                   operator: .
                   propertyName: SimpleIdentifier
@@ -278,7 +278,7 @@ Annotation
     token: A
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -322,7 +322,7 @@ Annotation
       token: B
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -372,7 +372,7 @@ Annotation
     token: C
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -386,7 +386,7 @@ Annotation
 var v = m(3);
 ''');
     var node =
-        parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
+        parseResult.findNode.singleMethodInvocation.argumentList.arguments2[0];
     assertParsedNodeText(node, r'''
 IntegerLiteral
   literal: 3
@@ -398,12 +398,12 @@ IntegerLiteral
 var v = m(foo: "a");
 ''');
     var node =
-        parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
+        parseResult.findNode.singleMethodInvocation.argumentList.arguments2[0];
     assertParsedNodeText(node, r'''
 NamedArgument
   name: foo
   colon: :
-  argumentExpression: SimpleStringLiteral
+  argumentExpression2: SimpleStringLiteral
     literal: "a"
 ''');
   }
@@ -428,7 +428,7 @@ var v = m(w, x, y: y, z: z);
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
-  arguments
+  arguments2
     SimpleIdentifier
       token: w
     SimpleIdentifier
@@ -436,12 +436,12 @@ ArgumentList
     NamedArgument
       name: y
       colon: :
-      argumentExpression: SimpleIdentifier
+      argumentExpression2: SimpleIdentifier
         token: y
     NamedArgument
       name: z
       colon: :
-      argumentExpression: SimpleIdentifier
+      argumentExpression2: SimpleIdentifier
         token: z
   rightParenthesis: )
 ''');
@@ -455,7 +455,7 @@ var v = m(x, y, z);
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
-  arguments
+  arguments2
     SimpleIdentifier
       token: x
     SimpleIdentifier
@@ -474,16 +474,16 @@ var v = m(x: x, y: y);
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
-  arguments
+  arguments2
     NamedArgument
       name: x
       colon: :
-      argumentExpression: SimpleIdentifier
+      argumentExpression2: SimpleIdentifier
         token: x
     NamedArgument
       name: y
       colon: :
-      argumentExpression: SimpleIdentifier
+      argumentExpression2: SimpleIdentifier
         token: y
   rightParenthesis: )
 ''');
@@ -497,7 +497,7 @@ var v = m(x, y, z);
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
-  arguments
+  arguments2
     SimpleIdentifier
       token: x
     SimpleIdentifier
@@ -516,7 +516,7 @@ var v = m(a<b, c>(d));
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
-  arguments
+  arguments2
     MethodInvocation
       methodName: SimpleIdentifier
         token: a
@@ -530,7 +530,7 @@ ArgumentList
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -546,16 +546,16 @@ var v = m(a < b, p.q.c > (d));
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
-  arguments
+  arguments2
     BinaryExpression
-      leftOperand: SimpleIdentifier
+      leftOperand2: SimpleIdentifier
         token: a
       operator: <
-      rightOperand: SimpleIdentifier
+      rightOperand2: SimpleIdentifier
         token: b
     BinaryExpression
-      leftOperand: PropertyAccess
-        target: PrefixedIdentifier
+      leftOperand2: PropertyAccess
+        target2: PrefixedIdentifier
           prefix: SimpleIdentifier
             token: p
           period: .
@@ -565,9 +565,9 @@ ArgumentList
         propertyName: SimpleIdentifier
           token: c
       operator: >
-      rightOperand: ParenthesizedExpression
+      rightOperand2: ParenthesizedExpression
         leftParenthesis: (
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: d
         rightParenthesis: )
   rightParenthesis: )
@@ -582,7 +582,7 @@ var v = m(a<b, p.c>(d));
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
-  arguments
+  arguments2
     MethodInvocation
       methodName: SimpleIdentifier
         token: a
@@ -599,7 +599,7 @@ ArgumentList
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -1076,7 +1076,7 @@ CompilationUnit
             token: B
           arguments: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: x
             rightParenthesis: )
@@ -1142,7 +1142,7 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: <empty> <synthetic>
     tokens
       /** [ some text */
@@ -1340,7 +1340,7 @@ CompilationUnit
       documentationComment: Comment
         references
           CommentReference
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: a
         tokens
           /** [a] */
@@ -1512,7 +1512,7 @@ void f() => y;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   functionDefinition: =>
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: y
   semicolon: ;
 ''');
@@ -1528,7 +1528,7 @@ void f() async => y;
 ExpressionFunctionBody
   keyword: async
   functionDefinition: =>
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: y
   semicolon: ;
 ''');
@@ -1639,8 +1639,8 @@ CompilationUnit
           VariableDeclaration
             name: c
             equals: =
-            initializer: MethodInvocation
-              target: InstanceCreationExpression
+            initializer2: MethodInvocation
+              target2: InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
                   type: NamedType
@@ -1656,14 +1656,14 @@ CompilationUnit
                     token: sync
                 argumentList: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
                         rightParenthesis: )
                       body: ExpressionFunctionBody
                         functionDefinition: =>
-                        expression: IntegerLiteral
+                        expression2: IntegerLiteral
                           literal: 3
                   rightParenthesis: )
               operator: .
@@ -1677,7 +1677,7 @@ CompilationUnit
                 rightBracket: >
               argumentList: ArgumentList
                 leftParenthesis: (
-                arguments
+                arguments2
                   FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
@@ -1692,7 +1692,7 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression: SimpleIdentifier
+                      expression2: SimpleIdentifier
                         token: e
                 rightParenthesis: )
       semicolon: ;
@@ -1714,8 +1714,8 @@ CompilationUnit
           VariableDeclaration
             name: c
             equals: =
-            initializer: MethodInvocation
-              target: InstanceCreationExpression
+            initializer2: MethodInvocation
+              target2: InstanceCreationExpression
                 constructorName: ConstructorName
                   type: NamedType
                     name: Future
@@ -1730,14 +1730,14 @@ CompilationUnit
                     token: sync
                 argumentList: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
                         rightParenthesis: )
                       body: ExpressionFunctionBody
                         functionDefinition: =>
-                        expression: IntegerLiteral
+                        expression2: IntegerLiteral
                           literal: 3
                   rightParenthesis: )
               operator: .
@@ -1751,7 +1751,7 @@ CompilationUnit
                 rightBracket: >
               argumentList: ArgumentList
                 leftParenthesis: (
-                arguments
+                arguments2
                   FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
@@ -1766,7 +1766,7 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression: SimpleIdentifier
+                      expression2: SimpleIdentifier
                         token: e
                 rightParenthesis: )
       semicolon: ;
@@ -1789,7 +1789,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 name: C
@@ -1825,9 +1825,9 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: MethodInvocation
-            target: FunctionReference
-              function: SimpleIdentifier
+          expression2: MethodInvocation
+            target2: FunctionReference
+              function2: SimpleIdentifier
                 token: C
               typeArguments: TypeArgumentList
                 leftBracket: <
@@ -1867,7 +1867,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 importPrefix: ImportPrefixReference
@@ -1936,7 +1936,7 @@ CompilationUnit
                     VariableDeclaration
                       name: c
                       equals: =
-                      initializer: MethodInvocation
+                      initializer2: MethodInvocation
                         methodName: SimpleIdentifier
                           token: C
                         typeArguments: TypeArgumentList
@@ -2084,7 +2084,7 @@ void f() {
     assertParsedNodeText(node, r'''
 ReturnStatement
   returnKeyword: return
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
   semicolon: ;
 ''');
@@ -2154,7 +2154,7 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression: NullLiteral
+        expression2: NullLiteral
           literal: null
         semicolon: ;
 ''');
@@ -3153,7 +3153,7 @@ var a = b;
 VariableDeclaration
   name: a
   equals: =
-  initializer: SimpleIdentifier
+  initializer2: SimpleIdentifier
     token: b
 ''');
   }
@@ -3235,7 +3235,7 @@ VariableDeclarationStatement
       VariableDeclaration
         name: a
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -3296,7 +3296,7 @@ VariableDeclarationStatement
       VariableDeclaration
         name: a
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');

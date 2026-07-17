@@ -342,6 +342,7 @@ void runTests({
           'myselfField',
           'notFinal',
           'tornOff',
+          'unchangedCount',
         ]);
         final fieldNames = instance.fields!
             .map((boundField) => boundField.name)

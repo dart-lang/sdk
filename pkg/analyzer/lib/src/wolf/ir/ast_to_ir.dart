@@ -127,7 +127,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         case PrefixedIdentifier() when identical(node, parent.identifier):
         case PropertyAccess() when identical(node, parent.propertyName):
           node = parent;
-        case AssignmentExpression() when identical(node, parent.leftHandSide):
+        case AssignmentExpression() when identical(node, parent.leftHandSide2):
           return parent;
         case PostfixExpression(operator: Token(:var type))
             when type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS:
@@ -288,13 +288,13 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitAssignmentExpression(AssignmentExpression node) {
     var previousNestingLevel = ir.nestingLevel;
-    var lValueTemplates = dispatchLValue(node.leftHandSide);
+    var lValueTemplates = dispatchLValue(node.leftHandSide2);
     // Stack: lValue
     switch (node.operator.type) {
       case TokenType.EQ:
-        dispatchNode(node.rightHandSide);
+        dispatchNode(node.rightHandSide2);
         // Stack: lValue rhs
-        eventListener.onEnterNode(node.leftHandSide);
+        eventListener.onEnterNode(node.leftHandSide2);
         lValueTemplates.write(this);
         // Stack: rhs
         eventListener.onExitNode();
@@ -310,9 +310,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: BLOCK(1)? lvalue oldValue
         ir.drop();
         // Stack: BLOCK(1)? lvalue
-        dispatchNode(node.rightHandSide);
+        dispatchNode(node.rightHandSide2);
         // Stack: lValue rhs
-        eventListener.onEnterNode(node.leftHandSide);
+        eventListener.onEnterNode(node.leftHandSide2);
         lValueTemplates.write(this);
         // Stack: rhs
         eventListener.onExitNode();
@@ -330,7 +330,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       case TokenType.TILDE_SLASH_EQ:
         lValueTemplates.readForCompoundAssignment(this);
         // Stack: lValue oldValue
-        dispatchNode(node.rightHandSide);
+        dispatchNode(node.rightHandSide2);
         // Stack: lValue oldValue rhs
         var lexeme = node.operator.lexeme;
         assert(lexeme.endsWith('='));
@@ -341,7 +341,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
           twoArguments,
         );
         // Stack: lValue newValue
-        eventListener.onEnterNode(node.leftHandSide);
+        eventListener.onEnterNode(node.leftHandSide2);
         lValueTemplates.write(this);
         // Stack: newValue
         eventListener.onExitNode();
@@ -353,10 +353,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitAwaitExpression(AwaitExpression node) {
-    dispatchNode(node.expression);
+    dispatchNode(node.expression2);
     // Stack: expression
     if (!typeSystem.isSubtypeOf(
-      node.expression.staticType!,
+      node.expression2.staticType!,
       typeProvider.futureDynamicType,
     )) {
       throw UnimplementedError('TODO(paulberry): handle await of non-future');
@@ -370,16 +370,16 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     var tokenType = node.operator.type;
     switch (tokenType) {
       case TokenType.EQ_EQ:
-        dispatchNode(node.leftOperand);
+        dispatchNode(node.leftOperand2);
         // Stack: lhs
-        dispatchNode(node.rightOperand);
+        dispatchNode(node.rightOperand2);
         // Stack: lhs rhs
         ir.eq();
       // Stack: (lhs == rhs)
       case TokenType.BANG_EQ:
-        dispatchNode(node.leftOperand);
+        dispatchNode(node.leftOperand2);
         // Stack: lhs
-        dispatchNode(node.rightOperand);
+        dispatchNode(node.rightOperand2);
         // Stack: lhs rhs
         ir.eq();
         // Stack: (lhs == rhs)
@@ -388,7 +388,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       case TokenType.AMPERSAND_AMPERSAND:
         ir.block(0, 1);
         // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand);
+        dispatchNode(node.leftOperand2);
         // Stack: BLOCK(1) lhs
         ir.dup();
         // Stack: BLOCK(1) lhs lhs
@@ -398,14 +398,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: BLOCK(1) lhs
         ir.drop();
         // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand);
+        dispatchNode(node.rightOperand2);
         // Stack: BLOCK(1) rhs
         ir.end();
       // Stack: result
       case TokenType.BAR_BAR:
         ir.block(0, 1);
         // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand);
+        dispatchNode(node.leftOperand2);
         // Stack: BLOCK(1) lhs
         ir.dup();
         // Stack: BLOCK(1) lhs lhs
@@ -413,14 +413,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: BLOCK(1) lhs
         ir.drop();
         // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand);
+        dispatchNode(node.rightOperand2);
         // Stack: BLOCK(1) rhs
         ir.end();
       // Stack: result
       case TokenType.QUESTION_QUESTION:
         ir.block(0, 1);
         // Stack: BLOCK(1)
-        dispatchNode(node.leftOperand);
+        dispatchNode(node.leftOperand2);
         // Stack: BLOCK(1) lhs
         ir.dup();
         // Stack: BLOCK(1) lhs lhs
@@ -434,7 +434,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: BLOCK(1) lhs
         ir.drop();
         // Stack: BLOCK(1)
-        dispatchNode(node.rightOperand);
+        dispatchNode(node.rightOperand2);
         // Stack: BLOCK(1) rhs
         ir.end();
       // Stack: result
@@ -454,9 +454,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       case TokenType.SLASH:
       case TokenType.STAR:
       case TokenType.TILDE_SLASH:
-        dispatchNode(node.leftOperand);
+        dispatchNode(node.leftOperand2);
         // Stack: lhs
-        dispatchNode(node.rightOperand);
+        dispatchNode(node.rightOperand2);
         // Stack: lhs rhs
         instanceCall(node.element, tokenType.lexeme, [], twoArguments);
       // Stack: result
@@ -501,19 +501,19 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     // Stack: BLOCK(1)
     ir.block(0, 0);
     // Stack: BLOCK(1) BLOCK(0)
-    dispatchNode(node.condition);
+    dispatchNode(node.condition2);
     // Stack: BLOCK(1) BLOCK(0) condition
     ir.not();
     // Stack: BLOCK(1) BLOCK(0) !condition
     ir.brIf(0);
     // Stack: BLOCK(1) BLOCK(0)
-    dispatchNode(node.thenExpression);
+    dispatchNode(node.thenExpression2);
     // Stack: BLOCK(1) BLOCK(0) thenExpression
     ir.br(1);
     // Stack: BLOCK(1) BLOCK(0) indeterminate
     ir.end();
     // Stack: BLOCK(1)
-    dispatchNode(node.elseExpression);
+    dispatchNode(node.elseExpression2);
     // Stack: BLOCK(1) elseExpression
     ir.end();
     // Stack: result
@@ -542,7 +542,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     continueStack.removeLast();
     ir.end();
     // Stack: BLOCK(0) LOOP(0)
-    dispatchNode(node.condition);
+    dispatchNode(node.condition2);
     // Stack: BLOCK(0) LOOP(0) condition
     ir.not();
     // Stack: BLOCK(0) LOOP(0) !condition
@@ -563,13 +563,13 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    dispatchNode(node.expression);
+    dispatchNode(node.expression2);
     // Stack: expression
   }
 
   @override
   Null visitExpressionStatement(ExpressionStatement node) {
-    dispatchNode(node.expression);
+    dispatchNode(node.expression2);
     // Stack: expression
     ir.drop();
     // Stack: (empty)
@@ -578,7 +578,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitForStatement(ForStatement node) {
     switch (node.forLoopParts) {
-      case ForParts(:var condition, :var updaters) && var forParts:
+      case ForParts(:var condition, :var updaters2) && var forParts:
         switch (forParts) {
           case ForPartsWithDeclarations(:var variables):
             dispatchNode(variables);
@@ -607,7 +607,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         continueStack.removeLast();
         ir.end();
         // Stack: BLOCK(0) LOOP(0)
-        for (var updater in updaters) {
+        for (var updater in updaters2) {
           dispatchNode(updater);
           // Stack: BLOCK(0) LOOP(0) updater
           ir.drop();
@@ -669,7 +669,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     if (node.caseClause != null) throw UnimplementedError('TODO(paulberry)');
     var elseStatement = node.elseStatement;
     if (elseStatement == null) {
-      dispatchNode(node.expression);
+      dispatchNode(node.expression2);
       // Stack: expression
       ir.not();
       // Stack: !expression
@@ -681,7 +681,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       ir.end();
       // Stack: (empty)
     } else {
-      dispatchNode(node.expression);
+      dispatchNode(node.expression2);
       // Stack: expression
       ir.not();
       // Stack: !expression
@@ -711,10 +711,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitInterpolationExpression(InterpolationExpression node) {
-    dispatchNode(node.expression);
+    dispatchNode(node.expression2);
     // Stack: expression
     instanceCall(
-      lookupToString(node.expression.staticType),
+      lookupToString(node.expression2.staticType),
       'toString',
       [],
       oneArgument,
@@ -730,7 +730,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitIsExpression(IsExpression node) {
-    dispatchNode(node.expression);
+    dispatchNode(node.expression2);
     // Stack: expression
     ir.is_(ir.encodeType(node.type.type!));
     // Stack: (expression is type)
@@ -744,7 +744,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   Null visitMethodInvocation(MethodInvocation node) {
     var previousNestingLevel = ir.nestingLevel;
     var argumentNames = <String?>[];
-    var target = node.target;
+    var target = node.target2;
     var methodElement = node.methodName.element;
     switch (methodElement) {
       case TopLevelFunctionElement():
@@ -830,7 +830,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitParenthesizedExpression(ParenthesizedExpression node) {
-    dispatchNode(node.expression);
+    dispatchNode(node.expression2);
     // Stack: expression
   }
 
@@ -839,9 +839,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     switch (node.operator.type) {
       case TokenType.PLUS_PLUS:
       case TokenType.MINUS_MINUS:
-        var lValueTemplates = dispatchLValue(node.operand);
+        var lValueTemplates = dispatchLValue(node.operand2);
         // Stack: lValue
-        eventListener.onEnterNode(node.operand);
+        eventListener.onEnterNode(node.operand2);
         lValueTemplates.readForPostfixIncDec(this);
         // Stack: oldValue lValue oldValue
         eventListener.onExitNode();
@@ -879,13 +879,13 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   Null visitPrefixExpression(PrefixExpression node) {
     switch (node.operator.type) {
       case TokenType.BANG:
-        dispatchNode(node.operand);
+        dispatchNode(node.operand2);
         // Stack: operand
         ir.not();
       // Stack: !operand
       case TokenType.PLUS_PLUS:
       case TokenType.MINUS_MINUS:
-        var lValueTemplates = dispatchLValue(node.operand);
+        var lValueTemplates = dispatchLValue(node.operand2);
         // Stack: lValue
         lValueTemplates.readForCompoundAssignment(this);
         // Stack: lValue oldValue
@@ -893,7 +893,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: lValue oldValue 1
         instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
         // Stack: lValue newValue
-        eventListener.onEnterNode(node.operand);
+        eventListener.onEnterNode(node.operand2);
         lValueTemplates.write(this);
         // Stack: newValue
         eventListener.onExitNode();
@@ -906,7 +906,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   _LValueTemplates visitPropertyAccess(PropertyAccess node) {
     var previousNestingLevel = ir.nestingLevel;
     // TODO(paulberry): handle cascades
-    dispatchNode(node.target!, terminateNullShorting: false);
+    dispatchNode(node.target2!, terminateNullShorting: false);
     // Stack: target
     if (node.isNullAware) {
       nullShortingCheck(previousNestingLevel: previousNestingLevel);
@@ -917,7 +917,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitReturnStatement(ReturnStatement node) {
-    switch (node.expression) {
+    switch (node.expression2) {
       case null:
         ir.literal(null_);
       case var expression:
@@ -974,7 +974,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitVariableDeclarationList(VariableDeclarationList variables) {
     for (var variable in variables.variables) {
-      var initializer = variable.initializer;
+      var initializer = variable.initializer2;
       var declaredElement = variable.declaredFragment!.element;
       assert(!locals.containsKey(declaredElement));
       var localIndex = ir.localVariableCount;
@@ -1012,7 +1012,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     ir.loop(0);
     // Stack: BLOCK(0) LOOP(0)
     continueStack.add(ir.nestingLevel);
-    dispatchNode(node.condition);
+    dispatchNode(node.condition2);
     // Stack: BLOCK(0) LOOP(0) condition
     ir.not();
     // Stack: BLOCK(0) LOOP(0) !condition
@@ -1030,7 +1030,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitYieldStatement(YieldStatement node) {
-    dispatchNode(node.expression);
+    dispatchNode(node.expression2);
     // Stack: expression
     ir.yield_();
     // Stack: (empty)
@@ -1046,9 +1046,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       nullShortingCheck(previousNestingLevel: previousNestingLevel);
     }
     // Stack: BLOCK(1)? target
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       if (argument is NamedArgument) {
-        dispatchNode(argument.argumentExpression);
+        dispatchNode(argument.argumentExpression2);
         argumentNames.add(argument.name.lexeme);
       } else {
         dispatchNode(argument);

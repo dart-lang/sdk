@@ -126,7 +126,7 @@ ListPattern
   leftBracket: [
   elements
     ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: int
@@ -152,7 +152,7 @@ ListPattern
   leftBracket: [
   elements
     ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: int
@@ -252,7 +252,7 @@ ListPattern
   leftBracket: [
   elements
     ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: Object?
@@ -365,7 +365,7 @@ ListPattern
   leftBracket: [
   elements
     ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: int
@@ -477,7 +477,7 @@ PatternVariableDeclaration
     matchedValueType: List<int>
     requiredType: List<int>
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: List<int>
@@ -520,7 +520,7 @@ PatternVariableDeclaration
     matchedValueType: List<int>
     requiredType: List<int>
   equals: =
-  expression: MethodInvocation
+  expression2: MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g
@@ -567,7 +567,7 @@ PatternVariableDeclaration
     matchedValueType: List<int>
     requiredType: List<int>
   equals: =
-  expression: MethodInvocation
+  expression2: MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g

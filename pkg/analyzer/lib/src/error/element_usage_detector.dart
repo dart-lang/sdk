@@ -51,8 +51,8 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void assignmentExpression(AssignmentExpression node) {
-    checkUsage(node.readElement, node.leftHandSide);
-    checkUsage(node.writeElement, node.leftHandSide);
+    checkUsage(node.readElement, node.leftHandSide2);
+    checkUsage(node.writeElement, node.leftHandSide2);
     checkUsage(node.element, node);
   }
 
@@ -109,7 +109,7 @@ class ElementUsageDetector<TagInfo extends Object> {
 
     SyntacticEntity errorEntity = node;
     var parent = node.parent2;
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
       if (node is SimpleIdentifier) {
         errorEntity = node;
       } else if (node is PrefixedIdentifier) {
@@ -288,14 +288,14 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void postfixExpression(PostfixExpression node) {
-    checkUsage(node.readElement, node.operand);
-    checkUsage(node.writeElement, node.operand);
+    checkUsage(node.readElement, node.operand2);
+    checkUsage(node.writeElement, node.operand2);
     checkUsage(node.element, node);
   }
 
   void prefixExpression(PrefixExpression node) {
-    checkUsage(node.readElement, node.operand);
-    checkUsage(node.writeElement, node.operand);
+    checkUsage(node.readElement, node.operand2);
+    checkUsage(node.writeElement, node.operand2);
     checkUsage(node.element, node);
   }
 
@@ -359,7 +359,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     if (element is ExecutableElement) {
       _visitParametersAndArguments(
         element.formalParameters,
-        arguments.arguments,
+        arguments.arguments2,
       );
     }
   }

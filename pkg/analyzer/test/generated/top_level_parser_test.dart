@@ -34,7 +34,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: FunctionExpression
+            initializer2: FunctionExpression
               parameters: FormalParameterList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -76,12 +76,12 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: a
                 equals: =
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: f
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
@@ -127,11 +127,11 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: a
                 equals: =
-                expression: IndexExpression
-                  target: SimpleIdentifier
+                expression2: IndexExpression
+                  target2: SimpleIdentifier
                     token: x
                   leftBracket: [
-                  index: FunctionExpression
+                  index2: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -176,9 +176,9 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: a
                 equals: =
-                expression: ListLiteral
+                expression2: ListLiteral
                   leftBracket: [
-                  elements
+                  elements2
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
@@ -224,14 +224,14 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: a
                 equals: =
-                expression: SetOrMapLiteral
+                expression2: SetOrMapLiteral
                   leftBracket: {
-                  elements
+                  elements2
                     MapLiteralEntry
-                      key: SimpleStringLiteral
+                      key2: SimpleStringLiteral
                         literal: 'key'
                       separator: :
-                      value: FunctionExpression
+                      value2: FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
                           rightParenthesis: )
@@ -277,9 +277,9 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: a
                 equals: =
-                expression: ParenthesizedExpression
+                expression2: ParenthesizedExpression
                   leftParenthesis: (
-                  expression: FunctionExpression
+                  expression2: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -324,13 +324,13 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: a
                 equals: =
-                expression: StringInterpolation
+                expression2: StringInterpolation
                   elements
                     InterpolationString
                       contents: "
                     InterpolationExpression
                       leftBracket: ${
-                      expression: FunctionExpression
+                      expression2: FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
                           rightParenthesis: )
@@ -651,7 +651,7 @@ CompilationUnit
             token: B
           arguments: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 2
             rightParenthesis: )
@@ -665,7 +665,7 @@ CompilationUnit
               token: foo
           arguments: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 3
             rightParenthesis: )
@@ -682,7 +682,7 @@ CompilationUnit
             token: bar
           arguments: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 4
               IntegerLiteral
@@ -988,7 +988,7 @@ CompilationUnit
           VariableDeclaration
             name: _abstract
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1107,7 +1107,7 @@ CompilationUnit
           VariableDeclaration
             name: _export
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1145,7 +1145,7 @@ CompilationUnit
           VariableDeclaration
             name: _export
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1183,7 +1183,7 @@ CompilationUnit
           VariableDeclaration
             name: _operator
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1253,13 +1253,13 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: StringInterpolation
+                expression2: StringInterpolation
                   elements
                     InterpolationString
                       contents: "
                     InterpolationExpression
                       leftBracket: ${
-                      expression: SimpleIdentifier
+                      expression2: SimpleIdentifier
                         token: n
                       rightBracket: }
                     InterpolationString
@@ -1307,7 +1307,7 @@ CompilationUnit
           VariableDeclaration
             name: _typedef
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1341,7 +1341,7 @@ CompilationUnit
           VariableDeclaration
             name: _abstract
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1415,7 +1415,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1437,7 +1437,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -1458,7 +1458,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1701,7 +1701,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: NullLiteral
+          expression2: NullLiteral
             literal: null
           semicolon: ;
 ''');
@@ -1770,7 +1770,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: NullLiteral
+          expression2: NullLiteral
             literal: null
           semicolon: ;
 ''');
@@ -1895,7 +1895,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -1917,7 +1917,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -2236,7 +2236,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2257,7 +2257,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2367,7 +2367,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2389,7 +2389,7 @@ CompilationUnit
           VariableDeclaration
             name: get
             equals: =
-            initializer: NullLiteral
+            initializer2: NullLiteral
               literal: null
       semicolon: ;
 ''');
@@ -2411,7 +2411,7 @@ CompilationUnit
           VariableDeclaration
             name: set
             equals: =
-            initializer: NullLiteral
+            initializer2: NullLiteral
               literal: null
       semicolon: ;
 ''');
@@ -3367,7 +3367,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -3404,7 +3404,7 @@ CompilationUnit
                     token: B
                   arguments: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       IntegerLiteral
                         literal: 2
                     rightParenthesis: )
@@ -3426,14 +3426,14 @@ CompilationUnit
                         token: foo
                     arguments: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         IntegerLiteral
                           literal: 3
                       rightParenthesis: )
                 name: c
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
               RegularFormalParameter
                 metadata
@@ -3450,7 +3450,7 @@ CompilationUnit
                       token: bar
                     arguments: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         IntegerLiteral
                           literal: 4
                         IntegerLiteral
@@ -3459,7 +3459,7 @@ CompilationUnit
                 name: x
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: }
           rightParenthesis: )
@@ -4669,7 +4669,7 @@ CompilationUnit
             name: g
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: f
               semicolon: ;
           MethodDeclaration
@@ -4695,11 +4695,11 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression: AssignmentExpression
-                      leftHandSide: SimpleIdentifier
+                    expression2: AssignmentExpression
+                      leftHandSide2: SimpleIdentifier
                         token: f
                       operator: =
-                      rightHandSide: SimpleIdentifier
+                      rightHandSide2: SimpleIdentifier
                         token: v
                     semicolon: ;
                 rightBracket: }
@@ -4724,15 +4724,15 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: AssignmentExpression
-                leftHandSide: SimpleIdentifier
+              expression2: AssignmentExpression
+                leftHandSide2: SimpleIdentifier
                   token: f
                 operator: =
-                rightHandSide: BinaryExpression
-                  leftOperand: SimpleIdentifier
+                rightHandSide2: BinaryExpression
+                  leftOperand2: SimpleIdentifier
                     token: f
                   operator: +
-                  rightOperand: SimpleIdentifier
+                  rightOperand2: SimpleIdentifier
                     token: v
               semicolon: ;
         rightBracket: }
@@ -4957,7 +4957,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');

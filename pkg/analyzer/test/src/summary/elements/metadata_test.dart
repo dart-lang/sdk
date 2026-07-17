@@ -1549,11 +1549,11 @@ library
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @20
-                arguments
+                arguments2
                   NamedArgument
                     name: value @21
                     colon: : @26
-                    argumentExpression: IntegerLiteral
+                    argumentExpression2: IntegerLiteral
                       literal: 42 @28
                       staticType: int
                 rightParenthesis: ) @30
@@ -1571,11 +1571,11 @@ library
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @20
-            arguments
+            arguments2
               NamedArgument
                 name: value @21
                 colon: : @26
-                argumentExpression: IntegerLiteral
+                argumentExpression2: IntegerLiteral
                   literal: 42 @28
                   staticType: int
             rightParenthesis: ) @30
@@ -4470,7 +4470,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: e1 @-1
                       element: <testLibrary>::@enum::E::@getter::e1
@@ -7198,7 +7198,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a

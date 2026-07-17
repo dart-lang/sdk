@@ -784,6 +784,7 @@ package:analyzer/dart/ast/ast.dart:
     block (getter: Block)
   AnonymousExpressionBody (class extends Object implements AnonymousMethodBody, abstract, final, experimental):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     functionDefinition (getter: Token)
   AnonymousMethodBody (class extends Object implements AstNode, abstract, final, experimental)
   AnonymousMethodInvocation (class extends Object implements Expression, abstract, final, experimental):
@@ -795,16 +796,20 @@ package:analyzer/dart/ast/ast.dart:
     parameters (getter: FormalParameterList?)
     realTarget (getter: Expression)
     target (getter: Expression?)
+    target2 (getter: Expression?, experimental)
   Argument (class extends Object implements AstNode, sealed (immediate subtypes: ArgumentImpl, Expression, NamedArgument)):
     argumentExpression (getter: Expression)
+    argumentExpression2 (getter: Expression, experimental)
     correspondingParameter (getter: FormalParameterElement?)
   ArgumentList (class extends Object implements AstNode, abstract, final):
     arguments (getter: NodeList<Argument>)
+    arguments2 (getter: NodeList<Argument>, experimental)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
   AsExpression (class extends Object implements Expression, abstract, final):
     asOperator (getter: Token)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     type (getter: TypeAnnotation)
   AssertInitializer (class extends Object implements Assertion, ConstructorInitializer, abstract, final)
   AssertStatement (class extends Object implements Assertion, Statement, abstract, final):
@@ -813,15 +818,19 @@ package:analyzer/dart/ast/ast.dart:
     assertKeyword (getter: Token)
     comma (getter: Token?)
     condition (getter: Expression)
+    condition2 (getter: Expression, experimental)
     leftParenthesis (getter: Token)
     message (getter: Expression?)
+    message2 (getter: Expression?, experimental)
     rightParenthesis (getter: Token)
   AssignedVariablePattern (class extends Object implements VariablePattern, abstract, final):
     element (getter: Element?)
   AssignmentExpression (class extends Object implements MethodReferenceExpression, CompoundAssignmentExpression, abstract, final):
     leftHandSide (getter: Expression)
+    leftHandSide2 (getter: Expression, experimental)
     operator (getter: Token)
     rightHandSide (getter: Expression)
+    rightHandSide2 (getter: Expression, experimental)
   AstNode (class extends Object implements SyntacticEntity, abstract, final):
     LEXICAL_ORDER (static getter: int Function(AstNode, AstNode))
     LEXICAL_ORDER= (static setter: int Function(AstNode, AstNode))
@@ -1222,10 +1231,13 @@ package:analyzer/dart/ast/ast.dart:
   AwaitExpression (class extends Object implements Expression, abstract, final):
     awaitKeyword (getter: Token)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
   BinaryExpression (class extends Object implements Expression, MethodReferenceExpression, abstract, final):
     leftOperand (getter: Expression)
+    leftOperand2 (getter: Expression, experimental)
     operator (getter: Token)
     rightOperand (getter: Expression)
+    rightOperand2 (getter: Expression, experimental)
     staticInvokeType (getter: FunctionType?)
   Block (class extends Object implements Statement, abstract, final):
     leftBracket (getter: Token)
@@ -1250,8 +1262,10 @@ package:analyzer/dart/ast/ast.dart:
     target (getter: AstNode?)
   CascadeExpression (class extends Object implements Expression, abstract, final):
     cascadeSections (getter: NodeList<Expression>)
+    cascadeSections2 (getter: NodeList<Expression>, experimental)
     isNullAware (getter: bool)
     target (getter: Expression)
+    target2 (getter: Expression, experimental)
   CaseClause (class extends Object implements AstNode, abstract, final):
     caseKeyword (getter: Token)
     guardedPattern (getter: GuardedPattern)
@@ -1320,6 +1334,7 @@ package:analyzer/dart/ast/ast.dart:
   CommentReferableExpression (class extends Object implements Expression, abstract, final)
   CommentReference (class extends Object implements AstNode, abstract, final):
     expression (getter: CommentReferableExpression)
+    expression2 (getter: CommentReferableExpression, experimental)
     newKeyword (getter: Token?)
   CompilationUnit (class extends Object implements AstNode, abstract, final):
     beginToken (getter: Token)
@@ -1344,9 +1359,12 @@ package:analyzer/dart/ast/ast.dart:
   ConditionalExpression (class extends Object implements Expression, abstract, final):
     colon (getter: Token)
     condition (getter: Expression)
+    condition2 (getter: Expression, experimental)
     elseExpression (getter: Expression)
+    elseExpression2 (getter: Expression, experimental)
     question (getter: Token)
     thenExpression (getter: Expression)
+    thenExpression2 (getter: Expression, experimental)
   Configuration (class extends Object implements AstNode, abstract, final):
     equalToken (getter: Token?)
     ifKeyword (getter: Token)
@@ -1359,6 +1377,7 @@ package:analyzer/dart/ast/ast.dart:
   ConstantPattern (class extends Object implements DartPattern, abstract, final):
     constKeyword (getter: Token?)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
   ConstructorDeclaration (class extends Object implements ClassMember, abstract, final):
     augmentKeyword (getter: Token?)
     body (getter: FunctionBody)
@@ -1379,6 +1398,7 @@ package:analyzer/dart/ast/ast.dart:
   ConstructorFieldInitializer (class extends Object implements ConstructorInitializer, abstract, final):
     equals (getter: Token)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     fieldName (getter: SimpleIdentifier)
     period (getter: Token?)
     thisKeyword (getter: Token?)
@@ -1425,6 +1445,7 @@ package:analyzer/dart/ast/ast.dart:
   DoStatement (class extends Object implements Statement, abstract, final):
     body (getter: Statement)
     condition (getter: Expression)
+    condition2 (getter: Expression, experimental)
     doKeyword (getter: Token)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
@@ -1489,12 +1510,14 @@ package:analyzer/dart/ast/ast.dart:
     computeConstantValue (method: AttemptedConstantEvaluationResult? Function())
   ExpressionFunctionBody (class extends Object implements FunctionBody, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     functionDefinition (getter: Token)
     keyword (getter: Token?)
     semicolon (getter: Token?)
     star (getter: Token?)
   ExpressionStatement (class extends Object implements Statement, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     semicolon (getter: Token?)
   ExtendsClause (class extends Object implements AstNode, abstract, final):
     extendsKeyword (getter: Token)
@@ -1554,7 +1577,9 @@ package:analyzer/dart/ast/ast.dart:
     keyword (getter: Token)
     metadata (getter: NodeList<Annotation>)
     pattern (getter: DartPattern)
-  ForElement (class extends Object implements CollectionElement, ForLoop<CollectionElement>, abstract, final)
+  ForElement (class extends Object implements CollectionElement, ForLoop<CollectionElement>, abstract, final):
+    body (getter: CollectionElement)
+    body2 (getter: CollectionElement, experimental)
   ForLoop (class<Body extends AstNode> extends Object implements AstNode, sealed (immediate subtypes: ForElement, ForLoopImpl, ForStatement)):
     awaitKeyword (getter: Token?)
     body (getter: Body)
@@ -1570,10 +1595,12 @@ package:analyzer/dart/ast/ast.dart:
     leftSeparator (getter: Token)
     rightSeparator (getter: Token)
     updaters (getter: NodeList<Expression>)
+    updaters2 (getter: NodeList<Expression>, experimental)
   ForPartsWithDeclarations (class extends Object implements ForParts, abstract, final):
     variables (getter: VariableDeclarationList)
   ForPartsWithExpression (class extends Object implements ForParts, abstract, final):
     initialization (getter: Expression?)
+    initialization2 (getter: Expression?, experimental)
   ForPartsWithPattern (class extends Object implements ForParts, abstract, final):
     variables (getter: PatternVariableDeclaration)
   ForStatement (class extends Object implements Statement, ForLoop<Statement>, abstract, final)
@@ -1603,6 +1630,7 @@ package:analyzer/dart/ast/ast.dart:
   FormalParameterDefaultClause (class extends Object implements AstNode, abstract, final):
     separator (getter: Token)
     value (getter: Expression)
+    value2 (getter: Expression, experimental)
   FormalParameterList (class extends Object implements AstNode, abstract, final):
     delimitedFormalParameters (getter: DelimitedFormalParameters?, experimental)
     leftDelimiter (getter: Token?)
@@ -1640,8 +1668,10 @@ package:analyzer/dart/ast/ast.dart:
   FunctionExpressionInvocation (class extends Object implements InvocationExpression, abstract, final):
     element (getter: ExecutableElement?)
     function (getter: Expression)
+    function2 (getter: Expression, experimental)
   FunctionReference (class extends Object implements Expression, CommentReferableExpression, abstract, final):
     function (getter: Expression)
+    function2 (getter: Expression, experimental)
     typeArgumentTypes (getter: List<DartType>?)
     typeArguments (getter: TypeArgumentList?)
   FunctionTypeAlias (class extends Object implements TypeAlias, abstract, final):
@@ -1676,17 +1706,21 @@ package:analyzer/dart/ast/ast.dart:
   IfElement (class extends Object implements CollectionElement, abstract, final):
     caseClause (getter: CaseClause?)
     elseElement (getter: CollectionElement?)
+    elseElement2 (getter: CollectionElement?, experimental)
     elseKeyword (getter: Token?)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     ifKeyword (getter: Token)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
     thenElement (getter: CollectionElement)
+    thenElement2 (getter: CollectionElement, experimental)
   IfStatement (class extends Object implements Statement, abstract, final):
     caseClause (getter: CaseClause?)
     elseKeyword (getter: Token?)
     elseStatement (getter: Statement?)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     ifKeyword (getter: Token)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
@@ -1696,6 +1730,7 @@ package:analyzer/dart/ast/ast.dart:
     interfaces (getter: NodeList<NamedType>)
   ImplicitCallReference (class extends Object implements MethodReferenceExpression, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     typeArgumentTypes (getter: List<DartType>)
     typeArguments (getter: TypeArgumentList?)
   ImportDirective (class extends Object implements NamespaceDirective, abstract, final):
@@ -1710,6 +1745,7 @@ package:analyzer/dart/ast/ast.dart:
     period (getter: Token)
   IndexExpression (class extends Object implements MethodReferenceExpression, abstract, final):
     index (getter: Expression)
+    index2 (getter: Expression, experimental)
     isCascaded (getter: bool)
     isNullAware (getter: bool)
     leftBracket (getter: Token)
@@ -1718,6 +1754,7 @@ package:analyzer/dart/ast/ast.dart:
     realTarget (getter: Expression)
     rightBracket (getter: Token)
     target (getter: Expression?)
+    target2 (getter: Expression?, experimental)
     inGetterContext (method: bool Function())
     inSetterContext (method: bool Function())
   InstanceCreationExpression (class extends Object implements Expression, abstract, final):
@@ -1731,6 +1768,7 @@ package:analyzer/dart/ast/ast.dart:
   InterpolationElement (class extends Object implements AstNode, sealed (immediate subtypes: InterpolationElementImpl, InterpolationExpression, InterpolationString))
   InterpolationExpression (class extends Object implements InterpolationElement, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     leftBracket (getter: Token)
     rightBracket (getter: Token?)
   InterpolationString (class extends Object implements InterpolationElement, abstract, final):
@@ -1746,6 +1784,7 @@ package:analyzer/dart/ast/ast.dart:
     typeArguments (getter: TypeArgumentList?)
   IsExpression (class extends Object implements Expression, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     isOperator (getter: Token)
     notOperator (getter: Token?)
     type (getter: TypeAnnotation)
@@ -1766,6 +1805,7 @@ package:analyzer/dart/ast/ast.dart:
     semicolon (getter: Token)
   ListLiteral (class extends Object implements TypedLiteral, abstract, final):
     elements (getter: NodeList<CollectionElement>)
+    elements2 (getter: NodeList<CollectionElement>, experimental)
     leftBracket (getter: Token)
     rightBracket (getter: Token)
   ListPattern (class extends Object implements DartPattern, abstract, final):
@@ -1786,9 +1826,11 @@ package:analyzer/dart/ast/ast.dart:
     rightOperand (getter: DartPattern)
   MapLiteralEntry (class extends Object implements CollectionElement, abstract, final):
     key (getter: Expression)
+    key2 (getter: Expression, experimental)
     keyQuestion (getter: Token?)
     separator (getter: Token)
     value (getter: Expression)
+    value2 (getter: Expression, experimental)
     valueQuestion (getter: Token?)
   MapPattern (class extends Object implements DartPattern, abstract, final):
     elements (getter: NodeList<MapPatternElement>)
@@ -1799,6 +1841,7 @@ package:analyzer/dart/ast/ast.dart:
   MapPatternElement (class extends Object implements AstNode, sealed (immediate subtypes: MapPatternElementImpl, MapPatternEntry, RestPatternElement))
   MapPatternEntry (class extends Object implements AstNode, MapPatternElement, abstract, final):
     key (getter: Expression)
+    key2 (getter: Expression, experimental)
     separator (getter: Token)
     value (getter: DartPattern)
   MethodDeclaration (class extends Object implements ClassMember, abstract, final):
@@ -1826,6 +1869,7 @@ package:analyzer/dart/ast/ast.dart:
     operator (getter: Token?)
     realTarget (getter: Expression?)
     target (getter: Expression?)
+    target2 (getter: Expression?, experimental)
   MethodReferenceExpression (class extends Object implements Expression, abstract, final):
     element (getter: MethodElement?)
   MixinDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
@@ -1844,6 +1888,7 @@ package:analyzer/dart/ast/ast.dart:
   NameWithTypeParameters (class extends Object implements ClassNamePart, abstract, final)
   NamedArgument (class extends Object implements Argument, abstract, final):
     argumentExpression (getter: Expression)
+    argumentExpression2 (getter: Expression, experimental)
     colon (getter: Token)
     name (getter: Token)
   NamedType (class extends Object implements TypeAnnotation, abstract, final):
@@ -1883,6 +1928,7 @@ package:analyzer/dart/ast/ast.dart:
   NullAwareElement (class extends Object implements CollectionElement, abstract, final):
     question (getter: Token)
     value (getter: Expression)
+    value2 (getter: Expression, experimental)
   NullCheckPattern (class extends Object implements DartPattern, abstract, final):
     operator (getter: Token)
     pattern (getter: DartPattern)
@@ -1895,6 +1941,7 @@ package:analyzer/dart/ast/ast.dart:
     type (getter: NamedType)
   ParenthesizedExpression (class extends Object implements Expression, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
   ParenthesizedPattern (class extends Object implements DartPattern, abstract, final):
@@ -1914,6 +1961,7 @@ package:analyzer/dart/ast/ast.dart:
   PatternAssignment (class extends Object implements Expression, abstract, final):
     equals (getter: Token)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     pattern (getter: DartPattern)
   PatternField (class extends Object implements AstNode, abstract, final):
     effectiveName (getter: String?)
@@ -1926,6 +1974,7 @@ package:analyzer/dart/ast/ast.dart:
   PatternVariableDeclaration (class extends Object implements AnnotatedNode, abstract, final):
     equals (getter: Token)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     keyword (getter: Token)
     pattern (getter: DartPattern)
   PatternVariableDeclarationStatement (class extends Object implements Statement, abstract, final):
@@ -1934,10 +1983,12 @@ package:analyzer/dart/ast/ast.dart:
   PostfixExpression (class extends Object implements Expression, MethodReferenceExpression, CompoundAssignmentExpression, abstract, final):
     element (getter: MethodElement?)
     operand (getter: Expression)
+    operand2 (getter: Expression, experimental)
     operator (getter: Token)
   PrefixExpression (class extends Object implements Expression, MethodReferenceExpression, CompoundAssignmentExpression, abstract, final):
     element (getter: MethodElement?)
     operand (getter: Expression)
+    operand2 (getter: Expression, experimental)
     operator (getter: Token)
   PrefixedIdentifier (class extends Object implements Identifier, abstract, final):
     identifier (getter: SimpleIdentifier)
@@ -1969,17 +2020,21 @@ package:analyzer/dart/ast/ast.dart:
     propertyName (getter: SimpleIdentifier)
     realTarget (getter: Expression)
     target (getter: Expression?)
+    target2 (getter: Expression?, experimental)
   RecordLiteral (class extends Object implements Literal, abstract, final):
     constKeyword (getter: Token?)
     fields (getter: NodeList<RecordLiteralField>)
+    fields2 (getter: NodeList<RecordLiteralField>, experimental)
     isConst (getter: bool)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
   RecordLiteralField (class extends Object implements AstNode, abstract, final):
     fieldExpression (getter: Expression)
+    fieldExpression2 (getter: Expression, experimental)
   RecordLiteralNamedField (class extends Object implements RecordLiteralField, sealed (immediate subtypes: RecordLiteralNamedFieldImpl)):
     colon (getter: Token)
     fieldExpression (getter: Expression)
+    fieldExpression2 (getter: Expression, experimental)
     name (getter: Token)
   RecordPattern (class extends Object implements DartPattern, abstract, final):
     fields (getter: NodeList<PatternField>)
@@ -2010,6 +2065,7 @@ package:analyzer/dart/ast/ast.dart:
   RelationalPattern (class extends Object implements DartPattern, abstract, final):
     element (getter: MethodElement?)
     operand (getter: Expression)
+    operand2 (getter: Expression, experimental)
     operator (getter: Token)
   RestPatternElement (class extends Object implements ListPatternElement, MapPatternElement, abstract, final):
     operator (getter: Token)
@@ -2018,12 +2074,14 @@ package:analyzer/dart/ast/ast.dart:
     rethrowKeyword (getter: Token)
   ReturnStatement (class extends Object implements Statement, abstract, final):
     expression (getter: Expression?)
+    expression2 (getter: Expression?, experimental)
     returnKeyword (getter: Token)
     semicolon (getter: Token)
   ScriptTag (class extends Object implements AstNode, abstract, final):
     scriptTag (getter: Token)
   SetOrMapLiteral (class extends Object implements TypedLiteral, abstract, final):
     elements (getter: NodeList<CollectionElement>)
+    elements2 (getter: NodeList<CollectionElement>, experimental)
     isMap (getter: bool)
     isSet (getter: bool)
     leftBracket (getter: Token)
@@ -2048,6 +2106,7 @@ package:analyzer/dart/ast/ast.dart:
     isSingleQuoted (getter: bool)
   SpreadElement (class extends Object implements CollectionElement, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     isNullAware (getter: bool)
     spreadOperator (getter: Token)
   Statement (class extends Object implements AstNode, abstract, final):
@@ -2072,10 +2131,12 @@ package:analyzer/dart/ast/ast.dart:
     superKeyword (getter: Token)
   SwitchCase (class extends Object implements SwitchMember, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
   SwitchDefault (class extends Object implements SwitchMember, abstract, final)
   SwitchExpression (class extends Object implements Expression, abstract, final):
     cases (getter: NodeList<SwitchExpressionCase>)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     leftBracket (getter: Token)
     leftParenthesis (getter: Token)
     rightBracket (getter: Token)
@@ -2084,6 +2145,7 @@ package:analyzer/dart/ast/ast.dart:
   SwitchExpressionCase (class extends Object implements AstNode, abstract, final):
     arrow (getter: Token)
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     guardedPattern (getter: GuardedPattern)
   SwitchMember (class extends Object implements AstNode, sealed (immediate subtypes: SwitchCase, SwitchDefault, SwitchMemberImpl, SwitchPatternCase)):
     colon (getter: Token)
@@ -2094,6 +2156,7 @@ package:analyzer/dart/ast/ast.dart:
     guardedPattern (getter: GuardedPattern)
   SwitchStatement (class extends Object implements Statement, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     leftBracket (getter: Token)
     leftParenthesis (getter: Token)
     members (getter: NodeList<SwitchMember>)
@@ -2107,6 +2170,7 @@ package:analyzer/dart/ast/ast.dart:
     thisKeyword (getter: Token)
   ThrowExpression (class extends Object implements Expression, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     throwKeyword (getter: Token)
   TopLevelVariableDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
     abstractKeyword (getter: Token?)
@@ -2153,6 +2217,7 @@ package:analyzer/dart/ast/ast.dart:
     declaredFragment (getter: VariableFragment?)
     equals (getter: Token?)
     initializer (getter: Expression?)
+    initializer2 (getter: Expression?, experimental)
     isConst (getter: bool)
     isFinal (getter: bool)
     isLate (getter: bool)
@@ -2172,10 +2237,12 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
   WhenClause (class extends Object implements AstNode, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     whenKeyword (getter: Token)
   WhileStatement (class extends Object implements Statement, abstract, final):
     body (getter: Statement)
     condition (getter: Expression)
+    condition2 (getter: Expression, experimental)
     leftParenthesis (getter: Token)
     rightParenthesis (getter: Token)
     whileKeyword (getter: Token)
@@ -2188,6 +2255,7 @@ package:analyzer/dart/ast/ast.dart:
     withKeyword (getter: Token)
   YieldStatement (class extends Object implements Statement, abstract, final):
     expression (getter: Expression)
+    expression2 (getter: Expression, experimental)
     semicolon (getter: Token)
     star (getter: Token?)
     yieldKeyword (getter: Token)

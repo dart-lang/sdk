@@ -66,7 +66,7 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::v
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: _
     element: <testLibrary>::@class::A::@getter::_
     staticType: dynamic
@@ -121,7 +121,7 @@ ConstructorDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
             staticType: a
@@ -154,7 +154,7 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::C::@field::_y
     staticType: null
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: _x
     element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
     staticType: int?

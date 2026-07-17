@@ -638,16 +638,8 @@ class TestContext {
 
       if (testSettings.launchChrome) {
         await _webDriver?.get(appUrl);
-        final tab = await connection.getTab((t) => t.url == appUrl);
-        if (tab != null) {
-          _tabConnection = await tab.connect();
-          await tabConnection.runtime.enable();
-          await tabConnection.debugger.enable().then(
-            (_) => tabConnectionCompleter.complete(),
-          );
-        } else {
-          throw StateError('Unable to connect to tab.');
-        }
+        _tabConnection = await _getTabConnection(connection, appUrl);
+        tabConnectionCompleter.complete();
 
         if (debugSettings.enableDebugExtension) {
           final extensionTab = await _fetchDartDebugExtensionTab(connection);
@@ -890,19 +882,44 @@ class TestContext {
     print(process.stdout);
   }
 
+  Future<WipConnection> _getTabConnection(
+    ChromeConnection connection,
+    String appUrl,
+  ) async {
+    final tab = await connection.getTab(
+      (t) => t.url == appUrl,
+      retryFor: const Duration(seconds: 5),
+    );
+    if (tab == null) {
+      throw StateError(
+        'Unable to connect to tab after retrying for 5 seconds.',
+      );
+    }
+    final tabConnection = await tab.connect();
+    await tabConnection.runtime.enable();
+    await tabConnection.debugger.enable();
+    return tabConnection;
+  }
+
   Future<ChromeTab> _fetchDartDebugExtensionTab(
     ChromeConnection connection,
   ) async {
-    final extensionTabs = (await connection.getTabs()).where((tab) {
-      return tab.isChromeExtension;
-    });
-    for (final tab in extensionTabs) {
-      final tabConnection = await tab.connect();
-      final response = await tabConnection.runtime.evaluate(
-        'window.isDartDebugExtension',
-      );
-      if (response.value == true) {
-        return tab;
+    const retries = 5;
+    for (var i = 0; i < retries; i++) {
+      if (i > 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+      final extensionTabs = (await connection.getTabs()).where((tab) {
+        return tab.isChromeExtension;
+      });
+      for (final tab in extensionTabs) {
+        final tabConnection = await tab.connect();
+        final response = await tabConnection.runtime.evaluate(
+          'window.isDartDebugExtension',
+        );
+        if (response.value == true) {
+          return tab;
+        }
       }
     }
     throw StateError('No extension installed.');

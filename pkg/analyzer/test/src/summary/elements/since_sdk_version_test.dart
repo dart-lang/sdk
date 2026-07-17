@@ -418,7 +418,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v1 @-1
                       element: dart:foo::@enum::E::@getter::v1
@@ -532,7 +532,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: dart:foo::@enum::E::@getter::v

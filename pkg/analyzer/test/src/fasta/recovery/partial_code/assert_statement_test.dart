@@ -39,15 +39,15 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: FunctionExpressionInvocation
-                  function: SimpleIdentifier
+                message2: FunctionExpressionInvocation
+                  function2: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -82,10 +82,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SetOrMapLiteral
+                message2: SetOrMapLiteral
                   leftBracket: {
                   rightBracket: }
                   isMap: false
@@ -123,10 +123,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -165,10 +165,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -206,10 +206,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -220,7 +220,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -253,7 +253,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -288,10 +288,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -340,17 +340,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -387,15 +387,15 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -432,10 +432,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: FunctionExpression
+                message2: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -476,10 +476,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: FunctionExpression
+                message2: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -520,10 +520,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -564,10 +564,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ;
@@ -600,13 +600,13 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SwitchExpression
+                message2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -644,10 +644,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -691,17 +691,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -736,14 +736,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -776,7 +776,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -814,7 +814,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -852,7 +852,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -888,7 +888,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -899,7 +899,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -932,7 +932,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -965,7 +965,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1012,14 +1012,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1054,7 +1054,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1095,7 +1095,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1141,7 +1141,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1187,7 +1187,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1227,7 +1227,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1263,14 +1263,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1304,7 +1304,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1346,14 +1346,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1388,14 +1388,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1428,7 +1428,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1465,7 +1465,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1502,7 +1502,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1538,7 +1538,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1549,7 +1549,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1582,7 +1582,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1615,7 +1615,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1662,14 +1662,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1704,7 +1704,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1745,7 +1745,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1791,7 +1791,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1837,7 +1837,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1877,7 +1877,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1913,14 +1913,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1954,7 +1954,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1996,14 +1996,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -2036,12 +2036,12 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: FunctionExpressionInvocation
-                  function: SimpleIdentifier
+                condition2: FunctionExpressionInvocation
+                  function2: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -2076,7 +2076,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SetOrMapLiteral
+                condition2: SetOrMapLiteral
                   leftBracket: {
                   rightBracket: }
                   isMap: false
@@ -2114,7 +2114,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2153,7 +2153,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2191,7 +2191,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2202,7 +2202,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2236,7 +2236,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2271,7 +2271,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2320,14 +2320,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -2364,12 +2364,12 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -2406,7 +2406,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: FunctionExpression
+                condition2: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -2447,7 +2447,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: FunctionExpression
+                condition2: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -2488,7 +2488,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2529,7 +2529,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ;
@@ -2562,10 +2562,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SwitchExpression
+                condition2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -2603,7 +2603,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2647,14 +2647,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -2689,17 +2689,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2732,10 +2732,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2773,10 +2773,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2814,10 +2814,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2853,10 +2853,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2867,7 +2867,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2900,10 +2900,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2936,10 +2936,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2986,17 +2986,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -3031,10 +3031,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3075,10 +3075,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3124,10 +3124,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3173,10 +3173,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3216,10 +3216,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3255,17 +3255,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3299,10 +3299,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3344,17 +3344,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -3387,17 +3387,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3428,10 +3428,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3467,10 +3467,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3506,10 +3506,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3543,10 +3543,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3557,7 +3557,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3588,10 +3588,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3622,10 +3622,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3670,17 +3670,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -3713,10 +3713,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3755,10 +3755,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3802,10 +3802,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3849,10 +3849,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3890,10 +3890,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3927,17 +3927,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3969,10 +3969,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4012,17 +4012,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -4057,17 +4057,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -4100,10 +4100,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4141,10 +4141,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4182,10 +4182,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4221,10 +4221,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4235,7 +4235,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -4268,10 +4268,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4304,10 +4304,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4354,17 +4354,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -4399,10 +4399,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4443,10 +4443,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4492,10 +4492,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4541,10 +4541,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4584,10 +4584,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4623,17 +4623,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4667,10 +4667,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4712,17 +4712,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: SimpleIdentifier
+                condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message: SimpleIdentifier
+                message2: SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block

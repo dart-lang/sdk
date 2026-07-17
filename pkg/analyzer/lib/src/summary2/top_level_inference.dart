@@ -87,7 +87,7 @@ class ConstantInitializersResolver {
       }
 
       astResolver.resolveExpression(
-        () => node.initializer!,
+        () => node.initializer2!,
         contextType: element.type,
         inScopePrimaryConstructorParameters:
             inScopePrimaryConstructorParameters,
@@ -95,7 +95,7 @@ class ConstantInitializersResolver {
     }
 
     // We could have rewritten the initializer.
-    fragment.constantInitializer = node.initializer;
+    fragment.constantInitializer = node.initializer2;
   }
 }
 
@@ -218,10 +218,10 @@ class _PropertyInducingElementTypeInference
       var node = _linker.getLinkingNode(fragment);
       switch (node) {
         case VariableDeclarationImpl():
-          if (node.initializer != null) {
+          if (node.initializer2 != null) {
             initializerLibraryFragment = fragment.libraryFragment;
             scope = node.initializerScope!;
-            getInitializer = () => node.initializer!;
+            getInitializer = () => node.initializer2!;
             if (_element case FieldElementImpl field) {
               if (field.isInstanceField && !field.isLate) {
                 inScopePrimaryConstructorParameters = field.enclosingElement
@@ -236,7 +236,7 @@ class _PropertyInducingElementTypeInference
           if (node.defaultClause case var defaultClause?) {
             initializerLibraryFragment = fragment.libraryFragment;
             scope = node.scope!;
-            getInitializer = () => defaultClause.value;
+            getInitializer = () => defaultClause.value2;
           } else if (node is RegularFormalParameterImpl &&
               node.functionTypedSuffix == null) {
             _status = _InferenceStatus.inferred;

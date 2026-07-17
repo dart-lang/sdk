@@ -14,13 +14,13 @@ import 'package:collection/collection.dart';
 Element? _readElement(AstNode node) {
   var parent = node.parent2;
 
-  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.readElement;
   }
-  if (parent is PostfixExpression && parent.operand == node) {
+  if (parent is PostfixExpression && parent.operand2 == node) {
     return parent.readElement;
   }
-  if (parent is PrefixExpression && parent.operand == node) {
+  if (parent is PrefixExpression && parent.operand2 == node) {
     return parent.readElement;
   }
 
@@ -37,13 +37,13 @@ Element? _readElement(AstNode node) {
 Element? _writeElement(AstNode node) {
   var parent = node.parent2;
 
-  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.writeElement;
   }
-  if (parent is PostfixExpression && parent.operand == node) {
+  if (parent is PostfixExpression && parent.operand2 == node) {
     return parent.writeElement;
   }
-  if (parent is PrefixExpression && parent.operand == node) {
+  if (parent is PrefixExpression && parent.operand2 == node) {
     return parent.writeElement;
   }
 
@@ -60,13 +60,13 @@ Element? _writeElement(AstNode node) {
 DartType? _writeType(AstNode node) {
   var parent = node.parent2;
 
-  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
     return parent.writeType;
   }
-  if (parent is PostfixExpression && parent.operand == node) {
+  if (parent is PostfixExpression && parent.operand2 == node) {
     return parent.writeType;
   }
-  if (parent is PrefixExpression && parent.operand == node) {
+  if (parent is PrefixExpression && parent.operand2 == node) {
     return parent.writeType;
   }
 
@@ -81,14 +81,14 @@ DartType? _writeType(AstNode node) {
 
 extension ArgumentListExtension on ArgumentList {
   /// Returns the named argument with the given [name], or `null` if none.
-  NamedArgument? byName(String name) => arguments
+  NamedArgument? byName(String name) => arguments2
       .whereType<NamedArgument>()
       .firstWhereOrNull((e) => e.name.lexeme == name);
 
   /// Returns the argument with the given [index], or `null` if none.
   Argument? elementAtOrNull(int index) {
-    if (index < arguments.length) {
-      return arguments[index];
+    if (index < arguments2.length) {
+      return arguments2[index];
     }
     return null;
   }

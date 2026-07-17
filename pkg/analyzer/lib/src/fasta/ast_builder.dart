@@ -215,8 +215,8 @@ class AstBuilder extends StackListener {
     } else {
       push(
         CascadeExpressionImpl(
-          target: expression,
-          cascadeSections: <ExpressionImpl>[],
+          target2: expression,
+          cascadeSections2: <ExpressionImpl>[],
         ),
       );
     }
@@ -639,7 +639,7 @@ class AstBuilder extends StackListener {
 
   ConstructorInitializerImpl? buildInitializer(Object initializerObject) {
     if (initializerObject is FunctionExpressionInvocationImpl) {
-      var function = initializerObject.function;
+      var function = initializerObject.function2;
       if (function is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: function.superKeyword,
@@ -660,7 +660,7 @@ class AstBuilder extends StackListener {
     }
 
     if (initializerObject is MethodInvocationImpl) {
-      var target = initializerObject.target;
+      var target = initializerObject.target2;
       if (target is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: target.superKeyword,
@@ -685,7 +685,7 @@ class AstBuilder extends StackListener {
 
     if (initializerObject is PropertyAccessImpl) {
       return buildInitializerTargetExpressionRecovery(
-        initializerObject.target,
+        initializerObject.target2,
         initializerObject,
       );
     }
@@ -694,9 +694,9 @@ class AstBuilder extends StackListener {
       Token? thisKeyword;
       Token? period;
       SimpleIdentifierImpl fieldName;
-      var left = initializerObject.leftHandSide;
+      var left = initializerObject.leftHandSide2;
       if (left is PropertyAccessImpl) {
-        var target = left.target;
+        var target = left.target2;
         if (target is ThisExpressionImpl) {
           thisKeyword = target.thisKeyword;
           period = left.operator;
@@ -716,7 +716,7 @@ class AstBuilder extends StackListener {
         period: period,
         fieldName: fieldName,
         equals: initializerObject.operator,
-        expression: initializerObject.rightHandSide,
+        expression2: initializerObject.rightHandSide2,
       );
     }
 
@@ -726,14 +726,14 @@ class AstBuilder extends StackListener {
 
     if (initializerObject is IndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
-        initializerObject.target,
+        initializerObject.target2,
         initializerObject,
       );
     }
 
     if (initializerObject is CascadeExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
-        initializerObject.target,
+        initializerObject.target2,
         initializerObject,
       );
     }
@@ -749,13 +749,13 @@ class AstBuilder extends StackListener {
     while (true) {
       if (target is FunctionExpressionInvocationImpl) {
         argumentList = target.argumentList;
-        target = target.function;
+        target = target.function2;
       } else if (target is MethodInvocationImpl) {
         argumentList = target.argumentList;
-        target = target.target;
+        target = target.target2;
       } else if (target is PropertyAccessImpl) {
         argumentList = null;
-        target = target.target;
+        target = target.target2;
       } else {
         break;
       }
@@ -841,16 +841,16 @@ class AstBuilder extends StackListener {
       } else {
         push(
           PropertyAccessImpl(
-            target: receiver,
+            target2: receiver,
             operator: dot,
             propertyName: identifierOrInvoke,
           ),
         );
       }
     } else if (identifierOrInvoke is MethodInvocationImpl) {
-      assert(identifierOrInvoke.target == null);
+      assert(identifierOrInvoke.target2 == null);
       identifierOrInvoke
-        ..target = receiver
+        ..target2 = receiver
         ..operator = dot;
       push(identifierOrInvoke);
     } else {
@@ -866,7 +866,7 @@ class AstBuilder extends StackListener {
       SimpleIdentifierImpl identifier = SimpleIdentifierImpl(token: token);
       push(
         PropertyAccessImpl(
-          target: receiver,
+          target2: receiver,
           operator: dot,
           propertyName: identifier,
         ),
@@ -883,7 +883,7 @@ class AstBuilder extends StackListener {
       case SimpleIdentifierImpl():
         push(
           MethodInvocationImpl(
-            target: null,
+            target2: null,
             operator: null,
             methodName: receiver,
             typeArguments: typeArguments,
@@ -893,7 +893,7 @@ class AstBuilder extends StackListener {
       default:
         push(
           FunctionExpressionInvocationImpl(
-            function: receiver,
+            function2: receiver,
             typeArguments: typeArguments,
             argumentList: argumentList,
           ),
@@ -936,7 +936,7 @@ class AstBuilder extends StackListener {
       expressionOrBlock as ExpressionImpl;
       methodBody = AnonymousExpressionBodyImpl(
         functionDefinition: functionDefinition!,
-        expression: expressionOrBlock,
+        expression2: expressionOrBlock,
       );
     } else {
       expressionOrBlock as BlockImpl;
@@ -945,7 +945,7 @@ class AstBuilder extends StackListener {
 
     push(
       AnonymousMethodInvocationImpl(
-        target: target,
+        target2: target,
         operator: startToken,
         parameters: formals,
         body: methodBody,
@@ -966,7 +966,7 @@ class AstBuilder extends StackListener {
 
     var argumentList = ArgumentListImpl(
       leftParenthesis: leftParenthesis,
-      arguments: expressions,
+      arguments2: expressions,
       rightParenthesis: rightParenthesis,
     );
 
@@ -1020,11 +1020,11 @@ class AstBuilder extends StackListener {
         }
         push(
           FunctionExpressionInvocationImpl(
-            function: SimpleIdentifierImpl(token: assertKeyword),
+            function2: SimpleIdentifierImpl(token: assertKeyword),
             typeArguments: null,
             argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,
-              arguments: arguments,
+              arguments2: arguments,
               rightParenthesis: leftParenthesis.endGroup!,
             ),
           ),
@@ -1034,9 +1034,9 @@ class AstBuilder extends StackListener {
           AssertInitializerImpl(
             assertKeyword: assertKeyword,
             leftParenthesis: leftParenthesis,
-            condition: condition,
+            condition2: condition,
             comma: comma,
-            message: message,
+            message2: message,
             rightParenthesis: leftParenthesis.endGroup!,
           ),
         );
@@ -1045,9 +1045,9 @@ class AstBuilder extends StackListener {
           AssertStatementImpl(
             assertKeyword: assertKeyword,
             leftParenthesis: leftParenthesis,
-            condition: condition,
+            condition2: condition,
             comma: comma,
-            message: message,
+            message2: message,
             rightParenthesis: leftParenthesis.endGroup!,
             semicolon: endToken.next!,
           ),
@@ -1064,7 +1064,7 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(expression);
 
     push(
-      AwaitExpressionImpl(awaitKeyword: awaitKeyword, expression: expression),
+      AwaitExpressionImpl(awaitKeyword: awaitKeyword, expression2: expression),
     );
   }
 
@@ -1082,9 +1082,9 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(right);
     push(
       BinaryExpressionImpl(
-        leftOperand: left,
+        leftOperand2: left,
         operator: operatorToken,
-        rightOperand: right,
+        rightOperand2: right,
       ),
     );
     if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
@@ -1184,9 +1184,9 @@ class AstBuilder extends StackListener {
     pop(); // Token.
     push(
       CascadeExpressionImpl(
-        target: cascade.target,
-        cascadeSections: <ExpressionImpl>[
-          ...cascade.cascadeSections,
+        target2: cascade.target2,
+        cascadeSections2: <ExpressionImpl>[
+          ...cascade.cascadeSections2,
           expression,
         ],
       ),
@@ -1202,7 +1202,7 @@ class AstBuilder extends StackListener {
     WhenClauseImpl? whenClause;
     if (when != null) {
       var expression = pop() as ExpressionImpl;
-      whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
+      whenClause = WhenClauseImpl(whenKeyword: when, expression2: expression);
     }
 
     if (_featureSet.isEnabled(Feature.patterns)) {
@@ -1225,7 +1225,7 @@ class AstBuilder extends StackListener {
         SwitchCaseImpl(
           labels: <LabelImpl>[],
           keyword: caseKeyword,
-          expression: expression,
+          expression2: expression,
           colon: colon,
           statements: <StatementImpl>[],
         ),
@@ -1304,11 +1304,11 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(thenExpression);
     push(
       ConditionalExpressionImpl(
-        condition: condition,
+        condition2: condition,
         question: question,
-        thenExpression: thenExpression,
+        thenExpression2: thenExpression,
         colon: colon,
-        elseExpression: elseExpression,
+        elseExpression2: elseExpression,
       ),
     );
   }
@@ -1361,7 +1361,7 @@ class AstBuilder extends StackListener {
     push(
       ConstantPatternImpl(
         constKeyword: constKeyword,
-        expression: pop() as ExpressionImpl,
+        expression2: pop() as ExpressionImpl,
       ),
     );
   }
@@ -1490,7 +1490,7 @@ class AstBuilder extends StackListener {
         body: body,
         whileKeyword: whileKeyword,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        condition2: condition.expression,
         rightParenthesis: condition.rightParenthesis,
         semicolon: semicolon,
       ),
@@ -1660,7 +1660,7 @@ class AstBuilder extends StackListener {
         metadata: [],
         name: name.token,
         equals: equals,
-        initializer: initializer,
+        initializer2: initializer,
       ),
     );
   }
@@ -1709,7 +1709,7 @@ class AstBuilder extends StackListener {
         leftParenthesis: leftParenthesis,
         forLoopParts: forLoopParts,
         rightParenthesis: leftParenthesis.endGroup!,
-        body: body,
+        body2: body,
       ),
     );
   }
@@ -1758,7 +1758,7 @@ class AstBuilder extends StackListener {
         leftParenthesis: leftParenthesis,
         forLoopParts: forLoopParts,
         rightParenthesis: leftParenthesis.endGroup!,
-        body: body,
+        body2: body,
       ),
     );
   }
@@ -2069,12 +2069,12 @@ class AstBuilder extends StackListener {
       IfElementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        expression: condition.expression,
+        expression2: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
-        thenElement: thenElement,
+        thenElement2: thenElement,
         elseKeyword: null,
-        elseElement: null,
+        elseElement2: null,
       ),
     );
   }
@@ -2090,12 +2090,12 @@ class AstBuilder extends StackListener {
       IfElementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        expression: condition.expression,
+        expression2: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
-        thenElement: thenElement,
+        thenElement2: thenElement,
         elseKeyword: elseToken,
-        elseElement: elseElement,
+        elseElement2: elseElement,
       ),
     );
   }
@@ -2112,7 +2112,7 @@ class AstBuilder extends StackListener {
       IfStatementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
-        expression: condition.expression,
+        expression2: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenStatement: thenPart,
@@ -2178,7 +2178,7 @@ class AstBuilder extends StackListener {
         metadata: [],
         name: node.token,
         equals: null,
-        initializer: null,
+        initializer2: null,
       );
     } else {
       internalProblem(
@@ -2621,7 +2621,7 @@ class AstBuilder extends StackListener {
     push(
       ParenthesizedExpressionImpl(
         leftParenthesis: leftParenthesis,
-        expression: expression,
+        expression2: expression,
         rightParenthesis: leftParenthesis.endGroup!,
       ),
     );
@@ -2694,7 +2694,7 @@ class AstBuilder extends StackListener {
   void endPatternGuard(Token when) {
     debugEvent("PatternGuard");
     var expression = pop() as ExpressionImpl;
-    push(WhenClauseImpl(whenKeyword: when, expression: expression));
+    push(WhenClauseImpl(whenKeyword: when, expression2: expression));
   }
 
   @override
@@ -2791,7 +2791,7 @@ class AstBuilder extends StackListener {
         RecordLiteralImpl(
           constKeyword: constKeyword,
           leftParenthesis: leftParenthesis,
-          fields: fields,
+          fields2: fields,
           rightParenthesis: rightParenthesis,
         ),
       );
@@ -2809,7 +2809,7 @@ class AstBuilder extends StackListener {
       push(
         ParenthesizedExpressionImpl(
           leftParenthesis: leftParenthesis,
-          expression: expression,
+          expression2: expression,
           rightParenthesis: rightParenthesis,
         ),
       );
@@ -2933,7 +2933,9 @@ class AstBuilder extends StackListener {
 
     var expression = RethrowExpressionImpl(rethrowKeyword: rethrowToken);
     // TODO(scheglov): According to the specification, 'rethrow' is a statement.
-    push(ExpressionStatementImpl(expression: expression, semicolon: semicolon));
+    push(
+      ExpressionStatementImpl(expression2: expression, semicolon: semicolon),
+    );
   }
 
   @override
@@ -2950,7 +2952,7 @@ class AstBuilder extends StackListener {
     push(
       ReturnStatementImpl(
         returnKeyword: returnKeyword,
-        expression: expression,
+        expression2: expression,
         semicolon: semicolon,
       ),
     );
@@ -3034,7 +3036,7 @@ class AstBuilder extends StackListener {
         return SwitchCaseImpl(
           labels: labels ?? member.labels,
           keyword: member.keyword,
-          expression: member.expression,
+          expression2: member.expression2,
           colon: member.colon,
           statements: statements ?? member.statements,
         );
@@ -3112,7 +3114,7 @@ class AstBuilder extends StackListener {
       SwitchExpressionImpl(
         switchKeyword: switchKeyword,
         leftParenthesis: condition.leftParenthesis,
-        expression: condition.expression,
+        expression2: condition.expression,
         rightParenthesis: condition.rightParenthesis,
         leftBracket: leftBracket,
         cases: cases,
@@ -3150,7 +3152,7 @@ class AstBuilder extends StackListener {
     WhenClauseImpl? whenClause;
     if (when != null) {
       var expression = pop() as ExpressionImpl;
-      whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
+      whenClause = WhenClauseImpl(whenKeyword: when, expression2: expression);
     }
     var pattern = pop() as DartPatternImpl;
     push(
@@ -3160,7 +3162,7 @@ class AstBuilder extends StackListener {
           whenClause: whenClause,
         ),
         arrow: arrow,
-        expression: expression,
+        expression2: expression,
       ),
     );
   }
@@ -3178,7 +3180,7 @@ class AstBuilder extends StackListener {
       SwitchStatementImpl(
         switchKeyword: switchKeyword,
         leftParenthesis: condition.leftParenthesis,
-        expression: condition.expression,
+        expression2: condition.expression,
         rightParenthesis: condition.rightParenthesis,
         leftBracket: leftBracket,
         members: members,
@@ -3466,7 +3468,7 @@ class AstBuilder extends StackListener {
         metadata: [],
         name: identifier.token,
         equals: equals,
-        initializer: initializer,
+        initializer2: initializer,
       ),
     );
   }
@@ -3498,7 +3500,7 @@ class AstBuilder extends StackListener {
               if (awaitToken.type == Keyword.AWAIT) {
                 push(
                   ExpressionStatementImpl(
-                    expression: PrefixedIdentifierImpl(
+                    expression2: PrefixedIdentifierImpl(
                       prefix: SimpleIdentifierImpl(token: importPrefix.name),
                       period: importPrefix.period,
                       identifier: SimpleIdentifierImpl(
@@ -3531,7 +3533,7 @@ class AstBuilder extends StackListener {
                 );
                 push(
                   ExpressionStatementImpl(
-                    expression: PrefixedIdentifierImpl(
+                    expression2: PrefixedIdentifierImpl(
                       prefix: SimpleIdentifierImpl(token: importPrefix.name),
                       period: importPrefix.period,
                       identifier: SimpleIdentifierImpl(token: type.name),
@@ -3573,7 +3575,7 @@ class AstBuilder extends StackListener {
       WhileStatementImpl(
         whileKeyword: whileKeyword,
         leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
+        condition2: condition.expression,
         rightParenthesis: condition.rightParenthesis,
         body: body,
       ),
@@ -3597,7 +3599,7 @@ class AstBuilder extends StackListener {
       YieldStatementImpl(
         yieldKeyword: yieldToken,
         star: starToken,
-        expression: expression,
+        expression2: expression,
         semicolon: semicolon,
       ),
     );
@@ -3622,7 +3624,7 @@ class AstBuilder extends StackListener {
 
     push(
       AsExpressionImpl(
-        expression: expression,
+        expression2: expression,
         asOperator: asOperator,
         type: type,
       ),
@@ -3655,9 +3657,9 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(rhs);
     push(
       AssignmentExpressionImpl(
-        leftHandSide: lhs,
+        leftHandSide2: lhs,
         operator: token,
-        rightHandSide: rhs,
+        rightHandSide2: rhs,
       ),
     );
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
@@ -4187,7 +4189,7 @@ class AstBuilder extends StackListener {
           keyword: asyncKeyword,
           star: star,
           functionDefinition: arrowToken,
-          expression: expression,
+          expression2: expression,
           semicolon: semicolon,
         ),
       );
@@ -4212,16 +4214,18 @@ class AstBuilder extends StackListener {
       );
     }
     if (expression is AssignmentExpressionImpl) {
-      if (!expression.leftHandSide.isAssignable) {
+      if (!expression.leftHandSide2.isAssignable) {
         // This error is also reported by the body builder.
         handleRecoverableError(
           fe_diag.illegalAssignmentToNonAssignable,
-          expression.leftHandSide.beginToken,
-          expression.leftHandSide.endToken,
+          expression.leftHandSide2.beginToken,
+          expression.leftHandSide2.endToken,
         );
       }
     }
-    push(ExpressionStatementImpl(expression: expression, semicolon: semicolon));
+    push(
+      ExpressionStatementImpl(expression2: expression, semicolon: semicolon),
+    );
   }
 
   @override
@@ -4259,7 +4263,7 @@ class AstBuilder extends StackListener {
         keyword: keyword,
         pattern: pattern,
         equals: equals,
-        expression: expression,
+        expression2: expression,
         comment: null,
         metadata: metadata,
       ),
@@ -4353,7 +4357,7 @@ class AstBuilder extends StackListener {
     ExpressionImpl? condition;
     Token rightSeparator;
     if (conditionStatement is ExpressionStatementImpl) {
-      condition = conditionStatement.expression;
+      condition = conditionStatement.expression2;
       rightSeparator = conditionStatement.semicolon!;
     } else {
       rightSeparator = (conditionStatement as EmptyStatementImpl).semicolon;
@@ -4366,7 +4370,7 @@ class AstBuilder extends StackListener {
         leftSeparator: leftSeparator,
         condition: condition,
         rightSeparator: rightSeparator,
-        updaters: updates,
+        updaters2: updates,
       );
     } else if (initializerPart is PatternVariableDeclarationImpl) {
       forLoopParts = ForPartsWithPatternImpl(
@@ -4374,15 +4378,15 @@ class AstBuilder extends StackListener {
         leftSeparator: leftSeparator,
         condition: condition,
         rightSeparator: rightSeparator,
-        updaters: updates,
+        updaters2: updates,
       );
     } else {
       forLoopParts = ForPartsWithExpressionImpl(
-        initialization: initializerPart as ExpressionImpl?,
+        initialization2: initializerPart as ExpressionImpl?,
         leftSeparator: leftSeparator,
         condition: condition,
         rightSeparator: rightSeparator,
-        updaters: updates,
+        updaters2: updates,
       );
     }
 
@@ -4509,11 +4513,11 @@ class AstBuilder extends StackListener {
       var token = peek() as Token;
       push(receiver);
       var expression = IndexExpressionImpl(
-        target: null,
+        target2: null,
         period: token,
         question: question,
         leftBracket: leftBracket,
-        index: index,
+        index2: index,
         rightBracket: rightBracket,
       );
       assert(expression.isCascaded);
@@ -4521,11 +4525,11 @@ class AstBuilder extends StackListener {
     } else {
       push(
         IndexExpressionImpl(
-          target: target,
+          target2: target,
           period: null,
           question: question,
           leftBracket: leftBracket,
-          index: index,
+          index2: index,
           rightBracket: rightBracket,
         ),
       );
@@ -4538,7 +4542,7 @@ class AstBuilder extends StackListener {
     push(
       InterpolationExpressionImpl(
         leftBracket: leftBracket,
-        expression: expression,
+        expression2: expression,
         rightBracket: rightBracket,
       ),
     );
@@ -4622,7 +4626,7 @@ class AstBuilder extends StackListener {
 
     push(
       IsExpressionImpl(
-        expression: expression,
+        expression2: expression,
         isOperator: isOperator,
         notOperator: not,
         type: type,
@@ -4752,7 +4756,7 @@ class AstBuilder extends StackListener {
         constKeyword: constKeyword,
         typeArguments: typeArguments,
         leftBracket: leftBracket,
-        elements: elements,
+        elements2: elements,
         rightBracket: rightBracket,
       ),
     );
@@ -4783,10 +4787,10 @@ class AstBuilder extends StackListener {
     push(
       MapLiteralEntryImpl(
         keyQuestion: nullAwareKeyToken,
-        key: key,
+        key2: key,
         separator: colon,
         valueQuestion: nullAwareValueToken,
-        value: value,
+        value2: value,
       ),
     );
   }
@@ -4817,7 +4821,7 @@ class AstBuilder extends StackListener {
         constKeyword: constKeyword,
         typeArguments: typeArguments,
         leftBracket: leftBrace,
-        elements: elements,
+        elements2: elements,
         rightBracket: rightBrace,
       ),
     );
@@ -4846,7 +4850,7 @@ class AstBuilder extends StackListener {
 
     var value = pop() as DartPatternImpl;
     var key = pop() as ExpressionImpl;
-    push(MapPatternEntryImpl(key: key, separator: colon, value: value));
+    push(MapPatternEntryImpl(key2: key, separator: colon, value: value));
   }
 
   @override
@@ -4922,7 +4926,7 @@ class AstBuilder extends StackListener {
       NamedArgumentImpl(
         name: name.token,
         colon: colon,
-        argumentExpression: expression,
+        argumentExpression2: expression,
       ),
     );
   }
@@ -4947,7 +4951,7 @@ class AstBuilder extends StackListener {
       RecordLiteralNamedFieldImpl(
         name: name.token,
         colon: colon,
-        fieldExpression: expression,
+        fieldExpression2: expression,
       ),
     );
   }
@@ -5045,7 +5049,7 @@ class AstBuilder extends StackListener {
         metadata: [],
         name: name.token,
         equals: null,
-        initializer: null,
+        initializer2: null,
       ),
     );
   }
@@ -5079,7 +5083,7 @@ class AstBuilder extends StackListener {
     debugEvent('NonNullAssertExpression');
 
     push(
-      PostfixExpressionImpl(operand: pop() as ExpressionImpl, operator: bang),
+      PostfixExpressionImpl(operand2: pop() as ExpressionImpl, operator: bang),
     );
   }
 
@@ -5124,7 +5128,9 @@ class AstBuilder extends StackListener {
       );
     } else {
       var expression = pop() as ExpressionImpl;
-      push(NullAwareElementImpl(question: nullAwareElement, value: expression));
+      push(
+        NullAwareElementImpl(question: nullAwareElement, value2: expression),
+      );
     }
   }
 
@@ -5255,7 +5261,7 @@ class AstBuilder extends StackListener {
       PatternAssignmentImpl(
         pattern: pattern,
         equals: equals,
-        expression: expression,
+        expression2: expression,
       ),
     );
   }
@@ -5289,7 +5295,7 @@ class AstBuilder extends StackListener {
           keyword: keyword,
           pattern: pattern,
           equals: equals,
-          expression: expression,
+          expression2: expression,
           comment: comment,
           metadata: metadata,
         ),
@@ -5493,7 +5499,7 @@ class AstBuilder extends StackListener {
   void handleRelationalPattern(Token token) {
     debugEvent("RelationalPattern");
     push(
-      RelationalPatternImpl(operator: token, operand: pop() as ExpressionImpl),
+      RelationalPatternImpl(operator: token, operand2: pop() as ExpressionImpl),
     );
   }
 
@@ -5528,7 +5534,7 @@ class AstBuilder extends StackListener {
   void handleSpreadExpression(Token spreadToken) {
     var expression = pop() as ExpressionImpl;
     push(
-      SpreadElementImpl(spreadOperator: spreadToken, expression: expression),
+      SpreadElementImpl(spreadOperator: spreadToken, expression2: expression),
     );
   }
 
@@ -5581,7 +5587,7 @@ class AstBuilder extends StackListener {
     push(
       ThrowExpressionImpl(
         throwKeyword: throwToken,
-        expression: pop() as ExpressionImpl,
+        expression2: pop() as ExpressionImpl,
       ),
     );
   }
@@ -5609,7 +5615,7 @@ class AstBuilder extends StackListener {
     }
     reportErrorIfSuper(receiver);
     push(
-      FunctionReferenceImpl(function: receiver, typeArguments: typeArguments),
+      FunctionReferenceImpl(function2: receiver, typeArguments: typeArguments),
     );
   }
 
@@ -5634,7 +5640,7 @@ class AstBuilder extends StackListener {
         operator,
       );
     }
-    push(PostfixExpressionImpl(operand: expression, operator: operator));
+    push(PostfixExpressionImpl(operand2: expression, operator: operator));
   }
 
   @override
@@ -5651,7 +5657,7 @@ class AstBuilder extends StackListener {
         expression.endToken,
       );
     }
-    push(PrefixExpressionImpl(operator: operator, operand: expression));
+    push(PrefixExpressionImpl(operator: operator, operand2: expression));
   }
 
   @override
@@ -5665,7 +5671,7 @@ class AstBuilder extends StackListener {
       reportErrorIfSuper(operand);
     }
 
-    push(PrefixExpressionImpl(operator: operator, operand: operand));
+    push(PrefixExpressionImpl(operator: operator, operand2: operand));
   }
 
   @override
@@ -5678,7 +5684,7 @@ class AstBuilder extends StackListener {
     debugEvent("ValuedFormalParameter");
 
     var value = pop() as ExpressionImpl;
-    push(FormalParameterDefaultClauseImpl(separator: equals, value: value));
+    push(FormalParameterDefaultClauseImpl(separator: equals, value2: value));
   }
 
   @override
@@ -6350,7 +6356,7 @@ class AstBuilder extends StackListener {
     var right = left.endGroup!;
     return ArgumentListImpl(
       leftParenthesis: left,
-      arguments: [],
+      arguments2: [],
       rightParenthesis: right,
     );
   }

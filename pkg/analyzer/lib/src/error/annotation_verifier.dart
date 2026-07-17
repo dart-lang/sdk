@@ -301,13 +301,13 @@ class AnnotationVerifier {
     bool factoryExpression(Expression? expression) =>
         expression is InstanceCreationExpression || expression is NullLiteral;
 
-    if (body is ExpressionFunctionBody && factoryExpression(body.expression)) {
+    if (body is ExpressionFunctionBody && factoryExpression(body.expression2)) {
       return;
     } else if (body is BlockFunctionBody) {
       NodeList<Statement> statements = body.block.statements;
       if (statements.isNotEmpty) {
         Statement last = statements.last;
-        if (last is ReturnStatement && factoryExpression(last.expression)) {
+        if (last is ReturnStatement && factoryExpression(last.expression2)) {
           return;
         }
       }
@@ -680,14 +680,14 @@ class AnnotationVerifier {
       }
 
       // Find and return the parameter value node.
-      var arguments = node.arguments?.arguments;
+      var arguments = node.arguments?.arguments2;
       if (arguments == null) {
         return null;
       }
 
       for (var arg in arguments) {
         if (arg is NamedArgument && arg.name.lexeme == 'parameterDefined') {
-          return arg.argumentExpression;
+          return arg.argumentExpression2;
         }
       }
 

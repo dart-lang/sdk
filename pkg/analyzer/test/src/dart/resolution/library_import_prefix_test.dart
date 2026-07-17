@@ -104,7 +104,7 @@ InstanceCreationExpression
       substitution: {T: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: p
         correspondingParameter: SubstitutedFormalParameterElementImpl

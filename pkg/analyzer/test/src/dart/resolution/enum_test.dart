@@ -94,7 +94,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixedIdentifier
+                expression2: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A
@@ -174,7 +174,7 @@ CompilationUnit
             name: values
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
                 staticType: int
               semicolon: ;
@@ -212,7 +212,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixedIdentifier
+                expression2: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A
@@ -326,7 +326,7 @@ EnumConstantDeclaration
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -356,7 +356,7 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -400,7 +400,7 @@ EnumConstantDeclaration
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -483,7 +483,7 @@ EnumConstantDeclaration
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
@@ -509,7 +509,7 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
@@ -559,7 +559,7 @@ EnumConstantDeclaration
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <null>
@@ -587,7 +587,7 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <null>
@@ -656,7 +656,7 @@ FieldDeclaration
       VariableDeclaration
         name: foo
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 42
           staticType: int
         declaredFragment: <testLibraryFragment> foo@22
@@ -684,9 +684,9 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: ThrowExpression
+    expression2: ThrowExpression
       throwKeyword: throw
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       staticType: Never
@@ -811,7 +811,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -842,7 +842,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: SimpleStringLiteral
+    expression2: SimpleStringLiteral
       literal: 'E'
     semicolon: ;
   declaredFragment: <testLibraryFragment> toString@23
@@ -990,7 +990,7 @@ EnumDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
                 staticType: int
             declaredFragment: <testLibraryFragment> a@18
@@ -1031,11 +1031,11 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               NamedArgument
                 name: a
                 colon: :
-                argumentExpression: IntegerLiteral
+                argumentExpression2: IntegerLiteral
                   literal: 1
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1105,11 +1105,11 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               NamedArgument
                 name: a
                 colon: :
-                argumentExpression: IntegerLiteral
+                argumentExpression2: IntegerLiteral
                   literal: 0
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1212,7 +1212,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: foo
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1277,7 +1277,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1346,7 +1346,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1543,7 +1543,7 @@ EnumDeclaration
               staticType: null
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1615,7 +1615,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1688,7 +1688,7 @@ EnumDeclaration
               staticType: null
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::named::@formalParameter::a
@@ -1748,7 +1748,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1811,7 +1811,7 @@ PrimaryConstructorDeclaration
           name: x
           defaultClause: FormalParameterDefaultClause
             separator: =
-            value: SimpleIdentifier
+            value2: SimpleIdentifier
               token: foo
               element: <testLibrary>::@enum::A::@getter::foo
               staticType: int
@@ -2013,7 +2013,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               BooleanLiteral
                 literal: true
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
@@ -2034,7 +2034,7 @@ EnumDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: SimpleIdentifier
+            condition2: SimpleIdentifier
               token: x
               element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
               staticType: bool
@@ -2044,7 +2044,7 @@ EnumDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: y
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
                   staticType: bool
@@ -2057,9 +2057,9 @@ EnumDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: PrefixExpression
+            condition2: PrefixExpression
               operator: !
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: x
                 element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
                 staticType: bool
@@ -2071,9 +2071,9 @@ EnumDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixExpression
+                expression2: PrefixExpression
                   operator: !
-                  operand: SimpleIdentifier
+                  operand2: SimpleIdentifier
                     token: y
                     element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
                     staticType: bool
@@ -2165,7 +2165,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
         element: <null>
         staticType: InvalidType
@@ -2175,7 +2175,7 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: y
             element: <null>
             staticType: InvalidType
@@ -2201,7 +2201,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool
@@ -2228,7 +2228,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: a
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -2256,7 +2256,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool
@@ -2283,7 +2283,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2310,7 +2310,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2344,7 +2344,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2374,7 +2374,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2444,7 +2444,7 @@ void f() {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@enum::E

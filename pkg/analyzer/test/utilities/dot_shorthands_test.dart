@@ -17,12 +17,12 @@ main() {
 @reflectiveTest
 class HasDependentDotShorthandTest extends PubPackageResolutionTest {
   void assertHasDependentDotShorthand(TestResolvedUnitResult result) async {
-    var initializer = result.findNode.singleVariableDeclaration.initializer;
+    var initializer = result.findNode.singleVariableDeclaration.initializer2;
     expect(hasDependentDotShorthand(initializer!), isTrue);
   }
 
   void assertHasNoDependentDotShorthand(TestResolvedUnitResult result) async {
-    var initializer = result.findNode.singleVariableDeclaration.initializer;
+    var initializer = result.findNode.singleVariableDeclaration.initializer2;
     expect(hasDependentDotShorthand(initializer!), isFalse);
   }
 

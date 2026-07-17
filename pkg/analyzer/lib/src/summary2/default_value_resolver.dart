@@ -98,9 +98,9 @@ class DefaultValueResolver {
       enclosingExecutableElement: enclosingExecutableElement,
     );
     astResolver.resolveExpression(
-      () => firstNode.defaultClause!.value,
+      () => firstNode.defaultClause!.value2,
       contextType: contextType,
     );
-    firstFragment.constantInitializer = firstNode.defaultClause!.value;
+    firstFragment.constantInitializer = firstNode.defaultClause!.value2;
   }
 }

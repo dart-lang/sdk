@@ -87,7 +87,7 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -96,7 +96,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -179,7 +179,7 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -193,7 +193,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::named
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -293,7 +293,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   body: EmptyFunctionBody
@@ -330,7 +330,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   body: EmptyFunctionBody
@@ -365,7 +365,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   body: EmptyFunctionBody
@@ -401,7 +401,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   body: EmptyFunctionBody
@@ -434,7 +434,7 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -443,7 +443,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -477,7 +477,7 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -491,7 +491,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::named
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -534,7 +534,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   body: EmptyFunctionBody
@@ -572,7 +572,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
   body: EmptyFunctionBody
@@ -643,7 +643,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@49
@@ -661,7 +661,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@77
@@ -802,7 +802,7 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: TypeLiteral
+          expression2: TypeLiteral
             type: NamedType
               name: T
               element: #E0 T
@@ -810,7 +810,7 @@ MethodDeclaration
             staticType: Type
           semicolon: ;
         ExpressionStatement
-          expression: TypeLiteral
+          expression2: TypeLiteral
             type: NamedType
               name: U
               element: #E1 U
@@ -849,7 +849,7 @@ ExtensionTypeDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
                 staticType: int
             declaredFragment: <testLibraryFragment> a@22
@@ -913,7 +913,7 @@ ExtensionTypeDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
                 staticType: int
             declaredFragment: <testLibraryFragment> a@22
@@ -3698,7 +3698,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@49
         semicolon: ;
@@ -3768,7 +3768,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@65
         semicolon: ;
@@ -4100,7 +4100,7 @@ PrimaryConstructorDeclaration
           name: it
           defaultClause: FormalParameterDefaultClause
             separator: =
-            value: SimpleIdentifier
+            value2: SimpleIdentifier
               token: foo
               element: <testLibrary>::@extensionType::E::@getter::foo
               staticType: int
@@ -4243,7 +4243,7 @@ ExtensionTypeDeclaration
             name: it
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: BooleanLiteral
+              value2: BooleanLiteral
                 literal: false
                 staticType: bool
             declaredFragment: <testLibraryFragment> it@23
@@ -4285,7 +4285,7 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: SimpleIdentifier
+            condition2: SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
               staticType: bool
@@ -4295,7 +4295,7 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4308,9 +4308,9 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: PrefixExpression
+            condition2: PrefixExpression
               operator: !
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: it
                 element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                 staticType: bool
@@ -4322,7 +4322,7 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4374,7 +4374,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4400,7 +4400,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4430,13 +4430,13 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: it
             element: <testLibrary>::@extensionType::A::@getter::it
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: foo
             element: <testLibrary>::@extensionType::A::@method::foo
             staticType: void Function()
@@ -4620,7 +4620,7 @@ ExtensionTypeDeclaration
               element: <testLibrary>::@extensionType::A::@field::it
               staticType: null
             equals: =
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: a
               element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
               staticType: int

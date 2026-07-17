@@ -4633,7 +4633,7 @@ library
           initializer: expression_0
             RecordLiteral
               leftParenthesis: ( @10
-              fields
+              fields2
                 IntegerLiteral
                   literal: 1 @11
                   staticType: int

@@ -30,11 +30,11 @@ extension type A(int it) {
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: SuperExpression
+  leftOperand2: SuperExpression
     superKeyword: super
     staticType: A
   operator: +
-  rightOperand: IntegerLiteral
+  rightOperand2: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -58,7 +58,7 @@ extension type A(int it) {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: A
   operator: .
@@ -88,7 +88,7 @@ extension type A(int it) {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: A
   operator: .

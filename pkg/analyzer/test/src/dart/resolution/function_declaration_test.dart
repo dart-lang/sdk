@@ -55,7 +55,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -103,7 +103,7 @@ FunctionDeclaration
       keyword: async
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -406,7 +406,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -457,7 +457,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: IntegerLiteral
+            expression2: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -503,7 +503,7 @@ FunctionDeclaration
       keyword: sync
       star: *
       functionDefinition: =>
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;

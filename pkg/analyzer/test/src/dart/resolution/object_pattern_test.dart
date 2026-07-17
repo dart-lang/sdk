@@ -220,7 +220,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
@@ -259,7 +259,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
@@ -422,7 +422,7 @@ ObjectPattern
       name: PatternFieldName
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -668,7 +668,7 @@ ObjectPattern
   fields
     PatternField
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -705,7 +705,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -781,7 +781,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
@@ -858,7 +858,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -896,7 +896,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -1247,7 +1247,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: A<int>
@@ -1303,7 +1303,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
-  expression: InstanceCreationExpression
+  expression2: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -1365,7 +1365,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: A<dynamic>
   equals: =
-  expression: InstanceCreationExpression
+  expression2: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType

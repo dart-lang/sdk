@@ -42,7 +42,7 @@ class PrefixedIdentifierResolver {
         );
         if (prefixTypeResolved is RecordType) {
           var propertyAccess = PropertyAccessImpl(
-            target: node.prefix,
+            target2: node.prefix,
             operator: node.period,
             propertyName: node.identifier,
           );
@@ -173,9 +173,9 @@ class PrefixedIdentifierResolver {
     }
 
     if (parent is CommentReference ||
-        parent is MethodInvocationImpl && parent.target == node ||
+        parent is MethodInvocationImpl && parent.target2 == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
-        parent is PropertyAccessImpl && parent.target == node) {
+        parent is PropertyAccessImpl && parent.target2 == node) {
       inferenceLogWriter?.recordExpressionWithNoType(node);
       return;
     }

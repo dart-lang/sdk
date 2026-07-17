@@ -145,6 +145,8 @@ class MyTestClass<T> extends MyAbstractClass {
   late final MyTestClass myselfField;
 
   var count = 0;
+  // This should never be updated during execution.
+  var unchangedCount = 42;
 
   // An easy location to add a breakpoint.
   void printCount() {

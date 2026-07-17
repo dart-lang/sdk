@@ -311,7 +311,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
                 staticType: int
             declaredFragment: <testLibraryFragment> a@19
@@ -677,7 +677,7 @@ ClassDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@59
@@ -695,7 +695,7 @@ ClassDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@87
@@ -1132,7 +1132,7 @@ PrimaryConstructorDeclaration
           name: x
           defaultClause: FormalParameterDefaultClause
             separator: =
-            value: SimpleIdentifier
+            value2: SimpleIdentifier
               token: foo
               element: <testLibrary>::@class::A::@getter::foo
               staticType: int
@@ -1384,7 +1384,7 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: SimpleIdentifier
+            condition2: SimpleIdentifier
               token: x
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
               staticType: bool
@@ -1394,7 +1394,7 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: y
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
                   staticType: bool
@@ -1407,9 +1407,9 @@ ClassDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: PrefixExpression
+            condition2: PrefixExpression
               operator: !
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: x
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                 staticType: bool
@@ -1421,9 +1421,9 @@ ClassDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixExpression
+                expression2: PrefixExpression
                   operator: !
-                  operand: SimpleIdentifier
+                  operand2: SimpleIdentifier
                     token: y
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::y
                     staticType: bool
@@ -1512,7 +1512,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
         element: <null>
         staticType: InvalidType
@@ -1522,7 +1522,7 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: y
             element: <null>
             staticType: InvalidType
@@ -1547,7 +1547,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1567,7 +1567,7 @@ class A(final int A()) {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
     staticType: int Function()
@@ -1597,7 +1597,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1622,7 +1622,7 @@ class B(this.A) {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
     staticType: int Function()
@@ -1651,7 +1651,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1678,7 +1678,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: a
         element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1699,7 +1699,7 @@ class B(super.A) extends A {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
     staticType: int Function()
@@ -1732,13 +1732,13 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
@@ -1768,13 +1768,13 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
@@ -1804,19 +1804,19 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::A::@method::foo
             staticType: void Function()
           semicolon: ;
         ExpressionStatement
-          expression: PatternAssignment
+          expression2: PatternAssignment
             pattern: RecordPattern
               leftParenthesis: (
               fields
@@ -1829,9 +1829,9 @@ PrimaryConstructorBody
               rightParenthesis: )
               matchedValueType: (int,)
             equals: =
-            expression: RecordLiteral
+            expression2: RecordLiteral
               leftParenthesis: (
-              fields
+              fields2
                 IntegerLiteral
                   literal: 0
                   staticType: int
@@ -1865,13 +1865,13 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@getter::a
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: foo
             element: <testLibrary>::@class::B::@method::foo
             staticType: void Function()
@@ -1896,7 +1896,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -1922,7 +1922,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -1951,7 +1951,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -1980,7 +1980,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType

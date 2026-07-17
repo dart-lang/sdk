@@ -481,7 +481,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: x
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -590,7 +590,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: x
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -718,7 +718,7 @@ ConstructorDeclaration
           name: f
           defaultClause: FormalParameterDefaultClause
             separator: =
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 0
       rightDelimiter: ]
     rightParenthesis: )
@@ -801,7 +801,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: f
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -1331,7 +1331,7 @@ ConstructorDeclaration
       superKeyword: super
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 2
         rightParenthesis: )
@@ -1566,7 +1566,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1598,7 +1598,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1659,7 +1659,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1692,7 +1692,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1783,7 +1783,7 @@ ClassDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1814,7 +1814,7 @@ ClassDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1837,7 +1837,7 @@ MethodDeclaration
   name: A
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -2451,7 +2451,7 @@ ClassDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -2661,7 +2661,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2708,7 +2708,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2756,7 +2756,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2811,7 +2811,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2863,7 +2863,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
@@ -2911,7 +2911,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )
@@ -2958,7 +2958,7 @@ ClassDeclaration
             name: a
             defaultClause: FormalParameterDefaultClause
               separator: =
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )
@@ -4039,11 +4039,11 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: BinaryExpression
-        leftOperand: SimpleIdentifier
+      condition2: BinaryExpression
+        leftOperand2: SimpleIdentifier
           token: x
         operator: >
-        rightOperand: IntegerLiteral
+        rightOperand2: IntegerLiteral
           literal: 0
       rightParenthesis: )
   body: EmptyFunctionBody
@@ -4069,7 +4069,7 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
       rightBracket: }
@@ -4116,7 +4116,7 @@ PrimaryConstructorBody
       fieldName: SimpleIdentifier
         token: x
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;

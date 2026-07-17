@@ -46,12 +46,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _check(arguments: [node.rightHandSide], errorNode: node.operator);
+    _check(arguments: [node.rightHandSide2], errorNode: node.operator);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _check(arguments: [node.rightOperand], errorNode: node.operator);
+    _check(arguments: [node.rightOperand2], errorNode: node.operator);
   }
 
   @override
@@ -62,27 +62,27 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     if (node.staticInvokeType is FunctionType) {
-      _check(arguments: node.argumentList.arguments, errorNode: node);
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
     }
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _check(arguments: [node.index], errorNode: node.leftBracket);
+    _check(arguments: [node.index2], errorNode: node.leftBracket);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.inConstantContext) return;
     _check(
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorNode: node.constructorName,
     );
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _check(arguments: node.argumentList.arguments, errorNode: node.methodName);
+    _check(arguments: node.argumentList.arguments2, errorNode: node.methodName);
   }
 
   @override
@@ -100,7 +100,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     RedirectingConstructorInvocation node,
   ) {
     _check(
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorNode: node.constructorName ?? node.thisKeyword,
     );
   }
@@ -121,7 +121,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _check(
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorNode: node.constructorName ?? node.superKeyword,
     );
   }
@@ -142,7 +142,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       }
 
       if (parameter.metadata.hasMustBeConst) {
-        var resolvedArgument = argument.argumentExpression;
+        var resolvedArgument = argument.argumentExpression2;
         if (!_isConst(resolvedArgument)) {
           _diagnosticReporter.report(
             diag.nonConstArgumentForConstParameter

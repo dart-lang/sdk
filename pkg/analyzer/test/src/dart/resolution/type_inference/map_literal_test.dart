@@ -54,7 +54,7 @@ Map<String, int> a = {f()};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MethodInvocation
       methodName: SimpleIdentifier
         token: f
@@ -86,7 +86,7 @@ Map<E, String> a = {.one};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
@@ -117,7 +117,7 @@ Map<E, String> a = {.};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
@@ -145,15 +145,15 @@ Map<String, int> a = {if (true) f()};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
         staticType: bool
       rightParenthesis: )
-      thenElement: MethodInvocation
+      thenElement2: MethodInvocation
         methodName: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::f
@@ -254,7 +254,7 @@ MethodInvocation
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl

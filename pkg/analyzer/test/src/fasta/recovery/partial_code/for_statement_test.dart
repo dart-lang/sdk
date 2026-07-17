@@ -42,7 +42,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -52,7 +52,7 @@ CompilationUnit
                 body: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition: BooleanLiteral
+                  condition2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -86,7 +86,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -126,7 +126,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -166,7 +166,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -206,7 +206,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -220,7 +220,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition: BooleanLiteral
+                  condition2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -257,7 +257,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -265,7 +265,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -298,7 +298,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -349,7 +349,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -359,7 +359,7 @@ CompilationUnit
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -395,7 +395,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -440,7 +440,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -490,7 +490,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -540,7 +540,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -584,7 +584,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -624,7 +624,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -634,7 +634,7 @@ CompilationUnit
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -669,7 +669,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -715,7 +715,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -725,7 +725,7 @@ CompilationUnit
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition: BooleanLiteral
+                  condition2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -768,12 +768,12 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: FunctionExpressionInvocation
-                          function: SimpleIdentifier
+                        initializer2: FunctionExpressionInvocation
+                          function2: SimpleIdentifier
                             token: assert
                           argumentList: ArgumentList
                             leftParenthesis: (
-                            arguments
+                            arguments2
                               BooleanLiteral
                                 literal: true
                             rightParenthesis: )
@@ -783,7 +783,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -823,7 +823,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SetOrMapLiteral
+                        initializer2: SetOrMapLiteral
                           leftBracket: {
                           rightBracket: }
                           isMap: false
@@ -833,7 +833,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -878,18 +878,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -934,18 +934,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -990,18 +990,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1041,7 +1041,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -1049,7 +1049,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1094,18 +1094,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1150,18 +1150,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1209,7 +1209,7 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1251,7 +1251,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: FunctionExpression
+                        initializer2: FunctionExpression
                           parameters: FormalParameterList
                             leftParenthesis: (
                             rightParenthesis: )
@@ -1265,7 +1265,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1307,7 +1307,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: FunctionExpression
+                        initializer2: FunctionExpression
                           parameters: FormalParameterList
                             leftParenthesis: (
                             rightParenthesis: )
@@ -1321,7 +1321,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1366,18 +1366,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1420,7 +1420,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ;
                   condition: SimpleIdentifier
@@ -1428,7 +1428,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1468,10 +1468,10 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SwitchExpression
+                        initializer2: SwitchExpression
                           switchKeyword: switch
                           leftParenthesis: (
-                          expression: SimpleIdentifier
+                          expression2: SimpleIdentifier
                             token: x
                           rightParenthesis: )
                           leftBracket: {
@@ -1482,7 +1482,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1527,18 +1527,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1583,18 +1583,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: SimpleIdentifier
+                        initializer2: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1634,22 +1634,22 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: FunctionExpressionInvocation
-                    function: SimpleIdentifier
+                    function2: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1689,7 +1689,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SetOrMapLiteral
@@ -1699,7 +1699,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1744,18 +1744,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1800,18 +1800,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1856,18 +1856,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1907,7 +1907,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
@@ -1915,7 +1915,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1960,18 +1960,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2016,18 +2016,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2072,18 +2072,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: l
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2125,7 +2125,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: FunctionExpression
@@ -2139,7 +2139,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2181,7 +2181,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: FunctionExpression
@@ -2195,7 +2195,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2240,18 +2240,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2294,7 +2294,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
@@ -2302,7 +2302,7 @@ CompilationUnit
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2342,13 +2342,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -2356,7 +2356,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2401,18 +2401,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2457,18 +2457,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2510,22 +2510,22 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: FunctionExpressionInvocation
-                    function: SimpleIdentifier
+                    function2: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2567,7 +2567,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SetOrMapLiteral
@@ -2577,7 +2577,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2622,18 +2622,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2678,18 +2678,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2734,18 +2734,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2785,7 +2785,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -2793,7 +2793,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2838,18 +2838,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2894,18 +2894,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2952,18 +2952,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: l
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3007,7 +3007,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: FunctionExpression
@@ -3021,7 +3021,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3065,7 +3065,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: FunctionExpression
@@ -3079,7 +3079,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3124,18 +3124,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3180,7 +3180,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -3188,7 +3188,7 @@ CompilationUnit
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3230,13 +3230,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -3244,7 +3244,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3289,18 +3289,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3345,18 +3345,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3391,13 +3391,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3433,7 +3433,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               Block
@@ -3472,7 +3472,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               BreakStatement
@@ -3511,7 +3511,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ContinueStatement
@@ -3549,7 +3549,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               DoStatement
@@ -3559,7 +3559,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3595,7 +3595,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3630,7 +3630,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ForStatement
@@ -3679,13 +3679,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -3723,7 +3723,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               LabeledStatement
@@ -3766,7 +3766,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -3814,7 +3814,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -3862,7 +3862,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -3904,7 +3904,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ReturnStatement
@@ -3942,13 +3942,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3985,7 +3985,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               TryStatement
@@ -4029,13 +4029,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -4072,12 +4072,12 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: FunctionExpressionInvocation
-                    function: SimpleIdentifier
+                  initialization2: FunctionExpressionInvocation
+                    function2: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -4087,7 +4087,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4121,7 +4121,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SetOrMapLiteral
+                  initialization2: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
@@ -4131,7 +4131,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4170,18 +4170,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4220,18 +4220,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4270,18 +4270,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4315,7 +4315,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
@@ -4323,7 +4323,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4362,18 +4362,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4412,18 +4412,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4468,7 +4468,7 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4522,7 +4522,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4576,7 +4576,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4621,7 +4621,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4658,7 +4658,7 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ;
                   condition: SimpleIdentifier
@@ -4666,7 +4666,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4700,10 +4700,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SwitchExpression
+                  initialization2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -4714,7 +4714,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4753,18 +4753,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4803,18 +4803,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization: SimpleIdentifier
+                  initialization2: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4849,7 +4849,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -4857,7 +4857,7 @@ CompilationUnit
                 body: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition: BooleanLiteral
+                  condition2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -4893,7 +4893,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -4933,7 +4933,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -4973,7 +4973,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5013,7 +5013,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5025,7 +5025,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition: BooleanLiteral
+                  condition2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -5065,13 +5065,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
                 rightParenthesis: )
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5106,7 +5106,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5157,7 +5157,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5165,7 +5165,7 @@ CompilationUnit
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -5203,7 +5203,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5248,7 +5248,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5298,7 +5298,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5348,7 +5348,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5392,7 +5392,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5432,7 +5432,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5440,7 +5440,7 @@ CompilationUnit
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -5477,7 +5477,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5523,7 +5523,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5531,7 +5531,7 @@ CompilationUnit
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition: BooleanLiteral
+                  condition2: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -5575,23 +5575,23 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     FunctionExpressionInvocation
-                      function: SimpleIdentifier
+                      function2: SimpleIdentifier
                         token: assert
                       argumentList: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           BooleanLiteral
                             literal: true
                         rightParenthesis: )
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5631,18 +5631,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SetOrMapLiteral
                       leftBracket: {
                       rightBracket: }
                       isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5685,16 +5685,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5737,16 +5737,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5789,16 +5789,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5838,13 +5838,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5887,16 +5887,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5939,16 +5939,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5990,16 +5990,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6041,11 +6041,11 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
@@ -6056,7 +6056,7 @@ CompilationUnit
                           rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6098,11 +6098,11 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
@@ -6113,7 +6113,7 @@ CompilationUnit
                           rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6156,16 +6156,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6209,16 +6209,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6258,22 +6258,22 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SwitchExpression
                       switchKeyword: switch
                       leftParenthesis: (
-                      expression: SimpleIdentifier
+                      expression2: SimpleIdentifier
                         token: x
                       rightParenthesis: )
                       leftBracket: {
                       rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6316,16 +6316,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6368,16 +6368,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer: IntegerLiteral
+                        initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6422,18 +6422,18 @@ CompilationUnit
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition: FunctionExpressionInvocation
-                    function: SimpleIdentifier
+                    function2: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6484,7 +6484,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6532,12 +6532,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6585,12 +6585,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6638,12 +6638,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6687,20 +6687,20 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -6748,12 +6748,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6801,12 +6801,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6852,7 +6852,7 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6909,7 +6909,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6966,7 +6966,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7013,7 +7013,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7064,7 +7064,7 @@ CompilationUnit
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7111,7 +7111,7 @@ CompilationUnit
                   condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -7119,7 +7119,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7167,12 +7167,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7220,12 +7220,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7268,18 +7268,18 @@ CompilationUnit
                         name: i
                   leftSeparator: ; <synthetic>
                   condition: FunctionExpressionInvocation
-                    function: SimpleIdentifier
+                    function2: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7328,7 +7328,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7376,12 +7376,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7429,12 +7429,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7482,12 +7482,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7532,7 +7532,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7580,12 +7580,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7633,12 +7633,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7688,7 +7688,7 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7747,7 +7747,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7802,7 +7802,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7850,12 +7850,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7905,7 +7905,7 @@ CompilationUnit
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7950,7 +7950,7 @@ CompilationUnit
                   condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -7958,7 +7958,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -8006,12 +8006,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -8059,12 +8059,12 @@ CompilationUnit
                   condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters
+                  updaters2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }

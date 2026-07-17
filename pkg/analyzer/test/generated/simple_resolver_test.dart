@@ -127,7 +127,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -143,7 +143,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -156,7 +156,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -172,7 +172,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -1376,7 +1376,7 @@ main() {
 
     var invocation = result.findNode.methodInvocation(');');
 
-    var arguments = invocation.argumentList.arguments;
+    var arguments = invocation.argumentList.arguments2;
 
     var argumentCount = arguments.length;
     expect(argumentCount, indices.length);

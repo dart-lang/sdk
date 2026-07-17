@@ -55,7 +55,7 @@ class ExtensionMemberResolver {
     var element = node.element;
     var typeParameters = element.typeParameters;
 
-    var arguments = node.argumentList.arguments;
+    var arguments = node.argumentList.arguments2;
     if (arguments.length != 1) {
       return null;
     }
@@ -243,7 +243,7 @@ class ExtensionMemberResolver {
       nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
 
-    var arguments = node.argumentList.arguments;
+    var arguments = node.argumentList.arguments2;
     if (arguments.length != 1) {
       _diagnosticReporter.report(
         diag.invalidExtensionArgumentCount.at(node.argumentList),
@@ -512,19 +512,19 @@ class ExtensionMemberResolver {
 
   static bool _isCascadeTarget(ExtensionOverride node) {
     var parent = node.parent2;
-    return parent is CascadeExpression && parent.target == node;
+    return parent is CascadeExpression && parent.target2 == node;
   }
 
   /// Return `true` if the extension override [node] is being used as a target
   /// of an operation that might be accessing an instance member.
   static bool _isValidContext(ExtensionOverride node) {
     var parent = node.parent2;
-    return parent is BinaryExpression && parent.leftOperand == node ||
-        parent is FunctionExpressionInvocation && parent.function == node ||
-        parent is IndexExpression && parent.target == node ||
-        parent is MethodInvocation && parent.target == node ||
+    return parent is BinaryExpression && parent.leftOperand2 == node ||
+        parent is FunctionExpressionInvocation && parent.function2 == node ||
+        parent is IndexExpression && parent.target2 == node ||
+        parent is MethodInvocation && parent.target2 == node ||
         parent is PrefixExpression ||
-        parent is PropertyAccess && parent.target == node;
+        parent is PropertyAccess && parent.target2 == node;
   }
 }
 

@@ -58,7 +58,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -102,11 +102,11 @@ InstanceCreationExpression
     element: <testLibrary>::@class::C::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NamedArgument
         name: x
         colon: :
-        argumentExpression: IntegerLiteral
+        argumentExpression2: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <null>
@@ -139,7 +139,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -147,14 +147,14 @@ InstanceCreationExpression
       NamedArgument
         name: b
         colon: :
-        argumentExpression: BooleanLiteral
+        argumentExpression2: BooleanLiteral
           literal: true
           staticType: bool
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
       NamedArgument
         name: c
         colon: :
-        argumentExpression: DoubleLiteral
+        argumentExpression2: DoubleLiteral
           literal: 1.2
           staticType: double
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
@@ -194,7 +194,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -274,7 +274,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -348,7 +348,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
@@ -381,7 +381,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -420,7 +420,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -457,7 +457,7 @@ InstanceCreationExpression
       substitution: {T: S}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: s
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -774,7 +774,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -810,7 +810,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -847,7 +847,7 @@ InstanceCreationExpression
     element: <testLibrary>::@extensionType::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -877,7 +877,7 @@ InstanceCreationExpression
     element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -914,7 +914,7 @@ InstanceCreationExpression
     element: <testLibrary>::@extensionType::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -946,7 +946,7 @@ InstanceCreationExpression
     element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -984,7 +984,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1018,7 +1018,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1064,7 +1064,7 @@ InstanceCreationExpression
     element: package:test/a.dart::@class::A::@constructor::named
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
@@ -1122,7 +1122,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1175,7 +1175,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1218,7 +1218,7 @@ InstanceCreationExpression
     element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
@@ -1265,7 +1265,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1308,7 +1308,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1350,7 +1350,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::X::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       MethodInvocation
         methodName: SimpleIdentifier
           token: g1
@@ -1367,7 +1367,7 @@ InstanceCreationExpression
       NamedArgument
         name: c
         colon: :
-        argumentExpression: MethodInvocation
+        argumentExpression2: MethodInvocation
           methodName: SimpleIdentifier
             token: g3
             element: <testLibrary>::@function::g3
@@ -1396,7 +1396,7 @@ InstanceCreationExpression
       NamedArgument
         name: d
         colon: :
-        argumentExpression: MethodInvocation
+        argumentExpression2: MethodInvocation
           methodName: SimpleIdentifier
             token: g4
             element: <testLibrary>::@function::g4
@@ -1441,11 +1441,11 @@ InstanceCreationExpression
     element: <testLibrary>::@class::C::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NamedArgument
         name: _x
         colon: :
-        argumentExpression: IntegerLiteral
+        argumentExpression2: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <null>
@@ -1479,11 +1479,11 @@ InstanceCreationExpression
     element: <testLibrary>::@class::C::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NamedArgument
         name: x
         colon: :
-        argumentExpression: IntegerLiteral
+        argumentExpression2: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -1525,7 +1525,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1570,7 +1570,7 @@ InstanceCreationExpression
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1610,7 +1610,7 @@ InstanceCreationExpression
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1648,7 +1648,7 @@ InstanceCreationExpression
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1697,7 +1697,7 @@ InstanceCreationExpression
       substitution: {T: String}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1737,7 +1737,7 @@ InstanceCreationExpression
       substitution: {T: String}
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1772,7 +1772,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -1810,7 +1810,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -1848,7 +1848,7 @@ InstanceCreationExpression
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -1880,7 +1880,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1916,7 +1916,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1957,7 +1957,7 @@ InstanceCreationExpression
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>

@@ -53,9 +53,9 @@ const packageVersion = '$version';
   // 5. Generate injected_client_js.dart
   print('Generating injected_client_js.dart...');
 
-  final clientDartString = File(
-    'web/client.dart',
-  ).readAsStringSync().replaceAll('\r\n', '\n');
+  final clientDartString = File('web/client.dart')
+      .readAsStringSync()
+      .replaceAll('\r\n', '\n');
   final clientDartHash = sha256
       .convert(utf8.encode(clientDartString))
       .toString();
@@ -68,9 +68,8 @@ const packageVersion = '$version';
   // sign ($) to avoid Dart interpolation.
   final safeDartString = [
     for (var i = 0; i < lines.length; i++)
-      jsonEncode(
-        i == lines.length - 1 ? lines[i] : '${lines[i]}\n',
-      ).replaceAll(r'$', r'\$'),
+      jsonEncode(i == lines.length - 1 ? lines[i] : '${lines[i]}\n')
+          .replaceAll(r'$', r'\$'),
   ].join('\n');
 
   final injectedClientJsFile = File('lib/src/handlers/injected_client_js.dart');

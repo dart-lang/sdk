@@ -71,7 +71,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: foo
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -173,7 +173,7 @@ CompilationUnit
           VariableDeclaration
             name: foo
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');

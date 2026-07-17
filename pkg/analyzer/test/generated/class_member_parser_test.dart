@@ -65,8 +65,8 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression: MethodInvocation
-                      target: InstanceCreationExpression
+                    expression2: MethodInvocation
+                      target2: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -107,9 +107,9 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: AwaitExpression
+          expression2: AwaitExpression
             awaitKeyword: await
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: x
           semicolon: ;
       rightBracket: }
@@ -172,15 +172,15 @@ MethodDeclaration
       statements
         ReturnStatement
           returnKeyword: return
-          expression: BinaryExpression
-            leftOperand: AwaitExpression
+          expression2: BinaryExpression
+            leftOperand2: AwaitExpression
               awaitKeyword: await
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: x
             operator: +
-            rightOperand: AwaitExpression
+            rightOperand2: AwaitExpression
               awaitKeyword: await
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: y
           semicolon: ;
       rightBracket: }
@@ -209,9 +209,9 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: AwaitExpression
+          expression2: AwaitExpression
             awaitKeyword: await
-            expression: MethodInvocation
+            expression2: MethodInvocation
               methodName: SimpleIdentifier
                 token: returnsFuture
               argumentList: ArgumentList
@@ -249,9 +249,9 @@ MethodDeclaration
         IfStatement
           ifKeyword: if
           leftParenthesis: (
-          expression: AwaitExpression
+          expression2: AwaitExpression
             awaitKeyword: await
-            expression: MethodInvocation
+            expression2: MethodInvocation
               methodName: SimpleIdentifier
                 token: returnsFuture
               argumentList: ArgumentList
@@ -265,11 +265,11 @@ MethodDeclaration
           elseStatement: IfStatement
             ifKeyword: if
             leftParenthesis: (
-            expression: PrefixExpression
+            expression2: PrefixExpression
               operator: !
-              operand: AwaitExpression
+              operand2: AwaitExpression
                 awaitKeyword: await
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: returnsFuture
                   argumentList: ArgumentList
@@ -305,15 +305,15 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: MethodInvocation
+          expression2: MethodInvocation
             methodName: SimpleIdentifier
               token: print
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments
+              arguments2
                 AwaitExpression
                   awaitKeyword: await
-                  expression: MethodInvocation
+                  expression2: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -351,15 +351,15 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: MethodInvocation
+          expression2: MethodInvocation
             methodName: SimpleIdentifier
               token: xor
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments
+              arguments2
                 AwaitExpression
                   awaitKeyword: await
-                  expression: MethodInvocation
+                  expression2: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -367,7 +367,7 @@ MethodDeclaration
                       rightParenthesis: )
                 AwaitExpression
                   awaitKeyword: await
-                  expression: MethodInvocation
+                  expression2: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -375,7 +375,7 @@ MethodDeclaration
                       rightParenthesis: )
                 AwaitExpression
                   awaitKeyword: await
-                  expression: MethodInvocation
+                  expression2: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -411,19 +411,19 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: BinaryExpression
-            leftOperand: AwaitExpression
+          expression2: BinaryExpression
+            leftOperand2: AwaitExpression
               awaitKeyword: await
-              expression: MethodInvocation
+              expression2: MethodInvocation
                 methodName: SimpleIdentifier
                   token: returnsFuture
                 argumentList: ArgumentList
                   leftParenthesis: (
                   rightParenthesis: )
             operator: ^
-            rightOperand: AwaitExpression
+            rightOperand2: AwaitExpression
               awaitKeyword: await
-              expression: MethodInvocation
+              expression2: MethodInvocation
                 methodName: SimpleIdentifier
                   token: returnsFuture
                 argumentList: ArgumentList
@@ -458,25 +458,25 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: MethodInvocation
+          expression2: MethodInvocation
             methodName: SimpleIdentifier
               token: print
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments
+              arguments2
                 BinaryExpression
-                  leftOperand: AwaitExpression
+                  leftOperand2: AwaitExpression
                     awaitKeyword: await
-                    expression: MethodInvocation
+                    expression2: MethodInvocation
                       methodName: SimpleIdentifier
                         token: returnsFuture
                       argumentList: ArgumentList
                         leftParenthesis: (
                         rightParenthesis: )
                   operator: ^
-                  rightOperand: AwaitExpression
+                  rightOperand2: AwaitExpression
                     awaitKeyword: await
-                    expression: MethodInvocation
+                    expression2: MethodInvocation
                       methodName: SimpleIdentifier
                         token: returnsFuture
                       argumentList: ArgumentList
@@ -523,20 +523,20 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: x
       equals: =
-      expression: ConditionalExpression
-        condition: IsExpression
-          expression: SimpleIdentifier
+      expression2: ConditionalExpression
+        condition2: IsExpression
+          expression2: SimpleIdentifier
             token: a
           isOperator: is
           type: NamedType
             name: int
         question: ?
-        thenExpression: SetOrMapLiteral
+        thenExpression2: SetOrMapLiteral
           leftBracket: {
           rightBracket: }
           isMap: false
         colon: :
-        elseExpression: ListLiteral
+        elseExpression2: ListLiteral
           leftBracket: [
           rightBracket: ]
   body: BlockFunctionBody
@@ -595,8 +595,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -604,8 +604,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -664,8 +664,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -674,8 +674,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -737,8 +737,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -746,8 +746,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -810,8 +810,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -820,8 +820,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: IsExpression
-              expression: SimpleIdentifier
+            initializer2: IsExpression
+              expression2: SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -879,8 +879,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -888,8 +888,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -948,8 +948,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -958,8 +958,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1021,8 +1021,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1030,8 +1030,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1094,8 +1094,8 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1104,8 +1104,8 @@ CompilationUnit
           VariableDeclaration
             name: y
             equals: =
-            initializer: AsExpression
-              expression: SimpleIdentifier
+            initializer2: AsExpression
+              expression2: SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1177,11 +1177,11 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: _a
       equals: =
-      expression: BinaryExpression
-        leftOperand: SimpleIdentifier
+      expression2: BinaryExpression
+        leftOperand2: SimpleIdentifier
           token: _
         operator: +
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: _$
   body: BlockFunctionBody
     block: Block
@@ -1238,7 +1238,7 @@ FieldDeclaration
       VariableDeclaration
         name: _allComponents
         equals: =
-        initializer: InstanceCreationExpression
+        initializer2: InstanceCreationExpression
           keyword: new
           constructorName: ConstructorName
             type: NamedType
@@ -1423,9 +1423,9 @@ FieldDeclaration
       VariableDeclaration
         name: operator
         equals: =
-        initializer: ParenthesizedExpression
+        initializer2: ParenthesizedExpression
           leftParenthesis: (
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 5
           rightParenthesis: )
   semicolon: ;
@@ -1550,7 +1550,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -1722,7 +1722,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: NullLiteral
+    expression2: NullLiteral
       literal: null
     semicolon: ;
 ''');
@@ -1821,7 +1821,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: NullLiteral
+    expression2: NullLiteral
       literal: null
     semicolon: ;
 ''');
@@ -1922,7 +1922,7 @@ MethodDeclaration
   name: C
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -2034,7 +2034,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: NullLiteral
+    expression2: NullLiteral
       literal: null
     semicolon: ;
 ''');
@@ -2104,7 +2104,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: NullLiteral
+    expression2: NullLiteral
       literal: null
     semicolon: ;
 ''');
@@ -2526,7 +2526,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BooleanLiteral
+              expression2: BooleanLiteral
                 literal: false
               semicolon: ;
         rightBracket: }
@@ -2574,11 +2574,11 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression: AssignmentExpression
-                      leftHandSide: SimpleIdentifier
+                    expression2: AssignmentExpression
+                      leftHandSide2: SimpleIdentifier
                         token: x
                       operator: >>>=
-                      rightHandSide: SimpleIdentifier
+                      rightHandSide2: SimpleIdentifier
                         token: value
                     semicolon: ;
                 rightBracket: }
@@ -2682,7 +2682,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: BooleanLiteral
+    expression2: BooleanLiteral
       literal: false
     semicolon: ;
 ''');
@@ -2736,9 +2736,9 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: ThrowExpression
+    expression2: ThrowExpression
       throwKeyword: throw
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
     semicolon: ;
 ''');
@@ -2800,23 +2800,23 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: _x
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: BinaryExpression
-        leftOperand: SimpleIdentifier
+      condition2: BinaryExpression
+        leftOperand2: SimpleIdentifier
           token: x
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: y
       rightParenthesis: )
     ConstructorFieldInitializer
       fieldName: SimpleIdentifier
         token: _y
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -2864,9 +2864,9 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: ThrowExpression
+    expression2: ThrowExpression
       throwKeyword: throw
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
     semicolon: ;
 ''');
@@ -2904,7 +2904,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: _x
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
     ConstructorFieldInitializer
       thisKeyword: this
@@ -2912,7 +2912,7 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: _y
       equals: =
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -3018,7 +3018,7 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: n
                     semicolon: ; <synthetic>
                 rightBracket: } <synthetic>
@@ -3161,9 +3161,9 @@ ConstructorDeclaration
       fieldName: SimpleIdentifier
         token: a
       equals: =
-      expression: ParenthesizedExpression
+      expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: b
         rightParenthesis: )
   body: BlockFunctionBody
@@ -3188,7 +3188,7 @@ ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: a
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: b
 ''');
   }
@@ -3206,7 +3206,7 @@ ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: a
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: b
 ''');
   }
@@ -3323,7 +3323,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -3506,7 +3506,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -3675,7 +3675,7 @@ MethodDeclaration
   name: a
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 42
     semicolon: ;
 ''');
@@ -3702,14 +3702,14 @@ FieldDeclaration
       VariableDeclaration
         name: a
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 1
       VariableDeclaration
         name: b
       VariableDeclaration
         name: c
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 3
   semicolon: ;
 ''');
@@ -3735,14 +3735,14 @@ FieldDeclaration
       VariableDeclaration
         name: a
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 1
       VariableDeclaration
         name: b
       VariableDeclaration
         name: c
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 3
   semicolon: ;
 ''');

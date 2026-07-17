@@ -358,7 +358,7 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
 
   @override
   void visitNamedArgument(NamedArgument node) {
-    node.argumentExpression.accept2(this);
+    node.argumentExpression2.accept2(this);
   }
 
   @override

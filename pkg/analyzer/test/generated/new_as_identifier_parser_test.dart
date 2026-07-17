@@ -57,8 +57,8 @@ ClassDeclaration
             fieldName: SimpleIdentifier
               token: <empty> <synthetic>
             equals: = <synthetic>
-            expression: PropertyAccess
-              target: ThisExpression
+            expression2: PropertyAccess
+              target2: ThisExpression
                 thisKeyword: this
               operator: .
               propertyName: SimpleIdentifier
@@ -285,7 +285,7 @@ var x = C.new();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: C
   operator: .
   methodName: SimpleIdentifier
@@ -328,7 +328,7 @@ var x = prefix.C.new();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
     period: .
@@ -412,8 +412,8 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
-      target: SimpleIdentifier
+    expression2: MethodInvocation
+      target2: SimpleIdentifier
         token: C
       operator: .
       methodName: SimpleIdentifier
@@ -447,8 +447,8 @@ var x = C<int>.new;
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: FunctionReference
-    function: SimpleIdentifier
+  target2: FunctionReference
+    function2: SimpleIdentifier
       token: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -469,9 +469,9 @@ var x = C<int>.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PropertyAccess
-    target: FunctionReference
-      function: SimpleIdentifier
+  target2: PropertyAccess
+    target2: FunctionReference
+      function2: SimpleIdentifier
         token: C
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -499,7 +499,7 @@ class C {}
     var node = parseResult.findNode.commentReference('C.new');
     assertParsedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
     period: .
@@ -515,7 +515,7 @@ var x = C.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
     period: .
@@ -537,7 +537,7 @@ var x = prefix.C.new;
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
     period: .
@@ -556,8 +556,8 @@ var x = prefix.C<int>.new;
     var node = parseResult.findNode.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target: FunctionReference
-    function: PrefixedIdentifier
+  target2: FunctionReference
+    function2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .
@@ -582,9 +582,9 @@ var x = prefix.C<int>.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PropertyAccess
-    target: FunctionReference
-      function: PrefixedIdentifier
+  target2: PropertyAccess
+    target2: FunctionReference
+      function2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
         period: .
@@ -615,8 +615,8 @@ var x = prefix.C.new.toString();
     var node = parseResult.findNode.singleMethodInvocation;
     assertParsedNodeText(node, r'''
 MethodInvocation
-  target: PropertyAccess
-    target: PrefixedIdentifier
+  target2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .

@@ -98,7 +98,7 @@ MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
       usedElement = prefixed.element;
     }
   } else if (parent case MethodInvocation invocation) {
-    if (invocation.target == prefixNode) {
+    if (invocation.target2 == prefixNode) {
       usedElement = invocation.methodName.element;
     }
   }
@@ -283,12 +283,16 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
     if (writeElement is PropertyAccessorElement) {
       var kind = MatchKind.WRITE;
       if (writeElement.variable == element || writeElement == element) {
-        if (node.leftHandSide is SimpleIdentifier) {
+        if (node.leftHandSide2 is SimpleIdentifier) {
           references.add(
-            MatchInfo(node.leftHandSide.offset, node.leftHandSide.length, kind),
+            MatchInfo(
+              node.leftHandSide2.offset,
+              node.leftHandSide2.length,
+              kind,
+            ),
           );
-        } else if (node.leftHandSide is PrefixedIdentifier) {
-          var prefixIdentifier = node.leftHandSide as PrefixedIdentifier;
+        } else if (node.leftHandSide2 is PrefixedIdentifier) {
+          var prefixIdentifier = node.leftHandSide2 as PrefixedIdentifier;
           references.add(
             MatchInfo(
               prefixIdentifier.identifier.offset,
@@ -296,8 +300,8 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
               kind,
             ),
           );
-        } else if (node.leftHandSide is PropertyAccess) {
-          var accessor = node.leftHandSide as PropertyAccess;
+        } else if (node.leftHandSide2 is PropertyAccess) {
+          var accessor = node.leftHandSide2 as PropertyAccess;
           references.add(
             MatchInfo(accessor.propertyName.offset, accessor.length, kind),
           );
@@ -310,8 +314,8 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
       if (readElement.variable == element) {
         references.add(
           MatchInfo(
-            node.rightHandSide.offset,
-            node.rightHandSide.length,
+            node.rightHandSide2.offset,
+            node.rightHandSide2.length,
             MatchKind.READ,
           ),
         );
@@ -321,7 +325,7 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
 
   @override
   visitCommentReference(CommentReference node) {
-    var expression = node.expression;
+    var expression = node.expression2;
     if (expression is Identifier) {
       var element = expression.element;
       if (element is ConstructorElement) {

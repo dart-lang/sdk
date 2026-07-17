@@ -30,10 +30,10 @@ class FunctionReferenceParserTest extends ParserDiagnosticsTest {
       ),
     );
 
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -50,10 +50,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = {f<a, b>};
 ''');
-    var node = parseResult.findNode.singleSetOrMapLiteral.elements[0];
+    var node = parseResult.findNode.singleSetOrMapLiteral.elements2[0];
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -70,10 +70,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [f<a, b>];
 ''');
-    var node = parseResult.findNode.singleListLiteral.elements[0];
+    var node = parseResult.findNode.singleListLiteral.elements2[0];
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -91,10 +91,10 @@ FunctionReference
 var x = g(f<a, b>);
 ''');
     var node =
-        parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
+        parseResult.findNode.singleMethodInvocation.argumentList.arguments2[0];
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -111,10 +111,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = {f<a, b>: null};
 ''');
-    var node = parseResult.findNode.mapLiteralEntry('null').key;
+    var node = parseResult.findNode.mapLiteralEntry('null').key2;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -131,10 +131,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = [f<a, b>, null];
 ''');
-    var node = parseResult.findNode.singleListLiteral.elements[0];
+    var node = parseResult.findNode.singleListLiteral.elements2[0];
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -151,10 +151,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b> == null;
 ''');
-    var node = parseResult.findNode.singleBinaryExpression.leftOperand;
+    var node = parseResult.findNode.singleBinaryExpression.leftOperand2;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -171,10 +171,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b> != null;
 ''');
-    var node = parseResult.findNode.singleBinaryExpression.leftOperand;
+    var node = parseResult.findNode.singleBinaryExpression.leftOperand2;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -241,10 +241,10 @@ InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.foo<c>();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation.target!;
+    var node = parseResult.findNode.singleMethodInvocation.target2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -261,10 +261,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.hashCode;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess.target!;
+    var node = parseResult.findNode.singlePropertyAccess.target2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -283,10 +283,10 @@ void f() {
   f<a, b>;
 }
 ''');
-    var node = parseResult.findNode.singleExpressionStatement.expression;
+    var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -312,22 +312,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: &
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -344,18 +344,18 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: as
     rightParenthesis: )
 ''');
@@ -374,22 +374,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: *
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -406,22 +406,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: PrefixExpression
+        rightOperand2: PrefixExpression
           operator: !
-          operand: ListLiteral
+          operand2: ListLiteral
             leftBracket: [
-            elements
+            elements2
               SimpleIdentifier
                 token: d
             rightBracket: ]
@@ -440,22 +440,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: PrefixExpression
+        rightOperand2: PrefixExpression
           operator: !
-          operand: ParenthesizedExpression
+          operand2: ParenthesizedExpression
             leftParenthesis: (
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: d
             rightParenthesis: )
     rightParenthesis: )
@@ -475,22 +475,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: |
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -509,22 +509,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: ^
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -543,19 +543,19 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       IsExpression
-        expression: BinaryExpression
-          leftOperand: SimpleIdentifier
+        expression2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: c
           operator: >
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: <empty> <synthetic>
         isOperator: is
         type: NamedType
@@ -572,17 +572,17 @@ var x = f<a><b>;
 //             ^
 // [diag.expectedToken] Expected to find '['.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryExpression
-  leftOperand: BinaryExpression
-    leftOperand: SimpleIdentifier
+  leftOperand2: BinaryExpression
+    leftOperand2: SimpleIdentifier
       token: f
     operator: <
-    rightOperand: SimpleIdentifier
+    rightOperand2: SimpleIdentifier
       token: a
   operator: >
-  rightOperand: ListLiteral
+  rightOperand2: ListLiteral
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
@@ -605,20 +605,20 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: PrefixExpression
+        rightOperand2: PrefixExpression
           operator: -
-          operand: SimpleIdentifier
+          operand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -635,20 +635,20 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: ListLiteral
+        rightOperand2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             SimpleIdentifier
               token: d
           rightBracket: ]
@@ -669,26 +669,26 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        leftOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: c
           operator: >
-          rightOperand: ListLiteral
+          rightOperand2: ListLiteral
             leftBracket: [
-            elements
+            elements2
               SimpleIdentifier
                 token: d
             rightBracket: ]
         operator: >
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: e
     rightParenthesis: )
 ''');
@@ -705,20 +705,20 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: ListLiteral
+        rightOperand2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             SimpleIdentifier
               token: d
             SimpleIdentifier
@@ -741,22 +741,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: %
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -775,21 +775,21 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       CascadeExpression
-        target: BinaryExpression
-          leftOperand: SimpleIdentifier
+        target2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: c
           operator: >
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: <empty> <synthetic>
-        cascadeSections
+        cascadeSections2
           MethodInvocation
             operator: ..
             methodName: SimpleIdentifier
@@ -814,22 +814,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: +
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -848,25 +848,25 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       ConditionalExpression
-        condition: BinaryExpression
-          leftOperand: SimpleIdentifier
+        condition2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: c
           operator: >
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: <empty> <synthetic>
         question: ?
-        thenExpression: NullLiteral
+        thenExpression2: NullLiteral
           literal: null
         colon: :
-        elseExpression: NullLiteral
+        elseExpression2: NullLiteral
           literal: null
     rightParenthesis: )
 ''');
@@ -885,19 +885,19 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: MethodInvocation
-          target: SimpleIdentifier
+        rightOperand2: MethodInvocation
+          target2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: ?.
           methodName: SimpleIdentifier
@@ -922,19 +922,19 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: MethodInvocation
-          target: SimpleIdentifier
+        rightOperand2: MethodInvocation
+          target2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: ?.
           methodName: SimpleIdentifier
@@ -967,18 +967,18 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: <empty> <synthetic>
       MethodInvocation
         methodName: SimpleIdentifier
@@ -1003,19 +1003,19 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: PropertyAccess
-          target: SimpleIdentifier
+        rightOperand2: PropertyAccess
+          target2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: ?.
           propertyName: SimpleIdentifier
@@ -1037,22 +1037,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        leftOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: c
           operator: >
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: <empty> <synthetic>
         operator: ??
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: d
     rightParenthesis: )
 ''');
@@ -1071,22 +1071,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: /
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -1105,22 +1105,22 @@ MethodInvocation
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: a
         operator: <
-        rightOperand: SimpleIdentifier
+        rightOperand2: SimpleIdentifier
           token: b
       BinaryExpression
-        leftOperand: SimpleIdentifier
+        leftOperand2: SimpleIdentifier
           token: c
         operator: >
-        rightOperand: BinaryExpression
-          leftOperand: SimpleIdentifier
+        rightOperand2: BinaryExpression
+          leftOperand2: SimpleIdentifier
             token: <empty> <synthetic>
           operator: ~/
-          rightOperand: SimpleIdentifier
+          rightOperand2: SimpleIdentifier
             token: d
     rightParenthesis: )
 ''');
@@ -1130,14 +1130,14 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: IndexExpression
-    target: SimpleIdentifier
+  function2: IndexExpression
+    target2: SimpleIdentifier
       token: x
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 0
     rightBracket: ]
   typeArguments: TypeArgumentList
@@ -1155,15 +1155,15 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]!<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: PostfixExpression
-    operand: IndexExpression
-      target: SimpleIdentifier
+  function2: PostfixExpression
+    operand2: IndexExpression
+      target2: SimpleIdentifier
         token: x
       leftBracket: [
-      index: IntegerLiteral
+      index2: IntegerLiteral
         literal: 0
       rightBracket: ]
     operator: !
@@ -1182,15 +1182,15 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]()<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: FunctionExpressionInvocation
-    function: IndexExpression
-      target: SimpleIdentifier
+  function2: FunctionExpressionInvocation
+    function2: IndexExpression
+      target2: SimpleIdentifier
         token: x
       leftBracket: [
-      index: IntegerLiteral
+      index2: IntegerLiteral
         literal: 0
       rightBracket: ]
     argumentList: ArgumentList
@@ -1211,15 +1211,15 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x?[0]<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: IndexExpression
-    target: SimpleIdentifier
+  function2: IndexExpression
+    target2: SimpleIdentifier
       token: x
     question: ?
     leftBracket: [
-    index: IntegerLiteral
+    index2: IntegerLiteral
       literal: 0
     rightBracket: ]
   typeArguments: TypeArgumentList
@@ -1237,11 +1237,11 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f().m<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: MethodInvocation
+  function2: PropertyAccess
+    target2: MethodInvocation
       methodName: SimpleIdentifier
         token: f
       argumentList: ArgumentList
@@ -1265,10 +1265,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f()..m<a, b>;
 ''');
-    var node = parseResult.findNode.singleCascadeExpression.cascadeSections[0];
+    var node = parseResult.findNode.singleCascadeExpression.cascadeSections2[0];
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
+  function2: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: m
@@ -1287,10 +1287,10 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.f<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
     period: .
@@ -1311,11 +1311,11 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.ClassName.m<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer!;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: PrefixedIdentifier
+  function2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .

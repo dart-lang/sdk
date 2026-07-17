@@ -136,7 +136,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -172,7 +172,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -204,7 +204,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -246,7 +246,7 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -365,7 +365,7 @@ CompilationUnit
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -431,7 +431,7 @@ CompilationUnit
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -497,7 +497,7 @@ CompilationUnit
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -507,7 +507,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -546,7 +546,7 @@ CompilationUnit
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
                     SimpleIdentifier
                       token: int
                     SimpleIdentifier
@@ -560,7 +560,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -673,7 +673,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -843,7 +843,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -975,7 +975,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1216,7 +1216,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1307,7 +1307,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1347,13 +1347,13 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           FunctionExpressionInvocation
-                            function: SimpleIdentifier
+                            function2: SimpleIdentifier
                               token: assert
                             argumentList: ArgumentList
                               leftParenthesis: (
-                              arguments
+                              arguments2
                                 BooleanLiteral
                                   literal: true
                               rightParenthesis: )
@@ -1398,7 +1398,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SetOrMapLiteral
                             leftBracket: {
                             rightBracket: }
@@ -1446,7 +1446,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1495,7 +1495,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1543,7 +1543,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1558,7 +1558,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1640,7 +1640,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1699,7 +1699,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1710,7 +1710,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1752,11 +1752,11 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           NamedArgument
                             name: l
                             colon: :
-                            argumentExpression: SetOrMapLiteral
+                            argumentExpression2: SetOrMapLiteral
                               leftBracket: {
                               rightBracket: }
                               isMap: false
@@ -1803,7 +1803,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           FunctionExpression
                             parameters: FormalParameterList
                               leftParenthesis: (
@@ -1855,7 +1855,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           FunctionExpression
                             parameters: FormalParameterList
                               leftParenthesis: (
@@ -1904,7 +1904,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1949,7 +1949,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1993,11 +1993,11 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SwitchExpression
                             switchKeyword: switch
                             leftParenthesis: (
-                            expression: SimpleIdentifier
+                            expression2: SimpleIdentifier
                               token: x
                             rightParenthesis: )
                             leftBracket: {
@@ -2044,7 +2044,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2098,7 +2098,7 @@ CompilationUnit
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments
+                        arguments2
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2109,7 +2109,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -2166,7 +2166,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2234,7 +2234,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2315,7 +2315,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -2406,7 +2406,7 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer: SimpleIdentifier
+            initializer2: SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
     FunctionDeclaration
@@ -2545,7 +2545,7 @@ CompilationUnit
             token: a
           arguments: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>
@@ -2555,7 +2555,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2683,7 +2683,7 @@ CompilationUnit
             token: a
           arguments: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>

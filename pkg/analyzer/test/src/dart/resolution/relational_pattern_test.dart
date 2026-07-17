@@ -33,7 +33,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::==
@@ -56,7 +56,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: dart:core::@class::Object::@method::==
@@ -81,7 +81,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::>
@@ -108,7 +108,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@extension::E::@method::>
@@ -133,7 +133,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <null>
@@ -158,7 +158,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::>=
@@ -185,7 +185,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@extension::E::@method::>=
@@ -210,7 +210,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: >=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <null>
@@ -232,7 +232,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::==
@@ -257,7 +257,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::<
@@ -284,7 +284,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@extension::E::@method::<
@@ -309,7 +309,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <null>
@@ -334,7 +334,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::<=
@@ -361,7 +361,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@extension::E::@method::<=
@@ -386,7 +386,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: <=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <null>
@@ -411,7 +411,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: !=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::==
@@ -434,7 +434,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: !=
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: dart:core::@class::Object::@method::==
@@ -457,8 +457,8 @@ void f(x, int Function() a) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand: FunctionExpressionInvocation
-    function: SimpleIdentifier
+  operand2: FunctionExpressionInvocation
+    function2: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
@@ -490,7 +490,7 @@ void f(A x) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand: IntegerLiteral
+  operand2: IntegerLiteral
     literal: 0
     staticType: int
   element: <testLibrary>::@class::A::@method::==

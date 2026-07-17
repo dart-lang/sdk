@@ -39,9 +39,9 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
               SimpleIdentifier
                 token: a
               SimpleIdentifier
@@ -71,9 +71,9 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
               SimpleIdentifier
                 token: a
               SimpleIdentifier
@@ -103,18 +103,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
               SimpleIdentifier
                 token: a
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement: SimpleIdentifier
+                thenElement2: SimpleIdentifier
                   token: b
               SimpleIdentifier
                 token: c
@@ -141,21 +141,21 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ListLiteral
+          expression2: ListLiteral
             leftBracket: [
-            elements
+            elements2
               SimpleIdentifier
                 token: a
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement: SimpleIdentifier
+                thenElement2: SimpleIdentifier
                   token: b
                 elseKeyword: else
-                elseElement: SimpleIdentifier
+                elseElement2: SimpleIdentifier
                   token: y
               SimpleIdentifier
                 token: c
@@ -186,26 +186,26 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: b
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: c
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: d
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: e
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -231,32 +231,32 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: b
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement: MapLiteralEntry
-                  key: SimpleIdentifier
+                thenElement2: MapLiteralEntry
+                  key2: SimpleIdentifier
                     token: c
                   separator: :
-                  value: SimpleIdentifier
+                  value2: SimpleIdentifier
                     token: d
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: e
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -282,39 +282,39 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: b
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement: MapLiteralEntry
-                  key: SimpleIdentifier
+                thenElement2: MapLiteralEntry
+                  key2: SimpleIdentifier
                     token: c
                   separator: :
-                  value: SimpleIdentifier
+                  value2: SimpleIdentifier
                     token: d
                 elseKeyword: else
-                elseElement: MapLiteralEntry
-                  key: SimpleIdentifier
+                elseElement2: MapLiteralEntry
+                  key2: SimpleIdentifier
                     token: y
                   separator: :
-                  value: SimpleIdentifier
+                  value2: SimpleIdentifier
                     token: z
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: e
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -340,14 +340,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: <empty> <synthetic>
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: b
             rightBracket: }
             isMap: false
@@ -373,14 +373,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: <empty> <synthetic>
             rightBracket: }
             isMap: false
@@ -406,20 +406,20 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SetOrMapLiteral
+          expression2: SetOrMapLiteral
             leftBracket: {
-            elements
+            elements2
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: a
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: <empty> <synthetic>
               MapLiteralEntry
-                key: SimpleIdentifier
+                key2: SimpleIdentifier
                   token: b
                 separator: :
-                value: SimpleIdentifier
+                value2: SimpleIdentifier
                   token: c
             rightBracket: }
             isMap: false
@@ -451,11 +451,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: &
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -499,11 +499,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: &
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -538,7 +538,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: as
           semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -576,8 +576,8 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: AsExpression
-            expression: SimpleIdentifier
+          expression2: AsExpression
+            expression2: SimpleIdentifier
               token: x
             asOperator: as
             type: NamedType
@@ -618,11 +618,11 @@ CompilationUnit
                       name: x
                 semicolon: ;
               ExpressionStatement
-                expression: AssignmentExpression
-                  leftHandSide: SimpleIdentifier
+                expression2: AssignmentExpression
+                  leftHandSide2: SimpleIdentifier
                     token: x
                   operator: =
-                  rightHandSide: SimpleIdentifier
+                  rightHandSide2: SimpleIdentifier
                     token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -649,11 +649,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: |
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -697,11 +697,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: |
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -740,10 +740,10 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: CascadeExpression
-                  target: SimpleIdentifier
+                expression2: CascadeExpression
+                  target2: SimpleIdentifier
                     token: x
-                  cascadeSections
+                  cascadeSections2
                     PropertyAccess
                       operator: ..
                       propertyName: SimpleIdentifier
@@ -855,14 +855,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ConditionalExpression
-            condition: SimpleIdentifier
+          expression2: ConditionalExpression
+            condition2: SimpleIdentifier
               token: x
             question: ?
-            thenExpression: SimpleIdentifier
+            thenExpression2: SimpleIdentifier
               token: y
             colon: :
-            elseExpression: SimpleIdentifier
+            elseExpression2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -888,14 +888,14 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: ConditionalExpression
-            condition: SimpleIdentifier
+          expression2: ConditionalExpression
+            condition2: SimpleIdentifier
               token: x
             question: ?
-            thenExpression: SimpleIdentifier
+            thenExpression2: SimpleIdentifier
               token: <empty> <synthetic>
             colon: :
-            elseExpression: SimpleIdentifier
+            elseExpression2: SimpleIdentifier
               token: z
           semicolon: ; <synthetic>
 ''');
@@ -921,11 +921,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: ==
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -969,11 +969,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: ==
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1006,7 +1006,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: => <synthetic>
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: x
           semicolon: ;
 ''');
@@ -1038,7 +1038,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: => <synthetic>
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: x
           semicolon: ;
 ''');
@@ -1064,11 +1064,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: >
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1112,11 +1112,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: >
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1143,11 +1143,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: >>
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1191,11 +1191,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: >>
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1222,11 +1222,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: >=
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1270,11 +1270,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: >=
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1301,11 +1301,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: ^
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1349,11 +1349,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: ^
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1392,13 +1392,13 @@ CompilationUnit
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
             body: EmptyFunctionBody
@@ -1439,14 +1439,14 @@ CompilationUnit
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
               ConstructorFieldInitializer
                 fieldName: SimpleIdentifier
                   token: x
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -1486,7 +1486,7 @@ CompilationUnit
               AssertInitializer
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
               ConstructorFieldInitializer
@@ -1495,7 +1495,7 @@ CompilationUnit
                 fieldName: SimpleIdentifier
                   token: x
                 equals: =
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -1529,8 +1529,8 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: IsExpression
-                  expression: SimpleIdentifier
+                expression2: IsExpression
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   isOperator: is
                   type: NamedType
@@ -1576,8 +1576,8 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: IsExpression
-                  expression: SimpleIdentifier
+                expression2: IsExpression
+                  expression2: SimpleIdentifier
                     token: x
                   isOperator: is
                   type: NamedType
@@ -1610,11 +1610,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: <
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1658,11 +1658,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: <
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1689,11 +1689,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: <<
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1737,11 +1737,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: <<
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1768,11 +1768,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: <=
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1816,11 +1816,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: <=
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1847,11 +1847,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: -
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1895,11 +1895,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: -
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -1934,7 +1934,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2018,11 +2018,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: ??
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: throw
           semicolon: ; <synthetic>
 ''');
@@ -2048,11 +2048,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: %
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -2096,11 +2096,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: %
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -2127,11 +2127,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: +
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -2175,11 +2175,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: +
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -2217,11 +2217,11 @@ CompilationUnit
                     VariableDeclaration
                       name: v
                       equals: =
-                      initializer: SimpleStringLiteral
+                      initializer2: SimpleStringLiteral
                         literal: 'String'
                 semicolon: ;
               ExpressionStatement
-                expression: PrefixedIdentifier
+                expression2: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: v
                   period: .
@@ -2252,11 +2252,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: /
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -2300,11 +2300,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: /
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -2331,11 +2331,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: *
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -2379,11 +2379,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: *
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -2419,19 +2419,19 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: print
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       StringInterpolation
                         elements
                           InterpolationString
                             contents: "
                           InterpolationExpression
                             leftBracket: ${
-                            expression: IntegerLiteral
+                            expression2: IntegerLiteral
                               literal: 42
                             rightBracket: }
                           InterpolationString
@@ -2463,11 +2463,11 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: BinaryExpression
-            leftOperand: SimpleIdentifier
+          expression2: BinaryExpression
+            leftOperand2: SimpleIdentifier
               token: x
             operator: ~/
-            rightOperand: SimpleIdentifier
+            rightOperand2: SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -2511,11 +2511,11 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: BinaryExpression
-                leftOperand: SuperExpression
+              expression2: BinaryExpression
+                leftOperand2: SuperExpression
                   superKeyword: super
                 operator: ~/
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: <empty> <synthetic>
               semicolon: ; <synthetic>
         rightBracket: }
@@ -2992,7 +2992,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: } <synthetic>
           rightParenthesis: )
@@ -3039,7 +3039,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: } <synthetic>
           rightParenthesis: )
@@ -3150,7 +3150,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: ] <synthetic>
           rightParenthesis: )
@@ -3196,7 +3196,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: ] <synthetic>
           rightParenthesis: )
@@ -3286,25 +3286,25 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: g
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       BinaryExpression
-                        leftOperand: BinaryExpression
-                          leftOperand: SimpleIdentifier
+                        leftOperand2: BinaryExpression
+                          leftOperand2: SimpleIdentifier
                             token: v1
                           operator: ==
-                          rightOperand: SimpleIdentifier
+                          rightOperand2: SimpleIdentifier
                             token: v2
                         operator: ||
-                        rightOperand: BinaryExpression
-                          leftOperand: SimpleIdentifier
+                        rightOperand2: BinaryExpression
+                          leftOperand2: SimpleIdentifier
                             token: v1
                           operator: ==
-                          rightOperand: SimpleIdentifier
+                          rightOperand2: SimpleIdentifier
                             token: v
                       IntegerLiteral
                         literal: 3
@@ -3339,7 +3339,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: SimpleIdentifier
+                  value2: SimpleIdentifier
                     token: <empty> <synthetic>
             rightDelimiter: }
           rightParenthesis: )
@@ -3384,7 +3384,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: SimpleIdentifier
+                  value2: SimpleIdentifier
                     token: <empty> <synthetic>
               RegularFormalParameter
                 name: b
@@ -3433,7 +3433,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value: SimpleIdentifier
+                  value2: SimpleIdentifier
                     token: <empty> <synthetic>
             rightDelimiter: ]
           rightParenthesis: )
@@ -3478,7 +3478,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value: SimpleIdentifier
+                  value2: SimpleIdentifier
                     token: <empty> <synthetic>
               RegularFormalParameter
                 name: b
@@ -3528,7 +3528,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: ]
           rightParenthesis: )
@@ -3574,7 +3574,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: ]
           rightParenthesis: )
@@ -3619,7 +3619,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: }
           rightParenthesis: )
@@ -3664,7 +3664,7 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value: IntegerLiteral
+                  value2: IntegerLiteral
                     literal: 0
             rightDelimiter: ]
           rightParenthesis: )
@@ -3707,7 +3707,7 @@ CompilationUnit
               name: a
               defaultClause: FormalParameterDefaultClause
                 separator: :
-                value: IntegerLiteral
+                value2: IntegerLiteral
                   literal: 0
           rightParenthesis: )
         parameters(v1): FormalParameterList
@@ -3747,7 +3747,7 @@ CompilationUnit
               name: a
               defaultClause: FormalParameterDefaultClause
                 separator: =
-                value: IntegerLiteral
+                value2: IntegerLiteral
                   literal: 0
           rightParenthesis: )
         parameters(v1): FormalParameterList

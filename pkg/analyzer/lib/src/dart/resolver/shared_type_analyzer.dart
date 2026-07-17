@@ -212,7 +212,7 @@ class SharedTypeAnalyzerErrors
             parameterType: parameterType.unwrapTypeView<TypeImpl>(),
             operator: pattern.operator.lexeme,
           )
-          .at(pattern.operand),
+          .at(pattern.operand2),
     );
   }
 

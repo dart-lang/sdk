@@ -25,7 +25,7 @@ f(int? x) => [?x];
     assertParsedNodeText(node, r'''
 NullAwareElement
   question: ?
-  value: SimpleIdentifier
+  value2: SimpleIdentifier
     token: x
 ''');
   }
@@ -39,11 +39,11 @@ f(int? x, String? y) => {?x: ?y};
     assertParsedNodeText(node, r'''
 MapLiteralEntry
   keyQuestion: ?
-  key: SimpleIdentifier
+  key2: SimpleIdentifier
     token: x
   separator: :
   valueQuestion: ?
-  value: SimpleIdentifier
+  value2: SimpleIdentifier
     token: y
 ''');
   }
@@ -57,10 +57,10 @@ f(num? x, bool y) => {?x: y};
     assertParsedNodeText(node, r'''
 MapLiteralEntry
   keyQuestion: ?
-  key: SimpleIdentifier
+  key2: SimpleIdentifier
     token: x
   separator: :
-  value: SimpleIdentifier
+  value2: SimpleIdentifier
     token: y
 ''');
   }
@@ -73,11 +73,11 @@ f(String x, double? y) => {x: ?y};
     var node = parserResult.findNode.mapLiteralEntry("x: ?y");
     assertParsedNodeText(node, r'''
 MapLiteralEntry
-  key: SimpleIdentifier
+  key2: SimpleIdentifier
     token: x
   separator: :
   valueQuestion: ?
-  value: SimpleIdentifier
+  value2: SimpleIdentifier
     token: y
 ''');
   }
@@ -91,7 +91,7 @@ f(String? x) => {?x};
     assertParsedNodeText(node, r'''
 NullAwareElement
   question: ?
-  value: SimpleIdentifier
+  value2: SimpleIdentifier
     token: x
 ''');
   }

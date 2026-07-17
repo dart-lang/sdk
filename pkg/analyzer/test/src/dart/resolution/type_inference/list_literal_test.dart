@@ -88,7 +88,7 @@ MethodInvocation
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl

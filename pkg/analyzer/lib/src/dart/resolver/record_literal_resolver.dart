@@ -43,11 +43,11 @@ class RecordLiteralResolver {
   ) {
     if (contextType is! RecordTypeImpl) return null;
     if (contextType.namedFields.length + contextType.positionalFields.length !=
-        node.fields.length) {
+        node.fields2.length) {
       return null;
     }
     var numPositionalFields = 0;
-    for (var field in node.fields) {
+    for (var field in node.fields2) {
       if (field is RecordLiteralNamedFieldImpl) {
         if (contextType.namedField(field.name.lexeme) == null) {
           return null;
@@ -78,7 +78,7 @@ class RecordLiteralResolver {
   /// defined name.
   void _reportDuplicateFieldDefinitions(RecordLiteralImpl node) {
     var usedNames = <String, RecordLiteralNamedField>{};
-    for (var field in node.fields) {
+    for (var field in node.fields2) {
       if (field is RecordLiteralNamedFieldImpl) {
         var name = field.name.lexeme;
         var previousField = usedNames[name];
@@ -99,7 +99,7 @@ class RecordLiteralResolver {
 
   /// Report any fields in the record literal [node] that use an invalid name.
   void _reportInvalidFieldNames(RecordLiteralImpl node) {
-    var fields = node.fields;
+    var fields = node.fields2;
     var positionalCount = 0;
     for (var field in fields) {
       if (field is! RecordLiteralNamedField) {
@@ -168,7 +168,7 @@ class RecordLiteralResolver {
     var namedFields = <RecordTypeNamedFieldImpl>[];
     var contextTypeAsRecord = _matchContextType(node, contextType);
     var index = 0;
-    for (var field in node.fields) {
+    for (var field in node.fields2) {
       if (field is RecordLiteralNamedFieldImpl) {
         var name = field.name.lexeme;
         var fieldContextType =

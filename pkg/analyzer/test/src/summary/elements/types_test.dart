@@ -453,9 +453,9 @@ library
                 staticType: null
               argumentList: ArgumentList
                 leftParenthesis: ( @67
-                arguments
+                arguments2
                   ImplicitCallReference
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: c @68
                       element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
                       staticType: C

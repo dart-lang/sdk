@@ -42,7 +42,7 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             AsExpression
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: num
@@ -115,13 +115,13 @@ library
           initializer: expression_1
             ParenthesizedExpression
               leftParenthesis: ( @23
-              expression: AssignmentExpression
-                leftHandSide: SimpleIdentifier
+              expression2: AssignmentExpression
+                leftHandSide2: SimpleIdentifier
                   token: a @24
                   element: <null>
                   staticType: null
                 operator: += @26
-                rightHandSide: IntegerLiteral
+                rightHandSide2: IntegerLiteral
                   literal: 1 @29
                   staticType: int
                 readElement: <testLibrary>::@getter::a
@@ -188,10 +188,10 @@ library
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             CascadeExpression
-              target: IntegerLiteral
+              target2: IntegerLiteral
                 literal: 0 @10
                 staticType: int
-              cascadeSections
+              cascadeSections2
                 PropertyAccess
                   operator: .. @14
                   propertyName: SimpleIdentifier
@@ -419,7 +419,7 @@ library
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @97
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @98
                     staticType: int
@@ -448,7 +448,7 @@ library
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @132
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @133
                     staticType: int
@@ -998,7 +998,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             FunctionReference
-              function: SimpleIdentifier
+              function2: SimpleIdentifier
                 token: f @48
                 element: <testLibrary>::@function::f
                 staticType: void Function<T>(T)
@@ -1065,7 +1065,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             FunctionReference
-              function: SimpleIdentifier
+              function2: SimpleIdentifier
                 token: f @28
                 element: <testLibrary>::@function::f
                 staticType: void Function<T>(T)
@@ -1142,7 +1142,7 @@ library
           initializer: expression_0
             ListLiteral
               leftBracket: [ @10
-              elements
+              elements2
                 IntegerLiteral
                   literal: 0 @11
                   staticType: int
@@ -1160,12 +1160,12 @@ library
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
             IndexExpression
-              target: SimpleIdentifier
+              target2: SimpleIdentifier
                 token: a @38
                 element: <testLibrary>::@getter::a
                 staticType: List<int>
               leftBracket: [ @39
-              index: SimpleIdentifier
+              index2: SimpleIdentifier
                 token: b @40
                 element: <testLibrary>::@getter::b
                 staticType: int
@@ -1288,7 +1288,7 @@ library
           initializer: expression_0
             ListLiteral
               leftBracket: [ @140
-              elements
+              elements2
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -1409,11 +1409,11 @@ library
               element: <testLibrary>::@class::C::@field::f
               initializer: expression_0
                 BinaryExpression
-                  leftOperand: IntegerLiteral
+                  leftOperand2: IntegerLiteral
                     literal: 1 @29
                     staticType: int
                   operator: + @31
-                  rightOperand: MethodInvocation
+                  rightOperand2: MethodInvocation
                     methodName: SimpleIdentifier
                       token: foo @33
                       element: <testLibrary>::@function::foo
@@ -1604,7 +1604,7 @@ library
             AssertInitializer
               assertKeyword: assert @24
               leftParenthesis: ( @30
-              condition: SimpleIdentifier
+              condition2: SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -1644,12 +1644,12 @@ library
             AssertInitializer
               assertKeyword: assert @24
               leftParenthesis: ( @30
-              condition: SimpleIdentifier
+              condition2: SimpleIdentifier
                 token: b @31
                 element: <null>
                 staticType: InvalidType
               comma: , @32
-              message: SimpleIdentifier
+              message2: SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -1707,7 +1707,7 @@ library
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
               equals: = @49
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -1819,7 +1819,7 @@ library
               thisKeyword: this @61
               argumentList: ArgumentList
                 leftParenthesis: ( @65
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @66
                     staticType: int
@@ -1897,7 +1897,7 @@ library
               superKeyword: super @78
               argumentList: ArgumentList
                 leftParenthesis: ( @83
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @84
                     staticType: int
@@ -1936,7 +1936,7 @@ library
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             MethodInvocation
-              target: SimpleStringLiteral
+              target2: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
               methodName: SimpleIdentifier
@@ -1945,7 +1945,7 @@ library
                 staticType: int Function(int)
               argumentList: ArgumentList
                 leftParenthesis: ( @26
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @27
                     staticType: int
@@ -2032,11 +2032,11 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @10
                 staticType: int
               operator: + @12
-              rightOperand: MethodInvocation
+              rightOperand2: MethodInvocation
                 methodName: SimpleIdentifier
                   token: foo @14
                   element: <testLibrary>::@function::foo
@@ -2148,12 +2148,12 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             BinaryExpression
-              leftOperand: SimpleIdentifier
+              leftOperand2: SimpleIdentifier
                 token: a @32
                 element: <testLibrary>::@getter::a
                 staticType: int
               operator: + @34
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 5 @36
                 staticType: int
               element: dart:core::@class::num::@method::+
@@ -2266,7 +2266,7 @@ library
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @82
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @83
                     staticType: int
@@ -2371,7 +2371,7 @@ library
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @54
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @55
                     staticType: int
@@ -2463,7 +2463,7 @@ library
                   substitution: {K: int, V: String}
               argumentList: ArgumentList
                 leftParenthesis: ( @61
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @62
                     staticType: int
@@ -2628,7 +2628,7 @@ library
                   substitution: {T: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @72
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @73
                     staticType: int
@@ -2982,7 +2982,7 @@ library
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @97
-                arguments
+                arguments2
                   BooleanLiteral
                     literal: true @98
                     staticType: bool
@@ -2995,12 +2995,12 @@ library
                   NamedArgument
                     name: d @110
                     colon: : @111
-                    argumentExpression: SimpleStringLiteral
+                    argumentExpression2: SimpleStringLiteral
                       literal: 'ccc' @113
                   NamedArgument
                     name: e @120
                     colon: : @121
-                    argumentExpression: DoubleLiteral
+                    argumentExpression2: DoubleLiteral
                       literal: 3.4 @123
                       staticType: double
                 rightParenthesis: ) @126
@@ -3959,7 +3959,7 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             IsExpression
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: a @23
                 element: <testLibrary>::@getter::a
                 staticType: int
@@ -4045,7 +4045,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_1
             PropertyAccess
-              target: PrefixedIdentifier
+              target2: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: C @57
                   element: <testLibrary>::@class::C
@@ -4133,7 +4133,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PropertyAccess
-              target: PrefixedIdentifier
+              target2: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: C @32
                   element: package:test/a.dart::@class::C
@@ -4201,8 +4201,8 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PropertyAccess
-              target: PropertyAccess
-                target: PrefixedIdentifier
+              target2: PropertyAccess
+                target2: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: p @37
                     element: <testLibraryFragment>::@prefix::p
@@ -4264,7 +4264,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PropertyAccess
-              target: SimpleStringLiteral
+              target2: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
               propertyName: SimpleIdentifier
@@ -4448,7 +4448,7 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             PropertyAccess
-              target: PrefixedIdentifier
+              target2: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @33
                   element: <testLibraryFragment>::@prefix::p
@@ -4590,15 +4590,15 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @29
                   leftParenthesis: ( @32
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @33
                     staticType: bool
                   rightParenthesis: ) @37
-                  thenElement: IntegerLiteral
+                  thenElement2: IntegerLiteral
                     literal: 1 @39
                     staticType: int
               rightBracket: ] @40
@@ -4651,19 +4651,19 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @29
                   leftParenthesis: ( @32
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @33
                     staticType: bool
                   rightParenthesis: ) @37
-                  thenElement: IntegerLiteral
+                  thenElement2: IntegerLiteral
                     literal: 1 @39
                     staticType: int
                   elseKeyword: else @41
-                  elseElement: IntegerLiteral
+                  elseElement2: IntegerLiteral
                     literal: 2 @46
                     staticType: int
               rightBracket: ] @47
@@ -4711,7 +4711,7 @@ library
             ListLiteral
               constKeyword: const @17
               leftBracket: [ @23
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @24
                   staticType: int
@@ -4767,10 +4767,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ... @32
-                  expression: ListLiteral
+                  expression2: ListLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @35
                       arguments
@@ -4780,7 +4780,7 @@ library
                           type: int
                       rightBracket: > @39
                     leftBracket: [ @40
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @41
                         staticType: int
@@ -4838,10 +4838,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: [ @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ...? @32
-                  expression: ListLiteral
+                  expression2: ListLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @36
                       arguments
@@ -4851,7 +4851,7 @@ library
                           type: int
                       rightBracket: > @40
                     leftBracket: [ @41
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @42
                         staticType: int
@@ -4911,20 +4911,20 @@ library
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @34
                   leftParenthesis: ( @37
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @38
                     staticType: bool
                   rightParenthesis: ) @42
-                  thenElement: MapLiteralEntry
-                    key: IntegerLiteral
+                  thenElement2: MapLiteralEntry
+                    key2: IntegerLiteral
                       literal: 1 @44
                       staticType: int
                     separator: : @45
-                    value: IntegerLiteral
+                    value2: IntegerLiteral
                       literal: 2 @47
                       staticType: int
               rightBracket: } @48
@@ -4973,13 +4973,13 @@ library
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
-              elements
+              elements2
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 1 @24
                     staticType: int
                   separator: : @25
-                  value: DoubleLiteral
+                  value2: DoubleLiteral
                     literal: 1.0 @27
                     staticType: double
               rightBracket: } @30
@@ -5039,10 +5039,10 @@ library
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ... @37
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @40
                       arguments
@@ -5056,13 +5056,13 @@ library
                           type: int
                       rightBracket: > @49
                     leftBracket: { @50
-                    elements
+                    elements2
                       MapLiteralEntry
-                        key: IntegerLiteral
+                        key2: IntegerLiteral
                           literal: 1 @51
                           staticType: int
                         separator: : @52
-                        value: IntegerLiteral
+                        value2: IntegerLiteral
                           literal: 2 @54
                           staticType: int
                     rightBracket: } @55
@@ -5125,10 +5125,10 @@ library
                     type: int
                 rightBracket: > @32
               leftBracket: { @33
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ...? @37
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @41
                       arguments
@@ -5142,13 +5142,13 @@ library
                           type: int
                       rightBracket: > @50
                     leftBracket: { @51
-                    elements
+                    elements2
                       MapLiteralEntry
-                        key: IntegerLiteral
+                        key2: IntegerLiteral
                           literal: 1 @52
                           staticType: int
                         separator: : @53
-                        value: IntegerLiteral
+                        value2: IntegerLiteral
                           literal: 2 @55
                           staticType: int
                     rightBracket: } @56
@@ -5210,7 +5210,7 @@ library
                 rightBracket: > @33
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @35
                     staticType: int
@@ -5371,11 +5371,11 @@ library
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
-                      leftOperand: IntegerLiteral
+                      leftOperand2: IntegerLiteral
                         literal: 1 @40
                         staticType: int
                       operator: + @42
-                      rightOperand: IntegerLiteral
+                      rightOperand2: IntegerLiteral
                         literal: 2 @44
                         staticType: int
                       element: dart:core::@class::num::@method::+
@@ -5446,11 +5446,11 @@ library
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
                     BinaryExpression
-                      leftOperand: IntegerLiteral
+                      leftOperand2: IntegerLiteral
                         literal: 1 @41
                         staticType: int
                       operator: + @43
-                      rightOperand: IntegerLiteral
+                      rightOperand2: IntegerLiteral
                         literal: 2 @45
                         staticType: int
                       element: dart:core::@class::num::@method::+
@@ -5522,11 +5522,11 @@ library
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::p
                   initializer: expression_0
                     BinaryExpression
-                      leftOperand: IntegerLiteral
+                      leftOperand2: IntegerLiteral
                         literal: 1 @36
                         staticType: int
                       operator: + @38
-                      rightOperand: IntegerLiteral
+                      rightOperand2: IntegerLiteral
                         literal: 2 @40
                         staticType: int
                       element: dart:core::@class::num::@method::+
@@ -5542,11 +5542,11 @@ library
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::p
                   initializer: expression_1
                     BinaryExpression
-                      leftOperand: IntegerLiteral
+                      leftOperand2: IntegerLiteral
                         literal: 1 @65
                         staticType: int
                       operator: + @67
-                      rightOperand: IntegerLiteral
+                      rightOperand2: IntegerLiteral
                         literal: 2 @69
                         staticType: int
                       element: dart:core::@class::num::@method::+
@@ -5560,11 +5560,11 @@ library
                   element: <testLibrary>::@class::C::@method::methodPositional::@formalParameter::p
                   initializer: expression_2
                     BinaryExpression
-                      leftOperand: IntegerLiteral
+                      leftOperand2: IntegerLiteral
                         literal: 1 @103
                         staticType: int
                       operator: + @105
-                      rightOperand: IntegerLiteral
+                      rightOperand2: IntegerLiteral
                         literal: 2 @107
                         staticType: int
                       element: dart:core::@class::num::@method::+
@@ -5582,11 +5582,11 @@ library
                   element: <testLibrary>::@class::C::@method::methodNamed::@formalParameter::p
                   initializer: expression_3
                     BinaryExpression
-                      leftOperand: IntegerLiteral
+                      leftOperand2: IntegerLiteral
                         literal: 1 @183
                         staticType: int
                       operator: + @185
-                      rightOperand: IntegerLiteral
+                      rightOperand2: IntegerLiteral
                         literal: 2 @187
                         staticType: int
                       element: dart:core::@class::num::@method::+
@@ -5687,7 +5687,7 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PostfixExpression
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: a @23
                 element: <null>
                 staticType: null
@@ -5760,7 +5760,7 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PostfixExpression
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: a @28
                 element: <testLibrary>::@getter::a
                 staticType: int?
@@ -5830,7 +5830,7 @@ library
           initializer: expression_1
             PrefixExpression
               operator: - @23
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: a @24
                 element: <testLibrary>::@getter::a
                 staticType: int
@@ -5901,7 +5901,7 @@ library
           initializer: expression_0
             PrefixExpression
               operator: - @28
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: a @29
                 element: package:test/a.dart::@getter::a
                 staticType: Object
@@ -5954,7 +5954,7 @@ library
           initializer: expression_1
             PrefixExpression
               operator: ++ @23
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: a @25
                 element: <null>
                 staticType: null
@@ -6027,7 +6027,7 @@ library
           initializer: expression_1
             RecordLiteral
               leftParenthesis: ( @23
-              fields
+              fields2
                 SimpleIdentifier
                   token: a @24
                   element: <testLibrary>::@getter::a
@@ -6035,7 +6035,7 @@ library
                 RecordLiteralNamedField
                   name: a @27
                   colon: : @28
-                  fieldExpression: SimpleIdentifier
+                  fieldExpression2: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: int
@@ -6105,7 +6105,7 @@ library
             RecordLiteral
               constKeyword: const @23
               leftParenthesis: ( @29
-              fields
+              fields2
                 SimpleIdentifier
                   token: a @30
                   element: <testLibrary>::@getter::a
@@ -6113,7 +6113,7 @@ library
                 RecordLiteralNamedField
                   name: a @33
                   colon: : @34
-                  fieldExpression: SimpleIdentifier
+                  fieldExpression2: SimpleIdentifier
                     token: a @36
                     element: <testLibrary>::@getter::a
                     staticType: int
@@ -6338,7 +6338,7 @@ library
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PropertyAccess
-              target: PrefixedIdentifier
+              target2: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @33
                   element: <testLibraryFragment>::@prefix::p
@@ -6552,7 +6552,7 @@ library
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PropertyAccess
-              target: PrefixedIdentifier
+              target2: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @33
                   element: <testLibraryFragment>::@prefix::p
@@ -6927,12 +6927,12 @@ library
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_1
             BinaryExpression
-              leftOperand: SimpleIdentifier
+              leftOperand2: SimpleIdentifier
                 token: A @23
                 element: <testLibrary>::@getter::A
                 staticType: int
               operator: + @25
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @27
                 staticType: int
               element: dart:core::@class::num::@method::+
@@ -6999,12 +6999,12 @@ library
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
             BinaryExpression
-              leftOperand: SimpleIdentifier
+              leftOperand2: SimpleIdentifier
                 token: A @28
                 element: package:test/a.dart::@getter::A
                 staticType: int
               operator: + @30
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @32
                 staticType: int
               element: dart:core::@class::num::@method::+
@@ -7058,7 +7058,7 @@ library
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
             BinaryExpression
-              leftOperand: PrefixedIdentifier
+              leftOperand2: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @33
                   element: <testLibraryFragment>::@prefix::p
@@ -7071,7 +7071,7 @@ library
                 element: package:test/a.dart::@getter::A
                 staticType: int
               operator: + @37
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @39
                 staticType: int
               element: dart:core::@class::num::@method::+
@@ -7193,7 +7193,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -7983,7 +7983,7 @@ library
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
             PropertyAccess
-              target: PrefixedIdentifier
+              target2: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @35
                   element: <testLibraryFragment>::@prefix::p
@@ -8049,15 +8049,15 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
-              elements
+              elements2
                 IfElement
                   ifKeyword: if @29
                   leftParenthesis: ( @32
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @33
                     staticType: bool
                   rightParenthesis: ) @37
-                  thenElement: IntegerLiteral
+                  thenElement2: IntegerLiteral
                     literal: 1 @39
                     staticType: int
               rightBracket: } @40
@@ -8106,7 +8106,7 @@ library
             SetOrMapLiteral
               constKeyword: const @17
               leftBracket: { @23
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @24
                   staticType: int
@@ -8163,10 +8163,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ... @32
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @35
                       arguments
@@ -8176,7 +8176,7 @@ library
                           type: int
                       rightBracket: > @39
                     leftBracket: { @40
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @41
                         staticType: int
@@ -8236,10 +8236,10 @@ library
                     type: int
                 rightBracket: > @27
               leftBracket: { @28
-              elements
+              elements2
                 SpreadElement
                   spreadOperator: ...? @32
-                  expression: SetOrMapLiteral
+                  expression2: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: < @36
                       arguments
@@ -8249,7 +8249,7 @@ library
                           type: int
                       rightBracket: > @40
                     leftBracket: { @41
-                    elements
+                    elements2
                       IntegerLiteral
                         literal: 1 @42
                         staticType: int
@@ -8314,11 +8314,11 @@ library
           element: <testLibrary>::@topLevelVariable::vEqual
           initializer: expression_0
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @15
                 staticType: int
               operator: == @17
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @20
                 staticType: int
               element: dart:core::@class::num::@method::==
@@ -8329,11 +8329,11 @@ library
           element: <testLibrary>::@topLevelVariable::vAnd
           initializer: expression_1
             BinaryExpression
-              leftOperand: BooleanLiteral
+              leftOperand2: BooleanLiteral
                 literal: true @36
                 staticType: bool
               operator: && @41
-              rightOperand: BooleanLiteral
+              rightOperand2: BooleanLiteral
                 literal: false @44
                 staticType: bool
               element: <null>
@@ -8344,11 +8344,11 @@ library
           element: <testLibrary>::@topLevelVariable::vOr
           initializer: expression_2
             BinaryExpression
-              leftOperand: BooleanLiteral
+              leftOperand2: BooleanLiteral
                 literal: false @63
                 staticType: bool
               operator: || @69
-              rightOperand: BooleanLiteral
+              rightOperand2: BooleanLiteral
                 literal: true @72
                 staticType: bool
               element: <null>
@@ -8359,11 +8359,11 @@ library
           element: <testLibrary>::@topLevelVariable::vBitXor
           initializer: expression_3
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @94
                 staticType: int
               operator: ^ @96
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @98
                 staticType: int
               element: dart:core::@class::int::@method::^
@@ -8374,11 +8374,11 @@ library
           element: <testLibrary>::@topLevelVariable::vBitAnd
           initializer: expression_4
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @117
                 staticType: int
               operator: & @119
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @121
                 staticType: int
               element: dart:core::@class::int::@method::&
@@ -8389,11 +8389,11 @@ library
           element: <testLibrary>::@topLevelVariable::vBitOr
           initializer: expression_5
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @139
                 staticType: int
               operator: | @141
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @143
                 staticType: int
               element: dart:core::@class::int::@method::|
@@ -8404,11 +8404,11 @@ library
           element: <testLibrary>::@topLevelVariable::vBitShiftLeft
           initializer: expression_6
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @168
                 staticType: int
               operator: << @170
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @173
                 staticType: int
               element: dart:core::@class::int::@method::<<
@@ -8419,11 +8419,11 @@ library
           element: <testLibrary>::@topLevelVariable::vBitShiftRight
           initializer: expression_7
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @199
                 staticType: int
               operator: >> @201
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @204
                 staticType: int
               element: dart:core::@class::int::@method::>>
@@ -8434,11 +8434,11 @@ library
           element: <testLibrary>::@topLevelVariable::vAdd
           initializer: expression_8
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @220
                 staticType: int
               operator: + @222
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @224
                 staticType: int
               element: dart:core::@class::num::@method::+
@@ -8449,11 +8449,11 @@ library
           element: <testLibrary>::@topLevelVariable::vSubtract
           initializer: expression_9
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @245
                 staticType: int
               operator: - @247
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @249
                 staticType: int
               element: dart:core::@class::num::@method::-
@@ -8464,11 +8464,11 @@ library
           element: <testLibrary>::@topLevelVariable::vMiltiply
           initializer: expression_10
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @270
                 staticType: int
               operator: * @272
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @274
                 staticType: int
               element: dart:core::@class::num::@method::*
@@ -8479,11 +8479,11 @@ library
           element: <testLibrary>::@topLevelVariable::vDivide
           initializer: expression_11
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @293
                 staticType: int
               operator: / @295
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @297
                 staticType: int
               element: dart:core::@class::num::@method::/
@@ -8494,11 +8494,11 @@ library
           element: <testLibrary>::@topLevelVariable::vFloorDivide
           initializer: expression_12
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @321
                 staticType: int
               operator: ~/ @323
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @326
                 staticType: int
               element: dart:core::@class::num::@method::~/
@@ -8509,11 +8509,11 @@ library
           element: <testLibrary>::@topLevelVariable::vModulo
           initializer: expression_13
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @345
                 staticType: int
               operator: % @347
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @349
                 staticType: int
               element: dart:core::@class::num::@method::%
@@ -8524,11 +8524,11 @@ library
           element: <testLibrary>::@topLevelVariable::vGreater
           initializer: expression_14
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @369
                 staticType: int
               operator: > @371
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @373
                 staticType: int
               element: dart:core::@class::num::@method::>
@@ -8539,11 +8539,11 @@ library
           element: <testLibrary>::@topLevelVariable::vGreaterEqual
           initializer: expression_15
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @398
                 staticType: int
               operator: >= @400
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @403
                 staticType: int
               element: dart:core::@class::num::@method::>=
@@ -8554,11 +8554,11 @@ library
           element: <testLibrary>::@topLevelVariable::vLess
           initializer: expression_16
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @420
                 staticType: int
               operator: < @422
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @424
                 staticType: int
               element: dart:core::@class::num::@method::<
@@ -8569,11 +8569,11 @@ library
           element: <testLibrary>::@topLevelVariable::vLessEqual
           initializer: expression_17
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @446
                 staticType: int
               operator: <= @448
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @451
                 staticType: int
               element: dart:core::@class::num::@method::<=
@@ -8889,14 +8889,14 @@ library
           element: <testLibrary>::@topLevelVariable::vConditional
           initializer: expression_0
             ConditionalExpression
-              condition: ParenthesizedExpression
+              condition2: ParenthesizedExpression
                 leftParenthesis: ( @21
-                expression: BinaryExpression
-                  leftOperand: IntegerLiteral
+                expression2: BinaryExpression
+                  leftOperand2: IntegerLiteral
                     literal: 1 @22
                     staticType: int
                   operator: == @24
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 2 @27
                     staticType: int
                   element: dart:core::@class::num::@method::==
@@ -8905,11 +8905,11 @@ library
                 rightParenthesis: ) @28
                 staticType: bool
               question: ? @30
-              thenExpression: IntegerLiteral
+              thenExpression2: IntegerLiteral
                 literal: 11 @32
                 staticType: int
               colon: : @35
-              elseExpression: IntegerLiteral
+              elseExpression2: IntegerLiteral
                 literal: 22 @37
                 staticType: int
               staticType: int
@@ -8951,14 +8951,14 @@ library
           element: <testLibrary>::@topLevelVariable::vIdentical
           initializer: expression_0
             ConditionalExpression
-              condition: ParenthesizedExpression
+              condition2: ParenthesizedExpression
                 leftParenthesis: ( @19
-                expression: BinaryExpression
-                  leftOperand: IntegerLiteral
+                expression2: BinaryExpression
+                  leftOperand2: IntegerLiteral
                     literal: 1 @20
                     staticType: int
                   operator: == @22
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 2 @25
                     staticType: int
                   element: dart:core::@class::num::@method::==
@@ -8967,11 +8967,11 @@ library
                 rightParenthesis: ) @26
                 staticType: bool
               question: ? @28
-              thenExpression: IntegerLiteral
+              thenExpression2: IntegerLiteral
                 literal: 11 @30
                 staticType: int
               colon: : @33
-              elseExpression: IntegerLiteral
+              elseExpression2: IntegerLiteral
                 literal: 22 @35
                 staticType: int
               staticType: int
@@ -9013,11 +9013,11 @@ library
           element: <testLibrary>::@topLevelVariable::vIfNull
           initializer: expression_0
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @16
                 staticType: int
               operator: ?? @18
-              rightOperand: DoubleLiteral
+              rightOperand2: DoubleLiteral
                 literal: 2.0 @21
                 staticType: double
               element: <null>
@@ -9104,7 +9104,7 @@ library
           initializer: expression_4
             PrefixExpression
               operator: - @115
-              operand: IntegerLiteral
+              operand2: IntegerLiteral
                 literal: 2 @116
                 staticType: int
               element: dart:core::@class::int::@method::unary-
@@ -9165,7 +9165,7 @@ library
                   contents: 'aaa  @349
                 InterpolationExpression
                   leftBracket: ${ @354
-                  expression: BooleanLiteral
+                  expression2: BooleanLiteral
                     literal: true @356
                     staticType: bool
                   rightBracket: } @360
@@ -9173,7 +9173,7 @@ library
                   contents:   @361
                 InterpolationExpression
                   leftBracket: ${ @362
-                  expression: IntegerLiteral
+                  expression2: IntegerLiteral
                     literal: 42 @364
                     staticType: int
                   rightBracket: } @366
@@ -9429,7 +9429,7 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             MethodInvocation
-              target: SimpleIdentifier
+              target2: SimpleIdentifier
                 token: a @28
                 element: <testLibrary>::@getter::a
                 staticType: int?
@@ -9505,11 +9505,11 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             CascadeExpression
-              target: SimpleIdentifier
+              target2: SimpleIdentifier
                 token: a @28
                 element: <testLibrary>::@getter::a
                 staticType: int?
-              cascadeSections
+              cascadeSections2
                 MethodInvocation
                   operator: ?.. @29
                   methodName: SimpleIdentifier
@@ -9585,9 +9585,9 @@ library
           initializer: expression_1
             ListLiteral
               leftBracket: [ @44
-              elements
+              elements2
                 PropertyAccess
-                  target: SimpleIdentifier
+                  target2: SimpleIdentifier
                     token: a @45
                     element: <testLibrary>::@getter::a
                     staticType: String?
@@ -9655,14 +9655,14 @@ library
           element: <testLibrary>::@topLevelVariable::v1
           initializer: expression_0
             BinaryExpression
-              leftOperand: ParenthesizedExpression
+              leftOperand2: ParenthesizedExpression
                 leftParenthesis: ( @15
-                expression: BinaryExpression
-                  leftOperand: IntegerLiteral
+                expression2: BinaryExpression
+                  leftOperand2: IntegerLiteral
                     literal: 1 @16
                     staticType: int
                   operator: + @18
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 2 @20
                     staticType: int
                   element: dart:core::@class::num::@method::+
@@ -9671,7 +9671,7 @@ library
                 rightParenthesis: ) @21
                 staticType: int
               operator: * @23
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 3 @25
                 staticType: int
               element: dart:core::@class::num::@method::*
@@ -9683,14 +9683,14 @@ library
           initializer: expression_1
             PrefixExpression
               operator: - @43
-              operand: ParenthesizedExpression
+              operand2: ParenthesizedExpression
                 leftParenthesis: ( @44
-                expression: BinaryExpression
-                  leftOperand: IntegerLiteral
+                expression2: BinaryExpression
+                  leftOperand2: IntegerLiteral
                     literal: 1 @45
                     staticType: int
                   operator: + @47
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 2 @49
                     staticType: int
                   element: dart:core::@class::num::@method::+
@@ -9705,13 +9705,13 @@ library
           element: <testLibrary>::@topLevelVariable::v3
           initializer: expression_2
             PropertyAccess
-              target: ParenthesizedExpression
+              target2: ParenthesizedExpression
                 leftParenthesis: ( @68
-                expression: BinaryExpression
-                  leftOperand: SimpleStringLiteral
+                expression2: BinaryExpression
+                  leftOperand2: SimpleStringLiteral
                     literal: 'aaa' @69
                   operator: + @75
-                  rightOperand: SimpleStringLiteral
+                  rightOperand2: SimpleStringLiteral
                     literal: 'bbb' @77
                   element: dart:core::@class::String::@method::+
                   staticInvokeType: String Function(String)
@@ -9797,11 +9797,11 @@ library
           element: <testLibrary>::@topLevelVariable::vNotEqual
           initializer: expression_0
             BinaryExpression
-              leftOperand: IntegerLiteral
+              leftOperand2: IntegerLiteral
                 literal: 1 @18
                 staticType: int
               operator: != @20
-              rightOperand: IntegerLiteral
+              rightOperand2: IntegerLiteral
                 literal: 2 @23
                 staticType: int
               element: dart:core::@class::num::@method::==
@@ -9813,7 +9813,7 @@ library
           initializer: expression_1
             PrefixExpression
               operator: ! @39
-              operand: BooleanLiteral
+              operand2: BooleanLiteral
                 literal: true @40
                 staticType: bool
               element: <null>
@@ -9824,7 +9824,7 @@ library
           initializer: expression_2
             PrefixExpression
               operator: - @62
-              operand: IntegerLiteral
+              operand2: IntegerLiteral
                 literal: 1 @63
                 staticType: int
               element: dart:core::@class::int::@method::unary-
@@ -9835,7 +9835,7 @@ library
           initializer: expression_3
             PrefixExpression
               operator: ~ @86
-              operand: IntegerLiteral
+              operand2: IntegerLiteral
                 literal: 1 @87
                 staticType: int
               element: dart:core::@class::int::@method::~
@@ -10007,7 +10007,7 @@ library
           initializer: expression_0
             ThrowExpression
               throwKeyword: throw @10
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 42 @16
                 staticType: int
               staticType: Never
@@ -10081,7 +10081,7 @@ library
                     type: dynamic
                 rightBracket: > @61
               leftBracket: [ @62
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @63
                   staticType: int
@@ -10108,7 +10108,7 @@ library
                     type: int
                 rightBracket: > @118
               leftBracket: [ @119
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @120
                   staticType: int
@@ -10809,7 +10809,7 @@ library
             ListLiteral
               constKeyword: const @10
               leftBracket: [ @16
-              elements
+              elements2
                 IntegerLiteral
                   literal: 1 @17
                   staticType: int
@@ -10861,27 +10861,27 @@ library
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
-              elements
+              elements2
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 0 @17
                     staticType: int
                   separator: : @18
-                  value: SimpleStringLiteral
+                  value2: SimpleStringLiteral
                     literal: 'aaa' @20
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 1 @27
                     staticType: int
                   separator: : @28
-                  value: SimpleStringLiteral
+                  value2: SimpleStringLiteral
                     literal: 'bbb' @30
                 MapLiteralEntry
-                  key: IntegerLiteral
+                  key2: IntegerLiteral
                     literal: 2 @37
                     staticType: int
                   separator: : @38
-                  value: SimpleStringLiteral
+                  value2: SimpleStringLiteral
                     literal: 'ccc' @40
               rightBracket: } @45
               isMap: true
@@ -10926,7 +10926,7 @@ library
             SetOrMapLiteral
               constKeyword: const @10
               leftBracket: { @16
-              elements
+              elements2
                 IntegerLiteral
                   literal: 0 @17
                   staticType: int
@@ -11081,7 +11081,7 @@ library
               initializer: expression_3
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -11269,7 +11269,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a

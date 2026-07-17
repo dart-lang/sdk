@@ -734,7 +734,7 @@ class _InfoBuilder {
           parameter.metadata.accept2(collector);
           addFormalParameters(parameter.functionTypedSuffix?.formalParameters);
           if (parameter.defaultClause case var defaultClause?) {
-            defaultClause.value.accept2(collector);
+            defaultClause.value2.accept2(collector);
           }
         }
       }
@@ -862,7 +862,7 @@ class _InfoBuilder {
       documentationComment: _getDocumentationComment(node),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer,
+        constantInitializer: node.initializer2,
       ),
     );
   }
@@ -1126,7 +1126,7 @@ class _InfoBuilder {
       documentationComment: _getDocumentationComment(node),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer,
+        constantInitializer: node.initializer2,
       ),
     );
   }
@@ -2039,7 +2039,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    node.target?.accept2(this);
+    node.target2?.accept2(this);
     _tokenOrNull(node.operator);
     node.methodName.accept2(this);
     node.typeArguments?.accept2(this);
@@ -2094,7 +2094,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    node.target?.accept2(this);
+    node.target2?.accept2(this);
     _tokenOrNull(node.operator);
     node.propertyName.accept2(this);
   }

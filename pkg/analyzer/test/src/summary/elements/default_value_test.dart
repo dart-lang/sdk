@@ -110,7 +110,7 @@ library
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     FunctionReference
-                      function: SimpleIdentifier
+                      function2: SimpleIdentifier
                         token: defaultF @93
                         element: <testLibrary>::@function::defaultF
                         staticType: void Function<T>(T)
@@ -391,17 +391,17 @@ library
               initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @32
-                  fields
+                  fields2
                     RecordLiteralNamedField
                       name: f1 @33
                       colon: : @35
-                      fieldExpression: IntegerLiteral
+                      fieldExpression2: IntegerLiteral
                         literal: 1 @37
                         staticType: int
                     RecordLiteralNamedField
                       name: f2 @40
                       colon: : @42
-                      fieldExpression: BooleanLiteral
+                      fieldExpression2: BooleanLiteral
                         literal: true @44
                         staticType: bool
                   rightParenthesis: ) @48
@@ -441,17 +441,17 @@ library
                 RecordLiteral
                   constKeyword: const @32
                   leftParenthesis: ( @38
-                  fields
+                  fields2
                     RecordLiteralNamedField
                       name: f1 @39
                       colon: : @41
-                      fieldExpression: IntegerLiteral
+                      fieldExpression2: IntegerLiteral
                         literal: 1 @43
                         staticType: int
                     RecordLiteralNamedField
                       name: f2 @46
                       colon: : @48
-                      fieldExpression: BooleanLiteral
+                      fieldExpression2: BooleanLiteral
                         literal: true @50
                         staticType: bool
                   rightParenthesis: ) @54
@@ -490,7 +490,7 @@ library
               initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @24
-                  fields
+                  fields2
                     IntegerLiteral
                       literal: 1 @25
                       staticType: int
@@ -534,7 +534,7 @@ library
                 RecordLiteral
                   constKeyword: const @24
                   leftParenthesis: ( @30
-                  fields
+                  fields2
                     IntegerLiteral
                       literal: 1 @31
                       staticType: int
