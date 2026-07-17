@@ -11,14 +11,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddEnumConstantTest);
+    defineReflectiveTests(CreateEnumConstantTest);
   });
 }
 
 @reflectiveTest
-class AddEnumConstantTest extends FixProcessorTest {
+class CreateEnumConstantTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.addEnumConstant;
+  FixKind get kind => DartFixKind.createEnumConstant;
 
   Future<void> test_add() async {
     await resolveTestCode('''
@@ -34,7 +34,7 @@ enum E {ONE, TWO}
 E e() {
   return E.TWO;
 }
-''', matchFixMessage: "Add enum constant 'TWO'");
+''', matchFixMessage: "Create enum constant 'TWO'");
   }
 
   Future<void> test_add_dotShorthand() async {
@@ -51,7 +51,7 @@ enum E { ONE, TWO }
 E e() {
   return .TWO;
 }
-''', matchFixMessage: "Add enum constant 'TWO'");
+''', matchFixMessage: "Create enum constant 'TWO'");
   }
 
   Future<void> test_differentLibrary() async {

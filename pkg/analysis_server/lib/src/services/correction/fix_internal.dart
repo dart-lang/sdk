@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/correction/dart/add_class_modifier.
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_empty_argument_list.dart';
-import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_call.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
@@ -93,6 +92,7 @@ import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_super.dart';
+import 'package:analysis_server/src/services/correction/dart/create_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/create_extension_member.dart';
 import 'package:analysis_server/src/services/correction/dart/create_field.dart';
 import 'package:analysis_server/src/services/correction/dart/create_file.dart';
@@ -560,10 +560,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.deprecatedFactoryMethod: [AddReturnType.new],
   diag.dotShorthandUndefinedGetter: [
-    AddEnumConstant.new,
     ChangeTo.getterOrSetter,
-    CreateGetter.new,
+    CreateEnumConstant.new,
     CreateField.new,
+    CreateGetter.new,
   ],
   diag.dotShorthandUndefinedInvocation: [
     ChangeTo.method,
@@ -818,7 +818,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.undefinedClass: [ChangeTo.classOrMixin],
   diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
   diag.undefinedEnumConstant: [
-    AddEnumConstant.new,
+    CreateEnumConstant.new,
     CreateField.new,
     CreateGetter.new,
     ChangeTo.getterOrSetter,

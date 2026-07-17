@@ -13,7 +13,6 @@ import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_empty_argument_list_test.dart' as add_empty_argument_list;
-import 'add_enum_constant_test.dart' as add_enum_constant_test;
 import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
 import 'add_explicit_call_test.dart' as add_explicit_call;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
@@ -128,6 +127,7 @@ import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
 import 'create_constructor_super_test.dart' as create_constructor_super;
 import 'create_constructor_test.dart' as create_constructor;
+import 'create_enum_constant_test.dart' as create_enum_constant;
 import 'create_extension_member_test.dart' as create_extension_member;
 import 'create_field_test.dart' as create_field;
 import 'create_file_test.dart' as create_file;
@@ -352,7 +352,6 @@ void main() {
     add_curly_braces.main();
     add_diagnostic_property_reference.main();
     add_empty_argument_list.main();
-    add_enum_constant_test.main();
     add_eol_at_end_of_file.main();
     add_explicit_call.main();
     add_explicit_cast.main();
@@ -441,6 +440,7 @@ void main() {
     create_constructor_for_final_field.main();
     create_constructor_super.main();
     create_constructor.main();
+    create_enum_constant.main();
     create_extension_member.main();
     create_field.main();
     create_file.main();

@@ -117,11 +117,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Add debug property references in file',
   );
-  static const addEnumConstant = FixKind(
-    'dart.fix.add.enumConstant',
-    DartFixKindPriority.standard,
-    "Add enum constant '{0}'",
-  );
   static const addEolAtEndOfFile = FixKind(
     'dart.fix.add.eolAtEndOfFile',
     DartFixKindPriority.standard,
@@ -817,6 +812,11 @@ abstract final class DartFixKind {
     'dart.fix.create.constructorSuper',
     DartFixKindPriority.standard,
     'Create constructor to call {0}',
+  );
+  static const createEnumConstant = FixKind(
+    'dart.fix.create.enumConstant',
+    DartFixKindPriority.standard,
+    "Create enum constant '{0}'",
   );
   static const createExtensionGetter = FixKind(
     'dart.fix.create.extension.getter',
