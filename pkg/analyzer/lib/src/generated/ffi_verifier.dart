@@ -2799,7 +2799,7 @@ extension on NamedType {
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isCompoundSubtype {
     var element = this.element;
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       return element.allSupertypes.any((e) => e.isCompound);
     }
     return false;
