@@ -5497,6 +5497,7 @@ extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(
                                          /*bypass_safepoint=*/false,
                                          /*suspended_thread=*/thread);
     }
+    Thread::Current()->set_execution_state(Thread::kThreadInNative);
     Thread::Current()->EnterSafepoint();
   }
 #if defined(USING_MEMORY_SANITIZER)
@@ -5528,6 +5529,7 @@ extern "C" void* DLRT_ExitSyncCallback(Thread* thread,
   ASSERT(thread != nullptr);
   ASSERT(thread == Thread::Current());
 
+  thread->set_execution_state(Thread::kThreadInNative);
   thread->EnterSafepointToNative();
 
 #if defined(USING_MEMORY_SANITIZER)
@@ -5560,9 +5562,11 @@ extern "C" void* DLRT_ExitTemporaryIsolate(Thread* thread) {
       TRACE_RUNTIME_CALL("ExitTemporaryIsolate re-entering source isolate %p",
                          source_isolate);
       Thread::EnterIsolate(source_isolate);
+      Thread::Current()->set_execution_state(Thread::kThreadInNative);
       Thread::Current()->EnterSafepoint();
     }
   } else {
+    thread->set_execution_state(Thread::kThreadInNative);
     thread->EnterSafepoint();
   }
   TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");
