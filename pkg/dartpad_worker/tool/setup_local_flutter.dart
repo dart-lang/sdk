@@ -138,6 +138,22 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     'flutter_lints',
   ], myappDir);
 
+  print('Adding flutter_web_plugins dependency...');
+  _runSync(ctx.flutterBin, [
+    'pub',
+    'add',
+    'flutter_web_plugins',
+    '--sdk=flutter',
+  ], myappDir);
+
+  print('Adding flutter_localizations dependency...');
+  _runSync(ctx.flutterBin, [
+    'pub',
+    'add',
+    'flutter_localizations',
+    '--sdk=flutter',
+  ], myappDir);
+
   print('Running flutter pub get...');
   _runSync(ctx.flutterBin, ['pub', 'get'], myappDir);
 
@@ -381,14 +397,21 @@ ${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
   );
 
   // Add SDK packages for analyzer
-  print('Adding package:flutter for analysis...');
-  tar.addDirectory(
-    target: '/sdk/packages/flutter',
-    source: p.join(ctx.flutterRoot, 'packages', 'flutter'),
-    where: (f) =>
-        !f.startsWith('test/') &&
-        (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
-  );
+  final sdkPackages = [
+    'flutter',
+    'flutter_web_plugins',
+    'flutter_localizations',
+  ];
+  for (final pkg in sdkPackages) {
+    print('Adding package:$pkg for analysis...');
+    tar.addDirectory(
+      target: '/sdk/packages/$pkg',
+      source: p.join(ctx.flutterRoot, 'packages', pkg),
+      where: (f) =>
+          !f.startsWith('test/') &&
+          (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
+    );
+  }
   tar.addDirectory(
     target: '/sdk/bin/cache/pkg/sky_engine',
     source: p.join(ctx.flutterRoot, 'bin', 'cache', 'pkg', 'sky_engine'),
