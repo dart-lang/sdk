@@ -779,7 +779,9 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       address(threadReg, vmOffsets.Thread_call_to_runtime_entry_point_offset),
     );
     blr(LR);
-    addCallSiteMetadata?.call();
+    addCallSiteMetadata?.call(
+      (entry == .FatalError) ? .fatalError : .runtimeCall,
+    );
   }
 
   @override
@@ -792,7 +794,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
-    addCallSiteMetadata?.call();
+    addCallSiteMetadata?.call(.stubCall);
   }
 
   // TODO: remove after all stubs are implemented in the compiler
@@ -800,7 +802,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadFromPool(codeReg, vmStub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
-    addCallSiteMetadata?.call();
+    addCallSiteMetadata?.call(.stubCall);
   }
 
   // TODO: remove after all stubs are implemented in the compiler

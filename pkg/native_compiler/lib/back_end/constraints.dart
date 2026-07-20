@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
@@ -47,6 +48,7 @@ class const InstructionConstraints(
   final Constraint? result,
   final List<Constraint?> inputs, [
   final List<Constraint> temps = const [],
+  final Safepoint? safepoint,
 ]);
 
 const anyCpuRegister = AnyCpuRegister();

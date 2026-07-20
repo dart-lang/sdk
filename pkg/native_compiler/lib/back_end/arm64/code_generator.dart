@@ -75,13 +75,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.subImmediate(
       stackPointerReg,
       stackPointerReg,
-      stackFrame.frameSizeToAllocate,
+      stackFrame.frameSizeInSlots * wordSize,
     );
     final function = graph.function;
     if (function.hasOptionalPositionalParameters) {
       _prepareOptionalPositionalParameters(function);
     } else if (function.hasNamedParameters) {
       _prepareNamedParameters(function);
+    }
+    if (function.isSuspendable) {
+      _asm.str(nullReg, _asm.address(FP, stackFrame.suspendStateOffsetFromFP));
     }
   }
 
@@ -583,6 +586,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       offset += wordSize;
     }
     assert(offset <= stackFrame.maxArgumentsStackSlots * wordSize);
+    recordOutgoingArgumentsAtSafepoint(.dartCall, instr.inputCount);
   }
 
   void _callFunction(CFunction function) {
@@ -600,7 +604,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
       ),
     );
     _asm.blr(tempReg);
-    addCallSiteMetadata();
+    addCallSiteMetadata(.dartCall);
+  }
+
+  void _callRuntime(RuntimeEntry entry, int argumentCount) {
+    recordOutgoingArgumentsAtSafepoint(.runtimeCall, argumentCount + 1);
+    _asm.callRuntime(entry, argumentCount);
   }
 
   @override
@@ -637,7 +646,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
     );
     _asm.blr(tempReg);
-    addCallSiteMetadata();
+    addCallSiteMetadata(.dartCall);
   }
 
   @override
@@ -667,7 +676,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
     );
     _asm.blr(tempReg);
-    addCallSiteMetadata();
+    addCallSiteMetadata(.dartCall);
   }
 
   @override
@@ -697,7 +706,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       ),
     );
     _asm.blr(tempReg);
-    addCallSiteMetadata();
+    addCallSiteMetadata(.dartCall);
   }
 
   @override
@@ -936,7 +945,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           nullReg, // Space for result.
           RegOffsetAddress(stackPointerReg, 0),
         );
-        _asm.callRuntime(RuntimeEntry.Throw, 1);
+        _callRuntime(RuntimeEntry.Throw, 1);
         _asm.breakpoint();
         break;
       case .rethrowException:
@@ -944,10 +953,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.stp(ZR, inputReg(instr, 1), RegOffsetAddress(stackPointerReg, 0));
         _asm.stp(
           inputReg(instr, 0),
-          nullReg, // Space for result
+          nullReg, // Space for result.
           RegOffsetAddress(stackPointerReg, 2 * wordSize),
         );
-        _asm.callRuntime(RuntimeEntry.ReThrow, 3);
+        _callRuntime(RuntimeEntry.ReThrow, 3);
         _asm.breakpoint();
         break;
       default:
@@ -965,7 +974,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.mov(resultReg, operandReg);
     }
     final Label slowPath = addSlowPath(() {
-      _asm.callRuntime(RuntimeEntry.NullCastError, 0);
+      assert(stackFrame.maxArgumentsStackSlots >= 1);
+      // Space for result.
+      _asm.str(nullReg, RegOffsetAddress(stackPointerReg, 0));
+      _callRuntime(RuntimeEntry.NullCastError, 0);
       _asm.breakpoint();
     });
     _asm.cmp(resultReg, nullReg);
@@ -1034,7 +1046,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         nullReg, // Space for result.
         RegOffsetAddress(stackPointerReg, 2 * wordSize),
       );
-      _asm.callRuntime(RuntimeEntry.TypeError, 2);
+      _callRuntime(RuntimeEntry.TypeError, 2);
       _asm.breakpoint();
     });
 
@@ -1130,7 +1142,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           SubtypeTestCacheWithName(stc, Name('', null)),
         );
         _asm.blr(TypeTestingStub.entryPointReg);
-        addCallSiteMetadata();
+        addCallSiteMetadata(.stubCall);
     }
 
     _asm.bind(done);
@@ -1228,7 +1240,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
             nullReg, // Space for result
             RegOffsetAddress(stackPointerReg, 4 * wordSize),
           );
-          _asm.callRuntime(RuntimeEntry.Instanceof, 5);
+          _callRuntime(RuntimeEntry.Instanceof, 5);
           _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 5 * wordSize));
           _asm.b(done);
         });
@@ -1306,7 +1318,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       RegOffsetAddress(stackPointerReg, 0),
     );
     _asm.stp(tempReg, nullReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
-    _asm.callRuntime(RuntimeEntry.InstantiateType, 3);
+    _callRuntime(RuntimeEntry.InstantiateType, 3);
     _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 3 * wordSize));
   }
 
@@ -1406,7 +1418,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         nullReg, // Space for result.
         RegOffsetAddress(stackPointerReg, 2 * wordSize),
       );
-      _asm.callRuntime(RuntimeEntry.AllocateClosure, 3);
+      _callRuntime(RuntimeEntry.AllocateClosure, 3);
       _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 3 * wordSize));
       _asm.b(done);
     });
@@ -1463,7 +1475,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         nullReg, // Space for result.
         RegOffsetAddress(stackPointerReg, 0),
       );
-      _asm.callRuntime(RuntimeEntry.AllocateContext, 1);
+      _callRuntime(RuntimeEntry.AllocateContext, 1);
       _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 1 * wordSize));
       _asm.b(done);
     });
@@ -1522,7 +1534,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         nullReg, // Space for result.
         RegOffsetAddress(stackPointerReg, 2 * wordSize),
       );
-      _asm.callRuntime(RuntimeEntry.AllocateArray, 2);
+      _callRuntime(RuntimeEntry.AllocateArray, 2);
       _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
       _asm.b(done);
     });
@@ -1598,7 +1610,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         nullReg, // Space for result.
         RegOffsetAddress(stackPointerReg, 0),
       );
-      _asm.callRuntime(RuntimeEntry.AllocateRecord, 1);
+      _callRuntime(RuntimeEntry.AllocateRecord, 1);
       _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 1 * wordSize));
       _asm.b(done);
     });
@@ -1960,6 +1972,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           tempReg,
           RegOffsetAddress(stackPointerReg, 0),
         );
+        recordOutgoingArgumentsAtSafepoint(.dartCall, 2);
         _callFunction(
           instr.op == .asyncYield
               ? _asyncStarStreamControllerAdd

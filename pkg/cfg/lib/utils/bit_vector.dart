@@ -4,6 +4,8 @@
 
 import 'dart:typed_data';
 
+import 'package:cfg/utils/misc.dart';
+
 /// A compact fixed-size list of N bits.
 ///
 /// [BitVector] is implemented as an extension type over [Int64List]
@@ -122,6 +124,55 @@ extension type BitVector._(Int64List _bits) {
 
   /// Iteration over positions of set bits.
   Iterable<int> get elements => _BitVectorIterable(this);
+
+  /// Access to underlying storage for serialization.
+  ByteBuffer get buffer => _bits.buffer;
+
+  /// Make a copy of this [BitVector], increasing capacity to
+  /// contain at least [newSize] bits.
+  BitVector expand(int newSize) {
+    assert(roundUp(newSize, _bitsPerElement) >= capacity);
+    final newBits = Int64List(
+      (newSize + _bitsPerElement - 1) ~/ _bitsPerElement,
+    );
+    newBits.setRange(0, _bits.length, _bits);
+    return BitVector._(newBits);
+  }
+
+  /// Copy bits of [src], skipping [skipCount] bits first,
+  /// into the range from [start], inclusive, to [end], exclusive, bits of this vector.
+  void setRange(int start, int end, BitVector src, [int skipCount = 0]) {
+    assert(0 <= start && start <= end && end <= capacity);
+    assert(0 <= skipCount && skipCount <= src.capacity - (end - start));
+    var i = start;
+    var j = skipCount;
+    // Copy heading bits.
+    for (; i < end && ((i & (_bitsPerElement - 1)) != 0); ++i, ++j) {
+      this[i] = src[j];
+    }
+    if (i == end) return;
+    // Copy words.
+    var elemI = _elementIndex(i);
+    var elemJ = _elementIndex(j);
+    final elemEnd = _elementIndex(end);
+    final shiftLo = j & (_bitsPerElement - 1);
+    final shiftHi = _bitsPerElement - shiftLo;
+    if (shiftLo == 0) {
+      _bits.setRange(elemI, elemEnd, src._bits, elemJ);
+    } else {
+      for (; elemI < elemEnd; ++elemI, ++elemJ) {
+        _bits[elemI] =
+            (src._bits[elemJ] >>> shiftLo) | (src._bits[elemJ + 1] << shiftHi);
+      }
+    }
+    final copied = (elemEnd - _elementIndex(i)) * _bitsPerElement;
+    i += copied;
+    j += copied;
+    // Copy trailing bits.
+    for (; i < end; ++i, ++j) {
+      this[i] = src[j];
+    }
+  }
 }
 
 final class _BitVectorIterable(final BitVector _vector) extends Iterable<int> {

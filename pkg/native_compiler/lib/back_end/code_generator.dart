@@ -15,6 +15,7 @@ import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
@@ -61,6 +62,9 @@ abstract base class CodeGenerator extends Pass
   /// Metadata describing source positions in the generated code.
   late final CodeSourceMap _codeSourceMap;
 
+  /// Metadata describing stack maps for the safepoints in the generated code.
+  late final CompressedStackMaps _compressedStackMaps;
+
   CodeGenerator(this.backEndState) : super('CodeGen');
 
   VMOffsets get vmOffsets => backEndState.vmOffsets;
@@ -103,14 +107,28 @@ abstract base class CodeGenerator extends Pass
         _firstNonEmptyBlock[nextBlock.preorderNumber];
   }
 
-  void addCallSiteMetadata() {
+  Safepoint _getCurrentSafepoint(CallSiteKind kind) {
+    var safepoint = backEndState.safepoints[_currentInstruction!.id];
+    if (safepoint == null) {
+      if (kind == .fatalError) {
+        safepoint = backEndState.safepoints[_currentInstruction!.id] =
+            Safepoint();
+      } else {
+        throw 'No safepoint for ${IrToText.instruction(_currentInstruction!)}';
+      }
+    }
+    return safepoint;
+  }
+
+  void addCallSiteMetadata(CallSiteKind kind) {
+    final pcOffset = _asm.currentPcOffset;
     final exceptionHandler = _currentInstruction!.block!.exceptionHandler;
     final exceptionHandlerIndex = (exceptionHandler != null)
         ? _exceptionHandlers.getHandler(exceptionHandler).index
         : -1;
     _pcDescriptors.add(
       CallSite(
-        _asm.currentPcOffset,
+        pcOffset,
         exceptionHandlerIndex,
         _currentInstruction!.sourcePosition,
       ),
@@ -118,16 +136,34 @@ abstract base class CodeGenerator extends Pass
     if (exceptionHandler != null) {
       (_catchEntryMoves ??= CatchEntryMoves()).add(
         ExceptionSite(
-          _asm.currentPcOffset,
+          pcOffset,
           // TODO: add moves
         ),
       );
     }
     _codeSourceMap.add(
-      CodeSourcePosition(
-        _asm.currentPcOffset,
-        _currentInstruction!.sourcePosition,
-      ),
+      CodeSourcePosition(pcOffset, _currentInstruction!.sourcePosition),
+    );
+    _compressedStackMaps.add(
+      pcOffset,
+      _getCurrentSafepoint(kind),
+      stackFrame.frameSizeInSlots,
+    );
+  }
+
+  /// Record [numArgs] outgoing arguments as object pointers
+  /// at the current safepoint.
+  void recordOutgoingArgumentsAtSafepoint(CallSiteKind kind, int numArgs) {
+    assert((0 <= numArgs) && (numArgs <= stackFrame.maxArgumentsStackSlots));
+    final safepoint = _getCurrentSafepoint(kind);
+    final frameSize = stackFrame.frameSizeInSlots;
+
+    /// TODO: pass arguments on registers.
+    /// TODO: unboxed arguments.
+    safepoint.addLiveStackSlots(
+      frameSize - numArgs,
+      numArgs,
+      isObjectPointer: true,
     );
   }
 
@@ -143,6 +179,7 @@ abstract base class CodeGenerator extends Pass
     );
     _pcDescriptors = PcDescriptors();
     _codeSourceMap = CodeSourceMap();
+    _compressedStackMaps = CompressedStackMaps();
 
     _asm = createAssembler();
 
@@ -171,6 +208,7 @@ abstract base class CodeGenerator extends Pass
         _pcDescriptors,
         _catchEntryMoves,
         _codeSourceMap,
+        _compressedStackMaps,
       ),
     );
   }

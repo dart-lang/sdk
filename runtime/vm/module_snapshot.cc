@@ -79,6 +79,7 @@ class ModuleSnapshot : public AllStatic {
     kExceptionHandlers,
     kPcDescriptors,
     kCatchEntryMoves,
+    kCompressedStackMaps,
     kCodeSourceMap,
     kInstances,
   };
@@ -1260,7 +1261,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->pc_descriptors_ =
           static_cast<PcDescriptorsPtr>(d->ReadRef());
       code->untag()->catch_entry_ = static_cast<TypedDataPtr>(d->ReadRef());
-      code->untag()->compressed_stackmaps_ = CompressedStackMaps::null();
+      code->untag()->compressed_stackmaps_ =
+          static_cast<CompressedStackMapsPtr>(d->ReadRef());
       code->untag()->inlined_id_to_function_ = Array::null();
       code->untag()->code_source_map_ =
           static_cast<CodeSourceMapPtr>(d->ReadRef());
@@ -1589,6 +1591,41 @@ class CatchEntryMovesDeserializationCluster : public DeserializationCluster {
   }
 };
 
+class CompressedStackMapsDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  CompressedStackMapsDeserializationCluster()
+      : DeserializationCluster("CompressedStackMaps") {}
+  ~CompressedStackMapsDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(CompressedStackMaps::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      const intptr_t length = d.ReadUnsigned();
+      CompressedStackMapsPtr map =
+          static_cast<CompressedStackMapsPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(map, kCompressedStackMapsCid,
+                                     CompressedStackMaps::InstanceSize(length));
+      map->untag()->payload()->set_flags_and_size(
+          UntaggedCompressedStackMaps::SizeField::encode(length));
+      uint8_t* cdata =
+          reinterpret_cast<uint8_t*>(map->untag()->payload()->data());
+      d.ReadBytes(cdata, length);
+    }
+  }
+};
+
 class CodeSourceMapDeserializationCluster : public DeserializationCluster {
  public:
   CodeSourceMapDeserializationCluster()
@@ -1736,6 +1773,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) PcDescriptorsDeserializationCluster();
     case ModuleSnapshot::kCatchEntryMoves:
       return new (Z) CatchEntryMovesDeserializationCluster();
+    case ModuleSnapshot::kCompressedStackMaps:
+      return new (Z) CompressedStackMapsDeserializationCluster();
     case ModuleSnapshot::kCodeSourceMap:
       return new (Z) CodeSourceMapDeserializationCluster();
     case ModuleSnapshot::kInstances: {
