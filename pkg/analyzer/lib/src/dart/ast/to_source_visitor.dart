@@ -335,7 +335,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitConstructorSelector(ConstructorSelector node) {
     _visitToken(node.period);
-    _visitNode(node.name);
+    _visitToken(node.name2);
   }
 
   @override

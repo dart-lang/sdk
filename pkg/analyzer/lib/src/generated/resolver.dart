@@ -2770,7 +2770,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
         if (constructorElement.isFactory) {
-          var constructorName = node.arguments?.constructorSelector?.name;
+          var constructorName = node.arguments?.constructorSelector?.name2;
           var errorTarget = constructorName ?? node.name;
           diagnosticReporter.report(
             diag.enumConstantInvokesFactoryConstructor.at(errorTarget),
@@ -2778,12 +2778,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         }
       } else {
         if (constructorName.type.element is EnumElementImpl) {
-          var nameNode = node.arguments?.constructorSelector?.name;
-          if (nameNode != null) {
+          var nameToken = node.arguments?.constructorSelector?.name2;
+          if (nameToken != null) {
             diagnosticReporter.report(
               diag.undefinedEnumConstructorNamed
-                  .withArguments(name: nameNode.name)
-                  .at(nameNode),
+                  .withArguments(name: nameToken.lexeme)
+                  .at(nameToken),
             );
           } else {
             diagnosticReporter.report(

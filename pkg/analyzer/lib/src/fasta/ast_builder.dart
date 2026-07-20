@@ -4059,7 +4059,7 @@ class AstBuilder extends StackListener {
       if (constructorNamePeriod != null && constructorNameId != null) {
         constructorSelector = ConstructorSelectorImpl(
           period: constructorNamePeriod,
-          name: constructorNameId,
+          name2: constructorNameId.token,
         );
       }
     }

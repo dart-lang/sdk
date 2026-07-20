@@ -1474,7 +1474,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
         var constantArguments = constant.arguments;
         var constructorSelector = constantArguments?.constructorSelector;
-        var constructorName = constructorSelector?.name.name;
+        var constructorName = constructorSelector?.name2.lexeme;
 
         var initializer = InstanceCreationExpressionImpl(
           keyword: null,

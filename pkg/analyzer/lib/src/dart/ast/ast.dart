@@ -3072,6 +3072,10 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     return _parent2;
   }
 
+  AstNodeImpl? get parentInPrimaryView {
+    return _astNodeApi == AstNodeApi.v1 ? _parent : _parent2;
+  }
+
   @override
   @ToBeDeprecated('Use root2 instead')
   AstNode get root {
@@ -9803,7 +9807,12 @@ abstract final class ConstructorReferenceNode implements AstNode {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorSelector implements AstNode {
   /// The constructor name.
+  @ToBeDeprecated('Use name2 instead.')
   SimpleIdentifier get name;
+
+  /// The constructor name.
+  @experimental
+  Token get name2;
 
   /// The period before the constructor name.
   Token get period;
@@ -9812,7 +9821,7 @@ abstract final class ConstructorSelector implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('period'),
-    GenerateNodeProperty('name'),
+    GenerateNodeProperty('name2'),
   ],
 )
 final class ConstructorSelectorImpl extends AstNodeImpl
@@ -9822,15 +9831,16 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   final Token period;
 
   @generated
-  SimpleIdentifierImpl _name;
+  @override
+  final Token name2;
+
+  @override
+  late final SimpleIdentifierImpl name = _becomeParentOf1(
+    SimpleIdentifierImpl.v1Projection(token: name2),
+  );
 
   @generated
-  ConstructorSelectorImpl({
-    required this.period,
-    required SimpleIdentifierImpl name,
-  }) : _name = name {
-    _becomeParentOf12(name);
-  }
+  ConstructorSelectorImpl({required this.period, required this.name2});
 
   @generated
   @override
@@ -9841,19 +9851,10 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @generated
   @override
   Token get endToken {
-    return name.endToken;
+    return name2;
   }
 
-  @generated
-  @override
-  SimpleIdentifierImpl get name => _name;
-
-  @generated
-  set name(SimpleIdentifierImpl name) {
-    _name = _becomeParentOf12(name);
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -9863,7 +9864,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('period', period)
-    ..addNode('name', name);
+    ..addToken('name2', name2);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -9883,26 +9884,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
     return false;
   }
 
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(name, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'name'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(name, oldNode)) {
-      name = newNode as SimpleIdentifierImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9912,29 +9894,14 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @generated
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {
-    name.accept2(visitor);
-  }
+  void visitChildren2(AstVisitor2 visitor) {}
 
   /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
   @generated
   @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitName,
-  }) {
-    if (visitName != null) {
-      visitName(name);
-    } else {
-      name.accept2(visitor);
-    }
-  }
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -9946,9 +9913,6 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (name._containsOffset(rangeOffset, rangeEnd)) {
-      return name;
-    }
     return null;
   }
 }
@@ -37493,6 +37457,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   final Token token;
 
+  AstNodeApi? _astNodeApiOverride;
+
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure hasn't been resolved or if
   /// this identifier couldn't be resolved.
@@ -37513,6 +37479,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @generated
   SimpleIdentifierImpl({required this.token});
+
+  SimpleIdentifierImpl.v1Projection({required this.token})
+    : _astNodeApiOverride = AstNodeApi.v1;
 
   /// The cascade that contains this [SimpleIdentifier].
   CascadeExpressionImpl? get ancestorCascade {
@@ -37538,7 +37507,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool get isQualified {
-    var parent = parent2!;
+    var parent = parentInPrimaryView!;
     if (parent is PrefixedIdentifierImpl) {
       return identical(parent.identifier, this);
     } else if (parent is PropertyAccessImpl) {
@@ -37561,6 +37530,10 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   Precedence get precedence => Precedence.primary;
 
+  @DoNotGenerate(reason: 'Some instances are V1 compatibility projections')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
+
   @generated
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('token', token);
@@ -37582,7 +37555,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inDeclarationContext() {
-    var parent = parent2;
+    var parent = parentInPrimaryView;
     switch (parent) {
       case ImportDirectiveImpl():
         return parent.prefix == this;
@@ -37597,7 +37570,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inGetterContext() {
-    AstNode initialParent = parent2!;
+    AstNode initialParent = parentInPrimaryView!;
     AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix
@@ -37639,7 +37612,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inSetterContext() {
-    AstNode initialParent = parent2!;
+    AstNode initialParent = parentInPrimaryView!;
     AstNode parent = initialParent;
     AstNode target = this;
     // skip prefix

@@ -56,7 +56,7 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'ElementLocatorTest2',
+      className: 'ElementLocatorV1Test',
       methodName: '_assertElement',
       argument: _ArgumentIndex(1),
     ),

@@ -104,7 +104,8 @@ EnumDeclaration
         arguments: EnumConstantArguments
           constructorSelector: ConstructorSelector
             period: .
-            name: SimpleIdentifier
+            name2: foo
+            name(v1): SimpleIdentifier
               token: foo
           argumentList: ArgumentList
             leftParenthesis: (
@@ -282,7 +283,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -306,7 +308,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -331,7 +334,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -361,7 +365,8 @@ EnumConstantDeclaration
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -392,7 +397,8 @@ EnumConstantDeclaration
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
