@@ -1375,7 +1375,8 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
 
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
  public:
-  ObjectPoolDeserializationCluster() : DeserializationCluster("ObjectPool") {}
+  explicit ObjectPoolDeserializationCluster(Zone* zone)
+      : DeserializationCluster("ObjectPool"), class_(Class::Handle(zone)) {}
   ~ObjectPoolDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -1417,13 +1418,11 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             break;
           }
           case ModuleSnapshot::kNewObjectTags: {
-            ClassPtr cls = static_cast<ClassPtr>(d.ReadRef());
+            class_ = static_cast<ClassPtr>(d.ReadRef());
             pool->untag()->entry_bits()[j] = immediate_entry_bits;
             UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
             entry.raw_value_ = compiler::target::MakeTagWordForNewSpaceObject(
-                cls->untag()->id_,
-                Object::RoundedAllocationSize(Class::host_instance_size(cls) *
-                                              kCompressedWordSize));
+                class_.id(), compiler::target::Class::GetInstanceSize(class_));
             break;
           }
           case ModuleSnapshot::kStaticFieldOffset: {
@@ -1482,6 +1481,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
       }
     }
   }
+
+ private:
+  Class& class_;
 };
 
 class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
@@ -1766,7 +1768,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case ModuleSnapshot::kSubtypeTestCaches:
       return new (Z) SubtypeTestCacheDeserializationCluster();
     case ModuleSnapshot::kObjectPools:
-      return new (Z) ObjectPoolDeserializationCluster();
+      return new (Z) ObjectPoolDeserializationCluster(Z);
     case ModuleSnapshot::kExceptionHandlers:
       return new (Z) ExceptionHandlersDeserializationCluster();
     case ModuleSnapshot::kPcDescriptors:
