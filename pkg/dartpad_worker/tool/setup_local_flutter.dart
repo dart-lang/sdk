@@ -214,6 +214,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     outlinePath,
     '--modules=ddc',
     '--canary',
+    '--track-creation-locations',
     '--module-name=flutter_web',
     '--packages=$pkgConfigPath',
     '-o',
@@ -239,6 +240,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     '--target',
     'ddc',
     '--summary-only',
+    '--track-creation-locations',
     '--packages-file',
     pkgConfigPath,
     '--dart-sdk-summary',
@@ -374,6 +376,7 @@ ${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
       },
       bootstrapCode: kBootstrapFlutterCode,
       flutterSdkPath: '/sdk',
+      trackCreationLocations: true,
     ),
   );
 
