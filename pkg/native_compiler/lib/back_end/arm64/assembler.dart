@@ -2167,9 +2167,9 @@ extension on Immediate {
       ~value & (sz.is32 ? 0xffffffff : -1),
       sz,
     );
-    final trailingZeros = _countTrailingZeros(value);
-    final trailingOnes = _countTrailingZeros(~value);
-    int setBits = _countOneBits(value);
+    final trailingZeros = value.trailingZeroBitCount;
+    final trailingOnes = (~value).trailingZeroBitCount;
+    int setBits = value.oneBitCount;
 
     // The fixed bits in the immediate s field.
     // If width == 64 (X reg), start at 0xFFFFFF80.
@@ -2228,31 +2228,6 @@ extension on Immediate {
 
   static int _countLeadingZeros(int value, OperandSize sz) =>
       value < 0 ? 0 : (sz.bitWidth - value.bitLength);
-
-  static int _countTrailingZeros(int value) {
-    var n = 0;
-    while ((value & 0xff) == 0) {
-      n += 8;
-      value = value >>> 8;
-    }
-    while ((value & 1) == 0) {
-      ++n;
-      value = value >>> 1;
-    }
-    return n;
-  }
-
-  static int _countOneBits(int value) {
-    value = ((value >>> 1) & 0x5555555555555555) + (value & 0x5555555555555555);
-    value = ((value >>> 2) & 0x3333333333333333) + (value & 0x3333333333333333);
-    value = ((value >>> 4) & 0x0f0f0f0f0f0f0f0f) + (value & 0x0f0f0f0f0f0f0f0f);
-    value = ((value >>> 8) & 0x00ff00ff00ff00ff) + (value & 0x00ff00ff00ff00ff);
-    value =
-        ((value >>> 16) & 0x0000ffff0000ffff) + (value & 0x0000ffff0000ffff);
-    value =
-        ((value >>> 32) & 0x00000000ffffffff) + (value & 0x00000000ffffffff);
-    return value;
-  }
 
   int encodingFpImm(OperandSize sz) =>
       tryEncodingFpImm(sz) ??

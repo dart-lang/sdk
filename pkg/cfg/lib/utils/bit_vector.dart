@@ -164,31 +164,9 @@ final class _BitVectorIterator implements Iterator<int> {
       }
       _bitIndex = elementIndex * _bitsPerElement;
     }
-    if ((_currentElement & 0xffffffff) == 0) {
-      _bitIndex += 32;
-      _currentElement = _currentElement >>> 32;
-    }
-    if ((_currentElement & 0xffff) == 0) {
-      _bitIndex += 16;
-      _currentElement = _currentElement >>> 16;
-    }
-    if ((_currentElement & 0xff) == 0) {
-      _bitIndex += 8;
-      _currentElement = _currentElement >>> 8;
-    }
-    if ((_currentElement & 0xf) == 0) {
-      _bitIndex += 4;
-      _currentElement = _currentElement >>> 4;
-    }
-    if ((_currentElement & 0x3) == 0) {
-      _bitIndex += 2;
-      _currentElement = _currentElement >>> 2;
-    }
-    if ((_currentElement & 0x1) == 0) {
-      _bitIndex += 1;
-      _currentElement = _currentElement >>> 1;
-    }
-    _currentElement = _currentElement >>> 1;
+    final int shift = _currentElement.trailingZeroBitCount;
+    _bitIndex += shift;
+    _currentElement = _currentElement >>> (shift + 1);
     return true;
   }
 
