@@ -22,6 +22,7 @@ import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/names.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 final class Arm64CodeGenerator extends CodeGenerator {
   final FunctionRegistry functionRegistry;
@@ -846,10 +847,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
     }
   }
 
-  void _loadStaticFieldAddress(Register dst, CField field, Register scratch) {
+  void _loadStaticFieldAddress(
+    Register dst,
+    CField field,
+    Register scratch, {
+    required bool isShared,
+  }) {
     _asm.ldr(
       scratch,
-      _asm.address(threadReg, vmOffsets.Thread_field_table_values_offset),
+      _asm.address(
+        threadReg,
+        isShared
+            ? vmOffsets.Thread_shared_field_table_values_offset
+            : vmOffsets.Thread_field_table_values_offset,
+      ),
     );
     _asm.loadFromPool(dst, StaticFieldOffset(field));
     _asm.add(dst, dst, scratch);
@@ -858,13 +869,24 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitLoadStaticField(LoadStaticField instr) {
     final field = instr.field;
+    final isShared = field.astField.isShared(GlobalContext.instance.coreTypes);
     final valueReg = outputReg(instr);
     final scratch1Reg = temporaryReg(instr, 0);
     final scratch2Reg = temporaryReg(instr, 1);
 
-    // TODO: shared static fields
-    _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
-    _asm.ldr(valueReg, RegOffsetAddress(scratch1Reg, 0));
+    // TODO: shared static fields with experiment enabled
+    _loadStaticFieldAddress(
+      scratch1Reg,
+      field,
+      scratch2Reg,
+      isShared: isShared,
+    );
+
+    if (isShared) {
+      _asm.ldar(valueReg, scratch1Reg);
+    } else {
+      _asm.ldr(valueReg, RegOffsetAddress(scratch1Reg, 0));
+    }
 
     if (instr.checkInitialized) {
       _asm.loadFromPool(scratch2Reg, SentinelConstant());
@@ -877,7 +899,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
             functionRegistry.getFunction(field.astField, isInitializer: true),
           );
           assert(valueReg == returnReg);
-          _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+          _loadStaticFieldAddress(
+            scratch1Reg,
+            field,
+            scratch2Reg,
+            isShared: isShared,
+          );
 
           if (field.isLate && field.isFinal) {
             final ok = Label();
@@ -908,12 +935,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitStoreStaticField(StoreStaticField instr) {
     final field = instr.field;
+    final isShared = field.astField.isShared(GlobalContext.instance.coreTypes);
     final valueReg = inputReg(instr, 0);
     final scratch1Reg = temporaryReg(instr, 0);
     final scratch2Reg = temporaryReg(instr, 1);
 
-    // TODO: shared static fields
-    _loadStaticFieldAddress(scratch1Reg, field, scratch2Reg);
+    // TODO: shared static fields with experiment enabled
+    _loadStaticFieldAddress(
+      scratch1Reg,
+      field,
+      scratch2Reg,
+      isShared: isShared,
+    );
 
     if (instr.checkNotInitialized) {
       _asm.ldr(scratch2Reg, RegOffsetAddress(scratch1Reg, 0));
@@ -932,7 +965,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.bind(done);
     }
 
-    _asm.str(valueReg, RegOffsetAddress(scratch1Reg, 0));
+    if (isShared) {
+      _asm.stlr(valueReg, scratch1Reg);
+    } else {
+      _asm.str(valueReg, RegOffsetAddress(scratch1Reg, 0));
+    }
   }
 
   @override

@@ -1691,6 +1691,66 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
   }
 
+  /// Load-Acquire Register.
+  void ldar(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
+    _emitLoadStoreExclusive(
+      B10 |
+          B11 |
+          B12 |
+          B13 |
+          B14 |
+          B15 |
+          B16 |
+          B17 |
+          B18 |
+          B19 |
+          B20 |
+          B22 |
+          B23 |
+          B27,
+      rt,
+      rn,
+      sz,
+    );
+  }
+
+  /// Store-Release Register.
+  void stlr(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
+    _emitLoadStoreExclusive(
+      B10 |
+          B11 |
+          B12 |
+          B13 |
+          B14 |
+          B15 |
+          B16 |
+          B17 |
+          B18 |
+          B19 |
+          B20 |
+          B23 |
+          B27,
+      rt,
+      rn,
+      sz,
+    );
+  }
+
+  void _emitLoadStoreExclusive(
+    int opcode,
+    Register rt,
+    Register rn,
+    OperandSize sz,
+  ) {
+    assert(!sz.is128);
+    emit(
+      opcode |
+          rn.encodingRn(allowSP: true) |
+          rt.encodingRt() |
+          (sz.log2sizeInBytes << 30),
+    );
+  }
+
   void fldr(FPRegister rt, Address a, [OperandSize sz = OperandSize.s64]) {
     _emitFPLoadStore(B22 | B26 | B27 | B28 | B29, rt, a, sz);
   }
