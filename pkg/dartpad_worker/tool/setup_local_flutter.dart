@@ -7,12 +7,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:args/args.dart';
 import 'package:dartpad/src/dartpad_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  final parser = ArgParser()
+    ..addOption(
+      'bootstrap-code-path',
+      help: 'Path to a file containing the bootstrap code.',
+    );
+
+  final results = parser.parse(args);
+
   final dartSdkRoot = p.dirname(p.dirname(Platform.resolvedExecutable));
 
   // Locate Flutter
@@ -71,6 +80,16 @@ Future<void> main() async {
   print('Using Flutter SDK at: $flutterRoot');
   print('Target asset directory: $flutterAssetDir');
 
+  String? bootstrapCode;
+  if (results.option('bootstrap-code-path') case final codePath?) {
+    final bootstrapFile = File(codePath);
+    if (!bootstrapFile.existsSync()) {
+      print('Error: Bootstrap code file not found: $codePath');
+      exit(1);
+    }
+    bootstrapCode = await bootstrapFile.readAsString();
+  }
+
   final tempDir = Directory.systemTemp.createTempSync('dartpad_flutter_setup_');
   try {
     await _setupLocalFlutter(
@@ -85,6 +104,7 @@ Future<void> main() async {
         projectRoot: projectRoot,
         flutterAssetDir: flutterAssetDir,
         packageDir: packageDir,
+        bootstrapCode: bootstrapCode,
       ),
     );
   } finally {
@@ -103,6 +123,7 @@ final class _BuildContext {
   final String projectRoot;
   final String flutterAssetDir;
   final String packageDir;
+  final String? bootstrapCode;
 
   _BuildContext({
     required this.dartSdkRoot,
@@ -115,6 +136,7 @@ final class _BuildContext {
     required this.projectRoot,
     required this.flutterAssetDir,
     required this.packageDir,
+    required this.bootstrapCode,
   });
 }
 
@@ -390,7 +412,7 @@ ${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
       summaryModules: {
         '/sdk/bin/cache/flutter_web_sdk/kernel/flutter_web.dill': 'flutter_web',
       },
-      bootstrapCode: kBootstrapFlutterCode,
+      bootstrapCode: ctx.bootstrapCode ?? kBootstrapFlutterCode,
       flutterSdkPath: '/sdk',
       trackCreationLocations: true,
     ),
