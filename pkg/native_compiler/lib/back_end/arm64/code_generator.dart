@@ -1190,6 +1190,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
       default:
         if (const IntType().isSubtypeOf(type)) {
           _asm.tbz(operandReg, smiBit, doneTrue);
+        } else if (!type.canBeInt) {
+          _asm.tbz(operandReg, smiBit, doneFalse);
         }
         if (type.isNullable) {
           _asm.cmp(operandReg, nullReg);
