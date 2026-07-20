@@ -984,7 +984,6 @@ augment enum A {;
   augment abstract int foo;
 //                     ^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
-// [diag.nonFinalFieldInEnum] Enums can only declare final fields.
 }
 ''');
   }

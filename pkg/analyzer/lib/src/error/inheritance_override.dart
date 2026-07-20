@@ -934,6 +934,9 @@ class _ClassVerifier {
         }
         if (checkMemberNameCombo(member, name, displayName)) return true;
       } else if (member is FieldDeclaration) {
+        if (classElement is EnumElement && member.abstractKeyword != null) {
+          continue;
+        }
         for (var variableDeclaration in member.fields.variables) {
           var name = variableDeclaration.name.lexeme;
           if (checkMemberNameCombo(member, name, name)) return true;

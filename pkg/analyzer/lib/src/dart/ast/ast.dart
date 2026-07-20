@@ -15640,6 +15640,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFieldDeclaration(this);
 
+  bool isAbstractWhenAugmentationsEnabled(FeatureSet featureSet) {
+    return abstractKeyword != null &&
+        featureSet.isEnabled(Feature.augmentations);
+  }
+
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
