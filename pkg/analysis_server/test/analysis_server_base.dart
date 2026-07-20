@@ -62,7 +62,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   MemoryByteStore _byteStore = _sharedByteStore;
 
-  final TestPluginManager pluginManager = TestPluginManager();
+  late final TestPluginManager pluginManager = TestPluginManager(
+    resourceProvider,
+  );
   late final MockServerChannel serverChannel;
   MessageSchedulerTestView? testView;
   late final LegacyAnalysisServer server;
