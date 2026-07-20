@@ -7,38 +7,38 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target;
 
 // Pragmas recognized by the VM
-const kVmEntryPointPragmaName = "vm:entry-point";
-const kVmExactResultTypePragmaName = "vm:exact-result-type";
+const vmEntryPointPragmaName = "vm:entry-point";
+const vmExactResultTypePragmaName = "vm:exact-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
-const kVmRecognizedPragmaName = "vm:recognized";
-const kVmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
-const kVmKeepNamePragmaName = "vm:keep-name";
-const kVmPlatformConstPragmaName = "vm:platform-const";
-const kVmPlatformConstIfPragmaName = "vm:platform-const-if";
-const kVmFfiNative = "vm:ffi:native";
-const kVmSharedPragmaName = "vm:shared";
-const kVmDeeplyImmutablePragmaName = "vm:deeply-immutable";
-const kVmInvisiblePragmaName = "vm:invisible";
+const vmRecognizedPragmaName = "vm:recognized";
+const vmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
+const vmKeepNamePragmaName = "vm:keep-name";
+const vmPlatformConstPragmaName = "vm:platform-const";
+const vmPlatformConstIfPragmaName = "vm:platform-const-if";
+const vmFfiNative = "vm:ffi:native";
+const vmSharedPragmaName = "vm:shared";
+const vmDeeplyImmutablePragmaName = "vm:deeply-immutable";
+const vmInvisiblePragmaName = "vm:invisible";
 
 // Pragmas recognized by dart2wasm
-const kWasmEntryPointPragmaName = "wasm:entry-point";
-const kWasmExportPragmaName = "wasm:export";
+const wasmEntryPointPragmaName = "wasm:entry-point";
+const wasmExportPragmaName = "wasm:export";
 
 // Dynamic modules pragmas, recognized both by the VM and dart2wasm
-const kDynModuleExtendablePragmaName = "dyn-module:extendable";
-const kDynModuleImplicitlyExtendablePragmaName =
+const dynModuleExtendablePragmaName = "dyn-module:extendable";
+const dynModuleImplicitlyExtendablePragmaName =
     "dyn-module:implicitly-extendable";
-const kDynModuleCanBeOverriddenPragmaName = "dyn-module:can-be-overridden";
-const kDynModuleCanBeOverriddenImplicitlyPragmaName =
+const dynModuleCanBeOverriddenPragmaName = "dyn-module:can-be-overridden";
+const dynModuleCanBeOverriddenImplicitlyPragmaName =
     "dyn-module:can-be-overridden-implicitly";
-const kDynModuleCallablePragmaName = "dyn-module:callable";
-const kDynModuleImplicitlyCallablePragmaName = "dyn-module:implicitly-callable";
-const kDynModuleCanBeUsedAsTypePragmaName = "dyn-module:can-be-used-as-type";
-const kDynModuleEntryPointPragmaName = "dyn-module:entry-point";
-const kDynModuleDynamicallyCallablePragmaName =
+const dynModuleCallablePragmaName = "dyn-module:callable";
+const dynModuleImplicitlyCallablePragmaName = "dyn-module:implicitly-callable";
+const dynModuleCanBeUsedAsTypePragmaName = "dyn-module:can-be-used-as-type";
+const dynModuleEntryPointPragmaName = "dyn-module:entry-point";
+const dynModuleDynamicallyCallablePragmaName =
     "dyn-module:dynamically-callable";
-const kDynModuleImplicitlyDynamicallyCallablePragmaName =
+const dynModuleImplicitlyDynamicallyCallablePragmaName =
     "dyn-module:implicitly-dynamically-callable";
 
 abstract class ParsedPragma {}
@@ -186,9 +186,9 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         pragmaConstant.fieldValues[coreTypes.pragmaOptions.fieldReference]!;
 
     switch (pragmaName) {
-      case kVmEntryPointPragmaName:
+      case vmEntryPointPragmaName:
         return getEntryPointTypeFromOptions(options, pragmaName);
-      case kVmExactResultTypePragmaName:
+      case vmExactResultTypePragmaName:
         if (options is TypeLiteralConstant) {
           return ParsedResultTypeByTypePragma(options.type, false);
         } else if (options is StringConstant) {
@@ -204,9 +204,9 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
             true,
           );
         }
-        throw "ERROR: Unsupported option to '$kVmExactResultTypePragmaName' "
+        throw "ERROR: Unsupported option to '$vmExactResultTypePragmaName' "
             "pragma: $options";
-      case kVmRecognizedPragmaName:
+      case vmRecognizedPragmaName:
         PragmaRecognizedType? type;
         if (options is StringConstant) {
           if (options.value == "asm-intrinsic") {
@@ -218,58 +218,58 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
           }
         }
         if (type == null) {
-          throw "ERROR: Unsupported option to '$kVmRecognizedPragmaName' "
+          throw "ERROR: Unsupported option to '$vmRecognizedPragmaName' "
               "pragma: $options";
         }
         return ParsedRecognized(type);
-      case kVmDisableUnboxedParametersPragmaName:
+      case vmDisableUnboxedParametersPragmaName:
         return const ParsedDisableUnboxedParameters();
-      case kVmKeepNamePragmaName:
+      case vmKeepNamePragmaName:
         return const ParsedKeepNamePragma();
-      case kVmPlatformConstPragmaName:
+      case vmPlatformConstPragmaName:
         return const ParsedPlatformConstPragma();
-      case kVmPlatformConstIfPragmaName:
+      case vmPlatformConstIfPragmaName:
         if (options is! BoolConstant) {
-          throw "ERROR: Non-boolean option to '$kVmPlatformConstIfPragmaName' "
+          throw "ERROR: Non-boolean option to '$vmPlatformConstIfPragmaName' "
               "pragma: $options";
         }
         return options.value ? const ParsedPlatformConstPragma() : null;
-      case kVmFfiNative:
+      case vmFfiNative:
         return const ParsedFfiNativePragma();
-      case kWasmEntryPointPragmaName:
+      case wasmEntryPointPragmaName:
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
-      case kWasmExportPragmaName:
+      case wasmExportPragmaName:
         // Exports are treated as entry points.
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
-      case kDynModuleExtendablePragmaName:
+      case dynModuleExtendablePragmaName:
         return const ParsedEntryPointPragma(PragmaEntryPointType.Extendable);
-      case kDynModuleImplicitlyExtendablePragmaName:
+      case dynModuleImplicitlyExtendablePragmaName:
         return const ParsedEntryPointPragma(
           PragmaEntryPointType.ImplicitlyExtendable,
         );
-      case kDynModuleCanBeOverriddenPragmaName:
+      case dynModuleCanBeOverriddenPragmaName:
         return const ParsedEntryPointPragma(
           PragmaEntryPointType.CanBeOverridden,
         );
-      case kDynModuleCanBeUsedAsTypePragmaName:
+      case dynModuleCanBeUsedAsTypePragmaName:
         return const ParsedEntryPointPragma(
           PragmaEntryPointType.CanBeUsedAsType,
         );
-      case kDynModuleCallablePragmaName:
-      case kDynModuleImplicitlyCallablePragmaName:
+      case dynModuleCallablePragmaName:
+      case dynModuleImplicitlyCallablePragmaName:
         return getEntryPointTypeFromOptions(options, pragmaName);
-      case kDynModuleDynamicallyCallablePragmaName:
-      case kDynModuleImplicitlyDynamicallyCallablePragmaName:
+      case dynModuleDynamicallyCallablePragmaName:
+      case dynModuleImplicitlyDynamicallyCallablePragmaName:
         return const ParsedEntryPointPragma(
           PragmaEntryPointType.DynamicallyCallable,
         );
-      case kDynModuleEntryPointPragmaName:
+      case dynModuleEntryPointPragmaName:
         return const ParsedDynModuleEntryPointPragma();
-      case kVmSharedPragmaName:
+      case vmSharedPragmaName:
         return const ParsedVmSharedPragma();
-      case kVmDeeplyImmutablePragmaName:
+      case vmDeeplyImmutablePragmaName:
         return const ParsedVmDeeplyImmutablePragma();
-      case kVmInvisiblePragmaName:
+      case vmInvisiblePragmaName:
         return const ParsedVmInvisiblePragma();
       default:
         return null;
@@ -279,4 +279,62 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
   Iterable<R> parsedPragmas<R extends ParsedPragma>(
     Iterable<Expression> annotations,
   ) => annotations.map(parsePragma).whereType<R>();
+}
+
+/// Helper methods for accessing pragmas.
+/// Should be used on kernel AST nodes only after all constants are evaluated.
+extension AnnotatblePragmaHelpers on Annotatable {
+  /// Returns true if this node is annotated with pragma [pragmaName].
+  bool hasPragma(String pragmaName, CoreTypes coreTypes) {
+    for (final annotation in annotations) {
+      switch (annotation) {
+        case ConstantExpression(:InstanceConstant constant)
+            when constant.classNode == coreTypes.pragmaClass &&
+                (constant.fieldValues[coreTypes.pragmaName.fieldReference]
+                            as StringConstant)
+                        .value ==
+                    pragmaName:
+          return true;
+        case ConstantExpression(constant: UnevaluatedConstant()):
+          throw 'Error: unevaluated constant $annotation';
+        case ConstantExpression():
+        case InvalidExpression():
+          break;
+        default:
+          throw 'Error: non-constant annotation $annotation';
+      }
+    }
+    return false;
+  }
+}
+
+extension ClassPragmaHelpers on Class {
+  /// Returns true if this class is annotated with 'vm:deeply-immutable' pragma.
+  bool isDeeplyImmutable(CoreTypes coreTypes) =>
+      hasPragma(vmDeeplyImmutablePragmaName, coreTypes);
+}
+
+extension FieldPragmaHelpers on Field {
+  /// Returns true if this field is annotated with 'vm:shared' pragma.
+  bool isShared(CoreTypes coreTypes) =>
+      hasPragma(vmSharedPragmaName, coreTypes);
+}
+
+extension MemberPragmaHelpers on Member {
+  /// Returns true if this member is annotated with 'vm:ffi:native' pragma.
+  bool isFfiNative(CoreTypes coreTypes) => hasPragma(vmFfiNative, coreTypes);
+
+  /// Returns true if this member is annotated with 'vm:invisible' pragma.
+  bool isInvisible(CoreTypes coreTypes) =>
+      hasPragma(vmInvisiblePragmaName, coreTypes);
+
+  /// Returns true if this member is annotated with 'dyn-module:entry-point' pragma.
+  bool isDynModuleEntryPoint(CoreTypes coreTypes) =>
+      hasPragma(dynModuleEntryPointPragmaName, coreTypes);
+}
+
+extension FunctionDeclarationPragmaHelpers on FunctionDeclaration {
+  /// Returns true if this local function is annotated with 'vm:invisible' pragma.
+  bool isInvisible(CoreTypes coreTypes) =>
+      variable.hasPragma(vmInvisiblePragmaName, coreTypes);
 }

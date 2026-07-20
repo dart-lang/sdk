@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class AddEnumConstant extends ResolvedCorrectionProducer {
+class CreateEnumConstant extends ResolvedCorrectionProducer {
   /// The name of the constant to be created.
   String _constantName = '';
 
@@ -27,7 +27,7 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_constantName];
 
   @override
-  FixKind get fixKind => DartFixKind.addEnumConstant;
+  FixKind get fixKind => DartFixKind.createEnumConstant;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -59,14 +59,16 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     var constructors = targetElement.constructors
         .where((c) => !c.isFactory)
         .toList();
-    if (constructors.any((c) => c.formalParameters.isNotEmpty)) return;
 
     String? constructorName;
+    ConstructorElement? constructor;
     if (constructors.isNotEmpty) {
       if (constructors.length > 1) return;
-      if (constructors.first.name != 'new') {
-        constructorName = constructors.first.name;
+      var c = constructors.first;
+      if (c.name != 'new') {
+        constructorName = c.name;
       }
+      constructor = c;
     }
 
     EnumConstantDeclaration? lastConstant;
@@ -83,28 +85,56 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
     var targetFile = targetFragment.libraryFragment.source.fullName;
 
     await builder.addDartFileEdit(targetFile, (builder) {
+      var suffix = _constantSuffix(constructorName, constructor);
       if (lastConstant != null) {
         builder.addInsertion(lastConstant.end, (builder) {
           builder.write(', ');
           builder.write(_constantName);
-          if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(suffix);
         });
       } else if (rightBracket != null) {
         // If has a block body.
         builder.addInsertion(rightBracket.offset, (builder) {
           builder.write(' ');
           builder.write(_constantName);
-          if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(suffix);
           builder.write(' ');
         });
       } else if (semicolon != null) {
         builder.addReplacement(range.token(semicolon), (builder) {
           builder.write(' { ');
           builder.write(_constantName);
-          if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(suffix);
           builder.write(' }');
         });
       }
     });
+  }
+
+  String _buildArgs(ConstructorElement constructor) {
+    var parts = <String>[];
+    for (var param in constructor.formalParameters) {
+      var name = param.name;
+      if (name == null) continue;
+      if (param.isRequiredPositional) {
+        parts.add(name);
+      } else if (param.isRequiredNamed) {
+        parts.add('$name: $name');
+      }
+    }
+    return parts.join(', ');
+  }
+
+  String _constantSuffix(
+    String? constructorName,
+    ConstructorElement? constructor,
+  ) {
+    var args = constructor != null ? _buildArgs(constructor) : '';
+    if (constructorName != null) {
+      return '.$constructorName($args)';
+    } else if (args.isNotEmpty) {
+      return '($args)';
+    }
+    return '';
   }
 }

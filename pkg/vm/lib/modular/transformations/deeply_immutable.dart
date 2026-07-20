@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:vm/modular/transformations/pragma.dart';
 
 void validateLibraries(
   Component component,
@@ -43,18 +44,16 @@ class _CheckResult {
 
 /// Implements the `vm:deeply-immutable` semantics.
 class DeeplyImmutableValidator {
-  static const vmDeeplyImmutable = "vm:deeply-immutable";
   late final InstanceConstant vmDeeplyImmutableConstant =
       InstanceConstant(coreTypes.pragmaClass.reference, [], {
-        coreTypes.pragmaName.fieldReference: StringConstant(vmDeeplyImmutable),
+        coreTypes.pragmaName.fieldReference: StringConstant(
+          vmDeeplyImmutablePragmaName,
+        ),
         coreTypes.pragmaOptions.fieldReference: NullConstant(),
       });
-  static const vmShared = "vm:shared";
 
   final CoreTypes coreTypes;
   final DiagnosticReporter diagnosticReporter;
-  final Class pragmaClass;
-  final Field pragmaName;
   // Can be null if nativewrappers library is not available.
   final Class? nativeFieldWrapperClass1Class;
   // Can be null if ffi library is not available.
@@ -66,9 +65,7 @@ class DeeplyImmutableValidator {
     LibraryIndex index,
     this.coreTypes,
     this.diagnosticReporter,
-  ) : pragmaClass = coreTypes.pragmaClass,
-      pragmaName = coreTypes.pragmaName,
-      nativeFieldWrapperClass1Class = index.tryGetClass(
+  ) : nativeFieldWrapperClass1Class = index.tryGetClass(
         'dart:nativewrappers',
         'NativeFieldWrapperClass1',
       ),
@@ -254,33 +251,6 @@ class DeeplyImmutableValidator {
     return _CheckResult(isImmutable: false, requiresRuntimeCheck: false);
   }
 
-  bool _isDeeplyImmutableClass(Class node) {
-    for (final annotation in node.annotations) {
-      if (annotation is ConstantExpression) {
-        final constant = annotation.constant;
-        if (constant is InstanceConstant &&
-            constant.classNode == pragmaClass &&
-            constant.fieldValues[pragmaName.fieldReference] ==
-                StringConstant(vmDeeplyImmutable)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  bool _isVmSharedField(Field node) {
-    for (final annotation in node.annotations) {
-      if (annotation is ConstantExpression) {
-        final constant = annotation.constant;
-        if (constant is InstanceConstant &&
-            constant.classNode == pragmaClass &&
-            constant.fieldValues[pragmaName.fieldReference] ==
-                StringConstant(vmShared)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool _isDeeplyImmutableClass(Class node) => node.isDeeplyImmutable(coreTypes);
+  bool _isVmSharedField(Field node) => node.isShared(coreTypes);
 }

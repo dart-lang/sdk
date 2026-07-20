@@ -111,6 +111,15 @@ enum Condition {
   static const Condition notZero = notEqual;
 }
 
+enum CallSiteKind {
+  dartCall,
+  stubCall,
+  runtimeCall,
+  leafRuntimeCall,
+  // FatalError runtime call doesn't need to have a safepoint.
+  fatalError,
+}
+
 /// Base class for architecture-specific assembler.
 ///
 /// Contains declarations of macro-instructions
@@ -118,7 +127,7 @@ enum Condition {
 abstract base class Assembler {
   final VMOffsets vmOffsets;
   final ObjectPool objectPool = ObjectPool();
-  final void Function()? addCallSiteMetadata;
+  final void Function(CallSiteKind kind)? addCallSiteMetadata;
 
   Assembler(this.vmOffsets, this.addCallSiteMetadata);
 

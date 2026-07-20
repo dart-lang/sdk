@@ -21,7 +21,8 @@ import 'native_code.dart'
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'types.dart' show Closure, ConcreteType, RecordShape, TFClass, Type;
 import 'utils.dart' show combineHashes;
-import '../pragma.dart' show ConstantPragmaAnnotationParser;
+import 'package:vm/modular/transformations/pragma.dart'
+    show ConstantPragmaAnnotationParser;
 
 class Selector {
   final Name name;

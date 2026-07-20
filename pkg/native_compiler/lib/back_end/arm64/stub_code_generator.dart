@@ -6,17 +6,24 @@ import 'package:cfg/ir/constant_value.dart';
 import 'package:kernel/ast.dart' as ast show Class;
 import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/assembler.dart';
+import 'package:native_compiler/back_end/code.dart';
+import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
 abstract base class Arm64StubCodeGenerator implements StubCodeGenerator {
-  final Arm64Assembler _asm;
+  late final Arm64Assembler _asm;
+  int _frameSizeInWords = 0;
+  Safepoint? _currentSafepoint;
+  CompressedStackMaps? _compressedStackMaps;
 
-  Arm64StubCodeGenerator(VMOffsets vmOffsets, ObjectLayout objectLayout)
-    : _asm = Arm64Assembler(vmOffsets, null, objectLayout);
+  Arm64StubCodeGenerator(VMOffsets vmOffsets, ObjectLayout objectLayout) {
+    _asm = Arm64Assembler(vmOffsets, addCallSiteMetadata, objectLayout);
+  }
 
   void _generate();
 
@@ -29,9 +36,42 @@ abstract base class Arm64StubCodeGenerator implements StubCodeGenerator {
   }
 
   @override
-  Assembler generate() {
+  Code generate(String name) {
     _generate();
-    return _asm;
+    return Code(
+      name,
+      null,
+      _asm.bytes,
+      _asm.objectPool,
+      null,
+      null,
+      null,
+      null,
+      _compressedStackMaps,
+    );
+  }
+
+  void addCallSiteMetadata(CallSiteKind kind) {
+    final safepoint = _currentSafepoint;
+    if (safepoint != null) {
+      (_compressedStackMaps ??= CompressedStackMaps()).add(
+        _asm.currentPcOffset,
+        safepoint,
+        _frameSizeInWords,
+      );
+    }
+  }
+
+  void createSafepointForRuntimeCall(int numSlots) {
+    assert((0 <= numSlots) && (numSlots <= _frameSizeInWords));
+    final safepoint = _currentSafepoint = Safepoint();
+
+    /// TODO: pass arguments on registers.
+    safepoint.addLiveStackSlots(
+      _frameSizeInWords - numSlots,
+      numSlots,
+      isObjectPointer: true,
+    );
   }
 }
 
@@ -74,11 +114,15 @@ final class AllocationStub extends Arm64StubCodeGenerator {
   void _generateRuntimeCall() {
     _asm.loadFromPool(scratch1Reg, cls);
 
-    // Space for result.
-    _asm.push(nullReg);
+    // Space for result and padding.
+    _asm.pushPair(nullReg, ZR);
     // Class and type arguments.
     _asm.pushPair(typeArgumentsReg, scratch1Reg);
+
+    _frameSizeInWords = 4;
+    createSafepointForRuntimeCall(3);
     _asm.callRuntime(RuntimeEntry.AllocateObject, 2);
+    _currentSafepoint = null;
 
     _asm.ldr(resultReg, _asm.address(stackPointerReg, 2 * wordSize));
 

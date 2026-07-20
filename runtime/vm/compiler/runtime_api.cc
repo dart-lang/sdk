@@ -295,6 +295,10 @@ const Code& StubCodeAllocateArray() {
   return dart::StubCode::AllocateArray();
 }
 
+const Code& StubCodeSubtype1TestCache() {
+  return dart::StubCode::Subtype1TestCache();
+}
+
 const Code& StubCodeSubtype2TestCache() {
   return dart::StubCode::Subtype2TestCache();
 }

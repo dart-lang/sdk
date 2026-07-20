@@ -98,7 +98,9 @@ final class HotReloadCompiler {
       Uri.file(packageConfig),
       Uri.file(librariesPath),
       additionalDills.map(Uri.file).toList(),
-      ddc.DevCompilerTarget(const k.TargetFlags()),
+      ddc.DevCompilerTarget(
+        k.TargetFlags(trackCreationLocations: config.trackCreationLocations),
+      ),
       fileSystem: resourceProviderAsFileSystem(resourceProvider),
       environmentDefines: options.enableAsserts
           ? {'dart.web.assertions_enabled': 'true'}

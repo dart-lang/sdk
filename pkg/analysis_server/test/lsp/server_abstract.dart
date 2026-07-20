@@ -273,7 +273,7 @@ abstract class AbstractLspAnalysisServerTest
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     errorNotifier = ErrorNotifier();
-    pluginManager = TestPluginManager();
+    pluginManager = TestPluginManager(resourceProvider);
     testView = retainDataForTesting ? MessageSchedulerTestView() : null;
     server = LspAnalysisServer(
       channel,
@@ -286,11 +286,11 @@ abstract class AbstractLspAnalysisServerTest
       SessionLogger(),
       httpClient: httpClient,
       processRunner: processRunner,
+      pluginManager: pluginManager,
       dartFixPromptManager: dartFixPromptManager,
       messageSchedulerListener: testView,
     );
     errorNotifier.server = server;
-    server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');
     newFolder(projectFolderPath);

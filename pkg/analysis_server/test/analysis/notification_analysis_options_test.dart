@@ -8,7 +8,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart';
@@ -235,8 +234,9 @@ linter:
 @reflectiveTest
 class PluginConflictsNotificationTest extends PubPackageAnalysisServerTest {
   @override
-  late final TestPluginManager pluginManager =
-      _TestPluginManagerWithStateFolder(resourceProvider);
+  late final TestPluginManager pluginManager = TestPluginManager(
+    resourceProvider,
+  );
 
   Map<File, List<AnalysisError>?> filesErrors = {};
 
@@ -412,19 +412,5 @@ plugins:
     // won't be reporting this. https://github.com/dart-lang/sdk/issues/63627
     expect(nestedErrors, hasLength(1));
     expect(nestedErrors[0].code, 'plugins_in_inner_options');
-  }
-}
-
-class _TestPluginManagerWithStateFolder(final ResourceProvider resourceProvider)
-    extends TestPluginManager {
-  @override
-  InstrumentationService get instrumentationService =>
-      InstrumentationService.NULL_SERVICE;
-
-  @override
-  Folder pluginStateFolder(String contextRootPath) {
-    return resourceProvider.getFolder(
-      resourceProvider.pathContext.join(contextRootPath, '.plugin_state'),
-    );
   }
 }

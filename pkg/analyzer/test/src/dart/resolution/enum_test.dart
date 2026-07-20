@@ -320,7 +320,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
@@ -394,7 +395,8 @@ EnumConstantDeclaration
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
@@ -477,7 +479,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
@@ -553,7 +556,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
@@ -1537,7 +1541,8 @@ EnumDeclaration
         arguments: EnumConstantArguments
           constructorSelector: ConstructorSelector
             period: .
-            name: SimpleIdentifier
+            name2: named
+            name(v1): SimpleIdentifier
               token: named
               element: <null>
               staticType: null
@@ -1682,7 +1687,8 @@ EnumDeclaration
         arguments: EnumConstantArguments
           constructorSelector: ConstructorSelector
             period: .
-            name: SimpleIdentifier
+            name2: named
+            name(v1): SimpleIdentifier
               token: named
               element: <null>
               staticType: null

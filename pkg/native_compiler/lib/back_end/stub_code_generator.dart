@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ast show Class;
-import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
 
 /// Interface class for architecture-specific stub code generator.
 abstract interface class StubCodeGenerator {
-  Assembler generate();
+  Code generate(String name);
 }
 
 /// Base class for architecture-specific stub factory.
@@ -30,8 +29,7 @@ abstract base class StubFactory {
   );
 
   Code _generateCode(String name, StubCodeGenerator generator) {
-    final asm = generator.generate();
-    final code = Code(name, null, asm.bytes, asm.objectPool);
+    final code = generator.generate(name);
     consumeGeneratedCode(code);
     return code;
   }

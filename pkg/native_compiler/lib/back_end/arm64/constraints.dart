@@ -9,6 +9,8 @@ import 'package:native_compiler/back_end/arm64/assembler.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
+import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 
 /// Defines arm64 register allocation contraints for
@@ -16,6 +18,8 @@ import 'package:native_compiler/runtime/type_utils.dart';
 final class Arm64Constraints extends Constraints {
   // TODO: enable returning unboxed FP values on FP register.
   static const bool returnFPValuesOnFPRegister = false;
+
+  final StackFrame stackFrame;
 
   late final allRegisters = <Constraint>[
     ...getAllocatableRegisters(),
@@ -32,6 +36,8 @@ final class Arm64Constraints extends Constraints {
   );
 
   List<Constraint?>? _parameters;
+
+  Arm64Constraints(this.stackFrame);
 
   @override
   int getNumberOfRegisters() => numberOfRegisters;
@@ -73,6 +79,7 @@ final class Arm64Constraints extends Constraints {
       (resultReg == returnFPReg)
           ? volatileRegistersExceptFPReturnReg
           : volatileRegistersExceptReturnReg,
+      Safepoint(),
     );
   }
 
@@ -91,13 +98,13 @@ final class Arm64Constraints extends Constraints {
       if (paramIndex < argumentRegisters.length) {
         paramConstraint = argumentRegisters[paramIndex];
       } else {
-        paramConstraint = ParameterStackLocation(
-          paramIndex - argumentRegisters.length,
+        paramConstraint = stackFrame.getParameterSlot(
+          paramIndex,
           registerClass(instr),
         );
       }
     } else {
-      paramConstraint = ParameterStackLocation(
+      paramConstraint = stackFrame.getParameterSlot(
         paramIndex,
         registerClass(instr),
       );
@@ -189,10 +196,11 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitStoreInstanceField(StoreInstanceField instr) =>
-      const InstructionConstraints(
+      InstructionConstraints(
         null,
-        [anyCpuRegister, anyCpuRegister],
-        [anyCpuRegister, anyCpuRegister],
+        const [anyCpuRegister, anyCpuRegister],
+        const [anyCpuRegister, anyCpuRegister],
+        Safepoint(), // For write barrier slow path.
       );
 
   @override
@@ -202,6 +210,7 @@ final class Arm64Constraints extends Constraints {
           returnReg,
           const [],
           volatileRegistersExceptReturnReg,
+          Safepoint(),
         )
       : const InstructionConstraints(anyCpuRegister, [], [
           anyCpuRegister,
@@ -223,12 +232,13 @@ final class Arm64Constraints extends Constraints {
       null,
       inputs,
       allRegistersExcept(null, inputs),
+      Safepoint(),
     );
   }
 
   @override
   InstructionConstraints? visitNullCheck(NullCheck instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(anyCpuRegister, [anyCpuRegister], [], Safepoint());
 
   @override
   InstructionConstraints? visitTypeCast(TypeCast instr) {
@@ -257,15 +267,21 @@ final class Arm64Constraints extends Constraints {
         // Type testing stub can call runtime without preserving registers.
         // TODO: save registers on slow path
         allRegistersExcept(TypeTestingStub.instanceReg, inputs),
+        Safepoint(),
       );
     }
-    return InstructionConstraints(anyCpuRegister, [
+    return InstructionConstraints(
       anyCpuRegister,
-      if (instr.inputCount > 1) ...[
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
-        anyRegisterOrImmediate(instr.inputDefAt(2)),
+      [
+        anyCpuRegister,
+        if (instr.inputCount > 1) ...[
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+          anyRegisterOrImmediate(instr.inputDefAt(2)),
+        ],
       ],
-    ]);
+      const [],
+      Safepoint(),
+    );
   }
 
   @override
@@ -292,6 +308,7 @@ final class Arm64Constraints extends Constraints {
         inputs,
         // TODO: save registers on slow path
         allRegistersExcept(TypeTestingStub.subtypeTestCacheResultReg, inputs),
+        Safepoint(),
       );
     }
     return InstructionConstraints(anyCpuRegister, [
@@ -304,18 +321,22 @@ final class Arm64Constraints extends Constraints {
   }
 
   @override
-  InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
-      const InstructionConstraints(
+  InstructionConstraints? visitTypeArguments(TypeArguments instr) {
+    final inputs = const [
+      InstantiateTypeArgumentsStub.instantiatorTypeArgumentsReg,
+      InstantiateTypeArgumentsStub.functionTypeArgumentsReg,
+    ];
+    return InstructionConstraints(
+      InstantiateTypeArgumentsStub.resultTypeArgumentsReg,
+      inputs,
+      // TODO: save registers on slow ptah
+      allRegistersExcept(
         InstantiateTypeArgumentsStub.resultTypeArgumentsReg,
-        [
-          InstantiateTypeArgumentsStub.instantiatorTypeArgumentsReg,
-          InstantiateTypeArgumentsStub.functionTypeArgumentsReg,
-        ],
-        [
-          InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
-          InstantiateTypeArgumentsStub.scratchReg,
-        ],
-      );
+        inputs,
+      ),
+      Safepoint(),
+    );
+  }
 
   @override
   InstructionConstraints? visitTypeLiteral(TypeLiteral instr) {
@@ -324,7 +345,12 @@ final class Arm64Constraints extends Constraints {
         type is! ast.TypeParameterType || type.nullability == .nullable;
     if (callsRuntime) {
       final inputs = const [R1, R2];
-      return InstructionConstraints(R0, inputs, allRegistersExcept(R0, inputs));
+      return InstructionConstraints(
+        R0,
+        inputs,
+        allRegistersExcept(R0, inputs),
+        Safepoint(),
+      );
     }
     return const InstructionConstraints(anyCpuRegister, [
       anyCpuRegister,
@@ -342,6 +368,7 @@ final class Arm64Constraints extends Constraints {
       inputs,
       // TODO: save registers on slow path
       allRegistersExcept(AllocationStub.resultReg, inputs),
+      Safepoint(),
     );
   }
 
@@ -352,6 +379,7 @@ final class Arm64Constraints extends Constraints {
         [],
         // TODO: save registers on slow path
         allRegistersExcept(AllocationStub.resultReg, []),
+        Safepoint(),
       );
 
   @override
@@ -361,6 +389,7 @@ final class Arm64Constraints extends Constraints {
         [],
         // TODO: save registers on slow path
         allRegistersExcept(AllocationStub.resultReg, []),
+        Safepoint(),
       );
 
   @override
@@ -371,6 +400,7 @@ final class Arm64Constraints extends Constraints {
       [null],
       // TODO: save registers on slow path
       allRegistersExcept(AllocationStub.resultReg, []),
+      Safepoint(),
     );
   }
 
@@ -380,6 +410,7 @@ final class Arm64Constraints extends Constraints {
         null,
         [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
         const [anyCpuRegister, anyCpuRegister],
+        Safepoint(), // For write barrier.
       );
 
   @override
@@ -389,22 +420,24 @@ final class Arm64Constraints extends Constraints {
         [],
         // TODO: save registers on slow path
         allRegistersExcept(AllocationStub.resultReg, []),
+        Safepoint(),
       );
 
   @override
-  InstructionConstraints? visitBoxInt(BoxInt instr) =>
-      const InstructionConstraints(
-        anyCpuRegister,
-        [anyCpuRegister],
-        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
-      );
+  InstructionConstraints? visitBoxInt(BoxInt instr) => InstructionConstraints(
+    anyCpuRegister,
+    const [anyCpuRegister],
+    const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+    Safepoint(),
+  );
 
   @override
   InstructionConstraints? visitBoxDouble(BoxDouble instr) =>
-      const InstructionConstraints(
+      InstructionConstraints(
         anyCpuRegister,
-        [anyFpuRegister],
-        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+        const [anyFpuRegister],
+        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+        Safepoint(),
       );
 
   @override
@@ -471,6 +504,7 @@ final class Arm64Constraints extends Constraints {
       null,
       inputs,
       allRegistersExcept(null, inputs),
+      Safepoint(),
     );
   }
 
@@ -484,6 +518,7 @@ final class Arm64Constraints extends Constraints {
       returnReg,
       inputs,
       allRegistersExcept(returnReg, inputs),
+      Safepoint(),
     );
   }
 }

@@ -1069,13 +1069,24 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
-    if (node.isStatic && node.abstractKeyword != null) {
-      for (var variable in node.fields.variables) {
-        var declaredFragment = variable.declaredFragment! as FieldFragmentImpl;
-        _checkForIncompleteInducedAccessors(
-          nameToken: variable.name,
-          fragment: declaredFragment,
-        );
+    // Abstract fields are syntactic sugar for incomplete getters/setters.
+    // For classes, instance accessors can be implemented by subclasses.
+    // Static fields, enum fields, and extension/extension type fields have no
+    // subclass implementation path, so their induced accessors must be
+    // completed by augmentations.
+    if (node.abstractKeyword != null) {
+      if (node.isStatic ||
+          _enclosingClass is EnumElement ||
+          _enclosingExtension != null ||
+          _enclosingClass is ExtensionTypeElement) {
+        for (var variable in node.fields.variables) {
+          var declaredFragment =
+              variable.declaredFragment! as FieldFragmentImpl;
+          _checkForIncompleteInducedAccessors(
+            nameToken: variable.name,
+            fragment: declaredFragment,
+          );
+        }
       }
     }
 
@@ -2416,21 +2427,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForAbstractOrExternalVariableInitializer(
     VariableDeclaration node,
   ) {
-    var declaredElement = node.declaredFragment?.element;
+    var declaredFragment = node.declaredFragment;
     if (node.initializer2 != null) {
-      if (declaredElement is FieldElement) {
-        if (declaredElement.isAbstract) {
+      if (declaredFragment is FieldFragmentImpl) {
+        if (declaredFragment.isAbstract) {
           diagnosticReporter.report(
             diag.abstractFieldInitializer.at(node.name),
           );
         }
-        if (declaredElement.isExternal) {
+        if (declaredFragment.isExternal) {
           diagnosticReporter.report(
             diag.externalFieldInitializer.at(node.name),
           );
         }
-      } else if (declaredElement is TopLevelVariableElement) {
-        if (declaredElement.isExternal) {
+      } else if (declaredFragment is TopLevelVariableFragmentImpl) {
+        if (declaredFragment.isExternal) {
           diagnosticReporter.report(
             diag.externalVariableInitializer.at(node.name),
           );
@@ -4828,12 +4839,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
+  void _checkForExtensionDeclaresInstanceField(FieldDeclarationImpl node) {
     if (node.parent2?.parent2 is! ExtensionDeclaration) {
       return;
     }
 
-    if (node.isStatic || node.externalKeyword != null) {
+    if (node.isStatic ||
+        node.externalKeyword != null ||
+        node.isAbstractWhenAugmentationsEnabled(_featureSet)) {
       return;
     }
 
@@ -4872,12 +4885,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForExtensionTypeDeclaresInstanceField(FieldDeclaration node) {
+  void _checkForExtensionTypeDeclaresInstanceField(FieldDeclarationImpl node) {
     if (_enclosingClass is! ExtensionTypeElement) {
       return;
     }
 
-    if (node.isStatic || node.externalKeyword != null) {
+    if (node.isStatic ||
+        node.externalKeyword != null ||
+        node.isAbstractWhenAugmentationsEnabled(_featureSet)) {
       return;
     }
 
@@ -6594,7 +6609,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForNonFinalFieldInEnum({
-    required FieldDeclaration? fieldDeclaration,
+    required FieldDeclarationImpl? fieldDeclaration,
     required PrimaryConstructorDeclarationImpl? primaryConstructor,
   }) {
     if (_enclosingClass is! EnumElement) {
@@ -6603,8 +6618,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     if (fieldDeclaration != null) {
       if (!fieldDeclaration.isStatic) {
-        // External fields do not add stored state to the enum instance.
-        if (fieldDeclaration.externalKeyword == null) {
+        // External fields don't add stored state to enum instance. When
+        // augmentations are enabled, abstract fields are checked as incomplete
+        // induced accessors that may be completed by augmentations.
+        if (fieldDeclaration.externalKeyword == null &&
+            !fieldDeclaration.isAbstractWhenAugmentationsEnabled(_featureSet)) {
           var variableList = fieldDeclaration.fields;
           if (!variableList.isFinal) {
             diagnosticReporter.report(

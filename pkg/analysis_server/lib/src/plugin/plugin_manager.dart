@@ -130,7 +130,7 @@ class PluginManager {
   /// has determined no plugins are configured to be run, or (b) when the
   /// plugins are configured and the first status notification is received by
   /// the analysis server.
-  Completer<void> initializedCompleter = Completer();
+  final Completer<void> initializedCompleter = Completer();
 
   final ProcessRunner _processRunner;
 

@@ -928,7 +928,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       var constructorSelector = node.arguments?.constructorSelector;
       if (constructorSelector != null) {
         offset = constructorSelector.period.offset;
-        length = constructorSelector.name.end - offset;
+        length = constructorSelector.name2.end - offset;
       } else {
         offset = node.name.end;
         length = 0;

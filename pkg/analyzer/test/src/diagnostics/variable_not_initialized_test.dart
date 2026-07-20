@@ -45,6 +45,17 @@ abstract class A {
 ''');
   }
 
+  test_class_instanceField1_final_external_augmentedByInitializer() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external final int v;
+  augment final int v = 0;
+//                  ^
+// [diag.augmentationInducedGetterAlreadyComplete] The getter induced by this augmentation is complete, but the getter being augmented is already complete.
+}
+''');
+  }
+
   test_class_instanceField1_final_external_hasInitializer() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -437,6 +448,17 @@ class A {
   abstract int v;
 //^^^^^^^^^^^^^^^
 // [diag.concreteClassWithAbstractMember] 'v' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
+  test_class_instanceField1_notFinal_external_augmentation_hasInitializer() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract class A {
+  abstract int v;
+  augment external int v = 0;
+//                     ^
+// [diag.externalFieldInitializer] External fields can't have initializers.
 }
 ''');
   }
@@ -2316,6 +2338,15 @@ const int v;
 ''');
   }
 
+  test_topLevelVariable1_final_external_augmentedByInitializer() async {
+    await resolveTestCodeWithDiagnostics('''
+external final int v;
+augment final int v = 0;
+//                ^
+// [diag.augmentationInducedGetterAlreadyComplete] The getter induced by this augmentation is complete, but the getter being augmented is already complete.
+''');
+  }
+
   test_topLevelVariable1_final_external_hasInitializer() async {
     await resolveTestCodeWithDiagnostics('''
 external final int v = 0;
@@ -2343,6 +2374,15 @@ final int v;
 final Object? v;
 //            ^
 // [diag.finalNotInitialized] The final variable 'v' must be initialized.
+''');
+  }
+
+  test_topLevelVariable1_notFinal_external_augmentation_hasInitializer() async {
+    await resolveTestCodeWithDiagnostics('''
+abstract int v;
+augment external int v = 0;
+//                   ^
+// [diag.externalVariableInitializer] External variables can't have initializers.
 ''');
   }
 

@@ -443,7 +443,7 @@ class CiderRenameComputer {
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
     var node = resolvedUnit.unit.nodeCovering(offset: offset);
-    var element = getElementOfNode2(node);
+    var element = getElementOfNodeV1(node);
 
     if (node == null || element == null) {
       return null;

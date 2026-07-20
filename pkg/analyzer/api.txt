@@ -1413,6 +1413,7 @@ package:analyzer/dart/ast/ast.dart:
     element (getter: ConstructorElement?)
   ConstructorSelector (class extends Object implements AstNode, abstract, final):
     name (getter: SimpleIdentifier)
+    name2 (getter: Token, experimental)
     period (getter: Token)
   ContinueStatement (class extends Object implements Statement, abstract, final):
     continueKeyword (getter: Token)

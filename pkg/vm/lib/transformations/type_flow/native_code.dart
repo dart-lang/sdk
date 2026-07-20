@@ -13,7 +13,7 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 
 import 'calls.dart';
 import 'types.dart';
-import '../pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 abstract class EntryPointsListener {
   /// Add call by the given selector with arbitrary ('raw') arguments.
@@ -435,10 +435,10 @@ class NativeCodeOracle {
       if (pragma is ParsedResultTypeByTypePragma ||
           pragma is ParsedResultTypeByPathPragma) {
         // We can only use the 'vm:exact-result-type' pragma on methods in core
-        // libraries for safety reasons. See 'result_type_pragma.md', detail 1.2
-        // for explanation.
+        // libraries for safety reasons.
+        // See runtime/docs/compiler/pragmas_recognized_by_compiler.md for explanation.
         if (!member.enclosingLibrary.importUri.isScheme("dart")) {
-          throw "ERROR: Cannot use $kVmExactResultTypePragmaName "
+          throw "ERROR: Cannot use $vmExactResultTypePragmaName "
               "outside core libraries.";
         }
       }

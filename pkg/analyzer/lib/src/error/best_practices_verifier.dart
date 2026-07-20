@@ -67,7 +67,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
 
   final DeprecatedFunctionalityVerifier _deprecatedFunctionalityVerifier;
 
-  final ElementUsageFrontierDetector _elementUsageFrontierDetector;
+  final ElementUsageFrontierDetectorV2 _elementUsageFrontierDetector;
 
   final ErrorHandlerVerifier _errorHandlerVerifier;
 
@@ -121,7 +121,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
          _diagnosticReporter,
          _currentLibrary,
        ),
-       _elementUsageFrontierDetector = ElementUsageFrontierDetector(
+       _elementUsageFrontierDetector = ElementUsageFrontierDetectorV2(
          workspacePackage: workspacePackage,
          usagesAndReporters: [
            UsageSetAndReporter(

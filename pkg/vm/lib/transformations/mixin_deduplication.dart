@@ -8,7 +8,7 @@ import 'package:kernel/import_table.dart';
 import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_algebra.dart';
 
-import 'pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 const String _dedupLibraryName = 'dart:mixin_deduplication';
 

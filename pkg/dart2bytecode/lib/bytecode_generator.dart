@@ -20,7 +20,7 @@ import 'package:kernel/type_algebra.dart'
 import 'package:kernel/type_environment.dart'
     show StatefulStaticTypeContext, TypeEnvironment;
 
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'assembler.dart';
 import 'bytecode_serialization.dart'
@@ -77,7 +77,6 @@ void generateBytecode(
   Timeline.timeSync("generateBytecode", () {
     verifyBytecodeInstructionDeclarations();
     final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
-    final pragmaParser = ConstantPragmaAnnotationParser(coreTypes, target);
 
     final bytecodeGenerator = BytecodeGenerator(
       component,
@@ -85,7 +84,6 @@ void generateBytecode(
       hierarchy,
       typeEnvironment,
       options,
-      pragmaParser,
       libraries: libraries,
       extraLoadedLibraries: extraLoadedLibraries,
     );
@@ -121,7 +119,6 @@ class BytecodeGenerator extends RecursiveVisitor {
   final TypeEnvironment typeEnvironment;
   final StatefulStaticTypeContext staticTypeContext;
   final BytecodeOptions options;
-  final PragmaAnnotationParser pragmaParser;
   final RecognizedMethods recognizedMethods;
   final Map<Uri, Source> astUriToSource;
   final List<Library> libraries;
@@ -180,8 +177,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     TypeEnvironment typeEnvironment,
-    BytecodeOptions options,
-    PragmaAnnotationParser pragmaParser, {
+    BytecodeOptions options, {
     required List<Library> libraries,
     Set<Library> extraLoadedLibraries = const {},
   }) : this._internal(
@@ -190,7 +186,6 @@ class BytecodeGenerator extends RecursiveVisitor {
          hierarchy,
          typeEnvironment,
          options,
-         pragmaParser,
          libraries: libraries,
          extraLoadedLibraries: extraLoadedLibraries,
          StatefulStaticTypeContext.flat(typeEnvironment),
@@ -202,7 +197,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     this.hierarchy,
     this.typeEnvironment,
     this.options,
-    this.pragmaParser,
     this.staticTypeContext, {
     required this.libraries,
     required this.extraLoadedLibraries,
@@ -239,14 +233,13 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    isInDeeplyImmutableClass = pragmaParser
-        .parsedPragmas<ParsedVmDeeplyImmutablePragma>(node.annotations)
-        .isNotEmpty;
+    isInDeeplyImmutableClass = node.isDeeplyImmutable(coreTypes);
     startMembers();
     visitList(node.constructors, this);
     visitList(node.procedures, this);
     visitList(node.fields, this);
     final members = endMembers(node);
+    isInDeeplyImmutableClass = false;
 
     classDeclarations.add(getClassDeclaration(node, members));
   }
@@ -374,9 +367,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= ClassDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= ClassDeclaration.hasPragmaFlag;
-        if (pragmaParser
-            .parsedPragmas<ParsedVmDeeplyImmutablePragma>(cls.annotations)
-            .isNotEmpty) {
+        if (cls.isDeeplyImmutable(coreTypes)) {
           flags |= ClassDeclaration.isDeeplyImmutableFlag;
         }
       }
@@ -596,9 +587,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= FieldDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= FieldDeclaration.hasPragmaFlag;
-        if (pragmaParser
-            .parsedPragmas<ParsedVmSharedPragma>(field.annotations)
-            .isNotEmpty) {
+        if (field.isShared(coreTypes)) {
           flags |= FieldDeclaration.isShared;
         }
       }
@@ -693,9 +682,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (member.isExternal) {
       final String? externalName = getExternalName(coreTypes, member);
       if (externalName == null) {
-        if (pragmaParser
-            .parsedPragmas<ParsedFfiNativePragma>(member.annotations)
-            .isNotEmpty) {
+        if (member.isFfiNative(coreTypes)) {
           flags |= FunctionDeclaration.isNativeFlag;
         }
         flags |= FunctionDeclaration.isExternalFlag;
@@ -725,14 +712,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= FunctionDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= FunctionDeclaration.hasPragmaFlag;
-        if (pragmaParser
-            .parsedPragmas<ParsedVmInvisiblePragma>(member.annotations)
-            .isNotEmpty) {
+        if (member.isInvisible(coreTypes)) {
           flags |= FunctionDeclaration.isInvisibleFlag;
         }
-        if (pragmaParser
-            .parsedPragmas<ParsedDynModuleEntryPointPragma>(member.annotations)
-            .isNotEmpty) {
+        if (member.isDynModuleEntryPoint(coreTypes)) {
           if (dynModuleEntryPoint != null) {
             throw 'Duplicate Dynamic Module Entry Points: $dynModuleEntryPoint and $member';
           }
@@ -858,9 +841,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         if (node.isExternal) {
           if (getExternalName(coreTypes, node) != null) {
             _genExternalCall(node);
-          } else if (pragmaParser
-              .parsedPragmas<ParsedFfiNativePragma>(node.annotations)
-              .isNotEmpty) {
+          } else if (node.isFfiNative(coreTypes)) {
             _generateFfiCall(null);
           } else {
             _genNoSuchMethodForExternal(node);
@@ -912,9 +893,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     // Avoid runtime check of field type as part of (more frequently used)
     // non-shared fields inline getter code.
-    if (pragmaParser
-        .parsedPragmas<ParsedVmSharedPragma>(field.annotations)
-        .isNotEmpty) {
+    if (field.isShared(coreTypes)) {
       return true;
     }
 
@@ -926,9 +905,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   bool _needsSetter(Field field) {
     // Avoid runtime check of field type as part of (more frequently used)
     // non-shared fields inline setter code.
-    if (pragmaParser
-        .parsedPragmas<ParsedVmSharedPragma>(field.annotations)
-        .isNotEmpty) {
+    if (field.isShared(coreTypes)) {
       return true;
     }
 
@@ -2951,9 +2928,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       flags |= ClosureDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= ClosureDeclaration.hasPragmaFlag;
-        if (pragmaParser
-            .parsedPragmas<ParsedVmInvisiblePragma>(astAnnotations)
-            .isNotEmpty) {
+        if (node is ast.FunctionDeclaration && node.isInvisible(coreTypes)) {
           flags |= ClosureDeclaration.isInvisibleFlag;
         }
       }

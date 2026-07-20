@@ -64,12 +64,18 @@ final class DartPadConfig {
   /// `pub` commands.
   final String? pubHostedUrl;
 
+  /// Whether or not to enable the trackCreationLocations DDC target flag.
+  ///
+  /// Defaults to `false`.
+  final bool trackCreationLocations;
+
   DartPadConfig({
     this.dartSdkPath = '/sdk',
     this.summaryModules = const {},
     this.bootstrapCode,
     this.flutterSdkPath,
     this.pubHostedUrl,
+    this.trackCreationLocations = false,
   });
 
   factory DartPadConfig.fromJson(Map<String, Object?> json) {
@@ -82,6 +88,7 @@ final class DartPadConfig {
       bootstrapCode: json['bootstrapCode'] as String?,
       flutterSdkPath: json['flutterSdkPath'] as String?,
       pubHostedUrl: json['pubHostedUrl'] as String?,
+      trackCreationLocations: json['trackCreationLocations'] as bool? ?? false,
     );
   }
 
@@ -92,6 +99,7 @@ final class DartPadConfig {
     String? bootstrapCode,
     String? flutterSdkPath,
     String? pubHostedUrl,
+    bool? trackCreationLocations,
   }) {
     return DartPadConfig(
       dartSdkPath: dartSdkPath ?? this.dartSdkPath,
@@ -99,6 +107,8 @@ final class DartPadConfig {
       bootstrapCode: bootstrapCode ?? this.bootstrapCode,
       flutterSdkPath: flutterSdkPath ?? this.flutterSdkPath,
       pubHostedUrl: pubHostedUrl ?? this.pubHostedUrl,
+      trackCreationLocations:
+          trackCreationLocations ?? this.trackCreationLocations,
     );
   }
 
@@ -109,6 +119,7 @@ final class DartPadConfig {
       if (bootstrapCode != null) 'bootstrapCode': bootstrapCode,
       if (flutterSdkPath != null) 'flutterSdkPath': flutterSdkPath,
       if (pubHostedUrl != null) 'pubHostedUrl': pubHostedUrl,
+      'trackCreationLocations': trackCreationLocations,
     };
   }
 

@@ -50,6 +50,7 @@ namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
 class CodeDeserializationCluster;
 class CodeSourceMapDeserializationCluster;
+class CompressedStackMapsDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
@@ -2474,6 +2475,7 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   friend class Object;
   friend class ImageWriter;
   friend class StackMapEntry;
+  friend class module_snapshot::CompressedStackMapsDeserializationCluster;
 };
 
 class UntaggedInstructionsTable : public UntaggedObject {

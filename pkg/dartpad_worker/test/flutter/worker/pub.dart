@@ -25,4 +25,27 @@ void main() {
       log,
     ).matchesPattern(RegExp(r'Changed \d+ (dependencies|dependency)!'));
   });
+
+  testFlutterWorkspace('pub get (packages from sdk)', (ws) async {
+    await ws.writeFileFromText('pubspec.yaml', '''
+      name: myapp
+      publish_to: none
+      dependencies:
+        flutter:
+          sdk: flutter
+        flutter_localizations:
+          sdk: flutter
+        flutter_web_plugins:
+          sdk: flutter
+      environment:
+        sdk: '>=3.12.0 <4.0.0'
+    ''');
+
+    final (:log) = await ws.pub(command: 'get');
+
+    printOnFailure(log);
+    check(
+      log,
+    ).matchesPattern(RegExp(r'Changed \d+ (dependencies|dependency)!'));
+  });
 }

@@ -9,6 +9,7 @@ import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
@@ -58,6 +59,12 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   /// Instruction id -> LiveRange corresponding to the instruction output.
   late final List<LiveRange?> _liveRanges;
 
+  /// Instruction id -> its Safepoint.
+  late final List<Safepoint?> _safepoints;
+
+  /// Instruction position ~/ step -> position of the next instruction with a safepoint.
+  late final Int32List _nextSafepointPos;
+
   /// Locations of instruction inputs/outputs/temps.
   final Map<OperandId, Location> _operandLocations = {};
 
@@ -66,7 +73,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   late final List<LiveRange?> _fpuRegLiveRanges;
 
   /// Register index -> [Location].
-  late List<Location?> _registerLocations;
+  late List<PhysicalRegister?> _registerLocations;
 
   /// List of live ranges which were not handled yet by [allocate].
   late List<LiveRange> _unhandled;
@@ -94,16 +101,21 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
   LiveRange liveRangeFor(Definition instr) {
     assert(hasLiveRange(instr));
-    return _liveRanges[instr.id] ??= LiveRange(registerClass(instr));
+    return _liveRanges[instr.id] ??= LiveRange(
+      registerClass(instr),
+      isObjectPointer: !backEndState.unboxing.hasUnboxedResult(instr),
+    );
   }
 
   LiveRange regLiveRange(PhysicalRegister r) => (r is Register)
       ? (_cpuRegLiveRanges[r.index] ??= LiveRange(
           RegisterClass.cpu,
+          isObjectPointer: false,
           isPhysical: true,
         ))
       : (_fpuRegLiveRanges[r.index] ??= LiveRange(
           RegisterClass.fpu,
+          isObjectPointer: false,
           isPhysical: true,
         ));
 
@@ -133,6 +145,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
     resolveDataFlow(liveness);
 
+    backEndState.safepoints = _safepoints;
     backEndState.operandLocations = _operandLocations;
     backEndState.stackFrame.finalize();
   }
@@ -170,6 +183,9 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     _liveRanges = List.filled(graph.instructions.length, null, growable: true);
     _cpuRegLiveRanges = List.filled(constraints.getNumberOfRegisters(), null);
     _fpuRegLiveRanges = List.filled(constraints.getNumberOfFPRegisters(), null);
+    _safepoints = List.filled(graph.instructions.length, null);
+    _nextSafepointPos = Int32List(graph.instructions.length + 1);
+    var nextSafepointPos = maxPosition;
 
     for (final block in backEndState.codeGenBlockOrder.reversed) {
       currentBlock = block;
@@ -199,7 +215,14 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
                   .inputs[predIndex]!;
               final operandId = OperandId.input(phi.id, predIndex);
               final liveRange = liveRangeFor(input);
-              _processInput(phi, liveRange, blockEnd, inputConstr, operandId);
+              _processInput(
+                phi,
+                liveRange,
+                blockEnd,
+                inputConstr,
+                operandId,
+                null,
+              );
             }
           }
         }
@@ -210,9 +233,11 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
         backEndState.stackFrame.allocateArgumentsSlots(instr);
         final pos = instructionPos(instr);
         final constr = constraints.getConstraints(instr);
+        _nextSafepointPos[pos ~/ step] = nextSafepointPos;
         if (constr == null) {
           continue;
         }
+        final safepoint = constr.safepoint;
         // Ignore Phis as they are processed in the predecessor blocks.
         if (instr is! Phi) {
           // Process inputs.
@@ -228,6 +253,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
                   pos,
                   inputConstr,
                   operandId,
+                  safepoint,
                 );
               }
             } else {
@@ -236,7 +262,14 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
               // It will be truncated by the definition if needed.
               liveRange.addInterval(blockStart, pos);
               if (inputConstr != null) {
-                _processInput(instr, liveRange, pos, inputConstr, operandId);
+                _processInput(
+                  instr,
+                  liveRange,
+                  pos,
+                  inputConstr,
+                  operandId,
+                  safepoint,
+                );
               }
             }
           }
@@ -262,7 +295,15 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
             _processOutput(instr, liveRange, pos, resultConstr, operandId);
           }
         }
+        // Process safepoint.
+        if (safepoint != null) {
+          backEndState.stackFrame.recordReservedLocations(safepoint);
+          _safepoints[instr.id] = safepoint;
+          nextSafepointPos = pos;
+        }
       }
+
+      _nextSafepointPos[blockStart ~/ step] = nextSafepointPos;
     }
 
     errorContext.annotator = (Instruction instr) {
@@ -291,12 +332,17 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     int pos,
     Constraint constr,
     OperandId operandId,
+    Safepoint? safepoint,
   ) {
     if (constr is PhysicalRegister) {
       regLiveRange(constr).addInterval(pos, pos + 1);
       final loc = liveRange.addUse(pos - 1, constr);
       _insertMoveBefore(instr, ParallelMoveStage.input, loc, constr);
       _operandLocations[operandId] = constr;
+      safepoint?.addLiveLocation(
+        constr,
+        isObjectPointer: liveRange.isObjectPointer,
+      );
     } else {
       final loc = liveRange.addUse(pos - 1, constr);
       _operandLocations[operandId] = loc;
@@ -310,13 +356,18 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     int pos,
     Constraint constr,
     OperandId operandId,
+    Safepoint? safepoint,
   ) {
     if (constr is PhysicalRegister) {
       _insertMoveBefore(instr, ParallelMoveStage.input, null, constr, value);
       regLiveRange(constr).addInterval(pos, pos + 1);
       _operandLocations[operandId] = constr;
+      safepoint?.addLiveLocation(constr, isObjectPointer: !value.isUnboxed);
     } else {
-      final liveRange = LiveRange(constr.registerClass);
+      final liveRange = LiveRange(
+        constr.registerClass,
+        isObjectPointer: !value.isUnboxed,
+      );
       _liveRanges.add(liveRange);
       liveRange.addInterval(pos - 1, pos);
       final loc = liveRange.addUse(pos - 1, constr);
@@ -330,7 +381,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       regLiveRange(constr).addInterval(pos, pos + 1);
       _operandLocations[operandId] = constr;
     } else {
-      final liveRange = LiveRange(constr.registerClass);
+      final liveRange = LiveRange(constr.registerClass, isObjectPointer: false);
       _liveRanges.add(liveRange);
       liveRange.addInterval(pos - 1, pos + 1);
       final loc = liveRange.addUse(pos, constr);
@@ -472,7 +523,10 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       print('----------');
     }
 
-    _registerLocations = List<Location?>.filled(numberOfRegisters, null);
+    _registerLocations = List<PhysicalRegister?>.filled(
+      numberOfRegisters,
+      null,
+    );
     _allocated = List<List<LiveRange>?>.filled(numberOfRegisters, null);
     for (final reg in allocatableRegisters) {
       _registerLocations[reg.index] = reg;
@@ -528,16 +582,37 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
               print('Finished blocked $range');
             }
           } else {
-            if (trace) {
-              print('Finished $range, allocated to ${_registerLocations[reg]}');
-            }
-            range.setLocation(_registerLocations[reg]!);
+            finishLiveRange(range, reg);
           }
         } else {
           ranges[i++] = range;
         }
       }
       ranges.length = i;
+    }
+  }
+
+  void finishLiveRange(LiveRange range, int reg) {
+    final loc = _registerLocations[reg]!;
+    if (trace) {
+      print('Finished $range, allocated to $loc');
+    }
+    range.setLocation(loc);
+    recordLiveRangeAtSafepoints(range, loc);
+  }
+
+  // Update all safepoints in this live range with given location.
+  void recordLiveRangeAtSafepoints(LiveRange range, Location loc) {
+    final intervals = range.intervals;
+    for (var i = 0, n = intervals.length; i < n; ++i) {
+      final start = intervals.startAt(i);
+      final end = intervals.endAt(i);
+      var pos = _nextSafepointPos[(start - 1) ~/ step];
+      while (pos < end) {
+        final safepoint = _safepoints[instructionByPos(pos).id]!;
+        safepoint.addLiveLocation(loc, isObjectPointer: range.isObjectPointer);
+        pos = _nextSafepointPos[pos ~/ step];
+      }
     }
   }
 
@@ -745,12 +820,26 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   void spillLiveRange(LiveRange range) {
     final splitParent = range.splitParent;
     assert(splitParent.registerClass == range.registerClass);
-    final spillSlot = (splitParent.spillSlot ??= backEndState.stackFrame
-        .allocateSpillSlot(splitParent.registerClass));
+    final spillSlot = allocateSpillSlotFor(splitParent);
     if (trace) {
       print('Spill $range to $spillSlot');
     }
     range.setLocation(spillSlot);
+  }
+
+  StackLocation allocateSpillSlotFor(LiveRange range) {
+    assert(range.splitParent == range);
+    assert(range.mergedTo == null);
+    var spillSlot = range.spillSlot;
+    if (spillSlot == null) {
+      spillSlot = range.spillSlot = backEndState.stackFrame.allocateSpillSlot(
+        range.registerClass,
+      );
+      for (LiveRange? r = range; r != null; r = r.splitNext) {
+        recordLiveRangeAtSafepoints(r, spillSlot);
+      }
+    }
+    return spillSlot;
   }
 
   void assignNonFreeRegister(LiveRange range, int reg) {
@@ -790,10 +879,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
         spillLiveRange(allocated);
       } else {
         spillLiveRange(splitBetween(allocated, allocated.start, spillPos));
-        if (trace) {
-          print('Finish evicted $allocated at ${_registerLocations[reg]}');
-        }
-        allocated.setLocation(_registerLocations[reg]!);
+        finishLiveRange(allocated, reg);
       }
     } else {
       final usePos = nextUse.pos;
@@ -817,10 +903,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
         }
         addToUnhandled(splitBetween(rangeToSpill, spillPos, restorePos));
         spillLiveRange(rangeToSpill);
-        if (trace) {
-          print('Finish evicted $allocated at ${_registerLocations[reg]}');
-        }
-        allocated.setLocation(_registerLocations[reg]!);
+        finishLiveRange(allocated, reg);
       }
     }
     return true;
@@ -835,9 +918,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           LiveRange? liveRange = _liveRanges[instrId]?.bundle;
           if (liveRange != null && liveRange.spillSlot == null) {
             assert(liveRange.splitParent == liveRange);
-            liveRange.spillSlot = backEndState.stackFrame.allocateSpillSlot(
-              liveRange.registerClass,
-            );
+            allocateSpillSlotFor(liveRange);
           }
         }
       }
@@ -1037,11 +1118,11 @@ class UsePosition {
 class LiveRange {
   static const int maxUseIndex = 0xffffffff;
 
-  final RegisterClass registerClass;
+  static const int registerClassMask = 1 << 0;
+  static const int isObjectPointerFlag = 1 << 1;
+  static const int isPhysicalFlag = 1 << 2;
 
-  // Whether this live range represents a blocked physical register
-  // or an allocatable/splittable/spillable live range.
-  final bool isPhysical;
+  int _flags;
 
   // List of intervals.
   IntervalList intervals = IntervalList();
@@ -1073,7 +1154,26 @@ class LiveRange {
   // uses.length - index in [uses].
   int currentUse = 1;
 
-  LiveRange(this.registerClass, {this.isPhysical = false});
+  LiveRange(
+    RegisterClass registerClass, {
+    required bool isObjectPointer,
+    bool isPhysical = false,
+  }) : assert((registerClass.index & registerClassMask) == registerClass.index),
+       assert(registerClass == .cpu || !isObjectPointer),
+       _flags =
+           registerClass.index |
+           (isObjectPointer ? isObjectPointerFlag : 0) |
+           (isPhysical ? isPhysicalFlag : 0);
+
+  RegisterClass get registerClass =>
+      RegisterClass.values[_flags & registerClassMask];
+
+  // Whether this live range is an object pointer and should be scanned by GC.
+  bool get isObjectPointer => (_flags & isObjectPointerFlag) != 0;
+
+  // Whether this live range represents a blocked physical register
+  // or an allocatable/splittable/spillable live range.
+  bool get isPhysical => (_flags & isPhysicalFlag) != 0;
 
   /// Add interval [start, end) to this live range.
   ///
@@ -1139,7 +1239,8 @@ class LiveRange {
     assert(!intervals.isEmpty && !other.intervals.isEmpty);
     if (this == other ||
         this.intersects(other) ||
-        registerClass != other.registerClass) {
+        this.registerClass != other.registerClass ||
+        this.isObjectPointer != other.isObjectPointer) {
       return;
     }
     intervals.merge(other.intervals);
@@ -1181,7 +1282,7 @@ class LiveRange {
     assert(!isPhysical);
     assert(mergedTo == null);
     assert(splitNext == null || end <= splitNext!.start);
-    final sibling = LiveRange(registerClass);
+    final sibling = LiveRange(registerClass, isObjectPointer: isObjectPointer);
     sibling.splitFrom = splitParent;
     sibling.splitNext = splitNext;
     sibling.intervals = intervals.splitAt(pos);
