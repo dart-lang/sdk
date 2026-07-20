@@ -59,14 +59,16 @@ class CreateEnumConstant extends ResolvedCorrectionProducer {
     var constructors = targetElement.constructors
         .where((c) => !c.isFactory)
         .toList();
-    if (constructors.any((c) => c.formalParameters.isNotEmpty)) return;
 
     String? constructorName;
+    ConstructorElement? constructor;
     if (constructors.isNotEmpty) {
       if (constructors.length > 1) return;
-      if (constructors.first.name != 'new') {
-        constructorName = constructors.first.name;
+      var c = constructors.first;
+      if (c.name != 'new') {
+        constructorName = c.name;
       }
+      constructor = c;
     }
 
     EnumConstantDeclaration? lastConstant;
@@ -83,28 +85,56 @@ class CreateEnumConstant extends ResolvedCorrectionProducer {
     var targetFile = targetFragment.libraryFragment.source.fullName;
 
     await builder.addDartFileEdit(targetFile, (builder) {
+      var suffix = _constantSuffix(constructorName, constructor);
       if (lastConstant != null) {
         builder.addInsertion(lastConstant.end, (builder) {
           builder.write(', ');
           builder.write(_constantName);
-          if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(suffix);
         });
       } else if (rightBracket != null) {
         // If has a block body.
         builder.addInsertion(rightBracket.offset, (builder) {
           builder.write(' ');
           builder.write(_constantName);
-          if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(suffix);
           builder.write(' ');
         });
       } else if (semicolon != null) {
         builder.addReplacement(range.token(semicolon), (builder) {
           builder.write(' { ');
           builder.write(_constantName);
-          if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(suffix);
           builder.write(' }');
         });
       }
     });
+  }
+
+  String _buildArgs(ConstructorElement constructor) {
+    var parts = <String>[];
+    for (var param in constructor.formalParameters) {
+      var name = param.name;
+      if (name == null) continue;
+      if (param.isRequiredPositional) {
+        parts.add(name);
+      } else if (param.isRequiredNamed) {
+        parts.add('$name: $name');
+      }
+    }
+    return parts.join(', ');
+  }
+
+  String _constantSuffix(
+    String? constructorName,
+    ConstructorElement? constructor,
+  ) {
+    var args = constructor != null ? _buildArgs(constructor) : '';
+    if (constructorName != null) {
+      return '.$constructorName($args)';
+    } else if (args.isNotEmpty) {
+      return '($args)';
+    }
+    return '';
   }
 }

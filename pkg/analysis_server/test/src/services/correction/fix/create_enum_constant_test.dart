@@ -90,6 +90,184 @@ enum E { ONE, TWO }
 ''', target: '$testPackageLibPath/a.dart');
   }
 
+  Future<void> test_dotShorthandFactoryEmpty() async {
+    await resolveTestCode('''
+enum E {
+  ONE;
+
+  const E();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE, TWO;
+
+  const E();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+  }
+
+  Future<void> test_dotShorthandFactoryEmptyRedirect() async {
+    await resolveTestCode('''
+enum E {
+  ONE;
+
+  const E();
+  factory E.f() => ONE;
+  factory E.g() = E.f;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE, TWO;
+
+  const E();
+  factory E.f() => ONE;
+  factory E.g() = E.f;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+  }
+
+  Future<void> test_dotShorthandFactoryWithRequired() async {
+    await resolveTestCode('''
+enum E {
+  ONE(1);
+
+  final int i;
+  const E(this.i);
+  factory E.f({required int i, required String s}) => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE(1), TWO(i);
+
+  final int i;
+  const E(this.i);
+  factory E.f({required int i, required String s}) => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+  }
+
+  Future<void> test_dotShorthandFactoryWithRequiredRedirect() async {
+    await resolveTestCode('''
+enum E {
+  ONE(1);
+
+  final int i;
+  const E(this.i);
+  factory E.f({required int i, required String s}) => ONE;
+  factory E.g({required int i, required String s}) = E.f;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE(1), TWO(i);
+
+  final int i;
+  const E(this.i);
+  factory E.f({required int i, required String s}) => ONE;
+  factory E.g({required int i, required String s}) = E.f;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+  }
+
+  Future<void> test_factory_beforeGenerative() async {
+    await resolveTestCode('''
+enum E {
+  ONE;
+
+  factory E.f() => ONE;
+  const E();
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE, TWO;
+
+  factory E.f() => ONE;
+  const E();
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_mixed() async {
+    await resolveTestCode('''
+enum E {
+  ONE(1, s: 'hello');
+
+  final int i;
+  final String s;
+  const E(this.i, {required this.s});
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE(1, s: 'hello'), TWO(i, s: s);
+
+  final int i;
+  final String s;
+  const E(this.i, {required this.s});
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
   Future<void> test_named() async {
     await resolveTestCode('''
 enum E {
@@ -246,7 +424,18 @@ E e() {
 }
 ''');
 
-    await assertNoFix();
+    await assertHasFix('''
+enum E {
+  ONE.named(1), TWO.named(i);
+
+  final int i;
+  const E.named(this.i);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
   }
 
   Future<void> test_named_nonZeroParameters_dotShorthand() async {
@@ -263,7 +452,18 @@ E e() {
 }
 ''');
 
-    await assertNoFix();
+    await assertHasFix('''
+enum E {
+  ONE.named(1), TWO.named(i);
+
+  final int i;
+  const E.named(this.i);
+}
+
+E e() {
+  return .TWO;
+}
+''');
   }
 
   Future<void> test_named_unnamed() async {
@@ -281,6 +481,32 @@ E e() {
 ''');
 
     await assertNoFix();
+  }
+
+  Future<void> test_namedConstructor_withRequired() async {
+    await resolveTestCode('''
+enum E {
+  ONE.other(1);
+
+  const E.other(int x);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE.other(1), TWO.other(x);
+
+  const E.other(int x);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
   }
 
   Future<void> test_namedPrimary() async {
@@ -310,7 +536,121 @@ enum E.named(final int i) {
 E e = E.two;
 ''');
 
-    await assertNoFix();
+    await assertHasFix('''
+enum E.named(final int i) {
+  one.named(1), two.named(i);
+}
+
+E e = E.two;
+''');
+  }
+
+  Future<void> test_optionalNamedWithDefault() async {
+    await resolveTestCode('''
+enum E {
+  ONE(i: 1);
+
+  const E({int i = 0});
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE(i: 1), TWO;
+
+  const E({int i = 0});
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_optionalPositionalWithDefault() async {
+    await resolveTestCode('''
+enum E {
+  ONE(1);
+
+  const E([int i = 0]);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE(1), TWO;
+
+  const E([int i = 0]);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_requiredNamed() async {
+    await resolveTestCode('''
+enum E {
+  ONE(s: 'hello');
+
+  final String s;
+  const E({required this.s});
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE(s: 'hello'), TWO(s: s);
+
+  final String s;
+  const E({required this.s});
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_requiredPositional() async {
+    await resolveTestCode('''
+enum E {
+  ONE(1);
+
+  final int value;
+  const E(this.value);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE(1), TWO(value);
+
+  final int value;
+  const E(this.value);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
   }
 
   Future<void> test_toEmpty_braces() async {
@@ -450,7 +790,18 @@ E e() {
 }
 ''');
 
-    await assertNoFix();
+    await assertHasFix('''
+enum E {
+  ONE(1), TWO(i);
+
+  final int i;
+  const E(this.i);
+}
+
+E e() {
+  return E.TWO;
+}
+''');
   }
 
   Future<void> test_unnamedPrimary() async {
@@ -480,6 +831,12 @@ enum E(final int i) {
 E e = E.two;
 ''');
 
-    await assertNoFix();
+    await assertHasFix('''
+enum E(final int i) {
+  one(1), two(i);
+}
+
+E e = E.two;
+''');
   }
 }
