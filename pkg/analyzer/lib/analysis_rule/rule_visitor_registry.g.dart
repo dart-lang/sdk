@@ -583,6 +583,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addConstructorSelector(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addConstructorTypeReference(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addContinueStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addDeclaredIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);

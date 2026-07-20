@@ -9795,6 +9795,10 @@ abstract final class ConstructorReferenceNode implements AstNode {
   /// The element associated with the referenced constructor based on static
   /// type information.
   ///
+  /// This is the constructor element after applying any explicit or inferred
+  /// type arguments. Use [ConstructorElement.baseElement] to access the
+  /// declaration element.
+  ///
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// constructor couldn't be resolved.
   ConstructorElement? get element;
@@ -9913,6 +9917,242 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// A reference to the type defining a constructor.
+///
+/// This node represents the type-shaped syntax at the start of a constructor
+/// reference, but isn't a [TypeAnnotation] and doesn't have a resolved
+/// [DartType].
+///
+///    constructorTypeReference ::=
+///        [ImportPrefixReference]? name [TypeArgumentList]?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorTypeReference implements AstNode {
+  /// The element to which [name] resolves, considering [importPrefix].
+  ///
+  /// Resolution of this element doesn't use [typeArguments]. The type
+  /// arguments are interpreted when resolving the enclosing constructor
+  /// reference.
+  ///
+  /// In valid code this is an [InterfaceElement] or [TypeAliasElement]. It is
+  /// the element named in source. For a type alias, this is the alias element
+  /// rather than the element of its aliased type.
+  ///
+  /// Returns `null` before resolution or if [name] doesn't resolve.
+  Element? get element;
+
+  /// The optional import prefix before [name].
+  ImportPrefixReference? get importPrefix;
+
+  /// The name of the type defining the constructor.
+  Token get name;
+
+  /// The type arguments associated with the type, or `null` if there are no
+  /// type arguments.
+  TypeArgumentList? get typeArguments;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('typeArguments'),
+  ],
+)
+final class ConstructorTypeReferenceImpl extends AstNodeImpl
+    implements ConstructorTypeReference {
+  @generated
+  ImportPrefixReferenceImpl? _importPrefix;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  TypeArgumentListImpl? _typeArguments;
+
+  @override
+  Element? element;
+
+  @generated
+  ConstructorTypeReferenceImpl({
+    required ImportPrefixReferenceImpl? importPrefix,
+    required this.name,
+    required TypeArgumentListImpl? typeArguments,
+  }) : _importPrefix = importPrefix,
+       _typeArguments = typeArguments {
+    _becomeParentOf2(importPrefix);
+    _becomeParentOf2(typeArguments);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (importPrefix case var importPrefix?) {
+      return importPrefix.beginToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (typeArguments case var typeArguments?) {
+      return typeArguments.endToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  ImportPrefixReferenceImpl? get importPrefix => _importPrefix;
+
+  @generated
+  set importPrefix(ImportPrefixReferenceImpl? importPrefix) {
+    _importPrefix = _becomeParentOf2(importPrefix);
+  }
+
+  @generated
+  @override
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  @generated
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf2(typeArguments);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorTypeReference(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = null;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = newNode as ImportPrefixReferenceImpl?;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix?.accept2(visitor);
+    typeArguments?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+  }) {
+    if (importPrefix case var importPrefix?) {
+      if (visitImportPrefix != null) {
+        visitImportPrefix(importPrefix);
+      } else {
+        importPrefix.accept2(visitor);
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorTypeReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (importPrefix case var importPrefix?) {
+      if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+        return importPrefix;
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
     return null;
   }
 }
