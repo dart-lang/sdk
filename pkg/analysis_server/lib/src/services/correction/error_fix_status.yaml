@@ -2514,7 +2514,7 @@ sort_child_properties_last:
 sort_constructors_first:
   status: hasFix
 sort_pub_dependencies:
-  status: needsFix
+  status: hasFix
 sort_unnamed_constructors_first:
   status: hasFix
 specify_nonobvious_local_variable_types:
