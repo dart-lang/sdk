@@ -2427,21 +2427,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForAbstractOrExternalVariableInitializer(
     VariableDeclaration node,
   ) {
-    var declaredElement = node.declaredFragment?.element;
+    var declaredFragment = node.declaredFragment;
     if (node.initializer2 != null) {
-      if (declaredElement is FieldElement) {
-        if (declaredElement.isAbstract) {
+      if (declaredFragment is FieldFragmentImpl) {
+        if (declaredFragment.isAbstract) {
           diagnosticReporter.report(
             diag.abstractFieldInitializer.at(node.name),
           );
         }
-        if (declaredElement.isExternal) {
+        if (declaredFragment.isExternal) {
           diagnosticReporter.report(
             diag.externalFieldInitializer.at(node.name),
           );
         }
-      } else if (declaredElement is TopLevelVariableElement) {
-        if (declaredElement.isExternal) {
+      } else if (declaredFragment is TopLevelVariableFragmentImpl) {
+        if (declaredFragment.isExternal) {
           diagnosticReporter.report(
             diag.externalVariableInitializer.at(node.name),
           );
