@@ -1,3 +1,25 @@
+## 3.14.0
+
+**Released on:** Unreleased
+
+#### `dart:js_interop`
+
+- Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
+  `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
+  `List<num>.toJS` (`ListOfNumberToJSArray`);
+  `JSArray<JSString>.toDartStringList` (`JSArrayOfJSStringToList`);
+  `List<String>.toJS` (`ListOfStringToJSArray`);
+  `JSArray<JSBoolean>.toDartBoolList` (`JSArrayOfJSBooleanToList`);
+  `List<bool>.toJS` (`ListOfBoolToJSArray`);
+  `JSArray<JSNumber?>.toDartDoubleList` and `JSArray<JSNumber?>.toDartIntList`
+  (`JSArrayOfNullableJSNumberToList`); `List<num?>.toJS`
+  (`ListOfNullableNumberToJSArray`); `JSArray<JSString?>.toDartStringList`
+  (`JSArrayOfNullableJSStringToList`); `List<String?>.toJS`
+  (`ListOfNullableStringToJSArray`); `JSArray<JSBoolean?>.toDartBoolList`
+  (`JSArrayOfNullableJSBooleanToList`); and `List<bool?>.toJS`
+  (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
+  convert between JS and Dart arrays of primitives.
+
 ## 3.13.0
 
 **Released on:** Unreleased

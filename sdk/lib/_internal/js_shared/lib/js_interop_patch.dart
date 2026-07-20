@@ -486,6 +486,128 @@ extension StringToJSString on String {
   JSString get toJS => JSString._(JSStringType(this));
 }
 
+// -----------------------------------------------------------------------------
+// JSArray<JSNumber> <-> List<num>
+@patch
+extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  List<double> get toDartDoubleList => switch (this) {
+    List<double> list => list,
+    _ => (this as List).cast<double>(),
+  };
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  List<int> get toDartIntList => switch (this) {
+    List<int> list => list,
+    _ => (this as List).cast<int>(),
+  };
+}
+
+@patch
+extension ListOfNumberToJSArray on List<num> {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSArray<JSNumber> get toJS => this as JSArray<JSNumber>;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSNumber?> <-> List<num?>
+@patch
+extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  List<double?> get toDartDoubleList => switch (this) {
+    List<double?> list => list,
+    _ => (this as List).cast<double?>(),
+  };
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  List<int?> get toDartIntList => switch (this) {
+    List<int?> list => list,
+    _ => (this as List).cast<int?>(),
+  };
+}
+
+@patch
+extension ListOfNullableNumberToJSArray on List<num?> {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSArray<JSNumber?> get toJS => this as JSArray<JSNumber?>;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSString> <-> List<String>
+@patch
+extension JSArrayOfJSStringToList on JSArray<JSString> {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  List<String> get toDartStringList => switch (this) {
+    List<String> list => list,
+    _ => (this as List).cast<String>(),
+  };
+}
+
+@patch
+extension ListOfStringToJSArray on List<String> {
+  @patch
+  JSArray<JSString> get toJS => this as JSArray<JSString>;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSString?> <-> List<String?>
+@patch
+extension JSArrayOfNullableJSStringToList on JSArray<JSString?> {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  List<String?> get toDartStringList => switch (this) {
+    List<String?> list => list,
+    _ => (this as List).cast<String?>(),
+  };
+}
+
+@patch
+extension ListOfNullableStringToJSArray on List<String?> {
+  @patch
+  JSArray<JSString?> get toJS => this as JSArray<JSString?>;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSBoolean> <-> List<bool>
+@patch
+extension JSArrayOfJSBooleanToList on JSArray<JSBoolean> {
+  @patch
+  List<bool> get toDartBoolList => switch (this) {
+    List<bool> list => list,
+    _ => (this as List).cast<bool>(),
+  };
+}
+
+@patch
+extension ListOfBoolToJSArray on List<bool> {
+  @patch
+  JSArray<JSBoolean> get toJS => this as JSArray<JSBoolean>;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSBoolean?> <-> List<bool?>
+@patch
+extension JSArrayOfNullableJSBooleanToList on JSArray<JSBoolean?> {
+  @patch
+  List<bool?> get toDartBoolList => switch (this) {
+    List<bool?> list => list,
+    _ => (this as List).cast<bool?>(),
+  };
+}
+
+@patch
+extension ListOfNullableBoolToJSArray on List<bool?> {
+  @patch
+  JSArray<JSBoolean?> get toJS => this as JSArray<JSBoolean?>;
+}
+
 @patch
 extension JSAnyOperatorExtension on JSAny? {
   @patch
