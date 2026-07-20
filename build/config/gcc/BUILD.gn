@@ -67,6 +67,11 @@ config("relative_paths") {
   if (is_clang) {
     cflags += [ "-ffile-compilation-dir=." ]
     asmflags = [ "-Wa,-fdebug-compilation-dir,." ]
+
+    # Rewrite debug info so that using gdb/lldb from the repo root can find
+    # sources.
+    cflags += [ "-fdebug-prefix-map=" +
+                get_path_info(rebase_path("//", root_build_dir), "dir") + "=." ]
   } else {
     absolute_path = rebase_path("//")
     relative_path = rebase_path("//", root_build_dir)
