@@ -90,6 +90,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ConstructorInitializer,
         ConstructorName,
         ConstructorReference,
+        ConstructorReference2,
         ConstructorReferenceNode,
         ConstructorSelector,
         ConstructorTypeReference,
