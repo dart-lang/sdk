@@ -63,6 +63,25 @@ final class AbiSpecificInteger4 implements AbiSpecificInteger1 {
 ''');
   }
 
+  test_implements_mixin_constrained_to_struct() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+
+base mixin HeaderFields on Struct {
+  @Int32()
+  external int fieldA;
+}
+
+final class ExampleStruct implements HeaderFields {
+//                                   ^^^^^^^^^^^^
+// [diag.baseClassImplementedOutsideOfLibrary] The class 'Struct' can't be implemented outside of its library because it's a base class.
+// [diag.subtypeOfStructClassInImplements] The class 'ExampleStruct' can't implement 'HeaderFields' because 'HeaderFields' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+  @override
+  int fieldA = 0;
+}
+''');
+  }
+
   test_implements_struct() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
@@ -107,6 +126,26 @@ final class C implements S {}
 
 @reflectiveTest
 class SubtypeOfStructClassInWithTest extends PubPackageResolutionTest {
+  test_with_mixin_constrained_to_struct() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+
+base mixin HeaderFields on Struct {
+  @Int32()
+  external int fieldA;
+
+  external Pointer<Void> fieldB;
+}
+
+final class ExampleStruct extends Struct with HeaderFields {
+//                                            ^^^^^^^^^^^^
+// [diag.subtypeOfStructClassInWith] The class 'ExampleStruct' can't mix in 'HeaderFields' because 'HeaderFields' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.
+  @Uint32()
+  external int fieldC;
+}
+''');
+  }
+
   test_with_struct() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';

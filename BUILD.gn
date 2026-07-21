@@ -312,6 +312,7 @@ if (is_fuchsia) {
     "tests/ffi/static_checks/regress_60250_test.dart",
     "tests/ffi/static_checks/regress_62693_test.dart",
     "tests/ffi/static_checks/regress_62716_test.dart",
+    "tests/ffi/static_checks/regress_63388_test.dart",
     "tests/ffi/static_checks/regress_flutter_188175_test.dart",
     "tests/ffi/static_checks/vmspecific_function_callbacks_negative_test.dart",
     "tests/ffi/static_checks/vmspecific_regress_38993_test.dart",
