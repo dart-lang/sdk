@@ -13301,6 +13301,23 @@ main() {
         ], returnType: 'bool'),
       ]);
     });
+
+    test('Anonymous method this promotion tracked independently', () {
+      h.addSuperInterfaces('C', (_) => [Type('Object')]);
+      h.addSuperInterfaces('D', (_) => [Type('C'), Type('Object')]);
+      h.addSuperInterfaces('E', (_) => [Type('C'), Type('Object')]);
+      h.thisType = 'C';
+      h.run([
+        this_.as_('D'),
+        checkPromoted(this_, 'D'),
+        expr('C').invokeAnonymousMethod([
+          checkNotPromoted(this_),
+          this_.as_('E'),
+          checkPromoted(this_, 'E'),
+        ], returnType: 'void'),
+        checkPromoted(this_, 'D'),
+      ]);
+    });
   });
 }
 
