@@ -7833,6 +7833,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   ///
   /// See [diag.implementsSuperClass].
   void _checkImplementsSuperClass(ImplementsClause? implementsClause) {
+    if (_featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
+
     if (implementsClause == null) {
       return;
     }
