@@ -4,9 +4,13 @@
 
 // Same as run_timer.cc, but uses std::async instead of a dedicated event loop
 // thread. Used as a demonstration of a custom message scheduler.
+
+#include <chrono>
 #include <future>
 #include <iostream>
+#include <mutex>
 #include <thread>
+
 #include "helpers.h"
 #include "include/dart_api.h"
 #include "include/dart_engine.h"
