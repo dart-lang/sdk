@@ -3729,6 +3729,15 @@ class MiniAstOperations
   }
 
   @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): implement lookupMemberTypeInternal
+    throw UnimplementedError();
+  }
+
+  @override
   Type lubInternal(Type type1, Type type2) {
     if (type1 == type2) {
       return type1;
@@ -3960,15 +3969,6 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
     covariant _PropertyElement property,
   ) => property.whyNotPromotable;
-
-  @override
-  SharedType? lookupMemberTypeInternal(
-    covariant SharedType type,
-    String lookupName,
-  ) {
-    // TODO(cstefantsova): implement lookupMemberTypeInternal
-    throw UnimplementedError();
-  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language
