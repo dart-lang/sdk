@@ -1110,34 +1110,44 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.cmp(resultReg, nullReg);
         _asm.b(slowPath, .notEqual);
       case IntType():
-        _asm.tbz(resultReg, smiBit, done);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(resultReg, smiBit, done);
+        }
         _asm.loadClassId(tempReg, resultReg);
         _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
         _asm.b(slowPath, .notEqual);
       case DoubleType():
-        _asm.tbz(resultReg, smiBit, slowPath);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(resultReg, smiBit, slowPath);
+        }
         _asm.loadClassId(tempReg, resultReg);
         _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
         _asm.b(slowPath, .notEqual);
       case BoolType():
-        _asm.tbz(resultReg, smiBit, slowPath);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(resultReg, smiBit, slowPath);
+        }
         _asm.loadClassId(tempReg, resultReg);
         _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
         _asm.b(slowPath, .notEqual);
       case StringType():
-        _asm.tbz(resultReg, smiBit, slowPath);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(resultReg, smiBit, slowPath);
+        }
         _asm.loadClassId(tempReg, resultReg);
         _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
         _asm.b(done, .equal);
         _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
         _asm.b(slowPath, .notEqual);
       default:
-        if (const IntType().isSubtypeOf(type)) {
-          _asm.tbz(resultReg, smiBit, done);
-        } else if (!type.canBeInt) {
-          _asm.tbz(resultReg, smiBit, slowPath);
+        if (_canBeSmi(instr.operand)) {
+          if (const IntType().isSubtypeOf(type)) {
+            _asm.tbz(resultReg, smiBit, done);
+          } else if (!type.canBeInt) {
+            _asm.tbz(resultReg, smiBit, slowPath);
+          }
         }
-        if (type.isNullable) {
+        if (type.isNullable && instr.operand.canBeNull) {
           _asm.cmp(resultReg, nullReg);
           _asm.b(done, .equal);
         }
@@ -1217,34 +1227,44 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.cmp(operandReg, nullReg);
         _asm.b(doneTrue, .equal);
       case IntType():
-        _asm.tbz(operandReg, smiBit, doneTrue);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(operandReg, smiBit, doneTrue);
+        }
         _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
         _asm.b(doneTrue, .equal);
       case DoubleType():
-        _asm.tbz(operandReg, smiBit, doneFalse);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(operandReg, smiBit, doneFalse);
+        }
         _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
         _asm.b(doneTrue, .equal);
       case BoolType():
-        _asm.tbz(operandReg, smiBit, doneFalse);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(operandReg, smiBit, doneFalse);
+        }
         _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
         _asm.b(doneTrue, .equal);
       case StringType():
-        _asm.tbz(operandReg, smiBit, doneFalse);
+        if (_canBeSmi(instr.operand)) {
+          _asm.tbz(operandReg, smiBit, doneFalse);
+        }
         _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
         _asm.b(doneTrue, .equal);
         _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
         _asm.b(doneTrue, .equal);
       default:
-        if (const IntType().isSubtypeOf(type)) {
-          _asm.tbz(operandReg, smiBit, doneTrue);
-        } else if (!type.canBeInt) {
-          _asm.tbz(operandReg, smiBit, doneFalse);
+        if (_canBeSmi(instr.operand)) {
+          if (const IntType().isSubtypeOf(type)) {
+            _asm.tbz(operandReg, smiBit, doneTrue);
+          } else if (!type.canBeInt) {
+            _asm.tbz(operandReg, smiBit, doneFalse);
+          }
         }
-        if (type.isNullable) {
+        if (type.isNullable && instr.operand.canBeNull) {
           _asm.cmp(operandReg, nullReg);
           _asm.b(doneTrue, .equal);
         }
@@ -1793,8 +1813,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
       operandReg = tempReg;
     }
 
-    _asm.asr(resultReg, operandReg, smiShift);
-    _asm.tbz(operandReg, smiBit, done);
+    if (_canBeSmi(instr.operand)) {
+      _asm.asr(resultReg, operandReg, smiShift);
+      _asm.tbz(operandReg, smiBit, done);
+    }
     _asm.ldr(
       resultReg,
       _asm.fieldAddress(operandReg, vmOffsets.Mint_value_offset),

@@ -329,6 +329,9 @@ abstract base class Definition extends Instruction {
   /// Result type of this instruction.
   CType get type;
 
+  /// Whether this instruction can yield a `null` value.
+  bool get canBeNull => type.canBeNull;
+
   /// Whether this instruction can yield a zero value.
   bool get canBeZero => true;
 
@@ -771,6 +774,9 @@ final class Constant extends Definition with NoThrow, Pure {
 
   Constant(FlowGraph graph, this.value)
     : super(graph, noPosition, inputCount: 0);
+
+  @override
+  bool get canBeNull => value.isNull;
 
   @override
   bool get canBeZero => value.isZero;
