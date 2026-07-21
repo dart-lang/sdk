@@ -284,7 +284,18 @@ class _MigrationRunner({
       }
     }
 
+    if (runPrepare) {
+      _writeFixesSummary(
+        summaryBuffer,
+        'Preparatory changes for a version bump:',
+        _preMigrationFixDetailsMap,
+      );
+    }
+
     if (runBump) {
+      if (summaryBuffer.isNotEmpty) {
+        summaryBuffer.writeln();
+      }
       if (_bumpedLines.isEmpty) {
         var verb = apply ? 'were' : 'would be';
         summaryBuffer.writeln('No SDK constraints $verb bumped.');
@@ -299,16 +310,13 @@ class _MigrationRunner({
       }
     }
 
-    _writeFixesSummary(
-      summaryBuffer,
-      'Pre-migration fixes:',
-      _preMigrationFixDetailsMap,
-    );
-    _writeFixesSummary(
-      summaryBuffer,
-      'Post-migration fixes:',
-      _postMigrationFixDetailsMap,
-    );
+    if (runCleanup) {
+      _writeFixesSummary(
+        summaryBuffer,
+        'Cleanup changes after a version bump:',
+        _postMigrationFixDetailsMap,
+      );
+    }
 
     // Revert all temporary overlays back to their original state.
     await revertOverlays();
@@ -339,10 +347,6 @@ class _MigrationRunner({
       return _ExecutionOutcome.success;
     }
     if (!postMigrationLintsRegistry.containsKey(targetVersion)) {
-      summaryBuffer.writeln(
-        '- ${pubspec.displayName}: Skipped cleanup '
-        '(No cleanup fixes registered for SDK version $targetVersion)',
-      );
       return _ExecutionOutcome.success;
     }
 
@@ -517,7 +521,7 @@ class _MigrationRunner({
       pubspec: pubspec,
       lintCodes: postMigrationLintCodes,
       builder: builder,
-      phaseName: 'post-migration',
+      phaseName: 'clean up',
     );
   }
 
@@ -581,20 +585,20 @@ class _MigrationRunner({
       }
     }
 
+    if (buffer.isNotEmpty) {
+      buffer.writeln();
+    }
+    buffer.writeln(phaseLabel);
+
+    var fixPlural = totalFixes == 1 ? 'change' : 'changes';
+    var filePlural = totalFiles == 1 ? 'file' : 'files';
+
+    var verb = apply ? 'made' : 'would be made';
+    buffer.writeln(
+      '  $totalFixes $fixPlural $verb in $totalFiles $filePlural.',
+    );
+
     if (totalFixes > 0) {
-      if (buffer.isNotEmpty) {
-        buffer.writeln();
-      }
-      buffer.writeln(phaseLabel);
-
-      var fixPlural = totalFixes == 1 ? 'fix' : 'fixes';
-      var filePlural = totalFiles == 1 ? 'file' : 'files';
-
-      var verb = apply ? 'made' : 'would be made';
-      buffer.writeln(
-        '  $totalFixes $fixPlural $verb in $totalFiles $filePlural.',
-      );
-
       var sortedPaths = fixesMap.keys.toList()..sort();
       for (var path in sortedPaths) {
         buffer.writeln();
@@ -603,7 +607,7 @@ class _MigrationRunner({
         var sortedCodes = fileFixes.keys.toList()..sort();
         for (var code in sortedCodes) {
           var count = fileFixes[code]!;
-          var fixPlural = count == 1 ? 'fix' : 'fixes';
+          var fixPlural = count == 1 ? 'change' : 'changes';
           buffer.writeln('    $code • $count $fixPlural');
         }
       }

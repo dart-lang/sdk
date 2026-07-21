@@ -12,6 +12,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// correction producer associated with it.
 final Map<Version, List<String>> postMigrationLintsRegistry = {
   Version(3, 13, 0): [LintNames.unnecessary_type_name_in_constructor],
+  Version(3, 12, 0): [LintNames.prefer_initializing_formals],
 };
 
 /// A registry mapping target SDK versions to pre-migration lint rules
