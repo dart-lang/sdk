@@ -1242,40 +1242,6 @@ void AssemblyImageWriter::Finalize() {
 #else
   assembly_stream_->WriteString(".section .note.GNU-stack,\"\",@progbits\n");
 #endif
-  // CFI support.
-#if defined(TARGET_ARCH_X64)
-  assembly_stream_->WriteString(".section .note.gnu.property, \"a\"\n");
-  assembly_stream_->WriteString(".align 8\n");
-  assembly_stream_->WriteString(".long 4\n");   // name size
-  assembly_stream_->WriteString(".long 16\n");  // desc size
-  assembly_stream_->Printf(
-      ".long %d\n", static_cast<int>(elf::NoteType::NT_GNU_PROPERTY_TYPE_0));
-  assembly_stream_->WriteString(".string \"GNU\"\n");  // name
-  assembly_stream_->Printf(".long %d\n", GNU_PROPERTY_X86_FEATURE_1_AND);
-  assembly_stream_->WriteString(".long 4\n");
-  if (FLAG_support_cfi) {
-    assembly_stream_->Printf(".long %d\n", GNU_PROPERTY_X86_FEATURE_1_IBT);
-  } else {
-    assembly_stream_->Printf(".long 0\n");
-  }
-  assembly_stream_->WriteString(".long 0\n");
-#elif defined(TARGET_ARCH_ARM64)
-  assembly_stream_->WriteString(".section .note.gnu.property, \"a\"\n");
-  assembly_stream_->WriteString(".align 3\n");
-  assembly_stream_->WriteString(".word 4\n");   // name size
-  assembly_stream_->WriteString(".word 16\n");  // desc size
-  assembly_stream_->Printf(
-      ".long %d\n", static_cast<int>(elf::NoteType::NT_GNU_PROPERTY_TYPE_0));
-  assembly_stream_->WriteString(".string \"GNU\"\n");  // name
-  assembly_stream_->Printf(".word %d\n", GNU_PROPERTY_AARCH64_FEATURE_1_AND);
-  assembly_stream_->WriteString(".word 4\n");
-  if (FLAG_support_cfi) {
-    assembly_stream_->Printf(".word %d\n", GNU_PROPERTY_AARCH64_FEATURE_1_BTI);
-  } else {
-    assembly_stream_->Printf(".word 0\n");
-  }
-  assembly_stream_->WriteString(".word 0\n");
-#endif
 #endif
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64E)

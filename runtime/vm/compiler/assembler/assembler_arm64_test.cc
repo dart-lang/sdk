@@ -8025,25 +8025,6 @@ ASSEMBLER_TEST_RUN(ReturnWithPointerAuthentication, test) {
       "retab\n");
 }
 
-ASSEMBLER_TEST_GENERATE(Bti, assembler) {
-  __ bti();
-  __ bti_c();
-  __ bti_j();
-  __ bti_jc();
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Bti, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
-  EXPECT_DISASSEMBLY(
-      "bti\n"
-      "bti c\n"
-      "bti j\n"
-      "bti jc\n"
-      "ret\n");
-}
-
 }  // namespace compiler
 }  // namespace dart
 

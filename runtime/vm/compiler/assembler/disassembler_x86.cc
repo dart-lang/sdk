@@ -101,7 +101,6 @@ enum Prefixes {
   ESCAPE_PREFIX = 0x0F,
   OPERAND_SIZE_OVERRIDE_PREFIX = 0x66,
   ADDRESS_SIZE_OVERRIDE_PREFIX = 0x67,
-  NOTRACK = 0x3E,
   REPNE_PREFIX = 0xF2,
   REP_PREFIX = 0xF3,
   REPEQ_PREFIX = REP_PREFIX
@@ -1136,8 +1135,6 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
 #endif
     } else if ((current & 0xFE) == 0xF2) {  // Group 1 prefix (0xF2 or 0xF3).
       group_1_prefix_ = current;
-    } else if (current == 0x3E) {
-      Print("notrack ");
     } else if (current == 0xF0) {
       Print("lock ");
     } else {  // Not a prefix - an opcode.
@@ -1487,12 +1484,6 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     } else if (opcode == 0xBD) {
       // LZCNT (rep BSR encoding).
       current += PrintOperands("lzcnt", REG_OPER_OP_ORDER, current);
-    } else if (opcode == 0x1E && data[2] == 0xFA) {
-      Print("endbr64");
-      return 3;
-    } else if (opcode == 0x1E && data[2] == 0xFB) {
-      Print("endbr32");
-      return 3;
     } else {
       UnimplementedInstruction(*data);
       return 1;
