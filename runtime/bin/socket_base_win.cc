@@ -261,7 +261,7 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   if (status != 0) {
     // We failed, try without AI_ADDRCONFIG. This can happen when looking up
     // e.g. '::1', when there are no global IPv6 addresses.
-    hints.ai_flags = 0;
+    hints.ai_flags &= ~AI_ADDRCONFIG;
     status = getaddrinfo(host, 0, &hints, &info);
   }
   if (status != 0) {

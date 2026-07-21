@@ -8,9 +8,6 @@
 /// promotable), because promotable properties can be reached using `this` as a
 /// starting point.
 class PromotionKeyStore<Variable extends Object> {
-  /// Special promotion key to represent `this`.
-  late final int thisPromotionKey = _makeNewKey();
-
   final Map<Variable, int> _variableKeys = new Map<Variable, int>.identity();
 
   /// List whose `i`th entry is the [Variable] corresponding to promotion key

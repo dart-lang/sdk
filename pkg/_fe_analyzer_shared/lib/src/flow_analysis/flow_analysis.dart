@@ -5231,6 +5231,10 @@ class _FlowAnalysisImpl<
 
   final List<SsaNode> _thisSsaNodes = [new SsaNode()];
 
+  late final List<int> _thisPromotionKeys = [
+    promotionKeyStore.makeTemporaryKey(),
+  ];
+
   @override
   final List<_Reference> _cascadeTargetStack = [];
 
@@ -5264,7 +5268,7 @@ class _FlowAnalysisImpl<
   SharedTypeView? get promotedTypeOfThis {
     if (!typeAnalyzerOptions.thisPromotionEnabled) return null;
     return _current.promotionInfo
-        ?.get(this, promotionKeyStore.thisPromotionKey)
+        ?.get(this, _thisPromotionKeys.last)
         ?.promotedTypes
         .lastOrNull;
   }
@@ -6747,11 +6751,13 @@ class _FlowAnalysisImpl<
               : null,
         );
     _thisSsaNodes.add(ssaNode);
+    _thisPromotionKeys.add(promotionKeyStore.makeTemporaryKey());
   }
 
   @override
   void thisBinding_end() {
     _thisSsaNodes.removeLast();
+    _thisPromotionKeys.removeLast();
   }
 
   @override
@@ -6963,7 +6969,7 @@ class _FlowAnalysisImpl<
     }
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
-      promotionKeyStore.thisPromotionKey,
+      _thisPromotionKeys.last,
     );
     if (currentThisInfo == null) {
       return () => {};
@@ -7847,7 +7853,7 @@ class _FlowAnalysisImpl<
   }) {
     SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
     return new TrivialVariableReference(
-      promotionKey: promotionKeyStore.thisPromotionKey,
+      promotionKey: _thisPromotionKeys.last,
       model: _current,
       type: staticType,
       isThisOrSuper: true,

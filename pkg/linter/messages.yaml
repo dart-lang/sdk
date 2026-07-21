@@ -5527,6 +5527,87 @@ LinterLintCode:
       stable: "2.9"
     categories: [errorProne]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a
+      `switch` statement over an instance of an enum-like class is
+      missing a `case` clause for one or more of the class's constants and
+      doesn't have a `default` clause.
+
+      Enum-like classes are non-abstract classes that have:
+
+      - Only private, non-factory constructors.
+      - Two or more `static const` fields whose type is the enclosing class.
+      - No subclasses in the defining library.
+
+      #### Example
+
+      The following code produces this diagnostic because the
+      `switch` statement is missing a `case` clause for the constant `C.c`:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        [!switch (c)!] {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the missing constant needs to be handled separately,
+      then add a `case` clause for it:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+          case .c:
+            print('c');
+        }
+      }
+      ```
+
+      If the missing constant doesn't need to be handled specially,
+      then add a `default` clause to cover it:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+          default:
+            print('other');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Switching on instances of enum-like classes should be exhaustive.
 
@@ -7619,6 +7700,98 @@ LinterLintCode:
       experimental: "2.9"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `switch` statement over an
+      enum value or an instance of an enum-like class has a `default` clause.
+
+      Enum-like classes are non-abstract classes that have:
+
+      - Only private, non-factory constructors.
+      - Two or more `static const` fields whose type is the enclosing class.
+      - No subclasses in the defining library.
+
+      #### Examples
+
+      The following code produces this diagnostic because the
+      `switch` statement over the enum value `e` has a `default` clause:
+
+      ```dart
+      enum E { a, b, c }
+
+      void f(E e) {
+        switch (e) {
+          case .a:
+            print('a');
+          [!default:
+            print('other');!]
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the
+      `switch` statement over `c`, an instance of the enum-like class `C`,
+      has a `default` clause:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          [!default:
+            print('other');!]
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the value is an `enum` value,
+      replace the `default` clause with `case` clauses for
+      the enum values that aren't already handled:
+
+      ```dart
+      enum E { a, b, c }
+
+      void f(E e) {
+        switch (e) {
+          case .a:
+            print('a');
+          case .b:
+          case .c:
+            print('other');
+        }
+      }
+      ```
+
+      If the value is an instance of an enum-like class,
+      replace the `default` clause with `case` clauses for
+      the constants that aren't already handled:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+          case .c:
+            print('other');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Switches on enums and enum-like classes should not use a `default` clause.
 
@@ -10644,7 +10817,7 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when `Map.fromIterable` is used to
-      build a map that could be built using the `for` element.
+      build a map that could be built using a `for` element.
 
       #### Example
 
@@ -10899,6 +11072,34 @@ LinterLintCode:
       stable: "2.3"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a conditional expression
+      is used as an element of a list or set literal and
+      an `if` element could be used instead.
+
+      #### Example
+
+      The following code produces this diagnostic because a
+      conditional expression is used to choose which of two values to
+      include in the created list:
+
+      ```dart
+      List<String> f(bool b) {
+        return ['a', [!b ? 'c' : 'd'!], 'e'];
+      }
+      ```
+
+      #### Common fixes
+
+      Use an `if` element to select the value:
+
+      ```dart
+      List<String> f(bool b) {
+        return ['a', if (b) 'c' else 'd', 'e'];
+      }
+      ```
     deprecatedDetails: |-
       When building collections, it is preferable to use `if` elements rather than
       conditionals.
@@ -11724,6 +11925,54 @@ LinterLintCode:
       stable: "2.3"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `addAll` is used to
+      add the items of another collection to a list created by a list literal,
+      in a situation where a spread element could be used instead.
+
+      #### Examples
+
+      The following code produces this diagnostic because the items of
+      the `numbers` list are added to a new list using `addAll`:
+
+      ```dart
+      List<int> f(List<int> numbers) {
+        return [0, 1]..[!addAll!](numbers);
+      }
+      ```
+
+      The following code produces this diagnostic because the items of
+      the nullable `numbers` list are added to a new list using `addAll`:
+
+      ```dart
+      List<int> f(List<int>? numbers) {
+        return [0, 1]..[!addAll!](numbers ?? const []);
+      }
+      ```
+
+      #### Common fixes
+
+      If the collection being added isn't nullable,
+      then use a spread element (`...`) to
+      include its items in the new list:
+
+      ```dart
+      List<int> f(List<int> numbers) {
+        return [0, 1, ...numbers];
+      }
+      ```
+
+      If the collection being added is nullable,
+      then use a null-aware spread element (`...?`) to conditionally
+      include its items in the new list if it's not `null`:
+
+      ```dart
+      List<int> f(List<int>? numbers) {
+        return [0, 1, ...?numbers];
+      }
+      ```
     deprecatedDetails: |-
       Use spread collections when possible.
 
@@ -16104,6 +16353,82 @@ LinterLintCode:
       stable: "2.19"
     categories: [unusedCode]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a public declaration
+      in an executable library isn't referenced, directly or indirectly,
+      from an entry point of that library.
+
+      An executable library is a library that contains an entry point.
+      An entry point is a top-level function that is one of the following:
+
+      - Named `main`.
+      - Annotated with `@pragma('vm:entry-point')`.
+      - Annotated with Flutter's widget preview annotation, `@Preview`.
+
+      The analyzer doesn't report declarations annotated with
+      [`@visibleForTesting`][] from `package:meta` or
+      [`@Preview`][] from Flutter.
+
+      [`@Preview`]: https://api.flutter.dev/flutter/widget_previews/Preview-class.html
+
+      #### Examples
+
+      The following code produces this diagnostic because the function `f`
+      is not referenced from the `main` function:
+
+      ```dart
+      void main() {}
+
+      void [!f!]() {}
+      ```
+
+      The following code produces this diagnostic because the method `m`
+      is not referenced, even though its containing class `C` is:
+
+      ```dart
+      void main() {
+        C();
+      }
+
+      class C {
+        void [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration is intended to be used,
+      then add the missing reference:
+
+      ```dart
+      void main() {
+        f();
+      }
+
+      void f() {}
+      ```
+
+      If the declaration isn't needed, then remove it:
+
+      ```dart
+      void main() {}
+      ```
+
+      If the declaration is public in order to be used by tests,
+      then add the [`@visibleForTesting`][] annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      void main() {}
+
+      @visibleForTesting
+      void f() {}
+      ```
+
+      [`@visibleForTesting`]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
     deprecatedDetails: |-
       Any member declared in an executable library should be used directly inside that
       library.  An executable library is a library that contains a `main` top-level
