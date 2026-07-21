@@ -587,6 +587,9 @@ abstract class RuleVisitorRegistry2 {
   void addConstructorSelector(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addConstructorTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
   void addConstructorTypeReference(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,

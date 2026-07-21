@@ -1444,6 +1444,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _runSubscriptions(node, _registry._forConstructorTearOff);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitConstructorTypeReference(ConstructorTypeReference node) {
     _runSubscriptions(node, _registry._forConstructorTypeReference);
     node.visitChildren2(this);
@@ -4238,6 +4245,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ConstructorSelector>> _forConstructorSelector = [];
 
+  final List<_Subscription2<ConstructorTearOff>> _forConstructorTearOff = [];
+
   final List<_Subscription2<ConstructorTypeReference>>
   _forConstructorTypeReference = [];
 
@@ -4852,6 +4861,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addConstructorSelector(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forConstructorSelector.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addConstructorTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forConstructorTearOff.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

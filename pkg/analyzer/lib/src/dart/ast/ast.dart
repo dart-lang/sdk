@@ -7156,6 +7156,7 @@ final class CommentImpl extends AstNodeImpl
 ///
 ///    commentReferableExpression ::=
 ///        [ConstructorReference]
+///      | [ConstructorTearOff]
 ///      | [FunctionReference]
 ///      | [PrefixedIdentifier]
 ///      | [PropertyAccess]
@@ -10128,6 +10129,213 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// An expression representing a constructor tear-off.
+///
+/// For example, `C.named` or `C.new`.
+///
+///    constructorTearOff ::=
+///        [ConstructorTypeReference] [ConstructorSelector]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorTearOff
+    implements
+        Expression,
+        CommentReferableExpression,
+        ConstructorReferenceNode {
+  /// The constructor selector.
+  ConstructorSelector get selector;
+
+  /// The reference to the type defining the constructor.
+  ConstructorTypeReference get typeReference;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('typeReference'),
+    GenerateNodeProperty('selector'),
+  ],
+)
+final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
+    implements ConstructorTearOff {
+  @generated
+  ConstructorTypeReferenceImpl _typeReference;
+
+  @generated
+  ConstructorSelectorImpl _selector;
+
+  @override
+  InternalConstructorElement? element;
+
+  @generated
+  ConstructorTearOffImpl({
+    required ConstructorTypeReferenceImpl typeReference,
+    required ConstructorSelectorImpl selector,
+  }) : _typeReference = typeReference,
+       _selector = selector {
+    _becomeParentOf2(typeReference);
+    _becomeParentOf2(selector);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return typeReference.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return selector.endToken;
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @generated
+  @override
+  ConstructorSelectorImpl get selector => _selector;
+
+  @generated
+  set selector(ConstructorSelectorImpl selector) {
+    _selector = _becomeParentOf2(selector);
+  }
+
+  @generated
+  @override
+  ConstructorTypeReferenceImpl get typeReference => _typeReference;
+
+  @generated
+  set typeReference(ConstructorTypeReferenceImpl typeReference) {
+    _typeReference = _becomeParentOf2(typeReference);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeReference', typeReference)
+    ..addNode('selector', selector);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorTearOff(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(typeReference, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'typeReference'.");
+    }
+    if (identical(selector, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'selector'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(typeReference, oldNode)) {
+      typeReference = newNode as ConstructorTypeReferenceImpl;
+      return;
+    }
+    if (identical(selector, oldNode)) {
+      selector = newNode as ConstructorSelectorImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'The node is not used by the resolver yet.')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('ConstructorTearOff is not used by the resolver yet.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeReference.accept2(visitor);
+    selector.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ConstructorTypeReferenceImpl)? visitTypeReference,
+    void Function(ConstructorSelectorImpl)? visitSelector,
+  }) {
+    if (visitTypeReference != null) {
+      visitTypeReference(typeReference);
+    } else {
+      typeReference.accept2(visitor);
+    }
+    if (visitSelector != null) {
+      visitSelector(selector);
+    } else {
+      selector.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeReference._containsOffset(rangeOffset, rangeEnd)) {
+      return typeReference;
+    }
+    if (selector._containsOffset(rangeOffset, rangeEnd)) {
+      return selector;
+    }
     return null;
   }
 }
