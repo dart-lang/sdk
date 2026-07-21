@@ -46,6 +46,8 @@ _VM_PATHS = _CFE_PATHS + [
     "third_party/fallback_root_certificates/.+",
 
     # Tests that run on VM builders
+    "pkg/dartdev/.+",
+    "pkg/dds/.+",
     "pkg/vm_service/.+",
     "samples/.+",
 ]
