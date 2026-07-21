@@ -17398,6 +17398,45 @@ LinterLintCode:
       stable: "2.9"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the result of
+      applying the modulo operator `%` to an integer value,
+      with `2` as the right operand, is compared to `0` or `1` using `==`
+      rather than using the `isEven` or `isOdd` getter.
+
+      #### Examples
+
+      The following code produces this diagnostic because the result of
+      `x % 2` is compared to `0` to check whether `x` is even:
+
+      ```dart
+      bool f(int x) => [!x % 2 == 0!];
+      ```
+
+      The following code produces this diagnostic because the result of
+      `x % 2` is compared to `1` to check whether `x` is odd:
+
+      ```dart
+      bool f(int x) => [!x % 2 == 1!];
+      ```
+
+      #### Common fixes
+
+      If you're checking whether a value is even,
+      then use the `isEven` getter:
+
+      ```dart
+      bool f(int x) => x.isEven;
+      ```
+
+      If you're checking whether a value is odd,
+      then use the `isOdd` getter:
+
+      ```dart
+      bool f(int x) => x.isOdd;
+      ```
     deprecatedDetails: |-
       **PREFER** the use of intValue.isOdd/isEven to check for evenness.
 
