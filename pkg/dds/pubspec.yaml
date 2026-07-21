@@ -14,7 +14,7 @@ dependencies:
   async: ^2.4.1
   browser_launcher: ^1.0.0
   collection: ^1.15.0
-  dap: ^1.4.0
+  dap_adapters: ^1.0.0-wip
   dds_service_extensions: ^2.0.0
   devtools_shared: ^13.0.0
   dtd: ^4.0.0

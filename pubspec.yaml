@@ -38,6 +38,7 @@ workspace:
   - pkg/dartdev
   - pkg/dartpad
   - pkg/dartpad_worker
+  - pkg/dap_adapters
   - pkg/dart_data_home
   - pkg/dart_internal
   - pkg/dart_runtime_service
