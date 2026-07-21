@@ -288,20 +288,19 @@ class ElementResolver {
       return;
     }
     ConstructorElementImpl? element;
-    var name = node.constructorName;
+    var selector = node.constructorSelector;
+    var name = selector?.name2.lexeme;
     if (name == null) {
       element = enclosingInterface.unnamedConstructor;
     } else {
-      element = enclosingInterface.getNamedConstructor(name.name);
+      element = enclosingInterface.getNamedConstructor(name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to
       // associate with the node.
       return;
     }
-    if (name != null) {
-      name.element = element;
-    }
+    selector?.name.element = element;
     node.element = element;
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
@@ -325,14 +324,14 @@ class ElementResolver {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    var name = node.constructorName;
-    var superName = name?.name;
+    var selector = node.constructorSelector;
+    var superName = selector?.name2.lexeme;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
-      if (name != null) {
+      if (superName != null) {
         _diagnosticReporter.report(
           diag.undefinedConstructorInInitializer
-              .withArguments(type: superType, constructorName: name.name)
+              .withArguments(type: superType, constructorName: superName)
               .at(node),
         );
       } else {
@@ -356,9 +355,7 @@ class ElementResolver {
         );
       }
     }
-    if (name != null) {
-      name.element = element;
-    }
+    selector?.name.element = element;
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).

@@ -232,6 +232,14 @@ class AstBinaryReader {
     return node;
   }
 
+  ConstructorSelectorImpl _readConstructorSelector() {
+    var name = _readStringReference();
+    return ConstructorSelectorImpl.v2(
+      period: Tokens.period(),
+      name2: TokenFactory.tokenFromString(name),
+    );
+  }
+
   Token _readDeclarationName() {
     var name = _reader.readStringReference();
     return StringToken(TokenType.STRING, name, -1);
@@ -855,6 +863,8 @@ class AstBinaryReader {
         return _readConstructorName();
       case Tag.ConstructorReference:
         return _readConstructorReference();
+      case Tag.ConstructorSelector:
+        return _readConstructorSelector();
       case Tag.DeclaredIdentifier:
         return _readDeclaredIdentifier();
       case Tag.DelimitedFormalParameters:
@@ -1199,15 +1209,15 @@ class AstBinaryReader {
   }
 
   RedirectingConstructorInvocation _readRedirectingConstructorInvocation() {
-    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var constructorSelector = _readOptionalNode() as ConstructorSelectorImpl?;
     var argumentList = _readNode() as ArgumentListImpl;
     var node = RedirectingConstructorInvocationImpl(
       thisKeyword: Tokens.this_(),
-      period: constructorName != null ? Tokens.period() : null,
-      constructorName: constructorName,
+      constructorSelector: constructorSelector,
       argumentList: argumentList,
     );
     node.element = _reader.readElement() as ConstructorElementImpl?;
+    node.constructorName?.element = node.element;
     _resolveArguments(node.element, node.argumentList);
     return node;
   }
@@ -1338,15 +1348,15 @@ class AstBinaryReader {
   }
 
   SuperConstructorInvocation _readSuperConstructorInvocation() {
-    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var constructorSelector = _readOptionalNode() as ConstructorSelectorImpl?;
     var argumentList = _readNode() as ArgumentListImpl;
     var node = SuperConstructorInvocationImpl(
       superKeyword: Tokens.super_(),
-      period: constructorName != null ? Tokens.period() : null,
-      constructorName: constructorName,
+      constructorSelector: constructorSelector,
       argumentList: argumentList,
     );
     node.element = _reader.readElement() as InternalConstructorElement?;
+    node.constructorName?.element = node.element;
     _resolveArguments(node.element, node.argumentList);
     return node;
   }

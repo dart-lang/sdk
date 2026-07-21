@@ -1762,7 +1762,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       computer._addIdentifierRegion(
         parent: parent,
         nameToken: node.token,
-        element: node.writeOrReadElement,
+        element: node.writeOrReadElementV1,
       );
     }
     super.visitSimpleIdentifier(node);

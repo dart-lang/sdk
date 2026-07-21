@@ -267,6 +267,24 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitRedirectingConstructorInvocation(
+    RedirectingConstructorInvocation node,
+  ) {
+    var element = node.element;
+    usedElements.addElement(element);
+    _addParametersForArguments(node.argumentList);
+
+    // TODO(scheglov): Remove this compatibility behavior and report optional
+    // parameters that are omitted by every invocation.
+    if (element != null && node.constructorSelector != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
+    super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
   void visitRelationalPattern(RelationalPattern node) {
     usedElements.addMember(node.element);
     usedElements.addReadMember(node.element);
@@ -351,7 +369,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    var element = node.element;
+    usedElements.addElement(element);
     _addParametersForArguments(node.argumentList);
+
+    // TODO(scheglov): Remove this compatibility behavior and report optional
+    // parameters that are omitted by every invocation.
+    if (element != null && node.constructorSelector != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
     super.visitSuperConstructorInvocation(node);
   }
 

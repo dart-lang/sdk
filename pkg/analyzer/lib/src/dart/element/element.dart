@@ -592,18 +592,20 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           .toFixedList();
 
       var isNamed = superConstructor.name != 'new';
+      var constructorSelector = isNamed
+          ? ConstructorSelectorImpl.v2(
+              period: Tokens.period(),
+              name2: StringToken(
+                TokenType.STRING,
+                superConstructor.name ?? 'new',
+                0,
+              ),
+            )
+          : null;
+      constructorSelector?.name.element = superConstructor.baseElement;
       var superInvocation = SuperConstructorInvocationImpl(
         superKeyword: Tokens.super_(),
-        period: isNamed ? Tokens.period() : null,
-        constructorName: isNamed
-            ? (SimpleIdentifierImpl(
-                token: StringToken(
-                  TokenType.STRING,
-                  superConstructor.name ?? 'new',
-                  -1,
-                ),
-              )..element = superConstructor.baseElement)
-            : null,
+        constructorSelector: constructorSelector,
         argumentList: ArgumentListImpl(
           leftParenthesis: Tokens.openParenthesis(),
           arguments2: superInvocationArguments,

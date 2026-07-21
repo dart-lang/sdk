@@ -3007,12 +3007,15 @@ CompilationUnit
             initializers
               SuperConstructorInvocation
                 superKeyword: super
-                period: .
-                constructorName: SimpleIdentifier
-                  token: <empty> <synthetic>
+                constructorSelector: ConstructorSelector
+                  period: .
+                  name2: <empty> <synthetic>
                 argumentList: ArgumentList
                   leftParenthesis: ( <synthetic>
                   rightParenthesis: ) <synthetic>
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
             body: BlockFunctionBody
               block: Block
                 leftBracket: {

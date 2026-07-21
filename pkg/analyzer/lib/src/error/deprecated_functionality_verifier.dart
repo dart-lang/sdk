@@ -52,7 +52,7 @@ class DeprecatedFunctionalityVerifier {
         element: element,
         argumentList: redirectingConstructorInvocation.argumentList,
         errorEntity:
-            redirectingConstructorInvocation.constructorName ??
+            redirectingConstructorInvocation.constructorSelector?.name2 ??
             redirectingConstructorInvocation.thisKeyword,
       );
     }
@@ -308,7 +308,7 @@ class DeprecatedFunctionalityVerifier {
           superConstructorInvocation.argumentList.arguments2;
 
       var errorEntity =
-          superConstructorInvocation.constructorName ??
+          superConstructorInvocation.constructorSelector?.name2 ??
           superConstructorInvocation.superKeyword;
       errorRange = errorEntity.sourceRange;
     }

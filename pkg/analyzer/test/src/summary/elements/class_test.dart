@@ -6724,14 +6724,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::B::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::B::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::B::@constructor::named
           superConstructor: <testLibrary>::@class::B::@constructor::named
     isMixinApplication isSimplyBounded class B
@@ -6747,14 +6750,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::A::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::named
           superConstructor: <testLibrary>::@class::A::@constructor::named
   mixins
@@ -6828,14 +6834,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::A::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::named
           superConstructor: <testLibrary>::@class::A::@constructor::named
     isMixinApplication isSimplyBounded class C
@@ -6851,14 +6860,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::B::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::B::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::B::@constructor::named
           superConstructor: <testLibrary>::@class::B::@constructor::named
   mixins
@@ -7240,11 +7252,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: c1 @-1
-                element: <testLibrary>::@class::A::@constructor::c1
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: c1 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -7253,6 +7263,11 @@ library
                     element: <testLibrary>::@class::C::@constructor::c1::@formalParameter::a
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: c1 @0
+                element: <testLibrary>::@class::A::@constructor::c1
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::c1
           superConstructor: <testLibrary>::@class::A::@constructor::c1
         isOriginMixinApplication c2
@@ -7274,11 +7289,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: c2 @-1
-                element: <testLibrary>::@class::A::@constructor::c2
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: c2 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -7295,6 +7308,11 @@ library
                     element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::c
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: c2 @0
+                element: <testLibrary>::@class::A::@constructor::c2
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::c2
           superConstructor: <testLibrary>::@class::A::@constructor::c2
         isOriginMixinApplication c3
@@ -7316,11 +7334,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: c3 @-1
-                element: <testLibrary>::@class::A::@constructor::c3
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: c3 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -7337,6 +7353,11 @@ library
                     element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::c
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: c3 @0
+                element: <testLibrary>::@class::A::@constructor::c3
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::c3
           superConstructor: <testLibrary>::@class::A::@constructor::c3
   mixins
@@ -8445,14 +8466,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: package:test/a.dart::@class::Base::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::named
           superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
@@ -8569,14 +8593,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: package:test/a.dart::@class::Base::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::named
           superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
@@ -8693,14 +8720,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: package:test/a.dart::@class::Base::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::named
           superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
@@ -8831,14 +8861,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: noArgs @-1
-                element: package:test/a.dart::@class::Base::@constructor::noArgs
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: noArgs @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: noArgs @0
+                element: package:test/a.dart::@class::Base::@constructor::noArgs
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::noArgs
           superConstructor: package:test/a.dart::@class::Base::@constructor::noArgs
         isOriginMixinApplication requiredArg
@@ -8851,11 +8884,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: requiredArg @-1
-                element: package:test/a.dart::@class::Base::@constructor::requiredArg
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: requiredArg @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -8864,6 +8895,11 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
                     staticType: dynamic
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: requiredArg @0
+                element: package:test/a.dart::@class::Base::@constructor::requiredArg
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::requiredArg
           superConstructor: package:test/a.dart::@class::Base::@constructor::requiredArg
         isOriginMixinApplication positionalArg
@@ -8879,11 +8915,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: positionalArg @-1
-                element: package:test/a.dart::@class::Base::@constructor::positionalArg
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: positionalArg @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -8892,6 +8926,11 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
                     staticType: bool
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: positionalArg @0
+                element: package:test/a.dart::@class::Base::@constructor::positionalArg
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::positionalArg
           superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg
         isOriginMixinApplication positionalArg2
@@ -8907,11 +8946,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: positionalArg2 @-1
-                element: package:test/a.dart::@class::Base::@constructor::positionalArg2
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: positionalArg2 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -8920,6 +8957,11 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
                     staticType: bool
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: positionalArg2 @0
+                element: package:test/a.dart::@class::Base::@constructor::positionalArg2
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::positionalArg2
           superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg2
         isOriginMixinApplication namedArg
@@ -8935,11 +8977,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: namedArg @-1
-                element: package:test/a.dart::@class::Base::@constructor::namedArg
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: namedArg @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -8948,6 +8988,11 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: namedArg @0
+                element: package:test/a.dart::@class::Base::@constructor::namedArg
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::namedArg
           superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg
         isOriginMixinApplication namedArg2
@@ -8963,11 +9008,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: namedArg2 @-1
-                element: package:test/a.dart::@class::Base::@constructor::namedArg2
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: namedArg2 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -8976,6 +9019,11 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
                     staticType: bool
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: namedArg2 @0
+                element: package:test/a.dart::@class::Base::@constructor::namedArg2
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::namedArg2
           superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg2
 ''');
@@ -9076,11 +9124,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: ctor @-1
-                element: <testLibrary>::@class::Base::@constructor::ctor
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: ctor @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -9093,6 +9139,11 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
                     staticType: List<dynamic>
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: ctor @0
+                element: <testLibrary>::@class::Base::@constructor::ctor
+                staticType: null
               element: <testLibrary>::@class::Base::@constructor::ctor
           superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::Base::@constructor::ctor
@@ -9201,11 +9252,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: ctor @-1
-                element: <testLibrary>::@class::Base::@constructor::ctor
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: ctor @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
@@ -9218,6 +9267,11 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
                     staticType: List<List<U>>
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: ctor @0
+                element: <testLibrary>::@class::Base::@constructor::ctor
+                staticType: null
               element: <testLibrary>::@class::Base::@constructor::ctor
           superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::Base::@constructor::ctor
@@ -24742,11 +24796,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @69
-              period: . @74
-              constructorName: SimpleIdentifier
-                token: aaa @75
-                element: <testLibrary>::@class::A::@constructor::aaa
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @74
+                name2: aaa @75
               argumentList: ArgumentList
                 leftParenthesis: ( @78
                 arguments2
@@ -24754,6 +24806,11 @@ library
                     literal: 42 @79
                     staticType: int
                 rightParenthesis: ) @81
+              period: . @74
+              constructorName: SimpleIdentifier
+                token: aaa @75
+                element: <testLibrary>::@class::A::@constructor::aaa
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::aaa
           superConstructor: <testLibrary>::@class::A::@constructor::aaa
 ''');
@@ -24810,14 +24867,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @62
+              constructorSelector: ConstructorSelector
+                period: . @67
+                name2: _ @68
+              argumentList: ArgumentList
+                leftParenthesis: ( @69
+                rightParenthesis: ) @70
               period: . @67
               constructorName: SimpleIdentifier
                 token: _ @68
                 element: <testLibrary>::@class::A::@constructor::_
                 staticType: null
-              argumentList: ArgumentList
-                leftParenthesis: ( @69
-                rightParenthesis: ) @70
               element: <testLibrary>::@class::A::@constructor::_
           superConstructor: <testLibrary>::@class::A::@constructor::_
 ''');
@@ -24886,11 +24946,9 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @74
-              period: . @79
-              constructorName: SimpleIdentifier
-                token: aaa @80
-                element: <testLibrary>::@class::A::@constructor::aaa
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @79
+                name2: aaa @80
               argumentList: ArgumentList
                 leftParenthesis: ( @83
                 arguments2
@@ -24904,6 +24962,11 @@ library
                       literal: 2 @90
                       staticType: int
                 rightParenthesis: ) @91
+              period: . @79
+              constructorName: SimpleIdentifier
+                token: aaa @80
+                element: <testLibrary>::@class::A::@constructor::aaa
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::aaa
           superConstructor: <testLibrary>::@class::A::@constructor::aaa
 ''');
@@ -25082,11 +25145,9 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @24
-              period: . @28
-              constructorName: SimpleIdentifier
-                token: named @29
-                element: <testLibrary>::@class::C::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @28
+                name2: named @29
               argumentList: ArgumentList
                 leftParenthesis: ( @34
                 arguments2
@@ -25096,6 +25157,11 @@ library
                   SimpleStringLiteral
                     literal: 'bbb' @38
                 rightParenthesis: ) @43
+              period: . @28
+              constructorName: SimpleIdentifier
+                token: named @29
+                element: <testLibrary>::@class::C::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
         isConst isOriginDeclaration named
@@ -25153,11 +25219,9 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @24
-              period: . @28
-              constructorName: SimpleIdentifier
-                token: named @29
-                element: <testLibrary>::@class::C::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @28
+                name2: named @29
               argumentList: ArgumentList
                 leftParenthesis: ( @34
                 arguments2
@@ -25171,6 +25235,11 @@ library
                       literal: 2 @41
                       staticType: int
                 rightParenthesis: ) @42
+              period: . @28
+              constructorName: SimpleIdentifier
+                token: named @29
+                element: <testLibrary>::@class::C::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
         isConst isOriginDeclaration named
@@ -26940,14 +27009,17 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @43
+              constructorSelector: ConstructorSelector
+                period: . @47
+                name2: named @48
+              argumentList: ArgumentList
+                leftParenthesis: ( @53
+                rightParenthesis: ) @54
               period: . @47
               constructorName: SimpleIdentifier
                 token: named @48
                 element: <testLibrary>::@class::C::@constructor::named
                 staticType: null
-              argumentList: ArgumentList
-                leftParenthesis: ( @53
-                rightParenthesis: ) @54
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
 ''');
@@ -26999,14 +27071,17 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @46
+              constructorSelector: ConstructorSelector
+                period: . @50
+                name2: named @51
+              argumentList: ArgumentList
+                leftParenthesis: ( @56
+                rightParenthesis: ) @57
               period: . @50
               constructorName: SimpleIdentifier
                 token: named @51
                 element: <testLibrary>::@class::C::@constructor::named
                 staticType: null
-              argumentList: ArgumentList
-                leftParenthesis: ( @56
-                rightParenthesis: ) @57
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
 ''');

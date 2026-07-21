@@ -10040,6 +10040,8 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   @override
   final Token name2;
 
+  AstNodeApi? _astNodeApiOverride;
+
   @override
   late final SimpleIdentifierImpl name = _becomeParentOf1(
     SimpleIdentifierImpl.v1Projection(token: name2),
@@ -10047,6 +10049,9 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   @generated
   ConstructorSelectorImpl({required this.period, required this.name2});
+
+  ConstructorSelectorImpl.v2({required this.period, required this.name2})
+    : _astNodeApiOverride = AstNodeApi.v2;
 
   @generated
   @override
@@ -10059,6 +10064,10 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   Token get endToken {
     return name2;
   }
+
+  @DoNotGenerate(reason: 'Some instances exist only in the V2 AST view')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
@@ -36126,10 +36135,17 @@ abstract final class RedirectingConstructorInvocation
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   SimpleIdentifier? get constructorName;
+
+  /// The selector of the constructor that is being invoked, or `null` if the
+  /// unnamed constructor is being invoked.
+  @experimental
+  ConstructorSelector? get constructorSelector;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   Token? get period;
 
   /// The token for the `this` keyword.
@@ -36139,8 +36155,7 @@ abstract final class RedirectingConstructorInvocation
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('thisKeyword'),
-    GenerateNodeProperty('period'),
-    GenerateNodeProperty('constructorName'),
+    GenerateNodeProperty('constructorSelector'),
     GenerateNodeProperty('argumentList'),
   ],
 )
@@ -36152,27 +36167,24 @@ final class RedirectingConstructorInvocationImpl
   final Token thisKeyword;
 
   @generated
-  @override
-  final Token? period;
-
-  @generated
-  SimpleIdentifierImpl? _constructorName;
-
-  @generated
   ArgumentListImpl _argumentList;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  ConstructorSelectorImpl? _constructorSelector;
 
   @override
   ConstructorElementImpl? element;
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   RedirectingConstructorInvocationImpl({
     required this.thisKeyword,
-    required this.period,
-    required SimpleIdentifierImpl? constructorName,
+    required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
-  }) : _constructorName = constructorName,
+  }) : _constructorSelector = constructorSelector,
        _argumentList = argumentList {
-    _becomeParentOf12(constructorName);
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
     _becomeParentOf12(argumentList);
   }
 
@@ -36191,13 +36203,18 @@ final class RedirectingConstructorInvocationImpl
     return thisKeyword;
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => constructorSelector?.name;
 
-  @generated
-  set constructorName(SimpleIdentifierImpl? constructorName) {
-    _constructorName = _becomeParentOf12(constructorName);
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @override
+  ConstructorSelectorImpl? get constructorSelector => _constructorSelector;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _constructorSelector = _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
   }
 
   @generated
@@ -36206,7 +36223,10 @@ final class RedirectingConstructorInvocationImpl
     return argumentList.endToken;
   }
 
-  @generated
+  @override
+  Token? get period => constructorSelector?.period;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -36218,8 +36238,7 @@ final class RedirectingConstructorInvocationImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
-    ..addToken('period', period)
-    ..addNode('constructorName', constructorName)
+    ..addNode('constructorSelector', constructorSelector)
     ..addNode('argumentList', argumentList);
 
   @generated
@@ -36244,8 +36263,8 @@ final class RedirectingConstructorInvocationImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = null;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = null;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -36257,8 +36276,8 @@ final class RedirectingConstructorInvocationImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as SimpleIdentifierImpl?;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = newNode as ConstructorSelectorImpl?;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -36268,7 +36287,7 @@ final class RedirectingConstructorInvocationImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -36280,7 +36299,7 @@ final class RedirectingConstructorInvocationImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    constructorName?.accept2(visitor);
+    constructorSelector?.accept2(visitor);
     argumentList.accept2(visitor);
   }
 
@@ -36293,14 +36312,14 @@ final class RedirectingConstructorInvocationImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    void Function(ConstructorSelectorImpl)? visitConstructorSelector,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
-    if (constructorName case var constructorName?) {
-      if (visitConstructorName != null) {
-        visitConstructorName(constructorName);
+    if (constructorSelector case var constructorSelector?) {
+      if (visitConstructorSelector != null) {
+        visitConstructorSelector(constructorSelector);
       } else {
-        constructorName.accept2(visitor);
+        constructorSelector.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
@@ -36310,7 +36329,7 @@ final class RedirectingConstructorInvocationImpl
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
@@ -36327,9 +36346,9 @@ final class RedirectingConstructorInvocationImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (constructorName case var constructorName?) {
-      if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
-        return constructorName;
+    if (constructorSelector case var constructorSelector?) {
+      if (constructorSelector._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorSelector;
       }
     }
     if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
@@ -38878,10 +38897,17 @@ abstract final class SuperConstructorInvocation
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   SimpleIdentifier? get constructorName;
+
+  /// The selector of the constructor that is being invoked, or `null` if the
+  /// unnamed constructor is being invoked.
+  @experimental
+  ConstructorSelector? get constructorSelector;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
+  @ToBeDeprecated('Use constructorSelector instead.')
   Token? get period;
 
   /// The token for the `super` keyword.
@@ -38891,8 +38917,7 @@ abstract final class SuperConstructorInvocation
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('superKeyword'),
-    GenerateNodeProperty('period'),
-    GenerateNodeProperty('constructorName'),
+    GenerateNodeProperty('constructorSelector'),
     GenerateNodeProperty('argumentList'),
   ],
 )
@@ -38903,27 +38928,24 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   final Token superKeyword;
 
   @generated
-  @override
-  final Token? period;
-
-  @generated
-  SimpleIdentifierImpl? _constructorName;
-
-  @generated
   ArgumentListImpl _argumentList;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  ConstructorSelectorImpl? _constructorSelector;
 
   @override
   InternalConstructorElement? element;
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   SuperConstructorInvocationImpl({
     required this.superKeyword,
-    required this.period,
-    required SimpleIdentifierImpl? constructorName,
+    required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
-  }) : _constructorName = constructorName,
+  }) : _constructorSelector = constructorSelector,
        _argumentList = argumentList {
-    _becomeParentOf12(constructorName);
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
     _becomeParentOf12(argumentList);
   }
 
@@ -38942,13 +38964,18 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     return superKeyword;
   }
 
-  @generated
   @override
-  SimpleIdentifierImpl? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => constructorSelector?.name;
 
-  @generated
-  set constructorName(SimpleIdentifierImpl? constructorName) {
-    _constructorName = _becomeParentOf12(constructorName);
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @override
+  ConstructorSelectorImpl? get constructorSelector => _constructorSelector;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
+    constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
+    _constructorSelector = _becomeParentOf2(constructorSelector);
+    _becomeParentOf1(constructorSelector?.name);
   }
 
   @generated
@@ -38957,7 +38984,10 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     return argumentList.endToken;
   }
 
-  @generated
+  @override
+  Token? get period => constructorSelector?.period;
+
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('superKeyword', superKeyword)
@@ -38969,8 +38999,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('superKeyword', superKeyword)
-    ..addToken('period', period)
-    ..addNode('constructorName', constructorName)
+    ..addNode('constructorSelector', constructorSelector)
     ..addNode('argumentList', argumentList);
 
   @generated
@@ -38995,8 +39024,8 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = null;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = null;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -39008,8 +39037,8 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as SimpleIdentifierImpl?;
+    if (identical(constructorSelector, oldNode)) {
+      constructorSelector = newNode as ConstructorSelectorImpl?;
       return;
     }
     if (identical(argumentList, oldNode)) {
@@ -39019,7 +39048,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -39031,7 +39060,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    constructorName?.accept2(visitor);
+    constructorSelector?.accept2(visitor);
     argumentList.accept2(visitor);
   }
 
@@ -39044,14 +39073,14 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitConstructorName,
+    void Function(ConstructorSelectorImpl)? visitConstructorSelector,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
-    if (constructorName case var constructorName?) {
-      if (visitConstructorName != null) {
-        visitConstructorName(constructorName);
+    if (constructorSelector case var constructorSelector?) {
+      if (visitConstructorSelector != null) {
+        visitConstructorSelector(constructorSelector);
       } else {
-        constructorName.accept2(visitor);
+        constructorSelector.accept2(visitor);
       }
     }
     if (visitArgumentList != null) {
@@ -39061,7 +39090,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
@@ -39078,9 +39107,9 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (constructorName case var constructorName?) {
-      if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
-        return constructorName;
+    if (constructorSelector case var constructorSelector?) {
+      if (constructorSelector._containsOffset(rangeOffset, rangeEnd)) {
+        return constructorSelector;
       }
     }
     if (argumentList._containsOffset(rangeOffset, rangeEnd)) {

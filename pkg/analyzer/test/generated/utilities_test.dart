@@ -1549,7 +1549,7 @@ class A {
       destination: parseResult.findNode.redirectingConstructorInvocation('(0)'),
       source: parseResult.findNode.redirectingConstructorInvocation('(1)'),
       childAccessors: [
-        (node) => node.constructorName!,
+        (node) => node.constructorSelector!,
         (node) => node.argumentList,
       ],
     );
@@ -1696,7 +1696,7 @@ class A {
       destination: parseResult.findNode.superConstructorInvocation('first'),
       source: parseResult.findNode.superConstructorInvocation('second'),
       childAccessors: [
-        (node) => node.constructorName!,
+        (node) => node.constructorSelector!,
         (node) => node.argumentList,
       ],
     );

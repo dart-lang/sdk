@@ -446,11 +446,9 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @57
-              period: . @61
-              constructorName: SimpleIdentifier
-                token: named @62
-                element: <testLibrary>::@class::D::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @61
+                name2: named @62
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 arguments2
@@ -462,6 +460,11 @@ library
                     element: <testLibrary>::@class::C::@method::call
                     staticType: void Function()
                 rightParenthesis: ) @69
+              period: . @61
+              constructorName: SimpleIdentifier
+                token: named @62
+                element: <testLibrary>::@class::D::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::D::@constructor::named
           redirectedConstructor: <testLibrary>::@class::D::@constructor::named
         isConst isOriginDeclaration named

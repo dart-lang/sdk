@@ -2072,6 +2072,7 @@ package:analyzer/dart/ast/ast.dart:
   RedirectingConstructorInvocation (class extends Object implements ConstructorInitializer, ConstructorReferenceNode, abstract, final):
     argumentList (getter: ArgumentList)
     constructorName (getter: SimpleIdentifier?)
+    constructorSelector (getter: ConstructorSelector?, experimental)
     period (getter: Token?)
     thisKeyword (getter: Token)
   RegularFormalParameter (class extends Object implements FormalParameter, abstract, final)
@@ -2133,6 +2134,7 @@ package:analyzer/dart/ast/ast.dart:
   SuperConstructorInvocation (class extends Object implements ConstructorInitializer, ConstructorReferenceNode, abstract, final):
     argumentList (getter: ArgumentList)
     constructorName (getter: SimpleIdentifier?)
+    constructorSelector (getter: ConstructorSelector?, experimental)
     period (getter: Token?)
     superKeyword (getter: Token)
   SuperExpression (class extends Object implements Expression, abstract, final):

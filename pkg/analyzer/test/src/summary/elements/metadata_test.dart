@@ -1056,14 +1056,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::A::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::named
           superConstructor: <testLibrary>::@class::A::@constructor::named
     isSimplyBounded class D

@@ -28,14 +28,17 @@ extension type E(int it) {
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
+  constructorSelector: ConstructorSelector
+    period: .
+    name2: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
   period: .
   constructorName: SimpleIdentifier
     token: named
     element: <null>
     staticType: null
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
   element: <null>
 ''');
   }

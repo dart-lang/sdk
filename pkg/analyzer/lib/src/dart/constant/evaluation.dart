@@ -3214,9 +3214,9 @@ class _InstanceCreationEvaluator {
             );
         }
       } else if (initializer is SuperConstructorInvocation) {
-        var name = initializer.constructorName;
-        if (name != null) {
-          superName = name.name;
+        var selector = initializer.constructorSelector;
+        if (selector != null) {
+          superName = selector.name2.lexeme;
         }
         superArguments = initializer.argumentList.arguments2.toList();
       } else if (initializer is RedirectingConstructorInvocationImpl) {

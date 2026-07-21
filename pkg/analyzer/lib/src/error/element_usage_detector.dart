@@ -15,7 +15,7 @@ import 'package:analyzer/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 
 /// Algorithm for detecting usages of a set of elements.
-@ToBeDeprecated('Use ElementUsageDetector instead')
+@ToBeDeprecated('Use ElementUsageDetectorV2 instead')
 class ElementUsageDetector<TagInfo extends Object> {
   /// Description of the current workspace.
   ///
