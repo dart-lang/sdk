@@ -6,15 +6,20 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// An enumeration of quick fix kinds found in a pubspec file.
 abstract final class PubspecFixKind {
+  static const addDependency = FixKind(
+    'pubspec.fix.add.dependency',
+    PubspecFixKindPriority._default,
+    'Update pubspec with the missing dependencies',
+  );
   static const addName = FixKind(
     'pubspec.fix.add.name',
     PubspecFixKindPriority._default,
     "Add 'name' key",
   );
-  static const addDependency = FixKind(
-    'pubspec.fix.add.dependency',
+  static const sortDependencies = FixKind(
+    'pubspec.fix.sort.dependencies',
     PubspecFixKindPriority._default,
-    'Update pubspec with the missing dependencies',
+    'Sort dependencies alphabetically',
   );
 }
 

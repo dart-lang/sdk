@@ -339,6 +339,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  @experimental
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     sink.write('continue');
     _visitNode(node.label, prefix: ' ');

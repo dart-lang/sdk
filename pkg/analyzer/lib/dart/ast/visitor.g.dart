@@ -910,6 +910,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitConstructorSelector(ConstructorSelector node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitConstructorTypeReference(ConstructorTypeReference node) =>
+      visitNode(node);
+
   @override
   R? visitContinueStatement(ContinueStatement node) => visitStatement(node);
 
@@ -2848,6 +2853,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitConstructorTypeReference(ConstructorTypeReference node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitContinueStatement(ContinueStatement node) {
     node.visitChildren2(this);
@@ -4451,6 +4463,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitConstructorSelector(ConstructorSelector node) => null;
 
+  @experimental
+  @override
+  R? visitConstructorTypeReference(ConstructorTypeReference node) => null;
+
   @override
   R? visitContinueStatement(ContinueStatement node) => null;
 
@@ -5641,6 +5657,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitConstructorSelector(ConstructorSelector node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitConstructorTypeReference(ConstructorTypeReference node) =>
+      _throw(node);
 
   @override
   R? visitContinueStatement(ContinueStatement node) => _throw(node);
@@ -7932,6 +7953,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitConstructorTypeReference(ConstructorTypeReference node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitConstructorTypeReference(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitContinueStatement(ContinueStatement node) {
     stopwatch.start();
@@ -9876,6 +9906,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitConstructorSelector(ConstructorSelector node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitConstructorTypeReference(ConstructorTypeReference node) =>
+      visitNode(node);
 
   @override
   R? visitContinueStatement(ContinueStatement node) => visitNode(node);

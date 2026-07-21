@@ -92,6 +92,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ConstructorReference,
         ConstructorReferenceNode,
         ConstructorSelector,
+        ConstructorTypeReference,
         ContinueStatement,
         DartPattern,
         Declaration,

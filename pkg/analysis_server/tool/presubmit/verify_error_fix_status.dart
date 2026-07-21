@@ -220,13 +220,15 @@ extension on DiagnosticCode {
   /// it.
   bool get hasFix {
     var self = this;
+    if (PubspecFixGenerator.codesWithFixes.contains(self) ||
+        AnalysisOptionsFixGenerator.codesWithFixes.contains(self)) {
+      return true;
+    }
     if (self is LintCode) {
       return registeredFixGenerators.lintProducers.containsKey(self) ||
           registeredFixGenerators.lintMultiProducers.containsKey(self);
     }
     return registeredFixGenerators.warningProducers.containsKey(self) ||
-        registeredFixGenerators.warningMultiProducers.containsKey(self) ||
-        AnalysisOptionsFixGenerator.codesWithFixes.contains(self) ||
-        PubspecFixGenerator.codesWithFixes.contains(self);
+        registeredFixGenerators.warningMultiProducers.containsKey(self);
   }
 }
