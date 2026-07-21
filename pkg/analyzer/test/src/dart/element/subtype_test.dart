@@ -681,6 +681,18 @@ class SubtypeTest extends AbstractTypeSystemTest {
     isSubtype2('FutureOr<Object>', 'FutureOr<FutureOr<Object>>');
   }
 
+  test_futureOr_31_typeParameter_recursiveBound() {
+    withTypeParameterScope('X extends FutureOr<X>, Y extends FutureOr<Y>', (
+      scope,
+    ) {
+      var X = scope.parseType('X');
+      var Y = scope.parseType('Y');
+
+      isNotSubtype(X, Y);
+      isNotSubtype(Y, X);
+    });
+  }
+
   test_interfaceType_01() {
     isSubtype(parseType('int'), parseType('int'));
   }
@@ -2145,7 +2157,6 @@ class SubtypeTest extends AbstractTypeSystemTest {
     });
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/language/issues/433')
   test_typeParameter_44() {
     withTypeParameterScope('T extends FutureOr<T>', (scope) {
       isSubtype(scope.parseType('T'), scope.parseType('FutureOr<T>'));

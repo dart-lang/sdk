@@ -374,6 +374,21 @@ class LeastUpperBoundHelper {
   /// https://github.com/dart-lang/language
   /// See `resources/type-system/upper-lower-bounds.md`
   TypeImpl getLeastUpperBound(TypeImpl T1, TypeImpl T2) {
+    var isOutermost = false;
+    try {
+      isOutermost = _typeSystem.enterTypeOperation();
+      return _computeLeastUpperBound(T1, T2);
+    } on TypeOperationDepthLimitExceeded {
+      if (isOutermost) {
+        return _typeSystem.objectQuestion;
+      }
+      rethrow;
+    } finally {
+      _typeSystem.exitTypeOperation();
+    }
+  }
+
+  TypeImpl _computeLeastUpperBound(TypeImpl T1, TypeImpl T2) {
     // UP(T, T) = T
     if (identical(T1, T2)) {
       return T1;
