@@ -16104,6 +16104,82 @@ LinterLintCode:
       stable: "2.19"
     categories: [unusedCode]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a public declaration
+      in an executable library isn't referenced, directly or indirectly,
+      from an entry point of that library.
+
+      An executable library is a library that contains an entry point.
+      An entry point is a top-level function that is one of the following:
+
+      - Named `main`.
+      - Annotated with `@pragma('vm:entry-point')`.
+      - Annotated with Flutter's widget preview annotation, `@Preview`.
+
+      The analyzer doesn't report declarations annotated with
+      [`@visibleForTesting`][] from `package:meta` or
+      [`@Preview`][] from Flutter.
+
+      [`@Preview`]: https://api.flutter.dev/flutter/widget_previews/Preview-class.html
+
+      #### Examples
+
+      The following code produces this diagnostic because the function `f`
+      is not referenced from the `main` function:
+
+      ```dart
+      void main() {}
+
+      void [!f!]() {}
+      ```
+
+      The following code produces this diagnostic because the method `m`
+      is not referenced, even though its containing class `C` is:
+
+      ```dart
+      void main() {
+        C();
+      }
+
+      class C {
+        void [!m!]() {}
+      }
+      ```
+
+      #### Common fixes
+
+      If the declaration is intended to be used,
+      then add the missing reference:
+
+      ```dart
+      void main() {
+        f();
+      }
+
+      void f() {}
+      ```
+
+      If the declaration isn't needed, then remove it:
+
+      ```dart
+      void main() {}
+      ```
+
+      If the declaration is public in order to be used by tests,
+      then add the [`@visibleForTesting`][] annotation:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      void main() {}
+
+      @visibleForTesting
+      void f() {}
+      ```
+
+      [`@visibleForTesting`]: https://pub.dev/documentation/meta/latest/meta/visibleForTesting-constant.html
     deprecatedDetails: |-
       Any member declared in an executable library should be used directly inside that
       library.  An executable library is a library that contains a `main` top-level
