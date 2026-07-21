@@ -10817,7 +10817,7 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when `Map.fromIterable` is used to
-      build a map that could be built using the `for` element.
+      build a map that could be built using a `for` element.
 
       #### Example
 
@@ -11072,6 +11072,34 @@ LinterLintCode:
       stable: "2.3"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a conditional expression
+      is used as an element of a list or set literal and
+      an `if` element could be used instead.
+
+      #### Example
+
+      The following code produces this diagnostic because a
+      conditional expression is used to choose which of two values to
+      include in the created list:
+
+      ```dart
+      List<String> f(bool b) {
+        return ['a', [!b ? 'c' : 'd'!], 'e'];
+      }
+      ```
+
+      #### Common fixes
+
+      Use an `if` element to select the value:
+
+      ```dart
+      List<String> f(bool b) {
+        return ['a', if (b) 'c' else 'd', 'e'];
+      }
+      ```
     deprecatedDetails: |-
       When building collections, it is preferable to use `if` elements rather than
       conditionals.
@@ -11897,6 +11925,54 @@ LinterLintCode:
       stable: "2.3"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `addAll` is used to
+      add the items of another collection to a list created by a list literal,
+      in a situation where a spread element could be used instead.
+
+      #### Examples
+
+      The following code produces this diagnostic because the items of
+      the `numbers` list are added to a new list using `addAll`:
+
+      ```dart
+      List<int> f(List<int> numbers) {
+        return [0, 1]..[!addAll!](numbers);
+      }
+      ```
+
+      The following code produces this diagnostic because the items of
+      the nullable `numbers` list are added to a new list using `addAll`:
+
+      ```dart
+      List<int> f(List<int>? numbers) {
+        return [0, 1]..[!addAll!](numbers ?? const []);
+      }
+      ```
+
+      #### Common fixes
+
+      If the collection being added isn't nullable,
+      then use a spread element (`...`) to
+      include its items in the new list:
+
+      ```dart
+      List<int> f(List<int> numbers) {
+        return [0, 1, ...numbers];
+      }
+      ```
+
+      If the collection being added is nullable,
+      then use a null-aware spread element (`...?`) to conditionally
+      include its items in the new list if it's not `null`:
+
+      ```dart
+      List<int> f(List<int>? numbers) {
+        return [0, 1, ...?numbers];
+      }
+      ```
     deprecatedDetails: |-
       Use spread collections when possible.
 
