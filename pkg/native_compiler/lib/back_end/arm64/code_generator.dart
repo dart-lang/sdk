@@ -253,7 +253,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
       ),
     );
 
-    if (!function.isRequiredParameter(numRequired)) {
+    final namedParams = [
+      for (var i = numRequired; i < total; ++i)
+        (
+          name: function.getParameterName(i),
+          index: i,
+          isRequired: function.isRequiredParameter(i),
+        ),
+    ];
+    namedParams.sort((a, b) => a.name.compareTo(b.name));
+
+    if (!namedParams.first.isRequired) {
       // Load name of the first optional named parameter.
       _asm.ldr(
         argNameReg,
@@ -265,24 +275,28 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
     }
 
-    for (i = numRequired; i < total; ++i) {
+    for (i = 0; i < namedParams.length; ++i) {
       Label? proceed;
-      final destReg = (i < argumentRegisters.length)
-          ? argumentRegisters[i]
+      final param = namedParams[i];
+      final destReg = (param.index < argumentRegisters.length)
+          ? argumentRegisters[param.index]
           : tempReg;
-      if (!function.isRequiredParameter(i)) {
-        _asm.loadFromPool(tempReg, function.getParameterName(i));
+      if (!param.isRequired) {
+        _asm.loadFromPool(tempReg, param.name);
         _asm.cmp(argNameReg, tempReg);
         final passed = Label();
         _asm.b(passed, .equal);
 
-        _asm.loadConstant(destReg, function.getParameterDefaultValue(i));
+        _asm.loadConstant(
+          destReg,
+          function.getParameterDefaultValue(param.index),
+        );
         proceed = Label();
         _asm.b(proceed);
 
         _asm.bind(passed);
       }
-      if (i + 1 < total && !function.isRequiredParameter(i + 1)) {
+      if (i + 1 < namedParams.length && !namedParams[i + 1].isRequired) {
         // Load both position of this argument and the name of the next argument.
         _asm.ldp(
           tempReg,
@@ -313,10 +327,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
       if (proceed != null) {
         _asm.bind(proceed);
       }
-      if (i >= argumentRegisters.length) {
+      if (param.index >= argumentRegisters.length) {
         _asm.str(
           destReg,
-          _asm.address(FP, stackFrame.shadowParameterOffsetFromFP(i)),
+          _asm.address(FP, stackFrame.shadowParameterOffsetFromFP(param.index)),
         );
       }
     }
