@@ -1494,7 +1494,6 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
 //   R3 : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ Comment("InvokeDartCodeStub");
-  if (FLAG_support_cfi) __ bti_c();
 
   // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
   // use to access the stack (SP/R15) and set the C stack pointer to near the
@@ -1640,7 +1639,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
 #if defined(DART_DYNAMIC_MODULES)
   __ Comment("InvokeDartCodeFromBytecodeStub");
-  if (FLAG_support_cfi) __ bti_c();
 
   // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
   // use to access the stack (SP/R15) and set the C stack pointer to near the
@@ -3373,8 +3371,6 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
                        target::kWordSize));
     __ b(&again);
     __ Bind(&done);
-  } else if (FLAG_support_cfi) {
-    // TODO(63457): How to unwind to appease GCS?
   }
   __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
   __ mov(SP, R1);                 // Stack pointer.

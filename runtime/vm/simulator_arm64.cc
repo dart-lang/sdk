@@ -2012,11 +2012,9 @@ void Simulator::DecodeSystem(Instr* instr) {
     return;
   }
 
-  if (instr->Bits(12, 20) == 0xD5032 && instr->Bits(0, 5) == 0x1f) {
-    // Format(instr, "hint");
-  } else if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
-             (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
-             (instr->Bit(21) == 0)) {
+  if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
+      (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
+      (instr->Bit(21) == 0)) {
     if (instr->Bits(8, 4) == 0) {
       // Format(instr, "nop");
     } else {

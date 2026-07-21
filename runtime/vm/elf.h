@@ -86,7 +86,6 @@ class ElfWriter : public SharedObjectWriter {
                                 const ElfWriter* debug_info);
 
   static constexpr const char kBuildIdNoteName[] = ".note.gnu.build-id";
-  static constexpr const char kPropertyNoteName[] = ".note.gnu.property";
   static constexpr const char kTextName[] = ".text";
   static constexpr const char kDataName[] = ".rodata";
   static constexpr const char kBssName[] = ".bss";
@@ -94,7 +93,6 @@ class ElfWriter : public SharedObjectWriter {
 
   void CreateBSS();
   void GenerateBuildId();
-  void GenerateProperty();
   void InitializeSymbolTables();
   void FinalizeDwarfSections();
   void FinalizeEhFrame();

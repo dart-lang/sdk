@@ -805,10 +805,6 @@ enum SystemOp {
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
   CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 | B6 | B4 |
       B3 | B2 | B1 | B0,
-  BTI = HINT | B10,
-  BTI_C = HINT | B10 | B6,
-  BTI_J = HINT | B10 | B7,
-  BTI_JC = HINT | B10 | B7 | B6,
 };
 
 // C3.2.5

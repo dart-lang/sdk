@@ -268,7 +268,6 @@ class Segment : public ZoneObject {
       case elf::ProgramHeaderType::PT_DYNAMIC:
         return compiler::target::kWordSize;
       case elf::ProgramHeaderType::PT_NOTE:
-      case elf::ProgramHeaderType::PT_GNU_PROPERTY:
         return kNoteAlignment;
       case elf::ProgramHeaderType::PT_GNU_STACK:
         return 1;
@@ -1537,16 +1536,10 @@ ProgramTable* SectionTable::CreateProgramTable(ElfSymbolTable* symtab) {
       new (zone_) Segment(zone_, dynamic, elf::ProgramHeaderType::PT_DYNAMIC));
 
   // Add a PT_GNU_STACK segment to prevent the loading of our snapshot from
-  // switching the stack to be executable.
+  // switch the stack to be executable.
   auto* const gnu_stack = new (zone_) GnuStackSection();
   program_table->Add(new (zone_) Segment(zone_, gnu_stack,
                                          elf::ProgramHeaderType::PT_GNU_STACK));
-
-  auto* const gnu_property = Find(ElfWriter::kPropertyNoteName);
-  if (gnu_property != nullptr) {
-    program_table->Add(new (zone_) Segment(
-        zone_, gnu_property, elf::ProgramHeaderType::PT_GNU_PROPERTY));
-  }
 
   return program_table;
 }
@@ -1554,7 +1547,6 @@ ProgramTable* SectionTable::CreateProgramTable(ElfSymbolTable* symtab) {
 void ElfWriter::Finalize() {
   // Generate the build ID now that we have all user-provided sections.
   GenerateBuildId();
-  GenerateProperty();
 
   // We add a BSS section in all cases, even to the separate debugging
   // information, to ensure that relocated addresses are consistent between ELF
@@ -1714,8 +1706,6 @@ static constexpr intptr_t kBuildIdSegmentNamesLength =
 // Includes the note name, but not the description.
 static constexpr intptr_t kBuildIdHeaderSize =
     sizeof(elf::Note) + sizeof(elf::ELF_NOTE_GNU);
-static constexpr intptr_t kPropertyHeaderSize =
-    sizeof(elf::Note) + sizeof(elf::ELF_NOTE_GNU);
 
 void ElfWriter::GenerateBuildId() {
   // Not idempotent.
@@ -1766,44 +1756,6 @@ void ElfWriter::GenerateBuildId() {
                         /*relocations=*/nullptr, /*symbols=*/nullptr,
                         kSnapshotBuildIdAsmSymbol, kBuildIdLabel);
   section_table_->Add(container, kBuildIdNoteName);
-}
-
-void ElfWriter::GenerateProperty() {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-  const size_t description_length = 0x10;
-  ZoneWriteStream stream(zone(), kPropertyHeaderSize + description_length);
-  stream.WriteFixed<decltype(elf::Note::name_size)>(sizeof(elf::ELF_NOTE_GNU));
-  stream.WriteFixed<decltype(elf::Note::description_size)>(description_length);
-  stream.WriteFixed<decltype(elf::Note::type)>(
-      elf::NoteType::NT_GNU_PROPERTY_TYPE_0);
-  ASSERT_EQUAL(stream.Position(), sizeof(elf::Note));
-  stream.WriteBytes(elf::ELF_NOTE_GNU, sizeof(elf::ELF_NOTE_GNU));
-  ASSERT_EQUAL(stream.bytes_written(), kPropertyHeaderSize);
-#if defined(TARGET_ARCH_X64)
-  stream.WriteFixed<int32_t>(GNU_PROPERTY_X86_FEATURE_1_AND);
-  stream.WriteFixed<int32_t>(4);  // size?
-  if (FLAG_support_cfi) {
-    stream.WriteFixed<int32_t>(GNU_PROPERTY_X86_FEATURE_1_IBT);
-  } else {
-    stream.WriteFixed<int32_t>(0);
-  }
-  stream.WriteFixed<int32_t>(0);  // padding
-#elif defined(TARGET_ARCH_ARM64)
-  stream.WriteFixed<int32_t>(GNU_PROPERTY_AARCH64_FEATURE_1_AND);
-  stream.WriteFixed<int32_t>(4);  // size?
-  if (FLAG_support_cfi) {
-    stream.WriteFixed<int32_t>(GNU_PROPERTY_AARCH64_FEATURE_1_BTI);
-  } else {
-    stream.WriteFixed<int32_t>(0);
-  }
-  stream.WriteFixed<int32_t>(0);  // padding
-#endif
-  auto* const container = new (zone_) NoteSection();
-  container->AddPortion(stream.buffer(), stream.bytes_written());
-  section_table_->Add(container, kPropertyNoteName);
-#else
-  USE(kPropertyHeaderSize);
-#endif
 }
 
 void ElfWriter::ComputeOffsets() {

@@ -1296,7 +1296,6 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
 void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ Comment("InvokeDartCodeStub");
 
-  if (FLAG_support_cfi) __ lpad();
   __ EnterFrame(1 * target::kWordSize);
 
   // Push code object to PC marker slot.
@@ -2881,8 +2880,6 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
                       target::kWordSize));
     __ j(&again);
     __ Bind(&done);
-  } else if (FLAG_support_cfi) {
-    // TODO(63457): update scs CRS if enabled
   }
   __ mv(CALLEE_SAVED_TEMP, A0);  // Program counter.
   __ mv(SP, A1);                 // Stack pointer.
