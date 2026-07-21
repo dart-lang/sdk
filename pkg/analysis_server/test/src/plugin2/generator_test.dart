@@ -15,6 +15,14 @@ void main() {
 
 @reflectiveTest
 class GeneratorTest {
+  void test_entrypointContainsSdkVersion() {
+    var pluginPackageGenerator = PluginPackageGenerator(configurations: []);
+    expect(
+      pluginPackageGenerator.generateEntrypoint(),
+      startsWith('// Compiled with Dart version '),
+    );
+  }
+
   void test_entrypointImportsPluginEntrypoints() {
     var pluginPackageGenerator = PluginPackageGenerator(
       configurations: [
