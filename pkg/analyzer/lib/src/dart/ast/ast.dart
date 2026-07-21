@@ -9648,6 +9648,208 @@ abstract final class ConstructorReference
   ConstructorName get constructorName;
 }
 
+/// A source-level reference to a constructor.
+///
+///    constructorReference ::=
+///        [ConstructorTypeReference] [ConstructorSelector]?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorReference2
+    implements AstNode, ConstructorReferenceNode {
+  /// The constructor selector, or `null` if the unnamed constructor is
+  /// referenced without an explicit `.new` selector.
+  ConstructorSelector? get selector;
+
+  /// The reference to the type defining the constructor.
+  ConstructorTypeReference get typeReference;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('typeReference'),
+    GenerateNodeProperty('selector'),
+  ],
+)
+final class ConstructorReference2Impl extends AstNodeImpl
+    implements ConstructorReference2 {
+  @generated
+  ConstructorTypeReferenceImpl _typeReference;
+
+  @generated
+  ConstructorSelectorImpl? _selector;
+
+  @override
+  InternalConstructorElement? element;
+
+  @generated
+  ConstructorReference2Impl({
+    required ConstructorTypeReferenceImpl typeReference,
+    required ConstructorSelectorImpl? selector,
+  }) : _typeReference = typeReference,
+       _selector = selector {
+    _becomeParentOf2(typeReference);
+    _becomeParentOf2(selector);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return typeReference.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (selector case var selector?) {
+      return selector.endToken;
+    }
+    return typeReference.endToken;
+  }
+
+  @generated
+  @override
+  ConstructorSelectorImpl? get selector => _selector;
+
+  @generated
+  set selector(ConstructorSelectorImpl? selector) {
+    _selector = _becomeParentOf2(selector);
+  }
+
+  @generated
+  @override
+  ConstructorTypeReferenceImpl get typeReference => _typeReference;
+
+  @generated
+  set typeReference(ConstructorTypeReferenceImpl typeReference) {
+    _typeReference = _becomeParentOf2(typeReference);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('typeReference', typeReference)
+    ..addNode('selector', selector);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorReference2(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(typeReference, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'typeReference'.");
+    }
+    if (identical(selector, oldNode)) {
+      selector = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(typeReference, oldNode)) {
+      typeReference = newNode as ConstructorTypeReferenceImpl;
+      return;
+    }
+    if (identical(selector, oldNode)) {
+      selector = newNode as ConstructorSelectorImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeReference.accept2(visitor);
+    selector?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ConstructorTypeReferenceImpl)? visitTypeReference,
+    void Function(ConstructorSelectorImpl)? visitSelector,
+  }) {
+    if (visitTypeReference != null) {
+      visitTypeReference(typeReference);
+    } else {
+      typeReference.accept2(visitor);
+    }
+    if (selector case var selector?) {
+      if (visitSelector != null) {
+        visitSelector(selector);
+      } else {
+        selector.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorReference2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeReference._containsOffset(rangeOffset, rangeEnd)) {
+      return typeReference;
+    }
+    if (selector case var selector?) {
+      if (selector._containsOffset(rangeOffset, rangeEnd)) {
+        return selector;
+      }
+    }
+    return null;
+  }
+}
+
 @GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('constructorName')])
 final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {

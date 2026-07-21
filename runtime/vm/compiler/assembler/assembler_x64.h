@@ -403,6 +403,7 @@ class Assembler : public AssemblerBase {
 #define SIMPLE(name, ...)                                                      \
   void name() { EmitSimple(__VA_ARGS__); }
   SIMPLE(cpuid, 0x0F, 0xA2)
+  SIMPLE(notrack, 0x3E)
   SIMPLE(fcos, 0xD9, 0xFF)
   SIMPLE(fincstp, 0xD9, 0xF7)
   SIMPLE(fsin, 0xD9, 0xFE)
@@ -719,6 +720,8 @@ class Assembler : public AssemblerBase {
 
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
+
+  void endbr64();
 
   void j(Condition condition, Label* label, JumpDistance distance = kFarJump);
   void jmp(Register reg) { EmitUnaryL(reg, 0xFF, 4); }
