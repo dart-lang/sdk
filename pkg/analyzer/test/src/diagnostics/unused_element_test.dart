@@ -3380,6 +3380,33 @@ f() => A()._m();
 ''');
   }
 
+  @FailingTest() // TODO(scheglov): Report omitted optional parameters.
+  test_parameter_notUsed_namedRedirectingConstructorInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A() : this._named(b: 0);
+  A._named({int a = 0, int b = 0});
+//              ^
+// [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
+}
+''');
+  }
+
+  @FailingTest() // TODO(scheglov): Report omitted optional parameters.
+  test_parameter_notUsed_namedSuperConstructorInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {
+  _A._named({int a = 0, int b = 0});
+//               ^
+// [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
+}
+
+class B extends _A {
+  B() : super._named(b: 0);
+}
+''');
+  }
+
   test_parameter_notUsed_override_added() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

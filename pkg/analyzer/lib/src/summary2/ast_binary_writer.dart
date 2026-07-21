@@ -170,6 +170,12 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _writeByte(Tag.ConstructorSelector);
+    _writeStringReference(node.name2.lexeme);
+  }
+
+  @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _writeByte(Tag.DeclaredIdentifier);
     _writeByte(
@@ -690,7 +696,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _writeByte(Tag.RedirectingConstructorInvocation);
 
-    _writeOptionalNode(node.constructorName);
+    _writeOptionalNode(node.constructorSelector);
     _writeNode(node.argumentList);
 
     _sink.writeElement(node.element);
@@ -766,7 +772,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _writeByte(Tag.SuperConstructorInvocation);
 
-    _writeOptionalNode(node.constructorName);
+    _writeOptionalNode(node.constructorSelector);
     _writeNode(node.argumentList);
 
     _sink.writeElement(node.element);

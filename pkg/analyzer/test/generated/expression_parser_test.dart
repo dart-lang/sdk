@@ -3432,12 +3432,15 @@ CompilationUnit
             initializers
               RedirectingConstructorInvocation
                 thisKeyword: this
-                period: .
-                constructorName: SimpleIdentifier
-                  token: a
+                constructorSelector: ConstructorSelector
+                  period: .
+                  name2: a
                 argumentList: ArgumentList
                   leftParenthesis: (
                   rightParenthesis: )
+                period: .
+                constructorName: SimpleIdentifier
+                  token: a
             body: EmptyFunctionBody
               semicolon: ;
         rightBracket: }
@@ -4332,12 +4335,15 @@ CompilationUnit
             initializers
               SuperConstructorInvocation
                 superKeyword: super
-                period: .
-                constructorName: SimpleIdentifier
-                  token: a
+                constructorSelector: ConstructorSelector
+                  period: .
+                  name2: a
                 argumentList: ArgumentList
                   leftParenthesis: (
                   rightParenthesis: )
+                period: .
+                constructorName: SimpleIdentifier
+                  token: a
             body: EmptyFunctionBody
               semicolon: ;
         rightBracket: }

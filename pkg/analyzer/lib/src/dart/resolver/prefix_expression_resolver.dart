@@ -237,9 +237,8 @@ class PrefixExpressionResolver {
       } else if (operator.isIncrementOperator) {
         if (readType!.isDartCoreInt) {
           staticType = _typeProvider.intType;
-        } else {
-          _checkForInvalidAssignmentIncDec(node, staticType);
         }
+        _checkForInvalidAssignmentIncDec(node, staticType);
         if (operand is SimpleIdentifier) {
           var element = operand.element;
           if (element is PromotableElementImpl) {

@@ -3926,8 +3926,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           if (redirectingElement == null) {
             String enclosingNamedType = enclosingClass.displayName;
             String constructorStrName = enclosingNamedType;
-            if (invocation.constructorName != null) {
-              constructorStrName += ".${invocation.constructorName!.name}";
+            if (invocation.constructorSelector case var selector?) {
+              constructorStrName += ".${selector.name2.lexeme}";
             }
             diagnosticReporter.report(
               diag.redirectGenerativeToMissingConstructor
@@ -3952,7 +3952,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         _checkForRedirectToNonConstConstructor(
           declaration.declaredFragment!.element,
           invocation.element,
-          invocation.constructorName ?? invocation.thisKeyword,
+          invocation.constructorSelector?.name2 ?? invocation.thisKeyword,
         );
         redirectingInitializerCount++;
       } else if (initializer is SuperConstructorInvocation) {
@@ -7833,6 +7833,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   ///
   /// See [diag.implementsSuperClass].
   void _checkImplementsSuperClass(ImplementsClause? implementsClause) {
+    if (_featureSet.isEnabled(Feature.augmentations)) {
+      return;
+    }
+
     if (implementsClause == null) {
       return;
     }

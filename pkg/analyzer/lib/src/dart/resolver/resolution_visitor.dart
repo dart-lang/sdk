@@ -783,13 +783,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitRedirectingConstructorInvocation(
-    covariant RedirectingConstructorInvocationImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
-  }
-
-  @override
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
@@ -854,13 +847,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
         }
       }
     }
-  }
-
-  @override
-  void visitSuperConstructorInvocation(
-    covariant SuperConstructorInvocationImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
   }
 
   @override

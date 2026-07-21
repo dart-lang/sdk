@@ -759,6 +759,58 @@ void f(int a) {
 ''');
   }
 
+  test_postfixExpression_int_index() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+  void operator []=(int index, String value) {}
+}
+
+void f(A a) {
+  a[0]++;
+//^^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+  a[0]--;
+//^^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+}
+''');
+  }
+
+  test_postfixExpression_int_instanceGetterSetter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get x => 0;
+  set x(String _) {}
+}
+
+void f(A a) {
+  a.x++;
+//^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+  a.x--;
+//^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+}
+''');
+  }
+
+  test_postfixExpression_int_topLevelGetterSetter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int get x => 0;
+set x(String _) {}
+
+void f() {
+  x++;
+//^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+  x--;
+//^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+}
+''');
+  }
+
   test_postfixExpression_localVariable() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -819,6 +871,58 @@ class C {
 
 f(C c) {
   c.a++;
+}
+''');
+  }
+
+  test_prefixExpression_int_index() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+  void operator []=(int index, String value) {}
+}
+
+void f(A a) {
+  ++a[0];
+//^^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+  --a[0];
+//^^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+}
+''');
+  }
+
+  test_prefixExpression_int_instanceGetterSetter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get x => 0;
+  set x(String _) {}
+}
+
+void f(A a) {
+  ++a.x;
+//^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+  --a.x;
+//^^^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+}
+''');
+  }
+
+  test_prefixExpression_int_topLevelGetterSetter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int get x => 0;
+set x(String _) {}
+
+void f() {
+  ++x;
+//^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+  --x;
+//^^^
+// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
 ''');
   }

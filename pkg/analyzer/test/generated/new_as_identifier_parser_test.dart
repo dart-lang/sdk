@@ -807,12 +807,15 @@ ConstructorDeclaration
   initializers
     SuperConstructorInvocation
       superKeyword: super
-      period: .
-      constructorName: SimpleIdentifier
-        token: new
+      constructorSelector: ConstructorSelector
+        period: .
+        name2: new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
+      period: .
+      constructorName: SimpleIdentifier
+        token: new
   body: EmptyFunctionBody
     semicolon: ;
 ''');
@@ -839,12 +842,15 @@ ConstructorDeclaration
   initializers
     RedirectingConstructorInvocation
       thisKeyword: this
-      period: .
-      constructorName: SimpleIdentifier
-        token: new
+      constructorSelector: ConstructorSelector
+        period: .
+        name2: new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
+      period: .
+      constructorName: SimpleIdentifier
+        token: new
   body: EmptyFunctionBody
     semicolon: ;
 ''');

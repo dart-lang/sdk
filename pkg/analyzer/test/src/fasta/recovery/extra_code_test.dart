@@ -406,20 +406,26 @@ CompilationUnit
             initializers
               RedirectingConstructorInvocation
                 thisKeyword: this
+                constructorSelector: ConstructorSelector
+                  period: .
+                  name2: a
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
                 period: .
                 constructorName: SimpleIdentifier
                   token: a
+              RedirectingConstructorInvocation
+                thisKeyword: this
+                constructorSelector: ConstructorSelector
+                  period: .
+                  name2: b
                 argumentList: ArgumentList
                   leftParenthesis: (
                   rightParenthesis: )
-              RedirectingConstructorInvocation
-                thisKeyword: this
                 period: .
                 constructorName: SimpleIdentifier
                   token: b
-                argumentList: ArgumentList
-                  leftParenthesis: (
-                  rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
           ConstructorDeclaration

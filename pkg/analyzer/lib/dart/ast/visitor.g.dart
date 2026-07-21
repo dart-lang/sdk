@@ -916,6 +916,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitConstructorTearOff(ConstructorTearOff node) =>
+      visitCommentReferableExpression(node);
+
+  @experimental
+  @override
   R? visitConstructorTypeReference(ConstructorTypeReference node) =>
       visitNode(node);
 
@@ -2866,6 +2871,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitConstructorTearOff(ConstructorTearOff node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitConstructorTypeReference(ConstructorTypeReference node) {
     node.visitChildren2(this);
     return null;
@@ -4480,6 +4492,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitConstructorTearOff(ConstructorTearOff node) => null;
+
+  @experimental
+  @override
   R? visitConstructorTypeReference(ConstructorTypeReference node) => null;
 
   @override
@@ -5676,6 +5692,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitConstructorSelector(ConstructorSelector node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitConstructorTearOff(ConstructorTearOff node) => _throw(node);
 
   @experimental
   @override
@@ -7983,6 +8003,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitConstructorTearOff(ConstructorTearOff node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitConstructorTearOff(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitConstructorTypeReference(ConstructorTypeReference node) {
     stopwatch.start();
     T? result = _baseVisitor.visitConstructorTypeReference(node);
@@ -9938,6 +9967,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitConstructorSelector(ConstructorSelector node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitConstructorTearOff(ConstructorTearOff node) => visitNode(node);
 
   @experimental
   @override

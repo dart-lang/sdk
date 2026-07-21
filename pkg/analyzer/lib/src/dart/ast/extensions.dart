@@ -34,6 +34,29 @@ Element? _readElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+Element? _readElementV1(AstNode node) {
+  var parent = node.parent;
+
+  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    return parent.readElement;
+  }
+  if (parent is PostfixExpression && parent.operand == node) {
+    return parent.readElement;
+  }
+  if (parent is PrefixExpression && parent.operand == node) {
+    return parent.readElement;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _readElementV1(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _readElementV1(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _writeElement(AstNode node) {
   var parent = node.parent2;
 
@@ -57,6 +80,29 @@ Element? _writeElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+Element? _writeElementV1(AstNode node) {
+  var parent = node.parent;
+
+  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    return parent.writeElement;
+  }
+  if (parent is PostfixExpression && parent.operand == node) {
+    return parent.writeElement;
+  }
+  if (parent is PrefixExpression && parent.operand == node) {
+    return parent.writeElement;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _writeElementV1(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _writeElementV1(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 DartType? _writeType(AstNode node) {
   var parent = node.parent2;
 
@@ -75,6 +121,29 @@ DartType? _writeType(AstNode node) {
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
     return _writeType(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+DartType? _writeTypeV1(AstNode node) {
+  var parent = node.parent;
+
+  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    return parent.writeType;
+  }
+  if (parent is PostfixExpression && parent.operand == node) {
+    return parent.writeType;
+  }
+  if (parent is PrefixExpression && parent.operand == node) {
+    return parent.writeType;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _writeTypeV1(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _writeTypeV1(parent);
   }
   return null;
 }
@@ -192,6 +261,10 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
+  Element? get readElementV1 {
+    return _readElementV1(this);
+  }
+
   SimpleIdentifier get simpleName {
     var self = this;
     if (self is SimpleIdentifier) {
@@ -205,12 +278,24 @@ extension IdentifierExtension on Identifier {
     return _writeElement(this);
   }
 
+  Element? get writeElementV1 {
+    return _writeElementV1(this);
+  }
+
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
   }
 
+  Element? get writeOrReadElementV1 {
+    return _writeElementV1(this) ?? element;
+  }
+
   DartType? get writeOrReadType {
     return _writeType(this) ?? staticType;
+  }
+
+  DartType? get writeOrReadTypeV1 {
+    return _writeTypeV1(this) ?? staticType;
   }
 }
 

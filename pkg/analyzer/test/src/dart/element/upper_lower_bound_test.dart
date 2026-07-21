@@ -2195,6 +2195,18 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  test_futureOr_typeParameter_recursiveBound() {
+    withTypeParameterScope('X extends FutureOr<X>, Y extends FutureOr<Y>', (
+      scope,
+    ) {
+      _checkLeastUpperBound(
+        scope.parseType('X'),
+        scope.parseType('Y'),
+        parseType('FutureOr<Object?>'),
+      );
+    });
+  }
+
   test_identical() {
     void check(TypeImpl type) {
       _checkLeastUpperBound(type, type, type);
@@ -2629,6 +2641,18 @@ class UpperBoundTest extends _BoundsTestBase {
         scope.parseType('X & num'),
         parseType('Null'),
         parseType('num?'),
+      );
+    });
+  }
+
+  void test_typeParameter_mutuallyRecursiveBounds() {
+    buildTestLibrary(classes: [ClassSpec('class C<T>')]);
+
+    withTypeParameterScope('X extends C<Y>, Y extends C<X>', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('X'),
+        scope.parseType('Y'),
+        parseType('Object?'),
       );
     });
   }

@@ -8483,6 +8483,7 @@ CompileTimeErrorCode:
       in both the `extends` and `implements` clauses for the class `B`:
 
       ```dart
+      // @dart = 3.5
       class A {}
 
       class B extends A implements [!A!] {}

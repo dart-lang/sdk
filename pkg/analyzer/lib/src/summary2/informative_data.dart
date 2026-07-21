@@ -1913,6 +1913,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name2);
+  }
+
+  @override
   void visitDelimitedFormalParameters(DelimitedFormalParameters node) {
     _tokenOrNull(node.leftDelimiter);
     _tokenOrNull(node.rightDelimiter);
@@ -2152,7 +2158,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     RedirectingConstructorInvocation node,
   ) {
     _tokenOrNull(node.thisKeyword);
-    _tokenOrNull(node.period);
     super.visitRedirectingConstructorInvocation(node);
   }
 
@@ -2190,7 +2195,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _tokenOrNull(node.superKeyword);
-    _tokenOrNull(node.period);
     super.visitSuperConstructorInvocation(node);
   }
 

@@ -68,12 +68,11 @@ class PostfixExpressionResolver {
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
-  /// expression is assignable to the write type of the [operand].
+  /// expression is assignable to the write type of the operand.
   ///
   // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
     PostfixExpressionImpl node,
-    Expression operand,
     TypeImpl type,
   ) {
     var operandWriteType = node.writeType!;
@@ -172,13 +171,12 @@ class PostfixExpressionResolver {
     } else {
       TypeImpl operatorReturnType;
       if (receiverType.isDartCoreInt) {
-        // No need to check for `intVar++`, the result is `int`.
         operatorReturnType = receiverType;
       } else {
         var operatorElement = node.element;
         operatorReturnType = _computeStaticReturnType(operatorElement);
-        _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
       }
+      _checkForInvalidAssignmentIncDec(node, operatorReturnType);
       if (operand is SimpleIdentifier) {
         var element = operand.element;
         if (element is PromotableElementImpl) {

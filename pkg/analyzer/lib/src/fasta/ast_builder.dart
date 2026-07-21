@@ -643,16 +643,14 @@ class AstBuilder extends StackListener {
       if (function is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: function.superKeyword,
-          period: null,
-          constructorName: null,
+          constructorSelector: null,
           argumentList: initializerObject.argumentList,
         );
       }
       if (function is ThisExpressionImpl) {
         return RedirectingConstructorInvocationImpl(
           thisKeyword: function.thisKeyword,
-          period: null,
-          constructorName: null,
+          constructorSelector: null,
           argumentList: initializerObject.argumentList,
         );
       }
@@ -664,16 +662,20 @@ class AstBuilder extends StackListener {
       if (target is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: target.superKeyword,
-          period: initializerObject.operator,
-          constructorName: initializerObject.methodName,
+          constructorSelector: ConstructorSelectorImpl.v2(
+            period: initializerObject.operator!,
+            name2: initializerObject.methodName.token,
+          ),
           argumentList: initializerObject.argumentList,
         );
       }
       if (target is ThisExpressionImpl) {
         return RedirectingConstructorInvocationImpl(
           thisKeyword: target.thisKeyword,
-          period: initializerObject.operator,
-          constructorName: initializerObject.methodName,
+          constructorSelector: ConstructorSelectorImpl.v2(
+            period: initializerObject.operator!,
+            name2: initializerObject.methodName.token,
+          ),
           argumentList: initializerObject.argumentList,
         );
       }
@@ -770,8 +772,7 @@ class AstBuilder extends StackListener {
       );
       return SuperConstructorInvocationImpl(
         superKeyword: target.superKeyword,
-        period: null,
-        constructorName: null,
+        constructorSelector: null,
         argumentList:
             argumentList ?? _syntheticArgumentList(target.superKeyword),
       );
@@ -785,8 +786,7 @@ class AstBuilder extends StackListener {
       );
       return RedirectingConstructorInvocationImpl(
         thisKeyword: target.thisKeyword,
-        period: null,
-        constructorName: null,
+        constructorSelector: null,
         argumentList:
             argumentList ?? _syntheticArgumentList(target.thisKeyword),
       );

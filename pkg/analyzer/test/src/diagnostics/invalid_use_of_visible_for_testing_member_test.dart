@@ -421,6 +421,46 @@ void f() {
 ''');
   }
 
+  test_superConstructor_named() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  A.named();
+}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart';
+class B extends A {
+  B() : super.named();
+//            ^^^^^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'named' can only be used within 'package:test/lib1.dart' or a test.
+}
+''');
+  }
+
+  @FailingTest() // TODO(scheglov): Report invalid access for unnamed `super`.
+  test_superConstructor_unnamed_protectedAndForTesting() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  @visibleForTesting
+  A(int value);
+}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart';
+class B extends A {
+  B(int value) : super(value);
+//               ^^^^^^^^^^^^
+// [diag.invalidUseOfVisibleForTestingMember] The member 'A' can only be used within 'package:test/lib1.dart' or a test.
+}
+''');
+  }
+
   test_topLevelFunction() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';

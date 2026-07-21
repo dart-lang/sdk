@@ -101,7 +101,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   ) {
     _check(
       arguments: node.argumentList.arguments2,
-      errorNode: node.constructorName ?? node.thisKeyword,
+      errorNode: node.constructorSelector?.name2 ?? node.thisKeyword,
     );
   }
 
@@ -122,7 +122,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _check(
       arguments: node.argumentList.arguments2,
-      errorNode: node.constructorName ?? node.superKeyword,
+      errorNode: node.constructorSelector?.name2 ?? node.superKeyword,
     );
   }
 

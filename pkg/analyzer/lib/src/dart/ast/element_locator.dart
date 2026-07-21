@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// An object used to locate the [Element] associated with a given V1 [AstNode].
-@ToBeDeprecated('Use ElementLocator instead')
+@ToBeDeprecated('Use ElementLocatorV2 instead')
 class ElementLocator {
   /// Return the element associated with the given [node], or `null` if there
   /// is no element associated with the node.
@@ -435,6 +435,10 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
       if (parent2 is EnumConstantDeclaration) {
         return parent2.constructorElement;
       }
+    } else if (parent is RedirectingConstructorInvocation) {
+      return parent.element;
+    } else if (parent is SuperConstructorInvocation) {
+      return parent.element;
     }
     return null;
   }

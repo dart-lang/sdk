@@ -1185,9 +1185,9 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     RedirectingConstructorInvocation node,
   ) {
     var element = node.element;
-    if (node.constructorName != null) {
-      int offset = node.period!.offset;
-      int length = node.constructorName!.end - offset;
+    if (node.constructorSelector case var selector?) {
+      int offset = selector.period.offset;
+      int length = selector.name2.end - offset;
       recordRelationOffset(
         element,
         IndexRelationKind.IS_INVOKED_BY,
@@ -1291,9 +1291,9 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
-    if (node.constructorName != null) {
-      int offset = node.period!.offset;
-      int length = node.constructorName!.end - offset;
+    if (node.constructorSelector case var selector?) {
+      int offset = selector.period.offset;
+      int length = selector.name2.end - offset;
       recordRelationOffset(
         element,
         IndexRelationKind.IS_INVOKED_BY,

@@ -347,6 +347,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   @experimental
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _visitNode(node.typeReference);
+    _visitNode(node.selector);
+  }
+
+  @override
+  @experimental
   void visitConstructorTypeReference(ConstructorTypeReference node) {
     _visitNode(node.importPrefix);
     _visitToken(node.name);
@@ -1259,7 +1266,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     RedirectingConstructorInvocation node,
   ) {
     sink.write('this');
-    _visitNode(node.constructorName, prefix: '.');
+    _visitNode(node.constructorSelector);
     _visitNode(node.argumentList);
   }
 
@@ -1345,7 +1352,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     sink.write('super');
-    _visitNode(node.constructorName, prefix: '.');
+    _visitNode(node.constructorSelector);
     _visitNode(node.argumentList);
   }
 

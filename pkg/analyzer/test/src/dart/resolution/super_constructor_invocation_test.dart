@@ -32,11 +32,9 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
-  period: .
-  constructorName: SimpleIdentifier
-    token: named
-    element: <testLibrary>::@class::A::@constructor::named
-    staticType: null
+  constructorSelector: ConstructorSelector
+    period: .
+    name2: named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -45,6 +43,11 @@ SuperConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
         staticType: int
     rightParenthesis: )
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <testLibrary>::@class::A::@constructor::named
+    staticType: null
   element: <testLibrary>::@class::A::@constructor::named
 ''');
   }
@@ -66,11 +69,9 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
-  period: .
-  constructorName: SimpleIdentifier
-    token: named
-    element: <null>
-    staticType: null
+  constructorSelector: ConstructorSelector
+    period: .
+    name2: named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -79,6 +80,11 @@ SuperConstructorInvocation
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
   element: <null>
 ''');
   }
@@ -100,11 +106,9 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SuperConstructorInvocation
   superKeyword: super
-  period: .
-  constructorName: SimpleIdentifier
-    token: named
-    element: <null>
-    staticType: null
+  constructorSelector: ConstructorSelector
+    period: .
+    name2: named
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -113,6 +117,11 @@ SuperConstructorInvocation
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
   element: <null>
 ''');
   }

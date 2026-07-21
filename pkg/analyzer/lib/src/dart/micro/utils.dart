@@ -570,9 +570,9 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
   ) {
     var e = node.element;
     if (e == element) {
-      if (node.constructorName != null) {
-        int offset = node.period!.offset;
-        int length = node.constructorName!.end - offset;
+      if (node.constructorSelector case var selector?) {
+        int offset = selector.period.offset;
+        int length = selector.name2.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
       } else {
         int offset = node.thisKeyword.end;
@@ -608,9 +608,9 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var e = node.element;
     if (e == element) {
-      if (node.constructorName != null) {
-        int offset = node.period!.offset;
-        int length = node.constructorName!.end - offset;
+      if (node.constructorSelector case var selector?) {
+        int offset = selector.period.offset;
+        int length = selector.name2.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
       } else {
         int offset = node.superKeyword.end;

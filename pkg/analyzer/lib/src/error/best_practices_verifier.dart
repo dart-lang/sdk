@@ -1785,20 +1785,31 @@ class _InvalidAccessVerifier {
   }
 
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
-    if (node.constructorName != null) {
-      // Named constructor calls are handled by [verify].
+    var element = node.element;
+    if (element == null || _inCurrentLibrary(element)) return;
+
+    var selector = node.constructorSelector;
+    if (selector == null) {
+      if (element.isInternal &&
+          !_isLibraryInWorkspacePackage(element.library)) {
+        _diagnosticReporter.report(
+          diag.invalidUseOfInternalMember
+              .withArguments(name: element.name!)
+              .at(node),
+        );
+      }
+      // TODO(scheglov): Uncomment this and remove the compatibility test
+      // annotation.
+      // _checkForOtherInvalidAccess(node, element);
       return;
     }
-    var element = node.element;
-    if (element != null &&
-        element.isInternal &&
-        !_isLibraryInWorkspacePackage(element.library)) {
-      _diagnosticReporter.report(
-        diag.invalidUseOfInternalMember
-            .withArguments(name: element.name!)
-            .at(node),
-      );
-    }
+
+    _checkForInvalidInternalAccess(
+      parent: selector,
+      nameToken: selector.name2,
+      element: element,
+    );
+    _checkForOtherInvalidAccess(selector, element);
   }
 
   void _checkForInvalidInternalAccess({
@@ -2031,6 +2042,11 @@ class _InvalidAccessVerifier {
     } else if (node is PatternFieldImpl) {
       name = element.displayName;
       errorEntity = node.errorEntity;
+    } else if (node is ConstructorSelector) {
+      name = node.name2.lexeme;
+      errorEntity = node.name2;
+    } else if (node is SuperConstructorInvocation) {
+      name = element.displayName;
     } else {
       throw StateError('Unhandled node type: ${node.runtimeType}');
     }
