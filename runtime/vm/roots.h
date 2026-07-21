@@ -132,8 +132,12 @@ class Roots {
   ~Roots() {}
 
 #define DECL(type, name)                                                       \
-  static type name() { return current_->raw_.name##_; }                        \
-  static void set_##name(type v) { current_->raw_.name##_ = v; }
+  static type name() {                                                         \
+    return current_->raw_.name##_;                                             \
+  }                                                                            \
+  static void set_##name(type v) {                                             \
+    current_->raw_.name##_ = v;                                                \
+  }
   RAW_ROOTS_LIST(DECL)
 #undef DECL
 

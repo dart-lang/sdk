@@ -330,9 +330,15 @@ class ScopedExcBadAccessHandler {
   // inside, so we split it into two chunks each ending with a corresponding
   // variadic array.
 #define TRAILING_ARRAY(Type, name, count, max_count)                           \
-  Type* name() { return reinterpret_cast<Type*>(this + 1); }                   \
-  bool IsValid() const { return count <= max_count; }                          \
-  mach_msg_size_t Size() const { return sizeof(*this) + sizeof(Type) * count; }
+  Type* name() {                                                               \
+    return reinterpret_cast<Type*>(this + 1);                                  \
+  }                                                                            \
+  bool IsValid() const {                                                       \
+    return count <= max_count;                                                 \
+  }                                                                            \
+  mach_msg_size_t Size() const {                                               \
+    return sizeof(*this) + sizeof(Type) * count;                               \
+  }
 
   // A helper method for parsing a message which contains variadic arrays
   // inside. Such message is split into separate chunks each ending with

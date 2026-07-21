@@ -120,9 +120,15 @@ struct PtrTypes {
 
 #define DO(V)                                                                  \
   using V = V##Ptr;                                                            \
-  static Untagged##V* Untag##V(V##Ptr arg) { return arg.untag(); }             \
-  static V##Ptr Get##V##Ptr(V##Ptr arg) { return arg; }                        \
-  static V##Ptr Cast##V(ObjectPtr arg) { return dart::V::RawCast(arg); }
+  static Untagged##V* Untag##V(V##Ptr arg) {                                   \
+    return arg.untag();                                                        \
+  }                                                                            \
+  static V##Ptr Get##V##Ptr(V##Ptr arg) {                                      \
+    return arg;                                                                \
+  }                                                                            \
+  static V##Ptr Cast##V(ObjectPtr arg) {                                       \
+    return dart::V::RawCast(arg);                                              \
+  }
   CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
 };
@@ -137,9 +143,15 @@ struct HandleTypes {
 
 #define DO(V)                                                                  \
   using V = const dart::V&;                                                    \
-  static Untagged##V* Untag##V(V arg) { return arg.ptr().untag(); }            \
-  static V##Ptr Get##V##Ptr(V arg) { return arg.ptr(); }                       \
-  static V Cast##V(const dart::Object& arg) { return dart::V::Cast(arg); }
+  static Untagged##V* Untag##V(V arg) {                                        \
+    return arg.ptr().untag();                                                  \
+  }                                                                            \
+  static V##Ptr Get##V##Ptr(V arg) {                                           \
+    return arg.ptr();                                                          \
+  }                                                                            \
+  static V Cast##V(const dart::Object& arg) {                                  \
+    return dart::V::Cast(arg);                                                 \
+  }
   CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
 };

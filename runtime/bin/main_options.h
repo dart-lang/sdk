@@ -121,12 +121,16 @@ class Options {
                              bool* print_flags_seen);
 
 #define STRING_OPTION_GETTER(flag, variable)                                   \
-  static const char* variable() { return variable##_; }
+  static const char* variable() {                                              \
+    return variable##_;                                                        \
+  }
   STRING_OPTIONS_LIST(STRING_OPTION_GETTER)
 #undef STRING_OPTION_GETTER
 
 #define BOOL_OPTION_GETTER(flag, variable)                                     \
-  static bool variable() { return variable##_; }
+  static bool variable() {                                                     \
+    return variable##_;                                                        \
+  }
   BOOL_OPTIONS_LIST(BOOL_OPTION_GETTER)
 #if defined(DEBUG)
   DEBUG_BOOL_OPTIONS_LIST(BOOL_OPTION_GETTER)
@@ -134,12 +138,16 @@ class Options {
 #undef BOOL_OPTION_GETTER
 
 #define SHORT_BOOL_OPTION_GETTER(short_name, long_name, variable)              \
-  static bool variable() { return variable##_; }
+  static bool variable() {                                                     \
+    return variable##_;                                                        \
+  }
   SHORT_BOOL_OPTIONS_LIST(SHORT_BOOL_OPTION_GETTER)
 #undef SHORT_BOOL_OPTION_GETTER
 
 #define ENUM_OPTIONS_GETTER(flag, type, variable)                              \
-  static type variable() { return variable##_; }
+  static type variable() {                                                     \
+    return variable##_;                                                        \
+  }
   ENUM_OPTIONS_LIST(ENUM_OPTIONS_GETTER)
 #undef ENUM_OPTIONS_GETTER
 

@@ -390,7 +390,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void Shutdown();
 
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
-  type* Get##variable##Metric() { return &metric_##variable##_; }
+  type* Get##variable##Metric() {                                              \
+    return &metric_##variable##_;                                              \
+  }
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
@@ -1435,7 +1437,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
-  type* Get##variable##Metric() { return &metric_##variable##_; }
+  type* Get##variable##Metric() {                                              \
+    return &metric_##variable##_;                                              \
+  }
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 #endif  // !defined(PRODUCT)
