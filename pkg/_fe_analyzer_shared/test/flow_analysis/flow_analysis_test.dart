@@ -5449,6 +5449,12 @@ main() {
   });
 
   group('why not promoted', () {
+    test('documentation links use HTTPS', () {
+      for (var link in NonPromotionDocumentationLink.values) {
+        expect(link.url, startsWith('https://'));
+      }
+    });
+
     test('due to assignment', () {
       var x = Var('x');
       late Expression writeExpression;

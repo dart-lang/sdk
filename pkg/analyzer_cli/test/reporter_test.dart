@@ -71,7 +71,7 @@ void f(C c) {
     expect(
       out.toString().trim(),
       contains(
-        "  'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field at ${libFile.path}:2:14",
+        "  'foo' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field at ${libFile.path}:2:14",
       ),
     );
   }
@@ -202,7 +202,7 @@ void f(C c) {
                   'end': {'offset': 26, 'line': 2, 'column': 17},
                 },
               },
-              'message': "'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field",
+              'message': "'foo' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field",
             },
           ],
           'documentation':

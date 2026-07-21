@@ -5,12 +5,12 @@
 class C {
   int? get i => null;
   //       ^
-  // [context 1] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 2] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 3] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 4] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 5] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 6] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 1] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 2] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 3] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 4] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 5] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 6] 'i' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 7] 'i' refers to a public property so it couldn't be promoted.
   // [context 8] 'i' refers to a public property so it couldn't be promoted.
   // [context 9] 'i' refers to a public property so it couldn't be promoted.
