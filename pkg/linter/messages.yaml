@@ -5527,6 +5527,87 @@ LinterLintCode:
       stable: "2.9"
     categories: [errorProne]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a
+      `switch` statement over an instance of an enum-like class is
+      missing a `case` clause for one or more of the class's constants and
+      doesn't have a `default` clause.
+
+      Enum-like classes are non-abstract classes that have:
+
+      - Only private, non-factory constructors.
+      - Two or more `static const` fields whose type is the enclosing class.
+      - No subclasses in the defining library.
+
+      #### Example
+
+      The following code produces this diagnostic because the
+      `switch` statement is missing a `case` clause for the constant `C.c`:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        [!switch (c)!] {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the missing constant needs to be handled separately,
+      then add a `case` clause for it:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+          case .c:
+            print('c');
+        }
+      }
+      ```
+
+      If the missing constant doesn't need to be handled specially,
+      then add a `default` clause to cover it:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+            print('b');
+          default:
+            print('other');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Switching on instances of enum-like classes should be exhaustive.
 
@@ -7619,6 +7700,98 @@ LinterLintCode:
       experimental: "2.9"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `switch` statement over an
+      enum value or an instance of an enum-like class has a `default` clause.
+
+      Enum-like classes are non-abstract classes that have:
+
+      - Only private, non-factory constructors.
+      - Two or more `static const` fields whose type is the enclosing class.
+      - No subclasses in the defining library.
+
+      #### Examples
+
+      The following code produces this diagnostic because the
+      `switch` statement over the enum value `e` has a `default` clause:
+
+      ```dart
+      enum E { a, b, c }
+
+      void f(E e) {
+        switch (e) {
+          case .a:
+            print('a');
+          [!default:
+            print('other');!]
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the
+      `switch` statement over `c`, an instance of the enum-like class `C`,
+      has a `default` clause:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          [!default:
+            print('other');!]
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the value is an `enum` value,
+      replace the `default` clause with `case` clauses for
+      the enum values that aren't already handled:
+
+      ```dart
+      enum E { a, b, c }
+
+      void f(E e) {
+        switch (e) {
+          case .a:
+            print('a');
+          case .b:
+          case .c:
+            print('other');
+        }
+      }
+      ```
+
+      If the value is an instance of an enum-like class,
+      replace the `default` clause with `case` clauses for
+      the constants that aren't already handled:
+
+      ```dart
+      class const C._(final int i) {
+        static const C a = ._(1);
+        static const C b = ._(2);
+        static const C c = ._(3);
+      }
+
+      void f(C c) {
+        switch (c) {
+          case .a:
+            print('a');
+          case .b:
+          case .c:
+            print('other');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Switches on enums and enum-like classes should not use a `default` clause.
 
