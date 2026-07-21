@@ -56,7 +56,7 @@ ExtensionDeclaration
 ''');
   }
 
-  test_augment_hasOnClause() {
+  test_augment_onClause() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E on int {}
 //                  ^^

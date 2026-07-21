@@ -11169,6 +11169,17 @@ mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.type],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments mixinAugmentationHasOnClause =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'mixin_augmentation_has_on_clause',
+      problemMessage: "Mixin augmentations can't have 'on' clauses.",
+      correctionMessage: "Try removing the 'on' clause.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'mixin_augmentation_has_on_clause',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String name: the name of the mixin class that is invalid
 const DiagnosticWithArguments<

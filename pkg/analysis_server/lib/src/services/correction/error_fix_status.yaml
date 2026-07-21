@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  85 "needsEvaluation"
+# -  86 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -3235,6 +3235,8 @@ missing_variable_in_for_each:
   status: noFix
 mixed_parameter_groups:
   status: noFix
+mixin_augmentation_has_on_clause:
+  status: needsEvaluation
 mixin_declares_constructor:
   status: hasFix
 mixin_with_clause:

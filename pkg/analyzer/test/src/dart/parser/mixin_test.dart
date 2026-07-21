@@ -36,6 +36,28 @@ MixinDeclaration
 ''');
   }
 
+  test_augment_onClause() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment mixin M on A {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
+''');
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  onClause: MixinOnClause
+    onKeyword: on
+    superclassConstraints
+      NamedType
+        name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_augment_typeParameters_withBound() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M<T extends int> {}

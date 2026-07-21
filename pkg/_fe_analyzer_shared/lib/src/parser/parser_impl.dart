@@ -3408,7 +3408,12 @@ class Parser {
       mixinKeyword,
       name,
     );
-    token = parseMixinHeaderOpt(headerStart, constKeyword, mixinKeyword);
+    token = parseMixinHeaderOpt(
+      headerStart,
+      constKeyword,
+      mixinKeyword,
+      /* isAugmentation */ augmentToken != null,
+    );
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
       if (!isPrimaryConstructorsFeatureEnabled) {
@@ -3422,7 +3427,12 @@ class Parser {
     } else {
       if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
         // Recovery
-        token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
+        token = parseMixinHeaderRecovery(
+          token,
+          mixinKeyword,
+          headerStart,
+          /* isAugmentation */ augmentToken != null,
+        );
         ensureBlock(token, BlockKind.mixinDeclaration);
       }
       token = parseClassOrMixinOrExtensionBody(
@@ -3439,13 +3449,14 @@ class Parser {
     Token token,
     Token? constKeyword,
     Token mixinKeyword,
+    bool isAugmentation,
   ) {
     token = parsePrimaryConstructorOpt(
       DeclarationKind.Mixin,
       token,
       constKeyword,
     );
-    token = parseMixinOnOpt(token);
+    token = parseMixinOnOpt(token, isAugmentation);
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     listener.handleMixinHeader(mixinKeyword);
     return token;
@@ -3455,6 +3466,7 @@ class Parser {
     Token token,
     Token mixinKeyword,
     Token headerStart,
+    bool isAugmentation,
   ) {
     final Listener primaryListener = listener;
     final MixinHeaderRecoveryListener recoveryListener =
@@ -3467,6 +3479,7 @@ class Parser {
       headerStart,
       /* constKeyword */ null,
       mixinKeyword,
+      /* isAugmentation */ false,
     );
     bool hasOn = recoveryListener.onKeyword != null;
     bool hasImplements = recoveryListener.implementsKeyword != null;
@@ -3499,7 +3512,7 @@ class Parser {
         );
         token = parseMixinOn(token);
       } else {
-        token = parseMixinOnOpt(token);
+        token = parseMixinOnOpt(token, isAugmentation);
       }
 
       if (recoveryListener.onKeyword != null) {
@@ -3553,10 +3566,14 @@ class Parser {
   ///   'on' typeName (',' typeName)*
   /// ;
   /// ```
-  Token parseMixinOnOpt(Token token) {
-    if (!token.next!.isA(Keyword.ON)) {
+  Token parseMixinOnOpt(Token token, bool isAugmentation) {
+    Token onKeyword = token.next!;
+    if (!onKeyword.isA(Keyword.ON)) {
       listener.handleMixinOn(/* onKeyword = */ null, /* typeCount = */ 0);
       return token;
+    }
+    if (isAugmentation) {
+      reportRecoverableError(onKeyword, diag.mixinAugmentationHasOnClause);
     }
     return parseMixinOn(token);
   }

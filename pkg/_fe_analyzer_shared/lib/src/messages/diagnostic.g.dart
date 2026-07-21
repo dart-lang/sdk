@@ -2153,6 +2153,14 @@ const MessageCode mixinApplicationClassAugmentation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinAugmentationHasOnClause = const MessageCode(
+  "MixinAugmentationHasOnClause",
+  sharedCode: SharedCode.mixinAugmentationHasOnClause,
+  problemMessage: """Mixin augmentations can't have 'on' clauses.""",
+  correctionMessage: """Try removing the 'on' clause.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinDeclaresConstructor = const MessageCode(
   "MixinDeclaresConstructor",
   sharedCode: SharedCode.mixinDeclaresConstructor,
@@ -3259,6 +3267,7 @@ enum SharedCode {
   missingPrimaryConstructorParameters,
   missingStatement,
   mixinApplicationClassAugmentation,
+  mixinAugmentationHasOnClause,
   mixinDeclaresConstructor,
   mixinPrimaryConstructor,
   mixinWithClause,

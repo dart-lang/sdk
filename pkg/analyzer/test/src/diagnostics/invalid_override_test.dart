@@ -1304,6 +1304,8 @@ mixin M {
 }
 
 augment mixin M on A {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
 ''');
   }
 

@@ -402,6 +402,16 @@ mixinApplicationClassAugmentation:
   script: "augment class A = B with M;"
   exampleAllowOtherCodes: true
 
+mixinAugmentationHasOnClause:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Mixin augmentations can't have 'on' clauses."
+  correctionMessage: "Try removing the 'on' clause."
+  analyzerCode: mixinAugmentationHasOnClause
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "class A {} mixin M {} augment mixin M on A {}"
+
 mixinWithClause:
   type: syntacticError
   parameters: none
