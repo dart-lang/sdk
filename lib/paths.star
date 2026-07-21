@@ -47,6 +47,7 @@ _VM_PATHS = _CFE_PATHS + [
 
     # Tests that run on VM builders
     "pkg/vm_service/.+",
+    "samples/.+",
 ]
 
 _FUCHSIA_PATHS = [
