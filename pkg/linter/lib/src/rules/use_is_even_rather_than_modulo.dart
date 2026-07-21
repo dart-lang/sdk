@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!rightChildType.isDartCoreInt) return;
 
     var value = right.value;
-    if (value == null) return;
+    if (value != 0 && value != 1) return;
     var parentAssertInitializer = node
         .thisOrAncestorOfType<AssertInitializer>();
     if (parentAssertInitializer != null) {
