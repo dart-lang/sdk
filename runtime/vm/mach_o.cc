@@ -588,12 +588,10 @@ class MachOContents : public ZoneObject {
 // with the appropriate mach_o::LC_* constant.
 class MachOCommand : public MachOContents {
  public:
-  explicit MachOCommand(intptr_t cmd,
+  explicit MachOCommand(uint32_t cmd,
                         bool needs_offset = true,
                         bool in_segment = true)
-      : MachOContents(needs_offset, in_segment), cmd_(cmd) {
-    ASSERT(Utils::IsUint(32, cmd));
-  }
+      : MachOContents(needs_offset, in_segment), cmd_(cmd) {}
 
   DEFINE_TYPE_CHECK_FOR(MachOCommand)
 
