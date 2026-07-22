@@ -130,6 +130,11 @@ class PluginManager {
   /// has determined no plugins are configured to be run, or (b) when the
   /// plugins are configured and the first status notification is received by
   /// the analysis server.
+  ///
+  /// It is important that this completer always eventually completes and is not
+  /// left dangling (for example if plugins are invalid, fail to load, etc)
+  /// because tools like 'dart analyze' may wait on it via the
+  /// 'dart/workspace/analysis/complete' request.
   final Completer<void> initializedCompleter = Completer();
 
   final ProcessRunner _processRunner;

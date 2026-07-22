@@ -227,9 +227,7 @@ class ServerCapabilitiesComputer {
 
         // Indicate that we support the 'dart/workspace/analysis/complete'
         // custom request.
-        // TODO(dantup): Advertise this only once the request correctly handles
-        //  plugins.
-        // 'workspaceAnalysisComplete': {},
+        'workspaceAnalysisComplete': {},
 
         // Interactive Forms support.
         'interactiveResolveProvider': {

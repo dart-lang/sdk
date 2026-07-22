@@ -21,7 +21,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
@@ -195,9 +194,17 @@ class LspAnalysisServer extends AnalysisServer {
       (_) => _onPluginsChanged(),
     );
 
-    // TODO(srawlins): Listen to
-    // `notificationManager.pluginAnalysisStatusChanges` and perform "on idle"
-    // tasks.
+    notificationManager.pluginAnalysisStatusChanges.listen((isAnalyzing) {
+      if (!pluginManager.initializedCompleter.isCompleted) {
+        // Without `this.`, some portion of the analyzer believes we are
+        // accessing the super parameter, instead of the field in the super
+        // class.  See https://github.com/dart-lang/sdk/issues/59996.
+        // ignore: unnecessary_this
+        this.pluginManager.initializedCompleter.complete();
+      }
+      // TODO(srawlins): Perform "on idle" tasks (Legacy server has
+      // `_performOnIdleActions`).
+    });
   }
 
   /// The hosted location of the client application.
@@ -271,17 +278,6 @@ class LspAnalysisServer extends AnalysisServer {
       );
       sendLspNotification(message);
     };
-  }
-
-  @override
-  @visibleForTesting
-  set pluginManager(PluginManager value) {
-    super.pluginManager = value;
-    _pluginChangeSubscription?.cancel();
-
-    _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
-      (_) => _onPluginsChanged(),
-    );
   }
 
   /// Whether or not the client has advertised support for
@@ -1217,6 +1213,14 @@ class LspAnalysisServer extends AnalysisServer {
     pluginManager.setAnalysisSetAnalysisRootsParams(
       plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
     );
+
+    // If there are no analysis roots, no drivers will be created and the plugin
+    // watcher will not complete the plugin managers initialization so we need
+    // to do it.
+    if (includedPaths.isEmpty &&
+        !pluginManager.initializedCompleter.isCompleted) {
+      pluginManager.initializedCompleter.complete();
+    }
   }
 
   void _updateDriversAndPluginsPriorityFiles() {

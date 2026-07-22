@@ -13,9 +13,16 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WorkspaceAnalysisCompleteTest);
+    defineReflectiveTests(WorkspaceAnalysisCompleteTest);
   });
 }
 
+/// Test that dart/workspace/analysis/complete correctly waits for analysis to
+/// complete.
+///
+/// Tests that this also waits for plugins are in the integration tests:
+/// - `test_plugins` in `integration_test\lsp_server\diagnostic_test.dart`
+/// - `test_plugin_*` in `integration_test\lsp_server\workspace_analysis_complete_test.dart`
 @reflectiveTest
 class WorkspaceAnalysisCompleteTest extends AbstractLspAnalysisServerTest {
   /// A map from request IDs to their Methods, to provide more useful text in
@@ -28,7 +35,6 @@ class WorkspaceAnalysisCompleteTest extends AbstractLspAnalysisServerTest {
     return super.sendRequestToServer(request);
   }
 
-  @SkippedTest(reason: 'Capability is hidden until plugins are supported')
   Future<void> test_advertisedCapability() async {
     await initialize();
 
@@ -164,6 +170,27 @@ class WorkspaceAnalysisCompleteTest extends AbstractLspAnalysisServerTest {
       r'Response to initialize',
       r'$/analyzerStatus notification',
       r'textDocument/publishDiagnostics notification',
+      r'$/analyzerStatus notification',
+      r'Response to dart/workspace/analysis/complete',
+    ]);
+  }
+
+  Future<void> test_initialAnalysis_validRoots_emptyRoots() async {
+    var emptyFolderPath = convertPath('/home/empty');
+    newFolder(emptyFolderPath);
+
+    var messages = await _captureMessages(() async {
+      // Initialize must complete before we send anything else.
+      await initialize(rootUri: Uri.file(emptyFolderPath));
+
+      await workspaceAnalysisComplete();
+    });
+
+    expect(messages, [
+      // Initial empty workspace.
+      r'Response to initialize',
+      // Analysis of empty workspace.
+      r'$/analyzerStatus notification',
       r'$/analyzerStatus notification',
       r'Response to dart/workspace/analysis/complete',
     ]);

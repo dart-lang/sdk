@@ -40,8 +40,16 @@ class WorkspaceAnalysisCompleteHandler
     // Wait for server to become idle.
     await server.analysisDriverScheduler.waitForIdle();
 
-    // TODO(dantup): Handle plugins here. We must wait if they are still
-    //  initializing, then allow for them to start and complete analysis.
+    // Wait for plugins to initialize (which happens either as they start
+    // analyzing, or if the plugin manager knows there are not any plugins).
+    await server.pluginManager.initializedCompleter.future;
+
+    // Now if plugins are analyzing, wait for them to complete.
+    if (server.notificationManager.pluginStatusAnalyzing) {
+      await server.notificationManager.pluginAnalysisStatusChanges.firstWhere(
+        (isAnalyzing) => !isAnalyzing,
+      );
+    }
 
     return success(null);
   }
