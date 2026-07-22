@@ -43,7 +43,15 @@ luci.console_view(
 )
 
 luci.console_view(
-    name = "flutter-engine",
+    name = "flutter-linux",
+    repo = "https://dart.googlesource.com/monorepo",
+    title = "Dart/Flutter Engine Console",
+    refs = ["refs/heads/main"],
+    header = "console-header.textpb",
+)
+
+luci.console_view(
+    name = "flutter-mac",
     repo = "https://dart.googlesource.com/monorepo",
     title = "Dart/Flutter Engine Console",
     refs = ["refs/heads/main"],
@@ -82,7 +90,7 @@ luci.console_view_entry(
     builder = "flutter-linux",
     short_name = "engine",
     category = "coordinator",
-    console_view = "flutter-engine",
+    console_view = "flutter-linux",
 )
 dart.try_builder(
     "flutter-linux",
@@ -117,7 +125,7 @@ luci.console_view_entry(
     builder = "flutter-mac",
     short_name = "engine",
     category = "coordinator",
-    console_view = "flutter-engine",
+    console_view = "flutter-mac",
 )
 dart.try_builder(
     "flutter-mac",
@@ -206,66 +214,66 @@ def _monorepo_mac_builder(name, short_name, console):
 _monorepo_builder(
     "flutter-linux-android_debug",
     "android-debug",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_profile",
     "android-profile",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_release",
     "android-release",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_debug_arm64",
     "android-debug-arm64",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_profile_arm64",
     "android-profile-arm64",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_release_arm64",
     "android-release-arm64",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_debug_x64",
     "android-debug-x64",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_profile_x64",
     "android-profile-x64",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_release_x64",
     "android-release-x64",
-    "flutter-engine",
+    "flutter-linux",
 )
 _monorepo_builder(
     "flutter-linux-android_debug_x86",
     "android-debug-x86",
-    "flutter-engine",
+    "flutter-linux",
 )
-_monorepo_builder("flutter-linux-fuchsia_debug_x64", "fuchsia-debug-x64", "flutter-engine")
-_monorepo_builder("flutter-linux-fuchsia_profile_x64", "fuchsia-profile-x64", "flutter-engine")
-_monorepo_builder("flutter-linux-fuchsia_release_x64", "fuchsia-release-x64", "flutter-engine")
-_monorepo_builder("flutter-linux-fuchsia_debug_arm64", "fuchsia-debug-arm64", "flutter-engine")
-_monorepo_builder("flutter-linux-fuchsia_profile_arm64", "fuchsia-profile-arm64", "flutter-engine")
-_monorepo_builder("flutter-linux-fuchsia_release_arm64", "fuchsia-release-x64arm64", "flutter-engine")
-_monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
-_monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
-_monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
-_monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
-_monorepo_mac_builder("flutter-mac-ios_debug", "ios-debug", "flutter-engine")
-_monorepo_mac_builder("flutter-mac-ios_profile", "ios-profile", "flutter-engine")
-_monorepo_mac_builder("flutter-mac-ios_release", "ios-release", "flutter-engine")
+_monorepo_builder("flutter-linux-fuchsia_debug_x64", "fuchsia-debug-x64", "flutter-linux")
+_monorepo_builder("flutter-linux-fuchsia_profile_x64", "fuchsia-profile-x64", "flutter-linux")
+_monorepo_builder("flutter-linux-fuchsia_release_x64", "fuchsia-release-x64", "flutter-linux")
+_monorepo_builder("flutter-linux-fuchsia_debug_arm64", "fuchsia-debug-arm64", "flutter-linux")
+_monorepo_builder("flutter-linux-fuchsia_profile_arm64", "fuchsia-profile-arm64", "flutter-linux")
+_monorepo_builder("flutter-linux-fuchsia_release_arm64", "fuchsia-release-arm64", "flutter-linux")
+_monorepo_builder("flutter-linux-host_debug", "debug", "flutter-linux")
+_monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-linux")
+_monorepo_builder("flutter-linux-host_profile", "profile", "flutter-linux")
+_monorepo_builder("flutter-linux-host_release", "release", "flutter-linux")
+_monorepo_mac_builder("flutter-mac-ios_debug", "ios-debug", "flutter-mac")
+_monorepo_mac_builder("flutter-mac-ios_profile", "ios-profile", "flutter-mac")
+_monorepo_mac_builder("flutter-mac-ios_release", "ios-release", "flutter-mac")
 _monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
 _monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", None)
 _monorepo_builder(
@@ -308,14 +316,14 @@ def _monorepo_tester(name, short_name, console, recipe = "engine_v2/tester", exe
             console_view = console,
         )
 
-_monorepo_tester("flutter-linux-flutter-plugins", "plugins", "flutter-engine")
-_monorepo_tester("flutter-linux-framework-coverage", "coverage", "flutter-engine")
-_monorepo_tester("flutter-linux-framework-tests-libraries", "fl", "flutter-engine")
-_monorepo_tester("flutter-linux-framework-tests-misc", "fm", "flutter-engine")
-_monorepo_tester("flutter-linux-framework-tests-slow", "fs", "flutter-engine")
-_monorepo_tester("flutter-linux-framework-tests-widgets", "fw", "flutter-engine")
-_monorepo_tester("flutter-linux-tool-tests", "tool", "flutter-engine")
-_monorepo_tester("flutter-linux-customer-testing", "customer_testing", "flutter-engine", execution_timeout = 40 * time.minute)
+_monorepo_tester("flutter-linux-flutter-plugins", "plugins", "flutter-linux")
+_monorepo_tester("flutter-linux-framework-coverage", "coverage", "flutter-linux")
+_monorepo_tester("flutter-linux-framework-tests-libraries", "fl", "flutter-linux")
+_monorepo_tester("flutter-linux-framework-tests-misc", "fm", "flutter-linux")
+_monorepo_tester("flutter-linux-framework-tests-slow", "fs", "flutter-linux")
+_monorepo_tester("flutter-linux-framework-tests-widgets", "fw", "flutter-linux")
+_monorepo_tester("flutter-linux-tool-tests", "tool", "flutter-linux")
+_monorepo_tester("flutter-linux-customer-testing", "customer_testing", "flutter-linux", execution_timeout = 40 * time.minute)
 _monorepo_tester("flutter-linux-web-tests-0", "wt0", "flutter-web")
 _monorepo_tester("flutter-linux-web-tests-1", "wt1", "flutter-web")
 _monorepo_tester("flutter-linux-web-tests-2", "wt2", "flutter-web")

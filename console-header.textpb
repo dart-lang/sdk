@@ -53,7 +53,8 @@ links: {
 console_groups: {
     console_ids: "dart/dart-fuzz"
     console_ids: "dart/misc"
-    console_ids: "dart/flutter-engine"
+    console_ids: "dart/flutter-linux"
+    console_ids: "dart/flutter-mac"
     console_ids: "dart/flutter-web"
 }
 tree_name: "dart"
