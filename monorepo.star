@@ -6,7 +6,7 @@ Defines the monorepo builders.
 """
 
 load("//lib/dart.star", "dart")
-load("//lib/defaults.star", "arm64", "defaults", "mac")
+load("//lib/defaults.star", "arm64", "defaults", "mac", "windows")
 load("//lib/helpers.star", "union")
 load("//lib/priority.star", "priority")
 
@@ -52,6 +52,14 @@ luci.console_view(
 
 luci.console_view(
     name = "flutter-mac",
+    repo = "https://dart.googlesource.com/monorepo",
+    title = "Dart/Flutter Engine Console",
+    refs = ["refs/heads/main"],
+    header = "console-header.textpb",
+)
+
+luci.console_view(
+    name = "flutter-win",
     repo = "https://dart.googlesource.com/monorepo",
     title = "Dart/Flutter Engine Console",
     refs = ["refs/heads/main"],
@@ -141,6 +149,42 @@ dart.try_builder(
 )
 
 dart.ci_sandbox_builder(
+    name = "flutter-win",
+    channels = [],
+    executable = dart.flutter_recipe("engine_v2/engine_v2"),
+    execution_timeout = 90 * time.minute,
+    priority = priority.normal,
+    dimensions = [windows],
+    properties = defaults.properties([monorepo_properties, {"config_name": "host_win"}]),
+    triggered_by = ["dart-gitiles-trigger-monorepo"],
+    schedule = "triggered",
+)
+luci.console_view_entry(
+    builder = "flutter-win",
+    short_name = "engine",
+    category = "coordinator",
+    console_view = "monorepo",
+)
+luci.console_view_entry(
+    builder = "flutter-win",
+    short_name = "engine",
+    category = "coordinator",
+    console_view = "flutter-win",
+)
+dart.try_builder(
+    "flutter-win",
+    executable = dart.flutter_recipe("engine_v2/engine_v2"),
+    execution_timeout = 90 * time.minute,
+    dimensions = [windows],
+    properties = defaults.properties([monorepo_properties, {
+        "builder_name_suffix": "-try",
+        "config_name": "host_win",
+    }]),
+    on_cq = False,
+    cq_branches = ["main"],
+)
+
+dart.ci_sandbox_builder(
     name = "flutter-web",
     channels = [],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
@@ -211,6 +255,9 @@ def _monorepo_builder(name, short_name, console, dimensions = [], execution_time
 def _monorepo_mac_builder(name, short_name, console):
     _monorepo_builder(name, short_name, console, dimensions = [mac, arm64])
 
+def _monorepo_win_builder(name, short_name, console):
+    _monorepo_builder(name, short_name, console, dimensions = [windows])
+
 _monorepo_builder(
     "flutter-linux-android_debug",
     "android-debug",
@@ -274,6 +321,9 @@ _monorepo_builder("flutter-linux-host_release", "release", "flutter-linux")
 _monorepo_mac_builder("flutter-mac-ios_debug", "ios-debug", "flutter-mac")
 _monorepo_mac_builder("flutter-mac-ios_profile", "ios-profile", "flutter-mac")
 _monorepo_mac_builder("flutter-mac-ios_release", "ios-release", "flutter-mac")
+_monorepo_win_builder("flutter-win-win_host_debug", "host-debug", "flutter-win")
+_monorepo_win_builder("flutter-win-win_host_profile", "host-profile", "flutter-win")
+_monorepo_win_builder("flutter-win-win_host_release", "host-release", "flutter-win")
 _monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
 _monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", None)
 _monorepo_builder(
