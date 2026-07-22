@@ -1,5 +1,8 @@
 include: package:dart_flutter_team_lints/analysis_options.yaml
 
 analyzer:
+  errors:
+    implementation_imports: ignore
+    prefer_relative_imports: ignore
   exclude:
     - fixtures/**

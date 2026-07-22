@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:io';
 
 import 'package:dwds/src/handlers/injector.dart';
 import 'package:dwds/src/version.dart';
+import 'package:dwds_test_common/fixtures/utilities.dart';
 import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
-
-import '../fixtures/utilities.dart';
 
 void main() {
   late HttpServer server;
@@ -22,7 +18,8 @@ void main() {
   const nonEntryEtag = 'some etag';
 
   group('Injector test', () {
-    setUpAll(setGlobalsForTestingFromBuild);
+    setUp(setGlobalsForTestingFromBuild);
+    tearDown(setGlobalsForTestingFromBuild);
 
     group('InjectedHandlerWithoutExtension', () {
       late DwdsInjector injector;

@@ -53,8 +53,7 @@ dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
 dev_compiler/test/worker/*: Skip # test needs fixes
-dwds/test/integration/*: SkipByDesign # Skip integration tests relying on build_daemon/build_runner.
-dwds_test_common/fixtures/*: SkipByDesign # Skip fixtures relying on build_daemon/build_runner.
+dwds/test/integration/*: Pass, Slow
 front_end/test/analyze_git_test: Pass, Slow
 front_end/test/bootstrap_test: Pass, Slow
 front_end/test/dart_scope_calculator_test: Slow, Pass
