@@ -6,7 +6,8 @@ Defines the monorepo builders.
 """
 
 load("//lib/dart.star", "dart")
-load("//lib/defaults.star", "defaults")
+load("//lib/defaults.star", "arm64", "defaults", "mac")
+load("//lib/helpers.star", "union")
 load("//lib/priority.star", "priority")
 
 monorepo_properties = {
@@ -96,6 +97,42 @@ dart.try_builder(
 )
 
 dart.ci_sandbox_builder(
+    name = "flutter-mac",
+    channels = [],
+    executable = dart.flutter_recipe("engine_v2/engine_v2"),
+    execution_timeout = 90 * time.minute,
+    priority = priority.normal,
+    dimensions = [mac, arm64],
+    properties = defaults.properties([monorepo_properties, {"config_name": "host_mac"}]),
+    triggered_by = ["dart-gitiles-trigger-monorepo"],
+    schedule = "triggered",
+)
+luci.console_view_entry(
+    builder = "flutter-mac",
+    short_name = "engine",
+    category = "coordinator",
+    console_view = "monorepo",
+)
+luci.console_view_entry(
+    builder = "flutter-mac",
+    short_name = "engine",
+    category = "coordinator",
+    console_view = "flutter-engine",
+)
+dart.try_builder(
+    "flutter-mac",
+    executable = dart.flutter_recipe("engine_v2/engine_v2"),
+    execution_timeout = 90 * time.minute,
+    dimensions = [mac, arm64],
+    properties = defaults.properties([monorepo_properties, {
+        "builder_name_suffix": "-try",
+        "config_name": "host_mac",
+    }]),
+    on_cq = False,
+    cq_branches = ["main"],
+)
+
+dart.ci_sandbox_builder(
     name = "flutter-web",
     channels = [],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
@@ -129,11 +166,11 @@ dart.try_builder(
     cq_branches = ["main"],
 )
 
-def _monorepo_builder(name, short_name, console, execution_timeout = 30 * time.minute):
+def _monorepo_builder(name, short_name, console, dimensions = [], execution_timeout = 30 * time.minute):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
-        dimensions = {"pool": "dart.tests"},
+        dimensions = union({"pool": "dart.tests"}, dimensions),
         executable = dart.flutter_recipe("engine_v2/builder"),
         execution_timeout = execution_timeout,
         notifies = None,
@@ -162,6 +199,9 @@ def _monorepo_builder(name, short_name, console, execution_timeout = 30 * time.m
             short_name = short_name,
             console_view = console,
         )
+
+def _monorepo_mac_builder(name, short_name, console):
+    _monorepo_builder(name, short_name, console, dimensions = [mac, arm64])
 
 _monorepo_builder(
     "flutter-linux-android_debug",
@@ -223,6 +263,9 @@ _monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
 _monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
 _monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
 _monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
+_monorepo_mac_builder("flutter-mac-ios_debug", "ios-debug", "flutter-engine")
+_monorepo_mac_builder("flutter-mac-ios_profile", "ios-profile", "flutter-engine")
+_monorepo_mac_builder("flutter-mac-ios_release", "ios-release", "flutter-engine")
 _monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
 _monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", None)
 _monorepo_builder(
