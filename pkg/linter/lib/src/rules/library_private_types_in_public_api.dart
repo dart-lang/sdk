@@ -32,16 +32,12 @@ class LibraryPrivateTypesInPublicApi extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    var visitor = Visitor(this);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
 
-class Validator extends SimpleAstVisitor<void> {
-  AnalysisRule rule;
-
-  new(this.rule);
-
+class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     var namePart = node.namePart;
@@ -303,11 +299,7 @@ class Validator extends SimpleAstVisitor<void> {
       name != null && Identifier.isPrivateName(name);
 }
 
-class Visitor extends SimpleAstVisitor<void> {
-  AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     var element = node.declaredFragment?.element;

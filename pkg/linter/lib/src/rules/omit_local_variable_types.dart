@@ -40,13 +40,8 @@ class OmitLocalVariableTypes extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  final TypeProvider typeProvider;
-
-  new(this.rule, this.typeProvider);
-
+class _Visitor(final AnalysisRule rule, final TypeProvider typeProvider)
+    extends SimpleAstVisitor<void> {
   @override
   void visitForStatement(ForStatement node) {
     var loopParts = node.forLoopParts;

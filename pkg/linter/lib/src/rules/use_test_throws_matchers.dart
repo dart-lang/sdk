@@ -31,11 +31,7 @@ class UseTestThrowsMatchers extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   bool isTestInvocation(Statement statement, String functionName) {
     if (statement is! ExpressionStatement) return false;
     var expression = statement.expression;

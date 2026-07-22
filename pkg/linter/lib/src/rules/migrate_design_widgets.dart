@@ -31,11 +31,7 @@ class MigrateDesignWidgets extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     var uriString = node.uri.stringValue;

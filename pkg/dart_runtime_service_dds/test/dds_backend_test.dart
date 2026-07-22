@@ -7,9 +7,11 @@ import 'dart:io';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_dds/dart_runtime_service_dds.dart';
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
+import 'package:vm_service/vm_service_io.dart';
 import 'package:web_socket_channel/io.dart';
 
 class MockVmService {
@@ -80,17 +82,59 @@ class MockVmService {
 }
 
 void main() {
-  test('DartRuntimeService starts and shuts down with DDS backend', () async {
-    final mockVm = await MockVmService.start();
-    final service = await DartRuntimeService.initialize(
-      config: const DartRuntimeServiceOptions(),
-      backendBuilder: (frontend) =>
-          DartRuntimeServiceDdsBackend(mockVm.uri, frontend: frontend),
+  group('DartRuntimeServiceDdsBackend', () {
+    MockVmService? mockVmService;
+    DartRuntimeService? ddsService;
+    vm.VmService? ddsClient;
+
+    setUp(() async {
+      mockVmService = await MockVmService.start();
+
+      ddsService = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(),
+        backendBuilder: (frontend) => DartRuntimeServiceDdsBackend(
+          mockVmService!.uri,
+          frontend: frontend,
+        ),
+      );
+
+      ddsClient = await vmServiceConnectUri(ddsService!.uri.toString());
+    });
+
+    tearDown(() async {
+      await ddsClient?.dispose();
+      await ddsService?.shutdown();
+      await mockVmService?.shutdown();
+    });
+
+    test('forward RPC request', () async {
+      final vmResult = await ddsClient!.getVM();
+      expect(vmResult.name, 'mock-vm');
+    });
+
+    test('getVersion returns VM Service version', () async {
+      final version = await ddsClient!.getVersion();
+      expect(version.major, 4);
+      expect(version.minor, 0);
+    });
+
+    test('getDartDevelopmentServiceVersion returns DDS version', () async {
+      final version = await ddsClient!.getDartDevelopmentServiceVersion();
+      expect(version.type, 'Version');
+      expect(version.major, 2);
+      expect(version.minor, 1);
+    });
+
+    test(
+      'getSupportedProtocols returns protocols list including DDS',
+      () async {
+        final protocols = await ddsClient!.getSupportedProtocols();
+        final ddsProto = protocols.protocols!.firstWhere(
+          (p) => p.protocolName == 'DDS',
+        );
+        expect(ddsProto.major, 2);
+        expect(ddsProto.minor, 1);
+      },
     );
-
-    expect(service.uri, isNotNull);
-
-    await service.shutdown();
-    await mockVm.shutdown();
   });
 }

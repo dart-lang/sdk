@@ -147,7 +147,7 @@ class _UnintendedTag {
   new(this.offset, this.length);
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   /// Pattern for HTML-tags and non-HTML regions.
   ///
   /// Pattern which matches sequences of characters with content that is known
@@ -195,10 +195,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     r')',
     caseSensitive: false,
   );
-
-  final AnalysisRule rule;
-
-  new(this.rule);
 
   @override
   void visitComment(Comment node) {

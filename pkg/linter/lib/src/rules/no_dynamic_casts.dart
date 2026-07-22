@@ -57,12 +57,8 @@ class NoDynamicCasts extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule _rule;
-  final RuleContext _context;
-
-  new(this._rule, this._context);
-
+class _Visitor(final AnalysisRule _rule, final RuleContext _context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitArgumentList(ArgumentList node) {
     for (var argument in node.arguments) {

@@ -67,12 +67,8 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final RuleContext context;
-  final MultiAnalysisRule rule;
-
-  new(this.rule, this.context);
-
+class _Visitor(final MultiAnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   void check(
     SourceRange errorRange,
     SuperConstructorInvocation superInvocation,

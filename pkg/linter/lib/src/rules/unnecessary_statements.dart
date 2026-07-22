@@ -186,10 +186,8 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final _ReportNoClearEffectVisitor reportNoClearEffect;
-
-  new(this.reportNoClearEffect);
+class _Visitor(final _ReportNoClearEffectVisitor reportNoClearEffect)
+    extends SimpleAstVisitor<void> {
   @override
   void visitCascadeExpression(CascadeExpression node) {
     for (var section in node.cascadeSections) {

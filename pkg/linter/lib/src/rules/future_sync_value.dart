@@ -43,7 +43,7 @@ class FutureSyncValue extends AnalysisRule {
         element.languageVersion.effective.compareTo(constructorSince) < 0) {
       return;
     }
-    var visitor = _FutureSyncValueVisitor(
+    var visitor = _Visitor(
       this,
       context.typeProvider,
       context.libraryElement!.languageVersion.effective,
@@ -53,14 +53,14 @@ class FutureSyncValue extends AnalysisRule {
   }
 }
 
-class _FutureSyncValueVisitor extends SimpleAstVisitor<void> {
+class _Visitor(
+  final FutureSyncValue rule,
+  final TypeProvider typeProvider,
+  final Version version,
+) extends SimpleAstVisitor<void> {
   static const valueConstructorName = 'value';
-  static const syncValueConstructorName = 'syncValue';
-  final FutureSyncValue rule;
-  final TypeProvider typeProvider;
-  final Version version;
 
-  new(this.rule, this.typeProvider, this.version);
+  static const syncValueConstructorName = 'syncValue';
 
   @override
   void visitDotShorthandConstructorInvocation(

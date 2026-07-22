@@ -73,12 +73,9 @@ class _FutureOrVarianceChecker extends VarianceChecker {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final RuleContext context;
-  final VarianceChecker checker;
-
-  new(this.rule, this.context) : checker = _FutureOrVarianceChecker(rule);
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
+  final VarianceChecker checker = _FutureOrVarianceChecker(rule);
 
   @override
   void visitAsExpression(AsExpression node) => checker.checkOut(node.type);

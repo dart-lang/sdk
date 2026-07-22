@@ -40,12 +40,8 @@ class SimpleDirectivePaths extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final SimpleDirectivePaths rule;
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final SimpleDirectivePaths rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitConfiguration(Configuration node) {
     _check(node.uri);

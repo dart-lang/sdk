@@ -43,11 +43,8 @@ class AsyncReturnWithNoAwait extends AnalysisRule {
   }
 }
 
-class _AsyncReturnVisitorAdapter extends SimpleAstVisitor<void> {
-  final AsyncReturnVisitor delegate;
-
-  new(this.delegate);
-
+class _AsyncReturnVisitorAdapter(final AsyncReturnVisitor delegate)
+    extends SimpleAstVisitor<void> {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     // ignore: experimental_member_use

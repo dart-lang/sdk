@@ -32,11 +32,7 @@ class PreferMixin extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     for (var mixinNode in node.mixinTypes) {

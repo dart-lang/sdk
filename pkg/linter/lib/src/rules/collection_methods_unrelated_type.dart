@@ -109,13 +109,11 @@ class _MethodDefinitionForName extends _MethodDefinition {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  final TypeSystem typeSystem;
-  final TypeProvider typeProvider;
-  new(this.rule, this.typeSystem, this.typeProvider);
-
+class _Visitor(
+  final AnalysisRule rule,
+  final TypeSystem typeSystem,
+  final TypeProvider typeProvider,
+) extends SimpleAstVisitor<void> {
   List<_MethodDefinition> get indexOperators => [
     // Argument to `Map<K, V>.[]` should be assignable to `K`.
     _MethodDefinitionForElement(

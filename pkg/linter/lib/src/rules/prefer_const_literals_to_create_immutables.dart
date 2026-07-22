@@ -38,11 +38,7 @@ class PreferConstLiteralsToCreateImmutables extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitListLiteral(ListLiteral node) => _visitTypedLiteral(node);
 
