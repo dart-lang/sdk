@@ -49,15 +49,13 @@ class AvoidTypeToString extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final TypeSystem typeSystem;
-  final InterfaceType typeType;
-
+class _Visitor(
+  final AnalysisRule rule,
+  final TypeSystem typeSystem,
+  final InterfaceType typeType,
+) extends SimpleAstVisitor<void> {
   // Null if there is no logical `this` in the given context.
   InterfaceType? thisType;
-
-  new(this.rule, this.typeSystem, this.typeType);
 
   @override
   void visitArgumentList(ArgumentList node) {

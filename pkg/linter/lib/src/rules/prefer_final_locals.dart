@@ -56,12 +56,8 @@ class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final String currentFilePath;
-
-  new(this.rule, {required this.currentFilePath});
-
+class _Visitor(final AnalysisRule rule, {required final String currentFilePath})
+    extends SimpleAstVisitor<void> {
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
       VariableElement? element = pattern.declaredFragment?.element;

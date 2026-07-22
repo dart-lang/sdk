@@ -964,7 +964,7 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
   static const mountedName = 'mounted';
 
   static const protectedConstructors = [
@@ -1115,10 +1115,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     ProtectedFunction('dart.async', 'Future', 'forEach', positional: [1]),
     ProtectedFunction('dart.async', 'Future', 'wait', named: ['cleanUp']),
   ];
-
-  final MultiAnalysisRule rule;
-
-  new(this.rule);
 
   void check(Expression node, Element mountedElement) {
     // Checks each of the statements before `child` for a `mounted` check, and

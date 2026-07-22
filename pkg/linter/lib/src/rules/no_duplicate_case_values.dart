@@ -31,11 +31,8 @@ class NoDuplicateCaseValues extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final NoDuplicateCaseValues rule;
-
-  new(this.rule);
-
+class _Visitor(final NoDuplicateCaseValues rule)
+    extends SimpleAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement node) {
     var values = <DartObject, Expression>{};

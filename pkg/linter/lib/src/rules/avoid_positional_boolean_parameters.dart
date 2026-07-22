@@ -41,11 +41,7 @@ class AvoidPositionalBooleanParameters extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule _rule;
-
-  new(this._rule);
-
+class _Visitor(final AnalysisRule _rule) extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // Don't lint augmentations.

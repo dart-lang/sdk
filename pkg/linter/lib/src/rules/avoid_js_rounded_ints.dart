@@ -30,11 +30,7 @@ class AvoidJsRoundedInts extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   bool isRounded(int? value) => value?.toDouble().toInt() != value;
   @override
   void visitIntegerLiteral(IntegerLiteral node) {

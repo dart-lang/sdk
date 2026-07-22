@@ -51,12 +51,8 @@ class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final TypeSystem typeSystem;
-
-  new(this.rule, this.typeSystem);
-
+class _Visitor(final AnalysisRule rule, final TypeSystem typeSystem)
+    extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     var parent = node.parent;

@@ -84,13 +84,9 @@ mixin ControlFlowInFinallyBlockReporter {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void>
+class _Visitor(@override final AnalysisRule rule)
+    extends SimpleAstVisitor<void>
     with ControlFlowInFinallyBlockReporter {
-  @override
-  final AnalysisRule rule;
-
-  new(this.rule);
-
   @override
   void visitBreakStatement(BreakStatement node) {
     reportIfFinallyAncestorExists(node, ancestor: node.target, kind: 'break');

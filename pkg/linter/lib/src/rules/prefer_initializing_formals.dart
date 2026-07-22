@@ -218,12 +218,8 @@ class _ReferenceCounter extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule _rule;
-  final RuleContext _context;
-
-  new(this._rule, this._context);
-
+class _Visitor(final AnalysisRule _rule, final RuleContext _context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // Skip factory constructors.

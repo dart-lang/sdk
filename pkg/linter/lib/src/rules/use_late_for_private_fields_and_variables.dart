@@ -41,19 +41,15 @@ class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
   }
 }
 
-class _Visitor extends RecursiveAstVisitor<void> {
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends RecursiveAstVisitor<void> {
   final Map<LibraryFragment, List<AstNode>> lateables = {};
 
   final Set<Element> nullableAccess = <Element>{};
 
-  final AnalysisRule rule;
-  final RuleContext context;
-
   /// The "current" [LibraryFragment], which is set by
   /// [visitCompilationUnit].
   late LibraryFragment currentLibraryFragment;
-
-  new(this.rule, this.context);
 
   void afterLibrary() {
     for (var contextUnit in context.allUnits) {

@@ -365,12 +365,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 /// This [SimpleAstVisitor] visits the [CompilationUnit], and forwards the
 /// remainder of visitations to [_RecursiveVisitor], which keeps track of
 /// the deprecated-ness of ancestor declaration nodes.
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule _rule;
-  final RuleContext _context;
-
-  new(this._rule, this._context);
-
+class _Visitor(final MultiAnalysisRule _rule, final RuleContext _context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     var package = _context.package;
