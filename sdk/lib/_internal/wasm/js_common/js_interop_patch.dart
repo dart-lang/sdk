@@ -267,6 +267,10 @@ bool _isJSObject(Object? any) =>
 
 bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
 
+bool _isJSUnsafeObject(Object? any) => _isJSObject(any);
+
+bool _isNullableJSUnsafeObject(Object? any) => _isNullableJSObject(any);
+
 bool _isJSExportedDartFunction<T extends Function>(Object? any) {
   if (!_isJSAny(any)) return false;
   final ref = unsafeCast<JSAny>(any).toExternRef;

@@ -197,7 +197,7 @@ extension type JSAny._(JSAnyType _jsAny) implements Object, JSAnyType {
 /// will use as the representation type.
 @JS('Object')
 extension type JSObject._(JSObjectType _jsObject)
-    implements JSAny, JSObjectType {
+    implements JSAny, JSUnsafeObject, JSObjectType {
   /// Creates a [JSObject] from an object provided by an earlier interop
   /// library.
   ///

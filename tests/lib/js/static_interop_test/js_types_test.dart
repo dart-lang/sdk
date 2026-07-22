@@ -27,6 +27,11 @@ external JSAny any;
 @JS()
 external JSObject obj;
 
+@JS('Object')
+extension type JSUnsafeObjectRepType._(JSUnsafeObject _) implements JSUnsafeObject {
+  external JSUnsafeObjectRepType();
+}
+
 @JS()
 @staticInterop
 class SimpleObject {}
@@ -201,6 +206,20 @@ void syncTests() {
   final stringPrototype = JSObject.getPrototypeOf(''.toJS);
   Expect.isNotNull(stringPrototype);
   Expect.isTrue(stringPrototype!.has('charAt'));
+
+  // [JSUnsafeObject]
+  Expect.isTrue(obj is JSUnsafeObject);
+  Expect.isTrue(confuse(obj) is JSUnsafeObject);
+  Expect.isTrue(JSUnsafeObjectRepType() is JSUnsafeObject);
+  Expect.isTrue(confuse(JSUnsafeObjectRepType()) is JSUnsafeObject);
+
+  if (isJSBackend) {
+    Expect.isTrue(Object() is JSUnsafeObject);
+    Expect.isTrue(syncTests is JSUnsafeObject);
+  } else {
+    Expect.isFalse(Object() is JSUnsafeObject);
+    Expect.isFalse(syncTests is JSUnsafeObject);
+  }
 
   // [JSFunction]
   Expect.isTrue(fun is JSFunction);

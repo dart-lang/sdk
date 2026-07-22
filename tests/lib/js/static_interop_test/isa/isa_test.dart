@@ -5,6 +5,7 @@
 // Test `dart:js_interop`'s `isA` method.
 
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
@@ -86,7 +87,18 @@ void testIsJSObject(JSObject any) {
   Expect.isTrue(any.isA<JSObject?>());
   Expect.isTrue((any as Object).isA<JSObject>());
   Expect.isTrue((any as Object?).isA<JSObject?>());
+  testIsJSUnsafeObject(any);
+}
+
+void testIsJSUnsafeObject(JSUnsafeObject any) {
+  Expect.isTrue(any.isA<JSUnsafeObject>());
+  Expect.isTrue(any.isA<JSUnsafeObject?>());
   testIsJSAny(any);
+}
+
+void testIsJSUnsafeObjectOnJSBackend(Object any) {
+  Expect.equals(isJSCompiler, any.isA<JSUnsafeObject>());
+  Expect.equals(isJSCompiler, any.isA<JSUnsafeObject?>());
 }
 
 void testIsJSAny(JSAny any) {
@@ -353,6 +365,11 @@ void testJSObjects() {
   );
   Expect.isTrue(jsExportedDartFunctionObj.isA<JSFunction>());
   Expect.isFalse(jsExportedDartFunctionObj.isA<JSString>());
+}
+
+void testJSUnsafeObjects() {
+  testIsJSUnsafeObjectOnJSBackend(Object());
+  testIsJSUnsafeObjectOnJSBackend(testJSUnsafeObjects);
 }
 
 void testTypedData() {
@@ -686,6 +703,7 @@ void main() {
   testNull();
   testPrimitives();
   testJSObjects();
+  testJSUnsafeObjects();
   testTypedData();
   testUserTypes();
   testExternalDartReference();

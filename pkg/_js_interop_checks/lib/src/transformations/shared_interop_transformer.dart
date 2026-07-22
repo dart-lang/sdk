@@ -37,11 +37,13 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSBoxedDartObject;
   final Procedure _isJSExportedDartFunction;
   final Procedure _isJSObject;
+  final Procedure _isJSUnsafeObject;
   final Procedure _isJSTypedArray;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
   final Procedure _isNullableJSExportedDartFunction;
   final Procedure _isNullableJSObject;
+  final Procedure _isNullableJSUnsafeObject;
   final Procedure _isNullableJSTypedArray;
   final ExtensionTypeDeclaration _jsAny;
   final ExtensionTypeDeclaration _jsObject;
@@ -107,6 +109,10 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         '_isJSObject',
       ),
+      _isJSUnsafeObject = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSUnsafeObject',
+      ),
       _isJSTypedArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isJSTypedArray',
@@ -127,6 +133,8 @@ class SharedInteropTransformer extends Transformer {
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
+      _isNullableJSUnsafeObject = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSUnsafeObject'),
       _isNullableJSTypedArray = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSTypedArray'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
@@ -674,6 +682,16 @@ class SharedInteropTransformer extends Transformer {
         nullChecksNeeded = false;
         check = StaticInvocation(
           interopTypeNullable ? _isNullableJSObject : _isJSObject,
+          Arguments([VariableGet(receiverVar)]),
+        );
+        break;
+      case 'JSUnsafeObject' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable ? _isNullableJSUnsafeObject : _isJSUnsafeObject,
           Arguments([VariableGet(receiverVar)]),
         );
         break;
