@@ -177,7 +177,9 @@ class ElfSection : public ZoneObject {
   const Type* As##Type() const {                                               \
     return const_cast<Type*>(const_cast<ElfSection*>(this)->As##Type());       \
   }                                                                            \
-  virtual bool Is##Type() const { return false; }
+  virtual bool Is##Type() const {                                              \
+    return false;                                                              \
+  }
 
   FOR_EACH_SECTION_TYPE(DEFINE_BASE_TYPE_CHECKS)
 #undef DEFINE_BASE_TYPE_CHECKS

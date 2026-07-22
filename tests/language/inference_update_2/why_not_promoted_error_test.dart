@@ -8,15 +8,15 @@
 class C {
   int? get _privateGetter => publicField;
   //       ^^^^^^^^^^^^^^
-  // [context 1] '_privateGetter' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 1] '_privateGetter' refers to a getter so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-field
   // [context 4] '_privateGetter' refers to a getter so it couldn't be promoted.
   final int? publicField;
   //         ^^^^^^^^^^^
-  // [context 2] 'publicField' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 2] 'publicField' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 5] 'publicField' refers to a public property so it couldn't be promoted.
   int? _nonFinalField;
   //   ^^^^^^^^^^^^^^
-  // [context 3] '_nonFinalField' refers to a non-final field so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-final-field
+  // [context 3] '_nonFinalField' refers to a non-final field so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-final-field
   // [context 6] '_nonFinalField' refers to a non-final field so it couldn't be promoted.
   C(int? i) : publicField = i, _nonFinalField = i;
 }

@@ -18,48 +18,48 @@
 class C1 {
   final int? _wouldBePromotable = 0;
   //         ^^^^^^^^^^^^^^^^^^
-  // [context 1] '_wouldBePromotable' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
+  // [context 1] '_wouldBePromotable' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See https://dart.dev/go/non-promo-field-promotion-unavailable
   // [context 8] '_wouldBePromotable' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
   int? get _notField => 0;
   //       ^^^^^^^^^
-  // [context 2] '_notField' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
-  // [context 2] '_notField' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 2] '_notField' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See https://dart.dev/go/non-promo-field-promotion-unavailable
+  // [context 2] '_notField' refers to a getter so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-field
   // [context 9] '_notField' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
   // [context 9] '_notField' refers to a getter so it couldn't be promoted.
   final int? notPrivate = 0;
   //         ^^^^^^^^^^
-  // [context 3] 'notPrivate' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
-  // [context 3] 'notPrivate' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'notPrivate' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See https://dart.dev/go/non-promo-field-promotion-unavailable
+  // [context 3] 'notPrivate' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 10] 'notPrivate' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
   // [context 10] 'notPrivate' refers to a public property so it couldn't be promoted.
   int? _notFinal = 0;
   //   ^^^^^^^^^
-  // [context 4] '_notFinal' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
-  // [context 4] '_notFinal' refers to a non-final field so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-final-field
+  // [context 4] '_notFinal' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See https://dart.dev/go/non-promo-field-promotion-unavailable
+  // [context 4] '_notFinal' refers to a non-final field so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-final-field
   // [context 11] '_notFinal' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
   // [context 11] '_notFinal' refers to a non-final field so it couldn't be promoted.
   final int? _conflictingGetter = 0;
   //         ^^^^^^^^^^^^^^^^^^
-  // [context 5] '_conflictingGetter' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
+  // [context 5] '_conflictingGetter' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See https://dart.dev/go/non-promo-field-promotion-unavailable
   // [context 12] '_conflictingGetter' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
   final int? _conflictingField = 0;
   //         ^^^^^^^^^^^^^^^^^
-  // [context 6] '_conflictingField' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
+  // [context 6] '_conflictingField' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See https://dart.dev/go/non-promo-field-promotion-unavailable
   // [context 13] '_conflictingField' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
   final int? _conflictingNsmForwarder = 0;
   //         ^^^^^^^^^^^^^^^^^^^^^^^^
-  // [context 7] '_conflictingNsmForwarder' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
+  // [context 7] '_conflictingNsmForwarder' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See https://dart.dev/go/non-promo-field-promotion-unavailable
   // [context 14] '_conflictingNsmForwarder' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
 }
 
 class C2 {
   int? get _conflictingGetter => 0;
   //       ^^^^^^^^^^^^^^^^^^
-  // [context 5] '_conflictingGetter' couldn't be promoted because there is a conflicting getter in class 'C2'.  See http://dart.dev/go/non-promo-conflicting-getter
+  // [context 5] '_conflictingGetter' couldn't be promoted because there is a conflicting getter in class 'C2'.  See https://dart.dev/go/non-promo-conflicting-getter
   // [context 12] '_conflictingGetter' couldn't be promoted because there is a conflicting getter in class 'C2'.
   int? _conflictingField = 0;
   //   ^^^^^^^^^^^^^^^^^
-  // [context 6] '_conflictingField' couldn't be promoted because there is a conflicting non-promotable field in class 'C2'.  See http://dart.dev/go/non-promo-conflicting-non-promotable-field
+  // [context 6] '_conflictingField' couldn't be promoted because there is a conflicting non-promotable field in class 'C2'.  See https://dart.dev/go/non-promo-conflicting-non-promotable-field
   // [context 13] '_conflictingField' couldn't be promoted because there is a conflicting non-promotable field in class 'C2'.
 }
 
@@ -69,7 +69,7 @@ class C3 {
 
 class C4 implements C3 {
 //    ^^
-// [context 7] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C4'.  See http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
+// [context 7] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C4'.  See https://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder
 // [context 14] '_conflictingNsmForwarder' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class 'C4'.
   noSuchMethod(invocation) => 0;
 }

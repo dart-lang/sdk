@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
+import 'package:dap_adapters/dap.dart';
 import 'package:dds_service_extensions/dap.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
-import '../dap.dart';
-import 'dap/adapters/dds_hosted_adapter.dart';
-import 'dap/constants.dart';
 import 'dds_impl.dart';
 
 /// Responds to incoming DAP messages using a debug adapter connected to DDS.
@@ -39,10 +37,7 @@ class DapHandler {
     adapter.handleMessage(message, responseCompleter.complete);
     final result = await responseCompleter.future;
 
-    return <String, dynamic>{
-      'type': 'DapResponse',
-      'dapResponse': result,
-    };
+    return <String, dynamic>{'type': 'DapResponse', 'dapResponse': result};
   }
 
   void _handleEvent(Event event) {
@@ -79,13 +74,8 @@ class DapHandler {
     // we'll forward from the DDS client.
     int seq = -1000;
     await adapter.initializeRequest(
-      Request(
-        command: Command.initialize,
-        seq: seq,
-      ),
-      DartInitializeRequestArguments(
-        adapterID: 'dds-dap-handler',
-      ),
+      Request(command: Command.initialize, seq: seq),
+      DartInitializeRequestArguments(adapterID: 'dds-dap-handler'),
       (capabilities) {},
     );
     await _initializedCompleter.future;
@@ -99,11 +89,7 @@ class DapHandler {
       noopCallback,
     );
     await adapter.attachRequest(
-      Request(
-        arguments: const {},
-        command: Command.attach,
-        seq: seq++,
-      ),
+      Request(arguments: const {}, command: Command.attach, seq: seq++),
       DartAttachRequestArguments(
         vmServiceUri: dds.remoteVmServiceUri.toString(),
       ),

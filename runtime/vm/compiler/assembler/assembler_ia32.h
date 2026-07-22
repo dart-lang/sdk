@@ -488,12 +488,24 @@ class Assembler : public AssemblerBase {
   // clang-format on
 
 #define DECLARE_ALU(op, opcode, opcode2, modrm_opcode)                         \
-  void op##l(Register dst, Register src) { Alu(4, opcode, dst, src); }         \
-  void op##w(Register dst, Register src) { Alu(2, opcode, dst, src); }         \
-  void op##l(Register dst, const Address& src) { Alu(4, opcode, dst, src); }   \
-  void op##w(Register dst, const Address& src) { Alu(2, opcode, dst, src); }   \
-  void op##l(const Address& dst, Register src) { Alu(4, opcode2, dst, src); }  \
-  void op##w(const Address& dst, Register src) { Alu(2, opcode2, dst, src); }  \
+  void op##l(Register dst, Register src) {                                     \
+    Alu(4, opcode, dst, src);                                                  \
+  }                                                                            \
+  void op##w(Register dst, Register src) {                                     \
+    Alu(2, opcode, dst, src);                                                  \
+  }                                                                            \
+  void op##l(Register dst, const Address& src) {                               \
+    Alu(4, opcode, dst, src);                                                  \
+  }                                                                            \
+  void op##w(Register dst, const Address& src) {                               \
+    Alu(2, opcode, dst, src);                                                  \
+  }                                                                            \
+  void op##l(const Address& dst, Register src) {                               \
+    Alu(4, opcode2, dst, src);                                                 \
+  }                                                                            \
+  void op##w(const Address& dst, Register src) {                               \
+    Alu(2, opcode2, dst, src);                                                 \
+  }                                                                            \
   void op##l(Register dst, const Immediate& imm) {                             \
     Alu(modrm_opcode, dst, imm);                                               \
   }                                                                            \

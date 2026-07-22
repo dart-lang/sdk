@@ -11,7 +11,7 @@ direct_assignment(int? i, int? j) {
   if (i == null) return;
   i = j;
   // [error column 3, length 5]
-  // [context 1] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 1] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 10] Variable 'i' could not be promoted due to an assignment.
   i.isEven;
   //^^^^^^
@@ -23,7 +23,7 @@ compound_assignment(C? c, int i) {
   if (c == null) return;
   c += i;
   // [error column 3, length 6]
-  // [context 2] Variable 'c' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 2] Variable 'c' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 11] Variable 'c' could not be promoted due to an assignment.
   c.cProperty;
   //^^^^^^^^^
@@ -35,7 +35,7 @@ via_postfix_op(C? c) {
   if (c == null) return;
   c++;
   // [error column 3, length 3]
-  // [context 3] Variable 'c' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 3] Variable 'c' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 12] Variable 'c' could not be promoted due to an assignment.
   c.cProperty;
   //^^^^^^^^^
@@ -47,7 +47,7 @@ via_prefix_op(C? c) {
   if (c == null) return;
   ++c;
   // [error column 3, length 3]
-  // [context 4] Variable 'c' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 4] Variable 'c' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   //^
   // [context 13] Variable 'c' could not be promoted due to an assignment.
   c.cProperty;
@@ -60,7 +60,7 @@ via_for_each_statement(int? i, List<int?> list) {
   if (i == null) return;
   for (i in list) {
     // ^
-    // [context 5] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+    // [context 5] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
     // [context 14] Variable 'i' could not be promoted due to an assignment.
     i.isEven;
     //^^^^^^
@@ -73,7 +73,7 @@ via_for_each_list_element(int? i, List<int?> list) {
   if (i == null) return;
   [for (i in list) i.isEven];
   //    ^
-  // [context 6] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 6] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 15] Variable 'i' could not be promoted due to an assignment.
   //                 ^^^^^^
   // [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -84,7 +84,7 @@ via_for_each_set_element(int? i, List<int?> list) {
   if (i == null) return;
   ({for (i in list) i.isEven});
   //     ^
-  // [context 7] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 7] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 16] Variable 'i' could not be promoted due to an assignment.
   //                  ^^^^^^
   // [analyzer 7] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -95,7 +95,7 @@ via_for_each_map_key(int? i, List<int?> list) {
   if (i == null) return;
   ({for (i in list) i.isEven: null});
   //     ^
-  // [context 8] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 8] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 17] Variable 'i' could not be promoted due to an assignment.
   //                  ^^^^^^
   // [analyzer 8] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
@@ -106,7 +106,7 @@ via_for_each_map_value(int? i, List<int?> list) {
   if (i == null) return;
   ({for (i in list) null: i.isEven});
   //     ^
-  // [context 9] Variable 'i' could not be promoted due to an assignment.  See http://dart.dev/go/non-promo-write
+  // [context 9] Variable 'i' could not be promoted due to an assignment.  See https://dart.dev/go/non-promo-write
   // [context 18] Variable 'i' could not be promoted due to an assignment.
   //                        ^^^^^^
   // [analyzer 9] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE

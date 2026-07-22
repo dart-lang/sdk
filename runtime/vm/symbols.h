@@ -82,7 +82,9 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 
 // Access methods for handles of the predefined symbols.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \
-  static const String& symbol() { return Symbol(k##symbol##Id); }
+  static const String& symbol() {                                              \
+    return Symbol(k##symbol##Id);                                              \
+  }
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
 

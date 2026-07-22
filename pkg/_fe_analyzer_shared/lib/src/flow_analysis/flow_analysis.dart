@@ -3497,14 +3497,14 @@ enum NonPromotionDocumentationLink {
   /// The expression in question is a reference to a private final field, but it
   /// couldn't be promoted because there is another class in the same library
   /// containing a concrete getter with the same name.
-  conflictingGetter('http://dart.dev/go/non-promo-conflicting-getter'),
+  conflictingGetter('https://dart.dev/go/non-promo-conflicting-getter'),
 
   /// The expression in question is a reference to a private final field, but it
   /// couldn't be promoted because there is another class in the same library
   /// containing a field with the same name that's not promotable (either
   /// because it's not final or because it's external).
   conflictingNonPromotableField(
-    'http://dart.dev/go/non-promo-conflicting-non-promotable-field',
+    'https://dart.dev/go/non-promo-conflicting-non-promotable-field',
   ),
 
   /// The expression in question is a reference to a private final field, but it
@@ -3513,28 +3513,28 @@ enum NonPromotionDocumentationLink {
   /// have an implementation of that getter (and hence it forwards to
   /// `noSuchMethod`).
   conflictingNoSuchMethodForwarder(
-    'http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder',
+    'https://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder',
   ),
 
   /// The expression in question is a reference to a private field, but it
   /// couldn't be promoted because it's external.
-  externalField('http://dart.dev/go/non-promo-external-field'),
+  externalField('https://dart.dev/go/non-promo-external-field'),
 
   /// The expression in question is a reference to a private field, but it
   /// couldn't be promoted because the Dart language version for this library is
   /// prior to field promotion support.
   fieldPromotionUnavailable(
-    'http://dart.dev/go/non-promo-field-promotion-unavailable',
+    'https://dart.dev/go/non-promo-field-promotion-unavailable',
   ),
 
   /// The expression in question is a property get, but it couldn't be promoted
   /// because it doesn't refer to a field (it might refer to a getter or it
   /// might be a tear-off of a method).
-  nonField('http://dart.dev/go/non-promo-non-field'),
+  nonField('https://dart.dev/go/non-promo-non-field'),
 
   /// The expression in question is a reference to a private field, but it
   /// couldn't be promoted because it's not final.
-  nonFinalField('http://dart.dev/go/non-promo-non-final-field'),
+  nonFinalField('https://dart.dev/go/non-promo-non-final-field'),
 
   /// The expression in question is a property get. It couldn't be promoted
   /// because promotion of property gets is not supported.
@@ -3543,25 +3543,25 @@ enum NonPromotionDocumentationLink {
   /// earlier (so the documentation web site should continue to support it until
   /// most users have upgraded to 3.2 or later).
   @deprecated
-  property('http://dart.dev/go/non-promo-property'),
+  property('https://dart.dev/go/non-promo-property'),
 
   /// The expression in question is a reference to a field, but it couldn't be
   /// promoted because it's not private.
-  publicField('http://dart.dev/go/non-promo-public-field'),
+  publicField('https://dart.dev/go/non-promo-public-field'),
 
   /// The expression in question is `this`. It couldn't be promoted because
   /// promotion of `this` is not yet supported.
-  this_('http://dart.dev/go/non-promo-this'),
+  this_('https://dart.dev/go/non-promo-this'),
 
   /// The expression in question is a reference to a local variable. It couldn't
   /// be promoted because the variable was written to between the type test and
   /// the usage.
-  write('http://dart.dev/go/non-promo-write'),
+  write('https://dart.dev/go/non-promo-write'),
 
   /// The expression in question is a reference to a local variable. It couldn't
   /// be promoted because the local variable was demoted due to an 'await' or
   /// 'yield' expression/statement.
-  suspension('http://dart.dev/go/non-promo-suspension');
+  suspension('https://dart.dev/go/non-promo-suspension');
 
   /// The link URL, as a text string.
   final String url;

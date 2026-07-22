@@ -10,20 +10,20 @@
 extension type E(dynamic d) {
   int? get i1 => 0;
   //       ^^
-  // [context 1] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 3] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 5] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 7] 'i1' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 1] 'i1' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 3] 'i1' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 5] 'i1' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 7] 'i1' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 9] 'i1' refers to a public property so it couldn't be promoted.
   // [context 11] 'i1' refers to a public property so it couldn't be promoted.
   // [context 13] 'i1' refers to a public property so it couldn't be promoted.
   // [context 15] 'i1' refers to a public property so it couldn't be promoted.
   int? get _i2 => 0;
   //       ^^^
-  // [context 2] '_i2' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 4] '_i2' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 6] '_i2' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
-  // [context 8] '_i2' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 2] '_i2' refers to a getter so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-field
+  // [context 4] '_i2' refers to a getter so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-field
+  // [context 6] '_i2' refers to a getter so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-field
+  // [context 8] '_i2' refers to a getter so it couldn't be promoted.  See https://dart.dev/go/non-promo-non-field
   // [context 10] '_i2' refers to a getter so it couldn't be promoted.
   // [context 12] '_i2' refers to a getter so it couldn't be promoted.
   // [context 14] '_i2' refers to a getter so it couldn't be promoted.

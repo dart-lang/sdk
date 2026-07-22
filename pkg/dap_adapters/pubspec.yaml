@@ -1,0 +1,25 @@
+name: dap_adapters
+version: 1.0.0-wip
+description: >-
+  Dart Debug Adapter Protocol (DAP) adapters translating the DAP protocol
+  to the Dart VM Service protocol.
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/dap_adapters
+environment:
+  sdk: ^3.13.0-0
+
+resolution: workspace
+
+dependencies:
+  async: ^2.4.1
+  collection: ^1.15.0
+  dap: ^1.4.0
+  dds_service_extensions: ^2.0.0
+  json_rpc_2: '>=3.0.0 <5.0.0'
+  meta: ^1.1.8
+  path: ^1.8.0
+  vm_service: '>=14.3.0 <16.0.0'
+
+dev_dependencies:
+  dds: any
+  lints: any
+  test: any

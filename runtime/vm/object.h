@@ -392,7 +392,9 @@ class KNOWN_VTABLE_DISCRIMINATOR Object {
   virtual intptr_t HandleTag() const { return kObjectCid; }
 
 #define DEFINE_LEAF_CHECK(clazz)                                               \
-  bool Is##clazz() const { return HandleTag() == k##clazz##Cid; }
+  bool Is##clazz() const {                                                     \
+    return HandleTag() == k##clazz##Cid;                                       \
+  }
   LEAF_HANDLE_LIST(DEFINE_LEAF_CHECK)
 #undef DEFINE_LEAF_CHECK
   bool IsTypedDataBase() const {
@@ -590,7 +592,9 @@ class KNOWN_VTABLE_DISCRIMINATOR Object {
   V(TypedData, empty_coverage_array)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
-  static const Type& name() { return Roots::name(); }
+  static const Type& name() {                                                  \
+    return Roots::name();                                                      \
+  }
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
@@ -2309,7 +2313,9 @@ class SingleTargetCache : public Object {
   }
 
 #define DEFINE_NON_POINTER_FIELD_ACCESSORS(type, name)                         \
-  type name() const { return untag()->name##_; }                               \
+  type name() const {                                                          \
+    return untag()->name##_;                                                   \
+  }                                                                            \
   void set_##name(type value) const {                                          \
     StoreNonPointer(&untag()->name##_, value);                                 \
   }                                                                            \
@@ -3555,9 +3561,13 @@ class Function : public Object {
     UNREACHABLE();                                                             \
     return 0;                                                                  \
   }                                                                            \
-  return_type name() const { return 0; }                                       \
+  return_type name() const {                                                   \
+    return 0;                                                                  \
+  }                                                                            \
                                                                                \
-  void set_##name(type value) const { UNREACHABLE(); }
+  void set_##name(type value) const {                                          \
+    UNREACHABLE();                                                             \
+  }
 #else
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
   static intptr_t name##_offset() {                                            \
@@ -4170,7 +4180,9 @@ class Function : public Object {
   void Set##Name(bool value) const {                                           \
     set_state_bits(Name##Bit::update(value, state_bits()));                    \
   }                                                                            \
-  bool Name() const { return Name##Bit::decode(state_bits()); }
+  bool Name() const {                                                          \
+    return Name##Bit::decode(state_bits());                                    \
+  }
   STATE_BITS_LIST(DEFINE_FLAG_ACCESSORS)
 #undef DEFINE_FLAG_ACCESSORS
 
@@ -4242,7 +4254,9 @@ class Function : public Object {
   void set_##accessor_name(bool value) const {                                 \
     untag()->kind_tag_.UpdateUnsynchronized<name##Bit>(value);                 \
   }                                                                            \
-  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  bool accessor_name() const {                                                 \
+    return untag()->kind_tag_.Read<name##Bit>();                               \
+  }
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
@@ -4254,7 +4268,9 @@ class Function : public Object {
   void set_##accessor_name(bool value) const {                                 \
     untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
   }                                                                            \
-  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  bool accessor_name() const {                                                 \
+    return untag()->kind_tag_.Read<name##Bit>();                               \
+  }
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
@@ -5829,7 +5845,9 @@ class Instructions : public Object {
 #define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
   using Name##Bit = BitField<decltype(UntaggedInstructions::size_and_flags_),  \
                              bool, k##Name##Index>;                            \
-  bool Name() const { return Name##Bit::decode(untag()->size_and_flags_); }    \
+  bool Name() const {                                                          \
+    return Name##Bit::decode(untag()->size_and_flags_);                        \
+  }                                                                            \
   static bool Name(const InstructionsPtr instr) {                              \
     return Name##Bit::decode(instr->untag()->size_and_flags_);                 \
   }

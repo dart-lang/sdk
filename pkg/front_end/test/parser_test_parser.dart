@@ -1106,15 +1106,22 @@ class TestParser extends Parser {
     Token token,
     Token? constKeyword,
     Token mixinKeyword,
+    bool isAugmentation,
   ) {
     doPrint(
       'parseMixinHeaderOpt('
       '$token, '
       '$constKeyword, '
-      '$mixinKeyword)',
+      '$mixinKeyword, '
+      '$isAugmentation)',
     );
     indent++;
-    var result = super.parseMixinHeaderOpt(token, constKeyword, mixinKeyword);
+    var result = super.parseMixinHeaderOpt(
+      token,
+      constKeyword,
+      mixinKeyword,
+      isAugmentation,
+    );
     indent--;
     return result;
   }
@@ -1124,31 +1131,35 @@ class TestParser extends Parser {
     Token token,
     Token mixinKeyword,
     Token headerStart,
+    bool isAugmentation,
   ) {
     doPrint(
       'parseMixinHeaderRecovery('
       '$token, '
       '$mixinKeyword, '
-      '$headerStart)',
+      '$headerStart, '
+      '$isAugmentation)',
     );
     indent++;
     var result = super.parseMixinHeaderRecovery(
       token,
       mixinKeyword,
       headerStart,
+      isAugmentation,
     );
     indent--;
     return result;
   }
 
   @override
-  Token parseMixinOnOpt(Token token) {
+  Token parseMixinOnOpt(Token token, bool isAugmentation) {
     doPrint(
       'parseMixinOnOpt('
-      '$token)',
+      '$token, '
+      '$isAugmentation)',
     );
     indent++;
-    var result = super.parseMixinOnOpt(token);
+    var result = super.parseMixinOnOpt(token, isAugmentation);
     indent--;
     return result;
   }

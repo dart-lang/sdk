@@ -7,7 +7,7 @@ library;
 //   i.isEven;
 //     ^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:14:3: Context: Variable 'i' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   i = j;
 //   ^
 //
@@ -17,7 +17,7 @@ library;
 //   c.cProperty;
 //     ^^^^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:20:3: Context: Variable 'c' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   c += i;
 //   ^
 //
@@ -27,7 +27,7 @@ library;
 //   c.cProperty;
 //     ^^^^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:26:3: Context: Variable 'c' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   c++;
 //   ^
 //
@@ -37,7 +37,7 @@ library;
 //   c.cProperty;
 //     ^^^^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:32:5: Context: Variable 'c' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   ++c;
 //     ^
 //
@@ -46,7 +46,7 @@ library;
 //     i.isEven;
 //       ^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:38:8: Context: Variable 'i' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   for (i in list) {
 //        ^
 //
@@ -55,7 +55,7 @@ library;
 //   [for (i in list) i.isEven];
 //                      ^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:45:9: Context: Variable 'i' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   [for (i in list) i.isEven];
 //         ^
 //
@@ -64,7 +64,7 @@ library;
 //   ({for (i in list) i.isEven});
 //                       ^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:50:10: Context: Variable 'i' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   ({for (i in list) i.isEven});
 //          ^
 //
@@ -73,7 +73,7 @@ library;
 //   ({for (i in list) i.isEven: null});
 //                       ^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:55:10: Context: Variable 'i' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   ({for (i in list) i.isEven: null});
 //          ^
 //
@@ -82,7 +82,7 @@ library;
 //   ({for (i in list) null: i.isEven});
 //                             ^^^^^^
 // pkg/front_end/testcases/nnbd/why_not_promoted.dart:60:10: Context: Variable 'i' could not be promoted due to an assignment.
-// Try null checking the variable after the assignment.  See http://dart.dev/go/non-promo-write
+// Try null checking the variable after the assignment.  See https://dart.dev/go/non-promo-write
 //   ({for (i in list) null: i.isEven});
 //          ^
 //

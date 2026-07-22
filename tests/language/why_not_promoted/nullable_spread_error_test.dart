@@ -9,20 +9,20 @@
 class C {
   List<int>? listQuestion;
   //         ^^^^^^^^^^^^
-  // [context 1] 'listQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 5] 'listQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 11] 'listQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 1] 'listQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 5] 'listQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 11] 'listQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 17] 'listQuestion' refers to a public property so it couldn't be promoted.
   // [context 21] 'listQuestion' refers to a public property so it couldn't be promoted.
   // [context 27] 'listQuestion' refers to a public property so it couldn't be promoted.
   Object? objectQuestion;
   //      ^^^^^^^^^^^^^^
-  // [context 4] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 8] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 9] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 10] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 14] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 15] 'objectQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 4] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 8] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 9] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 10] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 14] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 15] 'objectQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 20] 'objectQuestion' refers to a public property so it couldn't be promoted.
   // [context 24] 'objectQuestion' refers to a public property so it couldn't be promoted.
   // [context 25] 'objectQuestion' refers to a public property so it couldn't be promoted.
@@ -31,19 +31,19 @@ class C {
   // [context 31] 'objectQuestion' refers to a public property so it couldn't be promoted.
   Set<int>? setQuestion;
   //        ^^^^^^^^^^^
-  // [context 2] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 6] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 12] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 16] 'setQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 2] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 6] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 12] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 16] 'setQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 18] 'setQuestion' refers to a public property so it couldn't be promoted.
   // [context 22] 'setQuestion' refers to a public property so it couldn't be promoted.
   // [context 28] 'setQuestion' refers to a public property so it couldn't be promoted.
   // [context 32] 'setQuestion' refers to a public property so it couldn't be promoted.
   Map<int, int>? mapQuestion;
   //             ^^^^^^^^^^^
-  // [context 3] 'mapQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 7] 'mapQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 13] 'mapQuestion' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'mapQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 7] 'mapQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
+  // [context 13] 'mapQuestion' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field
   // [context 19] 'mapQuestion' refers to a public property so it couldn't be promoted.
   // [context 23] 'mapQuestion' refers to a public property so it couldn't be promoted.
   // [context 29] 'mapQuestion' refers to a public property so it couldn't be promoted.

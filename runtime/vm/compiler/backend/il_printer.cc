@@ -192,24 +192,20 @@ class IlTestPrinter : public AllStatic {
     }
 
 #define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
-  virtual void Visit##ShortName(ShortName##Instr* instr) { Write(instr); }
+  virtual void Visit##ShortName(ShortName##Instr* instr) {                     \
+    Write(instr);                                                              \
+  }
 
     FOR_EACH_CONCRETE_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
 
 #undef DECLARE_VISIT_INSTRUCTION
 
    private:
-    void WriteAttribute(const char* value) {
-      writer_->PrintValue(value);
-    }
+    void WriteAttribute(const char* value) { writer_->PrintValue(value); }
 
-    void WriteAttribute(intptr_t value) {
-      writer_->PrintValue(value);
-    }
+    void WriteAttribute(intptr_t value) { writer_->PrintValue(value); }
 
-    void WriteAttribute(bool value) {
-      writer_->PrintValueBool(value);
-    }
+    void WriteAttribute(bool value) { writer_->PrintValueBool(value); }
 
     void WriteAttribute(Token::Kind kind) {
       writer_->PrintValue(Token::Str(kind));
@@ -251,9 +247,7 @@ class IlTestPrinter : public AllStatic {
       writer_->PrintValue(LocationKindAsString(loc));
     }
 
-    void WriteAttribute(const Slot* slot) {
-      writer_->PrintValue(slot->Name());
-    }
+    void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
 
     void WriteAttribute(const Function* function) {
       writer_->PrintValue(function->QualifiedUserVisibleNameCString());

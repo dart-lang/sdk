@@ -1156,12 +1156,16 @@ class Instruction : public ZoneObject {
   PRINT_OPERANDS_TO_SUPPORT
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
-  bool Is##Name() const { return (As##Name() != nullptr); }                    \
+  bool Is##Name() const {                                                      \
+    return (As##Name() != nullptr);                                            \
+  }                                                                            \
   Type* As##Name() {                                                           \
     auto const_this = static_cast<const Instruction*>(this);                   \
     return const_cast<Type*>(const_this->As##Name());                          \
   }                                                                            \
-  virtual const Type* As##Name() const { return nullptr; }
+  virtual const Type* As##Name() const {                                       \
+    return nullptr;                                                            \
+  }
 #define INSTRUCTION_TYPE_CHECK(Name, Attrs)                                    \
   DECLARE_INSTRUCTION_TYPE_CHECK(Name, Name##Instr)
 
@@ -1175,7 +1179,9 @@ class Instruction : public ZoneObject {
 #undef INSTRUCTION_TYPE_CHECK
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
-  bool Is##Name() const { return (As##Name() != nullptr); }                    \
+  bool Is##Name() const {                                                      \
+    return (As##Name() != nullptr);                                            \
+  }                                                                            \
   Type* As##Name() {                                                           \
     auto const_this = static_cast<const Instruction*>(this);                   \
     return const_cast<Type*>(const_this->As##Name());                          \

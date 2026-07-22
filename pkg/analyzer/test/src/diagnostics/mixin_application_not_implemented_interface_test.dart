@@ -116,6 +116,8 @@ class B with M {}
 mixin M {}
 class A {}
 augment mixin M on A {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
 ''');
   }
 
@@ -137,6 +139,8 @@ class A {}
 part of 'a.dart';
 
 augment mixin M on A {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
 ''',
     });
   }
