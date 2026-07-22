@@ -53,7 +53,7 @@ class FixesTest extends PubPackageAnalysisServerTest {
       await pumpEventQueue();
     }
 
-    // Except all to complete.
+    // Expect all to complete.
     await Future.wait(futures);
   }
 

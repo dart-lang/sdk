@@ -262,7 +262,8 @@ abstract class AnalysisServer {
 
   /// A completer that tracks in-progress analysis context rebuilds.
   ///
-  /// Starts completed and will be replaced each time a context rebuild starts.
+  /// Starts completed and will be replaced with a new completer each time an
+  /// analysis context rebuild starts.
   Completer<void> analysisContextRebuildCompleter = Completer()..complete();
 
   /// The workspace for rename refactorings.

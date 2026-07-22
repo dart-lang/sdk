@@ -3687,7 +3687,7 @@ class FormFieldTypeString implements FormFieldType, ToJsonable {
   }
 }
 
-class IncomingMessage implements Message, ToJsonable {
+sealed class IncomingMessage implements Message, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     IncomingMessage.canParse,
     IncomingMessage.fromJson,
@@ -3767,20 +3767,8 @@ class IncomingMessage implements Message, ToJsonable {
     if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
       return NotificationMessage.fromJson(json);
     }
-    final clientRequestTimeJson = json['clientRequestTime'];
-    final clientRequestTime = clientRequestTimeJson as int?;
-    final jsonrpcJson = json['jsonrpc'];
-    final jsonrpc = jsonrpcJson as String;
-    final methodJson = json['method'];
-    final method = Method.fromJson(methodJson as String);
-    final paramsJson = json['params'];
-    final params = paramsJson;
-    return IncomingMessage(
-      clientRequestTime: clientRequestTime,
-      jsonrpc: jsonrpc,
-      method: method,
-      params: params,
-    );
+    throw ArgumentError(
+        'Supplied map is not valid for any subclass of IncomingMessage');
   }
 }
 
@@ -4151,7 +4139,7 @@ class LegacySnippetTextEdit implements TextEdit, ToJsonable {
   }
 }
 
-class Message implements ToJsonable {
+sealed class Message implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     Message.canParse,
     Message.fromJson,
@@ -4213,14 +4201,8 @@ class Message implements ToJsonable {
     if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
       return ResponseMessage.fromJson(json);
     }
-    final clientRequestTimeJson = json['clientRequestTime'];
-    final clientRequestTime = clientRequestTimeJson as int?;
-    final jsonrpcJson = json['jsonrpc'];
-    final jsonrpc = jsonrpcJson as String;
-    return Message(
-      clientRequestTime: clientRequestTime,
-      jsonrpc: jsonrpc,
-    );
+    throw ArgumentError(
+        'Supplied map is not valid for any subclass of Message');
   }
 }
 

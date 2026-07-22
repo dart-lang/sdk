@@ -21,7 +21,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
@@ -130,6 +129,13 @@ class LspAnalysisServer extends AnalysisServer {
   final Completer<InitializedStateMessageHandler> _lspInitializedCompleter =
       Completer<InitializedStateMessageHandler>();
 
+  /// A completer that tracks in-progress workspace folders update.
+  ///
+  /// Starts completed and will be replaced each time workspace folders are
+  /// being updated (which can trigger async work such as fetching client
+  /// configuration or dynamic registrations).
+  Completer<void> workspaceFolderUpdateCompleter = Completer()..complete();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   new(
@@ -188,9 +194,17 @@ class LspAnalysisServer extends AnalysisServer {
       (_) => _onPluginsChanged(),
     );
 
-    // TODO(srawlins): Listen to
-    // `notificationManager.pluginAnalysisStatusChanges` and perform "on idle"
-    // tasks.
+    notificationManager.pluginAnalysisStatusChanges.listen((isAnalyzing) {
+      if (!pluginManager.initializedCompleter.isCompleted) {
+        // Without `this.`, some portion of the analyzer believes we are
+        // accessing the super parameter, instead of the field in the super
+        // class.  See https://github.com/dart-lang/sdk/issues/59996.
+        // ignore: unnecessary_this
+        this.pluginManager.initializedCompleter.complete();
+      }
+      // TODO(srawlins): Perform "on idle" tasks (Legacy server has
+      // `_performOnIdleActions`).
+    });
   }
 
   /// The hosted location of the client application.
@@ -266,17 +280,6 @@ class LspAnalysisServer extends AnalysisServer {
     };
   }
 
-  @override
-  @visibleForTesting
-  set pluginManager(PluginManager value) {
-    super.pluginManager = value;
-    _pluginChangeSubscription?.cancel();
-
-    _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
-      (_) => _onPluginsChanged(),
-    );
-  }
-
   /// Whether or not the client has advertised support for
   /// 'window/showMessageRequest'.
   ///
@@ -285,6 +288,14 @@ class LspAnalysisServer extends AnalysisServer {
   @protected
   bool get supportsShowMessageRequest =>
       editorClientCapabilities?.supportsShowMessageRequest ?? false;
+
+  /// A [Future] that completes when any in-progress workspace folder update
+  /// completes.
+  ///
+  /// If no workspace folder update is in progress, will return an already complete
+  /// [Future].
+  Future<void> get workspaceFolderUpdate =>
+      workspaceFolderUpdateCompleter.future;
 
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
@@ -1049,9 +1060,14 @@ class LspAnalysisServer extends AnalysisServer {
       ..addAll(addedNormalized)
       ..removeAll(removedNormalized);
 
-    await fetchClientConfigurationAndPerformDynamicRegistration();
+    var completer = workspaceFolderUpdateCompleter = Completer();
+    try {
+      await fetchClientConfigurationAndPerformDynamicRegistration();
 
-    await _refreshAnalysisRoots();
+      await _refreshAnalysisRoots();
+    } finally {
+      completer.complete();
+    }
   }
 
   void _afterOverlayChanged(
@@ -1197,6 +1213,14 @@ class LspAnalysisServer extends AnalysisServer {
     pluginManager.setAnalysisSetAnalysisRootsParams(
       plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
     );
+
+    // If there are no analysis roots, no drivers will be created and the plugin
+    // watcher will not complete the plugin managers initialization so we need
+    // to do it.
+    if (includedPaths.isEmpty &&
+        !pluginManager.initializedCompleter.isCompleted) {
+      pluginManager.initializedCompleter.complete();
+    }
   }
 
   void _updateDriversAndPluginsPriorityFiles() {

@@ -1,4 +1,5 @@
 set noparent
+file:/tools/OWNERS_DEV_INFRA
 file:/tools/OWNERS_VM
-# In addition to VM team allow global owners.
+# In addition to VM and Dev Infra teams allow global owners.
 file:/OWNERS
