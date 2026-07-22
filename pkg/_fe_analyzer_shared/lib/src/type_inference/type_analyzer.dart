@@ -2349,28 +2349,6 @@ mixin TypeAnalyzer<
     );
   }
 
-  /// Analyzes a variable declaration of the form `type variable;` or
-  /// `var variable;`.
-  ///
-  /// [node] should be the AST node for the entire declaration, [variable] for
-  /// the variable, and [declaredType] for the type (if present).  [isFinal]
-  /// indicates whether this is a final declaration.
-  ///
-  /// Stack effect: none.
-  ///
-  /// Returns the inferred type of the variable.
-  SharedTypeView analyzeUninitializedVariableDeclaration(
-    Node node,
-    Variable variable,
-    SharedTypeView? declaredType, {
-    required bool isFinal,
-  }) {
-    SharedTypeView inferredType = declaredType ?? operations.dynamicType;
-    setVariableType(variable, inferredType);
-    flow.declare(variable, inferredType, initialized: false);
-    return inferredType;
-  }
-
   /// Analyzes a wildcard pattern.  [node] is the pattern.
   ///
   /// Returns a [WildcardPatternResult] with information about reported errors.
