@@ -485,15 +485,11 @@ Bytecode {
   PushConstant         CP#1
   StoreClosureElement  0
   Dup
-  Push                 FP[-5]
-  LoadTypeArgumentsField CP#7
+  Push                 r0
   StoreClosureElement  1
   Dup
-  Push                 r0
-  StoreClosureElement  2
-  Dup
   Push                 r1
-  StoreClosureElement  3
+  StoreClosureElement  2
   PopLocal             r3
   PushConstant         CP#36
   Push                 r3
@@ -533,17 +529,17 @@ ConstantPool {
   [21] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/closures.dart::callWithArgs', ArgDesc num-args 0, num-type-args 8, names []
   [22] = Reserved
   [23] = EndClosureFunctionScope
-  [24] = AllocateClosure 2, num-elements: 3, flags: 6
+  [24] = AllocateClosure 2, num-elements: 2, flags: 4
   [25] = Reserved
   [26] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
   [27] = EndClosureFunctionScope
-  [28] = AllocateClosure 1, num-elements: 4, flags: 7
+  [28] = AllocateClosure 1, num-elements: 3, flags: 5
   [29] = Reserved
   [30] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C7, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C8 >
   [31] = ObjectRef ArgDesc num-args 1, num-type-args 2, names []
   [32] = ObjectRef < dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C7 >, dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C8 > >
   [33] = EndClosureFunctionScope
-  [34] = AllocateClosure 0, num-elements: 4, flags: 7
+  [34] = AllocateClosure 0, num-elements: 3, flags: 5
   [35] = Reserved
   [36] = ObjectRef < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C5, DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C6 >
   [37] = ObjectRef < dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C5 >, dart:core::List < DART_SDK/pkg/dart2bytecode/testcases/closures.dart::C6 > >
@@ -552,7 +548,7 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::'nested1' ty
 ClosureCode {
   Entry                5
   Push                 FP[-5]
-  LoadClosureElement   3
+  LoadClosureElement   2
   PopLocal             r1
   Push                 FP[-5]
   LoadClosureElement   0
@@ -567,7 +563,7 @@ L2:
   CheckStack           0
   Push                 r0
   Push                 FP[-5]
-  LoadClosureElement   2
+  LoadClosureElement   1
   PushInt              2
   PushInt              4
   DirectCall           CP#2, 4
@@ -577,16 +573,11 @@ L2:
   PushConstant         CP#1
   StoreClosureElement  0
   Dup
-  Push                 r1
-  LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#7
+  Push                 r0
   StoreClosureElement  1
   Dup
-  Push                 r0
-  StoreClosureElement  2
-  Dup
   Push                 r1
-  StoreClosureElement  3
+  StoreClosureElement  2
   PopLocal             r3
   PushConstant         CP#30
   Push                 r3
@@ -606,7 +597,7 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/0::'
 ClosureCode {
   Entry                5
   Push                 FP[-5]
-  LoadClosureElement   3
+  LoadClosureElement   2
   PopLocal             r1
   Push                 FP[-5]
   LoadClosureElement   0
@@ -621,23 +612,18 @@ L2:
   CheckStack           0
   Push                 r0
   Push                 FP[-5]
-  LoadClosureElement   2
+  LoadClosureElement   1
   PushInt              4
   PushInt              6
   DirectCall           CP#2, 4
   PopLocal             r0
   AllocateClosure      CP#24
   Dup
-  Push                 r1
-  LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#7
+  Push                 r0
   StoreClosureElement  0
   Dup
-  Push                 r0
-  StoreClosureElement  1
-  Dup
   Push                 r1
-  StoreClosureElement  2
+  StoreClosureElement  1
   PopLocal             r3
   Push                 r3
   StoreLocal           r4
@@ -652,11 +638,11 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::Closure/1::'
 ClosureCode {
   Entry                3
   Push                 FP[-5]
-  LoadClosureElement   2
+  LoadClosureElement   1
   PopLocal             r1
   CheckStack           0
   Push                 FP[-5]
-  LoadClosureElement   1
+  LoadClosureElement   0
   PopLocal             r0
   PushConstant         CP#6
   Push                 r1
@@ -1250,48 +1236,38 @@ Bytecode {
   Push                 r0
   Push                 FP[-5]
   StoreContextVar      0, 0
-  AllocateClosure      CP#8
-  Dup
-  Push                 FP[-5]
-  LoadTypeArgumentsField CP#5
-  StoreClosureElement  0
+  AllocateClosure      CP#7
   Dup
   Push                 r0
-  StoreClosureElement  1
+  StoreClosureElement  0
   ReturnTOS
 }
 ConstantPool {
   [0] = ClosureFunction 0
   [1] = ClosureFunction 1
   [2] = EndClosureFunctionScope
-  [3] = AllocateClosure 1, num-elements: 2, flags: 2
+  [3] = AllocateClosure 1, num-elements: 1, flags: 0
   [4] = Reserved
-  [5] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D
-  [6] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [7] = EndClosureFunctionScope
-  [8] = AllocateClosure 0, num-elements: 2, flags: 2
-  [9] = Reserved
+  [5] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [6] = EndClosureFunctionScope
+  [7] = AllocateClosure 0, num-elements: 1, flags: 0
+  [8] = Reserved
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::bar::'<anonymous closure>' () -> Null
 ClosureCode {
   Entry                4
   Push                 FP[-5]
-  LoadClosureElement   1
+  LoadClosureElement   0
   PopLocal             r0
   CheckStack           0
   AllocateClosure      CP#3
   Dup
   Push                 r0
-  LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#5
   StoreClosureElement  0
-  Dup
-  Push                 r0
-  StoreClosureElement  1
   PopLocal             r2
   Push                 r2
   Push                 r2
-  UncheckedClosureCall CP#6, 1
+  UncheckedClosureCall CP#5, 1
   Drop1
   PushNull
   ReturnTOS
@@ -1301,7 +1277,7 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/closures.dart::D::bar::Closure/0::'
 ClosureCode {
   Entry                2
   Push                 FP[-5]
-  LoadClosureElement   1
+  LoadClosureElement   0
   PopLocal             r0
   CheckStack           0
   PushNull

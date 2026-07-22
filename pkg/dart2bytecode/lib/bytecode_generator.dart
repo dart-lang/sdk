@@ -2283,7 +2283,11 @@ class BytecodeGenerator extends RecursiveVisitor {
   bool get closureHasDelayedTypeArguments =>
       enclosingFunction!.typeParameters.isNotEmpty;
   bool get closureHasInstantiatorTypeArguments =>
-      instantiatorTypeArguments != null;
+      classTypeParameters != null &&
+      containsTypeParameter(
+        enclosingFunction!.computeThisFunctionType(.nonNullable),
+        classTypeParameters!,
+      );
   bool get closureHasFunctionTypeArguments =>
       locals.hasFunctionTypeArgsVar && locals.numParentTypeArguments > 0;
 
@@ -2952,7 +2956,12 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _genAllocateClosureInstance(int closureIndex, FunctionNode function) {
     final bool hasDelayedTypeArguments = function.typeParameters.isNotEmpty;
-    final bool hasInstantiatorTypeArguments = instantiatorTypeArguments != null;
+    final bool hasInstantiatorTypeArguments =
+        classTypeParameters != null &&
+        containsTypeParameter(
+          function.computeThisFunctionType(.nonNullable),
+          classTypeParameters!,
+        );
     final bool hasFunctionTypeArguments = locals.hasFunctionTypeArgsVar;
     final numElements =
         (hasDelayedTypeArguments ? 1 : 0) +
