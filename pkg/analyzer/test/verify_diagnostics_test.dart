@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/analyzer_messages.dart';
@@ -306,6 +308,17 @@ class DocumentationValidator {
     //  ranges specified in fixes (when `errorRequired` is `false`), but it
     //  probably should.
     var section = errorRequired ? _Section.examples : _Section.fixes;
+
+    var experimentalFeatures = <Feature>[];
+    for (var experiment in experiments) {
+      var feature = ExperimentStatus.knownFeatures[experiment];
+      if (feature != null) {
+        experimentalFeatures.add(feature);
+      } else if (!onlyValidateFormatting) {
+        _reportProblem("Unknown experiment '$experiment' in $section $index");
+      }
+    }
+
     int rangeStart = snippet.indexOf(errorRangeStart);
     if (rangeStart < 0) {
       if (errorRequired && !onlyValidateFormatting) {
@@ -316,7 +329,7 @@ class DocumentationValidator {
         -1,
         0,
         auxiliaryFiles,
-        experiments,
+        experimentalFeatures,
         ignores,
         languageVersion,
       );
@@ -331,7 +344,7 @@ class DocumentationValidator {
         -1,
         0,
         auxiliaryFiles,
-        experiments,
+        experimentalFeatures,
         ignores,
         languageVersion,
       );
@@ -355,7 +368,7 @@ class DocumentationValidator {
       rangeStart,
       rangeEnd - rangeStart - 2,
       auxiliaryFiles,
-      experiments,
+      experimentalFeatures,
       ignores,
       languageVersion,
     );
@@ -667,7 +680,7 @@ class _SnippetData {
   final int offset;
   final int length;
   final Map<String, String> auxiliaryFiles;
-  final List<String> experiments;
+  final List<Feature> experimentalFeatures;
   final List<String> ignores;
   final String? languageVersion;
   String? lintCode;
@@ -677,7 +690,7 @@ class _SnippetData {
     this.offset,
     this.length,
     this.auxiliaryFiles,
-    this.experiments,
+    this.experimentalFeatures,
     this.ignores,
     this.languageVersion,
   );
@@ -692,7 +705,9 @@ class _SnippetTest extends PubPackageResolutionTest {
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: snippet.experiments),
+      analysisOptionsContent(
+        experimentalFeatures: snippet.experimentalFeatures,
+      ),
     );
   }
 
@@ -718,7 +733,7 @@ class _SnippetTest extends PubPackageResolutionTest {
       writeTestPackageAnalysisOptionsFile(
         analysisOptionsContent(
           rules: [lintCode],
-          experiments: snippet.experiments,
+          experimentalFeatures: snippet.experimentalFeatures,
         ),
       );
     }

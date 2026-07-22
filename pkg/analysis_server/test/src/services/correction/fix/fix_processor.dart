@@ -17,7 +17,6 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
-import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
@@ -114,9 +113,6 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   /// The processor used to compute bulk fixes.
   late BulkFixProcessor processor;
-
-  @override
-  List<String> get experiments => experimentsForTests;
 
   /// The name of the lint code being tested.
   String? get lintCode => null;
@@ -252,9 +248,12 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   void _createAnalysisOptionsFile() {
     var code = lintCode;
     if (code == null) {
-      createAnalysisOptionsFile(experiments: experiments);
+      createAnalysisOptionsFile(experimentalFeatures: experimentalFeatures);
     } else {
-      createAnalysisOptionsFile(experiments: experiments, lints: [code]);
+      createAnalysisOptionsFile(
+        experimentalFeatures: experimentalFeatures,
+        lints: [code],
+      );
     }
   }
 }
@@ -376,7 +375,10 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    createAnalysisOptionsFile(experiments: experiments, lints: [lintCode]);
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [lintCode],
+    );
   }
 }
 

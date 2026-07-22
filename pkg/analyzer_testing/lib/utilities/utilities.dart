@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+
 /// Returns the content for an analysis options file, specified appropriately
 /// with the given parameter values.
 String analysisOptionsContent({
   List<String> includes = const [],
-  List<String> experiments = const [],
+  List<Feature> experimentalFeatures = const [],
   List<String> legacyPlugins = const [],
   bool propagateLinterExceptions = true,
   List<String> rules = const [],
@@ -17,6 +19,15 @@ String analysisOptionsContent({
   List<String> unignorableNames = const [],
 }) {
   var buffer = StringBuffer();
+  var experimentFlags = [
+    for (var feature in experimentalFeatures)
+      feature.experimentalFlag ??
+          (throw ArgumentError.value(
+            feature,
+            'experimentalFeatures',
+            'Feature does not have an experimental flag',
+          )),
+  ];
 
   if (includes.isNotEmpty) {
     buffer.writeln('include:');
@@ -31,13 +42,13 @@ String analysisOptionsContent({
       errors.isNotEmpty ||
       unignorableNames.isNotEmpty ||
       legacyPlugins.isNotEmpty ||
-      experiments.isNotEmpty ||
+      experimentFlags.isNotEmpty ||
       propagateLinterExceptions) {
     buffer.writeln('analyzer:');
   }
-  if (experiments.isNotEmpty) {
+  if (experimentFlags.isNotEmpty) {
     buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
+    for (var experiment in experimentFlags) {
       buffer.writeln('    - $experiment');
     }
   }

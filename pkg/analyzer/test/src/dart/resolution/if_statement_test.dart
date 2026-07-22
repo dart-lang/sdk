@@ -1343,8 +1343,8 @@ IfStatement
 @reflectiveTest
 class InferenceUpdate4Test extends PubPackageResolutionTest {
   @override
-  List<String> get experiments {
-    return [...super.experiments, Feature.inference_update_4.enableString];
+  List<Feature> get experimentalFeatures {
+    return [...super.experimentalFeatures, Feature.inference_update_4];
   }
 
   test_finalPromotionKept_isExpression() async {
