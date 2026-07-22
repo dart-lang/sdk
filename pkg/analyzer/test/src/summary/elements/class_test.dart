@@ -21047,7 +21047,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        isConst isFactory isOriginDeclaration isRedirecting new
+        isConst isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
           redirectedConstructor: <testLibrary>::@class::C::@constructor::new
@@ -25541,6 +25541,53 @@ library
 ''');
   }
 
+  test_constructor_secondary_redirected_factory_named_cycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  factory C.a() = C.b;
+  factory C.b() = C.a;
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isFactory isOriginDeclaration isRedirecting a (nameOffset:22) (firstTokenOffset:12) (offset:22)
+              element: <testLibrary>::@class::C::@constructor::a
+              factoryKeywordOffset: 12
+              typeName: C
+              typeNameOffset: 20
+              periodOffset: 21
+            #F3 isComplete isFactory isOriginDeclaration isRedirecting b (nameOffset:45) (firstTokenOffset:35) (offset:45)
+              element: <testLibrary>::@class::C::@constructor::b
+              factoryKeywordOffset: 35
+              typeName: C
+              typeNameOffset: 43
+              periodOffset: 44
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+''');
+  }
+
   test_constructor_secondary_redirected_factory_named_generic() async {
     var library = await buildLibrary(r'''
 class C<T, U> {
@@ -26042,6 +26089,64 @@ library
         hasEnclosingTypeParameterReference isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+''');
+  }
+
+  test_constructor_secondary_redirected_factory_named_redirectsIntoCycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  factory C.a() = C.b;
+  factory C.b() = C.a;
+  factory C.c() = C.a;
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isFactory isOriginDeclaration isRedirecting a (nameOffset:22) (firstTokenOffset:12) (offset:22)
+              element: <testLibrary>::@class::C::@constructor::a
+              factoryKeywordOffset: 12
+              typeName: C
+              typeNameOffset: 20
+              periodOffset: 21
+            #F3 isComplete isFactory isOriginDeclaration isRedirecting b (nameOffset:45) (firstTokenOffset:35) (offset:45)
+              element: <testLibrary>::@class::C::@constructor::b
+              factoryKeywordOffset: 35
+              typeName: C
+              typeNameOffset: 43
+              periodOffset: 44
+            #F4 isComplete isFactory isOriginDeclaration isRedirecting c (nameOffset:68) (firstTokenOffset:58) (offset:68)
+              element: <testLibrary>::@class::C::@constructor::c
+              factoryKeywordOffset: 58
+              typeName: C
+              typeNameOffset: 66
+              periodOffset: 67
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+        isFactory isOriginDeclaration isRedirecting c
+          reference: <testLibrary>::@class::C::@constructor::c
+          firstFragment: #F4
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
 ''');
   }
 
@@ -26969,6 +27074,51 @@ library
 ''');
   }
 
+  test_constructor_secondary_redirected_thisInvocation_cycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  C.a() : this.b();
+  C.b() : this.a();
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isOriginDeclaration isRedirecting a (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::C::@constructor::a
+              typeName: C
+              typeNameOffset: 12
+              periodOffset: 13
+            #F3 isComplete isOriginDeclaration isRedirecting b (nameOffset:34) (firstTokenOffset:32) (offset:34)
+              element: <testLibrary>::@class::C::@constructor::b
+              typeName: C
+              typeNameOffset: 32
+              periodOffset: 33
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+''');
+  }
+
   test_constructor_secondary_redirected_thisInvocation_named() async {
     var library = await buildLibrary(r'''
 class C {
@@ -27125,6 +27275,61 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
+''');
+  }
+
+  test_constructor_secondary_redirected_thisInvocation_redirectsIntoCycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  C.a() : this.b();
+  C.b() : this.a();
+  C.c() : this.a();
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isOriginDeclaration isRedirecting a (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::C::@constructor::a
+              typeName: C
+              typeNameOffset: 12
+              periodOffset: 13
+            #F3 isComplete isOriginDeclaration isRedirecting b (nameOffset:34) (firstTokenOffset:32) (offset:34)
+              element: <testLibrary>::@class::C::@constructor::b
+              typeName: C
+              typeNameOffset: 32
+              periodOffset: 33
+            #F4 isComplete isOriginDeclaration isRedirecting c (nameOffset:54) (firstTokenOffset:52) (offset:54)
+              element: <testLibrary>::@class::C::@constructor::c
+              typeName: C
+              typeNameOffset: 52
+              periodOffset: 53
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+        isOriginDeclaration isRedirecting c
+          reference: <testLibrary>::@class::C::@constructor::c
+          firstFragment: #F4
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
 ''');
   }
 

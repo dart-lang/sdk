@@ -259,6 +259,7 @@ class Linker {
     _performTopLevelInference();
     buildExtensionTypes(this);
     _resolveConstructors();
+    _computeRedirectingConstructorCycles();
     _resolveConstantInitializers();
     _resolveDefaultValues();
     _resolveMetadata();
@@ -335,6 +336,48 @@ class Linker {
     );
 
     _buildExportScopes();
+  }
+
+  void _computeRedirectingConstructorCycles() {
+    var visited = Set<ConstructorElementImpl>.identity();
+
+    for (var builder in builders.values) {
+      for (var element in builder.element.children) {
+        if (element is InterfaceElementImpl) {
+          for (var constructor in element.constructors) {
+            if (visited.contains(constructor)) {
+              continue;
+            }
+
+            if (constructor.redirectedConstructor == null) {
+              continue;
+            }
+
+            var indexOf = Map<ConstructorElementImpl, int>.identity();
+            var path = <ConstructorElementImpl>[];
+            ConstructorElementImpl? current = constructor;
+            while (current != null) {
+              var cycleStart = indexOf[current];
+              if (cycleStart != null) {
+                for (var i = cycleStart; i < path.length; i++) {
+                  path[i].isInRedirectingConstructorCycle = true;
+                }
+                break;
+              }
+
+              if (visited.contains(current)) {
+                break;
+              }
+
+              indexOf[current] = path.length;
+              path.add(current);
+              visited.add(current);
+              current = current.redirectedConstructor?.baseElement;
+            }
+          }
+        }
+      }
+    }
   }
 
   void _createTypeSystem() {

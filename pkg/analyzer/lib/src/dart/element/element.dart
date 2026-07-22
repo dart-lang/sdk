@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
@@ -873,6 +871,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       ...super.flagsForTesting,
       'isConst': isConst,
       'isFactory': isFactory,
+      'isInRedirectingConstructorCycle': isInRedirectingConstructorCycle,
       'isOriginDeclaration': isOriginDeclaration,
       'isOriginExtensionTypeRecovery': isOriginExtensionTypeRecovery,
       'isOriginImplicitDefault': isOriginImplicitDefault,
@@ -914,6 +913,22 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedIndirectly
   bool get isGenerative => !isFactory;
+
+  @generated
+  @trackedIncludedInId
+  bool get isInRedirectingConstructorCycle {
+    return hasFlag(
+      _ElementStorageFlag.constructorElement_isInRedirectingConstructorCycle,
+    );
+  }
+
+  @generated
+  set isInRedirectingConstructorCycle(bool value) {
+    setFlag(
+      _ElementStorageFlag.constructorElement_isInRedirectingConstructorCycle,
+      value,
+    );
+  }
 
   @generated
   @override
@@ -11982,6 +11997,7 @@ enum _ClassElementFlags {
 enum _ConstructorElementFlags {
   isConst(fragment: true, element: _ElementFlagSource.firstFragment),
   isFactory(fragment: true, element: _ElementFlagSource.firstFragment),
+  isInRedirectingConstructorCycle(element: _ElementFlagSource.stored),
   isOriginDeclaration(
     fragment: true,
     element: _ElementFlagSource.firstFragment,
@@ -12029,6 +12045,7 @@ enum _ElementStorageFlag {
   classElement_isBase,
   classElement_isFinal,
   classElement_isInterface,
+  constructorElement_isInRedirectingConstructorCycle,
   element_hasSinceSdkVersionComputed,
   element_hasSinceSdkVersionValue,
   executableElement_hasEnclosingTypeParameterReference,
