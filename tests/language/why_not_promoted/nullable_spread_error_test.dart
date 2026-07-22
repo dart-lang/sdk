@@ -125,7 +125,7 @@ set_from_object_question_type_disambiguate_by_entry(C c) {
   // [analyzer 8] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                 ^
   // [cfe 24] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
-  // [cfe] Unexpected type 'Object?' of a spread.  Expected 'dynamic' or an Iterable.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 set_from_object_question_type_disambiguate_by_previous_spread(C c) {
@@ -136,7 +136,8 @@ set_from_object_question_type_disambiguate_by_previous_spread(C c) {
   //                     ^^^^^^^^^^^^^^^^
   // [analyzer 9] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                       ^
-  // [cfe 25] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
+  // [cfe 25] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 set_from_object_question_type_disambiguate_by_literal_args(C c) {
@@ -185,7 +186,8 @@ map_from_object_question_type_disambiguate_by_key_value_pair(C c) {
   //                     ^^^^^^^^^^^^^^^^
   // [analyzer 14] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                       ^
-  // [cfe 30] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
+  // [cfe 30] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 map_from_object_question_type_disambiguate_by_previous_spread(C c) {
@@ -196,7 +198,8 @@ map_from_object_question_type_disambiguate_by_previous_spread(C c) {
   //                          ^^^^^^^^^^^^^^^^
   // [analyzer 15] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   //                            ^
-  // [cfe 31] Unexpected type 'Object?' of a map spread entry.  Expected 'dynamic' or a Map.
+  // [cfe 31] An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  // [cfe] Unexpected type 'Object?' of a spread element.  Expected 'dynamic', a Map or an Iterable.
 }
 
 map_from_set_question_type_disambiguate_by_literal_args(C c) {

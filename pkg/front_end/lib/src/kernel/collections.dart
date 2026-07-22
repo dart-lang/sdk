@@ -4,47 +4,45 @@
 
 part of 'internal_ast.dart';
 
-/// Base class for all control-flow elements.
-sealed class ControlFlowElement({required super.fileOffset})
-    extends InternalExpression {
-  /// Returns this control flow element as a [MapLiteralEntry], or `null` if
-  /// this control flow element cannot be converted into a [MapLiteralEntry].
-  ///
-  /// [onConvertElement] is called when a [ForElement], [ForInElement], or
-  /// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
-  /// [IfMapEntry], respectively.
-  // TODO(johnniwinther): Merge this with [convertToMapEntry].
-  InternalMapLiteralEntry? toMapLiteralEntry(
-    void onConvertElement(ControlFlowElement from, ControlFlowMapEntry to),
+/// Base class for all elements in a list, set or map literal.
+sealed class InternalElement({required super.fileOffset}) extends InternalNode {
+  /// Dispatch method called during inference to infer the type of this element.
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
   );
+}
+
+/// An expression occurring as an element.
+class ExpressionElement({
+  /// The expression of the element.
+  required final InternalExpression expression,
+  required super.fileOffset,
+}) extends InternalElement {
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    expression.toTextInternal(printer);
+  }
 
   @override
-  ExpressionInferenceResult acceptInference(
+  ElementInferenceResult acceptInference(
     InferenceVisitorImpl visitor,
-    DartType typeContext,
+    ElementInferenceContext context,
   ) {
-    throw new UnsupportedError('$runtimeType.acceptInference');
+    return visitor.visitExpressionElement(this, context);
   }
 }
 
-/// A spread element in a list or set literal.
-class SpreadElement extends ControlFlowElement {
-  final InternalExpression expression;
-  final bool isNullAware;
+/// A spread element in a list, set, or map literal.
+class SpreadElement({
+  /// The spread expression.
+  required final InternalExpression expression,
 
-  new(this.expression, {required this.isNullAware, required super.fileOffset});
-
-  @override
-  SpreadMapEntry toMapLiteralEntry(
-    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
-  ) {
-    return new SpreadMapEntry(
-      expression,
-      isNullAware: isNullAware,
-      fileOffset: fileOffset,
-    );
-  }
-
+  /// Whether the spread is null-aware, i.e. using `...?` instead of `...`.
+  required final bool isNullAware,
+  required super.fileOffset,
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
@@ -54,67 +52,50 @@ class SpreadElement extends ControlFlowElement {
     }
     expression.toTextInternal(printer);
   }
-}
-
-class NullAwareElement extends ControlFlowElement {
-  final InternalExpression expression;
-
-  new(this.expression, {required super.fileOffset});
 
   @override
-  InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
   ) {
-    throw new UnsupportedError('$runtimeType.toMapLiteralEntry');
+    return visitor.visitSpreadElement(this, context);
   }
+}
 
+/// A null-aware element in a list, set, or map literal.
+class NullAwareElement({
+  /// The null-guarded expression of the element.
+  required final InternalExpression expression,
+  required super.fileOffset,
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('?');
     expression.toTextInternal(printer);
   }
-}
-
-/// An 'if' element in a list or set literal.
-class IfElement extends ControlFlowElement {
-  final InternalExpression condition;
-  final InternalExpression then;
-  final InternalExpression? otherwise;
-
-  new(this.condition, this.then, this.otherwise, {required super.fileOffset});
 
   @override
-  InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
   ) {
-    InternalMapLiteralEntry? thenEntry;
-    InternalExpression then = this.then;
-    if (then is ControlFlowElement) {
-      ControlFlowElement thenElement = then;
-      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
-    }
-    if (thenEntry == null) return null;
-    InternalMapLiteralEntry? otherwiseEntry;
-    InternalExpression? otherwise = this.otherwise;
-    if (otherwise != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (otherwise is ControlFlowElement) {
-        ControlFlowElement otherwiseElement = otherwise;
-        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
-      }
-      if (otherwiseEntry == null) return null;
-    }
-    IfMapEntry result = new IfMapEntry(
-      condition,
-      thenEntry,
-      otherwiseEntry,
-      fileOffset: fileOffset,
-    );
-    onConvertElement(this, result);
-    return result;
+    return visitor.visitNullAwareElement(this, context);
   }
+}
 
+/// An 'if' element in a list, set, or map literal.
+class IfElement({
+  /// The condition expression of the if-element.
+  required final InternalExpression condition,
+
+  /// The then part of the if-element.
+  required final InternalElement then,
+
+  /// The else part of the if-element, if present.
+  required final InternalElement? otherwise,
+  required super.fileOffset,
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
@@ -127,53 +108,40 @@ class IfElement extends ControlFlowElement {
       otherwise!.toTextInternal(printer);
     }
   }
+
+  @override
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
+  ) {
+    return visitor.visitIfElement(this, context);
+  }
 }
 
-/// A 'for' element in a list or set literal.
-class ForElement extends ControlFlowElement implements ForElementBase {
-  // May be empty, but not null.
-  @override
-  final List<InternalVariableDeclaration> variables;
+/// Base class for [ForElement] and [PatternForElement].
+sealed class ForElementBase({
+  /// The variables declared in the for-element initializer.
+  required final List<InternalVariableDeclaration> variables,
 
-  @override
-  final InternalExpression? condition; // May be null.
+  /// The condition expression of the for-element, if present.
+  required final InternalExpression? condition,
 
-  @override
-  final List<InternalExpression> updates; // May be empty, but not null.
+  /// The expressions occurring in the updates part of the for-element.
+  required final List<InternalExpression> updates,
 
-  @override
-  final InternalExpression body;
+  /// The body of the for-element.
+  required final InternalElement body,
+  required super.fileOffset,
+}) extends InternalElement;
 
-  new(
-    this.variables,
-    this.condition,
-    this.updates,
-    this.body, {
-    required super.fileOffset,
-  });
-
-  @override
-  InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
-  ) {
-    InternalMapLiteralEntry? bodyEntry;
-    InternalExpression body = this.body;
-    if (body is ControlFlowElement) {
-      ControlFlowElement bodyElement = body;
-      bodyEntry = bodyElement.toMapLiteralEntry(onConvertElement);
-    }
-    if (bodyEntry == null) return null;
-    ForMapEntry result = new ForMapEntry(
-      variables,
-      condition,
-      updates,
-      bodyEntry,
-      fileOffset: fileOffset,
-    );
-    onConvertElement(this, result);
-    return result;
-  }
-
+/// A 'for' element in a list, set, or map literal.
+class ForElement({
+  required super.variables,
+  required super.condition,
+  required super.updates,
+  required super.body,
+  required super.fileOffset,
+}) extends ForElementBase {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
@@ -197,70 +165,73 @@ class ForElement extends ControlFlowElement implements ForElementBase {
     printer.write(') ');
     body.toTextInternal(printer);
   }
+
+  @override
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
+  ) {
+    return visitor.visitForElement(this, context);
+  }
 }
 
-/// A 'for-in' element in a list or set literal.
-class ForInElement extends ControlFlowElement {
-  final InternalForInElement element;
-  final InternalExpression iterable;
-  final InternalExpression body;
-  final bool isAsync; // True if this is an 'await for' loop.
+/// A 'for-in' element in a list, set, or map literal.
+class ForInElement({
+  /// The element declaration in the for-in element.
+  required final InternalForInElement element,
+
+  /// The iterable expression of the for-in element.
+  required final InternalExpression iterable,
+
+  /// The body of the for-in element
+  required final InternalElement body,
+
+  /// Whether the for-in element is async, i.e. `await for` instead of `for`.
+  required final bool isAsync,
+  required super.fileOffset,
 
   /// File offset for the `for` keyword.
-  final int forOffset;
-
-  new(
-    this.element,
-    this.iterable,
-    this.body, {
-    required this.isAsync,
-    required super.fileOffset,
-    required this.forOffset,
-  });
-
+  required final int forOffset,
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    if (isAsync) {
+      printer.write('async ');
+    }
+    printer.write('for (');
+    element.toTextInternal(printer);
+    printer.write(' in ');
+    iterable.toTextInternal(printer);
+    printer.write(') ');
+    body.toTextInternal(printer);
   }
 
   @override
-  InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
   ) {
-    InternalMapLiteralEntry? bodyEntry;
-    InternalExpression body = this.body;
-    if (body is ControlFlowElement) {
-      bodyEntry = body.toMapLiteralEntry(onConvertElement);
-    }
-    if (bodyEntry == null) return null;
-    ForInMapEntry result = new ForInMapEntry(
-      element,
-      iterable,
-      bodyEntry,
-      isAsync: isAsync,
-      fileOffset: fileOffset,
-      forOffset: forOffset,
-    );
-    onConvertElement(this, result);
-    return result;
+    return visitor.visitForInElement(this, context);
   }
 }
 
-class IfCaseElement extends ControlFlowElement {
-  final InternalExpression expression;
-  final InternalPatternGuard patternGuard;
-  final InternalExpression then;
-  final InternalExpression? otherwise;
+/// An if-case element in a list, set, or map literal.
+class IfCaseElement({
+  /// The case expression of the if-case element.
+  required final InternalExpression expression,
 
-  new({
-    required this.expression,
-    required this.patternGuard,
-    required this.then,
-    this.otherwise,
-    required super.fileOffset,
-  });
+  /// The pattern and optional guard of the if-case element.
+  required final InternalPatternGuard patternGuard,
 
+  /// The then part of the if-case-element.
+  required final InternalElement then,
+
+  /// The else part of the if-case-element, if present.
+  required final InternalElement? otherwise,
+
+  required super.fileOffset,
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
@@ -277,75 +248,29 @@ class IfCaseElement extends ControlFlowElement {
   }
 
   @override
-  InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
   ) {
-    InternalMapLiteralEntry? thenEntry;
-    InternalExpression then = this.then;
-    if (then is ControlFlowElement) {
-      ControlFlowElement thenElement = then;
-      thenEntry = thenElement.toMapLiteralEntry(onConvertElement);
-    }
-    if (thenEntry == null) return null;
-    InternalMapLiteralEntry? otherwiseEntry;
-    InternalExpression? otherwise = this.otherwise;
-    if (otherwise != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (otherwise is ControlFlowElement) {
-        ControlFlowElement otherwiseElement = otherwise;
-        otherwiseEntry = otherwiseElement.toMapLiteralEntry(onConvertElement);
-      }
-      if (otherwiseEntry == null) return null;
-    }
-    IfCaseMapEntry result = new IfCaseMapEntry(
-      expression: expression,
-      patternGuard: this.patternGuard,
-      then: thenEntry,
-      otherwise: otherwiseEntry,
-      fileOffset: fileOffset,
-    );
-    onConvertElement(this, result);
-    return result;
+    return visitor.visitIfCaseElement(this, context);
   }
 }
 
-abstract interface class ForElementBase implements InternalExpression {
-  List<InternalVariableDeclaration> get variables;
+/// A for loop with a pattern variable declaration in a list, set, or map
+/// literal.
+class PatternForElement({
+  /// The pattern variable declaration occurring in the for element initializer.
+  required final InternalPatternVariableDeclaration patternVariableDeclaration,
 
-  InternalExpression? get condition;
+  /// Intermediate variables needed for the lowering of the pattern for-element.
+  required final List<InternalVariableDeclaration> intermediateVariables,
 
-  List<InternalExpression> get updates;
-
-  InternalExpression get body;
-}
-
-class PatternForElement extends ControlFlowElement implements ForElementBase {
-  final InternalPatternVariableDeclaration patternVariableDeclaration;
-  final List<InternalVariableDeclaration> intermediateVariables;
-
-  // May be empty, but not null.
-  @override
-  final List<InternalVariableDeclaration> variables;
-
-  @override
-  final InternalExpression? condition; // May be null.
-
-  @override
-  final List<InternalExpression> updates; // May be empty, but not null.
-
-  @override
-  final InternalExpression body;
-
-  new({
-    required this.patternVariableDeclaration,
-    required this.intermediateVariables,
-    required this.variables,
-    required this.condition,
-    required this.updates,
-    required this.body,
-    required super.fileOffset,
-  });
-
+  required super.variables,
+  required super.condition,
+  required super.updates,
+  required super.body,
+  required super.fileOffset,
+}) extends ForElementBase {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
@@ -372,38 +297,29 @@ class PatternForElement extends ControlFlowElement implements ForElementBase {
   }
 
   @override
-  InternalMapLiteralEntry? toMapLiteralEntry(
-    void Function(ControlFlowElement, ControlFlowMapEntry) onConvertElement,
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
   ) {
-    throw new UnimplementedError("toMapLiteralEntry");
+    return visitor.visitPatternForElement(this, context);
   }
 }
 
-/// Base class for all control-flow map entries.
-sealed class ControlFlowMapEntry({required super.fileOffset})
-    extends InternalNode
-    implements InternalMapLiteralEntry {}
-
-/// A null-aware entry in a map literal.
-class NullAwareMapEntry extends ControlFlowMapEntry {
+/// A map entry in a list, set, or map literal.
+class MapEntryElement({
   /// `true` if the key expression is null-aware, that is, marked with `?`.
-  final bool isKeyNullAware;
+  required final bool isKeyNullAware,
 
-  final InternalExpression key;
+  /// The key expression of the map entry.
+  required final InternalExpression key,
 
   /// `true` if the value expression is null-aware, that is, marked with `?`.
-  final bool isValueNullAware;
+  required final bool isValueNullAware,
 
-  final InternalExpression value;
-
-  new({
-    required this.isKeyNullAware,
-    required this.key,
-    required this.isValueNullAware,
-    required this.value,
-    required super.fileOffset,
-  });
-
+  /// The value expression of the map entry.
+  required final InternalExpression value,
+  required super.fileOffset,
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
@@ -417,402 +333,12 @@ class NullAwareMapEntry extends ControlFlowMapEntry {
     }
     value.toTextInternal(printer);
   }
-}
-
-/// A spread element in a map literal.
-class SpreadMapEntry extends ControlFlowMapEntry {
-  final InternalExpression expression;
-  final bool isNullAware;
-
-  new(this.expression, {required this.isNullAware, required super.fileOffset});
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('...');
-    expression.toTextInternal(printer);
+  ElementInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    ElementInferenceContext context,
+  ) {
+    return visitor.visitMapEntryElement(this, context);
   }
-}
-
-/// An 'if' element in a map literal.
-class IfMapEntry extends ControlFlowMapEntry {
-  final InternalExpression condition;
-  final InternalMapLiteralEntry then;
-  final InternalMapLiteralEntry? otherwise;
-
-  new(this.condition, this.then, this.otherwise, {required super.fileOffset});
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('if (');
-    condition.toTextInternal(printer);
-    printer.write(') ');
-    then.toTextInternal(printer);
-    if (otherwise != null) {
-      printer.write(' else ');
-      otherwise!.toTextInternal(printer);
-    }
-  }
-}
-
-sealed class ForMapEntryBase implements InternalMapLiteralEntry {
-  List<InternalVariableDeclaration> get variables;
-
-  InternalExpression? get condition;
-
-  List<InternalExpression> get updates;
-
-  InternalMapLiteralEntry get body;
-}
-
-/// A 'for' element in a map literal.
-class ForMapEntry extends ControlFlowMapEntry implements ForMapEntryBase {
-  @override
-  final List<InternalVariableDeclaration> variables;
-
-  @override
-  final InternalExpression? condition;
-
-  @override
-  final List<InternalExpression> updates;
-
-  @override
-  final InternalMapLiteralEntry body;
-
-  new(
-    this.variables,
-    this.condition,
-    this.updates,
-    this.body, {
-    required super.fileOffset,
-  });
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      variables[index].variable.toTextInternal(
-        printer,
-        includeModifiersAndType: index == 0,
-        initializer: variables[index].initializer,
-      );
-    }
-    printer.write('; ');
-    if (condition != null) {
-      condition!.toTextInternal(printer);
-    }
-    printer.write('; ');
-    updates.toTextInternal(printer);
-    printer.write(') ');
-    body.toTextInternal(printer);
-  }
-}
-
-class PatternForMapEntry extends ControlFlowMapEntry
-    implements ForMapEntryBase {
-  final InternalPatternVariableDeclaration patternVariableDeclaration;
-  final List<InternalVariableDeclaration> intermediateVariables;
-
-  @override
-  final List<InternalVariableDeclaration> variables;
-
-  @override
-  final InternalExpression? condition;
-
-  @override
-  final List<InternalExpression> updates;
-
-  @override
-  final InternalMapLiteralEntry body;
-
-  new({
-    required this.patternVariableDeclaration,
-    required this.intermediateVariables,
-    required this.variables,
-    required this.condition,
-    required this.updates,
-    required this.body,
-    required super.fileOffset,
-  });
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    patternVariableDeclaration.toTextInternal(printer);
-    printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      variables[index].variable.toTextInternal(
-        printer,
-        includeModifiersAndType: index == 0,
-        initializer: variables[index].initializer,
-      );
-    }
-    printer.write('; ');
-    if (condition != null) {
-      condition!.toTextInternal(printer);
-    }
-    printer.write('; ');
-    updates.toTextInternal(printer);
-    printer.write(') ');
-    body.toTextInternal(printer);
-  }
-}
-
-/// A 'for-in' element in a map literal.
-class ForInMapEntry extends ControlFlowMapEntry {
-  final InternalForInElement element;
-  final InternalExpression iterable;
-  final InternalMapLiteralEntry body;
-  final bool isAsync; // True if this is an 'await for' loop.
-
-  /// File offset for the `for` keyword.
-  final int forOffset;
-
-  new(
-    this.element,
-    this.iterable,
-    this.body, {
-    required this.isAsync,
-    required super.fileOffset,
-    required this.forOffset,
-  });
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
-  }
-}
-
-class IfCaseMapEntry extends ControlFlowMapEntry {
-  final InternalExpression expression;
-  final InternalPatternGuard patternGuard;
-  final InternalMapLiteralEntry then;
-  final InternalMapLiteralEntry? otherwise;
-
-  new({
-    required this.expression,
-    required this.patternGuard,
-    required this.then,
-    this.otherwise,
-    required super.fileOffset,
-  });
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    printer.write('if (');
-    expression.toTextInternal(printer);
-    printer.write(' case ');
-    patternGuard.toTextInternal(printer);
-    printer.write(') ');
-    then.toTextInternal(printer);
-    if (otherwise != null) {
-      printer.write(' else ');
-      otherwise!.toTextInternal(printer);
-    }
-  }
-}
-
-bool isConvertibleToMapEntry(InternalExpression element) {
-  if (element is ControlFlowElement) {
-    switch (element) {
-      case SpreadElement():
-        return true;
-      case NullAwareElement():
-        return false;
-      case IfElement():
-        return isConvertibleToMapEntry(element.then) &&
-            (element.otherwise == null ||
-                isConvertibleToMapEntry(element.otherwise!));
-      case IfCaseElement():
-        return isConvertibleToMapEntry(element.then) &&
-            (element.otherwise == null ||
-                isConvertibleToMapEntry(element.otherwise!));
-      case ForElement():
-        return isConvertibleToMapEntry(element.body);
-      case PatternForElement():
-        return isConvertibleToMapEntry(element.body);
-      case ForInElement():
-        return isConvertibleToMapEntry(element.body);
-    }
-  } else {
-    return false;
-  }
-}
-
-/// Convert [element] to a [MapLiteralEntry], if possible. If [element] cannot
-/// be converted an error reported through [helper] and a map entry holding an
-/// invalid expression is returned.
-///
-/// [onConvertElement] is called when a [ForElement], [ForInElement], or
-/// [IfElement] is converted to a [ForMapEntry], [ForInMapEntry], or
-/// [IfMapEntry], respectively.
-InternalMapLiteralEntry convertToMapEntry(
-  InternalExpression element,
-  ProblemReporting problemReporting,
-  CompilerContext compilerContext,
-  Uri fileUri,
-  void Function(ControlFlowElement from, ControlFlowMapEntry to)
-  onConvertElement,
-) {
-  if (element is ControlFlowElement) {
-    switch (element) {
-      case SpreadElement():
-        return new SpreadMapEntry(
-          element.expression,
-          isNullAware: element.isNullAware,
-          fileOffset: element.expression.fileOffset,
-        );
-
-      case NullAwareElement():
-        // Coverage-ignore(suite): Not run.
-        return _convertToErroneousMapEntry(
-          element,
-          problemReporting,
-          compilerContext,
-          fileUri,
-        );
-
-      case IfElement():
-        IfMapEntry result = new IfMapEntry(
-          element.condition,
-          convertToMapEntry(
-            element.then,
-            problemReporting,
-            compilerContext,
-            fileUri,
-            onConvertElement,
-          ),
-          element.otherwise == null
-              ? null
-              : convertToMapEntry(
-                  element.otherwise!,
-                  problemReporting,
-                  compilerContext,
-                  fileUri,
-                  onConvertElement,
-                ),
-          fileOffset: element.fileOffset,
-        );
-        onConvertElement(element, result);
-        return result;
-
-      case IfCaseElement():
-        IfCaseMapEntry result = new IfCaseMapEntry(
-          expression: element.expression,
-          patternGuard: element.patternGuard,
-          then: convertToMapEntry(
-            element.then,
-            problemReporting,
-            compilerContext,
-            fileUri,
-            onConvertElement,
-          ),
-          otherwise: element.otherwise == null
-              ? null
-              : convertToMapEntry(
-                  element.otherwise!,
-                  problemReporting,
-                  compilerContext,
-                  fileUri,
-                  onConvertElement,
-                ),
-          fileOffset: element.fileOffset,
-        );
-        onConvertElement(element, result);
-        return result;
-
-      case PatternForElement():
-        PatternForMapEntry result = new PatternForMapEntry(
-          patternVariableDeclaration: element.patternVariableDeclaration,
-          intermediateVariables: element.intermediateVariables,
-          variables: element.variables,
-          condition: element.condition,
-          updates: element.updates,
-          body: convertToMapEntry(
-            element.body,
-            problemReporting,
-            compilerContext,
-            fileUri,
-            onConvertElement,
-          ),
-          fileOffset: element.fileOffset,
-        );
-        onConvertElement(element, result);
-        return result;
-
-      case ForElement():
-        ForMapEntry result = new ForMapEntry(
-          element.variables,
-          element.condition,
-          element.updates,
-          convertToMapEntry(
-            element.body,
-            problemReporting,
-            compilerContext,
-            fileUri,
-            onConvertElement,
-          ),
-          fileOffset: element.fileOffset,
-        );
-        onConvertElement(element, result);
-        return result;
-
-      case ForInElement():
-        ForInMapEntry result = new ForInMapEntry(
-          element.element,
-          element.iterable,
-          convertToMapEntry(
-            element.body,
-            problemReporting,
-            compilerContext,
-            fileUri,
-            onConvertElement,
-          ),
-          fileOffset: element.fileOffset,
-          forOffset: element.forOffset,
-          isAsync: element.isAsync,
-        );
-        onConvertElement(element, result);
-        return result;
-    }
-  } else {
-    return _convertToErroneousMapEntry(
-      element,
-      problemReporting,
-      compilerContext,
-      fileUri,
-    );
-  }
-}
-
-InternalMapLiteralEntry _convertToErroneousMapEntry(
-  InternalExpression element,
-  ProblemReporting problemReporting,
-  CompilerContext compilerContext,
-  Uri fileUri,
-) {
-  return intern.createMapLiteralEntry(
-    intern.createInvalidExpressionFromErrorText(
-      problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.expectedAfterButGot.withArguments(expected: ':'),
-        fileUri: fileUri,
-        fileOffset: element.fileOffset,
-        // TODO(danrubel): what is the length of the expression?
-        length: noLength,
-      ),
-    ),
-    intern.createNullLiteral(element.fileOffset),
-    fileOffset: element.fileOffset,
-  );
 }

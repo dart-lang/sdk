@@ -1,0 +1,17 @@
+const Set<int>? nullableIntSet1 = <int>{0, 1, 2};
+
+const Set<int>? nullableIntSet2 = null;
+
+const List<int> intList = <int>[3, 4, 5];
+
+const Set<int> intSet = <int>{6, 7, 8};
+
+const Set<num> numSet = <num>{9, 10, 11};
+
+const Set<(int, int)> intIntSet = <(int, int)>{(12, 13), (14, 15)};
+
+const num? nullableNum1 = 16;
+
+const num? nullableNum2 = null;
+
+main() {}

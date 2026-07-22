@@ -6052,12 +6052,6 @@ class _WhyNotPromotedVisitor
   }
 }
 
-/// Sentinel type used as the result in top level inference when the type is
-/// not needed.
-// TODO(johnniwinther): Should we have a special DartType implementation for
-// this.
-final DartType noInferredType = new UnknownType();
-
 class ImplicitInstantiation {
   /// The type arguments for the instantiation.
   final List<DartType> typeArguments;

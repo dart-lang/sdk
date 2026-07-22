@@ -7,10 +7,11 @@ import 'package:kernel/ast.dart';
 
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
-import '../kernel/external_ast_helper.dart';
 import '../kernel/external_ast_helper.dart' as extern;
+import '../kernel/external_ast_helper.dart';
 import '../kernel/inferred_collections.dart';
 import '../source/check_helper.dart';
+import 'element_inference.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
@@ -553,9 +554,10 @@ class ExpressionInferenceResult {
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
 
+/// The result of inference of an [InternalElement].
 class ElementInferenceResult({
   /// The inferred type of the element.
-  required final DartType inferredType,
+  required final ElementType inferredType,
 
   /// The inferred expression.
   required final InferredElement element,

@@ -1,0 +1,96 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int>? nullableIntList1 = <core::int>[0, 1, 2];
+static field core::List<core::int>? nullableIntList2 = null;
+static field core::List<core::int> intList = <core::int>[0, 1, 2];
+static field core::List<core::num> numList = <core::num>[0, 1, 2];
+static field core::List<(core::int, core::int)> intIntList = <(core::int, core::int)>[(0, 1), (2, 3)];
+static field core::num? nullableNum1 = 0;
+static field core::num? nullableNum2 = null;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  return t;
+static method main() → dynamic {
+  core::bool b1 = true;
+  core::bool b2 = false;
+  {
+    final core::List<core::num> #t1 = <core::num>[0, self::id<core::num>(0)];
+    for (core::int i = 0; i.{core::num::<}(self::intList.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t1.{core::List::add}{Invariant}(self::intList.{core::List::[]}(i){(core::int) → core::int}){(core::num) → void};
+    hoisted core::int i;
+    hoisted core::int j;
+    {
+      final synthesized(core::int, core::int) #0#0 = (0, 1);
+      i = #0#0.$1{core::int};
+      j = #0#0.$2{core::int};
+    }
+    final core::int #t2 = i;
+    final core::int #t3 = j;
+    for (core::int i = #t2, core::int j = #t3; i.{core::num::<}(self::intList.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t1.{core::List::add}{Invariant}(self::intList.{core::List::[]}(i){(core::int) → core::int}.{core::num::+}(j){(core::num) → core::int}){(core::num) → void};
+    for (core::int e in self::intList)
+      #t1.{core::List::add}{Invariant}(e){(core::num) → void};
+    for (core::num e in self::numList)
+      #t1.{core::List::add}{Invariant}(e){(core::num) → void};
+    for (final(core::int, core::int) #t4 in self::intIntList) {
+      hoisted core::int a;
+      hoisted core::int b;
+      {
+        final synthesized(core::int, core::int) #1#0 = #t4;
+        a = #1#0.$1{core::int};
+        b = #1#0.$2{core::int};
+      }
+      #t1.{core::List::add}{Invariant}(a){(core::num) → void};
+    }
+    final core::num? #t5 = self::nullableNum1;
+    if(!(#t5 == null))
+      #t1.{core::List::add}{Invariant}(#t5{core::num}){(core::num) → void};
+    final core::num? #t6 = self::nullableNum2;
+    if(!(#t6 == null))
+      #t1.{core::List::add}{Invariant}(#t6{core::num}){(core::num) → void};
+    if(b1)
+      #t1.{core::List::add}{Invariant}(4){(core::num) → void};
+    if(b2)
+      #t1.{core::List::add}{Invariant}(5){(core::num) → void};
+    else
+      #t1.{core::List::add}{Invariant}(6){(core::num) → void};
+    {
+      final synthesized core::List<core::int> #2#0 = self::intList;
+      final const synthesized core::int #2#2 = #C1;
+      {
+        hoisted core::int a;
+        if(#2#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
+          a = #2#0.{core::List::[]}(0){(core::int) → core::int};
+          #t1.{core::List::add}{Invariant}(a){(core::num) → void};
+        }
+      }
+    }
+    {
+      final synthesized core::List<core::int> #3#0 = self::intList;
+      final const synthesized core::int #3#2 = #C2;
+      {
+        hoisted core::int b;
+        if(#3#0.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool}) {
+          b = #3#0.{core::List::[]}(1){(core::int) → core::int};
+          #t1.{core::List::add}{Invariant}(b){(core::num) → void};
+        }
+        else
+          #t1.{core::List::add}{Invariant}(7){(core::num) → void};
+      }
+    }
+    #t1.{core::List::addAll}{Invariant}(self::intList){(core::Iterable<core::num>) → void};
+    #t1.{core::List::addAll}{Invariant}(self::numList){(core::Iterable<core::num>) → void};
+    final core::Iterable<core::num>? #t7 = self::nullableIntList1;
+    if(!(#t7 == null))
+      #t1.{core::List::addAll}{Invariant}(#t7{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
+    final core::Iterable<core::num>? #t8 = self::nullableIntList2;
+    if(!(#t8 == null))
+      #t1.{core::List::addAll}{Invariant}(#t8{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

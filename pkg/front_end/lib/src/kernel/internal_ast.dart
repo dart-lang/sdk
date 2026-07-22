@@ -29,19 +29,16 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/src/text_util.dart';
 import 'package:kernel/text/ast_to_text.dart' show Precedence;
 
-import '../base/compiler_context.dart';
-import '../base/messages.dart' show noLength, ProblemReporting;
 import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
 import '../codes/diagnostic.dart' as diag;
-import '../source/check_helper.dart';
+import '../type_inference/element_inference.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/type_schema.dart';
 import 'body_builder.dart';
 import 'external_ast_helper.dart' as extern;
-import 'internal_ast_helper.dart' as intern;
 
 part 'collections.dart';
 
@@ -114,7 +111,7 @@ abstract class InternalNode({required int fileOffset}) extends TreeNode {
 
   @override
   String toString() {
-    return '$runtimeType(${toStringInternal()}';
+    return '$runtimeType(${toStringInternal()})';
   }
 }
 
@@ -384,6 +381,18 @@ class InternalContinueStatement extends InternalStatement
 
 // Coverage-ignore(suite): Not run.
 extension on List<InternalExpression> {
+  void toTextInternal(AstPrinter printer) {
+    for (int index = 0; index < length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      this[index].toTextInternal(printer);
+    }
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+extension on List<InternalElement> {
   void toTextInternal(AstPrinter printer) {
     for (int index = 0; index < length; index++) {
       if (index > 0) {
@@ -7989,13 +7998,19 @@ class InternalIsExpression extends InternalExpression {
   }
 }
 
+/// Internal expression for a list literal.
 class InternalListLiteral extends InternalExpression {
+  /// Whether the literal is const, either explicitly or from context.
   final bool isConst;
-  final DartType? typeArgument;
-  final List<InternalExpression> expressions;
 
-  new(
-    this.expressions, {
+  /// The list literal type argument, if provided in the source code.
+  final DartType? typeArgument;
+
+  /// The elements in the list literal.
+  final List<InternalElement> elements;
+
+  new({
+    required this.elements,
     this.typeArgument,
     this.isConst = false,
     required super.fileOffset,
@@ -8021,7 +8036,7 @@ class InternalListLiteral extends InternalExpression {
       printer.write('>');
     }
     printer.write('[');
-    expressions.toTextInternal(printer);
+    elements.toTextInternal(printer);
     printer.write(']');
   }
 }
@@ -8054,26 +8069,36 @@ class InternalLogicalExpression extends InternalExpression {
   }
 }
 
-class InternalMapLiteral extends InternalExpression {
+/// Internal expression for a map or set literal.
+class MapOrSetLiteral extends InternalExpression {
+  /// Whether the literal is const, either explicitly or from context.
   final bool isConst;
-  final DartType? keyType;
-  final DartType? valueType;
-  final List<InternalMapLiteralEntry> entries;
 
-  new(
-    this.entries, {
-    this.keyType,
-    this.valueType,
+  /// The map/set literal type arguments, if provided in the source code.
+  ///
+  /// If present, these are normalized to have 1 or 2 types.
+  final List<DartType>? typeArguments;
+
+  /// The elements in the map/set literal.
+  final List<InternalElement> elements;
+
+  new({
+    required this.elements,
+    this.typeArguments,
     this.isConst = false,
     required super.fileOffset,
-  }) : assert((keyType == null) == (valueType == null));
+  }) : assert(
+         typeArguments == null ||
+             typeArguments.length == 1 ||
+             typeArguments.length == 2,
+       );
 
   @override
   ExpressionInferenceResult acceptInference(
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalMapLiteral(this, typeContext);
+    return visitor.visitMapOrSetLiteral(this, typeContext);
   }
 
   @override
@@ -8082,19 +8107,15 @@ class InternalMapLiteral extends InternalExpression {
     if (isConst) {
       printer.write('const ');
     }
-    if (keyType != null && valueType != null) {
-      printer.write('<');
-      printer.writeType(keyType!);
-      printer.write(', ');
-      printer.writeType(valueType!);
-      printer.write('>');
+    if (typeArguments != null) {
+      printer.writeTypeArguments(typeArguments!);
     }
     printer.write('{');
-    for (int index = 0; index < entries.length; index++) {
+    for (int index = 0; index < elements.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
-      entries[index].toTextInternal(printer);
+      elements[index].toTextInternal(printer);
     }
     printer.write('}');
   }
@@ -8177,43 +8198,6 @@ class InternalRethrow extends InternalExpression {
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('rethrow');
-  }
-}
-
-class InternalSetLiteral extends InternalExpression {
-  final bool isConst;
-  final DartType? typeArgument;
-  final List<InternalExpression> expressions;
-
-  new(
-    this.expressions, {
-    this.typeArgument,
-    this.isConst = false,
-    required super.fileOffset,
-  });
-
-  @override
-  ExpressionInferenceResult acceptInference(
-    InferenceVisitorImpl visitor,
-    DartType typeContext,
-  ) {
-    return visitor.visitInternalSetLiteral(this, typeContext);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    if (isConst) {
-      printer.write('const ');
-    }
-    if (typeArgument != null) {
-      printer.write('<');
-      printer.writeType(typeArgument!);
-      printer.write('>');
-    }
-    printer.write('{');
-    expressions.toTextInternal(printer);
-    printer.write('}');
   }
 }
 
@@ -8536,35 +8520,14 @@ class InternalNamedExpression extends InternalNode {
   }
 }
 
-sealed class InternalMapLiteralEntry({required super.fileOffset})
-    extends InternalNode {}
-
-class RegularMapLiteralEntry extends InternalMapLiteralEntry {
-  final InternalExpression key;
-
-  final InternalExpression value;
-
-  new({required this.key, required this.value, required super.fileOffset});
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    key.toTextInternal(printer);
-    printer.write(': ');
-    value.toTextInternal(printer);
-  }
-}
-
 final InternalExpression dummyInternalExpression = new InternalNullLiteral(
   fileOffset: TreeNode.noOffset,
 );
 
-final InternalMapLiteralEntry dummyInternalMapLiteralEntry =
-    new RegularMapLiteralEntry(
-      key: dummyInternalExpression,
-      value: dummyInternalExpression,
-      fileOffset: TreeNode.noOffset,
-    );
+final InternalElement dummyInternalElement = new ExpressionElement(
+  expression: dummyInternalExpression,
+  fileOffset: TreeNode.noOffset,
+);
 
 class InternalRedirectingFactoryTearOff extends InternalExpression {
   final Procedure target;

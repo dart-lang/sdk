@@ -1,0 +1,13 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/unified_collections/map_or_set_literal_too_many_type_arguments.dart:6:3: Error: A set or map literal requires exactly one or two type arguments, respectively.
+//   <int, String, bool>{};
+//   ^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+
+static method test() → dynamic {
+  <invalid-type, invalid-type>{};
+}
