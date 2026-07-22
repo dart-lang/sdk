@@ -28,6 +28,19 @@ void g() {
 ''');
   }
 
+  test_NativeCallable_isolateLocal_argumentMustBeAConstant_namedFirst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+int f(int i) => i * 2;
+void g() {
+  int e = 123;
+  NativeCallable<Int32 Function(Int32)>.isolateLocal(exceptionalReturn: e, f);
+//                                                                      ^
+// [diag.argumentMustBeAConstant] Argument 'exceptionalReturn' must be a constant.
+}
+''');
+  }
+
   test_NativeCallable_isolateLocal_exceptionMustBeASubtype() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
@@ -35,6 +48,18 @@ int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: '?');
 //                                                                         ^^^
+// [diag.mustBeASubtype] The type 'String' must be a subtype of 'Int32' for 'isolateLocal'.
+}
+''');
+  }
+
+  test_NativeCallable_isolateLocal_exceptionMustBeASubtype_namedFirst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+int f(int i) => i * 2;
+void g() {
+  NativeCallable<Int32 Function(Int32)>.isolateLocal(exceptionalReturn: '?', f);
+//                                                                      ^^^
 // [diag.mustBeASubtype] The type 'String' must be a subtype of 'Int32' for 'isolateLocal'.
 }
 ''');
@@ -64,6 +89,18 @@ void g() {
 ''');
   }
 
+  test_NativeCallable_isolateLocal_invalidExceptionValue_namedFirst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+void f(int i) => i * 2;
+void g() {
+  NativeCallable<Void Function(Int32)>.isolateLocal(exceptionalReturn: 4, f);
+//                                                  ^^^^^^^^^^^^^^^^^^^^
+// [diag.invalidExceptionValue] The method isolateLocal can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'.
+}
+''');
+  }
+
   test_NativeCallable_isolateLocal_missingExceptionValue() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
@@ -72,6 +109,30 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f);
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.missingExceptionValue] The method isolateLocal must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'.
+}
+''');
+  }
+
+  test_NativeCallable_isolateLocal_positionalExceptionalReturn() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+int f(int i) => i * 2;
+void g() {
+  NativeCallable<Int32 Function(Int32)>.isolateLocal(f, 0);
+//                                                      ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 1 expected, but 2 found.
+}
+''');
+  }
+
+  test_NativeCallable_isolateLocal_positionalExceptionalReturn_void() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+void f(int i) {}
+void g() {
+  NativeCallable<Void Function(Int32)>.isolateLocal(f, 0);
+//                                                     ^
+// [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 1 expected, but 2 found.
 }
 ''');
   }
@@ -88,6 +149,18 @@ void g() {
 ''');
   }
 
+  test_NativeCallable_isolateLocal_mustBeANativeFunctionType_namedFirst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+int f(int i) => i * 2;
+void g() {
+  NativeCallable<int Function(int)>.isolateLocal(exceptionalReturn: 4, f);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.mustBeANativeFunctionType] The type 'int Function(int)' given to 'NativeCallable' must be a valid 'dart:ffi' native function type.
+}
+''');
+  }
+
   test_NativeCallable_isolateLocal_mustBeASubtype() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
@@ -95,6 +168,18 @@ int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Double)>.isolateLocal(f, exceptionalReturn: 4);
 //                                                    ^
+// [diag.mustBeASubtype] The type 'int Function(int)' must be a subtype of 'Int32 Function(Double)' for 'NativeCallable'.
+}
+''');
+  }
+
+  test_NativeCallable_isolateLocal_mustBeASubtype_namedFirst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+int f(int i) => i * 2;
+void g() {
+  NativeCallable<Int32 Function(Double)>.isolateLocal(exceptionalReturn: 4, f);
+//                                                                          ^
 // [diag.mustBeASubtype] The type 'int Function(int)' must be a subtype of 'Int32 Function(Double)' for 'NativeCallable'.
 }
 ''');
@@ -118,6 +203,16 @@ import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: 4);
+}
+''');
+  }
+
+  test_NativeCallable_isolateLocal_ok_namedFirst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+int f(int i) => i * 2;
+void g() {
+  NativeCallable<Int32 Function(Int32)>.isolateLocal(exceptionalReturn: 4, f);
 }
 ''');
   }
