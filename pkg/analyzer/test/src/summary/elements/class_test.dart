@@ -19843,6 +19843,100 @@ library
 ''');
   }
 
+  test_constructor_secondary_augmentation_chain_isExternal_factory() async {
+    var library = await buildLibrary(r'''
+class A {
+  factory A();
+}
+
+augment class A {
+  augment external factory A();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 12
+              typeName: A
+              typeNameOffset: 20
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isExternal isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:48) (offset:73)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 65
+              typeName: A
+              typeNameOffset: 73
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isExternal isFactory isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_isExternal_generative() async {
+    var library = await buildLibrary(r'''
+class A {
+  A();
+}
+
+augment class A {
+  augment external A();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:34) (firstTokenOffset:20) (offset:34)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isExternal isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:40) (offset:57)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 57
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isExternal isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+''');
+  }
+
   test_constructor_secondary_augmentation_chain_named() async {
     var library = await buildLibrary(r'''
 class A {
