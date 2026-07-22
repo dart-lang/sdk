@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 class MigrateHandler
@@ -170,8 +169,9 @@ enum _ExecutionOutcome {
 /// packages.
 ///
 /// This runner manages a multi-stage migration pipeline:
-/// 1. Runs pre-migration code cleanup fixes.
+/// 1. Runs preparatory code fixes *before* a version bump.
 /// 2. Bumps the SDK version constraints in `pubspec.yaml`.
+/// 3. Runs clean up code fixes *after* a version bump.
 class _MigrationRunner({
   @override required final AnalysisServer server,
   required final List<_PubspecTarget> pubspecTargets,
@@ -185,22 +185,33 @@ class _MigrationRunner({
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
 
-  /// Accumulated pre-migration fixes per file.
+  /// Accumulated preparatory fixes per file.
   ///
   /// Keyed by file path, mapping to diagnostic code names and their count.
-  final Map<String, Map<String, int>> _preMigrationFixDetailsMap = {};
+  final Map<String, Map<String, int>> _preparatoryFixDetailsMap = {};
 
-  /// Accumulated post-migration fixes per file.
+  /// Accumulated clean up fixes per file.
   ///
   /// Keyed by file path, mapping to diagnostic code names and their count.
-  final Map<String, Map<String, int>> _postMigrationFixDetailsMap = {};
+  final Map<String, Map<String, int>> _cleanUpFixDetailsMap = {};
 
   /// Accumulated bumped package SDK constraints logs.
   final List<String> _bumpedLines = [];
 
   this : super(server);
 
-  /// Runs the migration runner with the scheduled analysis pausing enabled.
+  /// Runs the migration runner.
+  ///
+  /// The migration is executed based on the provided [steps]:
+  /// - [MigrationStep.Prepare]: Runs preparatory code fixes *before*
+  ///   the version bump. These fixes prepare the code to be compatible with the
+  ///   target version.
+  /// - [MigrationStep.Bump]: Updates the SDK constraint in `pubspec.yaml`
+  ///   to the target version. If `MigrationStep.Prepare` was not run, this step
+  ///   will fail if there are any outstanding preparatory fixes required.
+  /// - [MigrationStep.Cleanup]: Runs cleanup code fixes *after*
+  ///   the version bump. These fixes utilize features or fix lints/warnings
+  ///   newly introduced in the target version.
   Future<ErrorOr<List<SourceFileEdit>>> computeEdits(
     List<MigrationStep> steps,
   ) async {
@@ -239,7 +250,7 @@ class _MigrationRunner({
         _fileEdits.add(fileEdit);
       }
       // Apply the edit to the in-memory overlays so that subsequent analysis
-      // (like post-migration or other packages in the workspace) sees the
+      // (like the clean up step or other packages in the workspace) sees the
       // updated code.
       applyTemporaryOverlayEdits(fileEdit);
     }
@@ -288,7 +299,7 @@ class _MigrationRunner({
       _writeFixesSummary(
         summaryBuffer,
         'Preparatory changes for a version bump:',
-        _preMigrationFixDetailsMap,
+        _preparatoryFixDetailsMap,
       );
     }
 
@@ -314,7 +325,7 @@ class _MigrationRunner({
       _writeFixesSummary(
         summaryBuffer,
         'Cleanup changes after a version bump:',
-        _postMigrationFixDetailsMap,
+        _cleanUpFixDetailsMap,
       );
     }
 
@@ -330,10 +341,9 @@ class _MigrationRunner({
     );
   }
 
-  /// Runs post-migration cleanup fixes for the package target specified by
-  /// [pubspec].
+  /// Runs clean up fixes for the package target specified by [pubspec].
   ///
-  /// Applies the cleanup edits to the temporary overlays and records the
+  /// Applies the clean up edits to the temporary overlays and records the
   /// corresponding file edits. Returns [_ExecutionOutcome.exception] if an
   /// error occurs.
   Future<_ExecutionOutcome> _executeCleanup(_PubspecTarget pubspec) async {
@@ -346,7 +356,7 @@ class _MigrationRunner({
       );
       return _ExecutionOutcome.success;
     }
-    if (!postMigrationLintsRegistry.containsKey(targetVersion)) {
+    if (!cleanUpLintsRegistry.containsKey(targetVersion)) {
       return _ExecutionOutcome.success;
     }
 
@@ -361,31 +371,28 @@ class _MigrationRunner({
       return _ExecutionOutcome.success;
     }
 
-    // Run post-migration fixes.
+    // Run clean up fixes.
     var targetVersionChangeBuilder = await _createBuilder();
-    // TODO(kallentu): Allow the user to choose which ones.
-    var postMigrationFixDetails = await _runPostMigrations(
-      context,
-      pubspec,
-      targetVersion,
-      targetVersionChangeBuilder,
+    // TODO(kallentu): Allow the user to choose which clean up fixes to apply.
+    var cleanUpFixDetails = await _runMigrations(
+      context: context,
+      pubspec: pubspec,
+      lintCodes: cleanUpLintsRegistry[targetVersion] ?? [],
+      builder: targetVersionChangeBuilder,
+      stepName: 'clean up',
     );
 
-    if (postMigrationFixDetails == null) {
+    if (cleanUpFixDetails == null) {
       return _ExecutionOutcome.exception;
     }
 
-    _accumulateFixDetails(
-      postMigrationFixDetails,
-      _postMigrationFixDetailsMap,
-      pubspec,
-    );
+    _accumulateFixDetails(cleanUpFixDetails, _cleanUpFixDetailsMap, pubspec);
     _applyAndRecordEdits(targetVersionChangeBuilder);
 
     return _ExecutionOutcome.success;
   }
 
-  /// Runs pre-migration prepare fixes and bumps the SDK version constraint.
+  /// Runs pre-version bump fixes and bumps the SDK version constraint.
   ///
   /// Applies the resulting edits to the temporary overlays and records the
   /// corresponding file edits. Returns [_ExecutionOutcome.exception] if an
@@ -411,26 +418,31 @@ class _MigrationRunner({
       return _ExecutionOutcome.exception;
     }
 
-    // Run pre-migrations fixes.
+    // Run preparatory fixes.
     var builder = await _createBuilder();
     if (runPrepare || runBump) {
       // If we are preparing, we write the edits to the main builder.
       // If we are bumping without preparing, we only check for edits without
       // applying them, so we write them to a separate temporary builder to
       // discard them.
-      var preMigrationBuilder = runPrepare ? builder : await _createBuilder();
-      var preMigrationFixDetails = await _runPreMigrations(
-        context,
-        pubspec,
-        versionBumpEdit.targetVersion,
-        preMigrationBuilder,
+      var preparatoryStepBuilder = runPrepare
+          ? builder
+          : await _createBuilder();
+      var lintCodes =
+          preparatoryLintsRegistry[versionBumpEdit.targetVersion] ?? [];
+      var preparatoryFixDetails = await _runMigrations(
+        context: context,
+        pubspec: pubspec,
+        lintCodes: lintCodes,
+        builder: preparatoryStepBuilder,
+        stepName: 'preparatory',
       );
-      if (preMigrationFixDetails == null) {
+      if (preparatoryFixDetails == null) {
         return _ExecutionOutcome.exception;
       }
 
       // Prevent version bumps when the user needs to migrate their code.
-      if (runBump && !runPrepare && preMigrationFixDetails.isNotEmpty) {
+      if (runBump && !runPrepare && preparatoryFixDetails.isNotEmpty) {
         summaryBuffer.writeln(
           '- ${pubspec.displayName}:\n'
           '    Failed version bump with error: Package "${pubspec.displayName}"'
@@ -441,8 +453,8 @@ class _MigrationRunner({
 
       if (runPrepare) {
         _accumulateFixDetails(
-          preMigrationFixDetails,
-          _preMigrationFixDetailsMap,
+          preparatoryFixDetails,
+          _preparatoryFixDetailsMap,
           pubspec,
         );
       }
@@ -468,15 +480,15 @@ class _MigrationRunner({
   }
 
   /// Runs bulk fixes for the given [lintCodes] in the specified migration
-  /// phase.
+  /// step.
   ///
-  /// Returns the list of bulk fixes applied, or `null` if the phase failed.
+  /// Returns the list of bulk fixes applied, or `null` if the step failed.
   Future<List<BulkFix>?> _runMigrations({
     required DriverBasedAnalysisContext context,
     required _PubspecTarget pubspec,
     required List<String> lintCodes,
     required ChangeBuilder builder,
-    required String phaseName,
+    required String stepName,
   }) async {
     if (lintCodes.isEmpty) return const [];
 
@@ -492,59 +504,22 @@ class _MigrationRunner({
         additionalEnabledCodes: lintCodes,
       );
 
-      // TODO(kallentu): Check for and report unfixed pre-migration diagnostics.
+      // TODO(kallentu): Check for and report unfixed preparatory step
+      // diagnostics.
       await processor.fixErrors([context]);
 
       return processor.fixDetails;
     } catch (e) {
       summaryBuffer.writeln(
-        '- ${pubspec.displayName}: Failed $phaseName fixes with '
+        '- ${pubspec.displayName}: Failed $stepName fixes with '
         'exception: $e',
       );
       return null;
     }
   }
 
-  /// Runs post-migration fixes for the given [targetVersion].
-  ///
-  /// Returns the list of bulk fixes applied, or `null` if the phase failed.
-  Future<List<BulkFix>?> _runPostMigrations(
-    DriverBasedAnalysisContext context,
-    _PubspecTarget pubspec,
-    Version targetVersion,
-    ChangeBuilder builder,
-  ) {
-    var postMigrationLintCodes =
-        postMigrationLintsRegistry[targetVersion] ?? [];
-    return _runMigrations(
-      context: context,
-      pubspec: pubspec,
-      lintCodes: postMigrationLintCodes,
-      builder: builder,
-      phaseName: 'clean up',
-    );
-  }
-
-  /// Runs pre-migration fixes for the given [targetVersion].
-  ///
-  /// Returns the list of bulk fixes applied, or `null` if the phase failed.
-  Future<List<BulkFix>?> _runPreMigrations(
-    DriverBasedAnalysisContext context,
-    _PubspecTarget pubspec,
-    Version targetVersion,
-    ChangeBuilder builder,
-  ) {
-    var preMigrationLintCodes = preMigrationLintsRegistry[targetVersion] ?? [];
-    return _runMigrations(
-      context: context,
-      pubspec: pubspec,
-      lintCodes: preMigrationLintCodes,
-      builder: builder,
-      phaseName: 'pre-migration',
-    );
-  }
-
-  /// Returns `true` if the migration should be skipped due to incompatible dependencies.
+  /// Returns `true` if the migration should be skipped due to incompatible
+  /// dependencies.
   bool _shouldSkipDueToDependencies(
     DriverBasedAnalysisContext context,
     _PubspecTarget pubspec,
@@ -570,11 +545,11 @@ class _MigrationRunner({
     return false;
   }
 
-  /// Writes a summary of the fixes in [fixesMap] preceded by [phaseLabel] to
+  /// Writes a summary of the fixes in [fixesMap] preceded by [stepHeader] to
   /// the [buffer] if any fixes were made.
   void _writeFixesSummary(
     StringBuffer buffer,
-    String phaseLabel,
+    String stepHeader,
     Map<String, Map<String, int>> fixesMap,
   ) {
     var totalFixes = 0;
@@ -588,7 +563,7 @@ class _MigrationRunner({
     if (buffer.isNotEmpty) {
       buffer.writeln();
     }
-    buffer.writeln(phaseLabel);
+    buffer.writeln(stepHeader);
 
     var fixPlural = totalFixes == 1 ? 'change' : 'changes';
     var filePlural = totalFiles == 1 ? 'file' : 'files';
