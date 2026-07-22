@@ -115,7 +115,8 @@ static constexpr intptr_t kLinearInitValue = -1;
   V(MachOUuid)                                                                 \
   V(MachOIdDylib)                                                              \
   V(MachOCodeSignature)                                                        \
-  V(MachOEncryptionInfo)
+  V(MachOEncryptionInfo)                                                       \
+  V(MachOExportsTrie)
 
 #define DECLARE_CONTENTS_TYPE_CLASS(Type) class Type;
 FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DECLARE_CONTENTS_TYPE_CLASS)
@@ -1823,6 +1824,87 @@ class MachOCodeSignature : public MachOLinkEditData {
   DISALLOW_COPY_AND_ASSIGN(MachOCodeSignature);
 };
 
+// dyld on macOS 26 for arm64e only applies function pointer authentication for
+// symbols found via the export trie, not the nlist.
+// Since we only export 2 symbols, this implemention doesn't bother to actually
+// calculate trie nodes or do the fixed point calculation for proper leb128
+// offsets, instead producing a flat tree with degenerate fixed-width leb128
+// encodings.
+class MachOExportsTrie : public MachOLinkEditData {
+ public:
+  static constexpr uint32_t kCommandCode = mach_o::LC_DYLIB_EXPORTS_TRIE;
+
+  MachOExportsTrie() : MachOLinkEditData(kCommandCode), symbols_() {}
+
+  intptr_t Alignment() const override { return 1; }
+
+  void Initialize(MachOSymbolTable* table) {
+    // `table` has local symbols followed by external symbols.
+    for (intptr_t i = table->num_local_symbols(); i < table->num_symbols();
+         i++) {
+      auto& symbol = table->symbols()[i];
+      SymbolInfo info;
+      info.name = table->strings().At(symbol.name_index);
+      info.symbol = &symbol;  // symbol->value() isn't known yet.
+      symbols_.Add(info);
+    }
+    intptr_t offset = 0;
+    offset += 1;  // leaf data size
+    offset += 1;  // child count
+    for (auto& symbol : symbols_) {
+      offset += strlen(symbol.name) + 1;
+      offset += 5;  // child offset
+    }
+    for (auto& symbol : symbols_) {
+      symbol.trie_node_offset = offset;
+      offset += 1;  // leaf data size
+      offset += 1;  // flags
+      offset += 5;  // address
+      offset += 1;  // child count
+    }
+    size_ = offset;
+  }
+
+  void WriteSelf(MachOWriteStream* stream) const override {
+    intptr_t start = stream->Position();
+    stream->WriteLEB128(0);  // leaf data size
+    ASSERT(symbols_.length() < 256);
+    stream->WriteByte(symbols_.length());  // child count
+    for (auto& symbol : symbols_) {
+      stream->WriteBytes(symbol.name, strlen(symbol.name) + 1);
+      stream->WriteFixed5LEB128(symbol.trie_node_offset);
+    }
+    for (auto& symbol : symbols_) {
+      ASSERT_EQUAL(stream->Position() - start, symbol.trie_node_offset);
+      stream->WriteLEB128(6);  // leaf data size
+      {
+        stream->WriteLEB128(0);  // flags
+        stream->WriteFixed5LEB128(symbol.symbol->value());
+      }
+      stream->WriteByte(0);  // child count
+    }
+    ASSERT_EQUAL(stream->Position() - start, size_);
+  }
+
+  intptr_t SelfMemorySize() const override { return size_; }
+  intptr_t SelfFileSize() const override { return size_; }
+
+  void Accept(Visitor* visitor) override {
+    visitor->VisitMachOExportsTrie(this);
+  }
+
+ private:
+  struct SymbolInfo {
+    const char* name;
+    intptr_t trie_node_offset;
+    const MachOSymbolTable::Symbol* symbol;
+  };
+
+  GrowableArray<SymbolInfo> symbols_;
+  intptr_t size_ = -1;
+  DISALLOW_COPY_AND_ASSIGN(MachOExportsTrie);
+};
+
 // A representation of the header of the Mach-O file. This contains
 // any commands that have load commands within the header.
 class MachOHeader : public MachOContents {
@@ -2891,6 +2973,11 @@ void MachOHeader::InitializeSymbolTables() {
     auto* const dynamic_symtab = new (zone()) MachODynamicSymbolTable(
         *table, /*in_segment=*/type_ != SnapshotType::Object);
     commands_.Add(dynamic_symtab);
+    if (type_ != SnapshotType::Object) {
+      auto* const export_trie = new (zone()) MachOExportsTrie();
+      export_trie->Initialize(table);
+      commands_.Add(export_trie);
+    }
   }
 }
 
