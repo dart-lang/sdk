@@ -53,6 +53,15 @@ class C {
 ''');
   }
 
+  test_constructor_externalFactory_nonNullable_named_optional_noDefault_augment() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  factory C({int a});
+  augment external factory C({int a});
+}
+''');
+  }
+
   test_constructor_externalFactory_nonNullable_positional_optional_noDefault() async {
     await resolveTestCodeWithDiagnostics('''
 class C {

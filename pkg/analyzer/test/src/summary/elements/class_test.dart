@@ -20168,6 +20168,54 @@ library
 ''');
   }
 
+  test_constructor_secondary_augmentation_sameName_external() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.foo();
+}
+
+augment class A {
+  augment external A.foo();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration foo (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isExternal isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:44) (offset:63)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 61
+              periodOffset: 62
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isExternal isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@constructor::foo
+          firstFragment: #F3
+''');
+  }
+
   test_constructor_secondary_augmentation_sameName_instanceField() async {
     var library = await buildLibrary(r'''
 class A {

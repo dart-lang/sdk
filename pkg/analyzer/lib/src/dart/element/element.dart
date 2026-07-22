@@ -2657,11 +2657,10 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     setFlag(_ElementStorageFlag.executableElement_isExtensionTypeMember, value);
   }
 
-  @generated
   @override
   @trackedIncludedInId
   bool get isExternal {
-    return _firstFragment.isExternal;
+    return _fragments.any((fragment) => fragment.isExternal);
   }
 
   @override
@@ -12065,7 +12064,7 @@ enum _ExecutableElementFlags {
   isAbstract(fragment: true),
   isAsynchronous(fragment: true),
   isExtensionTypeMember(element: _ElementFlagSource.stored),
-  isExternal(fragment: true, element: _ElementFlagSource.firstFragment),
+  isExternal(fragment: true, element: _ElementFlagSource.computed),
   isGenerator(fragment: true),
   isStatic(fragment: true, element: _ElementFlagSource.firstFragment);
 
