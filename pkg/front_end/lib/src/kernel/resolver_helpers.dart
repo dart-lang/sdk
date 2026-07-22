@@ -647,7 +647,7 @@ class _InitializerBuilder {
         if (length == 0) {
           length = _bodyBuilderContext.className.length;
         }
-        initializer = intern.createInvalidInitializer2(
+        initializer = intern.createInvalidInitializerFromErrorText(
           LookupResult.createDuplicateErrorText(
             result,
             context: _compilerContext,

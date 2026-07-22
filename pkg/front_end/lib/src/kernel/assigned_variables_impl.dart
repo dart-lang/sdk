@@ -174,17 +174,6 @@ class AssignedVariablesImpl
   }
 
   @override
-  void reassignInfo(TreeNode from, TreeNode to) {
-    _delegate.reassignInfo(from, to);
-    _insideAsserts
-    // Coverage-ignore(suite): Not run.
-    ?.reassignInfo(from, to);
-    _outsideAsserts
-    // Coverage-ignore(suite): Not run.
-    ?.reassignInfo(from, to);
-  }
-
-  @override
   void storeInfo(TreeNode node, AssignedVariablesNodeInfo info) {
     assert(_deferredInsideAssertsByDeferredDelegate?.containsKey(info) ?? true);
     assert(

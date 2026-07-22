@@ -94,6 +94,8 @@ class ValueKinds {
   static const ValueKind ContinueTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.ContinueTarget);
   static const ValueKind DartType = const SingleValueKind<type.DartType>();
+  static const ValueKind Element =
+      const SingleValueKind<type.InternalElement>();
   static const ValueKind EnumConstantInfo =
       const SingleValueKind<type.EnumConstantInfo>();
   static const ValueKind EnumConstantInfoOrNull =
@@ -144,8 +146,6 @@ class ValueKinds {
   static const ValueKind Label = const SingleValueKind<type.Label>();
   static const ValueKind LabelListOrNull =
       const SingleValueKind<List<type.Label>>(NullValues.Labels);
-  static const ValueKind MapLiteralEntry =
-      const SingleValueKind<type.InternalMapLiteralEntry>();
   static const ValueKind MapPatternEntry =
       const SingleValueKind<type.InternalMapPatternEntry>();
   static const ValueKind ParameterList =

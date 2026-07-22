@@ -7162,7 +7162,7 @@ class ThisAccessGenerator extends Generator {
       Constructor? constructor;
       if (result != null) {
         if (result.isInvalidLookup) {
-          return intern.createInvalidInitializer2(
+          return intern.createInvalidInitializerFromErrorText(
             LookupResult.createDuplicateErrorText(
               result,
               context: _helper.compilerContext,

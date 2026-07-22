@@ -1,0 +1,47 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/unified_collections/unknown_spread.dart:9:15: Error: Unexpected type 'int' of a spread element.  Expected 'dynamic', a Map or an Iterable.
+//   var a = {...method()}; // Error
+//               ^
+//
+// pkg/front_end/testcases/unified_collections/unknown_spread.dart:9:11: Error: Not enough type information to disambiguate between literal set and literal map.
+// Try providing type arguments for the literal explicitly to disambiguate it.
+//   var a = {...method()}; // Error
+//           ^
+//
+// pkg/front_end/testcases/unified_collections/unknown_spread.dart:10:15: Error: Unexpected type 'int' of a spread element.  Expected 'dynamic', a Map or an Iterable.
+//   var b = {...method(), 0}; // Error
+//               ^
+//
+// pkg/front_end/testcases/unified_collections/unknown_spread.dart:11:15: Error: Unexpected type 'int' of a spread element.  Expected 'dynamic', a Map or an Iterable.
+//   var c = {...method(), 0: 1}; // Error
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method method() → core::int
+  return 0;
+static method test() → dynamic {
+  Never a = invalid-expression "pkg/front_end/testcases/unified_collections/unknown_spread.dart:9:11: Error: Not enough type information to disambiguate between literal set and literal map.
+Try providing type arguments for the literal explicitly to disambiguate it.
+  var a = {...method()}; // Error
+          ^";
+  core::Set<core::int> b = block {
+    final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>();
+    #t1.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/unified_collections/unknown_spread.dart:10:15: Error: Unexpected type 'int' of a spread element.  Expected 'dynamic', a Map or an Iterable.
+  var b = {...method(), 0}; // Error
+              ^"){(core::int) → core::bool};
+    #t1.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
+  } =>#t1;
+  core::Map<core::int, core::int> c = block {
+    final core::Map<core::int, core::int> #t2 = <core::int, core::int>{};
+    invalid-expression "pkg/front_end/testcases/unified_collections/unknown_spread.dart:11:15: Error: Unexpected type 'int' of a spread element.  Expected 'dynamic', a Map or an Iterable.
+  var c = {...method(), 0: 1}; // Error
+              ^";
+    #t2.{core::Map::[]=}{Invariant}(0, 1){(core::int, core::int) → void};
+  } =>#t2;
+}

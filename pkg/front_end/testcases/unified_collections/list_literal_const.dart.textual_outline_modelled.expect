@@ -1,0 +1,15 @@
+const List<(int, int)> intIntList = <(int, int)>[(0, 1), (2, 3)];
+
+const List<int>? nullableIntList1 = <int>[0, 1, 2];
+
+const List<int>? nullableIntList2 = null;
+
+const List<int> intList = <int>[0, 1, 2];
+
+const List<num> numList = <num>[0, 1, 2];
+
+const num? nullableNum1 = 0;
+
+const num? nullableNum2 = null;
+
+main() {}

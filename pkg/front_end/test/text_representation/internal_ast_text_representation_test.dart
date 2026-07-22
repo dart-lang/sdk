@@ -92,6 +92,29 @@ void testVariableDeclaration(
   );
 }
 
+void testElement(
+  InternalElement node,
+  String normal, {
+  String? verbose,
+  String? limited,
+}) {
+  Expect.stringEquals(
+    normal,
+    node.toText(normalStrategy),
+    "Unexpected normal strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    verbose ?? normal,
+    node.toText(verboseStrategy),
+    "Unexpected verbose strategy text for ${node.runtimeType}",
+  );
+  Expect.stringEquals(
+    limited ?? normal,
+    node.toText(limitedStrategy),
+    "Unexpected limited strategy text for ${node.runtimeType}",
+  );
+}
+
 void testExpression(
   InternalExpression node,
   String normal, {
@@ -4616,18 +4639,18 @@ void _testParenthesizedExpression() {
 }
 
 void _testSpreadElement() {
-  testExpression(
+  testElement(
     new SpreadElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       isNullAware: false,
       fileOffset: TreeNode.noOffset,
     ),
     '''
 ...0''',
   );
-  testExpression(
+  testElement(
     new SpreadElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      expression: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       isNullAware: true,
       fileOffset: TreeNode.noOffset,
     ),
@@ -4637,21 +4660,42 @@ void _testSpreadElement() {
 }
 
 void _testIfElement() {
-  testExpression(
+  testElement(
     new IfElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
-      null,
+      condition: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      then: new ExpressionElement(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      ),
+      otherwise: null,
       fileOffset: TreeNode.noOffset,
     ),
     '''
 if (0) 1''',
   );
-  testExpression(
+  testElement(
     new IfElement(
-      new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
-      new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
-      new InternalIntLiteral(2, '2', fileOffset: TreeNode.noOffset),
+      condition: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
+      then: new ExpressionElement(
+        expression: new InternalIntLiteral(
+          1,
+          '1',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      ),
+      otherwise: new ExpressionElement(
+        expression: new InternalIntLiteral(
+          2,
+          '2',
+          fileOffset: TreeNode.noOffset,
+        ),
+        fileOffset: TreeNode.noOffset,
+      ),
       fileOffset: TreeNode.noOffset,
     ),
     '''

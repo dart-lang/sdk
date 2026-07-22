@@ -537,70 +537,36 @@ InternalExpression createFileUriExpression({
   );
 }
 
-ForElement createForElement(
-  int fileOffset,
-  List<InternalVariableDeclaration> variables,
-  InternalExpression? condition,
-  List<InternalExpression> updates,
-  InternalExpression body,
-) {
+InternalElement createForElement({
+  required List<InternalVariableDeclaration> variables,
+  required InternalExpression? condition,
+  required List<InternalExpression> updates,
+  required InternalElement body,
+  required int fileOffset,
+}) {
   return new ForElement(
-    variables,
-    condition,
-    updates,
-    body,
+    variables: variables,
+    condition: condition,
+    updates: updates,
+    body: body,
     fileOffset: fileOffset,
   );
 }
 
-ForInElement createForInElement(
-  InternalForInElement element,
-  InternalExpression iterable,
-  InternalExpression body, {
+ForInElement createForInElement({
+  required InternalForInElement element,
+  required InternalExpression iterable,
+  required InternalElement body,
   required bool isAsync,
   required int forOffset,
   required int fileOffset,
 }) {
   return new ForInElement(
-    element,
-    iterable,
-    body,
+    element: element,
+    iterable: iterable,
+    body: body,
     isAsync: isAsync,
     forOffset: forOffset,
-    fileOffset: fileOffset,
-  );
-}
-
-ForInMapEntry createForInMapEntry(
-  InternalForInElement element,
-  InternalExpression iterable,
-  InternalMapLiteralEntry body, {
-  required bool isAsync,
-  required int forOffset,
-  required int fileOffset,
-}) {
-  return new ForInMapEntry(
-    element,
-    iterable,
-    body,
-    isAsync: isAsync,
-    forOffset: forOffset,
-    fileOffset: fileOffset,
-  );
-}
-
-ForMapEntry createForMapEntry(
-  int fileOffset,
-  List<InternalVariableDeclaration> variables,
-  InternalExpression? condition,
-  List<InternalExpression> updates,
-  InternalMapLiteralEntry body,
-) {
-  return new ForMapEntry(
-    variables,
-    condition,
-    updates,
-    body,
     fileOffset: fileOffset,
   );
 }
@@ -667,30 +633,14 @@ InternalFunctionNode createFunctionNode({
   );
 }
 
-InternalExpression createIfCaseElement(
-  int fileOffset, {
+InternalElement createIfCaseElement({
   required InternalExpression expression,
   required InternalPatternGuard patternGuard,
-  required InternalExpression then,
-  InternalExpression? otherwise,
+  required InternalElement then,
+  required InternalElement? otherwise,
+  required int fileOffset,
 }) {
   return new IfCaseElement(
-    expression: expression,
-    patternGuard: patternGuard,
-    then: then,
-    otherwise: otherwise,
-    fileOffset: fileOffset,
-  );
-}
-
-InternalMapLiteralEntry createIfCaseMapEntry(
-  int fileOffset, {
-  required InternalExpression expression,
-  required InternalPatternGuard patternGuard,
-  required InternalMapLiteralEntry then,
-  InternalMapLiteralEntry? otherwise,
-}) {
-  return new IfCaseMapEntry(
     expression: expression,
     patternGuard: patternGuard,
     then: then,
@@ -715,22 +665,25 @@ InternalStatement createIfCaseStatement(
   );
 }
 
-InternalExpression createIfElement(
-  int fileOffset,
-  InternalExpression condition,
-  InternalExpression then, [
-  InternalExpression? otherwise,
-]) {
-  return new IfElement(condition, then, otherwise, fileOffset: fileOffset);
+InternalElement createIfElement({
+  required InternalExpression condition,
+  required InternalElement then,
+  required InternalElement? otherwise,
+  required int fileOffset,
+}) {
+  return new IfElement(
+    condition: condition,
+    then: then,
+    otherwise: otherwise,
+    fileOffset: fileOffset,
+  );
 }
 
-InternalMapLiteralEntry createIfMapEntry(
-  int fileOffset,
-  InternalExpression condition,
-  InternalMapLiteralEntry then, [
-  InternalMapLiteralEntry? otherwise,
-]) {
-  return new IfMapEntry(condition, then, otherwise, fileOffset: fileOffset);
+InternalElement createExpressionElement(InternalExpression expression) {
+  return new ExpressionElement(
+    expression: expression,
+    fileOffset: expression.fileOffset,
+  );
 }
 
 InternalExpression createIfNullExpression({
@@ -912,7 +865,7 @@ InternalInvalidInitializer createInvalidInitializer(
   );
 }
 
-InternalInvalidInitializer createInvalidInitializer2(
+InternalInvalidInitializer createInvalidInitializerFromErrorText(
   ErrorText errorText, {
   bool isSuperInitializer = false,
   bool isRedirectingInitializer = false,
@@ -937,7 +890,7 @@ InternalPattern createInvalidPattern(
 }
 
 // Coverage-ignore(suite): Not run.
-InternalPattern createInvalidPattern2(
+InternalPattern createInvalidPatternFromErrorText(
   ErrorText errorText, {
   required List<InternalDeclaredVariable> declaredVariables,
 }) {
@@ -1015,23 +968,32 @@ InternalLet createLetForEffect({
   );
 }
 
-/// Return a representation of a list literal at the given [fileOffset]. The
-/// [isConst] is `true` if the literal is either explicitly or implicitly a
-/// constant. The [typeArgument] is the representation of the single valid
-/// type argument preceding the list literal, or `null` if there is no type
-/// argument, there is more than one type argument, or if the type argument
-/// cannot be resolved. The list of [expressions] is a list of the
-/// representations of the list elements.
-InternalExpression createListLiteral(
-  int fileOffset,
-  DartType? typeArgument,
-  List<InternalExpression> expressions, {
+InternalExpression createListLiteral({
+  required DartType? typeArgument,
+  required List<InternalElement> elements,
   required bool isConst,
+  required int fileOffset,
 }) {
   return new InternalListLiteral(
-    expressions,
+    elements: elements,
     typeArgument: typeArgument,
     isConst: isConst,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalElement createMapEntryElement({
+  required bool isKeyNullAware,
+  required InternalExpression key,
+  required bool isValueNullAware,
+  required InternalExpression value,
+  required int fileOffset,
+}) {
+  return new MapEntryElement(
+    isKeyNullAware: isKeyNullAware,
+    key: key,
+    isValueNullAware: isValueNullAware,
+    value: value,
     fileOffset: fileOffset,
   );
 }
@@ -1147,39 +1109,16 @@ InternalExpression createLogicalExpression(
   );
 }
 
-/// Return a representation of a map literal at the given [fileOffset]. The
-/// [isConst] is `true` if the literal is either explicitly or implicitly a
-/// constant. The [keyType] is the representation of the first type argument
-/// preceding the map literal, or `null` if there are not exactly two type
-/// arguments or if the first type argument cannot be resolved. The
-/// [valueType] is the representation of the second type argument preceding
-/// the map literal, or `null` if there are not exactly two type arguments or
-/// if the second type argument cannot be resolved. The list of [entries] is a
-/// list of the representations of the map entries.
-InternalExpression createMapLiteral(
-  int fileOffset,
-  DartType? keyType,
-  DartType? valueType,
-  List<InternalMapLiteralEntry> entries, {
+InternalExpression createMapOrSetLiteral({
+  required List<DartType>? typeArguments,
+  required List<InternalElement> elements,
   required bool isConst,
-}) {
-  return new InternalMapLiteral(
-    entries,
-    keyType: keyType,
-    valueType: valueType,
-    isConst: isConst,
-    fileOffset: fileOffset,
-  );
-}
-
-InternalMapLiteralEntry createMapLiteralEntry(
-  InternalExpression key,
-  InternalExpression value, {
   required int fileOffset,
 }) {
-  return new RegularMapLiteralEntry(
-    key: key,
-    value: value,
+  return new MapOrSetLiteral(
+    elements: elements,
+    typeArguments: typeArguments,
+    isConst: isConst,
     fileOffset: fileOffset,
   );
 }
@@ -1312,32 +1251,11 @@ InternalPattern createNullAssertPattern(
   );
 }
 
-InternalExpression createNullAwareElement(
-  int fileOffset,
-  InternalExpression expression,
-) {
-  return new NullAwareElement(expression, fileOffset: fileOffset);
-}
-
-/// Return a representation of a null-aware key/value pair, were either the
-/// key or the value might be `null`, in a literal map at the given
-/// [fileOffset]. The [key] is the representation of the expression used to
-/// compute the key. The [value] is the representation of the expression used
-/// to compute the value.
-NullAwareMapEntry createNullAwareMapEntry(
-  int fileOffset, {
-  required bool isKeyNullAware,
-  required InternalExpression key,
-  required bool isValueNullAware,
-  required InternalExpression value,
+InternalElement createNullAwareElement({
+  required InternalExpression expression,
+  required int fileOffset,
 }) {
-  return new NullAwareMapEntry(
-    isKeyNullAware: isKeyNullAware,
-    key: key,
-    isValueNullAware: isValueNullAware,
-    value: value,
-    fileOffset: fileOffset,
-  );
+  return new NullAwareElement(expression: expression, fileOffset: fileOffset);
 }
 
 InternalExpression createNullCheck(
@@ -1408,39 +1326,19 @@ InternalExpression createPatternAssignment(
   );
 }
 
-PatternForElement createPatternForElement(
-  int fileOffset, {
+InternalElement createPatternForElement({
   required InternalPatternVariableDeclaration patternVariableDeclaration,
   required List<InternalVariableDeclaration> intermediateVariables,
   required List<InternalVariableDeclaration> variables,
   required InternalExpression? condition,
   required List<InternalExpression> updates,
-  required InternalExpression body,
+  required InternalElement body,
+  required int fileOffset,
 }) {
   return new PatternForElement(
     patternVariableDeclaration: patternVariableDeclaration,
     intermediateVariables: intermediateVariables,
     variables: variables,
-    condition: condition,
-    updates: updates,
-    body: body,
-    fileOffset: fileOffset,
-  );
-}
-
-PatternForMapEntry createPatternForMapEntry(
-  int fileOffset, {
-  required InternalPatternVariableDeclaration patternVariableDeclaration,
-  required List<InternalVariableDeclaration> intermediateVariables,
-  required List<InternalVariableDeclaration> variableInitializations,
-  required InternalExpression? condition,
-  required List<InternalExpression> updates,
-  required InternalMapLiteralEntry body,
-}) {
-  return new PatternForMapEntry(
-    patternVariableDeclaration: patternVariableDeclaration,
-    intermediateVariables: intermediateVariables,
-    variables: variableInitializations,
     condition: condition,
     updates: updates,
     body: body,
@@ -1701,34 +1599,13 @@ InternalReturnStatement createReturnStatement({
   );
 }
 
-/// Return a representation of a set literal at the given [fileOffset]. The
-/// [isConst] is `true` if the literal is either explicitly or implicitly a
-/// constant. The [typeArgument] is the representation of the single valid
-/// type argument preceding the set literal, or `null` if there is no type
-/// argument, there is more than one type argument, or if the type argument
-/// cannot be resolved. The list of [expressions] is a list of the
-/// representations of the set elements.
-InternalExpression createSetLiteral(
-  int fileOffset,
-  DartType? typeArgument,
-  List<InternalExpression> expressions, {
-  required bool isConst,
-}) {
-  return new InternalSetLiteral(
-    expressions,
-    typeArgument: typeArgument,
-    isConst: isConst,
-    fileOffset: fileOffset,
-  );
-}
-
-InternalExpression createSpreadElement(
-  int fileOffset,
-  InternalExpression expression, {
+InternalElement createSpreadElement({
+  required InternalExpression expression,
   required bool isNullAware,
+  required int fileOffset,
 }) {
   return new SpreadElement(
-    expression,
+    expression: expression,
     isNullAware: isNullAware,
     fileOffset: fileOffset,
   );

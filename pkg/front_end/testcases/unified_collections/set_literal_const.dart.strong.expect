@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::Set<core::int>? nullableIntSet1 = #C4;
+static const field core::Set<core::int>? nullableIntSet2 = #C5;
+static const field core::List<core::int> intList = #C9;
+static const field core::Set<core::int> intSet = #C13;
+static const field core::Set<core::num> numSet = #C17;
+static const field core::Set<(core::int, core::int)> intIntSet = #C24;
+static const field core::num? nullableNum1 = #C25;
+static const field core::num? nullableNum2 = #C5;
+static method main() → dynamic {
+  const core::bool b1 = #C26;
+  const core::bool b2 = #C27;
+  #C31;
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
+  #C4 = <core::int>{#C1, #C2, #C3}
+  #C5 = null
+  #C6 = 3
+  #C7 = 4
+  #C8 = 5
+  #C9 = <core::int>[#C6, #C7, #C8]
+  #C10 = 6
+  #C11 = 7
+  #C12 = 8
+  #C13 = <core::int>{#C10, #C11, #C12}
+  #C14 = 9
+  #C15 = 10
+  #C16 = 11
+  #C17 = <core::num>{#C14, #C15, #C16}
+  #C18 = 12
+  #C19 = 13
+  #C20 = (#C18, #C19)
+  #C21 = 14
+  #C22 = 15
+  #C23 = (#C21, #C22)
+  #C24 = <(core::int, core::int)>{#C20, #C23}
+  #C25 = 16
+  #C26 = true
+  #C27 = false
+  #C28 = 17
+  #C29 = 18
+  #C30 = 20
+  #C31 = <core::num>{#C28, #C25, #C29, #C30, #C10, #C11, #C12, #C14, #C15, #C16, #C1, #C2, #C3}
+}

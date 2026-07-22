@@ -21,7 +21,6 @@ main() {
   <void, void>{?v: v};
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  //               ^
   // [cfe] This expression has type 'void' and can't be used.
 
   var v1 = [v];
@@ -33,21 +32,13 @@ main() {
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   var v5 = {v: v};
-  //        ^
-  // [cfe] This expression has type 'void' and can't be used.
-  //           ^
-  // [cfe] This expression has type 'void' and can't be used.
   var v6 = {v: ?v};
-  //        ^
-  // [cfe] This expression has type 'void' and can't be used.
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
   var v7 = {?v: v};
   //         ^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] This expression has type 'void' and can't be used.
-  //            ^
   // [cfe] This expression has type 'void' and can't be used.
 
   List<void> w1 = [v];
@@ -66,6 +57,40 @@ main() {
   Map<void, void> w7 = {?v: v};
   //                     ^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  //                        ^
+  // [cfe] This expression has type 'void' and can't be used.
+
+  <dynamic>[v];
+  //        ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  <dynamic>[?v];
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  <dynamic>{v};
+  //        ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  <dynamic>{?v};
+  //         ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{v: v};
+  //                 ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  //                    ^
+  // [cfe] This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{v: ?v};
+  //                 ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  //                     ^
+  // [cfe] This expression has type 'void' and can't be used.
+  <dynamic, dynamic>{?v: v};
+  //                  ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  //                     ^
   // [cfe] This expression has type 'void' and can't be used.
 }

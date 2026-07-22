@@ -5271,6 +5271,18 @@ spreadMapEntryElementValueTypeMismatch:
       Map<String, String> b = <String, String>{...a};
     }
 
+
+spreadEntryOrElementTypeMismatch:
+  parameters:
+    Type spreadType: The type of the spread.
+  problemMessage: "Unexpected type '#spreadType' of a spread element.  Expected 'dynamic', a Map or an Iterable."
+  script:
+    - |
+      main() {
+        int a = 42;
+        var b = {...a, 0: 1};
+      }
+
 cantDisambiguateNotEnoughInformation:
   parameters: none
   problemMessage: "Not enough type information to disambiguate between literal set and literal map."
