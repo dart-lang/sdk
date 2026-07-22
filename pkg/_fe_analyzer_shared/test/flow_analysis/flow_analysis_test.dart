@@ -2318,7 +2318,7 @@ main() {
           intLiteral(
             0,
           ).pattern.thenExpr(second(checkReachable(false), intLiteral(1))),
-          default_.thenExpr(second(checkReachable(false), intLiteral(2))),
+          wildcard().thenExpr(second(checkReachable(false), intLiteral(2))),
         ]),
         checkReachable(false),
       ]);
@@ -2328,7 +2328,7 @@ main() {
       h.run([
         switchExpr(expr('int'), [
           intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
-          default_.thenExpr(second(checkReachable(true), intLiteral(2))),
+          wildcard().thenExpr(second(checkReachable(true), intLiteral(2))),
         ]),
         checkReachable(true),
       ]);
@@ -2338,7 +2338,7 @@ main() {
       h.run([
         switchExpr(expr('int'), [
           intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
-          default_.thenExpr(throw_(expr('C'))),
+          wildcard().thenExpr(throw_(expr('C'))),
         ]),
         checkReachable(false),
       ]);

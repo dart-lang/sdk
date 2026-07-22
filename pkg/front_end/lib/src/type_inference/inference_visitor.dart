@@ -11233,7 +11233,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         declaredVariable.cosmeticName!: declaredVariable,
     };
     return new SwitchExpressionMemberInfo(
-      head: new CaseHeadOrDefaultInfo(
+      head: new CaseHeadInfo(
         pattern: pattern,
         guard: switchExpressionCase.patternGuard.guard,
         variables: variables,
@@ -11259,9 +11259,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new SwitchStatementMemberInfo(
           heads: [
             for (InternalExpression expression in case_.expressions)
-              new CaseHeadOrDefaultInfo(pattern: expression, variables: {}),
-            if (case_.isDefault)
-              new CaseHeadOrDefaultInfo(pattern: null, variables: {}),
+              new CaseHeadInfo(pattern: expression, variables: {}),
+            if (case_.isDefault) new CaseDefaultInfo(),
           ],
           body: [case_.body],
           variables: {},
@@ -11272,7 +11271,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new SwitchStatementMemberInfo(
           heads: [
             for (InternalPatternGuard patternGuard in case_.patternGuards)
-              new CaseHeadOrDefaultInfo(
+              new CaseHeadInfo(
                 pattern: patternGuard.pattern,
                 guard: patternGuard.guard,
                 variables: {
@@ -11281,8 +11280,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                     variable.cosmeticName!: variable,
                 },
               ),
-            if (case_.isDefault)
-              new CaseHeadOrDefaultInfo(pattern: null, variables: {}),
+            if (case_.isDefault) new CaseDefaultInfo(),
           ],
           body: [case_.body],
           variables: {

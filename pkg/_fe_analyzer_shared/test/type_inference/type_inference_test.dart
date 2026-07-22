@@ -512,16 +512,18 @@ main() {
     group('Switch:', () {
       test('IR', () {
         h.run([
-          switchExpr(expr('int'), [
-            default_.thenExpr(intLiteral(0)),
-          ]).checkIR('switchExpr(expr(int), case(default, 0))'),
+          switchExpr(expr('int'), [wildcard().thenExpr(intLiteral(0))]).checkIR(
+            'switchExpr(expr(int), '
+            'case(head(wildcardPattern(matchedType: int), true, variables()), '
+            '0))',
+          ),
         ]);
       });
 
       test('scrutinee expression schema', () {
         h.run([
           switchExpr(expr('int').checkSchema('_'), [
-            default_.thenExpr(intLiteral(0)),
+            wildcard().thenExpr(intLiteral(0)),
           ]).inTypeSchema('num'),
         ]);
       });
@@ -529,7 +531,7 @@ main() {
       test('body expression schema', () {
         h.run([
           switchExpr(expr('int'), [
-            default_.thenExpr(nullLiteral.checkSchema('C?')),
+            wildcard().thenExpr(nullLiteral.checkSchema('C?')),
           ]).inTypeSchema('C?'),
         ]);
       });
@@ -538,7 +540,7 @@ main() {
         h.run([
           switchExpr(expr('int'), [
             intLiteral(0).pattern.thenExpr(expr('int')),
-            default_.thenExpr(expr('double')),
+            wildcard().thenExpr(expr('double')),
           ]).checkType('num'),
         ]);
       });
@@ -607,7 +609,7 @@ main() {
             h.run([
               switchExpr(expr('double'), [
                     x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
-                    default_.thenExpr(expr('int')),
+                    wildcard().thenExpr(expr('int')),
                   ])
                   .checkType('int')
                   .checkIR(
@@ -616,7 +618,8 @@ main() {
                     'varPattern(x, matchedType: double, staticType: double), '
                     'matchedType: double), true, '
                     'variables(double x = [x1, x2])), expr(int)), '
-                    'case(default, expr(int)))',
+                    'case(head(wildcardPattern(matchedType: double), '
+                    'true, variables()), expr(int)))',
                   ),
             ]);
           });
@@ -629,7 +632,7 @@ main() {
                 [
                   switchExpr(expr('double'), [
                         x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
-                        default_.thenExpr(expr('int')),
+                        wildcard().thenExpr(expr('int')),
                       ])
                       .checkType('int')
                       .checkIR(
@@ -638,8 +641,9 @@ main() {
                         'double), varPattern(x, matchedType: double, '
                         'staticType: double), matchedType: double), true, '
                         'variables(notConsistent:differentFinalityOrType '
-                        'double x = [x1, x2])), expr(int)), case(default, '
-                        'expr(int)))',
+                        'double x = [x1, x2])), expr(int)), '
+                        'case(head(wildcardPattern(matchedType: double), true, '
+                        'variables()), expr(int)))',
                       ),
                 ],
                 expectedErrors: {
@@ -659,7 +663,7 @@ main() {
                             .pattern(type: 'double')
                             .or(x2.pattern(type: 'num'))
                             .thenExpr(expr('int')),
-                        default_.thenExpr(expr('int')),
+                        wildcard().thenExpr(expr('int')),
                       ])
                       .checkType('int')
                       .checkIR(
@@ -668,7 +672,9 @@ main() {
                         'double), varPattern(x, matchedType: double, '
                         'staticType: num), matchedType: double), true, '
                         'variables(notConsistent:differentFinalityOrType error '
-                        'x = [x1, x2])), expr(int)), case(default, expr(int)))',
+                        'x = [x1, x2])), expr(int)), '
+                        'case(head(wildcardPattern(matchedType: double), true, '
+                        'variables()), expr(int)))',
                       ),
                 ],
                 expectedErrors: {
