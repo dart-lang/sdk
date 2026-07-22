@@ -85,6 +85,123 @@ extension AstNodeExtension on AstNode? {
   InstanceCreationExpression? get findInstanceCreationExpression {
     var node = this;
     if (node is ImportPrefixReference) {
+      node = node.parent;
+    }
+    if (node is SimpleIdentifier) {
+      node = node.parent;
+    }
+    if (node is PrefixedIdentifier) {
+      node = node.parent;
+    }
+    if (node is NamedType) {
+      node = node.parent;
+    }
+    if (node is ConstructorName) {
+      node = node.parent;
+    }
+    if (node is InstanceCreationExpression) {
+      return node;
+    }
+    return null;
+  }
+
+  /// Attempts to find and return the closest expression that encloses this
+  /// and is an independent Flutter `Widget`.
+  ///
+  /// Returns `null` if nothing is found.
+  Expression? get findWidgetExpression {
+    for (var node = this; node != null; node = node.parent) {
+      if (!node.isWidgetExpression) {
+        if (node is ArgumentList || node is Statement || node is FunctionBody) {
+          return null;
+        }
+        continue;
+      }
+
+      if (node is AssignmentExpression) {
+        return null;
+      }
+
+      var parent = node.parent;
+
+      if (parent is AssignmentExpression) {
+        if (parent.rightHandSide == node) {
+          return node as Expression;
+        }
+        return null;
+      }
+
+      if (parent is ArgumentList ||
+          parent is ConditionalExpression && parent.thenExpression == node ||
+          parent is ConditionalExpression && parent.elseExpression == node ||
+          parent is ExpressionFunctionBody && parent.expression == node ||
+          parent is ForElement && parent.body == node ||
+          parent is IfElement && parent.thenElement == node ||
+          parent is IfElement && parent.elseElement == node ||
+          parent is ListLiteral ||
+          parent is NamedArgument && parent.argumentExpression == node ||
+          parent is Statement ||
+          parent is SwitchExpressionCase && parent.expression == node ||
+          parent is VariableDeclaration) {
+        return node as Expression;
+      }
+    }
+    return null;
+  }
+
+  /// Whether this [AstNode] is the Flutter class `Widget`, or its subtype.
+  bool get isWidgetExpression {
+    return switch (this) {
+      null => false,
+      AstNode(parent: NamedType()) ||
+      AstNode(parent: AstNode(parent: NamedType())) => false,
+      AstNode(parent: ConstructorName()) => false,
+      NamedArgument() => false,
+      Expression(:var staticType) => staticType.isWidgetType,
+      _ => false,
+    };
+  }
+
+  /// Finds the named expression whose name is the given [name] that is an
+  /// argument to a Flutter instance creation expression.
+  ///
+  /// Returns `null` if any condition cannot be satisfied.
+  NamedArgument? findArgumentNamed(String name) {
+    var self = this;
+    NamedArgument? argument;
+    if (self is NamedArgument) {
+      argument = self;
+    } else if (self?.parent case NamedArgument parent) {
+      argument = parent;
+    } else if (self is SimpleIdentifier) {
+      var parent = self.parent;
+      if (parent is Label && parent.parent is NamedArgument) {
+        argument = parent.parent as NamedArgument;
+      }
+    }
+
+    if (argument == null || argument.name.lexeme != name) {
+      return null;
+    }
+
+    var invocation = argument.parent?.parent;
+    if (invocation is! InstanceCreationExpression ||
+        !invocation.isWidgetCreation) {
+      return null;
+    }
+    return argument;
+  }
+}
+
+extension AstNodeExtension2 on AstNode? {
+  /// Returns the instance creation expression that surrounds this node, if any,
+  /// and otherwise `null`.
+  ///
+  /// This node may be the instance creation expression itself or an (optionally
+  /// prefixed) identifier that names the constructor.
+  InstanceCreationExpression? get findInstanceCreationExpression2 {
+    var node = this;
+    if (node is ImportPrefixReference) {
       node = node.parent2;
     }
     if (node is SimpleIdentifier) {
@@ -109,9 +226,9 @@ extension AstNodeExtension on AstNode? {
   /// and is an independent Flutter `Widget`.
   ///
   /// Returns `null` if nothing is found.
-  Expression? get findWidgetExpression {
+  Expression? get findWidgetExpression2 {
     for (var node = this; node != null; node = node.parent2) {
-      if (!node.isWidgetExpression) {
+      if (!node.isWidgetExpression2) {
         if (node is ArgumentList || node is Statement || node is FunctionBody) {
           return null;
         }
@@ -150,7 +267,7 @@ extension AstNodeExtension on AstNode? {
   }
 
   /// Whether this [AstNode] is the Flutter class `Widget`, or its subtype.
-  bool get isWidgetExpression {
+  bool get isWidgetExpression2 {
     return switch (this) {
       null => false,
       AstNode(parent2: NamedType()) ||
@@ -166,7 +283,7 @@ extension AstNodeExtension on AstNode? {
   /// argument to a Flutter instance creation expression.
   ///
   /// Returns `null` if any condition cannot be satisfied.
-  NamedArgument? findArgumentNamed(String name) {
+  NamedArgument? findArgumentNamed2(String name) {
     var self = this;
     NamedArgument? argument;
     if (self is NamedArgument) {
@@ -377,19 +494,19 @@ extension ElementAnnotationExtension on ElementAnnotation {
 extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// The named expression representing the `builder` argument, or `null` if
   /// there is none.
-  NamedArgument? get builderArgument => argumentList.arguments2
+  NamedArgument? get builderArgument => argumentList.arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isBuilderArgument);
 
   /// The named expression representing the `child` argument, or `null` if there
   /// is none.
-  NamedArgument? get childArgument => argumentList.arguments2
+  NamedArgument? get childArgument => argumentList.arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isChildArgument);
 
   /// The named expression representing the `children` argument, or `null` if
   /// there is none.
-  NamedArgument? get childrenArgument => argumentList.arguments2
+  NamedArgument? get childrenArgument => argumentList.arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isChildrenArgument);
 
@@ -408,18 +525,78 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
 
   /// The named expression representing the `sliver` argument, or `null` if there
   /// is none.
-  NamedArgument? get sliverArgument => argumentList.arguments2
+  NamedArgument? get sliverArgument => argumentList.arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isSliverArgument);
 
   /// The named expression representing the `slivers` argument, or `null` if
   /// there is none.
-  NamedArgument? get sliversArgument => argumentList.arguments2
+  NamedArgument? get sliversArgument => argumentList.arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isSliversArgument);
 
   /// The presentation for this node.
   String? get widgetPresentationText {
+    var element = constructorName.element?.enclosingElement;
+    if (!element.isWidget) {
+      return null;
+    }
+    var arguments = argumentList.arguments;
+    if (element._isExactly('Icon', _uriWidgetsIcon)) {
+      if (arguments.isNotEmpty) {
+        var text = arguments[0].toString();
+        var arg = text.elideTo(32);
+        return 'Icon($arg)';
+      } else {
+        return 'Icon';
+      }
+    }
+    if (element._isExactly('Text', _uriWidgetsText)) {
+      if (arguments.isNotEmpty) {
+        var text = arguments[0].toString();
+        var arg = text.elideTo(32);
+        return 'Text($arg)';
+      } else {
+        return 'Text';
+      }
+    }
+    return element?.name;
+  }
+}
+
+extension InstanceCreationExpressionExtension2 on InstanceCreationExpression {
+  /// The named expression representing the `builder` argument, or `null` if
+  /// there is none.
+  NamedArgument? get builderArgument2 => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isBuilderArgument);
+
+  /// The named expression representing the `child` argument, or `null` if there
+  /// is none.
+  NamedArgument? get childArgument2 => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isChildArgument);
+
+  /// The named expression representing the `children` argument, or `null` if
+  /// there is none.
+  NamedArgument? get childrenArgument2 => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isChildrenArgument);
+
+  /// The named expression representing the `sliver` argument, or `null` if there
+  /// is none.
+  NamedArgument? get sliverArgument2 => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isSliverArgument);
+
+  /// The named expression representing the `slivers` argument, or `null` if
+  /// there is none.
+  NamedArgument? get sliversArgument2 => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isSliversArgument);
+
+  /// The presentation for this node.
+  String? get widgetPresentationText2 {
     var element = constructorName.element?.enclosingElement;
     if (!element.isWidget) {
       return null;

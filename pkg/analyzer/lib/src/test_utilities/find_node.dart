@@ -6,13 +6,60 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
-class FindNode {
+class FindNode extends _FindNodeBase {
+  FindNode(super.content, super.unit);
+
+  @override
+  AstNode? _locateNode(int offset) {
+    return NodeLocator(offset).searchWithin(unit);
+  }
+
+  @override
+  List<T> _nodes<T extends AstNode>() {
+    var visitor = _TypedNodeVisitor<T>();
+    unit.accept(visitor);
+    return visitor.nodes;
+  }
+
+  @override
+  AstNode? _thisOrAncestorMatching(
+    AstNode node,
+    bool Function(AstNode) predicate,
+  ) {
+    return node.thisOrAncestorMatching(predicate);
+  }
+}
+
+class FindNode2 extends _FindNodeBase {
+  FindNode2(super.content, super.unit);
+
+  @override
+  AstNode? _locateNode(int offset) {
+    return NodeLocator2(offset).searchWithin(unit);
+  }
+
+  @override
+  List<T> _nodes<T extends AstNode>() {
+    var visitor = _TypedNodeVisitor2<T>();
+    unit.accept2(visitor);
+    return visitor.nodes;
+  }
+
+  @override
+  AstNode? _thisOrAncestorMatching(
+    AstNode node,
+    bool Function(AstNode) predicate,
+  ) {
+    return node.thisOrAncestorMatching2(predicate);
+  }
+}
+
+abstract class _FindNodeBase {
   final String content;
   final CompilationUnit unit;
 
-  FindNode(this.content, this.unit);
+  _FindNodeBase(this.content, this.unit);
 
   BinaryExpression get firstBinaryExpression => _first();
 
@@ -23,9 +70,7 @@ class FindNode {
   FormalParameterList get firstFormalParameterList => _first();
 
   List<MethodInvocation> get methodInvocations {
-    var result = <MethodInvocation>[];
-    unit.accept2(FunctionAstVisitor(methodInvocation: result.add));
-    return result;
+    return _nodes<MethodInvocation>();
   }
 
   AdjacentStrings get singleAdjacentStrings => _single();
@@ -599,7 +644,7 @@ class FindNode {
   }
 
   FormalParameterList formalParameterList(String search) {
-    // If the search starts with `(` then NodeLocator will locate the definition
+    // If the search starts with `(` then the locator will find the definition
     // before it, so offset the search to within the parameter list.
     var locateOffset = search.startsWith('(') ? 1 : 0;
     return _node(
@@ -1080,10 +1125,10 @@ class FindNode {
   /// If [unit] has at least one node of type [T], returns the first one.
   /// Otherwise, throws.
   T _first<T extends AstNode>() {
-    var visitor = _TypedNodeVisitor<T>();
-    unit.accept2(visitor);
-    return visitor.nodes.first;
+    return _nodes<T>().first;
   }
+
+  AstNode? _locateNode(int offset);
 
   /// Locates a node at the offset of [search] and returns the first ancestor
   /// matching [predicate].
@@ -1097,14 +1142,14 @@ class FindNode {
   }) {
     int offset = this.offset(search) + (locateOffset ?? 0);
 
-    var node = NodeLocator2(offset).searchWithin(unit);
+    var node = _locateNode(offset);
     if (node == null) {
       throw StateError(
         'The pattern |$search| had no corresponding node in:\n$content',
       );
     }
 
-    var result = node.thisOrAncestorMatching2(predicate);
+    var result = _thisOrAncestorMatching(node, predicate);
     if (result == null) {
       throw StateError(
         'The node for |$search| had no matching ancestor in:\n$content\n$unit',
@@ -1113,16 +1158,34 @@ class FindNode {
     return result as T;
   }
 
+  List<T> _nodes<T extends AstNode>();
+
   /// If [unit] has exactly one node of type [T], returns it.
   /// Otherwise, throws.
   T _single<T extends AstNode>() {
-    var visitor = _TypedNodeVisitor<T>();
-    unit.accept2(visitor);
-    return visitor.nodes.single;
+    return _nodes<T>().single;
   }
+
+  AstNode? _thisOrAncestorMatching(
+    AstNode node,
+    bool Function(AstNode) predicate,
+  );
 }
 
 class _TypedNodeVisitor<T extends AstNode>
+    extends GeneralizingAstVisitor<void> {
+  final List<T> nodes = [];
+
+  @override
+  void visitNode(AstNode node) {
+    if (node is T) {
+      nodes.add(node);
+    }
+    super.visitNode(node);
+  }
+}
+
+class _TypedNodeVisitor2<T extends AstNode>
     extends GeneralizingAstVisitor2<void> {
   final List<T> nodes = [];
 

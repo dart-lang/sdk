@@ -445,7 +445,7 @@ final class TestResolvedUnitResult {
 
   late final FindElement2 findElement = FindElement2(unit);
 
-  late final FindNode findNode = FindNode(content, unit);
+  late final FindNode2 findNode = FindNode2(content, unit);
 
   TestResolvedUnitResult(this.analysisResult);
 
@@ -491,8 +491,8 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
     return FindElement2(unit);
   }
 
-  FindNode get findNode {
-    return FindNode(content, unit);
+  FindNode2 get findNode {
+    return FindNode2(content, unit);
   }
 
   InheritanceManager3 get inheritanceManager {

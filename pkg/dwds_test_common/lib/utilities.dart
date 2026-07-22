@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -32,6 +33,12 @@ String get fixturesPath {
 /// root in the local machine, e.g. 'webdev/dwds_test_common' or
 /// 'pkg/dwds_test_common'.
 String get _dwdsTestCommonPackageRoot {
+  final packageUri = Isolate.resolvePackageUriSync(
+    Uri.parse('package:dwds_test_common/utilities.dart'),
+  );
+  if (packageUri != null) {
+    return p.dirname(p.dirname(packageUri.toFilePath()));
+  }
   final scriptPath = Platform.script.toFilePath();
   final isTest = scriptPath.contains('dart_test.kernel');
   if (isTest) {
@@ -51,6 +58,12 @@ String get _dwdsTestCommonPackageRoot {
   var current = p.dirname(scriptPath);
   while (current != p.dirname(current)) {
     if (File(p.join(current, 'pubspec.yaml')).existsSync()) {
+      if (p.basename(current) == 'dwds') {
+        final testCommonPath = p.join(p.dirname(current), 'dwds_test_common');
+        if (Directory(testCommonPath).existsSync()) {
+          return testCommonPath;
+        }
+      }
       return current; // This is the package root
     }
     current = p.dirname(current);

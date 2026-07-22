@@ -117,7 +117,7 @@ class ParserDiagnosticsTest {
 }
 
 extension ParseStringResultExtension on ParseStringResult {
-  FindNode get findNode {
-    return FindNode(content, unit);
+  FindNode2 get findNode {
+    return FindNode2(content, unit);
   }
 }
