@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
@@ -27,9 +29,9 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, an empty list if there are no experiments that should be enabled.
-  List<String> get experiments => experimentsForTests;
+  /// Return a list of the experimental features that are to be enabled for
+  /// tests in this class.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   @override
   String get packagesRootPath => '/packages';
@@ -64,18 +66,16 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String>? experiments}) {
-    var buffer = StringBuffer();
-    buffer.writeln('analyzer:');
-
-    if (experiments != null) {
-      buffer.writeln('  enable-experiment:');
-      for (var experiment in experiments) {
-        buffer.writeln('    - $experiment');
-      }
-    }
-
-    newFile(testPackageAnalysisOptionsPath, buffer.toString());
+  void createAnalysisOptionsFile({
+    List<Feature> experimentalFeatures = const [],
+  }) {
+    newFile(
+      testPackageAnalysisOptionsPath,
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        propagateLinterExceptions: false,
+      ),
+    );
   }
 
   @override
@@ -104,7 +104,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
 
     newFolder(testPackageRootPath);
     writeTestPackageConfig();
-    createAnalysisOptionsFile(experiments: experiments);
+    createAnalysisOptionsFile(experimentalFeatures: experimentalFeatures);
   }
 
   @mustCallSuper

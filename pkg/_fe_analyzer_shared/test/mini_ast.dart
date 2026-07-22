@@ -6070,16 +6070,17 @@ class VariableDeclaration extends Statement {
     h.irBuilder.atom(variable.name, Kind.variable, location: location);
     Type staticType;
     if (initializer == null) {
+      // There's no shared logic for analyzing uninitialized variable
+      // declarations, so analyze the declaration directly.
       // Use the shared logic for analyzing uninitialized variable
       // declarations.
-      staticType = h.typeAnalyzer
-          .analyzeUninitializedVariableDeclaration(
-            this,
-            variable,
-            declaredType?.wrapSharedTypeView(),
-            isFinal: isFinal,
-          )
-          .unwrapTypeView();
+      staticType = declaredType ?? Type('dynamic');
+      variable.type = staticType;
+      h.flow.declare(
+        variable,
+        staticType.wrapSharedTypeView(),
+        initialized: false,
+      );
       h.irBuilder.atom(staticType.type, Kind.type, location: location);
       irName = 'declare';
       argKinds = [Kind.variable, Kind.type];

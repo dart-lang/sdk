@@ -177,7 +177,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       // Factory cycles are reported in elsewhere in
       // [ErrorVerifier._checkForRecursiveFactoryRedirect].
       var element = node.declaredFragment!.element;
-      if (!element.isCycleFree && !element.isFactory) {
+      if (!element.isCycleFree &&
+          element.isGenerative &&
+          !element.isInRedirectingConstructorCycle) {
         _diagnosticReporter.report(
           diag.recursiveConstantConstructor.atSourceRange(node.errorRange),
         );

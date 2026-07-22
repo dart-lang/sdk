@@ -24,7 +24,7 @@ class ErrorSuppressionTest extends PubPackageResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         rules: ['avoid_types_as_parameter_names'],
       ),
     );

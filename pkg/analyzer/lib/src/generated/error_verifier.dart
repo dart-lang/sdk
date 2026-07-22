@@ -6921,7 +6921,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// See [diag.recursiveConstructorRedirect].
   void _checkForRecursiveConstructorRedirect(
     ConstructorDeclaration declaration,
-    ConstructorElement constructorElement,
+    ConstructorElementImpl constructorElement,
   ) {
     // we check generative constructor here
     if (declaration.factoryKeyword != null) {
@@ -6931,7 +6931,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     // recursion
     for (ConstructorInitializer initializer in declaration.initializers) {
       if (initializer is RedirectingConstructorInvocation) {
-        if (_hasRedirectingFactoryConstructorCycle(constructorElement)) {
+        if (constructorElement.isInRedirectingConstructorCycle) {
           diagnosticReporter.report(
             diag.recursiveConstructorRedirect.at(initializer),
           );
@@ -6948,7 +6948,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// See [diag.recursiveFactoryRedirect].
   bool _checkForRecursiveFactoryRedirect(
     ConstructorDeclaration declaration,
-    ConstructorElement element,
+    ConstructorElementImpl element,
   ) {
     // prepare redirected constructor
     var redirectedConstructorNode = declaration.redirectedConstructor;
@@ -6956,7 +6956,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return false;
     }
     // OK if no cycle
-    if (!_hasRedirectingFactoryConstructorCycle(element)) {
+    if (!element.isInRedirectingConstructorCycle) {
       return false;
     }
     // report error
@@ -8198,21 +8198,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       buffer.write(")");
     }
     return buffer.toString();
-  }
-
-  /// Return `true` if the given [constructor] redirects to itself, directly or
-  /// indirectly.
-  bool _hasRedirectingFactoryConstructorCycle(ConstructorElement constructor) {
-    Set<ConstructorElement> constructors = HashSet<ConstructorElement>();
-    ConstructorElement? current = constructor;
-    while (current != null) {
-      if (constructors.contains(current)) {
-        return identical(current, constructor);
-      }
-      constructors.add(current);
-      current = current.redirectedConstructor?.baseElement;
-    }
-    return false;
   }
 
   /// Returns `true` if the given [library] is the `dart:ffi` library.

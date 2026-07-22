@@ -195,6 +195,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
           flags.isOriginMixinApplication == element.isOriginMixinApplication &&
           flags.isPrimary == element.isPrimary &&
           flags.isRedirecting == element.isRedirecting &&
+          flags.isInRedirectingConstructorCycle ==
+              element.isInRedirectingConstructorCycle &&
           constantInitializers.match(context, element.constantInitializers) &&
           redirectedConstructor.match(context, element.redirectedConstructor) &&
           superConstructor.match(context, element.superConstructor);
@@ -1687,6 +1689,7 @@ enum _ConstructorItemFlag {
   isOriginMixinApplication,
   isPrimary,
   isRedirecting,
+  isInRedirectingConstructorCycle,
 }
 
 enum _ExecutableItemFlag {
@@ -1865,6 +1868,9 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isRedirecting) {
       bits |= _maskFor(_ConstructorItemFlag.isRedirecting);
     }
+    if (element.isInRedirectingConstructorCycle) {
+      bits |= _maskFor(_ConstructorItemFlag.isInRedirectingConstructorCycle);
+    }
     return _ConstructorItemFlags._(bits);
   }
 
@@ -1878,6 +1884,10 @@ extension type _ConstructorItemFlags._(int _bits)
 
   bool get isFactory {
     return _has(_ConstructorItemFlag.isFactory);
+  }
+
+  bool get isInRedirectingConstructorCycle {
+    return _has(_ConstructorItemFlag.isInRedirectingConstructorCycle);
   }
 
   bool get isOriginDeclaration {

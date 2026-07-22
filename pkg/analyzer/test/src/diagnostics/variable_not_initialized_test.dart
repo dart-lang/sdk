@@ -1929,6 +1929,18 @@ extension type A(int it) {
 ''');
   }
 
+  test_extensionType_instanceField1_final_noInitializer_secondaryConstructor_named_augmentExternal() async {
+    await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {
+  A.named(int it);
+}
+
+augment extension type A {
+  augment external A.named(int it);
+}
+''');
+  }
+
   test_extensionType_instanceField1_final_noInitializer_secondaryConstructor_named_constructorInitializer() async {
     await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {

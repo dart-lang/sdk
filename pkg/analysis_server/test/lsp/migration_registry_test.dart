@@ -32,8 +32,8 @@ class MigrationRegistryTest {
     var lintsWithIncorrectProducerCount = <String, int>{};
 
     var allRegistryLints = {
-      ...postMigrationLintsRegistry.values.expand((e) => e),
-      ...preMigrationLintsRegistry.values.expand((e) => e),
+      ...cleanUpLintsRegistry.values.expand((e) => e),
+      ...preparatoryLintsRegistry.values.expand((e) => e),
     };
 
     var diagnosticCodes = <DiagnosticCode>[

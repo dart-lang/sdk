@@ -26,7 +26,7 @@ class InvalidUseOfInternalMemberTest extends PubPackageResolutionTest {
     super.setUp();
     newAnalysisOptionsYamlFile(
       fooPackageRootPath,
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
     writeTestPackageConfig(
       PackageConfigFileBuilder()

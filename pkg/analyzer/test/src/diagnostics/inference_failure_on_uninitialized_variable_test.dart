@@ -22,7 +22,10 @@ class InferenceFailureOnUninitializedVariableTest
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments, strictInference: true),
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        strictInference: true,
+      ),
     );
   }
 

@@ -53,6 +53,15 @@ class C {
 ''');
   }
 
+  test_constructor_externalFactory_nonNullable_named_optional_noDefault_augment() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  factory C({int a});
+  augment external factory C({int a});
+}
+''');
+  }
+
   test_constructor_externalFactory_nonNullable_positional_optional_noDefault() async {
     await resolveTestCodeWithDiagnostics('''
 class C {
@@ -76,6 +85,15 @@ class C {
 //               ^
 // [diag.missingDefaultValueForParameter] The parameter 'a' can't have a value of 'null' because of its type, but the implicit default value is 'null'.
   C._();
+}
+''');
+  }
+
+  test_constructor_factory_nonNullable_named_optional_noDefault_augment_external() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  factory C({int a});
+  augment external factory C({int a});
 }
 ''');
   }

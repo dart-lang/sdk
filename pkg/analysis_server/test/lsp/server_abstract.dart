@@ -30,6 +30,7 @@ import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 import 'package:meta/meta.dart';
@@ -303,16 +304,13 @@ abstract class AbstractLspAnalysisServerTest
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
 
-    var experiments = StringBuffer();
-    for (var experiment in experimentsForTests) {
-      experiments.writeln('    - $experiment');
-    }
-
-    newFile(analysisOptionsPath, '''
-analyzer:
-  enable-experiment:
-$experiments
-''');
+    newFile(
+      analysisOptionsPath,
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeaturesForTests,
+        propagateLinterExceptions: false,
+      ),
+    );
 
     writeTestPackageConfig();
   }

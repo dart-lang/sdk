@@ -53,13 +53,13 @@ class ConstructorFieldsVerifier {
     required _Interface interfaceFields,
     required ConstructorDeclarationImpl node,
   }) {
+    var fragment = node.declaredFragment!;
     if (node.factoryKeyword != null ||
         node.redirectedConstructor != null ||
-        node.externalKeyword != null) {
+        fragment.element.isExternal) {
       return;
     }
 
-    var fragment = node.declaredFragment!;
     var constructorState = interfaceFields.forConstructor(
       diagnosticReporter: diagnosticReporter,
       element: fragment.element,

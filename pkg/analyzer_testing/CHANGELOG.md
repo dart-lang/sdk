@@ -1,5 +1,10 @@
-## 0.3.5-dev
+## 0.4.0-dev
 
+- Breaking change: use `Feature` objects instead of strings when configuring
+  experiments in testing APIs. This replaces `experimentsForTests` with
+  `experimentalFeaturesForTests`, renames the `analysisOptionsContent`
+  `experiments` parameter to `experimentalFeatures`, and replaces the
+  `PubPackageResolutionTest.experiments` getter with `experimentalFeatures`.
 - Require version `14.2.0-dev` of the `analyzer` package.
 
 ## 0.3.4

@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -253,7 +254,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     writeTestPackageConfig();
 
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: ['macros']),
+      analysisOptionsContent(experimentalFeatures: [Feature.macros]),
     );
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {

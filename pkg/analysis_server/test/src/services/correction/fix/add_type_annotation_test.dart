@@ -225,7 +225,7 @@ f() {
 
   Future<void> test_primaryConstructor_final() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.always_specify_types],
     );
     await resolveTestCode(r'''
@@ -238,7 +238,7 @@ class A([final int b = 1]);
 
   Future<void> test_primaryConstructor_var() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.always_specify_types],
     );
     await resolveTestCode(r'''
