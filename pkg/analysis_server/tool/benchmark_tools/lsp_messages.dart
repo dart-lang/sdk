@@ -218,6 +218,8 @@ class LspMessages {
               },
             },
           },
+          // Used to get progress notifications for analysis.
+          'window': {'workDoneProgress': true},
         },
         'workspaceFolders': [
           {'uri': '$rootUri', 'name': name},
@@ -260,6 +262,15 @@ class LspMessages {
         'position': {'line': location.line, 'character': location.column},
         'context': {'includeDeclaration': true},
       },
+    };
+  }
+
+  static Map<String, dynamic> response(Object? id, Object? result) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'result': result,
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };
   }
 
