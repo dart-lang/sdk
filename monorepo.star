@@ -213,6 +213,12 @@ _monorepo_builder(
     "android-debug-x86",
     "flutter-engine",
 )
+_monorepo_builder("flutter-linux-fuchsia_debug_x64", "fuchsia-debug-x64", "flutter-engine")
+_monorepo_builder("flutter-linux-fuchsia_profile_x64", "fuchsia-profile-x64", "flutter-engine")
+_monorepo_builder("flutter-linux-fuchsia_release_x64", "fuchsia-release-x64", "flutter-engine")
+_monorepo_builder("flutter-linux-fuchsia_debug_arm64", "fuchsia-debug-arm64", "flutter-engine")
+_monorepo_builder("flutter-linux-fuchsia_profile_arm64", "fuchsia-profile-arm64", "flutter-engine")
+_monorepo_builder("flutter-linux-fuchsia_release_arm64", "fuchsia-release-x64arm64", "flutter-engine")
 _monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
 _monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
 _monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
