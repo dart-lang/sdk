@@ -130,6 +130,13 @@ class LspAnalysisServer extends AnalysisServer {
   final Completer<InitializedStateMessageHandler> _lspInitializedCompleter =
       Completer<InitializedStateMessageHandler>();
 
+  /// A completer that tracks in-progress workspace folders update.
+  ///
+  /// Starts completed and will be replaced each time workspace folders are
+  /// being updated (which can trigger async work such as fetching client
+  /// configuration or dynamic registrations).
+  Completer<void> workspaceFolderUpdateCompleter = Completer()..complete();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   new(
@@ -285,6 +292,14 @@ class LspAnalysisServer extends AnalysisServer {
   @protected
   bool get supportsShowMessageRequest =>
       editorClientCapabilities?.supportsShowMessageRequest ?? false;
+
+  /// A [Future] that completes when any in-progress workspace folder update
+  /// completes.
+  ///
+  /// If no workspace folder update is in progress, will return an already complete
+  /// [Future].
+  Future<void> get workspaceFolderUpdate =>
+      workspaceFolderUpdateCompleter.future;
 
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
@@ -1049,9 +1064,14 @@ class LspAnalysisServer extends AnalysisServer {
       ..addAll(addedNormalized)
       ..removeAll(removedNormalized);
 
-    await fetchClientConfigurationAndPerformDynamicRegistration();
+    var completer = workspaceFolderUpdateCompleter = Completer();
+    try {
+      await fetchClientConfigurationAndPerformDynamicRegistration();
 
-    await _refreshAnalysisRoots();
+      await _refreshAnalysisRoots();
+    } finally {
+      completer.complete();
+    }
   }
 
   void _afterOverlayChanged(

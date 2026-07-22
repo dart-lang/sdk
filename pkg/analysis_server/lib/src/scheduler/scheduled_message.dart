@@ -66,7 +66,6 @@ final class LspMessage extends ScheduledMessage {
       RequestMessage() => '${msg.method}:${msg.id}',
       NotificationMessage() => '${msg.method}',
       ResponseMessage() => 'ResponseMessage:${msg.id}',
-      Message() => 'Message',
     };
   }
 

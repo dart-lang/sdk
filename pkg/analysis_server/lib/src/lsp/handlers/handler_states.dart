@@ -23,6 +23,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_summary.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_update_diagnostic_information.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_workspace_analysis_complete.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
@@ -158,6 +159,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         TypeHierarchySupertypesHandler.new,
         UpdateDiagnosticInformationHandler.new,
         WillRenameFilesHandler.new,
+        WorkspaceAnalysisCompleteHandler.new,
         WorkspaceFlutterWidgetPreviewsHandler.new,
         WorkspaceSymbolHandler.new,
       ];

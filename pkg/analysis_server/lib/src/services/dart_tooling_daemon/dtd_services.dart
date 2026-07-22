@@ -173,11 +173,11 @@ class DtdServices {
     OperationPerformanceImpl performance,
   ) {
     // Map the incoming request into types we use for LSP request handling.
-    var message = IncomingMessage(
-      jsonrpc: jsonRpcVersion,
-      method: method,
-      params: params.value,
-    );
+    var message = IncomingMessage.fromJson({
+      'jsonrpc': jsonRpcVersion,
+      'method': method.toJson(),
+      'params': params.value as Map<String, Object?>?,
+    });
     var scheduler = _server.messageScheduler;
     var completer = Completer<Map<String, Object?>>();
     scheduler.add(

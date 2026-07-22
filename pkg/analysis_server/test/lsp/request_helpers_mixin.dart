@@ -1039,6 +1039,11 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, (Null n) => n);
   }
 
+  Future<void> workspaceAnalysisComplete() {
+    var request = makeRequest(CustomMethods.workspaceAnalysisComplete, null);
+    return expectSuccessfulResponseTo(request, (Null n) => n);
+  }
+
   /// A helper that performs some checks on a completion sent back during
   /// tests to check for any unnecessary data in the payload that could be
   /// reduced.
