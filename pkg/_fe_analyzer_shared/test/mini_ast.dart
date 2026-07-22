@@ -593,6 +593,16 @@ Statement switch_(
   bool? expectRequiresExhaustivenessValidation,
   String? expectScrutineeType,
 }) {
+  for (var i = 0; i < cases.length - 1; i++) {
+    var case_ = cases[i];
+    if (case_.body.statements.isEmpty) {
+      throw StateError(
+        'Only the last case in a switch statement may have an empty body. '
+        'Either add an explicit `break_()`, or use `switchStatementMember` to '
+        'group cases that share a body.\n${case_.body.location}',
+      );
+    }
+  }
   var location = computeLocation();
   return new SwitchStatement(
     expression.asExpression(location: location),

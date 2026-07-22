@@ -7426,7 +7426,9 @@ main() {
             wildcard().as_('num').when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'num'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             wildcard().as_('int').then([
               checkNotPromoted(c.property('_property')),
             ]),
@@ -8443,7 +8445,9 @@ main() {
             listPattern([]).when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'List<Object?>'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             listPattern([]).then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
@@ -8684,7 +8688,9 @@ main() {
             ]).when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'Map<Object?, Object?>'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             mapPattern([
               mapPatternEntry(intLiteral(0), wildcard()),
             ]).then([checkNotPromoted(c.property('_property'))]),
@@ -8791,9 +8797,9 @@ main() {
                 wildcard().nullAssert.when(expr('bool')).then([
                   checkPromoted(c.property('_property'), 'int'),
                 ]),
-                wildcard()
-                    .when(second(c.write(expr('C')), expr('bool')))
-                    .then([]),
+                wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+                  break_(),
+                ]),
                 (wildcard().nullAssert..errorId = 'SECOND_NULL_ASSERT').then([
                   checkNotPromoted(c.property('_property')),
                 ]),
@@ -8961,9 +8967,9 @@ main() {
               wildcard().nullCheck.when(expr('bool')).then([
                 checkPromoted(c.property('_property'), 'int'),
               ]),
-              wildcard()
-                  .when(second(c.write(expr('C')), expr('bool')))
-                  .then([]),
+              wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+                break_(),
+              ]),
               wildcard().nullCheck.then([
                 checkNotPromoted(c.property('_property')),
               ]),
@@ -9148,7 +9154,9 @@ main() {
             objectPattern(requiredType: 'int', fields: [])
                 .when(expr('bool'))
                 .then([checkPromoted(c.property('_property'), 'int')]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             objectPattern(
               requiredType: 'int',
               fields: [],
@@ -9377,7 +9385,9 @@ main() {
             recordPattern([]).when(expr('bool')).then([
               checkPromoted(c.property('_property'), '()'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             recordPattern([]).then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
@@ -10640,7 +10650,9 @@ main() {
             x.pattern(type: 'int').when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'int'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             y.pattern(type: 'int').then([
               checkNotPromoted(c.property('_property')),
             ]),
@@ -10828,7 +10840,9 @@ main() {
             wildcard(type: 'int').when(expr('bool')).then([
               checkPromoted(c.property('_property'), 'int'),
             ]),
-            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([]),
+            wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
+              break_(),
+            ]),
             wildcard(
               type: 'int',
             ).then([checkNotPromoted(c.property('_property'))]),
