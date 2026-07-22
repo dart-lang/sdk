@@ -681,6 +681,13 @@ abstract class DartDebugAdapter<
     logger?.call('Connected to debugger at $uri!');
     sendConsoleOutput('Connected to the VM Service.');
 
+    this.vmService = vmService;
+
+    // Configure isolate settings (requirePermissionToResume) immediately
+    // after connecting so DDS knows we require resume approval before
+    // performing other async setup RPCs.
+    await _configureIsolateSettings(vmService);
+
     // Fetch DDS capabilities.
     final supportedProtocols = await vmService.getSupportedProtocols();
     final ddsProtocol = supportedProtocols.protocols?.firstWhereOrNull(
@@ -696,8 +703,6 @@ abstract class DartDebugAdapter<
 
     // Send debugger URI to the client.
     sendDebuggerUris(uri);
-
-    this.vmService = vmService;
 
     unawaited(vmService.onDone.then((_) => _handleVmServiceClosed()));
 
@@ -736,7 +741,6 @@ abstract class DartDebugAdapter<
     // Let the subclass do any existing setup once we have a connection.
     await debuggerConnected(vmInfo);
 
-    await _configureIsolateSettings(vmService);
     await _withErrorHandling(
       () => _configureExistingIsolates(vmService, vmInfo),
     );
@@ -781,6 +785,22 @@ abstract class DartDebugAdapter<
   }
 
   Future<void> _configureIsolateSettings(vm.VmService vmService) async {
+    try {
+      // Make sure DDS waits for DAP to be ready to resume before forwarding
+      // resume requests to the VM Service. This must be done BEFORE any other
+      // async calls so we don't yield to the event loop and allow DDS to
+      // accidentally resume an isolate.
+      await vmService.requirePermissionToResume(
+        onPauseStart: true,
+        onPauseExit: true,
+      );
+    } catch (e) {
+      // If DDS is not enabled, calling these DDS service extensions will fail.
+      // Therefore catch and log any errors.
+      logger?.call(
+        'Failure configuring isolate settings (requirePermissionToResume): $e',
+      );
+    }
     // If this is an attach workflow, check whether pause_isolates_on_start or
     // pause_isolates_on_exit were already set, and if not set them (note: this
     // is already done as part of the launch workflow):
@@ -808,13 +828,6 @@ abstract class DartDebugAdapter<
     }
 
     try {
-      // Make sure DDS waits for DAP to be ready to resume before forwarding
-      // resume requests to the VM Service:
-      await vmService.requirePermissionToResume(
-        onPauseStart: true,
-        onPauseExit: true,
-      );
-
       // Specify whether DDS should wait for a user-initiated resume as well as a
       // DAP-initiated resume:
       await vmService.requireUserPermissionToResume(

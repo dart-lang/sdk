@@ -532,12 +532,18 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       new IsolateGroupData(script_uri, /*asset_resolution_base=*/nullptr,
                            packages_config, nullptr, false);
   ASSERT(flags != nullptr);
+  flags->is_service_isolate = true;
+  flags->is_system_isolate = true;
 
   const uint8_t* snapshot_data = nullptr;
   const uint8_t* snapshot_text = nullptr;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  uint8_t* kernel_buffer = nullptr;
+  intptr_t kernel_buffer_size = 0;
+#endif
 
 #if defined(EXPERIMENTAL_VM_SERVICE)
-  if (Options::experimental_vm_service()) {
+  if (!Options::disable_experimental_vm_service()) {
     VmService::enable_experimental_vm_service = true;
     const bool vm_service_explicitly_requested =
         (Options::vm_service_server_port() >= 0);
@@ -566,8 +572,50 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
         return nullptr;
       }
     }
-    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
+    // The VM service can be loaded from different types of snapshots depending
+    // on how the SDK was built and the current execution mode:
+    //
+    // 1. JIT/AOT Snapshot: If we have a pre-compiled AppJIT or AOT snapshot
+    //    for the VM service (e.g. dart_runtime_service_vm.dart.snapshot), we
+    //    load it directly. The buffers are owned by the loaded snapshot
+    //    object, which we register with the isolate group to keep it alive.
+    if (app_snapshot->IsJITorAOT()) {
+      app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
+      isolate_group_data->AddLoadedSnapshot(app_snapshot);
+    } else {
+      // 2. Kernel: If the snapshot file is a Kernel (Dill) file. This
+      //    happens on simulator and cross-compiled builds (where
+      //    dart_snapshot_kind is set to "kernel" to cut down on build time).
+      //    In this case, we load the VM service from the Kernel buffer read
+      //    from the script file.
+      if (app_snapshot->IsKernel()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        File* file = File::Open(nullptr, script_name.get(), File::kRead);
+        if (file != nullptr) {
+          kernel_buffer_size = file->Length();
+          kernel_buffer =
+              reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
+          if (file->ReadFully(kernel_buffer, kernel_buffer_size)) {
+            isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
+                                                          kernel_buffer_size);
+          } else {
+            free(kernel_buffer);
+            kernel_buffer = nullptr;
+            kernel_buffer_size = 0;
+          }
+          file->Close();
+          file->Release();
+        }
+        snapshot_data = core_snapshot_data;
+        snapshot_text = core_snapshot_text;
+#else
+        UNREACHABLE();
+#endif
+      }
+      delete app_snapshot;
+    }
   } else {
+    VmService::enable_experimental_vm_service = false;
 #endif  // defined(EXPERIMENTAL_VM_SERVICE)
 #if defined(DART_PRECOMPILED_RUNTIME)
     // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT
@@ -595,6 +643,14 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   }
 
   Dart_EnterScope();
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_buffer != nullptr) {
+    Dart_Handle result =
+        Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
+    CHECK_RESULT(result);
+  }
+#endif
 
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);

@@ -233,7 +233,7 @@ class DartCliDebugAdapter
         ? Uri.parse(vmServiceUri)
         : await waitForVmServiceInfoFile(logger, File(vmServiceInfoFile!));
 
-    unawaited(connectDebugger(uri));
+    await connectDebugger(uri);
   }
 
   /// Calls the client (via a `runInTerminal` request) to spawn the process so
