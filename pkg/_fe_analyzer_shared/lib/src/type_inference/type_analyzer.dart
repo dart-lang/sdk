@@ -492,8 +492,9 @@ mixin TypeAnalyzer<
   SharedTypeSchemaView analyzeCastPatternSchema() => operations.unknownType;
 
   /// Analyzes a constant pattern.  [node] is the pattern itself, and
-  /// [expression] is the constant expression.  Depending on the client's
-  /// representation, [node] and [expression] might or might not be identical.
+  /// [expression] is the constant expression. `null` may be passed for [node]
+  /// in the event that the pattern being analyzed is part of an old-style
+  /// switch statement (and hence there is no pattern AST node).
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
@@ -503,7 +504,7 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression).
   ConstantPatternResult<Error> analyzeConstantPattern(
     MatchContext<Node, Expression, Pattern, Variable> context,
-    Node node,
+    Pattern? node,
     Expression expression,
   ) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
@@ -513,7 +514,7 @@ mixin TypeAnalyzer<
     if (irrefutableContext != null) {
       refutablePatternInIrrefutableContextError = errors
           .refutablePatternInIrrefutableContext(
-            pattern: node,
+            pattern: node ?? expression,
             context: irrefutableContext,
           );
     }

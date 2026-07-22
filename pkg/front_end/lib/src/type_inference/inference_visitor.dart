@@ -10895,7 +10895,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node is InternalPattern) {
       return node.acceptInference(this, context);
     } else {
-      return analyzeConstantPattern(context, node, node as InternalExpression);
+      return analyzeConstantPattern(context, null, node as InternalExpression);
     }
   }
 

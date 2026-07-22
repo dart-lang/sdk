@@ -826,7 +826,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       // [ConstantPatternImpl.resolvePattern] would do.
       analysisResult = analyzeConstantPattern(
         context,
-        node,
+        null,
         node as ExpressionImpl,
       );
       // Stack: (Expression)
