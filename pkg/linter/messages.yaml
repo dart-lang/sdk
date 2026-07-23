@@ -13230,6 +13230,43 @@ LinterLintCode:
       stable: "3.11"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable is declared
+      without a type annotation and the initializing expression is not [obviously-typed](https://dart.dev/glossary/obviously-typed).
+
+      Type annotations on local variables improve code readability by making the
+      expected type explicit, which helps readers understand the code without analyzing
+      complex initializer expressions.
+
+      #### Example
+
+      The following code produces this diagnostic because the variable `x` is
+      not obviously-typed;  its type is inferred from the return type of `f`, 
+      which requires looking at the declaration of `f`:
+
+      ```dart
+      List<Map<String, int>> f() => [];
+
+      void g() {
+        var [!x!] = f();
+        print(x);
+      }
+      ```
+
+      #### Common fixes
+
+      Add an explicit type annotation:
+
+      ```dart
+      List<Map<String, int>> f() => [];
+
+      void g() {
+        List<Map<String, int>> x = f();
+        print(x);
+      }
+      ```
     deprecatedDetails: |-
       Do type annotate initialized local variables when
       the type is [non-obvious](https://dart.dev/glossary/obviously-typed).
