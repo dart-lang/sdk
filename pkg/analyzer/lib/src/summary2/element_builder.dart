@@ -1524,7 +1524,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         _addChildFragment(field);
 
         AstNodeImpl.linkNodeTokens(initializer);
-        field.constantInitializer = initializer;
+        field.constantInitializer2 = initializer;
 
         valuesElements.add(
           SimpleIdentifierImpl(token: StringToken(TokenType.STRING, name, -1)),
@@ -1545,7 +1545,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         rightBracket: Tokens.closeSquareBracket(),
       );
       AstNodeImpl.linkNodeTokens(initializer);
-      valuesField.constantInitializer = initializer;
+      valuesField.constantInitializer2 = initializer;
 
       var variableDeclaration = VariableDeclarationImpl(
         comment: null,
@@ -1693,9 +1693,9 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
       if (variable.initializer2 case var initializer?) {
         if (node.fields.isConst) {
-          fragment.constantInitializer = initializer;
+          fragment.constantInitializer2 = initializer;
         } else if (node.fields.isFinal && !node.isStatic) {
-          fragment.constantInitializer = initializer;
+          fragment.constantInitializer2 = initializer;
           _libraryBuilder.finalInstanceFields.add(fragment);
         }
       }
@@ -1741,7 +1741,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     _linker.setFragmentNode(fragment, node);
     _enclosingContext.addParameter(fragment);
 
-    fragment.constantInitializer = node.defaultClause?.value2;
+    fragment.constantInitializer2 = node.defaultClause?.value2;
     fragment.hasImplicitType =
         node.type == null && node.functionTypedSuffix == null;
     fragment.isOriginDeclaration = true;
@@ -2174,7 +2174,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     _linker.setFragmentNode(fragment, node);
     _enclosingContext.addParameter(fragment);
 
-    fragment.constantInitializer = node.defaultClause?.value2;
+    fragment.constantInitializer2 = node.defaultClause?.value2;
     fragment.hasImplicitType =
         node.type == null && node.functionTypedSuffix == null;
     fragment.isExplicitlyCovariant =
@@ -2203,7 +2203,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     _linker.setFragmentNode(fragment, node);
     _enclosingContext.addParameter(fragment);
 
-    fragment.constantInitializer = node.defaultClause?.value2;
+    fragment.constantInitializer2 = node.defaultClause?.value2;
     fragment.hasImplicitType =
         node.type == null && node.functionTypedSuffix == null;
     fragment.isOriginDeclaration = true;
@@ -2238,7 +2238,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       fragment.isOriginDeclaration = true;
       fragment.metadata = metadata;
       if (fragment.isConst) {
-        fragment.constantInitializer = variable.initializer2;
+        fragment.constantInitializer2 = variable.initializer2;
       }
 
       if (node.variables.type == null) {

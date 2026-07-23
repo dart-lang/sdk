@@ -2760,7 +2760,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
 
     var fragment = node.declaredFragment!;
-    var initializer = fragment.constantInitializer;
+    var initializer = fragment.constantInitializer2;
     if (initializer is InstanceCreationExpressionImpl) {
       var constructorName = initializer.constructorName;
       var constructorElement = constructorName.element;
@@ -4796,7 +4796,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       defaultValue = popRewrite()!;
 
       if (node.isOfLocalFunction2) {
-        fragment.constantInitializer = defaultValue;
+        fragment.constantInitializer2 = defaultValue;
       }
     }
   }

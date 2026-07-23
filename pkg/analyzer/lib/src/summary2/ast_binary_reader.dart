@@ -35,7 +35,7 @@ class AstBinaryReader {
     FormalParameterImpl node,
     FormalParameterFragmentImpl fragment,
   ) {
-    fragment.constantInitializer = node.defaultClause?.value2;
+    fragment.constantInitializer2 = node.defaultClause?.value2;
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
       for (var formalParameter
           in functionTypedSuffix.formalParameters.allFormalParameters) {

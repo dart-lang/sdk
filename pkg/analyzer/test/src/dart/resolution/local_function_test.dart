@@ -29,7 +29,7 @@ void foo<T>(T _) {}
 ''');
 
     var formalParameter = result.findElement.parameter('a');
-    expect(formalParameter.constantInitializer, isA<FunctionReference>());
+    expect(formalParameter.constantInitializer2, isA<FunctionReference>());
   }
 
   test_element_block() async {

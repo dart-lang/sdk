@@ -557,10 +557,10 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
                 nameOffset: null,
                 parameterKind: superFormalParameter.parameterKind,
               )
-              ..constantInitializer = superFormalParameter
+              ..constantInitializer2 = superFormalParameter
                   .baseElement
                   ._firstFragment
-                  .constantInitializer;
+                  .constantInitializer2;
 
         formalParameterFragment.isConst = superFormalParameter.isConst;
         formalParameterFragment.isFinal = superFormalParameter.isFinal;
@@ -3764,9 +3764,9 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
   FieldFragmentImpl({required super.name});
 
   @override
-  ExpressionImpl? get constantInitializer {
+  ExpressionImpl? get constantInitializer2 {
     _ensureReadResolution();
-    return super.constantInitializer;
+    return super.constantInitializer2;
   }
 
   @override
@@ -3945,7 +3945,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   String? get defaultValueCode {
-    return constantInitializer2?.expression.toSource();
+    return constantInitializer2?.toSource();
   }
 
   @override
@@ -10606,7 +10606,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
       return null;
     }
 
-    var constantInitializer = constantInitializer2?.expression;
+    var constantInitializer = constantInitializer2;
     if (constantInitializer != null) {
       return constantInitializer.toSource();
     }
@@ -11071,9 +11071,9 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
   TopLevelVariableFragmentImpl({required super.name});
 
   @override
-  ExpressionImpl? get constantInitializer {
+  ExpressionImpl? get constantInitializer2 {
     _ensureReadResolution();
-    return super.constantInitializer;
+    return super.constantInitializer2;
   }
 
   @override
@@ -11649,7 +11649,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
 abstract class VariableElementImpl extends ElementImpl
     with InternalVariableElement
     implements ConstantEvaluationTarget {
-  ConstantInitializerImpl? _constantInitializer;
+  ConstantInitializerImpl? _constantInitializerData;
 
   /// The result of evaluating [constantInitializer2].
   ///
@@ -11661,19 +11661,29 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   ExpressionImpl? get constantInitializer {
-    return constantInitializer2?.expression;
+    var initializer = constantInitializer2;
+    return initializer == null
+        ? null
+        : V1Projection.toV1Expression(initializer);
   }
 
-  // TODO(scheglov): remove this
+  @override
   @trackedIncludedInId
-  ConstantInitializerImpl? get constantInitializer2 {
-    if (_constantInitializer case var result?) {
+  ExpressionImpl? get constantInitializer2 {
+    return constantInitializerData?.expression;
+  }
+
+  // TODO(scheglov): remove this wrapper once fragment provenance is no longer
+  // needed by top-level inference and element text output.
+  @trackedIncludedInId
+  ConstantInitializerImpl? get constantInitializerData {
+    if (_constantInitializerData case var result?) {
       return result;
     }
 
     for (var fragment in _fragments.reversed) {
-      if (fragment.initializer case ExpressionImpl expression) {
-        return _constantInitializer = ConstantInitializerImpl(
+      if (fragment.constantInitializer2 case ExpressionImpl expression) {
+        return _constantInitializerData = ConstantInitializerImpl(
           fragment: fragment,
           expression: expression,
         );
@@ -11799,7 +11809,7 @@ abstract class VariableElementImpl extends ElementImpl
 
   @trackedInternal
   void resetConstantInitializer() {
-    _constantInitializer = null;
+    _constantInitializerData = null;
   }
 
   @override
@@ -11826,11 +11836,19 @@ abstract class VariableFragmentImpl extends FragmentImpl
   /// initializers.  However, analyzer also needs to handle incorrect Dart code,
   /// in which case there might be some constant variables that lack
   /// initializers.
-  ExpressionImpl? constantInitializer;
+  ExpressionImpl? constantInitializer2;
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
   VariableFragmentImpl({required super.firstTokenOffset});
+
+  @ToBeDeprecated('Use constantInitializer2 instead.')
+  ExpressionImpl? get constantInitializer {
+    var initializer = constantInitializer2;
+    return initializer == null
+        ? null
+        : V1Projection.toV1Expression(initializer);
+  }
 
   @override
   String get displayName => name ?? '';
@@ -11869,7 +11887,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
   // TODO(scheglov): remove this
   ExpressionImpl? get initializer {
-    return constantInitializer;
+    return constantInitializer2;
   }
 
   /// Whether the executable element is abstract.

@@ -5848,6 +5848,7 @@ package:analyzer/dart/element/element.dart:
   VariableElement (class extends Object implements Element, abstract):
     new (constructor: VariableElement Function())
     constantInitializer (getter: Expression?)
+    constantInitializer2 (getter: Expression?, experimental)
     firstFragment (getter: VariableFragment)
     fragments (getter: List<VariableFragment>)
     hasImplicitType (getter: bool)

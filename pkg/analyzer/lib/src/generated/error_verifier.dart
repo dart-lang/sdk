@@ -4384,7 +4384,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     for (var previousFragment in fragment.precedingFragments) {
-      if (previousFragment.constantInitializer != null) {
+      if (previousFragment.constantInitializer2 != null) {
         diagnosticReporter.report(
           diag.defaultValueAlreadySpecifiedInAugmentationChain
               .withContextMessages([
@@ -4445,7 +4445,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     // More than one default value is reported separately.
     var defaultValueFragments = fragment.element.fragments.where((fragment) {
-      return fragment.constantInitializer != null;
+      return fragment.constantInitializer2 != null;
     }).toList();
     if (defaultValueFragments.length != 1) {
       return;
