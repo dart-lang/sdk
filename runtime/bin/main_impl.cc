@@ -28,6 +28,7 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/snapshot_utils.h"
+#include "bin/uri.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "include/bin/dart_io_api.h"
@@ -69,6 +70,40 @@ static const uint8_t* app_snapshot_text = nullptr;
 static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = nullptr;
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_CLI_RUNTIME) &&          \
+    defined(DART_HOST_OS_LINUX)
+static CStringUniquePtr BuildCliSnapshotPath(const char* executable_path,
+                                             const char* executable_name) {
+  const char* executable_basename = strrchr(executable_name, '/');
+  executable_basename = executable_basename == nullptr
+                            ? executable_name
+                            : executable_basename + 1;
+  if (executable_basename[0] == '\0') {
+    return CStringUniquePtr();
+  }
+
+  CStringUniquePtr snapshot_path(
+      Utils::SCreate("../lib/libdartaot%s.so", executable_basename));
+  return ResolvePath(snapshot_path.get(), executable_path);
+}
+
+static CStringUniquePtr ResolveCliSnapshotPath(const char* executable_path,
+                                               const char* argv0) {
+  auto candidate = BuildCliSnapshotPath(executable_path, argv0);
+  if (candidate != nullptr && File::Exists(nullptr, candidate.get())) {
+    return candidate;
+  }
+
+  candidate = BuildCliSnapshotPath(executable_path, executable_path);
+  if (candidate != nullptr && File::Exists(nullptr, candidate.get())) {
+    return candidate;
+  }
+
+  return CStringUniquePtr();
+}
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_CLI_RUNTIME) &&
+        // defined(DART_HOST_OS_LINUX)
 
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = Utils::StrDup(Dart_GetError(result));                               \
@@ -1257,6 +1292,7 @@ void main(int argc, char** argv) {
 
   AppSnapshot* app_snapshot = nullptr;
 #if defined(DART_PRECOMPILED_RUNTIME)
+  CStringUniquePtr cli_snapshot_path;
   // If the executable binary contains the runtime together with an appended
   // snapshot, load and run that.
   // Any arguments passed to such an executable are meant for the actual
@@ -1265,10 +1301,7 @@ void main(int argc, char** argv) {
   const size_t kPathBufSize = PATH_MAX + 1;
   char executable_path[kPathBufSize];
   if (Platform::ResolveExecutablePathInto(executable_path, kPathBufSize) > 0) {
-    app_snapshot = Snapshot::TryReadAppendedAppSnapshot(executable_path);
-    if (app_snapshot != nullptr) {
-      script_name = argv[0];
-
+    auto prepare_app_snapshot = [&]() {
       char* error = nullptr;
       asset_resolution_base = ResolveSymlinks(executable_path, &error);
       if (error != nullptr) {
@@ -1278,31 +1311,43 @@ void main(int argc, char** argv) {
         Platform::Exit(kErrorExitCode);
       }
 
-      // Store the executable name.
       Platform::SetExecutableName(argv[0]);
 
-      // Parse out options to be passed to dart main.
       for (int i = 1; i < argc; i++) {
         dart_options.AddArgument(argv[i]);
       }
 
-      // Parse DART_VM_OPTIONS options.
       int env_argc = 0;
       char** env_argv = Options::GetEnvArguments(argv[0], &env_argc);
       if (env_argv != nullptr) {
-        // Any Dart options that are generated based on parsing DART_VM_OPTIONS
-        // are useless, so we'll throw them away rather than passing them along.
+        // Discard Dart options produced while parsing DART_VM_OPTIONS.
         CommandLineOptions tmp_options(env_argc + EXTRA_VM_ARGUMENTS);
         vm_options.EnsureCapacity(env_argc + EXTRA_VM_ARGUMENTS);
         parse_arguments(env_argc, env_argv, &vm_options, &tmp_options,
                         /*parsing_dart_vm_options=*/true);
       }
+    };
+
+    app_snapshot = Snapshot::TryReadAppendedAppSnapshot(executable_path);
+    if (app_snapshot != nullptr) {
+      script_name = argv[0];
+      prepare_app_snapshot();
     }
+
+#if defined(DART_CLI_RUNTIME) && defined(DART_HOST_OS_LINUX)
+    if (app_snapshot == nullptr) {
+      cli_snapshot_path = ResolveCliSnapshotPath(executable_path, argv[0]);
+      script_name = cli_snapshot_path.get();
+      if (script_name != nullptr) {
+        prepare_app_snapshot();
+      }
+    }
+#endif  // defined(DART_CLI_RUNTIME) && defined(DART_HOST_OS_LINUX)
   }
 #endif
 
   // Parse command line arguments.
-  if (app_snapshot == nullptr) {
+  if (app_snapshot == nullptr && script_name == nullptr) {
     parse_arguments(argc, argv, &vm_options, &dart_options,
                     /*parsing_dart_vm_options=*/false);
   }

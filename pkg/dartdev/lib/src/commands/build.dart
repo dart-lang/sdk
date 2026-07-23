@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart' hide Sanitizer;
+import 'package:dart2native/dart2native.dart' show markExecutable;
 import 'package:dart2native/generate.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/experiments.dart';
@@ -61,6 +62,7 @@ class BuildCliSubcommand extends CompileSubcommandCommand {
   static const String cmdName = 'cli';
 
   static final OS targetOS = OS.current;
+  static final bool busyBoxStyle = targetOS == OS.linux;
   late final List<File> entryPoints;
 
   final bool dataAssetsExperimentEnabled;
@@ -86,7 +88,7 @@ The resulting CLI app bundle is structured in the following manner:
 
 bundle/
   bin/
-    <executable>
+    <executables>
   lib/
     <dynamic libraries>''',
          verbose,
@@ -186,18 +188,18 @@ then that is used instead.''',
   Future<int> run() async {
     final args = argResults!;
     final sanitizer = Sanitizer.fromString(args.option('target-sanitizer'))!;
-    final targetDartAotRuntime = sdk.dartAotRuntimeFor(
-      sanitizer: sanitizer.name,
-    );
+    final targetRuntime = busyBoxStyle
+        ? sdk.dartCliRuntimeFor(sanitizer: sanitizer.name)
+        : sdk.dartAotRuntimeFor(sanitizer: sanitizer.name);
     if (!checkArtifactExists(sdk.genKernelSnapshot) ||
         !checkArtifactExists(sdk.genSnapshot) ||
-        !checkArtifactExists(targetDartAotRuntime) ||
+        !checkArtifactExists(targetRuntime) ||
         !checkArtifactExists(sdk.dart)) {
       return 255;
     }
 
     var genSnapshotBinary = sdk.genSnapshot;
-    var dartAotRuntimeBinary = targetDartAotRuntime;
+    var dartAotRuntimeBinary = targetRuntime;
 
     final crossTarget = crossCompilationTarget(args);
     if (crossTarget != null) {
@@ -371,7 +373,9 @@ then that is used instead.''',
     // next to it.
     final bundleDirectory = Directory.fromUri(outputUri.resolve('bundle/'));
     final binDirectory = Directory.fromUri(bundleDirectory.uri.resolve('bin/'));
+    final libDirectory = Directory.fromUri(bundleDirectory.uri.resolve('lib/'));
     await binDirectory.create(recursive: true);
+    await libDirectory.create(recursive: true);
 
     final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
       packageConfigUri,
@@ -455,6 +459,9 @@ then that is used instead.''',
         final outputExeUri = binDirectory.uri.resolve(
           targetOS.executableFileName(e.name),
         );
+        final outputSnapshotUri = busyBoxStyle
+            ? libDirectory.uri.resolve(_linuxAotSnapshotFileName(e.name))
+            : null;
         final generator = KernelGenerator(
           genSnapshot: genSnapshotPath ?? sdk.genSnapshot,
           targetDartAotRuntime:
@@ -462,9 +469,9 @@ then that is used instead.''',
               sdk.dartAotRuntimeFor(
                 sanitizer: sanitizer.name,
               ),
-          kind: Kind.exe,
+          kind: busyBoxStyle ? Kind.aot : Kind.exe,
           sourceFile: e.sourceEntryPoint.toFilePath(),
-          outputFile: outputExeUri.toFilePath(),
+          outputFile: (outputSnapshotUri ?? outputExeUri).toFilePath(),
           verbose: verbose,
           verbosity: verbosity,
           defines: [...sanitizer.defines],
@@ -551,7 +558,18 @@ Use linkMode as dynamic library instead.""",
           ],
         );
 
-        if (targetOS == OS.macOS) {
+        if (busyBoxStyle) {
+          if (first) {
+            await File(
+              sdk.dartCliRuntimeFor(sanitizer: sanitizer.name),
+            ).copy(outputExeUri.toFilePath());
+            await markExecutable(outputExeUri.toFilePath());
+          } else {
+            await Link.fromUri(
+              outputExeUri,
+            ).create(targetOS.executableFileName(executables.first.name));
+          }
+        } else if (targetOS == OS.macOS) {
           // The dylibs are opened with a relative path to the executable.
           // MacOS prevents opening dylibs that are not on the include path.
           await rewriteInstallPath(outputExeUri);
@@ -579,3 +597,6 @@ extension on String {
 ///
 /// Recorded usages and multiple executables are not supported yet.
 typedef DartBuildExecutables = List<({String name, Uri sourceEntryPoint})>;
+
+String _linuxAotSnapshotFileName(String executableName) =>
+    'libdartaot$executableName.so';
