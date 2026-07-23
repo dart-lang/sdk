@@ -1790,6 +1790,13 @@ class LibraryManifestPrinter extends ManifestPrinter {
       case TopLevelInferenceErrorDependencyCycle(:var cycle):
         sink.writelnWithIndent('$name: dependencyCycle(${cycle.join(', ')})');
         throw UnimplementedError();
+      case TopLevelInferenceErrorInconsistentGetterAndSetterTypes(
+        :var getterType,
+        :var setterType,
+      ):
+        sink.writelnWithIndent(
+          '$name: inconsistentGetterAndSetterTypes($getterType, $setterType)',
+        );
       case TopLevelInferenceErrorNoCombinedSuperSignature(
         :var candidateSignatures,
       ):

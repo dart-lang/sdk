@@ -146,19 +146,20 @@ class InstanceMemberInferrer {
     );
     overriddenSetters ??= const [];
 
-    TypeImpl combinedGetterType() {
+    TypeImpl? combinedGetterTypeOrNull() {
       var combinedGetterType = inheritance.combineSignatureTypes(
         typeSystem: typeSystem,
         candidates: overriddenGetters!,
         name: getterName,
       );
-      if (combinedGetterType != null) {
-        return combinedGetterType.returnType;
-      }
-      return DynamicTypeImpl.instance;
+      return combinedGetterType?.returnType;
     }
 
-    TypeImpl combinedSetterType() {
+    TypeImpl combinedGetterType() {
+      return combinedGetterTypeOrNull() ?? DynamicTypeImpl.instance;
+    }
+
+    TypeImpl? combinedSetterTypeOrNull() {
       var combinedSetterType = inheritance.combineSignatureTypes(
         typeSystem: typeSystem,
         candidates: overriddenSetters!,
@@ -170,7 +171,11 @@ class InstanceMemberInferrer {
           return parameters[0].type;
         }
       }
-      return DynamicTypeImpl.instance;
+      return null;
+    }
+
+    TypeImpl combinedSetterType() {
+      return combinedSetterTypeOrNull() ?? DynamicTypeImpl.instance;
     }
 
     if (getter != null) {
@@ -301,11 +306,17 @@ class InstanceMemberInferrer {
         // combined member signature of said getter in the direct
         // superinterfaces.
         if (!field.isFinal) {
-          var getterType = combinedGetterType();
-          var setterType = combinedSetterType();
+          var getterType = combinedGetterTypeOrNull();
+          var setterType = combinedSetterTypeOrNull();
 
-          if (getterType == setterType) {
+          if (getterType != null && getterType == setterType) {
             field.type = getterType;
+          } else if (getterType != null && setterType != null) {
+            field.typeInferenceError =
+                TopLevelInferenceErrorInconsistentGetterAndSetterTypes(
+                  getterType: getterType.getDisplayString(),
+                  setterType: setterType.getDisplayString(),
+                );
           }
           return;
         }

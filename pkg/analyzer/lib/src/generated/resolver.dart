@@ -4389,7 +4389,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
     }
 
-    _checkTopLevelCycle(node);
+    _checkTypeInferenceError(node);
   }
 
   @override
@@ -4494,7 +4494,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
-  void _checkTopLevelCycle(VariableDeclaration node) {
+  void _checkTypeInferenceError(VariableDeclaration node) {
     var fragment = node.declaredFragment;
     if (fragment is! PropertyInducingFragmentImpl) {
       return;
@@ -4514,6 +4514,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             .withArguments(
               name: node.name.lexeme,
               cycle: error.cycle.join(', '),
+            )
+            .at(node.name),
+      );
+    } else if (error
+        is TopLevelInferenceErrorInconsistentGetterAndSetterTypes) {
+      diagnosticReporter.report(
+        diag.inconsistentInheritedGetterAndSetterTypes
+            .withArguments(
+              fieldName: node.name.lexeme,
+              getterType: error.getterType,
+              setterType: error.setterType,
             )
             .at(node.name),
       );

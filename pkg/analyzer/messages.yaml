@@ -8804,6 +8804,15 @@ CompileTimeErrorCode:
       `inherited(I, L)` and `I` overrides `m'` if `m' ∈ overrides(I, L)`. It is
       a compile-time error if `m` is a method and `m'` is a getter, or if `m`
       is a getter and `m'` is a method.
+  inconsistentInheritedGetterAndSetterTypes:
+    type: compileTimeError
+    parameters:
+      String fieldName: the name of the field whose type can't be inferred
+      String getterType: the return type of the combined getter signature
+      String setterType: the parameter type of the combined setter signature
+    problemMessage: "Can't infer a type for '#fieldName' because the combined member signature of the getter has return type '#getterType', which doesn't match the parameter type '#setterType' of the combined member signature of the setter."
+    correctionMessage: Try adding an explicit type.
+    hasPublishedDocs: false
   inconsistentLanguageVersionOverride:
     type: compileTimeError
     parameters: none

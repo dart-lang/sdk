@@ -966,6 +966,8 @@ inconsistent_inheritance:
     Add a stub of the method that needs to be implemented.
 inconsistent_inheritance_getter_and_method:
   status: noFix
+inconsistent_inherited_getter_and_setter_types:
+  status: needsEvaluation
 inconsistent_language_version_override:
   status: needsFix
   notes: |-
