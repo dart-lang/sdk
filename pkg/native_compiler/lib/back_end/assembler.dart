@@ -118,6 +118,7 @@ enum CallSiteKind {
   leafRuntimeCall,
   // FatalError runtime call doesn't need to have a safepoint.
   fatalError,
+  exceptionHandler,
 }
 
 /// Base class for architecture-specific assembler.

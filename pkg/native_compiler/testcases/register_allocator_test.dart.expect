@@ -1755,7 +1755,7 @@ B47 = JoinBlock(B40) idom:B40
   ParallelMove output(stack[1] -> R1)
   ParallelMove input(vloc:R1 -> R0)
   Return(v46)   # RA: (R0)
-B41 = CatchBlock() idom:B24
+B41 = CatchBlock()   # RA: () SAFEPT{live: [R2], objects: [R2, stack[0]]} idom:B24
   v49 = Parameter(#exception)   # RA: R0 <- ()
   v50 = Parameter(#stackTrace)   # RA: R1 <- ()
   ParallelMove control(stack[0] -> R2)

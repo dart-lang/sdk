@@ -103,7 +103,14 @@ abstract base class const Constraints()
   InstructionConstraints? visitTargetBlock(TargetBlock instr) => null;
 
   @override
-  InstructionConstraints? visitCatchBlock(CatchBlock instr) => null;
+  InstructionConstraints? visitCatchBlock(CatchBlock instr) =>
+      InstructionConstraints(
+        null,
+        const [],
+        const [],
+        // VM requires a safepoint at every exception handler.
+        Safepoint(),
+      );
 
   @override
   InstructionConstraints? visitGoto(Goto instr) => null;

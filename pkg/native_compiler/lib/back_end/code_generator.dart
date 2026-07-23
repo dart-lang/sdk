@@ -284,6 +284,11 @@ abstract base class CodeGenerator extends Pass
   @override
   void visitCatchBlock(CatchBlock instr) {
     _exceptionHandlers.getHandler(instr).pcOffset = _asm.currentPcOffset;
+    _compressedStackMaps.add(
+      _asm.currentPcOffset,
+      _getCurrentSafepoint(.exceptionHandler),
+      stackFrame.frameSizeInSlots,
+    );
   }
 
   @override
