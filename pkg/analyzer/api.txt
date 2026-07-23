@@ -1587,6 +1587,7 @@ package:analyzer/dart/ast/ast.dart:
   ForEachParts (class extends Object implements ForLoopParts, sealed (immediate subtypes: ForEachPartsImpl, ForEachPartsWithDeclaration, ForEachPartsWithIdentifier, ForEachPartsWithPattern)):
     inKeyword (getter: Token)
     iterable (getter: Expression)
+    iterable2 (getter: Expression, experimental)
   ForEachPartsWithDeclaration (class extends Object implements ForEachParts, abstract, final):
     loopVariable (getter: DeclaredIdentifier)
   ForEachPartsWithIdentifier (class extends Object implements ForEachParts, abstract, final):

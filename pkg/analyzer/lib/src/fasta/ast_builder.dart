@@ -4295,7 +4295,7 @@ class AstBuilder extends StackListener {
         keyword: patternKeyword,
         pattern: variableOrDeclaration as DartPatternImpl,
         inKeyword: inKeyword,
-        iterable: iterable,
+        iterable2: iterable,
       );
     } else if (variableOrDeclaration is VariableDeclarationStatementImpl) {
       var variableList = variableOrDeclaration.variables;
@@ -4308,7 +4308,7 @@ class AstBuilder extends StackListener {
           name: variableList.variables.first.name,
         ),
         inKeyword: inKeyword,
-        iterable: iterable,
+        iterable2: iterable,
       );
     } else {
       if (variableOrDeclaration is! SimpleIdentifierImpl) {
@@ -4323,7 +4323,7 @@ class AstBuilder extends StackListener {
       forLoopParts = ForEachPartsWithIdentifierImpl(
         identifier: variableOrDeclaration,
         inKeyword: inKeyword,
-        iterable: iterable,
+        iterable2: iterable,
       );
     }
 

@@ -38,7 +38,7 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IntegerLiteral
@@ -73,7 +73,7 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IfElement
@@ -225,7 +225,7 @@ ListLiteral
           identifier: SimpleIdentifier
             token: a
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: b
         rightParenthesis: )
         body2: IntegerLiteral
@@ -307,7 +307,7 @@ ListLiteral
           identifier: SimpleIdentifier
             token: a
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: b
         rightParenthesis: )
         body2: IntegerLiteral
@@ -431,7 +431,7 @@ SetOrMapLiteral
         identifier: SimpleIdentifier
           token: y
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: MapLiteralEntry
@@ -474,7 +474,7 @@ SetOrMapLiteral
         identifier: SimpleIdentifier
           token: y
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IfElement
@@ -668,7 +668,7 @@ SetOrMapLiteral
           identifier: SimpleIdentifier
             token: c
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: d
         rightParenthesis: )
         body2: MapLiteralEntry
@@ -774,7 +774,7 @@ SetOrMapLiteral
           identifier: SimpleIdentifier
             token: a
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: b
         rightParenthesis: )
         body2: MapLiteralEntry

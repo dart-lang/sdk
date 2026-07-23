@@ -425,7 +425,7 @@ class AstBinaryReader {
     var iterable = _readNode() as ExpressionImpl;
     return ForEachPartsWithDeclarationImpl(
       inKeyword: Tokens.in_(),
-      iterable: iterable,
+      iterable2: iterable,
       loopVariable: loopVariable,
     );
   }

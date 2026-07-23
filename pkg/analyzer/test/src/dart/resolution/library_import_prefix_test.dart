@@ -62,7 +62,7 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType

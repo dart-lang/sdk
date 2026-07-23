@@ -787,7 +787,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithDeclaration>(
       destination: parseResult.findNode.forEachPartsWithDeclaration('a in'),
       source: parseResult.findNode.forEachPartsWithDeclaration('b in'),
-      childAccessors: [(node) => node.loopVariable, (node) => node.iterable],
+      childAccessors: [(node) => node.loopVariable, (node) => node.iterable2],
     );
   }
 
@@ -801,7 +801,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithIdentifier>(
       destination: parseResult.findNode.forEachPartsWithIdentifier('a in'),
       source: parseResult.findNode.forEachPartsWithIdentifier('b in'),
-      childAccessors: [(node) => node.identifier, (node) => node.iterable],
+      childAccessors: [(node) => node.identifier, (node) => node.iterable2],
     );
   }
 
@@ -815,7 +815,7 @@ void f() {
     _assertReplacementForChildren<ForEachPartsWithPattern>(
       destination: parseResult.findNode.forEachPartsWithPattern('(a)'),
       source: parseResult.findNode.forEachPartsWithPattern('(b)'),
-      childAccessors: [(node) => node.iterable],
+      childAccessors: [(node) => node.iterable2],
     );
   }
 

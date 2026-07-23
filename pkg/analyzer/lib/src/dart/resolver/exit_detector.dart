@@ -239,7 +239,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
         }
         return false;
       } else if (forLoopParts is ForEachParts) {
-        bool iterableExits = _nodeExits(forLoopParts.iterable);
+        bool iterableExits = _nodeExits(forLoopParts.iterable2);
         // Discard whether the for-each body exits; since the for-each iterable
         // may be empty, execution may never enter the body, so it doesn't matter
         // if it exits or not.  We still must visit the body, to accurately
@@ -260,7 +260,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     ForLoopParts parts = node.forLoopParts;
     try {
       if (parts is ForEachParts) {
-        bool iterableExits = _nodeExits(parts.iterable);
+        bool iterableExits = _nodeExits(parts.iterable2);
         // Discard whether the for-each body exits; since the for-each iterable
         // may be empty, execution may never enter the body, so it doesn't matter
         // if it exits or not.  We still must visit the body, to accurately

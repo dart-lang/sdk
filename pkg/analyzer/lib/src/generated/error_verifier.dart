@@ -4518,11 +4518,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// Return `true` if the caller should continue checking the rest of the
   /// information in the for-each part.
   bool _checkForEachParts(ForEachParts node, Element? variableElement) {
-    if (checkForUseOfVoidResult(node.iterable)) {
+    if (checkForUseOfVoidResult(node.iterable2)) {
       return false;
     }
 
-    var iterableType = node.iterable.typeOrThrow;
+    var iterableType = node.iterable2.typeOrThrow;
 
     Token? awaitKeyword;
     var parent = node.parent2;
@@ -4542,7 +4542,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               expressionType: iterableType,
               expectedType: loopNamedType,
             )
-            .at(node.iterable),
+            .at(node.iterable2),
       );
       return false;
     }
@@ -4584,7 +4584,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               expressionType: iterableType,
               expectedType: loopNamedType,
             )
-            .at(node.iterable),
+            .at(node.iterable2),
       );
       return false;
     }
@@ -4608,7 +4608,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     // element type is `void`, the value can only be discarded into a `void`
     // loop variable.
     if (sequenceElementType is VoidType && variableType is! VoidType) {
-      diagnosticReporter.report(diag.useOfVoidResult.at(node.iterable));
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.iterable2));
       return false;
     }
 
@@ -4628,7 +4628,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       var implicitCallMethod = getImplicitCallMethod(
         sequenceElementType,
         variableType,
-        node.iterable,
+        node.iterable2,
       );
       if (implicitCallMethod == null) {
         diagnosticReporter.report(
@@ -4638,7 +4638,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                 expectedTypeName: loopNamedType,
                 loopVariableType: variableType,
               )
-              .at(node.iterable),
+              .at(node.iterable2),
         );
       } else {
         var tearoffType = implicitCallMethod.type;
@@ -4650,7 +4650,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             variableType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: diagnosticReporter,
-            errorNode: node.iterable,
+            errorNode: node.iterable2,
             genericMetadataIsEnabled: true,
             inferenceUsingBoundsIsEnabled: _featureSet.isEnabled(
               Feature.inference_using_bounds,
@@ -4678,7 +4678,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                   expectedTypeName: loopNamedType,
                   loopVariableType: variableType,
                 )
-                .at(node.iterable),
+                .at(node.iterable2),
           );
         }
       }
