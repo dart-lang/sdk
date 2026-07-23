@@ -1923,6 +1923,23 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       // diagnostics generated below might be inaccurate, so don't report them.
       return;
     }
+    ArgumentImpl? f;
+    NamedArgumentImpl? exceptionalReturn;
+    for (var argument in node.argumentList.arguments2) {
+      if (argument is NamedArgumentImpl) {
+        exceptionalReturn = argument;
+      } else if (f == null) {
+        f = argument;
+      } else {
+        // There are other diagnostics reported against the invocation and the
+        // diagnostics generated below might be inaccurate, so don't report
+        // them.
+        return;
+      }
+    }
+    if (f == null) {
+      return;
+    }
 
     var nodeType = node.typeOrThrow;
     if (nodeType is! InterfaceTypeImpl) {
@@ -1939,7 +1956,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
 
-    var f = node.argumentList.arguments2[0];
     var funcType = f.argumentExpression.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(
       _FfiTypeCheckDirection.dartToNative,
@@ -1964,20 +1980,19 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           natRetType.isPointer ||
           natRetType.isHandle ||
           natRetType.isCompoundSubtype) {
-        if (argCount != 1) {
+        if (exceptionalReturn != null) {
           _diagnosticReporter.report(
             diag.invalidExceptionValue
                 .withArguments(methodName: name)
-                .at(node.argumentList.arguments2[1]),
+                .at(exceptionalReturn),
           );
         }
-      } else if (argCount != 2) {
+      } else if (exceptionalReturn == null) {
         _diagnosticReporter.report(
           diag.missingExceptionValue.withArguments(methodName: name).at(node),
         );
       } else {
-        var e = (node.argumentList.arguments2[1] as NamedArgument)
-            .argumentExpression2;
+        var e = exceptionalReturn.argumentExpression2;
         var eType = e.typeOrThrow;
         if (!_validateCompatibleNativeType(
           _FfiTypeCheckDirection.dartToNative,
