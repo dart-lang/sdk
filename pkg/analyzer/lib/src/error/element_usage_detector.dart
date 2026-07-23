@@ -230,7 +230,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void formalParameter(FormalParameter node) {
-    var parameterList = node.parentFormalParameterList;
+    var parameterList = node.parentFormalParameterList2;
     if (parameterList.parent case ConstructorDeclaration constructor) {
       if (constructor.redirectedConstructor?.element
           case var redirectedConstructor?) {
@@ -659,7 +659,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void formalParameter(FormalParameter node) {
-    var parameterList = node.parentFormalParameterList;
+    var parameterList = node.parentFormalParameterList2;
     if (parameterList.parent2 case ConstructorDeclaration constructor) {
       if (constructor.redirectedConstructor?.element
           case var redirectedConstructor?) {

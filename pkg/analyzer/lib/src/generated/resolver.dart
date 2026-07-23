@@ -4795,7 +4795,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
       defaultValue = popRewrite()!;
 
-      if (node.isOfLocalFunction) {
+      if (node.isOfLocalFunction2) {
         fragment.constantInitializer = defaultValue;
       }
     }

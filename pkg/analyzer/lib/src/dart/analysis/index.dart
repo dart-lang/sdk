@@ -1043,7 +1043,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
@@ -1215,7 +1215,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       return;
     }
 
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
 
     var parent = node.parent2;
     if (element != null &&

@@ -573,7 +573,7 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
       // Handle .call tear-offs on functions.
       return parent.prefix.element;
     }
-    return node.writeOrReadElement;
+    return node.writeOrReadElement2;
   }
 
   @override

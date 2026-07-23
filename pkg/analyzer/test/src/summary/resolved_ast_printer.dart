@@ -2325,7 +2325,7 @@ Expected parent: (${parent.runtimeType}) $parent
   static List<FormalParameterFragment> _expectedFormalParameterElements(
     FormalParameter node,
   ) {
-    var parametersParent = node.parentFormalParameterList.parent2;
+    var parametersParent = node.parentFormalParameterList2.parent2;
     if (parametersParent is ConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;

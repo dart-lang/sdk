@@ -1903,7 +1903,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _constArgumentsVerifier.visitSimpleIdentifier(node);
     _checkForAmbiguousImport(
       name: node.token,
-      element: node.writeOrReadElement,
+      element: node.writeOrReadElement2,
     );
     _checkForReferenceBeforeDeclaration(
       nameToken: node.token,
@@ -1951,7 +1951,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     super.visitSuperFormalParameter(node);
 
     if (_enclosingClass is ExtensionTypeElement) {
-      if (node.parentFormalParameterList.parent2
+      if (node.parentFormalParameterList2.parent2
           is PrimaryConstructorDeclaration) {
         return;
       }
@@ -1963,7 +1963,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    var constructor = node.parentFormalParameterList.parent2;
+    var constructor = node.parentFormalParameterList2.parent2;
     if (constructor is ConstructorDeclarationImpl &&
         constructor.isNonRedirectingGenerative) {
       var constructorElement = constructor.declaredFragment!.element;
@@ -5551,7 +5551,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     // prepare member Element
-    var element = name.writeOrReadElement;
+    var element = name.writeOrReadElement2;
     if (element is ExecutableElement) {
       if (!element.isStatic) {
         // OK, instance member
@@ -5717,7 +5717,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     // prepare element
-    var element = identifier.writeOrReadElement;
+    var element = identifier.writeOrReadElement2;
     if (!(element is MethodElement || element is PropertyAccessorElement)) {
       return;
     }
@@ -7485,7 +7485,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    var element = name.writeOrReadElement;
+    var element = name.writeOrReadElement2;
     if (element == null || element is TypeParameterElement) {
       return;
     }
@@ -7527,7 +7527,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
-    var constructor = parameter.parentFormalParameterList.parent2;
+    var constructor = parameter.parentFormalParameterList2.parent2;
     if (constructor is PrimaryConstructorDeclaration &&
         constructor.parent2 is ExtensionTypeDeclaration) {
       return;

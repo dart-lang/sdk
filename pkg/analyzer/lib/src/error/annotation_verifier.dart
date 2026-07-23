@@ -226,7 +226,7 @@ class AnnotationVerifier {
   void _checkDeprecatedOptional(Annotation node) {
     var parent = node.parent2;
     if (parent is FormalParameter) {
-      var parameterList = parent.parentFormalParameterList;
+      var parameterList = parent.parentFormalParameterList2;
 
       // This annotation is only valid on method declarations, constructor
       // declarations, and top-level function declarations.
