@@ -110,6 +110,62 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
+/// nodes of type [ConstructorInvocation].
+class ConstructorInvocationInferrer
+    extends FullInvocationInferrer<ConstructorInvocationImpl> {
+  ConstructorInvocationInferrer({
+    required super.resolver,
+    required super.node,
+    required super.argumentList,
+    required super.contextType,
+    required super.whyNotPromotedArguments,
+    required super.target,
+  }) : super._();
+
+  @override
+  ConstructorReference2Impl get _errorEntity => node.constructorReference;
+
+  @override
+  bool get _isConst => node.isConst;
+
+  @override
+  bool get _needsTypeArgumentBoundsCheck => true;
+
+  @override
+  TypeArgumentListImpl? get _typeArguments {
+    // For an instance creation expression the type arguments are on the
+    // constructor name.
+    return node.constructorReference.typeReference.typeArguments;
+  }
+
+  @override
+  void _reportWrongNumberOfTypeArguments(
+    TypeArgumentList typeArgumentList,
+    List<TypeParameterElement> typeParameters,
+  ) {
+    // Error reporting for instance creations is done elsewhere.
+  }
+
+  @override
+  List<FormalParameterElement>? _storeResult(
+    List<DartType>? typeArgumentTypes,
+    FunctionTypeImpl? invokeType,
+  ) {
+    if (invokeType != null) {
+      var constructedType = invokeType.returnType;
+      node.constructorReference.typeReference.type = constructedType;
+      var constructorElement = SubstitutedConstructorElementImpl.from2(
+        node.constructorReference.element!.baseElement,
+        constructedType as InterfaceType,
+      );
+      node.constructorReference.element = constructorElement;
+      return constructorElement.formalParameters;
+    }
+    return null;
+  }
+}
+
+/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes of type [DotShorthandConstructorInvocation].
 class DotShorthandConstructorInvocationInferrer
     extends FullInvocationInferrer<DotShorthandConstructorInvocationImpl> {
@@ -140,7 +196,7 @@ class DotShorthandConstructorInvocationInferrer
     List<TypeParameterElement> typeParameters,
   ) {
     // Error reporting for dot shorthand constructor invocations is done
-    // within the [InstanceCreationExpressionResolver].
+    // within the [ConstructorInvocationResolver].
   }
 
   @override
@@ -425,62 +481,6 @@ class FunctionExpressionInvocationInferrer
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [InstanceCreationExpression].
-class InstanceCreationInferrer
-    extends FullInvocationInferrer<InstanceCreationExpressionImpl> {
-  InstanceCreationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-  }) : super._();
-
-  @override
-  ConstructorNameImpl get _errorEntity => node.constructorName;
-
-  @override
-  bool get _isConst => node.isConst;
-
-  @override
-  bool get _needsTypeArgumentBoundsCheck => true;
-
-  @override
-  TypeArgumentListImpl? get _typeArguments {
-    // For an instance creation expression the type arguments are on the
-    // constructor name.
-    return node.constructorName.type.typeArguments;
-  }
-
-  @override
-  void _reportWrongNumberOfTypeArguments(
-    TypeArgumentList typeArgumentList,
-    List<TypeParameterElement> typeParameters,
-  ) {
-    // Error reporting for instance creations is done elsewhere.
-  }
-
-  @override
-  List<FormalParameterElement>? _storeResult(
-    List<DartType>? typeArgumentTypes,
-    FunctionTypeImpl? invokeType,
-  ) {
-    if (invokeType != null) {
-      var constructedType = invokeType.returnType;
-      node.constructorName.type.type = constructedType;
-      var constructorElement = SubstitutedConstructorElementImpl.from2(
-        node.constructorName.element!.baseElement,
-        constructedType as InterfaceType,
-      );
-      node.constructorName.element = constructorElement;
-      return constructorElement.formalParameters;
-    }
-    return null;
-  }
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes derived from [InvocationExpression].
 abstract class InvocationExpressionInferrer<
   Node extends InvocationExpressionImpl
@@ -607,7 +607,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         parameterContextType = UnknownInferredType.instance;
       }
       var argument = arguments[deferredArgument.index];
-      var expression = argument.argumentExpression;
+      var expression = argument.argumentExpression2;
       resolver.analyzeExpression(
         expression,
         SharedTypeSchemaView(parameterContextType),
@@ -659,7 +659,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         value = argument.argumentExpression2;
         parameterKey = argument.name.lexeme;
       } else {
-        value = argument.argumentExpression;
+        value = argument.argumentExpression2;
         parameterKey = unnamedArgumentIndex++;
       }
       value = value.unParenthesized;
@@ -686,7 +686,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           parameterContextType = UnknownInferredType.instance;
         }
         resolver.analyzeExpression(
-          argument.argumentExpression,
+          argument.argumentExpression2,
           SharedTypeSchemaView(parameterContextType),
         );
         var rewritten = resolver.popRewrite()!;
@@ -777,7 +777,7 @@ class MethodInvocationInferrer
       returnType = resolver.typeSystem
           .refineNumericInvocationType(targetType, node.methodName.element, [
             for (var argument in node.argumentList.arguments2)
-              argument.argumentExpression.typeOrThrow,
+              argument.argumentExpression2.typeOrThrow,
           ], returnType);
     }
     return returnType;

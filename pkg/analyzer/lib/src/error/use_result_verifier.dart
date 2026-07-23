@@ -13,8 +13,8 @@ class UseResultVerifier {
 
   UseResultVerifier(this._diagnosticReporter);
 
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var element = node.element;
+  void checkConstructorInvocation(ConstructorInvocation node) {
+    var element = node.constructorReference.element;
     if (element == null) {
       return;
     }
@@ -22,8 +22,8 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.element;
+  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    var element = node.element;
     if (element == null) {
       return;
     }

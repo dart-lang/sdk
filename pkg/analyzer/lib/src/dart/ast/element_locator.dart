@@ -428,6 +428,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitConstructorInvocation(ConstructorInvocation node) {
+    return node.constructorReference.element;
+  }
+
+  @override
   Element? visitConstructorSelector(ConstructorSelector node) {
     var parent = node.parent2;
     if (parent is EnumConstantArguments) {
@@ -589,11 +594,6 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   @override
   Element? visitIndexExpression(IndexExpression node) {
     return node.element;
-  }
-
-  @override
-  Element? visitInstanceCreationExpression(InstanceCreationExpression node) {
-    return node.constructorName.element;
   }
 
   @override

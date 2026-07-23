@@ -691,11 +691,11 @@ f() {
 }
 ''');
 
-    var node = result.findNode.instanceCreation('A<int, String>(0);');
+    var node = result.findNode.constructorInvocation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -826,11 +826,11 @@ void f() {
   X<int, String>(0);
 }
 ''');
-    var node = result.findNode.instanceCreation('X<int, String>(0);');
+    var node = result.findNode.constructorInvocation('X<int, String>(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: X
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -891,11 +891,11 @@ f() {
   prefix.A.named(0);
 }
 ''');
-    var node = result.findNode.instanceCreation('A.named(0);');
+    var node = result.findNode.constructorInvocation('A.named(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -903,13 +903,9 @@ InstanceCreationExpression
       name: A
       element: package:test/a.dart::@class::A
       type: A<int>
-    period: .
-    name: SimpleIdentifier
-      token: named
-      element: SubstitutedConstructorElementImpl
-        baseElement: package:test/a.dart::@class::A::@constructor::named
-        substitution: {T: dynamic}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
@@ -943,11 +939,11 @@ f() {
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'prefix.A.named' doesn't have type parameters.
 }
 ''');
-    var node = result.findNode.instanceCreation('named<int>(0);');
+    var node = result.findNode.constructorInvocation('named<int>(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -963,13 +959,9 @@ InstanceCreationExpression
         rightBracket: >
       element: package:test/a.dart::@class::A
       type: A<int>
-    period: .
-    name: SimpleIdentifier
-      token: named
-      element: SubstitutedConstructorElementImpl
-        baseElement: package:test/a.dart::@class::A::@constructor::named
-        substitution: {T: int}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
@@ -1003,11 +995,11 @@ f() {
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'prefix.A.new' doesn't have type parameters.
 }
 ''');
-    var node = result.findNode.instanceCreation('new<int>(0);');
+    var node = result.findNode.constructorInvocation('new<int>(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -1023,13 +1015,9 @@ InstanceCreationExpression
         rightBracket: >
       element: package:test/a.dart::@class::A
       type: A<int>
-    period: .
-    name: SimpleIdentifier
-      token: new
-      element: SubstitutedConstructorElementImpl
-        baseElement: package:test/a.dart::@class::A::@constructor::new
-        substitution: {T: int}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: new
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
@@ -1112,11 +1100,11 @@ void f() {
   prefix.X.named(0);
 }
 ''');
-    var node = result.findNode.instanceCreation('X.named(0);');
+    var node = result.findNode.constructorInvocation('X.named(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -1124,13 +1112,9 @@ InstanceCreationExpression
       name: X
       element: package:test/a.dart::@typeAlias::X
       type: A<int>
-    period: .
-    name: SimpleIdentifier
-      token: named
-      element: SubstitutedConstructorElementImpl
-        baseElement: package:test/a.dart::@class::A::@constructor::named
-        substitution: {T: dynamic}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
       substitution: {T: int}
@@ -1159,21 +1143,17 @@ f() {
 }
 ''');
 
-    var node = result.findNode.instanceCreation('A.named(0);');
+    var node = result.findNode.constructorInvocation('A.named(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
       type: A<int>
-    period: .
-    name: SimpleIdentifier
-      token: named
-      element: SubstitutedConstructorElementImpl
-        baseElement: <testLibrary>::@class::A::@constructor::named
-        substitution: {T: dynamic}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}
@@ -1205,21 +1185,17 @@ f() {
 ''');
 
     // TODO(scheglov): Move type arguments
-    var node = result.findNode.instanceCreation('named<int, String>(0);');
+    var node = result.findNode.constructorInvocation('named<int, String>(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
-    period: .
-    name: SimpleIdentifier
-      token: named
-      element: SubstitutedConstructorElementImpl
-        baseElement: <testLibrary>::@class::A::@constructor::named
-        substitution: {T: dynamic, U: dynamic}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: dynamic, U: dynamic}
@@ -1263,21 +1239,17 @@ f() {
 ''');
 
     // TODO(scheglov): Move type arguments
-    var node = result.findNode.instanceCreation('new<int, String>(0);');
+    var node = result.findNode.constructorInvocation('new<int, String>(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
-    period: .
-    name: SimpleIdentifier
-      token: new
-      element: SubstitutedConstructorElementImpl
-        baseElement: <testLibrary>::@class::A::@constructor::new
-        substitution: {T: dynamic, U: dynamic}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: new
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: dynamic, U: dynamic}
@@ -1356,11 +1328,11 @@ f() {
   prefix.A<int, String>(0);
 }
 ''');
-    var node = result.findNode.instanceCreation('A<int, String>(0);');
+    var node = result.findNode.constructorInvocation('A<int, String>(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
@@ -1514,21 +1486,17 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.instanceCreation('X.named(0);');
+    var node = result.findNode.constructorInvocation('X.named(0);');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: X
       element: <testLibrary>::@typeAlias::X
       type: A<int>
-    period: .
-    name: SimpleIdentifier
-      token: named
-      element: SubstitutedConstructorElementImpl
-        baseElement: <testLibrary>::@class::A::@constructor::named
-        substitution: {T: dynamic}
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: int}

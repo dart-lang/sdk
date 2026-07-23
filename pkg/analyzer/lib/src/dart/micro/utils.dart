@@ -484,6 +484,29 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    var reference = node.constructorReference;
+    var e = _getActualConstructorElement(reference.element?.baseElement);
+    if (e == element) {
+      if (reference.selector case var selector?) {
+        var offset = selector.period.offset;
+        var length = selector.name2.end - offset;
+        references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
+      } else {
+        references.add(
+          MatchInfo(reference.typeReference.end, 0, MatchKind.INVOCATION),
+        );
+      }
+    } else if (e != null && e.enclosingElement == element) {
+      var name = reference.typeReference.name;
+      references.add(MatchInfo(name.offset, name.length, MatchKind.REFERENCE));
+    }
+
+    reference.typeReference.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     var e = node.element?.baseElement;
     e = _getActualConstructorElement(e);
@@ -493,7 +516,7 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
     if (e == element) {
       if (node.parent2 is ConstructorReference) {
         kind = MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
-      } else if (node.parent2 is InstanceCreationExpression) {
+      } else if (node.parent2 is ConstructorInvocation) {
         kind = MatchKind.INVOCATION;
       } else {
         kind = MatchKind.REFERENCE;
@@ -512,6 +535,17 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
       length = element.name?.length ?? 0;
       references.add(MatchInfo(offset, length, kind));
     }
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    if (node.element == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
+    }
+
+    node.typeArguments?.accept2(this);
   }
 
   @override

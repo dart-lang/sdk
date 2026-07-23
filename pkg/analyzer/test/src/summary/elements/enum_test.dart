@@ -38,9 +38,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -158,9 +158,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -210,9 +210,9 @@ library
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -233,9 +233,9 @@ library
             #F11 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: <testLibrary>::@enum::A::@field::v3
               initializer: expression_3
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -342,9 +342,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -393,9 +393,9 @@ library
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <null>
                       type: null
@@ -409,9 +409,9 @@ library
             #F10 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:50) (firstTokenOffset:42) (offset:50)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_3
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -510,9 +510,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -525,9 +525,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <null>
                       type: null
@@ -541,9 +541,9 @@ library
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v3
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -603,9 +603,9 @@ library
             #F7 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:52) (firstTokenOffset:44) (offset:52)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_4
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -720,9 +720,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <null>
                       type: null
@@ -736,9 +736,9 @@ library
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -791,9 +791,9 @@ library
             #F7 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:50) (firstTokenOffset:42) (offset:50)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_3
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -884,9 +884,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <null>
                       type: null
@@ -904,9 +904,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -967,9 +967,9 @@ library
             #F5 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:77) (firstTokenOffset:69) (offset:77)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_3
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -1072,9 +1072,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -1119,9 +1119,9 @@ library
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -1209,9 +1209,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -1309,9 +1309,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -1409,9 +1409,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -1534,9 +1534,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -1687,9 +1687,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -1739,9 +1739,9 @@ library
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::A::@field::v2
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -1772,9 +1772,9 @@ library
             #F14 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:112) (firstTokenOffset:112) (offset:112)
               element: <testLibrary>::@enum::A::@field::v3
               initializer: expression_3
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -1891,9 +1891,9 @@ library
               element: <testLibrary>::@enum::E::@field::a
               documentationComment: /**\n   * aaa\n   */
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -1907,9 +1907,9 @@ library
               element: <testLibrary>::@enum::E::@field::b
               documentationComment: /// bbb
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2044,9 +2044,9 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::annotation
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2068,9 +2068,9 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::annotation
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2235,9 +2235,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic int (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::int
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<int>
@@ -2256,9 +2256,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic string (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@enum::E::@field::string
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<String>
@@ -2399,9 +2399,9 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2573,9 +2573,9 @@ library
                     rightParenthesis: ) @76
                   element: <testLibrary>::@class::A::@constructor::new
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2588,9 +2588,9 @@ library
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:85) (firstTokenOffset:85) (offset:85)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2618,9 +2618,9 @@ library
                     rightParenthesis: ) @96
                   element: <testLibrary>::@class::A::@constructor::new
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2818,9 +2818,9 @@ library
                     staticType: null
                   element: <testLibrary>::@enum::E::@getter::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2922,9 +2922,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -2937,9 +2937,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::#0
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -3052,9 +3052,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _name (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::_name
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -3153,9 +3153,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @15
@@ -3272,9 +3272,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _ (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::_
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -3374,9 +3374,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -3483,9 +3483,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -3592,9 +3592,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -3722,9 +3722,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -3877,9 +3877,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -4004,17 +4004,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::E::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @26
@@ -4118,9 +4116,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -4216,9 +4214,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -4324,9 +4322,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -4450,9 +4448,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -4579,9 +4577,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -4705,9 +4703,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -4838,9 +4836,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -4991,9 +4989,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -5144,9 +5142,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -5306,9 +5304,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: B @-1
                       element: <testLibrary>::@enum::B
                       type: B
@@ -5457,9 +5455,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int>
@@ -5590,9 +5588,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -5715,9 +5713,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -5823,9 +5821,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -5931,17 +5929,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::A::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::A::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @32
@@ -6034,17 +6030,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::A::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::A::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @26
@@ -6152,9 +6146,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:55) (firstTokenOffset:55) (offset:55)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -6348,9 +6342,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int, int>
@@ -6473,9 +6467,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -6570,9 +6564,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -6674,17 +6668,15 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::A::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::A::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @18
@@ -6791,9 +6783,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @15
@@ -6805,13 +6797,9 @@ library
                         rightBracket: > @19
                       element: <testLibrary>::@enum::A
                       type: A<int>
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: SubstitutedConstructorElementImpl
-                        baseElement: <testLibrary>::@enum::A::@constructor::named
-                        substitution: {T: int}
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@enum::A::@constructor::named
                       substitution: {T: int}
@@ -6931,9 +6919,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -7048,9 +7036,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -7156,9 +7144,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -7274,9 +7262,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -7409,9 +7397,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -7548,9 +7536,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -7670,9 +7658,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7769,9 +7757,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7876,9 +7864,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7982,17 +7970,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::E::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @18
@@ -8095,9 +8081,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -8234,9 +8220,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -8358,9 +8344,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -8482,9 +8468,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -8606,9 +8592,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -8732,9 +8718,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -8871,9 +8857,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -8982,9 +8968,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -9137,9 +9123,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -9279,17 +9265,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::E::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @18
@@ -9395,17 +9379,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::E::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @18
@@ -9499,17 +9481,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::E::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @18
@@ -9603,9 +9583,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -9702,9 +9682,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -9802,17 +9782,15 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
-                    period: . @0
-                    name: SimpleIdentifier
-                      token: named @-1
-                      element: <testLibrary>::@enum::E::@constructor::named
-                      staticType: null
+                    selector: ConstructorSelector
+                      period: . @-1
+                      name2: named @-1
                     element: <testLibrary>::@enum::E::@constructor::named
                   argumentList: ArgumentList
                     leftParenthesis: ( @34
@@ -9908,9 +9886,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -10007,9 +9985,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -10149,9 +10127,9 @@ library
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@enum::A#1::@field::v
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -10426,9 +10404,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -10615,9 +10593,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -10715,9 +10693,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -10841,9 +10819,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic aaa (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::aaa
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -10856,9 +10834,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic bbb (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::bbb
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -10871,9 +10849,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic ccc (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::E::@field::ccc
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11009,9 +10987,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:69) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11335,9 +11313,9 @@ library
             #F15 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11350,9 +11328,9 @@ library
             #F17 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11365,9 +11343,9 @@ library
             #F19 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11574,9 +11552,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11700,9 +11678,9 @@ library
             #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -11846,9 +11824,9 @@ library
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -12002,9 +11980,9 @@ library
             #F10 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @29
@@ -12169,9 +12147,9 @@ library
             #F12 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<dynamic>
@@ -12313,9 +12291,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:81) (firstTokenOffset:81) (offset:81)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -12454,9 +12432,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:43) (firstTokenOffset:43) (offset:43)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -12583,9 +12561,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -12833,9 +12811,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -12974,9 +12952,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -13157,9 +13135,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::#0::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: <empty> @-1 <synthetic>
                       element: <null>
                       type: InvalidType
@@ -13253,9 +13231,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -13367,9 +13345,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -13500,9 +13478,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @26
@@ -13684,9 +13662,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:75) (firstTokenOffset:75) (offset:75)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -13814,9 +13792,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -14000,9 +13978,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -14110,9 +14088,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int>
@@ -14229,9 +14207,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A<int>
@@ -14349,9 +14327,9 @@ library
             #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -14477,9 +14455,9 @@ library
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -14609,9 +14587,9 @@ library
             #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic, dynamic>
@@ -14729,9 +14707,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<num, num>
@@ -15050,9 +15028,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -15448,9 +15426,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -15463,9 +15441,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v2
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -15579,9 +15557,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1 (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E1::@field::v1
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E1 @-1
                       element: <testLibrary>::@enum::E1
                       type: E1
@@ -15621,9 +15599,9 @@ library
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E2::@field::v2
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E2 @-1
                       element: <testLibrary>::@enum::E2
                       type: E2
@@ -15756,9 +15734,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -15883,9 +15861,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -16042,9 +16020,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @15
@@ -16200,9 +16178,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -16336,9 +16314,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -16474,9 +16452,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -16624,9 +16602,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -16783,9 +16761,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -16951,9 +16929,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -17099,9 +17077,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -17242,9 +17220,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -17394,9 +17372,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -17581,9 +17559,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -17699,9 +17677,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -17840,9 +17818,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @15
@@ -17995,9 +17973,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -18135,9 +18113,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -18274,9 +18252,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -18419,9 +18397,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -18537,9 +18515,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -18673,9 +18651,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -18800,9 +18778,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E<dynamic>
@@ -18935,9 +18913,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -19061,9 +19039,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @15
@@ -19208,9 +19186,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: B @-1
                       element: <testLibrary>::@enum::B
                       type: B
@@ -19340,9 +19318,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: B @-1
                       element: <testLibrary>::@enum::B
                       type: B
@@ -19472,9 +19450,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::B::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: B @-1
                       element: <testLibrary>::@enum::B
                       type: B
@@ -19594,9 +19572,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -19724,9 +19702,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -19854,9 +19832,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       typeArguments: TypeArgumentList
                         leftBracket: < @15
@@ -19994,9 +19972,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -20124,9 +20102,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -20250,9 +20228,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -20407,9 +20385,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -20574,9 +20552,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -20728,9 +20706,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -20877,9 +20855,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -20983,9 +20961,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -21117,9 +21095,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -21269,9 +21247,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -21403,9 +21381,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -21556,9 +21534,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -21682,9 +21660,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -21809,9 +21787,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -21963,9 +21941,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -22124,9 +22102,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A
@@ -22271,9 +22249,9 @@ library
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A

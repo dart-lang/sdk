@@ -271,6 +271,11 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     node.visitChildren2(this);
     _addElement(node.element);
@@ -279,6 +284,21 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   @override
   void visitConstructorReference(ConstructorReference node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    node.visitChildren2(this);
+    _addElement(node.element);
+  }
+
+  @override
+  void visitConstructorSelector(ConstructorSelector node) {}
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    node.visitChildren2(this);
+    _addElement(node.element);
   }
 
   @override
@@ -312,11 +332,6 @@ class _ElementCollector extends GeneralizingAstVisitor2<void> {
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _addElement(node.element);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    node.visitChildren2(this);
   }
 
   @override

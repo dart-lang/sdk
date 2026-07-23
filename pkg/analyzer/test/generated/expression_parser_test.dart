@@ -1425,10 +1425,10 @@ var v = const A();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2219,10 +2219,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2238,10 +2238,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2258,10 +2258,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2277,10 +2277,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2296,10 +2296,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2315,10 +2315,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2334,10 +2334,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2353,17 +2353,17 @@ var v = new a.b.c<C>();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
       name: b
-    period: .
-    name: SimpleIdentifier
-      token: c
+    selector: ConstructorSelector
+      period: .
+      name2: c
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -2384,10 +2384,10 @@ var v = new $token;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: $token
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
@@ -2854,10 +2854,10 @@ var v = new A();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3035,10 +3035,10 @@ var v = const A();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3299,10 +3299,10 @@ var v = new A();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
   argumentList: ArgumentList
     leftParenthesis: (

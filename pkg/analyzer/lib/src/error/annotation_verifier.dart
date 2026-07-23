@@ -299,7 +299,7 @@ class AnnotationVerifier {
 
     // Returns `true` for expressions like `new Foo()` or `null`.
     bool factoryExpression(Expression? expression) =>
-        expression is InstanceCreationExpression || expression is NullLiteral;
+        expression is ConstructorInvocation || expression is NullLiteral;
 
     if (body is ExpressionFunctionBody && factoryExpression(body.expression2)) {
       return;

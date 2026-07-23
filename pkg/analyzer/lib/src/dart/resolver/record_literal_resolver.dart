@@ -136,7 +136,7 @@ class RecordLiteralResolver {
   }
 
   DartType _resolveField(RecordLiteralFieldImpl field, TypeImpl contextType) {
-    var expression = field.fieldExpression;
+    var expression = field.fieldExpression2;
     var staticType = _resolver
         .analyzeExpression(expression, SharedTypeSchemaView(contextType))
         .type

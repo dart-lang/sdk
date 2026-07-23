@@ -83,7 +83,7 @@ class PropertyElementResolver with ScopeHelpers {
         var elementToInfer = _resolver.inferenceHelper
             .constructorElementToInfer(
               typeElement: context.element,
-              constructorName: identifier,
+              constructorName: identifier.token,
               definingLibrary: _resolver.definingLibrary,
             );
         if (elementToInfer != null &&

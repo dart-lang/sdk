@@ -835,6 +835,15 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
+                    ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  arguments(v1)
                     InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName

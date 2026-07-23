@@ -695,7 +695,15 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 CascadeExpression
-  target2: InstanceCreationExpression
+  target2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: Map
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+  target(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType

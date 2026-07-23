@@ -147,6 +147,22 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _writeByte(Tag.ConstructorInvocation);
+
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.keyword?.type == Keyword.CONST,
+        isNew: node.keyword?.type == Keyword.NEW,
+      ),
+    );
+
+    _writeNode(node.constructorReference);
+    _writeNode(node.argumentList);
+    _storeExpression(node);
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     _writeByte(Tag.ConstructorName);
 
@@ -170,9 +186,27 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _writeByte(Tag.ConstructorReference2);
+    _writeNode(node.typeReference);
+    _writeOptionalNode(node.selector);
+    _sink.writeElement(node.element);
+  }
+
+  @override
   void visitConstructorSelector(ConstructorSelector node) {
     _writeByte(Tag.ConstructorSelector);
     _writeStringReference(node.name2.lexeme);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    _writeByte(Tag.ConstructorTypeReference);
+    _writeOptionalNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _sink.writeElement(node.element);
+    _sink.writeType((node as ConstructorTypeReferenceImpl).type);
   }
 
   @override
@@ -375,22 +409,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _sink.writeElement(node.element);
 
-    _storeExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _writeByte(Tag.InstanceCreationExpression);
-
-    _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.keyword?.type == Keyword.CONST,
-        isNew: node.keyword?.type == Keyword.NEW,
-      ),
-    );
-
-    _writeNode(node.constructorName);
-    _writeNode(node.argumentList);
     _storeExpression(node);
   }
 

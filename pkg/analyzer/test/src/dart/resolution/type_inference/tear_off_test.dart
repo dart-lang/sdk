@@ -75,7 +75,19 @@ int Function(int) test() {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: PropertyAccess
-    target2: InstanceCreationExpression
+    target2: ConstructorInvocation
+      keyword: new
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+        element: <testLibrary>::@class::C::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C
+    target(v1): InstanceCreationExpression
       keyword: new
       constructorName: ConstructorName
         type: NamedType

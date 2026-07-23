@@ -128,6 +128,10 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
   }
 
   @override
+  bool visitConstructorInvocation(ConstructorInvocation node) =>
+      _nodeExits(node.argumentList);
+
+  @override
   bool visitConstructorReference(ConstructorReference node) => false;
 
   @override
@@ -405,10 +409,6 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
     }
     return false;
   }
-
-  @override
-  bool visitInstanceCreationExpression(InstanceCreationExpression node) =>
-      _nodeExits(node.argumentList);
 
   @override
   bool visitIsExpression(IsExpression node) => node.expression2.accept2(this)!;
@@ -736,6 +736,14 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
 
   /// Return `true` if the given [node] exits.
   static bool exits(AstNode node) {
+    if (node is InstanceCreationExpression) {
+      return exits2(node.argumentList);
+    }
+    return exits2(node);
+  }
+
+  /// Return `true` if the given [node] exits.
+  static bool exits2(AstNode node) {
     return ExitDetector()._nodeExits(node);
   }
 

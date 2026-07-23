@@ -122,6 +122,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is NamedType) {
       errorEntity = node.name;
+    } else if (node is ConstructorTypeReference) {
+      errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
@@ -551,6 +553,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is NamedType) {
       errorEntity = node.name;
+    } else if (node is ConstructorTypeReference) {
+      errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
@@ -615,6 +619,15 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (hasConstructorInvocation) return;
 
     checkUsage(node.declaredFragment!.element.superConstructor, node);
+  }
+
+  void constructorInvocation(ConstructorInvocation node) {
+    checkUsage(
+      node.constructorReference.typeReference.element,
+      node.constructorReference.typeReference,
+    );
+    checkUsage(node.constructorReference.element, node.constructorReference);
+    _invocationArguments(node.constructorReference.element, node.argumentList);
   }
 
   void constructorName(ConstructorName node) {
@@ -699,10 +712,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
-  }
-
-  void instanceCreationExpression(InstanceCreationExpression node) {
-    _invocationArguments(node.constructorName.element, node.argumentList);
   }
 
   void methodInvocation(MethodInvocation node) {

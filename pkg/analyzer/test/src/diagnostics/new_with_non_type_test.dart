@@ -27,9 +27,12 @@ void foo() {
 }
 ''');
 
-    var node = result.findNode.namedType('F()');
+    var node = result.findNode
+        .constructorInvocation('F()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: F
   element: <testLibrary>::@typeAlias::F
   type: InvalidType
@@ -61,9 +64,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('A()');
+    var node = result.findNode
+        .constructorInvocation('A()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: A
   element: <testLibrary>::@getter::A
   type: InvalidType
@@ -80,9 +86,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('A<int>()');
+    var node = result.findNode
+        .constructorInvocation('A<int>()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: A
   typeArguments: TypeArgumentList
     leftBracket: <

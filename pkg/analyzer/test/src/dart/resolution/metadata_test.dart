@@ -152,6 +152,24 @@ Annotation
   arguments: ArgumentList
     leftParenthesis: (
     arguments2
+      ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+            element: <testLibrary>::@class::A
+            type: A
+          element: <testLibrary>::@class::A::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            IntegerLiteral
+              literal: 0
+              correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+              staticType: int
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+        staticType: A
+    arguments(v1)
       InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
@@ -161,7 +179,7 @@ Annotation
           element: <testLibrary>::@class::A::@constructor::new
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             IntegerLiteral
               literal: 0
               correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -702,6 +720,20 @@ Annotation
   arguments: ArgumentList
     leftParenthesis: (
     arguments2
+      ConstructorInvocation
+        keyword: const
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: C
+            element: <testLibrary>::@class::C
+            type: C
+          element: <testLibrary>::@class::C::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
+        staticType: C
+    arguments(v1)
       InstanceCreationExpression
         keyword: const
         constructorName: ConstructorName

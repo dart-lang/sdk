@@ -1663,7 +1663,23 @@ CompilationUnit
                     VariableDeclaration
                       name: result
                       equals: =
-                      initializer2: InstanceCreationExpression
+                      initializer2: ConstructorInvocation
+                        keyword: new
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: Map
+                            typeArguments: TypeArgumentList
+                              leftBracket: <
+                              arguments
+                                NamedType
+                                  name: Symbol
+                                NamedType
+                                  name: dynamic
+                              rightBracket: >
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                      initializer(v1): InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -1716,14 +1732,25 @@ CompilationUnit
                                     target2: SimpleIdentifier
                                       token: result
                                     leftBracket: [
-                                    index2: InstanceCreationExpression
+                                    index2: ConstructorInvocation
+                                      keyword: new
+                                      constructorReference: ConstructorReference2
+                                        typeReference: ConstructorTypeReference
+                                          name: Symbol
+                                      argumentList: ArgumentList
+                                        leftParenthesis: (
+                                        arguments2
+                                          SimpleIdentifier
+                                            token: name
+                                        rightParenthesis: )
+                                    index(v1): InstanceCreationExpression
                                       keyword: new
                                       constructorName: ConstructorName
                                         type: NamedType
                                           name: Symbol
                                       argumentList: ArgumentList
                                         leftParenthesis: (
-                                        arguments2
+                                        arguments
                                           SimpleIdentifier
                                             token: name
                                         rightParenthesis: )

@@ -687,9 +687,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic foo (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @-1
                       element: <testLibrary>::@enum::A
                       type: A

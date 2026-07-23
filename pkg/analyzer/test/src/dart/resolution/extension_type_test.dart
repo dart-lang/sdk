@@ -87,7 +87,23 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        element: <testLibrary>::@extensionType::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -96,7 +112,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -179,7 +195,26 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        selector: ConstructorSelector
+          period: .
+          name2: named
+        element: <testLibrary>::@extensionType::A::@constructor::named
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -193,7 +228,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::named
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -434,7 +469,23 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        element: <testLibrary>::@extensionType::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -443,7 +494,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -477,7 +528,26 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        selector: ConstructorSelector
+          period: .
+          name2: named
+        element: <testLibrary>::@extensionType::A::@constructor::named
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -491,7 +561,7 @@ ConstructorDeclaration
         element: <testLibrary>::@extensionType::A::@constructor::named
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
             correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it

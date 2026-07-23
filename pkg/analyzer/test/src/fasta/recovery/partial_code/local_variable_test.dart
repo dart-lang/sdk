@@ -37,14 +37,25 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
                       name: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -106,7 +117,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: break
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
@@ -141,7 +160,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: continue
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
@@ -177,7 +204,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: do
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
@@ -225,7 +260,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: <empty> <synthetic>
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
@@ -264,14 +307,25 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: for
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      SimpleIdentifier
+                        token: <empty> <synthetic>
+                    rightParenthesis: )
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
                       name: for
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       SimpleIdentifier
                         token: <empty> <synthetic>
                     rightParenthesis: )
@@ -306,14 +360,25 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: if
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
                       name: if
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -350,7 +415,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: l
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
@@ -497,7 +570,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: return
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
@@ -533,14 +614,25 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: switch
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      SimpleIdentifier
+                        token: x
+                    rightParenthesis: )
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
                       name: switch
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       SimpleIdentifier
                         token: x
                     rightParenthesis: )
@@ -579,7 +671,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: try
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
@@ -625,14 +725,25 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: while
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType
                       name: while
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -852,7 +963,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: InstanceCreationExpression
+                expression2: ConstructorInvocation
+                  keyword: const
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: ( <synthetic>
+                    rightParenthesis: ) <synthetic>
+                expression(v1): InstanceCreationExpression
                   keyword: const
                   constructorName: ConstructorName
                     type: NamedType

@@ -47,7 +47,7 @@ class ConstantEvaluationConfiguration {
   /// these constant expressions.
   ///
   /// A similar issue happens for enum values, which are desugared into
-  /// synthetic [InstanceCreationExpression], which never had any offsets.
+  /// synthetic [ConstructorInvocation], which never had any offsets.
   /// So, we remember that any errors should be reported at the corresponding
   /// [EnumConstantDeclaration]s.
   void addErrorNode({
@@ -357,7 +357,7 @@ class ConstantEvaluationEngine {
     List<Argument> arguments,
     InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocationImpl? invocation,
+    ConstructorInvocationDataImpl? invocation,
   }) {
     var result = _InstanceCreationEvaluator.evaluate(
       this,
@@ -409,7 +409,7 @@ class ConstantEvaluationEngine {
     List<Argument> arguments,
     InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocationImpl? invocation,
+    ConstructorInvocationDataImpl? invocation,
     required Map<FormalParameterElement, DartObjectImpl> implicitArgumentValues,
   }) {
     return _InstanceCreationEvaluator.evaluate(
@@ -483,7 +483,7 @@ class ConstantEvaluationEngine {
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
       // So stop following the chain of redirections at dart:core.Symbol, and
-      // let [evaluateInstanceCreationExpression] handle it specially.
+      // let [evaluateConstructorInvocation] handle it specially.
       return null;
     }
     var redirectedConstructor = constructor.redirectedConstructor;
@@ -849,6 +849,36 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitConstructorInvocation(
+    covariant ConstructorInvocationImpl node,
+  ) {
+    if (!node.isConst) {
+      // TODO(srawlins): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
+      return InvalidConstant.genericError(node: node);
+    }
+    var constructor = node.constructorReference.element;
+    if (constructor == null) {
+      // Couldn't resolve the constructor so we can't compute a value.  No
+      // problem - the error has already been reported.
+      // TODO(kallentu): Use a better error code for this.
+      return InvalidConstant.forEntity(
+        entity: node,
+        locatableDiagnostic: diag.invalidConstant,
+      );
+    }
+
+    return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
+      _library,
+      node,
+      constructor.returnType.typeArguments,
+      node.argumentList.arguments2,
+      constructor,
+      this,
+    );
+  }
+
+  @override
   Constant visitConstructorReference(ConstructorReference node) {
     var constructorFunctionType = node.typeOrThrow;
     if (constructorFunctionType is! FunctionTypeImpl) {
@@ -1028,36 +1058,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       typeSystem,
       _typeProvider.typeType,
       TypeState(node.type),
-    );
-  }
-
-  @override
-  Constant visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    if (!node.isConst) {
-      // TODO(srawlins): Use a specific error code.
-      // https://github.com/dart-lang/sdk/issues/47061
-      return InvalidConstant.genericError(node: node);
-    }
-    var constructor = node.constructorName.element;
-    if (constructor == null) {
-      // Couldn't resolve the constructor so we can't compute a value.  No
-      // problem - the error has already been reported.
-      // TODO(kallentu): Use a better error code for this.
-      return InvalidConstant.forEntity(
-        entity: node,
-        locatableDiagnostic: diag.invalidConstant,
-      );
-    }
-
-    return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
-      _library,
-      node,
-      constructor.returnType.typeArguments,
-      node.argumentList.arguments2,
-      constructor,
-      this,
     );
   }
 
@@ -2110,7 +2110,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
           return diag.nonConstantDefaultValueFromDeferredLibrary;
         } else if (current is IfElement && current.expression2 == node) {
           return diag.ifElementConditionFromDeferredLibrary;
-        } else if (current is InstanceCreationExpression) {
+        } else if (current is ConstructorInvocation) {
           return diag.constConstructorConstantFromDeferredLibrary;
         } else if (current is ListLiteral) {
           return diag.nonConstantListElementFromDeferredLibrary;
@@ -2855,7 +2855,7 @@ class _InstanceCreationEvaluator {
 
   final List<TypeImpl>? _typeArguments;
 
-  final ConstructorInvocationImpl _invocation;
+  final ConstructorInvocationDataImpl _invocation;
 
   final List<DartObjectImpl> _argumentValues;
 
@@ -2885,7 +2885,7 @@ class _InstanceCreationEvaluator {
     required List<DartObjectImpl> argumentValues,
     required Map<FormalParameterElement, DartObjectImpl> argumentValueMap,
     required Map<FormalParameterElement, AstNode?> argumentNodeMap,
-    required ConstructorInvocationImpl invocation,
+    required ConstructorInvocationDataImpl invocation,
   }) : _argumentValues = argumentValues,
        _argumentValueMap = argumentValueMap,
        _argumentNodeMap = argumentNodeMap,
@@ -3566,12 +3566,12 @@ class _InstanceCreationEvaluator {
     List<TypeImpl>? typeArguments,
     List<Argument> arguments,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocationImpl? invocation,
+    ConstructorInvocationDataImpl? invocation,
     required Map<FormalParameterElement, DartObjectImpl> implicitArgumentValues,
   }) {
     if (!constructor.isConst) {
       Token? keyword;
-      if (node is InstanceCreationExpression) {
+      if (node is ConstructorInvocation) {
         keyword = node.keyword;
       } else if (node is DotShorthandConstructorInvocation) {
         keyword = node.constKeyword;
@@ -3668,7 +3668,7 @@ class _InstanceCreationEvaluator {
       }
     }
 
-    invocation ??= ConstructorInvocationImpl(
+    invocation ??= ConstructorInvocationDataImpl(
       constructor,
       invocationPositionalValues,
       invocationNamedValues,

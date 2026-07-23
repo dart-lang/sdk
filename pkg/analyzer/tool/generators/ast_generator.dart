@@ -919,20 +919,22 @@ $v2ApiAnnotations
 $maybeOverride
 ${property.typeCode} get $propertyName => _$propertyName;
 ''');
-        var setterAnnotations = property.v2MigrationAnnotations;
-        var setterBody = property.v1Name == null
-            ? '_$propertyName = '
-                  '${implClass.api.becomeParentMethod}($propertyName);'
-            : '_$propertyName = _becomeParentOf2($propertyName);\n'
-                  '_becomeParentOf1('
-                  '${property.projectToV1Code(propertyName)});';
-        buffer.write('''
+        if (!implClass.doNotGenerateLookupNames.contains('$propertyName=')) {
+          var setterAnnotations = property.v2MigrationAnnotations;
+          var setterBody = property.v1Name == null
+              ? '_$propertyName = '
+                    '${implClass.api.becomeParentMethod}($propertyName);'
+              : '_$propertyName = _becomeParentOf2($propertyName);\n'
+                    '_becomeParentOf1('
+                    '${property.projectToV1Code(propertyName)});';
+          buffer.write('''
 \n@generated
 $setterAnnotations
 set $propertyName(${property.typeCode} $propertyName) {
   $setterBody
 }
 ''');
+        }
         if (property.v1Name case var v1Name?) {
           if (!implClass.doNotGenerateLookupNames.contains(v1Name)) {
             var projectedValue = property.projectToV1Code(propertyName);

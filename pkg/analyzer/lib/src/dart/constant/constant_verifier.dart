@@ -200,6 +200,33 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
+    if (node.isConst) {
+      var typeReference = node.constructorReference.typeReference;
+      if (typeReference.element is TypeParameterElement) {
+        _diagnosticReporter.report(
+          diag.constWithTypeParameters.at(typeReference),
+        );
+      }
+      if (typeReference.typeArguments case var typeArguments?) {
+        for (var argument in typeArguments.arguments) {
+          _checkForConstWithTypeParameters(
+            argument,
+            diag.constWithTypeParameters,
+          );
+        }
+      }
+
+      var constructor = node.constructorReference.element;
+      if (constructor != null) {
+        _validateConstructorInvocation(node, constructor, node.argumentList);
+      }
+    } else {
+      super.visitConstructorInvocation(node);
+    }
+  }
+
+  @override
   void visitConstructorReference(ConstructorReference node) {
     super.visitConstructorReference(node);
     if (node.inConstantContext || node.inConstantExpression) {
@@ -271,23 +298,6 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     if ((parent is AsExpression || parent is IsExpression) &&
         (parent as Expression).inConstantContext) {
       _checkForConstWithTypeParameters(node, diag.constWithTypeParameters);
-    }
-  }
-
-  @override
-  void visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    if (node.isConst) {
-      var namedType = node.constructorName.type;
-      _checkForConstWithTypeParameters(namedType, diag.constWithTypeParameters);
-
-      var constructor = node.constructorName.element;
-      if (constructor != null) {
-        _validateConstructorInvocation(node, constructor, node.argumentList);
-      }
-    } else {
-      super.visitInstanceCreationExpression(node);
     }
   }
 

@@ -1476,19 +1476,18 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         var constructorSelector = constantArguments?.constructorSelector;
         var constructorName = constructorSelector?.name2.lexeme;
 
-        var initializer = InstanceCreationExpressionImpl(
+        var initializer = ConstructorInvocationImpl(
           keyword: null,
-          constructorName: ConstructorNameImpl(
-            type: NamedTypeImpl(
+          constructorReference: ConstructorReference2Impl(
+            typeReference: ConstructorTypeReferenceImpl(
               importPrefix: null,
               name: StringToken(TokenType.STRING, fragment.name ?? '', -1),
               typeArguments: constantArguments?.typeArguments,
-              question: null,
             ),
-            period: constructorName != null ? Tokens.period() : null,
-            name: constructorName != null
-                ? SimpleIdentifierImpl(
-                    token: StringToken(TokenType.STRING, constructorName, -1),
+            selector: constructorName != null
+                ? ConstructorSelectorImpl.v2(
+                    period: Token(TokenType.PERIOD, -1),
+                    name2: StringToken(TokenType.STRING, constructorName, -1),
                   )
                 : null,
           ),

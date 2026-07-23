@@ -1364,7 +1364,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _visitIf(IfElementOrStatementImpl node) {
-    node.expression.accept2(this);
+    node.expression2.accept2(this);
 
     var caseClause = node.caseClause;
     if (caseClause != null) {
@@ -1374,14 +1374,14 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
         assignedVariables.declare(variable);
       }
       guardedPattern.whenClause?.accept2(this);
-      node.ifTrue.accept2(this);
+      node.ifTrue2.accept2(this);
       assignedVariables.endNode(node);
-      node.ifFalse?.accept2(this);
+      node.ifFalse2?.accept2(this);
     } else {
       assignedVariables.beginNode();
-      node.ifTrue.accept2(this);
+      node.ifTrue2.accept2(this);
       assignedVariables.endNode(node);
-      node.ifFalse?.accept2(this);
+      node.ifFalse2?.accept2(this);
     }
   }
 }

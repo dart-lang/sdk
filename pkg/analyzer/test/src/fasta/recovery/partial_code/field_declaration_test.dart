@@ -161,7 +161,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType
@@ -1595,7 +1603,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType
@@ -3033,7 +3049,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType
@@ -4503,7 +4527,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType
@@ -5977,7 +6009,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType
@@ -7511,7 +7551,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType
@@ -8985,7 +9033,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType
@@ -10875,7 +10931,15 @@ CompilationUnit
                   name: f
                   equals: =
                   initializer2: AssignmentExpression
-                    leftHandSide2: InstanceCreationExpression
+                    leftHandSide2: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    leftHandSide(v1): InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
                         type: NamedType

@@ -1954,7 +1954,15 @@ Block
             name: x
             equals: =
             initializer2: PostfixExpression
-              operand2: InstanceCreationExpression
+              operand2: ConstructorInvocation
+                keyword: const
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Foo
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operand(v1): InstanceCreationExpression
                 keyword: const
                 constructorName: ConstructorName
                   type: NamedType
@@ -1987,7 +1995,15 @@ Block
             name: x
             equals: =
             initializer2: PostfixExpression
-              operand2: InstanceCreationExpression
+              operand2: ConstructorInvocation
+                keyword: new
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Foo
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operand(v1): InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
                   type: NamedType

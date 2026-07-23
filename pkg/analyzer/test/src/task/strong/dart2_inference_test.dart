@@ -442,7 +442,7 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('C():');
+    var node = result.findNode.constructorInvocation('C():');
     assertType(node, 'C<int>');
   }
 
@@ -461,7 +461,7 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('const C():');
+    var node = result.findNode.constructorInvocation('const C():');
     assertType(node, 'C<int>');
   }
 

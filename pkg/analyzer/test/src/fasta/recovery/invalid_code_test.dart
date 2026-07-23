@@ -80,7 +80,15 @@ CompilationUnit
           VariableDeclaration
             name: default
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: const
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: Object
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: const
               constructorName: ConstructorName
                 type: NamedType

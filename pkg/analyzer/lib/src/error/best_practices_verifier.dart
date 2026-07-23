@@ -7,7 +7,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/constant/value.dart' hide ConstructorInvocation;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -318,6 +318,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
+    _elementUsageFrontierDetector.constructorInvocation(node);
+    _deprecatedFunctionalityVerifier.constructorInvocation(node);
+    _invalidAccessVerifier.verifyConstructorInvocation(node);
+    _nullSafeApiVerifier.instanceCreation(node);
+    _checkForLiteralConstructorUse(node);
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     _elementUsageFrontierDetector.constructorName(node);
     _deprecatedFunctionalityVerifier.constructorName(node);
@@ -570,17 +580,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitIndexExpression(IndexExpression node) {
     _elementUsageFrontierDetector.indexExpression(node);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    _elementUsageFrontierDetector.instanceCreationExpression(node);
-    _deprecatedFunctionalityVerifier.instanceCreationExpression(node);
-    _nullSafeApiVerifier.instanceCreation(node);
-    _checkForLiteralConstructorUse(node);
-    super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -1161,9 +1160,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
 
   /// Check that the instance creation node is const if the constructor is
   /// marked with [literal].
-  void _checkForLiteralConstructorUse(InstanceCreationExpression node) {
-    ConstructorName constructorName = node.constructorName;
-    var constructor = constructorName.element;
+  void _checkForLiteralConstructorUse(ConstructorInvocation node) {
+    var constructorReference = node.constructorReference;
+    var constructor = constructorReference.element;
     if (constructor == null) {
       return;
     }
@@ -1172,9 +1171,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
-      String fullConstructorName = constructorName.type.qualifiedName;
-      if (constructorName.name != null) {
-        fullConstructorName = '$fullConstructorName.${constructorName.name}';
+      var typeReference = constructorReference.typeReference;
+      var fullConstructorName = [
+        if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
+        typeReference.name.lexeme,
+      ].join('.');
+      if (constructorReference.selector case var selector?) {
+        fullConstructorName = '$fullConstructorName.${selector.name2.lexeme}';
       }
       var warning = node.keyword?.keyword == Keyword.NEW
           ? diag.nonConstCallToLiteralConstructorUsingNew
@@ -1639,7 +1642,7 @@ class _InvalidAccessVerifier {
   ///   annotations, the access is valid (and no warning is produced) if it
   ///   conforms to the rules of at least one of the annotations.
   void verify(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext() || identifier.inCommentReference) {
+    if (identifier.inDeclarationContext() || identifier.inCommentReference2) {
       return;
     }
 
@@ -1694,6 +1697,21 @@ class _InvalidAccessVerifier {
             .at(operator),
       );
     }
+  }
+
+  void verifyConstructorInvocation(ConstructorInvocation node) {
+    var reference = node.constructorReference;
+    var element = reference.element;
+    if (element == null || _inCurrentLibrary(element)) {
+      return;
+    }
+
+    _checkForInvalidInternalAccess(
+      parent: reference,
+      nameToken: reference.typeReference.name,
+      element: element,
+    );
+    _checkForOtherInvalidAccess(reference, element);
   }
 
   void verifyImport(ImportDirective node) {
@@ -1823,7 +1841,10 @@ class _InvalidAccessVerifier {
 
       var grandparent = parent?.parent2;
 
-      if (grandparent is ConstructorName) {
+      if (parent is ConstructorReference2) {
+        name = parent.toSource();
+        node = parent;
+      } else if (grandparent is ConstructorName) {
         name = grandparent.toSource();
         node = grandparent;
       } else {
@@ -2042,6 +2063,8 @@ class _InvalidAccessVerifier {
     } else if (node is PatternFieldImpl) {
       name = element.displayName;
       errorEntity = node.errorEntity;
+    } else if (node is ConstructorReference2) {
+      name = node.toSource();
     } else if (node is ConstructorSelector) {
       name = node.name2.lexeme;
       errorEntity = node.name2;

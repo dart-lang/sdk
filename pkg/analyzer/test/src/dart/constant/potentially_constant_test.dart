@@ -629,7 +629,7 @@ class A {
 var x = new A(); // x
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.instanceCreation('A(); // x')],
+      (result) => [result.findNode.constructorInvocation('A(); // x')],
     );
   }
 

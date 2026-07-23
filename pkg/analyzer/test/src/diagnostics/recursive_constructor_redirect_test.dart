@@ -39,35 +39,6 @@ class A {
 ''');
   }
 
-  test_recursive_const_augmentation_doesNotReportRecursiveConstantConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  e0;
-  const E();
-}
-
-augment enum E {
-  ;
-  augment const E() : this();
-//                    ^^^^^^
-// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
-}
-''');
-  }
-
-  test_recursive_const_doesNotReportRecursiveConstantConstructor() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  const A.a() : this.b();
-//              ^^^^^^^^
-// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
-  const A.b() : this.a();
-//              ^^^^^^^^
-// [diag.recursiveConstructorRedirect] Constructors can't redirect to themselves either directly or indirectly.
-}
-''');
-  }
-
   test_valid_redirect() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

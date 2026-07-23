@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1388,7 +1390,10 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = List<String>.foo();
 ''');
-    var constructor = parseResult.findNode.singleConstructorName;
+    var constructor = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
     var name = constructor.name!;
     expect(name.isQualified, isTrue);
   }
@@ -1463,6 +1468,17 @@ void f() {
 ''');
     var identifier = parseResult.findNode.simple('test');
     expect(identifier.isQualified, isFalse);
+  }
+
+  void test_writeOrReadElement_inConstructorName_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+final x = List<String>.foo();
+''');
+    var constructor = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
+    expect(constructor.name!.writeOrReadElement, isNull);
   }
 
   SimpleIdentifier _createIdentifier(

@@ -1323,7 +1323,7 @@ class MethodInvocationResolver with ScopeHelpers {
             ..isDotShorthand = node.isDotShorthand;
       _resolver.replaceExpression(node, replacement);
       _resolver.flowAnalysis.transferTestData(node, replacement);
-      _resolver.instanceCreationExpressionResolver.resolveDotShorthand(
+      _resolver.constructorInvocationResolver.resolveDotShorthand(
         replacement,
         contextType: contextType,
       );

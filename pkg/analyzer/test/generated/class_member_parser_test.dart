@@ -66,7 +66,15 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: MethodInvocation
-                      target2: InstanceCreationExpression
+                      target2: ConstructorInvocation
+                        keyword: new
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: C
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                      target(v1): InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -1238,7 +1246,30 @@ FieldDeclaration
       VariableDeclaration
         name: _allComponents
         equals: =
-        initializer2: InstanceCreationExpression
+        initializer2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: List
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: N
+                      rightBracket: >
+                rightBracket: >
+            selector: ConstructorSelector
+              period: .
+              name2: empty
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        initializer(v1): InstanceCreationExpression
           keyword: new
           constructorName: ConstructorName
             type: NamedType

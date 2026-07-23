@@ -1417,6 +1417,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _runSubscriptions(node, _registry._forConstructorInvocation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitConstructorName(ConstructorName node) {
     _runSubscriptions(node, _registry._forConstructorName);
@@ -1788,12 +1795,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     _runSubscriptions(node, _registry._forIndexExpression);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _runSubscriptions(node, _registry._forInstanceCreationExpression);
     node.visitChildren2(this);
   }
 
@@ -4235,6 +4236,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ConstructorFieldInitializer>>
   _forConstructorFieldInitializer = [];
 
+  final List<_Subscription2<ConstructorInvocation>> _forConstructorInvocation =
+      [];
+
   final List<_Subscription2<ConstructorName>> _forConstructorName = [];
 
   final List<_Subscription2<ConstructorReference2>> _forConstructorReference2 =
@@ -4381,9 +4385,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
       [];
 
   final List<_Subscription2<IndexExpression>> _forIndexExpression = [];
-
-  final List<_Subscription2<InstanceCreationExpression>>
-  _forInstanceCreationExpression = [];
 
   final List<_Subscription2<IntegerLiteral>> _forIntegerLiteral = [];
 
@@ -4828,6 +4829,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forConstructorFieldInitializer.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addConstructorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forConstructorInvocation.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -5312,17 +5324,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forIndexExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addInstanceCreationExpression(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forInstanceCreationExpression.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
   }
 
   @override

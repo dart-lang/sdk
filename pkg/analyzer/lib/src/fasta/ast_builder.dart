@@ -961,7 +961,7 @@ class AstBuilder extends StackListener {
 
     var expressions = popTypedList2<ArgumentImpl>(count);
     for (var argument in expressions) {
-      reportErrorIfSuper(argument.argumentExpression);
+      reportErrorIfSuper(argument.argumentExpression2);
     }
 
     var argumentList = ArgumentListImpl(
@@ -1459,14 +1459,33 @@ class AstBuilder extends StackListener {
     var constructorName = pop() as SimpleIdentifierImpl?;
     var typeArguments = pop() as TypeArgumentListImpl?;
     var typeNameIdentifier = pop() as IdentifierImpl;
-    push(
-      ConstructorNameImpl(
-        type: typeNameIdentifier.toNamedType(
-          typeArguments: typeArguments,
-          question: null,
+    if (constructorReferenceContext ==
+        ConstructorReferenceContext.RedirectingFactory) {
+      push(
+        ConstructorNameImpl(
+          type: typeNameIdentifier.toNamedType(
+            typeArguments: typeArguments,
+            question: null,
+          ),
+          period: periodBeforeName,
+          name: constructorName,
         ),
-        period: periodBeforeName,
-        name: constructorName,
+      );
+      return;
+    }
+    var selector = switch (periodBeforeName) {
+      var period? => ConstructorSelectorImpl.v2(
+        period: period,
+        name2: constructorName!.token,
+      ),
+      _ => null,
+    };
+    push(
+      ConstructorReference2Impl(
+        typeReference: typeNameIdentifier.toConstructorTypeReference(
+          typeArguments: typeArguments,
+        ),
+        selector: selector,
       ),
     );
   }
@@ -4033,14 +4052,14 @@ class AstBuilder extends StackListener {
   void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("EnumElement");
     var argumentList = pop() as ArgumentListImpl?;
-    var tmpConstructor = pop() as ConstructorNameImpl?;
+    var tmpConstructor = pop() as ConstructorReference2Impl?;
     var constant = pop() as EnumConstantDeclarationImpl;
 
     if (!enableEnhancedEnums &&
         (argumentList != null ||
             tmpConstructor != null &&
-                (tmpConstructor.type.typeArguments != null ||
-                    tmpConstructor.name != null))) {
+                (tmpConstructor.typeReference.typeArguments != null ||
+                    tmpConstructor.selector != null))) {
       Token token = argumentList != null
           ? argumentList.beginToken
           : tmpConstructor!.beginToken;
@@ -4053,13 +4072,14 @@ class AstBuilder extends StackListener {
     TypeArgumentListImpl? typeArguments;
     ConstructorSelectorImpl? constructorSelector;
     if (tmpConstructor != null) {
-      typeArguments = tmpConstructor.type.typeArguments;
-      var constructorNamePeriod = tmpConstructor.period;
-      var constructorNameId = tmpConstructor.name;
-      if (constructorNamePeriod != null && constructorNameId != null) {
+      typeArguments = tmpConstructor.typeReference.typeArguments;
+      if (tmpConstructor.selector case var selector?) {
+        // Enum constant arguments are shared by the V1 and V2 AST views.
+        // The temporary constructor reference is V2-only, so replace its
+        // selector with a shared node before attaching it to the enum.
         constructorSelector = ConstructorSelectorImpl(
-          period: constructorNamePeriod,
-          name2: constructorNameId.token,
+          period: selector.period,
+          name2: selector.name2,
         );
       }
     }
@@ -4605,8 +4625,8 @@ class AstBuilder extends StackListener {
   void handleInvalidTypeArguments(Token token) {
     var invalidTypeArgs = pop() as TypeArgumentListImpl;
     var node = pop();
-    if (node is ConstructorNameImpl) {
-      push(_ConstructorNameWithInvalidTypeArgs(node, invalidTypeArgs));
+    if (node is ConstructorReference2Impl) {
+      push(_ConstructorReferenceWithInvalidTypeArgs(node, invalidTypeArgs));
     } else {
       throw UnimplementedError(
         'node is an instance of ${node.runtimeType} in handleInvalidTypeArguments',
@@ -6298,19 +6318,19 @@ class AstBuilder extends StackListener {
 
   void _handleInstanceCreation(Token? token) {
     var argumentList = pop() as ArgumentListImpl;
-    ConstructorNameImpl constructorName;
+    ConstructorReference2Impl constructorReference;
     TypeArgumentListImpl? typeArguments;
     var object = pop();
-    if (object is _ConstructorNameWithInvalidTypeArgs) {
-      constructorName = object.name;
+    if (object is _ConstructorReferenceWithInvalidTypeArgs) {
+      constructorReference = object.reference;
       typeArguments = object.invalidTypeArgs;
     } else {
-      constructorName = object as ConstructorNameImpl;
+      constructorReference = object as ConstructorReference2Impl;
     }
     push(
-      InstanceCreationExpressionImpl(
+      ConstructorInvocationImpl(
         keyword: token,
-        constructorName: constructorName,
+        constructorReference: constructorReference,
         argumentList: argumentList,
         typeArguments: typeArguments,
       ),
@@ -6502,11 +6522,14 @@ abstract class _ClassLikeDeclarationBuilder {
   }
 }
 
-class _ConstructorNameWithInvalidTypeArgs {
-  final ConstructorNameImpl name;
+class _ConstructorReferenceWithInvalidTypeArgs {
+  final ConstructorReference2Impl reference;
   final TypeArgumentListImpl invalidTypeArgs;
 
-  _ConstructorNameWithInvalidTypeArgs(this.name, this.invalidTypeArgs);
+  _ConstructorReferenceWithInvalidTypeArgs(
+    this.reference,
+    this.invalidTypeArgs,
+  );
 }
 
 class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {

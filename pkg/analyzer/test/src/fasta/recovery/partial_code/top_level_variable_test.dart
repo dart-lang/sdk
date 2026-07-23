@@ -5390,7 +5390,15 @@ CompilationUnit
             name: a
             equals: =
             initializer2: AssignmentExpression
-              leftHandSide2: InstanceCreationExpression
+              leftHandSide2: ConstructorInvocation
+                keyword: const
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: a
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+              leftHandSide(v1): InstanceCreationExpression
                 keyword: const
                 constructorName: ConstructorName
                   type: NamedType

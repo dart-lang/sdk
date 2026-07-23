@@ -386,7 +386,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     var body = constructor.body as BlockFunctionBody;
     var stmt = body.block.statements[0] as ReturnStatement;
-    var exp = stmt.expression2 as InstanceCreationExpression;
+    var exp = stmt.expression2 as ConstructorInvocation;
     ClassElement elementB = AstFinder.getClass(
       result.unit,
       "B",
@@ -395,7 +395,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "A",
     ).declaredFragment!.element;
-    var type = exp.constructorName.type.typeOrThrow as InterfaceType;
+    var type = exp.staticType as InterfaceType;
     expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(
@@ -4532,7 +4532,29 @@ class C<T> {
     var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
-  target2: InstanceCreationExpression
+  target2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  target(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -4604,7 +4626,29 @@ class C<T> {
     var node1 = result.findNode.methodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
 MethodInvocation
-  target2: InstanceCreationExpression
+  target2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  target(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType

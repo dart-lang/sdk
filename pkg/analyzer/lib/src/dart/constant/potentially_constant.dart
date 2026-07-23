@@ -96,7 +96,7 @@ class _Collector {
       return _identifier(node);
     }
 
-    if (node is InstanceCreationExpression) {
+    if (node is ConstructorInvocation) {
       if (!node.isConst) {
         nodes.add(node);
       }

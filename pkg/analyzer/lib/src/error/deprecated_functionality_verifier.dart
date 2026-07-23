@@ -61,6 +61,22 @@ class DeprecatedFunctionalityVerifier {
     // constructor.
   }
 
+  void constructorInvocation(ConstructorInvocation node) {
+    var constructor = node.constructorReference.element;
+    if (constructor == null) return;
+    _checkForDeprecatedOptional(
+      element: constructor,
+      argumentList: node.argumentList,
+      errorEntity: node.constructorReference,
+    );
+    var interfaceElement = node.constructorReference.typeReference.element;
+    if (interfaceElement is! InterfaceElement) return;
+    _checkForDeprecatedInstantiate(
+      element: interfaceElement,
+      errorNode: node.constructorReference,
+    );
+  }
+
   void constructorName(ConstructorName node) {
     var interfaceElement = node.type.element;
     if (interfaceElement is! InterfaceElement) return;
@@ -96,22 +112,6 @@ class DeprecatedFunctionalityVerifier {
   void enumDeclaration(EnumDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
-  }
-
-  void instanceCreationExpression(InstanceCreationExpression node) {
-    var constructor = node.constructorName.element;
-    if (constructor == null) return;
-    _checkForDeprecatedOptional(
-      element: constructor,
-      argumentList: node.argumentList,
-      errorEntity: node.constructorName,
-    );
-    var interfaceElement = node.constructorName.type.element;
-    if (interfaceElement is! InterfaceElement) return;
-    _checkForDeprecatedInstantiate(
-      element: interfaceElement,
-      errorNode: node.constructorName,
-    );
   }
 
   void methodInvocation(MethodInvocation node) {

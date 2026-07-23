@@ -130,7 +130,7 @@ void f() { // ref
     var statement = block.statements.single as ExpressionStatement;
     var expression = statement.expression2;
 
-    var actual = ExitDetector.exits(expression);
+    var actual = ExitDetector.exits2(expression);
     expect(actual, expected);
   }
 
@@ -930,7 +930,7 @@ void f() { // ref
     var block = findNode.block('{ // ref');
     var statement = block.statements.single;
 
-    var actual = ExitDetector.exits(statement);
+    var actual = ExitDetector.exits2(statement);
     expect(actual, expected);
   }
 
@@ -1222,7 +1222,7 @@ void f() sync* {
     var function = result.unit.declarations.last as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     Statement statement = body.block.statements[n];
-    expect(ExitDetector.exits(statement), expected);
+    expect(ExitDetector.exits2(statement), expected);
   }
 
   /// Assert that the [n]th statement in the last function declaration of

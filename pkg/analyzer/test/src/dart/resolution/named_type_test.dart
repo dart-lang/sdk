@@ -465,9 +465,12 @@ main() {
 }
 ''');
 
-    var node = result.findNode.namedType('A();');
+    var node = result.findNode
+        .constructorInvocation('A();')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   importPrefix: ImportPrefixReference
     name: math
     period: .
@@ -487,9 +490,12 @@ main() {
 }
 ''');
 
-    var node = result.findNode.namedType('A();');
+    var node = result.findNode
+        .constructorInvocation('A();')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: A
   element: <testLibrary>::@class::A
   type: A
@@ -505,9 +511,12 @@ main() {
 }
 ''');
 
-    var node = result.findNode.namedType('A();');
+    var node = result.findNode
+        .constructorInvocation('A();')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: A
   element: <null>
   type: InvalidType
@@ -605,9 +614,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('int.double');
+    var node = result.findNode
+        .constructorInvocation('int.double.other()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   importPrefix: ImportPrefixReference
     name: int
     period: .
@@ -770,9 +782,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('X<int>()');
+    var node = result.findNode
+        .constructorInvocation('X<int>()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: X
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -798,9 +813,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('X()');
+    var node = result.findNode
+        .constructorInvocation('X()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: X
   element: <testLibrary>::@typeAlias::X
   type: A<int>
@@ -818,9 +836,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.namedType('X<int>()');
+    var node = result.findNode
+        .constructorInvocation('X<int>()')
+        .constructorReference
+        .typeReference;
     assertResolvedNodeText(node, r'''
-NamedType
+ConstructorTypeReference
   name: X
   typeArguments: TypeArgumentList
     leftBracket: <

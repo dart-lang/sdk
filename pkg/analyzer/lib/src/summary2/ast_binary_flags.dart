@@ -74,7 +74,7 @@ class AstBinaryFlags {
     3,
     ConstructorDeclaration,
     DeclaredIdentifier,
-    InstanceCreationExpression,
+    ConstructorInvocation,
     TypedLiteral,
     VariableDeclarationList,
   );
@@ -121,7 +121,7 @@ class AstBinaryFlags {
 
   static final _isNative = _checkBit(8, MethodDeclaration);
 
-  static final _isNew = _checkBit(0, InstanceCreationExpression);
+  static final _isNew = _checkBit(0, ConstructorInvocation);
 
   static final _isOperator = _checkBit(0, MethodDeclaration);
 

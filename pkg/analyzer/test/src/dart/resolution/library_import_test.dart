@@ -201,7 +201,18 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A
+                  element: package:test/a.dart::@class::A
+                  type: A
+                element: package:test/a.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            initializer(v1): InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -287,7 +298,18 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A
+                  element: package:test/a_html.dart::@class::A
+                  type: A
+                element: package:test/a_html.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            initializer(v1): InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -483,7 +505,18 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A
+                  element: package:test/a_io.dart::@class::A
+                  type: A
+                element: package:test/a_io.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            initializer(v1): InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A

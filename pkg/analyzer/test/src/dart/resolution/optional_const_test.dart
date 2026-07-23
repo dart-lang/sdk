@@ -215,11 +215,11 @@ import 'a.dart' as p;
 const x = p.C<int>();
 ''');
 
-    var node = result.findNode.instanceCreation('p.C<int>()');
+    var node = result.findNode.constructorInvocation('p.C<int>()');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -279,9 +279,14 @@ var v = a;
 
     var vg =
         result.findNode.simple('a;').element as PropertyAccessorElementImpl;
-    var v = vg.variable.firstFragment;
+    var variable = vg.variable;
 
-    var creation = v.constantInitializer as InstanceCreationExpression;
+    // The element model stores and exposes the canonical V2 initializer.
+    var invocation = variable.constantInitializer2 as ConstructorInvocation;
+
+    // The legacy API projects that initializer into the V1 AST view.
+    var creation = variable.constantInitializer as InstanceCreationExpression;
+    assert(creation.toSource() == invocation.toSource());
     return creation;
   }
 }
