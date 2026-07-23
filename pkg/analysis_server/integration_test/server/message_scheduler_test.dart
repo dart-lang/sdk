@@ -240,8 +240,7 @@ Exit process messages loop
 
   Future<void> test_initialize() async {
     await initialize();
-    await initialAnalysis;
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     _assertLogContents(testView!, r'''
 Incoming RequestMessage: initialize:0
 Entering process messages loop
@@ -253,6 +252,10 @@ Entering process messages loop
   Start LspMessage: initialized
 Exit process messages loop
   Complete LspMessage: initialized
+Incoming RequestMessage: dart/workspace/analysis/complete:1
+Entering process messages loop
+  Start LspMessage: dart/workspace/analysis/complete:1
+Exit process messages loop
 ''');
   }
 

@@ -728,7 +728,7 @@ void f(dynamic a) => a.foo();
     newFile(newFilePath, '');
 
     // Allow server to catch up.
-    await waitForAnalysisComplete();
+    await workspaceAnalysisComplete();
 
     // Expect unused_import, not uri_does_not_exist.
     expect(diagnostics[mainFileUri]!.single.code, 'unused_import');
@@ -858,13 +858,11 @@ analyzer:
 
     await provideConfig(initialize, {});
     await openFile(mainFileUri, contents);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], isNull);
 
-    await Future.wait([
-      updateConfig({'showTodos': true}),
-      waitForAnalysisComplete(),
-    ]);
+    await updateConfig({'showTodos': true});
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], hasLength(1));
   }
 
@@ -883,7 +881,7 @@ analyzer:
       // either.
       'showTodos': ['TODO', 'fixme'],
     });
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     var initialDiagnostics = diagnostics[mainFileUri]!;
     expect(initialDiagnostics, hasLength(2));

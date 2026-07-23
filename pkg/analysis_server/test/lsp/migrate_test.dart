@@ -1561,7 +1561,7 @@ environment:
     String? expectedEdit,
     bool apply = false,
   }) async {
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var request = makeRequest(
       CustomMethods.migrate,
       DartMigrateParams(

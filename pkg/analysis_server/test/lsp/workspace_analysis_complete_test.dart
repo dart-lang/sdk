@@ -35,6 +35,15 @@ class WorkspaceAnalysisCompleteTest extends AbstractLspAnalysisServerTest {
     return super.sendRequestToServer(request);
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Enable progress notifications because we want to check the analysis
+    // occurs prior to this request completing.
+    setWorkDoneProgressSupport();
+  }
+
   Future<void> test_advertisedCapability() async {
     await initialize();
 
@@ -96,9 +105,10 @@ class WorkspaceAnalysisCompleteTest extends AbstractLspAnalysisServerTest {
       r'Response to initialize',
       r'Response to dart/workspace/analysis/complete',
       // When adding a new workspace folder that triggers analysis.
-      r'$/analyzerStatus notification',
+      'window/workDoneProgress/create request',
+      r'$/progress notification',
       r'textDocument/publishDiagnostics notification',
-      r'$/analyzerStatus notification',
+      r'$/progress notification',
       r'Response to dart/workspace/analysis/complete',
     ]);
   }
@@ -168,9 +178,10 @@ class WorkspaceAnalysisCompleteTest extends AbstractLspAnalysisServerTest {
 
     expect(messages, [
       r'Response to initialize',
-      r'$/analyzerStatus notification',
+      'window/workDoneProgress/create request',
+      r'$/progress notification',
       r'textDocument/publishDiagnostics notification',
-      r'$/analyzerStatus notification',
+      r'$/progress notification',
       r'Response to dart/workspace/analysis/complete',
     ]);
   }
@@ -190,8 +201,9 @@ class WorkspaceAnalysisCompleteTest extends AbstractLspAnalysisServerTest {
       // Initial empty workspace.
       r'Response to initialize',
       // Analysis of empty workspace.
-      r'$/analyzerStatus notification',
-      r'$/analyzerStatus notification',
+      'window/workDoneProgress/create request',
+      r'$/progress notification',
+      r'$/progress notification',
       r'Response to dart/workspace/analysis/complete',
     ]);
   }

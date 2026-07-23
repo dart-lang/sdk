@@ -534,7 +534,7 @@ void f() {
         'experimentalInlineValuesProperties': true,
     });
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     var actualValues = await getInlineValues(
       mainFileUri,
