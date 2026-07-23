@@ -149,6 +149,77 @@ linter:
     });
   });
 
+  group('diagnostics section', () {
+    group('rule with map config', () {
+      test('map value is parsed as options', () {
+        var ruleConfigs = parseDiagnosticsSection(
+          loadYamlNode('''
+my_rule:
+  max_depth: 2
+  some_flag: true
+''')
+              as YamlMap,
+        );
+        expect(ruleConfigs, hasLength(1));
+        var config = ruleConfigs['my_rule'];
+        expect(config?.name, 'my_rule');
+        expect(config?.severity, ConfiguredSeverity.enable);
+        expect(config?.isEnabled, isTrue);
+        expect(config?.options, {'max_depth': 2, 'some_flag': true});
+      });
+
+      test('string option value', () {
+        var ruleConfigs = parseDiagnosticsSection(
+          loadYamlNode('''
+my_rule:
+  max_depth: 3
+  pattern: "^_"
+''')
+              as YamlMap,
+        );
+        expect(ruleConfigs, hasLength(1));
+        var config = ruleConfigs['my_rule'];
+        expect(config?.severity, ConfiguredSeverity.enable);
+        expect(config?.options, {'max_depth': 3, 'pattern': '^_'});
+      });
+
+      test('mixed scalar and map config styles', () {
+        var ruleConfigs = parseDiagnosticsSection(
+          loadYamlNode('''
+simple_rule: true
+configured_rule:
+  threshold: 5
+disabled_rule: false
+severity_rule: warning
+''')
+              as YamlMap,
+        );
+        expect(ruleConfigs, hasLength(4));
+        expect(ruleConfigs['simple_rule']?.isEnabled, isTrue);
+        expect(ruleConfigs['simple_rule']?.options, isEmpty);
+        expect(ruleConfigs['configured_rule']?.isEnabled, isTrue);
+        expect(ruleConfigs['configured_rule']?.options, {'threshold': 5});
+        expect(ruleConfigs['disabled_rule']?.isEnabled, isFalse);
+        expect(
+          ruleConfigs['severity_rule']?.severity,
+          ConfiguredSeverity.warning,
+        );
+      });
+
+      test('bool and string values have empty options', () {
+        var ruleConfigs = parseDiagnosticsSection(
+          loadYamlNode('''
+rule_a: true
+rule_b: error
+''')
+              as YamlMap,
+        );
+        expect(ruleConfigs['rule_a']?.options, isEmpty);
+        expect(ruleConfigs['rule_b']?.options, isEmpty);
+      });
+    });
+  });
+
   group('options processing', () {
     group('raw maps', () {
       Map<String, RuleConfig> parseMap(Map<Object, Object?> map) {

@@ -42,22 +42,28 @@ Map<String, RuleConfig> parseDiagnosticsSection(YamlNode value) {
       if (configValue is! YamlMap) {
         return;
       }
-      // For example:
-      //
-      // ```yaml
-      // style_guide: {unnecessary_getters: false, camel_case_types: true}
-      // ```
-      configValue.nodes.forEach((ruleName, ruleValue) {
-        var ruleConfig = _parseRuleConfig(
-          ruleName,
-          ruleValue,
-          group: configName,
-        );
+
+      // Try to interpret the entries as sub-rules (the "group" pattern).
+      // Only use the group interpretation if ALL entries parse as sub-rules.
+      var groupConfigs = <String, RuleConfig>{};
+      var allEntriesAreRules = true;
+      for (var MapEntry(:key, :value) in configValue.nodes.entries) {
+        var ruleConfig = _parseRuleConfig(key, value, group: configName);
         if (ruleConfig != null) {
-          ruleConfigs[ruleConfig.name] = ruleConfig;
-          return;
+          groupConfigs[ruleConfig.name] = ruleConfig;
+        } else {
+          allEntriesAreRules = false;
+          break;
         }
-      });
+      }
+
+      if (allEntriesAreRules && groupConfigs.isNotEmpty) {
+        ruleConfigs.addAll(groupConfigs);
+        return;
+      }
+
+      // Otherwise, treat the map as rule-specific options.
+      ruleConfigs[configName] = _parseRuleOptions(configName, configValue);
     }
   });
   return ruleConfigs;
@@ -103,6 +109,23 @@ RuleConfig? _parseRuleConfig(
   return null;
 }
 
+/// Parses [configMap] as rule-specific options for a rule named [ruleName].
+RuleConfig _parseRuleOptions(String ruleName, YamlMap configMap) {
+  var options = <String, Object>{};
+  for (var MapEntry(:key, :value) in configMap.nodes.entries) {
+    if (key case YamlScalar(value: String optionName)) {
+      if (value case YamlScalar(value: Object optionValue)) {
+        options[optionName] = optionValue;
+      }
+    }
+  }
+  return RuleConfig._(
+    name: ruleName,
+    options: options,
+    severity: ConfiguredSeverity.enable,
+  );
+}
+
 /// An alias for a [RuleConfig], but which is configured under a 'diagnostics'
 /// key in an analysis options file.
 ///
@@ -138,10 +161,18 @@ class RuleConfig {
   /// The name of the rule.
   final String name;
 
+  /// Rule-specific configuration options parsed from a YAML map value.
+  final Map<String, Object> options;
+
   /// The rule's severity in this configuration.
   final ConfiguredSeverity severity;
 
-  RuleConfig._({required this.name, this.group, required this.severity});
+  RuleConfig._({
+    required this.name,
+    this.group,
+    this.options = const {},
+    required this.severity,
+  });
 
   /// Whether this rule is enabled or disabled in this configuration.
   bool get isEnabled => severity != ConfiguredSeverity.disable;
