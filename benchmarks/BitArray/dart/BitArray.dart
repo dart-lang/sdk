@@ -9,6 +9,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:benchmark_harness/benchmark_harness.dart';
+import 'package:expect/variations.dart' show jsNumbers;
 
 // 32-bit storage words so the benchmark runs on both native (64-bit int)
 // and web (32-bit bitwise) without platform-specific word arithmetic.
@@ -16,55 +17,56 @@ const int _wordBits = 32;
 const int _wordMask = _wordBits - 1;
 const int _wordShift = 5;
 
-class BitArray32 {
-  final Uint32List _words;
-  final int length;
-
-  BitArray32(this.length)
-    : _words = Uint32List((length + _wordBits - 1) >> _wordShift);
-
-  Uint32List get words => _words;
+// Must be generic over the concrete list type L for performance.
+mixin BitArrayOps<L extends List<int>> {
+  L get words;
+  int get length;
+  int get wordShift;
+  int get wordMask;
+  int get complementMask;
 
   void setBit(int i) {
-    _words[i >> _wordShift] |= 1 << (i & _wordMask);
+    words[i >> wordShift] |= 1 << (i & wordMask);
   }
 
   int cardinality() {
+    final w = words;
     var total = 0;
-    for (var i = 0; i < _words.length; i++) {
-      total += _words[i].oneBitCount;
+    for (var i = 0; i < w.length; i++) {
+      total += w[i].oneBitCount;
     }
     return total;
   }
 
   void forEachSetBit(void Function(int) action) {
-    for (var wordIdx = 0; wordIdx < _words.length; wordIdx++) {
-      var w = _words[wordIdx];
-      final base = wordIdx << _wordShift;
-      while (w != 0) {
-        final bit = w.trailingZeroBitCount;
-        final pos = base + bit;
+    final w = words;
+    final shift = wordShift;
+    for (var wordIdx = 0; wordIdx < w.length; wordIdx++) {
+      var x = w[wordIdx];
+      final base = wordIdx << shift;
+      while (x != 0) {
+        final pos = base + x.trailingZeroBitCount;
         if (pos >= length) return;
         action(pos);
-        // https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan
-        w &= w - 1;
+        x &= x - 1;
       }
     }
   }
 
   int select(int k) {
+    final w = words;
+    final shift = wordShift;
     var remaining = k;
-    for (var wordIdx = 0; wordIdx < _words.length; wordIdx++) {
-      final w = _words[wordIdx];
-      final pop = w.oneBitCount;
+    for (var wordIdx = 0; wordIdx < w.length; wordIdx++) {
+      final word = w[wordIdx];
+      final pop = word.oneBitCount;
       if (remaining < pop) {
-        var v = w;
+        var v = word;
         while (remaining > 0) {
-          // https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan
           v &= v - 1;
           remaining--;
         }
-        return (wordIdx << _wordShift) + v.trailingZeroBitCount;
+        return (wordIdx << shift) + v.trailingZeroBitCount;
       }
       remaining -= pop;
     }
@@ -74,22 +76,43 @@ class BitArray32 {
   // A synthetic operation that exercises int.bitLength once per word, the
   // way cardinality exercises int.oneBitCount once per word.
   int totalBitLength() {
+    final w = words;
     var total = 0;
-    for (var i = 0; i < _words.length; i++) {
-      total += _words[i].bitLength;
+    for (var i = 0; i < w.length; i++) {
+      total += w[i].bitLength;
     }
     return total;
   }
 
   // Exercises int.~ once per word, immediately followed by oneBitCount.
   int complementCardinality() {
+    final w = words;
+    final mask = complementMask;
     var total = 0;
-    for (var i = 0; i < _words.length; i++) {
-      // Mask back to 32 bits because ~uint32 sign-extends in Dart's int.
-      total += (~_words[i] & 0xFFFFFFFF).oneBitCount;
+    for (var i = 0; i < w.length; i++) {
+      total += (~w[i] & mask).oneBitCount;
     }
     return total;
   }
+}
+
+class BitArray32 with BitArrayOps<Uint32List> {
+  final Uint32List _words;
+  @override
+  final int length;
+
+  BitArray32(this.length)
+    : _words = Uint32List((length + _wordBits - 1) >> _wordShift);
+
+  @override
+  Uint32List get words => _words;
+
+  @override
+  int get wordShift => _wordShift;
+  @override
+  int get wordMask => _wordMask;
+  @override
+  int get complementMask => 0xFFFFFFFF;
 
   static void intersection(BitArray32 a, BitArray32 b, BitArray32 out) {
     final wa = a._words;
@@ -269,6 +292,94 @@ class BitArray32 {
       if (_words[i] != other._words[i]) return false;
     }
     return true;
+  }
+}
+
+const int _wordBits64 = 64;
+const int _wordMask64 = _wordBits64 - 1;
+const int _wordShift64 = 6;
+
+// 64-bit-word bit array, backed by an Int64List; mirrors BitArray32.
+class BitArray64 with BitArrayOps<Int64List> {
+  final Int64List _words;
+  @override
+  final int length;
+
+  BitArray64(this.length)
+    : _words = Int64List((length + _wordBits64 - 1) >> _wordShift64);
+
+  @override
+  Int64List get words => _words;
+
+  @override
+  int get wordShift => _wordShift64;
+  @override
+  int get wordMask => _wordMask64;
+  @override
+  int get complementMask => -1;
+
+  static void intersection(BitArray64 a, BitArray64 b, BitArray64 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] & wb[i];
+    }
+  }
+
+  static void union(BitArray64 a, BitArray64 b, BitArray64 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] | wb[i];
+    }
+  }
+
+  static void xor(BitArray64 a, BitArray64 b, BitArray64 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] ^ wb[i];
+    }
+  }
+
+  static void difference(BitArray64 a, BitArray64 b, BitArray64 out) {
+    final wa = a._words;
+    final wb = b._words;
+    final wo = out._words;
+    if (wa.length != wb.length || wa.length != wo.length) {
+      throw ArgumentError('a, b, and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = wa[i] & ~wb[i];
+    }
+  }
+
+  static void complement(BitArray64 a, BitArray64 out) {
+    final wa = a._words;
+    final wo = out._words;
+    if (wa.length != wo.length) {
+      throw ArgumentError('a and out must have the same length');
+    }
+    final n = wa.length;
+    for (var i = 0; i < n; i++) {
+      wo[i] = ~wa[i];
+    }
   }
 }
 
@@ -622,6 +733,41 @@ void checkCrossImpl() {
       BitArray32.complement(u, uCmp);
       BitArray32.complementAccelerated(u, aCmp);
       _assertEq(uCmp.wordsEqual(aCmp), true, '$label complement.accelerated');
+
+      // The 64-bit variant, validated against the same scalar oracle.
+      if (!jsNumbers) {
+        void compare64(String op, BitArray32 u32, BitArray64 b64) {
+          final a = <int>[];
+          final b = <int>[];
+          u32.forEachSetBit(a.add);
+          b64.forEachSetBit(b.add);
+          _assertEq(b.length, a.length, '$op count');
+          for (var i = 0; i < a.length; i++) {
+            _assertEq(b[i], a[i], '$op [$i]');
+          }
+        }
+
+        final b = BitArray64(size);
+        u.forEachSetBit(b.setBit);
+        final bOther = BitArray64(size);
+        uOther.forEachSetBit(bOther.setBit);
+
+        final bInt = BitArray64(size);
+        BitArray64.intersection(b, bOther, bInt);
+        compare64('$label i64 intersection', uInt, bInt);
+
+        final bUni = BitArray64(size);
+        BitArray64.union(b, bOther, bUni);
+        compare64('$label i64 union', uUni, bUni);
+
+        final bXor = BitArray64(size);
+        BitArray64.xor(b, bOther, bXor);
+        compare64('$label i64 xor', uXor, bXor);
+
+        final bDif = BitArray64(size);
+        BitArray64.difference(b, bOther, bDif);
+        compare64('$label i64 difference', uDif, bDif);
+      }
     }
   }
 }
@@ -663,10 +809,107 @@ List<BenchmarkBase> _benchmarks32x4() {
   ];
 }
 
+BitArray64 _randomArray64(int size, Random rng, int densityPercent) {
+  final bits = BitArray64(size);
+  _setRandomBits(bits.setBit, size, rng, densityPercent);
+  return bits;
+}
+
+class _BitArray64Benchmark extends BenchmarkBase {
+  final int densityPercent;
+  final void Function(BitArray64) operation;
+  late BitArray64 bits;
+
+  _BitArray64Benchmark(String name, this.densityPercent, this.operation)
+    : super('BitArray64.$name');
+
+  @override
+  void setup() {
+    bits = _randomArray64(_benchSize, Random(_seedA), densityPercent);
+  }
+
+  @override
+  void run() {
+    operation(bits);
+  }
+}
+
+class _BitArray64PairBenchmark extends BenchmarkBase {
+  final int densityPercent;
+  final void Function(BitArray64, BitArray64, BitArray64) operation;
+  late BitArray64 a;
+  late BitArray64 b;
+  late BitArray64 out;
+
+  _BitArray64PairBenchmark(String name, this.densityPercent, this.operation)
+    : super('BitArray64.$name');
+
+  @override
+  void setup() {
+    a = _randomArray64(_benchSize, Random(_seedA), densityPercent);
+    b = _randomArray64(_benchSize, Random(_seedB), densityPercent);
+    out = BitArray64(_benchSize);
+  }
+
+  @override
+  void run() {
+    operation(a, b, out);
+  }
+}
+
+List<BenchmarkBase> _benchmarks64() {
+  var sink = 0;
+  void accumulate(int x) {
+    sink ^= x;
+  }
+
+  return [
+    _BitArray64Benchmark(
+      'cardinality',
+      25,
+      (bits) => sink ^= bits.cardinality(),
+    ),
+    _BitArray64Benchmark(
+      'forEachSetBit',
+      25,
+      (bits) => bits.forEachSetBit(accumulate),
+    ),
+    _BitArray64Benchmark(
+      'select',
+      25,
+      (bits) => sink ^= bits.select(_benchSize >> 3),
+    ),
+    _BitArray64Benchmark(
+      'complementCardinality',
+      25,
+      (bits) => sink ^= bits.complementCardinality(),
+    ),
+    _BitArray64Benchmark(
+      'totalBitLength',
+      25,
+      (bits) => sink ^= bits.totalBitLength(),
+    ),
+    _BitArray64PairBenchmark('intersection', 25, BitArray64.intersection),
+    _BitArray64PairBenchmark('union', 25, BitArray64.union),
+    _BitArray64PairBenchmark('xor', 25, BitArray64.xor),
+    _BitArray64PairBenchmark('difference', 25, BitArray64.difference),
+    _BitArray64PairBenchmark(
+      'complement',
+      25,
+      (a, _, out) => BitArray64.complement(a, out),
+    ),
+  ];
+}
+
 void main() {
   checkCrossImpl();
   for (final benchmark in _benchmarks32()) {
     benchmark.report();
+  }
+  if (!jsNumbers) {
+    for (final benchmark in _benchmarks64()) {
+      benchmark.report();
+    }
   }
   for (final benchmark in _benchmarks32x4()) {
     benchmark.report();
