@@ -182,7 +182,15 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
 
     if (cid == kClosureCid) {
       // We can share a closure iff it doesn't close over any state.
-      return Closure::RawContextOf(Closure::RawCast(obj)) == Object::null();
+      const ClosurePtr closure = Closure::RawCast(obj);
+      for (intptr_t i = Closure::ContextIndexOf(closure),
+                    n = Closure::LengthOf(closure);
+           i < n; ++i) {
+        if (closure->untag()->element(i) != Object::null()) {
+          return false;
+        }
+      }
+      return true;
     }
 
     // All other objects that have immutability bit set are deeply immutable.
