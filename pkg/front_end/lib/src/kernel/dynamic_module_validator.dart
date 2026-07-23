@@ -1159,13 +1159,15 @@ class _DynamicCallValidator {
 
     for (TreeNode node in spec.dynamicallyCallable) {
       if (node is Member) {
-        checkExposedClass(node.enclosingClass!, node);
-        registerSelectorName(node);
+        if (node.enclosingClass case final enclosingClass?) {
+          checkExposedClass(enclosingClass, node);
+          registerSelectorName(node);
+        }
       } else if (node is Class) {
         checkExposedClass(node, node);
         registerClassMembers(node);
-      } else {
-        for (Class c in (node as Library).classes) {
+      } else if (node is Library) {
+        for (Class c in node.classes) {
           checkExposedClass(c, c);
           registerClassMembers(c);
         }
