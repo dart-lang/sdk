@@ -171,7 +171,7 @@ main() {
 
       // Expect that termination is reported as 'Detached' when we explicitly
       // requested a detach.
-      expect(
+      final detachedFuture = expectLater(
         client.outputEvents.map((output) => output.output.trim()),
         // emitsThrough because we might still get "Hello" in the output
         // because we resume as part of detach.
@@ -182,6 +182,7 @@ main() {
       // the request for a graceful detach (and disconnectRequest is the
       // forceful shutdown).
       await client.terminate();
+      await detachedFuture;
 
       // Expect the process terminates (and hasn't got stuck on the breakpoint
       // or exception).

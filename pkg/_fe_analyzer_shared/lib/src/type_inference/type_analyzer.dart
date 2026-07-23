@@ -9,34 +9,66 @@ import 'null_shorting.dart';
 import 'type_analysis_result.dart';
 import 'type_analyzer_operations.dart';
 
-/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
-/// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head or
-/// `default` clause.
+/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchStatement]
+/// about a default clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class CaseHeadOrDefaultInfo<
+class CaseDefaultInfo<
+  Node extends Object,
+  Expression extends Node,
+  Variable extends Object
+>
+    extends CaseHeadOrDefaultInfo<Node, Expression, Variable> {
+  @override
+  Null get guard => null;
+
+  @override
+  Null get pattern => null;
+
+  @override
+  Map<String, Variable> get variables => const {};
+}
+
+/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
+/// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head.
+///
+/// The client is free to `implement` or `extend` this class.
+class CaseHeadInfo<
+  Node extends Object,
+  Expression extends Node,
+  Variable extends Object
+>
+    extends CaseHeadOrDefaultInfo<Node, Expression, Variable> {
+  @override
+  final Node pattern;
+
+  @override
+  final Map<String, Variable> variables;
+
+  @override
+  final Expression? guard;
+
+  CaseHeadInfo({required this.pattern, required this.variables, this.guard});
+}
+
+/// Common base class for [CaseHeadInfo] and [CaseDefaultInfo].
+sealed class CaseHeadOrDefaultInfo<
   Node extends Object,
   Expression extends Node,
   Variable extends Object
 > {
+  /// For a `case` clause that has a guard clause, the expression following
+  /// `when`.  Otherwise `null`.
+  Expression? get guard;
+
   /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
-  final Node? pattern;
+  Node? get pattern;
 
   /// The pattern variables declared in [pattern]. Some of them are joins of
   /// individual pattern variable declarations. We don't know their types
   /// until we do type analysis. So, some of these variables might become
   /// not consistent.
-  final Map<String, Variable> variables;
-
-  /// For a `case` clause that has a guard clause, the expression following
-  /// `when`.  Otherwise `null`.
-  final Expression? guard;
-
-  CaseHeadOrDefaultInfo({
-    required this.pattern,
-    required this.variables,
-    this.guard,
-  });
+  Map<String, Variable> get variables;
 }
 
 /// The kind of inconsistency identified for a variable.
@@ -153,8 +185,8 @@ class SwitchExpressionMemberInfo<
   Expression extends Node,
   Variable extends Object
 > {
-  /// The [CaseHeadOrDefaultInfo] associated with this clause.
-  final CaseHeadOrDefaultInfo<Node, Expression, Variable> head;
+  /// The [CaseHeadInfo] associated with this clause.
+  final CaseHeadInfo<Node, Expression, Variable> head;
 
   /// The body of the `case` or `default` clause.
   final Expression expression;
@@ -2093,51 +2125,45 @@ mixin TypeAnalyzer<
         handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
         Node? pattern = memberInfo.head.pattern;
         ExpressionInfo? guardInfo;
-        if (pattern != null) {
-          Map<String, List<Variable>> componentVariables = {};
-          Map<String, int> patternVariablePromotionKeys = {};
-          dispatchPattern(
-            new MatchContext<Node, Expression, Pattern, Variable>(
-              isFinal: false,
-              switchScrutinee: scrutinee,
-              componentVariables: componentVariables,
-              patternVariablePromotionKeys: patternVariablePromotionKeys,
-            ),
-            pattern,
+        Map<String, List<Variable>> componentVariables = {};
+        Map<String, int> patternVariablePromotionKeys = {};
+        dispatchPattern(
+          new MatchContext<Node, Expression, Pattern, Variable>(
+            isFinal: false,
+            switchScrutinee: scrutinee,
+            componentVariables: componentVariables,
+            patternVariablePromotionKeys: patternVariablePromotionKeys,
+          ),
+          pattern,
+        );
+        _finishJoinedPatternVariables(
+          memberInfo.head.variables,
+          componentVariables,
+          patternVariablePromotionKeys,
+          location: JoinedPatternVariableLocation.singlePattern,
+        );
+        // Stack: (Expression, i * ExpressionCase, Pattern)
+        Expression? guard = memberInfo.head.guard;
+        if (guard != null) {
+          ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
+            guard,
+            operations.typeToSchema(operations.boolType),
+            isVoidAllowed: true,
           );
-          _finishJoinedPatternVariables(
-            memberInfo.head.variables,
-            componentVariables,
-            patternVariablePromotionKeys,
-            location: JoinedPatternVariableLocation.singlePattern,
-          );
-          // Stack: (Expression, i * ExpressionCase, Pattern)
-          Expression? guard = memberInfo.head.guard;
-          if (guard != null) {
-            ExpressionTypeAnalysisResult guardAnalysisResult =
-                analyzeExpression(
-                  guard,
-                  operations.typeToSchema(operations.boolType),
-                  isVoidAllowed: true,
-                );
-            SharedTypeView guardType = guardAnalysisResult.type;
-            Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
-            (guardTypes ??= {})[i] = guardType;
-            if (nonBooleanGuardError != null) {
-              (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
-            }
-            guardInfo = guardAnalysisResult.flowAnalysisInfo;
-            // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
-          } else {
-            handleNoGuard(node, i);
-            guardInfo = flow.booleanLiteral(true);
-            // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
+          SharedTypeView guardType = guardAnalysisResult.type;
+          Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
+          (guardTypes ??= {})[i] = guardType;
+          if (nonBooleanGuardError != null) {
+            (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
           }
-          handleCaseHead(node, caseIndex: i, subIndex: 0);
+          guardInfo = guardAnalysisResult.flowAnalysisInfo;
+          // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         } else {
-          handleDefault(node, caseIndex: i, subIndex: 0);
+          handleNoGuard(node, i);
           guardInfo = flow.booleanLiteral(true);
+          // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         }
+        handleCaseHead(node, caseIndex: i, subIndex: 0);
         flow.switchStatement_endAlternative(guardInfo, {});
         flow.switchStatement_endAlternatives(null, hasLabels: false);
         // Stack: (Expression, i * ExpressionCase, CaseHead)
@@ -2225,7 +2251,6 @@ mixin TypeAnalyzer<
       for (int headIndex = 0; headIndex < heads.length; headIndex++) {
         CaseHeadOrDefaultInfo<Node, Expression, Variable> head =
             heads[headIndex];
-        Node? pattern = head.pattern;
         flow.switchStatement_beginAlternative();
         handleSwitchBeforeAlternative(
           node,
@@ -2233,7 +2258,8 @@ mixin TypeAnalyzer<
           subIndex: headIndex,
         );
         ExpressionInfo? guardInfo;
-        if (pattern != null) {
+        if (head is CaseHeadInfo<Node, Expression, Variable>) {
+          Node pattern = head.pattern;
           Map<String, List<Variable>> componentVariables = {};
           Map<String, int> patternVariablePromotionKeys = {};
           dispatchPattern(

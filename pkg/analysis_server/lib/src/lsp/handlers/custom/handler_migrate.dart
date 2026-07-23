@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 class MigrateHandler
@@ -48,15 +49,19 @@ class MigrateHandler
       return failure(validationResult);
     }
 
-    var summaryBuffer = StringBuffer();
     var targets = validationResult.resultOrNull!;
-
     var apply = params.apply ?? false;
     var steps = params.steps ?? [MigrationStep.All];
+
+    var summaryBuilder = _MigrationSummaryBuilder(
+      apply: apply,
+      pathContext: server.resourceProvider.pathContext,
+      steps: steps,
+    );
     var migrationRunner = _MigrationRunner(
       server: server,
       pubspecTargets: targets,
-      summaryBuffer: summaryBuffer,
+      summaryBuilder: summaryBuilder,
       apply: apply,
     );
 
@@ -83,7 +88,7 @@ class MigrateHandler
     }
     return success(
       DartMigrateResult(
-        summary: summaryBuffer.toString().trim(),
+        summary: summaryBuilder.generate(),
         edit: workspaceEdit,
       ),
     );
@@ -173,9 +178,9 @@ enum _ExecutionOutcome {
 /// 2. Bumps the SDK version constraints in `pubspec.yaml`.
 /// 3. Runs clean up code fixes *after* a version bump.
 class _MigrationRunner({
-  @override required final AnalysisServer server,
+  required AnalysisServer server,
   required final List<_PubspecTarget> pubspecTargets,
-  required final StringBuffer summaryBuffer,
+  required final _MigrationSummaryBuilder summaryBuilder,
 
   /// Whether to apply the migration edits to the files.
   ///
@@ -184,19 +189,6 @@ class _MigrationRunner({
   required final bool apply,
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
-
-  /// Accumulated preparatory fixes per file.
-  ///
-  /// Keyed by file path, mapping to diagnostic code names and their count.
-  final Map<String, Map<String, int>> _preparatoryFixDetailsMap = {};
-
-  /// Accumulated clean up fixes per file.
-  ///
-  /// Keyed by file path, mapping to diagnostic code names and their count.
-  final Map<String, Map<String, int>> _cleanUpFixDetailsMap = {};
-
-  /// Accumulated bumped package SDK constraints logs.
-  final List<String> _bumpedLines = [];
 
   this : super(server);
 
@@ -218,28 +210,6 @@ class _MigrationRunner({
     return await pauseSchedulerWithTemporaryOverlays(
       () => _computeMigrationEdits(steps),
     );
-  }
-
-  /// Populate file fix occurrences from [details] into the [detailsMap],
-  /// converting absolute file paths to project-relative paths relative to
-  /// [pubspec].
-  void _accumulateFixDetails(
-    List<BulkFix> details,
-    Map<String, Map<String, int>> detailsMap,
-    _PubspecTarget pubspec,
-  ) {
-    var pubspecFolder = pubspec.file.parent;
-    for (var detail in details) {
-      var relative = server.resourceProvider.pathContext
-          .relative(detail.path, from: pubspecFolder.path)
-          .replaceAll('\\', '/');
-      var key = '${pubspecFolder.shortName}/$relative';
-      var fileFixes = detailsMap[key] ??= {};
-      for (var fix in detail.fixes) {
-        var count = fileFixes[fix.code] ?? 0;
-        fileFixes[fix.code] = count + fix.occurrences;
-      }
-    }
   }
 
   void _applyAndRecordEdits(ChangeBuilder builder) {
@@ -277,60 +247,28 @@ class _MigrationRunner({
     var runBump = steps.runBump;
     var runCleanup = steps.runCleanup;
 
-    for (var pubspec in pubspecTargets) {
-      if (runPrepare || runBump) {
-        var prepareAndBumpOutcome = await _executePrepareAndBump(
-          pubspec: pubspec,
-          runPrepare: runPrepare,
-          runBump: runBump,
-        );
-        if (prepareAndBumpOutcome == _ExecutionOutcome.exception) {
-          continue;
+    try {
+      for (var pubspec in pubspecTargets) {
+        if (runPrepare || runBump) {
+          var prepareAndBumpOutcome = await _executePrepareAndBump(
+            pubspec: pubspec,
+            runPrepare: runPrepare,
+            runBump: runBump,
+          );
+          if (prepareAndBumpOutcome == _ExecutionOutcome.exception) {
+            continue;
+          }
+        }
+
+        if (runCleanup) {
+          var cleanupOutcome = await _executeCleanup(pubspec);
+          if (cleanupOutcome == _ExecutionOutcome.exception) continue;
         }
       }
-
-      if (runCleanup) {
-        var cleanupOutcome = await _executeCleanup(pubspec);
-        if (cleanupOutcome == _ExecutionOutcome.exception) continue;
-      }
+    } finally {
+      // Revert all temporary overlays back to their original state.
+      await revertOverlays();
     }
-
-    if (runPrepare) {
-      _writeFixesSummary(
-        summaryBuffer,
-        'Preparatory changes for a version bump:',
-        _preparatoryFixDetailsMap,
-      );
-    }
-
-    if (runBump) {
-      if (summaryBuffer.isNotEmpty) {
-        summaryBuffer.writeln();
-      }
-      if (_bumpedLines.isEmpty) {
-        var verb = apply ? 'were' : 'would be';
-        summaryBuffer.writeln('No SDK constraints $verb bumped.');
-      } else {
-        var action = apply ? 'Bumped' : 'Would bump';
-        summaryBuffer.writeln(
-          '$action SDK constraints in ${_bumpedLines.length} package(s):',
-        );
-        for (var line in _bumpedLines) {
-          summaryBuffer.writeln('  $line');
-        }
-      }
-    }
-
-    if (runCleanup) {
-      _writeFixesSummary(
-        summaryBuffer,
-        'Cleanup changes after a version bump:',
-        _cleanUpFixDetailsMap,
-      );
-    }
-
-    // Revert all temporary overlays back to their original state.
-    await revertOverlays();
 
     return success(_fileEdits);
   }
@@ -350,9 +288,10 @@ class _MigrationRunner({
     var pubspecFile = pubspec.file;
     var targetVersion = minimumSdkConstraint(pubspecFile);
     if (targetVersion == null) {
-      summaryBuffer.writeln(
-        '- ${pubspec.displayName}:\n'
-        '    Failed cleanup with error: Unknown SDK version.',
+      summaryBuilder.recordStepFailure(
+        pubspec,
+        MigrationStep.Cleanup,
+        'Unknown SDK version.',
       );
       return _ExecutionOutcome.success;
     }
@@ -364,9 +303,10 @@ class _MigrationRunner({
     // computed against the newly applied overlays and bumped SDK constraint.
     var context = server.contextManager.getContextFor(pubspecFile.path);
     if (context == null) {
-      summaryBuffer.writeln(
-        '- ${pubspec.displayName}: Skipped cleanup '
-        '(context lost after pubspec update)',
+      summaryBuilder.recordStepSkipped(
+        pubspec,
+        MigrationStep.Cleanup,
+        'context lost after pubspec update',
       );
       return _ExecutionOutcome.success;
     }
@@ -379,14 +319,14 @@ class _MigrationRunner({
       pubspec: pubspec,
       lintCodes: cleanUpLintsRegistry[targetVersion] ?? [],
       builder: targetVersionChangeBuilder,
-      stepName: 'clean up',
+      step: MigrationStep.Cleanup,
     );
 
     if (cleanUpFixDetails == null) {
       return _ExecutionOutcome.exception;
     }
 
-    _accumulateFixDetails(cleanUpFixDetails, _cleanUpFixDetailsMap, pubspec);
+    summaryBuilder.recordCleanUpChanges(cleanUpFixDetails, pubspec);
     _applyAndRecordEdits(targetVersionChangeBuilder);
 
     return _ExecutionOutcome.success;
@@ -405,7 +345,7 @@ class _MigrationRunner({
     var pubspecFile = pubspec.file;
     var context = server.contextManager.getContextFor(pubspecFile.path);
     if (context == null) {
-      summaryBuffer.writeln('- ${pubspec.displayName}: Skipped (not analyzed)');
+      summaryBuilder.recordPackageSkipped(pubspec);
       return _ExecutionOutcome.exception;
     }
 
@@ -435,7 +375,7 @@ class _MigrationRunner({
         pubspec: pubspec,
         lintCodes: lintCodes,
         builder: preparatoryStepBuilder,
-        stepName: 'preparatory',
+        step: MigrationStep.Prepare,
       );
       if (preparatoryFixDetails == null) {
         return _ExecutionOutcome.exception;
@@ -443,20 +383,17 @@ class _MigrationRunner({
 
       // Prevent version bumps when the user needs to migrate their code.
       if (runBump && !runPrepare && preparatoryFixDetails.isNotEmpty) {
-        summaryBuffer.writeln(
-          '- ${pubspec.displayName}:\n'
-          '    Failed version bump with error: Package "${pubspec.displayName}"'
-          ' requires pre-bump fixes before the SDK constraint can be bumped.',
+        summaryBuilder.recordStepFailure(
+          pubspec,
+          MigrationStep.Bump,
+          'Package "${pubspec.displayName}" requires pre-bump fixes '
+          'before the SDK constraint can be bumped.',
         );
         return _ExecutionOutcome.exception;
       }
 
       if (runPrepare) {
-        _accumulateFixDetails(
-          preparatoryFixDetails,
-          _preparatoryFixDetailsMap,
-          pubspec,
-        );
+        summaryBuilder.recordPreparatoryChanges(preparatoryFixDetails, pubspec);
       }
     }
 
@@ -464,9 +401,10 @@ class _MigrationRunner({
     if (runBump) {
       await _bumpPubspecConstraint(pubspecFile, versionBumpEdit, builder);
 
-      _bumpedLines.add(
-        '- ${pubspec.displayName}: ${versionBumpEdit.originalConstraint} -> '
-        '${versionBumpEdit.replacement}',
+      summaryBuilder.recordBump(
+        pubspec.displayName,
+        versionBumpEdit.originalConstraint,
+        versionBumpEdit.replacement,
       );
     }
 
@@ -488,7 +426,7 @@ class _MigrationRunner({
     required _PubspecTarget pubspec,
     required List<String> lintCodes,
     required ChangeBuilder builder,
-    required String stepName,
+    required MigrationStep step,
   }) async {
     if (lintCodes.isEmpty) return const [];
 
@@ -510,10 +448,7 @@ class _MigrationRunner({
 
       return processor.fixDetails;
     } catch (e) {
-      summaryBuffer.writeln(
-        '- ${pubspec.displayName}: Failed $stepName fixes with '
-        'exception: $e',
-      );
+      summaryBuilder.recordStepFailure(pubspec, step, 'Exception: $e');
       return null;
     }
   }
@@ -535,26 +470,194 @@ class _MigrationRunner({
     );
     if (incompatibleDeps.isNotEmpty) {
       incompatibleDeps.sort();
-      summaryBuffer.writeln('- ${pubspec.displayName}: Skipped');
-      summaryBuffer.writeln('  Incompatible dependencies:');
-      for (var dep in incompatibleDeps) {
-        summaryBuffer.writeln('    - $dep');
-      }
+      summaryBuilder.recordIncompatibleDependencies(pubspec, incompatibleDeps);
       return true;
     }
     return false;
   }
+}
 
-  /// Writes a summary of the fixes in [fixesMap] preceded by [stepHeader] to
-  /// the [buffer] if any fixes were made.
-  void _writeFixesSummary(
+/// Accumulates migration results across multiple packages to produce a single
+/// markdown summary report.
+class _MigrationSummaryBuilder({
+  required final bool apply,
+  required final path.Context pathContext,
+  required final List<MigrationStep> steps,
+}) {
+  /// Errors and messages which are presented at the beginning of the summary.
+  final List<String> _logs = [];
+
+  /// Accumulated preparatory changes per file.
+  ///
+  /// Keyed by file path, mapping to diagnostic code names and their count.
+  final Map<String, Map<String, int>> _preparatoryChangeDetailsMap = {};
+
+  /// Accumulated clean up changes per file.
+  ///
+  /// Keyed by file path, mapping to diagnostic code names and their count.
+  final Map<String, Map<String, int>> _cleanUpChangeDetailsMap = {};
+
+  /// Accumulated bumped package SDK constraints information.
+  final List<
+    ({
+      String packageDisplayName,
+      String originalConstraint,
+      String newConstraint,
+    })
+  >
+  _bumpedConstraints = [];
+
+  /// Constructs and returns the final formatted markdown report combining error
+  /// logs, version bumps, and code changes summaries.
+  String generate() {
+    var output = StringBuffer();
+    for (var log in _logs) {
+      output.writeln(log);
+    }
+
+    if (steps.runPrepare) {
+      _writeStepSummary(
+        output,
+        'Preparatory changes for a version bump:',
+        _preparatoryChangeDetailsMap,
+      );
+    }
+
+    if (steps.runBump) {
+      if (output.isNotEmpty) output.writeln();
+
+      if (_bumpedConstraints.isEmpty) {
+        var verb = apply ? 'were' : 'would be';
+        output.writeln('No SDK constraints $verb bumped.');
+      } else {
+        var action = apply ? 'Bumped' : 'Would bump';
+        output.writeln(
+          '$action SDK constraints in ${_bumpedConstraints.length} package(s):',
+        );
+        for (var bump in _bumpedConstraints) {
+          output.writeln(
+            '  - ${bump.packageDisplayName}: ${bump.originalConstraint} -> '
+            '${bump.newConstraint}',
+          );
+        }
+      }
+    }
+
+    if (steps.runCleanup) {
+      _writeStepSummary(
+        output,
+        'Cleanup changes after a version bump:',
+        _cleanUpChangeDetailsMap,
+      );
+    }
+
+    return output.toString().trim();
+  }
+
+  /// Records a successful SDK version bump constraint change for a package.
+  void recordBump(
+    String packageDisplayName,
+    String originalConstraint,
+    String newConstraint,
+  ) {
+    _bumpedConstraints.add((
+      packageDisplayName: packageDisplayName,
+      originalConstraint: originalConstraint,
+      newConstraint: newConstraint,
+    ));
+  }
+
+  /// Records bulk fixes made during the clean up step for a package.
+  void recordCleanUpChanges(List<BulkFix> details, _PubspecTarget pubspec) {
+    _recordChangeDetails(details, _cleanUpChangeDetailsMap, pubspec);
+  }
+
+  /// Records that a package was skipped due to incompatible SDK constraints in
+  /// its dependency tree.
+  void recordIncompatibleDependencies(
+    _PubspecTarget pubspec,
+    List<String> incompatibleDeps,
+  ) {
+    var dependencyLines = incompatibleDeps
+        .map((dep) => '    - $dep')
+        .join('\n');
+    _recordLog(
+      '- ${pubspec.displayName}: Skipped\n'
+      '  Incompatible dependencies:\n'
+      '$dependencyLines',
+    );
+  }
+
+  /// Records that a package was skipped because it was not analyzed.
+  void recordPackageSkipped(_PubspecTarget pubspec) {
+    _recordLog('- ${pubspec.displayName}: Skipped (not analyzed)');
+  }
+
+  /// Records bulk fixes made during the preparatory step for a package.
+  void recordPreparatoryChanges(List<BulkFix> details, _PubspecTarget pubspec) {
+    _recordChangeDetails(details, _preparatoryChangeDetailsMap, pubspec);
+  }
+
+  /// Records a general failure during a migration step for a package.
+  void recordStepFailure(
+    _PubspecTarget pubspec,
+    MigrationStep step,
+    String error,
+  ) {
+    _recordLog(
+      '- ${pubspec.displayName}:\n'
+      '    Failed ${step.displayName} with error: $error',
+    );
+  }
+
+  /// Records that a step was skipped for a package with a specific reason.
+  void recordStepSkipped(
+    _PubspecTarget pubspec,
+    MigrationStep step,
+    String reason,
+  ) {
+    _recordLog(
+      '- ${pubspec.displayName}: Skipped ${step.displayName} ($reason)',
+    );
+  }
+
+  /// Groups fix occurrences by relative file path (relative to the target
+  /// package's directory) and maps them to their respective diagnostic codes.
+  void _recordChangeDetails(
+    List<BulkFix> details,
+    Map<String, Map<String, int>> detailsMap,
+    _PubspecTarget pubspec,
+  ) {
+    var pubspecFolder = pubspec.file.parent;
+    for (var detail in details) {
+      var relative = pathContext
+          .relative(detail.path, from: pubspecFolder.path)
+          .replaceAll('\\', '/');
+      var key = '${pubspecFolder.shortName}/$relative';
+      var fileFixes = detailsMap[key] ??= {};
+      for (var fix in detail.fixes) {
+        var count = fileFixes[fix.code] ?? 0;
+        fileFixes[fix.code] = count + fix.occurrences;
+      }
+    }
+  }
+
+  /// Records a general error, skip, or status log message to be printed at the
+  /// top of the summary.
+  void _recordLog(String message) {
+    _logs.add(message);
+  }
+
+  /// Writes a summary of the changes in [changesMap] preceded by [stepHeader]
+  /// to the [buffer] if any changes were made.
+  void _writeStepSummary(
     StringBuffer buffer,
     String stepHeader,
-    Map<String, Map<String, int>> fixesMap,
+    Map<String, Map<String, int>> changesMap,
   ) {
     var totalFixes = 0;
-    var totalFiles = fixesMap.length;
-    for (var fileFixes in fixesMap.values) {
+    var totalFiles = changesMap.length;
+    for (var fileFixes in changesMap.values) {
       for (var count in fileFixes.values) {
         totalFixes += count;
       }
@@ -574,11 +677,11 @@ class _MigrationRunner({
     );
 
     if (totalFixes > 0) {
-      var sortedPaths = fixesMap.keys.toList()..sort();
+      var sortedPaths = changesMap.keys.toList()..sort();
       for (var path in sortedPaths) {
         buffer.writeln();
         buffer.writeln('  $path');
-        var fileFixes = fixesMap[path]!;
+        var fileFixes = changesMap[path]!;
         var sortedCodes = fileFixes.keys.toList()..sort();
         for (var code in sortedCodes) {
           var count = fileFixes[code]!;
@@ -612,4 +715,13 @@ extension on List<MigrationStep> {
       contains(MigrationStep.All) || contains(MigrationStep.Cleanup);
   bool get runPrepare =>
       contains(MigrationStep.All) || contains(MigrationStep.Prepare);
+}
+
+extension on MigrationStep {
+  String get displayName => switch (this) {
+    MigrationStep.Prepare => 'preparatory',
+    MigrationStep.Cleanup => 'cleanup',
+    MigrationStep.Bump => 'version bump',
+    _ => toString(),
+  };
 }

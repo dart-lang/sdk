@@ -593,6 +593,16 @@ Statement switch_(
   bool? expectRequiresExhaustivenessValidation,
   String? expectScrutineeType,
 }) {
+  for (var i = 0; i < cases.length - 1; i++) {
+    var case_ = cases[i];
+    if (case_.body.statements.isEmpty) {
+      throw StateError(
+        'Only the last case in a switch statement may have an empty body. '
+        'Either add an explicit `break_()`, or use `switchStatementMember` to '
+        'group cases that share a body.\n${case_.body.location}',
+      );
+    }
+  }
   var location = computeLocation();
   return new SwitchStatement(
     expression.asExpression(location: location),
@@ -1566,10 +1576,9 @@ abstract class Expression extends Node
 }
 
 /// Representation of a single case clause in a switch expression.  Use
-/// [PossiblyGuardedPattern.thenExpr] or [SwitchHead.thenExpr] to create
-/// instances of this class.
+/// [PossiblyGuardedPattern.thenExpr] to create instances of this class.
 class ExpressionCase extends Node {
-  final GuardedPattern? guardedPattern;
+  final GuardedPattern guardedPattern;
   final Expression expression;
 
   ExpressionCase._(
@@ -1579,24 +1588,18 @@ class ExpressionCase extends Node {
   }) : super._();
 
   @override
-  String toString() => [
-    guardedPattern == null ? 'default' : 'case $guardedPattern',
-    ': $expression',
-  ].join('');
+  String toString() => '$guardedPattern => $expression';
 
   void _preVisit(PreVisitor visitor) {
-    final guardedPattern = this.guardedPattern;
-    if (guardedPattern != null) {
-      var variableBinder = _VariableBinder(visitor);
-      variableBinder.casePatternStart();
-      guardedPattern.pattern.preVisit(
-        visitor,
-        variableBinder,
-        isInAssignment: false,
-      );
-      guardedPattern.variables = variableBinder.casePatternFinish();
-      variableBinder.finish();
-    }
+    var variableBinder = _VariableBinder(visitor);
+    variableBinder.casePatternStart();
+    guardedPattern.pattern.preVisit(
+      visitor,
+      variableBinder,
+      isInAssignment: false,
+    );
+    guardedPattern.variables = variableBinder.casePatternFinish();
+    variableBinder.finish();
     expression.preVisit(visitor);
   }
 }
@@ -5470,15 +5473,6 @@ abstract class SwitchHead extends Node implements ProtoSwitchHead {
       location: location,
     );
   }
-
-  ExpressionCase thenExpr(ProtoExpression body) {
-    var location = computeLocation();
-    return ExpressionCase._(
-      null,
-      body.asExpression(location: location),
-      location: location,
-    );
-  }
 }
 
 class SwitchHeadCase extends SwitchHead {
@@ -7521,10 +7515,10 @@ class _MiniAstTypeAnalyzer
   getSwitchExpressionMemberInfo(covariant SwitchExpression node, int index) {
     var case_ = node.cases[index];
     return SwitchExpressionMemberInfo(
-      head: CaseHeadOrDefaultInfo(
-        pattern: case_.guardedPattern?.pattern,
-        variables: case_.guardedPattern?.variables ?? {},
-        guard: case_.guardedPattern?.guard,
+      head: CaseHeadInfo(
+        pattern: case_.guardedPattern.pattern,
+        variables: case_.guardedPattern.variables,
+        guard: case_.guardedPattern.guard,
       ),
       expression: case_.expression,
     );
@@ -7538,13 +7532,13 @@ class _MiniAstTypeAnalyzer
       heads: [
         for (var element in case_.elements)
           if (element is SwitchHeadCase)
-            CaseHeadOrDefaultInfo(
+            CaseHeadInfo(
               pattern: element.guardedPattern.pattern,
               variables: element.guardedPattern.variables,
               guard: element.guardedPattern.guard,
             )
           else
-            CaseHeadOrDefaultInfo(pattern: null, variables: {}, guard: null),
+            CaseDefaultInfo(),
       ],
       body: case_.body.statements,
       variables: case_._candidateVariables,
@@ -7595,10 +7589,7 @@ class _MiniAstTypeAnalyzer
   }) {
     Iterable<Var> variables = [];
     if (node is SwitchExpression) {
-      var guardedPattern = node.cases[caseIndex].guardedPattern;
-      if (guardedPattern != null) {
-        variables = guardedPattern.variables.values;
-      }
+      variables = node.cases[caseIndex].guardedPattern.variables.values;
     } else if (node is SwitchStatement) {
       var head = node.cases[caseIndex].elements[subIndex];
       if (head is SwitchHeadCase) {

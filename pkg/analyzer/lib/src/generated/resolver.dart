@@ -987,7 +987,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var case_ = node.cases[index];
     var guardedPattern = case_.guardedPattern;
     return SwitchExpressionMemberInfo(
-      head: CaseHeadOrDefaultInfo(
+      head: CaseHeadInfo(
         pattern: guardedPattern.pattern,
         guard: guardedPattern.whenClause?.expression2,
         variables: guardedPattern.variables,
@@ -1007,19 +1007,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     CaseHeadOrDefaultInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
     ofMember(SwitchMemberImpl member) {
       if (member is SwitchCaseImpl) {
-        return CaseHeadOrDefaultInfo(
-          pattern: member.expression2,
-          variables: {},
-        );
+        return CaseHeadInfo(pattern: member.expression2, variables: {});
       } else if (member is SwitchPatternCaseImpl) {
         var guardedPattern = member.guardedPattern;
-        return CaseHeadOrDefaultInfo(
+        return CaseHeadInfo(
           pattern: guardedPattern.pattern,
           variables: guardedPattern.variables,
           guard: guardedPattern.whenClause?.expression2,
         );
       } else {
-        return CaseHeadOrDefaultInfo(pattern: null, variables: {});
+        return CaseDefaultInfo();
       }
     }
 

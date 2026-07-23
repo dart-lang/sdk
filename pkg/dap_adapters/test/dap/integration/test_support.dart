@@ -109,15 +109,19 @@ Future<Process> startDartProcessPaused(
 Future<Uri> waitForStdoutVmServiceBanner(Process process) {
   final vmServiceUriCompleter = Completer<Uri>();
 
-  late StreamSubscription<String> vmServiceBannerSub;
-  vmServiceBannerSub = process.stdout
+  process.stdout
       .transform(utf8.decoder)
       .listen(
         (line) {
           final match = vmServiceBannerPattern.firstMatch(line);
           if (match != null) {
-            vmServiceUriCompleter.complete(Uri.parse(match[1]!));
-            vmServiceBannerSub.cancel();
+            // We do not cancel the stream subscription here because doing so closes
+            // the read end of the process.stdout pipe. Disconnecting the pipe can
+            // cause the child Dart VM to crash with a Broken Pipe (EPIPE) if it
+            // subsequently attempts to log additional output (e.g., about DevTools).
+            if (!vmServiceUriCompleter.isCompleted) {
+              vmServiceUriCompleter.complete(Uri.parse(match[1]!));
+            }
           }
         },
         onDone: () {

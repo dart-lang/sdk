@@ -118,6 +118,14 @@ class DartDevelopmentServiceLauncher {
       args,
       mode: ProcessStartMode.detachedWithStdio,
     );
+    final exitCompleter = Completer<void>();
+    // We must drain stdout to prevent the process from deadlocking if the
+    // OS pipe buffer fills up.
+    process.stdout.listen(
+      (_) {},
+      onDone: () => exitCompleter.complete(),
+      onError: (_) => exitCompleter.complete(),
+    );
     final completer = Completer<DartDevelopmentServiceLauncher>();
     late StreamSubscription<Object?> stderrSub;
     stderrSub = process.stderr
@@ -143,11 +151,7 @@ class DartDevelopmentServiceLauncher {
           devToolsUri: devToolsUri,
           dtdUri: dtdUri,
           appName: appName,
-        );
-        process.stdout.listen(
-          (_) {},
-          onDone: () => launcher._exitCompleter.complete(),
-          onError: (_) => launcher._exitCompleter.complete(),
+          exitCompleter: exitCompleter,
         );
         completer.complete(launcher);
       } else if (result
@@ -165,7 +169,8 @@ class DartDevelopmentServiceLauncher {
       } else {
         throw StateError('Unexpected result from DDS: $result');
       }
-      stderrSub.cancel();
+      // Drain stderr to prevent process from blocking.
+      stderrSub.onData((_) {});
     }, onError: (Object error, StackTrace stackTrace) {
       if (!completer.isCompleted) {
         completer.completeError(
@@ -184,10 +189,12 @@ class DartDevelopmentServiceLauncher {
     required this.devToolsUri,
     required this.dtdUri,
     required this.appName,
-  }) : _ddsInstance = process;
+    required Completer<void> exitCompleter,
+  })  : _ddsInstance = process,
+        _exitCompleter = exitCompleter;
 
   final Process _ddsInstance;
-  final _exitCompleter = Completer<void>();
+  final Completer<void> _exitCompleter;
 
   /// A short, user focused description of the application that DDS will
   /// connect to.

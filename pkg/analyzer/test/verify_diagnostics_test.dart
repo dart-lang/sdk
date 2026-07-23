@@ -12,6 +12,7 @@ import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/lint_messages.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -699,6 +700,159 @@ class _SnippetData {
 /// A test class that creates an environment suitable for analyzing the
 /// snippets.
 class _SnippetTest extends PubPackageResolutionTest {
+  /// The lints that are used to find code that needs to be updated to conform
+  /// with the currently recommended style.
+  ///
+  /// The lints that are commented out are lints that currently cause the test
+  /// to break. There are two common reasons.
+  ///
+  /// - There is are examples that generate multiple diagnostics when they
+  ///   should only generate a single diagnostic. Most of the time this will be
+  ///   handled by adding an `%ignore` directive and filing an issue to reduce
+  ///   the number of diagnostics being produced.
+  ///
+  /// - There is are examples that need to be updated in order to conform. The
+  ///   examples will be updated and the lint uncommented.
+  //
+  // TODO(brianwilkerson): We should consider reading the list of 'core' and
+  //  'recommended' lints from `sdk/third_party/pkg/core/pkgs/lints/lib`. Doing
+  //  so would have the advantage that the test would always use the most
+  //  current set of lints. It would have the disadvantage that it might be more
+  //  difficult to roll in a new version of these files.
+  //
+  //  If we do that, we'll need to have a list of rules that we exclude so that
+  //  lints that are just too hard to accomodate can be ignored, and so that
+  //  there's a way to simplify rolls.
+  //
+  //  If we don't do that, then this to-do should be removed and the comment
+  //  updated to indicate why we chose not to.
+  //
+  //  I'm not sure how we could get the flutter lints, so they might have to
+  //  remain an explicitly duplicated list.
+  static final List<String> lints = [
+    // The lints from the 'core' lint set.
+    LintNames.avoid_empty_else,
+    LintNames.avoid_relative_lib_imports,
+    LintNames.avoid_shadowing_type_parameters,
+    // LintNames.avoid_types_as_parameter_names,
+    LintNames.await_only_futures,
+    // LintNames.camel_case_extensions,
+    // LintNames.camel_case_types,
+    LintNames.collection_methods_unrelated_type,
+    // LintNames.curly_braces_in_flow_control_structures,
+    LintNames.dangling_library_doc_comments,
+    LintNames.depend_on_referenced_packages,
+    LintNames.empty_catches,
+    LintNames.file_names,
+    // LintNames.hash_and_equals,
+    LintNames.implicit_call_tearoffs,
+    LintNames.library_annotations,
+    LintNames.no_duplicate_case_values,
+    LintNames.no_wildcard_variable_uses,
+    // LintNames.non_constant_identifier_names,
+    LintNames.null_check_on_nullable_type_parameter,
+    LintNames.prefer_generic_function_type_aliases,
+    LintNames.prefer_is_empty,
+    LintNames.prefer_is_not_empty,
+    LintNames.prefer_iterable_wheretype,
+    // LintNames.prefer_typing_uninitialized_variables,
+    LintNames.provide_deprecation_message,
+    LintNames.secure_pubspec_urls,
+    // LintNames.strict_top_level_inference,
+    LintNames.type_literal_in_constant_pattern,
+    LintNames.unintended_html_in_doc_comment,
+    // LintNames.unnecessary_overrides,
+    LintNames.unrelated_type_equality_checks,
+    LintNames.use_string_in_part_of_directives,
+    LintNames.valid_regexps,
+    LintNames.void_checks,
+
+    // The lints from the 'recommended' lint set.
+    LintNames.annotate_overrides,
+    // LintNames.avoid_function_literals_in_foreach_calls,
+    LintNames.avoid_init_to_null,
+    LintNames.avoid_renaming_method_parameters,
+    // LintNames.avoid_return_types_on_setters,
+    LintNames.avoid_returning_null_for_void,
+    // LintNames.avoid_single_cascade_in_expression_statements,
+    LintNames.constant_identifier_names,
+    LintNames.control_flow_in_finally,
+    // LintNames.empty_constructor_bodies,
+    // LintNames.empty_statements,
+    LintNames.exhaustive_cases,
+    // LintNames.implementation_imports,
+    LintNames.invalid_runtime_check_with_js_interop_types,
+    LintNames.library_prefixes,
+    LintNames.library_private_types_in_public_api,
+    LintNames.no_leading_underscores_for_library_prefixes,
+    LintNames.no_leading_underscores_for_local_identifiers,
+    LintNames.null_closures,
+    LintNames.overridden_fields,
+    LintNames.package_names,
+    // LintNames.prefer_adjacent_string_concatenation,
+    LintNames.prefer_collection_literals,
+    LintNames.prefer_conditional_assignment,
+    LintNames.prefer_contains,
+    LintNames.prefer_final_fields,
+    LintNames.prefer_for_elements_to_map_fromiterable,
+    // LintNames.prefer_function_declarations_over_variables,
+    LintNames.prefer_if_null_operators,
+    // LintNames.prefer_initializing_formals,
+    LintNames.prefer_inlined_adds,
+    LintNames.prefer_interpolation_to_compose_strings,
+    LintNames.prefer_is_not_operator,
+    LintNames.prefer_null_aware_operators,
+    LintNames.prefer_spread_collections,
+    LintNames.recursive_getters,
+    LintNames.slash_for_doc_comments,
+    LintNames.type_init_formals,
+    LintNames.unnecessary_brace_in_string_interps,
+    LintNames.unnecessary_const,
+    LintNames.unnecessary_constructor_name,
+    LintNames.unnecessary_getters_setters,
+    LintNames.unnecessary_late,
+    // LintNames.unnecessary_library_name,
+    // LintNames.unnecessary_new,
+    LintNames.unnecessary_null_aware_assignments,
+    LintNames.unnecessary_null_in_if_null_operators,
+    LintNames.unnecessary_nullable_for_final_variable_declarations,
+    LintNames.unnecessary_string_escapes,
+    LintNames.unnecessary_string_interpolations,
+    LintNames.unnecessary_this,
+    LintNames.unnecessary_to_list_in_spreads,
+    LintNames.unnecessary_underscores,
+    // LintNames.use_function_type_syntax_for_parameters,
+    LintNames.use_null_aware_elements,
+    LintNames.use_rethrow_when_possible,
+    // LintNames.use_super_parameters,
+
+    // The lints from the 'flutter' lint set.
+    // LintNames.avoid_print,
+    LintNames.avoid_unnecessary_containers,
+    LintNames.avoid_web_libraries_in_flutter,
+    LintNames.no_logic_in_create_state,
+    // LintNames.prefer_const_constructors_in_immutables,
+    LintNames.sized_box_for_whitespace,
+    LintNames.sort_child_properties_last,
+    LintNames.use_build_context_synchronously,
+    LintNames.use_full_hex_values_for_flutter_colors,
+    // LintNames.use_key_in_widget_constructors,
+
+    // Additional lints.
+    //
+    // At this point these are purely speculative. The goal of any additional
+    // lints should be to conform to common standards or to catch errors, but
+    // there is no process at this point for deciding which lints to add.
+    //
+    // LintNames.empty_container_bodies,
+    // LintNames.prefer_single_quotes,
+    // LintNames.unnecessary_const_in_enum_constructor,
+    LintNames.unnecessary_constructor_name,
+    LintNames.unnecessary_primary_constructor_body,
+    // LintNames.unnecessary_type_name_in_constructor,
+    LintNames.var_with_no_type_annotation,
+  ];
+
   /// The snippet being tested.
   final _SnippetData snippet;
 
@@ -729,11 +883,13 @@ class _SnippetTest extends PubPackageResolutionTest {
 
   void _createAnalysisOptionsFile() {
     var lintCode = snippet.lintCode;
-    if (lintCode != null) {
+    var rules = [?lintCode, ...lints];
+    var experimentalFeatures = snippet.experimentalFeatures;
+    if (rules.isNotEmpty || experimentalFeatures.isNotEmpty) {
       writeTestPackageAnalysisOptionsFile(
         analysisOptionsContent(
-          rules: [lintCode],
-          experimentalFeatures: snippet.experimentalFeatures,
+          rules: rules,
+          experimentalFeatures: experimentalFeatures,
         ),
       );
     }

@@ -119,6 +119,11 @@ group("runtime_precompiled") {
     deps += [ "utils/modular_aot_compiler:modular_aot_compiler_snapshot" ]
     deps += [ "utils/dynamic_module_runner:dynamic_module_runner_snapshot" ]
   }
+  if (include_experimental_vm_service && dart_target_arch != "ia32" &&
+      dart_target_arch != "x86") {
+    deps +=
+        [ "utils/dart_runtime_service_vm:dart_runtime_service_vm_aot_snapshot" ]
+  }
 }
 
 group("create_sdk") {

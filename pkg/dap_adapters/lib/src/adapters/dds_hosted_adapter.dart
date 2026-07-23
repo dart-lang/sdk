@@ -89,7 +89,7 @@ class DdsHostedAdapter
     // matches the VM service URI. The DDS URI isn't really needed because this
     // adapter is running in the same process. We need to refactor so that we
     // call DDS/VM service methods directly instead of using the websocket.
-    unawaited(connectDebugger(ddsUri!));
+    await connectDebugger(ddsUri!);
   }
 
   /// Handles a request from the client for the list of threads.
