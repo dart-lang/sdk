@@ -44,6 +44,11 @@ class CreateEnumConstant extends ResolvedCorrectionProducer {
         parent,
         unitResult.libraryElement,
       );
+    } else {
+      targetElement = computeDotShorthandContextTypeElement(
+        node,
+        unitResult.libraryElement,
+      );
     }
 
     if (targetElement is! EnumElement) return;
