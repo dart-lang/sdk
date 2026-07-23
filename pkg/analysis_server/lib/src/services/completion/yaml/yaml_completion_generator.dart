@@ -210,11 +210,23 @@ abstract class YamlCompletionGenerator {
     List<String> siblingsInList(YamlList list, YamlNode? currentElement) {
       var siblings = <String>[];
       for (var element in list.nodes) {
-        if (element != currentElement && element is YamlScalar) {
-          var value = element.value;
-          if (value is String) {
-            siblings.add(value);
-            siblings.add('- $value');
+        if (element != currentElement) {
+          if (element is YamlScalar) {
+            var value = element.value;
+            if (value is String) {
+              siblings.add(value);
+              siblings.add('- $value');
+            }
+          } else if (element is YamlMap) {
+            for (var key in element.nodes.keys) {
+              if (key is YamlScalar) {
+                var value = key.value;
+                if (value is String) {
+                  siblings.add(value);
+                  siblings.add('- $value');
+                }
+              }
+            }
           }
         }
       }
