@@ -1092,7 +1092,7 @@ mixin LspAnalysisServerTestMixin
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
     bool includeClientRequestTime = false,
-    void Function()? immediatelyAfterInitialized,
+    FutureOr<void> Function()? immediatelyAfterInitialized,
   }) async {
     this.includeClientRequestTime = includeClientRequestTime;
 
@@ -1175,7 +1175,7 @@ mixin LspAnalysisServerTestMixin
       );
 
       var initializedNotification = sendNotificationToServer(notification);
-      immediatelyAfterInitialized?.call();
+      await immediatelyAfterInitialized?.call();
       await initializedNotification;
       await pumpEventQueue();
     } else if (throwOnFailure) {
