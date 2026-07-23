@@ -1316,6 +1316,107 @@ class C {
     });
 
     group('dart:ffi Pointer variables', () {
+      final testCases = [
+        ('Uint8', 'ptr.value = 45;', '45'),
+        ('Int8', 'ptr.value = -1;', '-1'),
+        ('Uint16', 'ptr.value = 1000;', '1000'),
+        ('Int32', 'ptr.value = -100;', '-100'),
+        ('Uint32', 'ptr.value = 99999;', '99999'),
+        ('Int64', 'ptr.value = 1000000;', '1000000'),
+        ('Double', 'ptr.value = 1.5;', '1.5'),
+        ('Float', 'ptr.value = 3.0;', '3.0'),
+      ];
+
+      for (final (ffiType, setter, expectedValue) in testCases) {
+        test('expands Pointer<$ffiType> to show value', () async {
+          final client = dap.client;
+          await dap.addPackageDependency(dap.testAppDir, 'ffi');
+          final testFile = dap.createTestFile('''
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+class MyContainer {
+  final Pointer<$ffiType> myPointer;
+  MyContainer(this.myPointer);
+}
+void main(List<String> args) {
+  final ptr = calloc<$ffiType>();
+  $setter
+  final container = MyContainer(ptr);
+  print(''); // $breakpointMarker
+  calloc.free(ptr);
+}
+      ''');
+          final breakpointLine = lineWith(testFile, breakpointMarker);
+          final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+          final containerVar = await client.getLocalVariable(
+            stop.threadId!,
+            'container',
+          );
+
+          final myPointerVar = await client.getChildVariable(
+            containerVar.variablesReference,
+            'myPointer',
+          );
+          expect(
+            myPointerVar.type,
+            equals('Pointer<$ffiType>'),
+            reason: 'type column should show static type',
+          );
+          expect(
+            myPointerVar.variablesReference,
+            isPositive,
+            reason: 'pointer should be expandable',
+          );
+
+          final children = await client.getValidVariables(
+            myPointerVar.variablesReference,
+          );
+          expect(children.variables, hasLength(2));
+          final valueVar = children.variables.first;
+          expect(valueVar.name, equals('value'));
+          expect(valueVar.value, equals(expectedValue));
+          final addressVar = children.variables.last;
+
+          expect(addressVar.name, equals('[raw bytes]'));
+          expect(addressVar.variablesReference, isPositive);
+          expect(addressVar.presentationHint?.lazy, isTrue);
+        });
+      }
+
+      test('shows null for zero-address Pointer', () async {
+        final client = dap.client;
+        await dap.addPackageDependency(dap.testAppDir, 'ffi');
+        final testFile = dap.createTestFile('''
+import 'dart:ffi';
+class MyContainer {
+  final Pointer<Int32> myPointer;
+  MyContainer(this.myPointer);
+}
+
+void main(List<String> args) {
+  final container = MyContainer(nullptr);
+  print(''); // $breakpointMarker
+}
+    ''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+
+        final containerVar = await client.getLocalVariable(
+          stop.threadId!,
+          'container',
+        );
+        final myPointerVar = await client.getChildVariable(
+          containerVar.variablesReference,
+          'myPointer',
+        );
+
+        final children = await client.getValidVariables(
+          myPointerVar.variablesReference,
+        );
+        expect(children.variables, hasLength(0));
+      });
+
       test('expands Pointer to show raw bytes', () async {
         final client = dap.client;
         await dap.addPackageDependency(dap.testAppDir, 'ffi');
@@ -1356,7 +1457,7 @@ void main(List<String> args) {
         );
         expect(resolvedVars.variables, hasLength(1));
         final resolvedVar = resolvedVars.variables.first;
-        expect(resolvedVar.name, equals(''));
+        expect(resolvedVar.name, equals('[raw bytes]'));
         expect(resolvedVar.value, startsWith('8 bytes @ 0x'));
         expect(resolvedVar.variablesReference, isPositive);
         expect(resolvedVar.indexedVariables, equals(8));
@@ -1414,7 +1515,7 @@ void main(List<String> args) {
         );
         expect(resolvedVars.variables, hasLength(1));
         final resolvedVar = resolvedVars.variables.first;
-        expect(resolvedVar.name, equals(''));
+        expect(resolvedVar.name, equals('[raw bytes]'));
         expect(resolvedVar.value, startsWith('8 bytes @ 0x'));
         expect(resolvedVar.variablesReference, isPositive);
         expect(resolvedVar.indexedVariables, equals(8));

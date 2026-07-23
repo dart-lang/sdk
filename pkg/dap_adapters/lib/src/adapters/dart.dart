@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:dap/dap.dart';
@@ -2048,6 +2049,209 @@ abstract class DartDebugAdapter<
     sendResponse(ThreadsResponseBody(threads: threads));
   }
 
+  /// Decodes [hexBytes] into a display string for the given
+  /// [ffiType]
+  /// Returns null if the type is not a primitive numeric type.
+  String? _decodeFfiBytes(String hexBytes, String ffiType) {
+    final byteCount = hexBytes.length ~/ 2;
+    final bytes = Uint8List(byteCount);
+    // Each byte is represented as 2 hex characters (e.g. "de" for 0xDE).
+    const hexCharsPerByte = 2;
+    for (var i = 0; i < byteCount; i++) {
+      bytes[i] = int.parse(
+        hexBytes.substring(
+          i * hexCharsPerByte,
+          i * hexCharsPerByte + hexCharsPerByte,
+        ),
+        radix: 16,
+      );
+    }
+    final bd = ByteData.sublistView(bytes);
+    return switch (ffiType) {
+      ffiInt8 => bd.getInt8(0).toString(),
+      ffiUint8 => bd.getUint8(0).toString(),
+      ffiInt16 => bd.getInt16(0, Endian.little).toString(),
+      ffiUint16 => bd.getUint16(0, Endian.little).toString(),
+      ffiInt32 => bd.getInt32(0, Endian.little).toString(),
+      ffiUint32 => bd.getUint32(0, Endian.little).toString(),
+      ffiInt64 => bd.getInt64(0, Endian.little).toString(),
+      ffiUint64 => bd.getUint64(0, Endian.little).toString(),
+      ffiFloat => bd.getFloat32(0, Endian.little).toString(),
+      ffiDouble => bd.getFloat64(0, Endian.little).toString(),
+      ffiBool => (bd.getUint8(0) != 0).toString(),
+      _ => null,
+    };
+  }
+
+  /// Returns the dart:ffi primitive type name (e.g. "Uint8") from a
+  /// `Pointer<T>` static type InstanceRef, or null if unrecognized.
+  Future<String?> _resolveFfiTypeArg(
+    vm.VmService service,
+    String isolateId,
+    vm.InstanceRef? staticType,
+  ) async {
+    if (staticType == null) return null;
+    final resolvedType =
+        await service.getObject(isolateId, staticType.id!) as vm.Instance?;
+    final typeArgsRef = resolvedType?.typeArguments;
+    if (typeArgsRef == null) return null;
+    final typeArgs = await service.getObject(
+      isolateId,
+      typeArgsRef.id!,
+    ) as vm.TypeArguments?;
+    final typeArg = typeArgs?.types?.firstOrNull;
+    if (typeArg?.typeClass?.library?.uri != 'dart:ffi') return null;
+    return typeArg?.name;
+  }
+
+  /// Reads [byteCount] bytes from [address] via `_readNativeMemory` and
+  /// decodes them to a typed value string using [ffiTypeName].
+  ///
+  /// Returns a `value` [Variable] on success, or an `<error>` [Variable]
+  /// if the address is invalid or the memory read fails.
+  Future<Variable?> _readPointerValue(
+    vm.VmService service,
+    String address,
+    String ffiTypeName,
+    int byteCount,
+  ) async {
+    try {
+      final hex = address.replaceFirst('0x', '');
+      final result = await service.callMethod(
+        '_readNativeMemory',
+        args: {'address': hex, 'size': byteCount},
+      );
+      final hexBytes = result.json!['bytes'] as String;
+      final value = _decodeFfiBytes(hexBytes, ffiTypeName);
+      if (value == null) return null;
+      return Variable(name: 'value', value: value, variablesReference: 0);
+    } on vm.RPCError catch (e) {
+      return Variable(
+        name: '<error>',
+        value: e.details ?? e.message,
+        variablesReference: 0,
+      );
+    }
+  }
+
+  /// Reads [byteCount] bytes from [address] via `_readNativeMemory` and
+  /// returns them as individual byte [Variable]s (e.g. `[0]: 0xde`).
+  ///
+  /// Returns a single `<error>` [Variable] if the memory read fails.
+  Future<List<Variable>> _readRawByteVariables(
+    vm.VmService service,
+    String address,
+    int byteCount,
+    int? childStart,
+    int? childCount,
+  ) async {
+    try {
+      final start = childStart ?? 0;
+      final count = childCount ?? byteCount;
+      final baseAddress = int.parse(address.replaceFirst('0x', ''), radix: 16);
+      final pageAddress = (baseAddress + start).toRadixString(16);
+      final result = await service.callMethod(
+        '_readNativeMemory',
+        args: {'address': pageAddress, 'size': count},
+      );
+      final bytes = result.json!['bytes'] as String;
+      final size = result.json!['size'] as int;
+      // Each byte is represented as 2 hex characters (e.g. "de" for 0xDE).
+      const hexCharsPerByte = 2;
+      return [
+        for (var i = 0; i < size; i++)
+          Variable(
+            name: '[${start + i}]',
+            value:
+                '0x${bytes.substring(i * hexCharsPerByte, i * hexCharsPerByte + hexCharsPerByte)}',
+            variablesReference: 0,
+          ),
+      ];
+    } on vm.RPCError catch (e) {
+      return [
+        Variable(
+          name: '<error>',
+          value: e.details ?? e.message,
+          variablesReference: 0,
+        ),
+      ];
+    }
+  }
+
+  /// Builds the children for the initial expansion of a [Pointer] variable.
+  ///
+  /// - If the type is recognized (dart:ffi primitive), adds a `value` child
+  ///   with the decoded value.
+  /// - Always adds a `[raw bytes]` child. For local variables (no [staticType]).
+  ///   For object fields (with [staticType]).
+  Future<List<Variable>> _buildPointerChildren(
+    ThreadInfo thread,
+    PointerData data,
+    vm.VmService? service,
+  ) async {
+    final isNullPointer = data.address == '0x0' || data.address == '0';
+    if (isNullPointer || service == null) return [];
+
+    final ffiTypeName = await _resolveFfiTypeArg(
+      service,
+      thread.isolate.id!,
+      data.staticType,
+    );
+    final byteCount = ffiByteCount(ffiTypeName);
+
+    // show value (if type recognized).
+    final variables = <Variable>[];
+
+    if (ffiTypeName != null) {
+      final valueVar = await _readPointerValue(
+        service,
+        data.address,
+        ffiTypeName,
+        byteCount,
+      );
+      if (valueVar != null) variables.add(valueVar);
+    }
+
+    if (data.staticType == null) {
+      // Local variable: no type info, show summary directly (2 states).
+      variables.add(
+        Variable(
+          name: '[raw bytes]',
+          value: '$byteCount bytes @ ${data.address}',
+          variablesReference: thread.storeData(
+            PointerData(
+              data.address,
+              data.format,
+              ffiTypeName: ffiTypeName,
+              kind: PointerDataKind.rawBytes,
+            ),
+          ),
+          indexedVariables: byteCount,
+        ),
+      );
+    } else {
+      // Object field: has type info (3 states).
+      variables.add(
+        Variable(
+          name: '[raw bytes]',
+          value: '',
+          variablesReference: thread.storeData(
+            PointerData(
+              data.address,
+              data.format,
+              staticType: data.staticType,
+              ffiTypeName: ffiTypeName,
+              kind: PointerDataKind.rawBytesSummary,
+            ),
+          ),
+          presentationHint: VariablePresentationHint(lazy: true),
+        ),
+      );
+    }
+
+    return variables;
+  }
+
   /// [variablesRequest] is called by the client to request child variables for
   /// a given variables variablesReference.
   ///
@@ -2162,62 +2366,63 @@ abstract class DartDebugAdapter<
         ),
       );
     } else if (data is PointerData) {
-      if (!data.showBytes) {
-        // Step 1: return the single child that lazy: true expects
-        variables.add(
-          Variable(
-            name: '',
-            value: '${data.byteCount} bytes @ ${data.address}',
-            variablesReference: thread.storeData(
-              PointerData(
-                data.address,
-                data.byteCount,
-                data.format,
-                showBytes: true,
-              ),
-            ),
-            indexedVariables: data.byteCount,
-          ),
-        );
-      } else {
-        // Step 2: call _readNativeMemory and return byte variables
-        final svc = service;
-        if (svc != null) {
-          try {
-            final start = childStart ?? 0;
-            final count = childCount ?? data.byteCount;
-            final address = data.address.replaceFirst(RegExp(r'^0[xX]'), '');
-            final baseAddress = int.parse(address, radix: 16);
-            final pageAddress = (baseAddress + start).toRadixString(16);
+      if (service == null) {
+        return;
+      }
+      // Pointer variable expansion uses a state machine stored in [PointerData.kind].
+      //
+      // Local variables (staticType == null) use 2 states:
+      //   children  → summary shown directly as an expandable [raw bytes] child
+      //   rawBytes  → individual byte variables ([0]: 0xde, [1]: 0xad, ...)
+      //
+      // Object fields (staticType != null) use 3 states:
+      //   children        → typed value (if recognized) + lazy [raw bytes] eye icon
+      //   rawBytesSummary → 1 summary child ("N bytes @ 0x..."), shown on eye click
+      //   rawBytes        → individual byte variables ([0]: 0xde, [1]: 0xad, ...)
+      //
+      // In both cases, unrecognized types (e.g. Pointer<MyStruct>) and local
+      // variables default to 8 bytes with no decoded value.
+      switch (data.kind) {
+        case PointerDataKind.children:
+          variables.addAll(await _buildPointerChildren(thread, data, service));
+        case PointerDataKind.rawBytesSummary:
+          {
+            String? ffiTypeName = data.ffiTypeName;
+            final byteCount = ffiByteCount(ffiTypeName);
 
-            final result = await svc.callMethod(
-              '_readNativeMemory',
-              args: {'address': pageAddress, 'size': count},
-            );
-            final bytes = result.json!['bytes'] as String;
-            final size = result.json!['size'] as int;
-            // Each byte is represented as 2 hex characters (e.g. "de" for 0xDE).
-            const hexCharsPerByte = 2;
-            for (var i = 0; i < size; i++) {
-              final byteHex = bytes.substring(
-                i * hexCharsPerByte,
-                i * hexCharsPerByte + hexCharsPerByte,
-              );
-              variables.add(
-                Variable(
-                  name: '[${start + i}]',
-                  value: '0x$byteHex',
-                  variablesReference: 0,
-                ),
-              );
-            }
-          } catch (e) {
-            final message = e is vm.RPCError ? e.message : '$e';
+            // Returns exactly 1 child (the summary)
             variables.add(
-              Variable(name: '<error>', value: message, variablesReference: 0),
+              Variable(
+                name: '[raw bytes]',
+                value: '$byteCount bytes @ ${data.address}',
+                variablesReference: thread.storeData(
+                  PointerData(
+                    data.address,
+                    data.format,
+                    staticType: data.staticType,
+                    ffiTypeName: data.ffiTypeName,
+                    kind: PointerDataKind.rawBytes,
+                  ),
+                ),
+                indexedVariables: byteCount,
+              ),
             );
           }
-        }
+        case PointerDataKind.rawBytes:
+          {
+            String? ffiTypeName = data.ffiTypeName;
+            final byteCount = ffiByteCount(ffiTypeName);
+
+            variables.addAll(
+              await _readRawByteVariables(
+                service,
+                data.address,
+                byteCount,
+                childStart,
+                childCount,
+              ),
+            );
+          }
       }
     } else if (data is WrappedInstanceVariable) {
       // WrappedInstanceVariables are used to support DAP-over-DDS clients that

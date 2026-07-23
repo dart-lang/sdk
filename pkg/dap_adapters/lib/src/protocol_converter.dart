@@ -84,8 +84,8 @@ class ProtocolConverter {
     } else if (ref.kind == vm.InstanceKind.kString) {
       // Untruncated strings.
       return formatter.formatString(valueAsString ?? "");
-    } else if (ref.kind == 'Pointer') {
-      return 'Pointer (${valueAsString ?? 'unknown'})';
+    } else if (ref.kind == vm.InstanceKind.kPointer) {
+      return '${vm.InstanceKind.kPointer} (${valueAsString ?? 'unknown'})';
     } else if (valueAsString != null) {
       if (isTruncated) {
         return '$valueAsString…';
@@ -143,17 +143,13 @@ class ProtocolConverter {
     final associations = instance.associations;
     final fields = instance.fields;
 
-    if (instance.kind == 'Pointer') {
+    if (instance.kind == vm.InstanceKind.kPointer) {
       final address = instance.valueAsString ?? '0x0';
-      // Currently always reads a fixed 8 bytes (word size on 64-bit).
-      const byteCount = 8;
       return [
         dap.Variable(
           name: '[raw bytes]',
           value: '',
-          variablesReference: thread.storeData(
-            PointerData(address, byteCount, format),
-          ),
+          variablesReference: thread.storeData(PointerData(address, format)),
           presentationHint: dap.VariablePresentationHint(lazy: true),
         ),
       ];
@@ -279,6 +275,28 @@ class ProtocolConverter {
               ? _adapter.combineEvaluateName(evaluateName, '.$name')
               : null;
           final value = field.value;
+
+          if (value is vm.InstanceRef &&
+              value.kind == vm.InstanceKind.kPointer) {
+            final declaredType = field.decl?.declaredType;
+            final type = declaredType?.name;
+            final address = value.valueAsString ?? '0x0';
+            return dap.Variable(
+              name: name ?? '<unnamed field>',
+              value:
+                  '${vm.InstanceKind.kPointer} (${value.valueAsString ?? 'unknown'})',
+              type: type,
+              variablesReference: thread.storeData(
+                PointerData(
+                  address,
+                  format,
+                  staticType: declaredType,
+                  pointerInstance: value,
+                ),
+              ),
+            );
+          }
+
           final fieldEvaluateName =
               fieldEvaluateNameString != null && value is vm.ObjRef
               ? _adapter.storeEvaluateName(
