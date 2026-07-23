@@ -500,6 +500,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.incompatiblePluginSource,
   diag.inconsistentInheritance,
   diag.inconsistentInheritanceGetterAndMethod,
+  diag.inconsistentInheritedGetterAndSetterTypes,
   diag.inconsistentLanguageVersionOverride,
   diag.inconsistentPatternVariableLogicalOr,
   diag.inducedGetterNotCompleteAfterAugmentations,

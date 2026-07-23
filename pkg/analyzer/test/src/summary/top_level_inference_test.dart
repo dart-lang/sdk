@@ -11235,6 +11235,9 @@ library
         hasImplicitType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F16
+          typeInferenceError: inconsistentGetterAndSetterTypes
+            getterType: int
+            setterType: String
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
