@@ -1903,7 +1903,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _constArgumentsVerifier.visitSimpleIdentifier(node);
     _checkForAmbiguousImport(
       name: node.token,
-      element: node.writeOrReadElement,
+      element: node.writeOrReadElement2,
     );
     _checkForReferenceBeforeDeclaration(
       nameToken: node.token,
@@ -1951,7 +1951,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     super.visitSuperFormalParameter(node);
 
     if (_enclosingClass is ExtensionTypeElement) {
-      if (node.parentFormalParameterList.parent2
+      if (node.parentFormalParameterList2.parent2
           is PrimaryConstructorDeclaration) {
         return;
       }
@@ -1963,7 +1963,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    var constructor = node.parentFormalParameterList.parent2;
+    var constructor = node.parentFormalParameterList2.parent2;
     if (constructor is ConstructorDeclarationImpl &&
         constructor.isNonRedirectingGenerative) {
       var constructorElement = constructor.declaredFragment!.element;
@@ -4384,7 +4384,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     for (var previousFragment in fragment.precedingFragments) {
-      if (previousFragment.constantInitializer != null) {
+      if (previousFragment.constantInitializer2 != null) {
         diagnosticReporter.report(
           diag.defaultValueAlreadySpecifiedInAugmentationChain
               .withContextMessages([
@@ -4445,7 +4445,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     // More than one default value is reported separately.
     var defaultValueFragments = fragment.element.fragments.where((fragment) {
-      return fragment.constantInitializer != null;
+      return fragment.constantInitializer2 != null;
     }).toList();
     if (defaultValueFragments.length != 1) {
       return;
@@ -4518,11 +4518,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// Return `true` if the caller should continue checking the rest of the
   /// information in the for-each part.
   bool _checkForEachParts(ForEachParts node, Element? variableElement) {
-    if (checkForUseOfVoidResult(node.iterable)) {
+    if (checkForUseOfVoidResult(node.iterable2)) {
       return false;
     }
 
-    var iterableType = node.iterable.typeOrThrow;
+    var iterableType = node.iterable2.typeOrThrow;
 
     Token? awaitKeyword;
     var parent = node.parent2;
@@ -4542,7 +4542,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               expressionType: iterableType,
               expectedType: loopNamedType,
             )
-            .at(node.iterable),
+            .at(node.iterable2),
       );
       return false;
     }
@@ -4584,7 +4584,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               expressionType: iterableType,
               expectedType: loopNamedType,
             )
-            .at(node.iterable),
+            .at(node.iterable2),
       );
       return false;
     }
@@ -4608,7 +4608,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     // element type is `void`, the value can only be discarded into a `void`
     // loop variable.
     if (sequenceElementType is VoidType && variableType is! VoidType) {
-      diagnosticReporter.report(diag.useOfVoidResult.at(node.iterable));
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.iterable2));
       return false;
     }
 
@@ -4628,7 +4628,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       var implicitCallMethod = getImplicitCallMethod(
         sequenceElementType,
         variableType,
-        node.iterable,
+        node.iterable2,
       );
       if (implicitCallMethod == null) {
         diagnosticReporter.report(
@@ -4638,7 +4638,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                 expectedTypeName: loopNamedType,
                 loopVariableType: variableType,
               )
-              .at(node.iterable),
+              .at(node.iterable2),
         );
       } else {
         var tearoffType = implicitCallMethod.type;
@@ -4650,7 +4650,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             variableType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: diagnosticReporter,
-            errorNode: node.iterable,
+            errorNode: node.iterable2,
             genericMetadataIsEnabled: true,
             inferenceUsingBoundsIsEnabled: _featureSet.isEnabled(
               Feature.inference_using_bounds,
@@ -4678,7 +4678,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                   expectedTypeName: loopNamedType,
                   loopVariableType: variableType,
                 )
-                .at(node.iterable),
+                .at(node.iterable2),
           );
         }
       }
@@ -5551,7 +5551,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     // prepare member Element
-    var element = name.writeOrReadElement;
+    var element = name.writeOrReadElement2;
     if (element is ExecutableElement) {
       if (!element.isStatic) {
         // OK, instance member
@@ -5717,7 +5717,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     // prepare element
-    var element = identifier.writeOrReadElement;
+    var element = identifier.writeOrReadElement2;
     if (!(element is MethodElement || element is PropertyAccessorElement)) {
       return;
     }
@@ -7485,7 +7485,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    var element = name.writeOrReadElement;
+    var element = name.writeOrReadElement2;
     if (element == null || element is TypeParameterElement) {
       return;
     }
@@ -7527,7 +7527,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
-    var constructor = parameter.parentFormalParameterList.parent2;
+    var constructor = parameter.parentFormalParameterList2.parent2;
     if (constructor is PrimaryConstructorDeclaration &&
         constructor.parent2 is ExtensionTypeDeclaration) {
       return;

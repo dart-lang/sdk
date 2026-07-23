@@ -541,7 +541,7 @@ B11 = TargetBlock() idom:B0
   ParallelMove output(R0 -> vloc:R0, stack[2] -> R1, stack[3] -> R2)
   ParallelMove spill(R0 -> stack[4])
   DirectCall SplayTreeMap.(v23, v3, v4)   # RA: R0 <- (R0, R1, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[4]]}
-  v29 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[4]]}
+  v29 = AllocateClosure(fun:0, len:1)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[4]]}
   ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
   StoreInstanceField(#closure-field[0], v29, v1)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[1], stack[4]]}
   ParallelMove output(stack[1] -> R1)
@@ -1755,7 +1755,7 @@ B47 = JoinBlock(B40) idom:B40
   ParallelMove output(stack[1] -> R1)
   ParallelMove input(vloc:R1 -> R0)
   Return(v46)   # RA: (R0)
-B41 = CatchBlock() idom:B24
+B41 = CatchBlock()   # RA: () SAFEPT{live: [R2], objects: [R2, stack[0]]} idom:B24
   v49 = Parameter(#exception)   # RA: R0 <- ()
   v50 = Parameter(#stackTrace)   # RA: R1 <- ()
   ParallelMove control(stack[0] -> R2)
@@ -1986,11 +1986,11 @@ B0 = EntryBlock()
   ParallelMove output(R0 -> vloc:R0, stack[1] -> R3)
   ParallelMove spill(R0 -> stack[2])
   StoreInstanceField(#context-field:a2, v3, v2)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[2]]}
-  v6 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[2]]}
+  v6 = AllocateClosure(len:1)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[2]]}
   ParallelMove output(R0 -> vloc:R0, stack[2] -> R3)
   ParallelMove spill(R0 -> stack[3])
   StoreInstanceField(#closure-field[0], v6, v3)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2, R3], objects: [R0, R3, stack[2], stack[3]]}
-  v8 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[2], stack[3]]}
+  v8 = AllocateClosure(len:1)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[2], stack[3]]}
   ParallelMove output(R0 -> vloc:R0, stack[2] -> R3)
   StoreInstanceField(#closure-field[0], v8, v3)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[3]]}
   ParallelMove output(stack[3] -> R1)

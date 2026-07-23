@@ -1653,7 +1653,7 @@ class _InvalidAccessVerifier {
 
     var element = grandparent is ConstructorName
         ? grandparent.element
-        : identifier.writeOrReadElement;
+        : identifier.writeOrReadElement2;
 
     if (element == null) {
       return;

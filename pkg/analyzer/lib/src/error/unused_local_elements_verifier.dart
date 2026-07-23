@@ -194,7 +194,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
   }
@@ -299,7 +299,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (node.inCommentReference) {
       return;
     }
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     // Store un-parameterized members.
     if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
@@ -321,8 +321,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       }
     } else {
       var parent = node.parent2!;
-      _useIdentifierElement(node.readElement);
-      _useIdentifierElement(node.writeElement);
+      _useIdentifierElement(node.readElement2);
+      _useIdentifierElement(node.writeElement2);
       _useIdentifierElement(node.element);
       var grandparent = parent.parent2;
       // If [node] is a tear-off, assume all parameters are used.

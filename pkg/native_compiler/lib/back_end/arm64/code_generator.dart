@@ -2127,6 +2127,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
         }
       case FPRegister():
         switch (to) {
+          case FPRegister():
+            _asm.fmov(to, from);
+            return;
           case StackLocation():
             _asm.fstr(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
             return;
@@ -2136,9 +2139,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       default:
         break;
     }
-    _asm.unimplemented(
-      'Unimplemented: code generation for generateMove ${from.runtimeType} -> ${to.runtimeType}',
-    );
+    throw 'Unexpected move ${from.runtimeType} $from -> ${to.runtimeType} $to';
   }
 
   @override

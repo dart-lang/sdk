@@ -498,6 +498,41 @@ Cleanup changes after a version bump:
     );
   }
 
+  Future<void> test_error_prepareAndCleanupNoBump() async {
+    failTestOnErrorDiagnostic = false;
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(final int x) {}
+''');
+
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [projectFolderUri],
+        apply: true,
+        steps: [MigrationStep.Prepare, MigrationStep.Cleanup],
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: contains(
+          "The 'prepare' and 'cleanup' steps cannot be run together without "
+          "also running 'bump'.",
+        ),
+      ),
+    );
+  }
+
   Future<void> test_error_workspacePackage() async {
     await initialize();
 
@@ -1426,63 +1461,6 @@ environment:
     );
   }
 
-  Future<void> test_step_prepareAndCleanup_noBump() async {
-    failTestOnErrorDiagnostic = false;
-    newFile(pubspecFilePath, '''
-name: test_project
-environment:
-  sdk: '^3.12.0'
-''');
-    newFile(mainFilePath, '''
-void m(final int x) {}
-
-class C {
-  C();
-  C.name();
-}
-
-class D {
-  int? _x;
-
-  D({int? x}) : _x = x;
-}
-''');
-
-    await initialize();
-
-    await _assertMigrationResult(
-      steps: [MigrationStep.Prepare, MigrationStep.Cleanup],
-      apply: true,
-      expectedSummary: '''
-Preparatory changes for a version bump:
-  1 change made in 1 file.
-
-  my_project/lib/main.dart
-    extraneous_modifier • 1 change
-
-Cleanup changes after a version bump:
-  1 change made in 1 file.
-
-  my_project/lib/main.dart
-    prefer_initializing_formals • 1 change''',
-      expectedEdit: '''
->>>>>>>>>> lib/main.dart
-void m(int x) {}
-
-class C {
-  C();
-  C.name();
-}
-
-class D {
-  int? _x;
-
-  D({this._x});
-}
-''',
-    );
-  }
-
   Future<void> test_step_prepareBumpAndCleanup() async {
     failTestOnErrorDiagnostic = false;
     newFile(pubspecFilePath, '''
@@ -1561,7 +1539,7 @@ environment:
     String? expectedEdit,
     bool apply = false,
   }) async {
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var request = makeRequest(
       CustomMethods.migrate,
       DartMigrateParams(

@@ -86,7 +86,7 @@ class ConstantEvaluationEngine {
     var libraryFragment = constant.libraryFragment!;
     var library = libraryFragment.element;
     if (constant is FormalParameterElementImpl) {
-      var defaultValue = constant.constantInitializer;
+      var defaultValue = constant.constantInitializer2;
       if (defaultValue != null) {
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
@@ -104,7 +104,7 @@ class ConstantEvaluationEngine {
         constant.evaluationResult = _nullObject(library);
       }
     } else if (constant is VariableElementImpl) {
-      var constantInitializer = constant.constantInitializer;
+      var constantInitializer = constant.constantInitializer2;
       if (constantInitializer != null) {
         var diagnosticReporter = DiagnosticReporter(
           RecordingDiagnosticListener(),
@@ -257,7 +257,7 @@ class ConstantEvaluationEngine {
 
     if (constant is VariableElementImpl) {
       var declaration = constant;
-      var initializer = declaration.constantInitializer;
+      var initializer = declaration.constantInitializer2;
       if (initializer != null) {
         initializer.accept2(referenceFinder);
       }
@@ -304,7 +304,7 @@ class ConstantEvaluationEngine {
           // Note: non-static const isn't allowed but we handle it anyway so
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) && !field.isStatic) {
-            if (field.constantInitializer case var initializer?) {
+            if (field.constantInitializer2 case var initializer?) {
               initializer.accept2(referenceFinder);
             }
           }
@@ -3039,7 +3039,7 @@ class _InstanceCreationEvaluator {
     var canReuseFieldValue = interfaceElement.primaryConstructor == null;
     for (var field in interfaceElement.fields) {
       if ((field.isFinal || field.isConst) && !field.isStatic) {
-        var initializer = field.constantInitializer;
+        var initializer = field.constantInitializer2;
         if (initializer == null) {
           continue;
         }

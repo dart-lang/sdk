@@ -1348,15 +1348,15 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   void _visitForLoopParts(LocalScope scope, ForLoopPartsImpl node) {
     switch (node) {
       case ForEachPartsWithDeclarationImpl():
-        node.iterable.accept2(this);
+        node.iterable2.accept2(this);
         var element = node.loopVariable.declaredFragment!.element;
         scope.add(element);
         node.loopVariable.accept2(this);
       case ForEachPartsWithIdentifierImpl():
-        node.iterable.accept2(this);
+        node.iterable2.accept2(this);
         node.identifier.accept2(this);
       case ForEachPartsWithPatternImpl():
-        node.iterable.accept2(this);
+        node.iterable2.accept2(this);
         var variables = _computeDeclaredPatternVariables(node.pattern);
         node.variables = variables;
         scope.addAll(variables);

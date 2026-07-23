@@ -52,6 +52,13 @@ class MigrateHandler
     var targets = validationResult.resultOrNull!;
     var apply = params.apply ?? false;
     var steps = params.steps ?? [MigrationStep.All];
+    if (steps.runPrepare && steps.runCleanup && !steps.runBump) {
+      return error(
+        ErrorCodes.InvalidParams,
+        "The 'prepare' and 'cleanup' steps cannot be run together without "
+        "also running 'bump'.",
+      );
+    }
 
     var summaryBuilder = _MigrationSummaryBuilder(
       apply: apply,

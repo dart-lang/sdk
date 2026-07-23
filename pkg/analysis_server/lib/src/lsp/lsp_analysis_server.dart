@@ -1060,8 +1060,22 @@ class LspAnalysisServer extends AnalysisServer {
       ..addAll(addedNormalized)
       ..removeAll(removedNormalized);
 
+    // Capture if there is an existing update in progress, we so can wait for
+    // it after replacing the completer. This is required because of the async
+    // work below (`fetchClientConfigurationAndPerformDynamicRegistration`) that
+    // could otherwise allow another request to change the analysis roots before
+    // we've finished setting them up correctly.
+    var existingUpdateFuture = !workspaceFolderUpdateCompleter.isCompleted
+        ? workspaceFolderUpdateCompleter.future
+        : null;
     var completer = workspaceFolderUpdateCompleter = Completer();
+    if (existingUpdateFuture != null) {
+      // Wait for any other in-progress rebuild to prevent them overlapping.
+      await existingUpdateFuture;
+    }
     try {
+      // This async request is why we need to prevent this code running
+      // concurrently because they could overlap with each other.
       await fetchClientConfigurationAndPerformDynamicRegistration();
 
       await _refreshAnalysisRoots();

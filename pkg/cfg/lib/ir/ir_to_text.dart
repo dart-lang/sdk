@@ -158,6 +158,8 @@ final class IrToText extends VoidInstructionVisitor {
           instr.types.map((type) => type.getDisplayString()).join(', '),
         );
         _buffer.write('>');
+      case AllocateClosure():
+        _buffer.write(instr.closureLayout);
       case ParallelMove():
         _buffer.write(instr.moves.join(', '));
       case _:

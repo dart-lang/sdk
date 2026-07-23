@@ -10178,7 +10178,9 @@ void FullSnapshotWriter::WriteFullSnapshot(
 
 static const uint8_t* Auth(const uint8_t* ptr) {
 #if defined(HOST_ARCH_ARM64E)
-  return ptrauth_auth_data(ptr, ptrauth_key_function_pointer, 0);
+  // TODO(63812): Should be
+  // ptrauth_auth_data(ptr, ptrauth_key_function_pointer, 0)
+  return ptrauth_strip(ptr, ptrauth_key_function_pointer);
 #else
   return ptr;
 #endif

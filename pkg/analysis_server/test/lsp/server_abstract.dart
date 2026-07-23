@@ -908,25 +908,12 @@ mixin LspAnalysisServerTestMixin
   /// server.
   bool failTestOnErrorDiagnostic = true;
 
-  /// A completer for [initialAnalysis].
-  final Completer<void> _initialAnalysisCompleter = Completer<void>();
-
-  /// A completer for [currentAnalysis].
-  Completer<void> _currentAnalysisCompleter = Completer<void>()..complete();
-
   /// [analysisOptionsPath] as a 'file:///' [Uri].
   Uri get analysisOptionsUri => pathContext.toUri(analysisOptionsPath);
-
-  /// A [Future] that completes when the current analysis completes (or is
-  /// already completed if no analysis is in progress).
-  Future<void> get currentAnalysis => _currentAnalysisCompleter.future;
 
   /// The experimental capabilities returned from the server during initialization.
   Map<String, Object?> get experimentalServerCapabilities =>
       serverCapabilities.experimental as Map<String, Object?>? ?? {};
-
-  /// A [Future] that completes with the first analysis after initialization.
-  Future<void> get initialAnalysis => _initialAnalysisCompleter.future;
 
   bool get initialized => _clientCapabilities != null;
 
@@ -1105,7 +1092,7 @@ mixin LspAnalysisServerTestMixin
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
     bool includeClientRequestTime = false,
-    void Function()? immediatelyAfterInitialized,
+    FutureOr<void> Function()? immediatelyAfterInitialized,
   }) async {
     this.includeClientRequestTime = includeClientRequestTime;
 
@@ -1146,16 +1133,6 @@ mixin LspAnalysisServerTestMixin
     notificationsFromServer.listen((notification) async {
       if (notification.method == Method.progress) {
         await _handleProgress(notification);
-      } else if (notification.method == CustomMethods.analyzerStatus) {
-        var params = AnalyzerStatusParams.fromJson(
-          notification.params as Map<String, Object?>,
-        );
-
-        if (params.isAnalyzing) {
-          _handleAnalysisBegin();
-        } else {
-          _handleAnalysisEnd();
-        }
       }
     });
 
@@ -1198,7 +1175,7 @@ mixin LspAnalysisServerTestMixin
       );
 
       var initializedNotification = sendNotificationToServer(notification);
-      immediatelyAfterInitialized?.call();
+      await immediatelyAfterInitialized?.call();
       await initializedNotification;
       await pumpEventQueue();
     } else if (throwOnFailure) {
@@ -1608,19 +1585,6 @@ mixin LspAnalysisServerTestMixin
     return outlineParams.outline;
   }
 
-  void _handleAnalysisBegin() {
-    assert(_currentAnalysisCompleter.isCompleted);
-    _currentAnalysisCompleter = Completer<void>();
-  }
-
-  void _handleAnalysisEnd() {
-    if (!_initialAnalysisCompleter.isCompleted) {
-      _initialAnalysisCompleter.complete();
-    }
-    assert(!_currentAnalysisCompleter.isCompleted);
-    _currentAnalysisCompleter.complete();
-  }
-
   Future<void> _handleProgress(NotificationMessage request) async {
     var params = ProgressParams.fromJson(
       request.params as Map<String, Object?>,
@@ -1635,15 +1599,6 @@ mixin LspAnalysisServerTestMixin
 
     if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
       _validProgressTokens.remove(params.token);
-    }
-
-    if (params.token == analyzingProgressToken) {
-      if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
-        _handleAnalysisBegin();
-      }
-      if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
-        _handleAnalysisEnd();
-      }
     }
   }
 
@@ -1683,7 +1638,7 @@ mixin LspSharedTestMixin on AbstractLspAnalysisServerTest
   @override
   Future<void> initializeServer() async {
     await initialize();
-    await currentAnalysis;
+    await workspaceAnalysisComplete();
   }
 }
 

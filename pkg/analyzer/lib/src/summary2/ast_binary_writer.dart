@@ -877,7 +877,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   void _storeForEachParts(ForEachParts node) {
-    _writeNode(node.iterable);
+    _writeNode(node.iterable2);
     _storeForLoopParts(node);
   }
 

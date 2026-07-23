@@ -12,29 +12,6 @@ import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _readElement(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.readElement;
-  }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.readElement;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
-    return parent.readElement;
-  }
-
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _readElement(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _readElement(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _readElementV1(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -48,39 +25,39 @@ Element? _readElementV1(AstNode node) {
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _readElementV1(parent);
+    return _readElement(parent);
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
-    return _readElementV1(parent);
+    return _readElement(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+Element? _readElement2(AstNode node) {
+  var parent = node.parent2;
+
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
+    return parent.readElement;
+  }
+  if (parent is PostfixExpression && parent.operand2 == node) {
+    return parent.readElement;
+  }
+  if (parent is PrefixExpression && parent.operand2 == node) {
+    return parent.readElement;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _readElement2(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _readElement2(parent);
   }
   return null;
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _writeElement(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.writeElement;
-  }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
-    return parent.writeElement;
-  }
-
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeElement(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeElement(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _writeElementV1(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -94,39 +71,39 @@ Element? _writeElementV1(AstNode node) {
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeElementV1(parent);
+    return _writeElement(parent);
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeElementV1(parent);
+    return _writeElement(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+Element? _writeElement2(AstNode node) {
+  var parent = node.parent2;
+
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
+    return parent.writeElement;
+  }
+  if (parent is PostfixExpression && parent.operand2 == node) {
+    return parent.writeElement;
+  }
+  if (parent is PrefixExpression && parent.operand2 == node) {
+    return parent.writeElement;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _writeElement2(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _writeElement2(parent);
   }
   return null;
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 DartType? _writeType(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.writeType;
-  }
-  if (parent is PostfixExpression && parent.operand2 == node) {
-    return parent.writeType;
-  }
-  if (parent is PrefixExpression && parent.operand2 == node) {
-    return parent.writeType;
-  }
-
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeType(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeType(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-DartType? _writeTypeV1(AstNode node) {
   var parent = node.parent;
 
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
@@ -140,22 +117,58 @@ DartType? _writeTypeV1(AstNode node) {
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeTypeV1(parent);
+    return _writeType(parent);
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeTypeV1(parent);
+    return _writeType(parent);
+  }
+  return null;
+}
+
+// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+DartType? _writeType2(AstNode node) {
+  var parent = node.parent2;
+
+  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
+    return parent.writeType;
+  }
+  if (parent is PostfixExpression && parent.operand2 == node) {
+    return parent.writeType;
+  }
+  if (parent is PrefixExpression && parent.operand2 == node) {
+    return parent.writeType;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _writeType2(parent);
+  }
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _writeType2(parent);
   }
   return null;
 }
 
 extension ArgumentListExtension on ArgumentList {
   /// Returns the named argument with the given [name], or `null` if none.
-  NamedArgument? byName(String name) => arguments2
+  NamedArgument? byName(String name) => arguments
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((e) => e.name.lexeme == name);
+
+  /// Returns the named argument with the given [name], or `null` if none.
+  NamedArgument? byName2(String name) => arguments2
       .whereType<NamedArgument>()
       .firstWhereOrNull((e) => e.name.lexeme == name);
 
   /// Returns the argument with the given [index], or `null` if none.
   Argument? elementAtOrNull(int index) {
+    if (index < arguments.length) {
+      return arguments[index];
+    }
+    return null;
+  }
+
+  /// Returns the argument with the given [index], or `null` if none.
+  Argument? elementAtOrNull2(int index) {
     if (index < arguments2.length) {
       return arguments2[index];
     }
@@ -235,10 +248,21 @@ extension ExpressionImplExtension on ExpressionImpl {
 
 extension FormalParameterExtension on FormalParameter {
   bool get isOfLocalFunction {
+    return thisOrAncestorOfType<FunctionBody>() != null;
+  }
+
+  bool get isOfLocalFunction2 {
     return thisOrAncestorOfType2<FunctionBody>() != null;
   }
 
   FormalParameterList get parentFormalParameterList {
+    return switch (parent) {
+      FormalParameterList parent => parent,
+      _ => throw StateError('Formal parameter has no formal parameter list'),
+    };
+  }
+
+  FormalParameterList get parentFormalParameterList2 {
     return switch (parent2) {
       FormalParameterList parent => parent,
       DelimitedFormalParameters(parent2: FormalParameterList parent) => parent,
@@ -261,8 +285,8 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
-  Element? get readElementV1 {
-    return _readElementV1(this);
+  Element? get readElement2 {
+    return _readElement2(this);
   }
 
   SimpleIdentifier get simpleName {
@@ -278,24 +302,24 @@ extension IdentifierExtension on Identifier {
     return _writeElement(this);
   }
 
-  Element? get writeElementV1 {
-    return _writeElementV1(this);
+  Element? get writeElement2 {
+    return _writeElement2(this);
   }
 
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
   }
 
-  Element? get writeOrReadElementV1 {
-    return _writeElementV1(this) ?? element;
+  Element? get writeOrReadElement2 {
+    return _writeElement2(this) ?? element;
   }
 
   DartType? get writeOrReadType {
     return _writeType(this) ?? staticType;
   }
 
-  DartType? get writeOrReadTypeV1 {
-    return _writeTypeV1(this) ?? staticType;
+  DartType? get writeOrReadType2 {
+    return _writeType2(this) ?? staticType;
   }
 }
 
@@ -332,6 +356,10 @@ extension IdentifierImplExtension on IdentifierImpl {
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
+  }
+
+  Element? get writeOrReadElement2 {
+    return _writeElement2(this) ?? element;
   }
 }
 

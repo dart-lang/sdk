@@ -138,10 +138,10 @@ class Bar {
     newFile(mainFilePath, content);
 
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     await openFile(mainFileUri, newContent);
-    await pumpEventQueue(times: 50000);
+    await workspaceAnalysisComplete();
 
     // Expect diagnostics, because changing the content will have triggered
     // analysis.
@@ -153,10 +153,10 @@ class Bar {
     newFile(mainFilePath, content);
 
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     await openFile(mainFileUri, content);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
 
     // Expect no diagnostics because the file didn't actually change content
     // when the overlay was created, so it should not have triggered analysis.
@@ -210,7 +210,7 @@ class Bar {
       ],
       openFile(mainFileUri, content),
     ]);
-    await pumpEventQueue(times: 50000);
+    await workspaceAnalysisComplete();
     expect(server.resourceProvider.hasOverlay(mainFilePath), isTrue);
   }
 
@@ -232,19 +232,19 @@ class Bar {
 
     // Expect diagnostics after opening the file with the same contents.
     await openFile(mainFileUri, content);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics after deleting the file because the overlay is still
     // active.
     deleteFile(mainFilePath);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics to be removed after we close the file (which removes
     // the overlay).
     await closeFile(mainFileUri);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], isEmpty);
   }
 
@@ -268,19 +268,19 @@ class Bar {
 
     // Expect diagnostics after opening the file with the same contents.
     await openFile(mainFileUri, content);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics after deleting the file because the overlay is still
     // active.
     deleteFile(mainFilePath);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics remain after re-creating the file (the overlay is still
     // active).
     newFile(mainFilePath, content);
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expect(diagnostics[mainFileUri], isNotEmpty);
 
     // Expect diagnostics remain after we close the file because the file still
@@ -331,7 +331,7 @@ class Foo {}
     newFile(binMainFilePath, binMainContent);
 
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Expect diagnostics because 'foo.dart' doesn't exist.
     expect(diagnostics[binMainFileUri], isNotEmpty);
@@ -339,10 +339,8 @@ class Foo {}
     // Create the file and _immediately_ open it, so the file exists when the
     // overlay is created, even though the watcher event has not been processed.
     newFile(fooFilePath, fooContent);
-    await Future.wait([
-      openFile(fooUri, fooContent),
-      waitForAnalysisComplete(),
-    ]);
+    await openFile(fooUri, fooContent);
+    await workspaceAnalysisComplete();
 
     // Expect the diagnostics have gone.
     expect(diagnostics[binMainFileUri], isEmpty);

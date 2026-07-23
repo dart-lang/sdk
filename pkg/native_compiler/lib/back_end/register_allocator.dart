@@ -303,7 +303,16 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
         }
       }
 
+      assert(instructionPos(block) == blockStart);
       _nextSafepointPos[blockStart ~/ step] = nextSafepointPos;
+
+      // Handle safepoint at block start.
+      final safepoint = constraints.getConstraints(block)?.safepoint;
+      if (safepoint != null) {
+        backEndState.stackFrame.recordReservedLocations(safepoint);
+        _safepoints[block.id] = safepoint;
+        nextSafepointPos = blockStart;
+      }
     }
 
     errorContext.annotator = (Instruction instr) {

@@ -876,7 +876,9 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 3) {
   const Closure& closure = Closure::Handle(
       zone, Closure::New(length_and_flags, SpaceForRuntimeAllocation()));
   closure.set_function(function);
-  closure.SetRawContext(context);
+  if (!context.IsNull()) {
+    closure.SetRawContext(context);
+  }
   arguments.SetReturn(closure);
   RuntimeAllocationEpilogue(thread);
 }

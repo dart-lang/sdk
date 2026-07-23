@@ -437,7 +437,7 @@ class BundleWriter {
   void _writeFieldFragment(FieldFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
     });
   }
 
@@ -514,7 +514,7 @@ class BundleWriter {
     fragment.writeFlags(_sink);
 
     _resolutionSink._writeMetadata(fragment.metadata);
-    _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
   }
 
   void _writeFragmentId(FragmentImpl fragment) {
@@ -837,7 +837,7 @@ class BundleWriter {
   void _writeTopLevelVariableFragment(TopLevelVariableFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _resolutionSink._writeMetadata(fragment.metadata);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer2);
     });
   }
 

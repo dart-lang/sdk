@@ -16653,33 +16653,46 @@ sealed class ForEachParts implements ForLoopParts {
   Token get inKeyword;
 
   /// The expression evaluated to produce the iterator.
+  @ToBeDeprecated('Use iterable2 instead.')
   Expression get iterable;
+
+  /// The expression evaluated to produce the iterator.
+  @experimental
+  Expression get iterable2;
 }
 
 sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   @override
   final Token inKeyword;
 
-  ExpressionImpl _iterable;
+  ExpressionImpl _iterable2;
 
   /// Initializes a newly created for-each statement whose loop control variable
   /// is declared internally (in the for-loop part).
-  ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable})
-    : _iterable = iterable {
-    _becomeParentOf12(_iterable);
+  ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable2})
+    : _iterable2 = iterable2 {
+    _becomeParentOf2(iterable2);
+    _becomeParentOf1(V1Projection.toV1Expression(iterable2));
   }
 
   @override
   Token get beginToken => inKeyword;
 
   @override
-  Token get endToken => _iterable.endToken;
+  Token get endToken => iterable2.endToken;
 
+  @ToBeDeprecated('Use iterable2 instead.')
   @override
-  ExpressionImpl get iterable => _iterable;
+  ExpressionImpl get iterable => V1Projection.toV1Expression(iterable2);
 
-  set iterable(ExpressionImpl expression) {
-    _iterable = _becomeParentOf12(expression);
+  @experimental
+  @override
+  ExpressionImpl get iterable2 => _iterable2;
+
+  @experimental
+  set iterable2(ExpressionImpl iterable2) {
+    _iterable2 = _becomeParentOf2(iterable2);
+    _becomeParentOf1(V1Projection.toV1Expression(iterable2));
   }
 
   @override
@@ -16687,16 +16700,21 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
     ..addToken('inKeyword', inKeyword)
     ..addNode('iterable', iterable);
 
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('inKeyword', inKeyword)
+    ..addNode('iterable2', iterable2);
+
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _iterable.accept(visitor);
+    iterable.accept(visitor);
   }
 
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (_iterable._containsOffset(rangeOffset, rangeEnd)) {
-      return _iterable;
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
     }
     return null;
   }
@@ -16718,7 +16736,9 @@ abstract final class ForEachPartsWithDeclaration implements ForEachParts {
     GenerateNodeProperty('loopVariable'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
-      'iterable',
+      'iterable2',
+      v1Name: 'iterable',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -16733,7 +16753,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   ForEachPartsWithDeclarationImpl({
     required DeclaredIdentifierImpl loopVariable,
     required super.inKeyword,
-    required super.iterable,
+    required super.iterable2,
   }) : _loopVariable = loopVariable {
     _becomeParentOf12(loopVariable);
   }
@@ -16747,7 +16767,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   @generated
   @override
   Token get endToken {
-    return iterable.endToken;
+    return iterable2.endToken;
   }
 
   @generated
@@ -16771,7 +16791,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('loopVariable', loopVariable)
     ..addToken('inKeyword', inKeyword)
-    ..addNode('iterable', iterable);
+    ..addNode('iterable2', iterable2);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -16789,7 +16809,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
-    return identical(iterable, child);
+    return identical(iterable2, child);
   }
 
   @generated
@@ -16798,8 +16818,8 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     if (identical(loopVariable, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'loopVariable'.");
     }
-    if (identical(iterable, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'iterable'.");
+    if (identical(iterable2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
     super.removeChild(oldNode);
   }
@@ -16811,8 +16831,8 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
       loopVariable = newNode as DeclaredIdentifierImpl;
       return;
     }
-    if (identical(iterable, oldNode)) {
-      iterable = newNode as ExpressionImpl;
+    if (identical(iterable2, oldNode)) {
+      iterable2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -16831,7 +16851,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     loopVariable.accept2(visitor);
-    iterable.accept2(visitor);
+    iterable2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -16844,17 +16864,17 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(DeclaredIdentifierImpl)? visitLoopVariable,
-    void Function(ExpressionImpl)? visitIterable,
+    void Function(ExpressionImpl)? visitIterable2,
   }) {
     if (visitLoopVariable != null) {
       visitLoopVariable(loopVariable);
     } else {
       loopVariable.accept2(visitor);
     }
-    if (visitIterable != null) {
-      visitIterable(iterable);
+    if (visitIterable2 != null) {
+      visitIterable2(iterable2);
     } else {
-      iterable.accept2(visitor);
+      iterable2.accept2(visitor);
     }
   }
 
@@ -16876,8 +16896,8 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     if (loopVariable._containsOffset(rangeOffset, rangeEnd)) {
       return loopVariable;
     }
-    if (iterable._containsOffset(rangeOffset, rangeEnd)) {
-      return iterable;
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
     }
     return null;
   }
@@ -16899,7 +16919,9 @@ abstract final class ForEachPartsWithIdentifier implements ForEachParts {
     GenerateNodeProperty('identifier'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
-      'iterable',
+      'iterable2',
+      v1Name: 'iterable',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -16914,7 +16936,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   ForEachPartsWithIdentifierImpl({
     required SimpleIdentifierImpl identifier,
     required super.inKeyword,
-    required super.iterable,
+    required super.iterable2,
   }) : _identifier = identifier {
     _becomeParentOf12(identifier);
   }
@@ -16928,7 +16950,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   Token get endToken {
-    return iterable.endToken;
+    return iterable2.endToken;
   }
 
   @generated
@@ -16952,7 +16974,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('identifier', identifier)
     ..addToken('inKeyword', inKeyword)
-    ..addNode('iterable', iterable);
+    ..addNode('iterable2', iterable2);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -16970,7 +16992,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
-    return identical(iterable, child);
+    return identical(iterable2, child);
   }
 
   @generated
@@ -16979,8 +17001,8 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     if (identical(identifier, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'identifier'.");
     }
-    if (identical(iterable, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'iterable'.");
+    if (identical(iterable2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
     super.removeChild(oldNode);
   }
@@ -16992,8 +17014,8 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
       identifier = newNode as SimpleIdentifierImpl;
       return;
     }
-    if (identical(iterable, oldNode)) {
-      iterable = newNode as ExpressionImpl;
+    if (identical(iterable2, oldNode)) {
+      iterable2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -17012,7 +17034,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     identifier.accept2(visitor);
-    iterable.accept2(visitor);
+    iterable2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -17025,17 +17047,17 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitIdentifier,
-    void Function(ExpressionImpl)? visitIterable,
+    void Function(ExpressionImpl)? visitIterable2,
   }) {
     if (visitIdentifier != null) {
       visitIdentifier(identifier);
     } else {
       identifier.accept2(visitor);
     }
-    if (visitIterable != null) {
-      visitIterable(iterable);
+    if (visitIterable2 != null) {
+      visitIterable2(iterable2);
     } else {
-      iterable.accept2(visitor);
+      iterable2.accept2(visitor);
     }
   }
 
@@ -17057,8 +17079,8 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     if (identifier._containsOffset(rangeOffset, rangeEnd)) {
       return identifier;
     }
-    if (iterable._containsOffset(rangeOffset, rangeEnd)) {
-      return iterable;
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
     }
     return null;
   }
@@ -17087,7 +17109,9 @@ abstract final class ForEachPartsWithPattern implements ForEachParts {
     GenerateNodeProperty('pattern'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
-      'iterable',
+      'iterable2',
+      v1Name: 'iterable',
+      v1Projection: V1Projection.expression,
       isSuper: true,
       isInValueExpressionSlot: true,
     ),
@@ -17115,7 +17139,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     required this.keyword,
     required DartPatternImpl pattern,
     required super.inKeyword,
-    required super.iterable,
+    required super.iterable2,
   }) : _pattern = pattern {
     this.metadata._initialize(this, metadata);
     _becomeParentOf12(pattern);
@@ -17133,7 +17157,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   @generated
   @override
   Token get endToken {
-    return iterable.endToken;
+    return iterable2.endToken;
   }
 
   /// If [keyword] is `final`, returns it.
@@ -17169,7 +17193,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     ..addToken('keyword', keyword)
     ..addNode('pattern', pattern)
     ..addToken('inKeyword', inKeyword)
-    ..addNode('iterable', iterable);
+    ..addNode('iterable2', iterable2);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -17187,7 +17211,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
-    return identical(iterable, child);
+    return identical(iterable2, child);
   }
 
   @generated
@@ -17201,8 +17225,8 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
     }
-    if (identical(iterable, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'iterable'.");
+    if (identical(iterable2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
     super.removeChild(oldNode);
   }
@@ -17217,8 +17241,8 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
       pattern = newNode as DartPatternImpl;
       return;
     }
-    if (identical(iterable, oldNode)) {
-      iterable = newNode as ExpressionImpl;
+    if (identical(iterable2, oldNode)) {
+      iterable2 = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -17239,7 +17263,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   void visitChildren2(AstVisitor2 visitor) {
     metadata.accept2(visitor);
     pattern.accept2(visitor);
-    iterable.accept2(visitor);
+    iterable2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -17253,7 +17277,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     AstVisitor2 visitor, {
     void Function(NodeListImpl<AnnotationImpl>)? visitMetadata,
     void Function(DartPatternImpl)? visitPattern,
-    void Function(ExpressionImpl)? visitIterable,
+    void Function(ExpressionImpl)? visitIterable2,
   }) {
     if (visitMetadata != null) {
       visitMetadata(metadata);
@@ -17265,10 +17289,10 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     } else {
       pattern.accept2(visitor);
     }
-    if (visitIterable != null) {
-      visitIterable(iterable);
+    if (visitIterable2 != null) {
+      visitIterable2(iterable2);
     } else {
-      iterable.accept2(visitor);
+      iterable2.accept2(visitor);
     }
   }
 
@@ -17298,8 +17322,8 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
       return pattern;
     }
-    if (iterable._containsOffset(rangeOffset, rangeEnd)) {
-      return iterable;
+    if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
+      return iterable2;
     }
     return null;
   }

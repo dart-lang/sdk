@@ -156,8 +156,6 @@ static constexpr uint32_t LC_NOTE = 0x31;
 // The target platform and minimum and target OS versions for this object file.
 // (build_version_command)
 static constexpr uint32_t LC_BUILD_VERSION = 0x32;
-// A prefix tree of exported symbols. (linkedit_data_command)
-static constexpr uint32_t LC_DYLIB_EXPORTS_TRIE = (0x33 | LC_REQ_DYLD);
 
 struct segment_command {
   uint32_t cmd;  // LC_SEGMENT

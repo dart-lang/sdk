@@ -58,7 +58,7 @@ class ConstantInitializersResolver {
       return;
     }
 
-    var constantInitializer = element.constantInitializer2;
+    var constantInitializer = element.constantInitializerData;
     if (constantInitializer == null) {
       return;
     }
@@ -95,7 +95,7 @@ class ConstantInitializersResolver {
     }
 
     // We could have rewritten the initializer.
-    fragment.constantInitializer = node.initializer2;
+    fragment.constantInitializer2 = node.initializer2;
   }
 }
 

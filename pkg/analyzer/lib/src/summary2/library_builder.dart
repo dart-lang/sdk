@@ -96,7 +96,7 @@ class LibraryBuilder {
   int _nextLocalReferenceId = 0;
 
   /// The fields that were speculatively created as [FieldFragmentImpl],
-  /// but we want to clear [VariableFragmentImpl.constantInitializer] for it
+  /// but we want to clear [VariableFragmentImpl.constantInitializer2] for it
   /// if the class will not end up with a `const` constructor. We don't know
   /// at the time when we create them, because of future augmentations.
   final Set<FieldFragmentImpl> finalInstanceFields = Set.identity();
@@ -308,7 +308,7 @@ class LibraryBuilder {
     for (var fieldFragment in finalInstanceFields) {
       var enclosingElement = fieldFragment.enclosingFragment.element;
       if (!hasConstConstructor(enclosingElement)) {
-        fieldFragment.constantInitializer = null;
+        fieldFragment.constantInitializer2 = null;
       }
     }
   }

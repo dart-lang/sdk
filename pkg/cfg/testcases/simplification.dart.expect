@@ -244,7 +244,7 @@ B0 = EntryBlock()
 B0 = EntryBlock()
   v4 = Constant(42)
   v6 = Constant(null)
-  v1 = AllocateClosure()
+  v1 = AllocateClosure(len:0)
   DirectCall closure FunctionExpression(Null (int arg) {
   print(arg);
 }) at closureCall(v1, v4)

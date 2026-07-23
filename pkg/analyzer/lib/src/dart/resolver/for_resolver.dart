@@ -81,13 +81,13 @@ class ForResolver {
       node: node,
       hasAwait: awaitKeyword != null,
       pattern: forLoopParts.pattern,
-      expression: forLoopParts.iterable,
+      expression: forLoopParts.iterable2,
       dispatchBody: dispatchBody,
     );
     _resolver.popRewrite();
     _resolver.nullableDereferenceVerifier.expression(
       diag.uncheckedUseOfNullableValueAsIterator,
-      forLoopParts.iterable,
+      forLoopParts.iterable2,
     );
   }
 
@@ -124,7 +124,7 @@ class ForResolver {
     ForEachPartsImpl forEachParts,
     void Function() visitBody,
   ) {
-    ExpressionImpl iterable = forEachParts.iterable;
+    ExpressionImpl iterable = forEachParts.iterable2;
     DeclaredIdentifierImpl? loopVariable;
     SimpleIdentifierImpl? identifier;
     Element? identifierElement;

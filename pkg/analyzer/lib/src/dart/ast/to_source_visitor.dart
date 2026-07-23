@@ -583,14 +583,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _visitNode(node.loopVariable);
     sink.write(' in ');
-    _visitNode(node.iterable);
+    _visitNode(node.iterable2);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     _visitNode(node.identifier);
     sink.write(' in ');
-    _visitNode(node.iterable);
+    _visitNode(node.iterable2);
   }
 
   @override
@@ -599,7 +599,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.keyword, suffix: ' ');
     _visitNode(node.pattern);
     sink.write(' in ');
-    _visitNode(node.iterable);
+    _visitNode(node.iterable2);
   }
 
   @override

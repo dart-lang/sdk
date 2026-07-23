@@ -12837,13 +12837,28 @@ class Closure : public Instance {
     SetElementAt(function_type_arguments_index(), args);
   }
 
+  static intptr_t ContextIndexOf(ClosurePtr ptr) {
+    const intptr_t length_and_flags =
+        Smi::Value(ptr.untag()->length_and_flags());
+    return UntaggedClosure::ContextIndex(
+        UntaggedClosure::HasDelayedTypeArgumentsBit::decode(length_and_flags),
+        UntaggedClosure::HasInstantiatorTypeArgumentsBit::decode(
+            length_and_flags),
+        UntaggedClosure::HasFunctionTypeArgumentsBit::decode(length_and_flags));
+  }
   static ObjectPtr RawContextOf(ClosurePtr ptr) {
-    return ptr->untag()->element(LengthOf(ptr) - 1);
+    const intptr_t context_index = ContextIndexOf(ptr);
+    if (context_index < LengthOf(ptr)) {
+      return ptr->untag()->element(context_index);
+    }
+    return Object::null();
   }
   ObjectPtr RawContext() const { return RawContextOf(ptr()); }
 
   void SetRawContext(const Object& context) const {
-    SetElementAt(length() - 1, context);
+    const intptr_t context_index = ContextIndexOf(ptr());
+    ASSERT(context_index < length());
+    SetElementAt(context_index, context);
   }
 
   ContextPtr GetContext() const {

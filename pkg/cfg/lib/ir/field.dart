@@ -117,6 +117,16 @@ class ClosureLayout {
         (hasClassTypeArgs ? 1 : 0) +
         (hasFunctionTypeArgs ? 1 : 0);
   }
+
+  @override
+  String toString() {
+    return [
+      if (hasDelayedTypeArgs) 'delayed:$delayedTypeArgsIndex',
+      if (hasClassTypeArgs) 'cls:$classTypeArgsIndex',
+      if (hasFunctionTypeArgs) 'fun:$functionTypeArgsIndex',
+      'len:$length',
+    ].join(', ');
+  }
 }
 
 /// Field of the record object.

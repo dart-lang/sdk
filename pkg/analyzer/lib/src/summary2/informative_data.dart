@@ -1736,7 +1736,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     if (fragment is FieldFragmentImpl && fragment.isEnumConstant) {
       _applyToEnumConstantInitializer(fragment);
     } else if (fragment is VariableFragmentImpl) {
-      fragment.constantInitializer?.accept2(this);
+      fragment.constantInitializer2?.accept2(this);
     }
   }
 
@@ -1834,7 +1834,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   void _applyToEnumConstantInitializer(FieldFragmentImpl fragment) {
-    var initializer = fragment.constantInitializer;
+    var initializer = fragment.constantInitializer2;
     if (initializer is InstanceCreationExpressionImpl) {
       initializer.constructorName.type.typeArguments?.accept2(this);
       initializer.argumentList.accept2(this);

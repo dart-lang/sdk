@@ -35,7 +35,7 @@ B0 = EntryBlock()
   v19 = TypeCast(v3, v37, v1, Map<C.T%, C.typeParameters.U%>)   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [R0, R1, R2], objects: [R0, R1, R2, stack[0]]}
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v19)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
-  v21 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  v21 = AllocateClosure(fun:0, len:2)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
   StoreInstanceField(#closure-field[0], v21, v1)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2, R3], objects: [R0, R3, stack[0]]}
   ParallelMove output(stack[0] -> R4)
@@ -44,7 +44,7 @@ B0 = EntryBlock()
   print(C.T%);
   print(C.typeParameters.U%);
 }) at C.typeParameters(v21)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
-  v27 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  v27 = AllocateClosure(delayed:0, fun:1, len:2)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
   StoreInstanceField(#closure-field[1], v27, v1)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   DirectCall closure FunctionDeclaration(void local2<V extends Object?>() {
@@ -505,7 +505,7 @@ B0 = EntryBlock()
   v10 = Constant(null)
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
   ParallelMove output(param[0] -> vloc:R0)
-  v4 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  v4 = AllocateClosure(delayed:0, fun:1, len:2)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
   StoreInstanceField(#closure-field[1], v4, v1)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   DirectCall closure FunctionDeclaration(void nested1<T extends Object?>() {
@@ -539,7 +539,7 @@ B0 = EntryBlock()
   v16 = DirectCall _prependTypeArguments(v1, v5, v17, v18)   # RA: R0 <- (R0, R1, -, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[0])
-  v7 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  v7 = AllocateClosure(delayed:0, fun:1, len:2)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
   StoreInstanceField(#closure-field[1], v7, v16)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   DirectCall closure FunctionDeclaration(void nested2<U extends Object?>() {
@@ -585,7 +585,7 @@ B0 = EntryBlock()
   v9 = Constant(null)
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
   ParallelMove output(param[0] -> vloc:R0)
-  v4 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  v4 = AllocateClosure(fun:0, len:1)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
   ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
   StoreInstanceField(#closure-field[0], v4, v1)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   DirectCall closure FunctionDeclaration(void nested1() {
@@ -612,7 +612,7 @@ B0 = EntryBlock()
   ParallelMove output(param[0] -> vloc:R0)
   v3 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
   ParallelMove output(R0 -> stack[0])
-  v5 = AllocateClosure()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  v5 = AllocateClosure(delayed:0, fun:1, len:2)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
   ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
   StoreInstanceField(#closure-field[1], v5, v3)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0]}
   DirectCall closure FunctionDeclaration(void nested2<T extends Object?>() {

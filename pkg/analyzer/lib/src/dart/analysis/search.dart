@@ -301,7 +301,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
       if (node.element == import.prefix?.element) {
         var parent = node.parent2;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement?.baseElement;
+          var element = parent.writeOrReadElement2?.baseElement;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
@@ -314,7 +314,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
         }
       }
     } else {
-      var element = node.writeOrReadElement?.baseElement;
+      var element = node.writeOrReadElement2?.baseElement;
       if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }
