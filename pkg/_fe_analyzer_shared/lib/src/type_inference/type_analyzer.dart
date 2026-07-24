@@ -2088,7 +2088,7 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
-    flow.switchStatement_expressionEnd(
+    flow.switch_scrutineeEnd(
       null,
       scrutineeAnalysisResult.flowAnalysisInfo,
       expressionType,
@@ -2120,8 +2120,8 @@ mixin TypeAnalyzer<
         // Stack: (Expression, i * ExpressionCase)
         SwitchExpressionMemberInfo<Node, Expression, Variable> memberInfo =
             getSwitchExpressionMemberInfo(node, i);
-        flow.switchStatement_beginAlternatives();
-        flow.switchStatement_beginAlternative();
+        flow.switch_beginAlternatives();
+        flow.switch_beginAlternative();
         handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
         Node? pattern = memberInfo.head.pattern;
         ExpressionInfo? guardInfo;
@@ -2164,8 +2164,8 @@ mixin TypeAnalyzer<
           // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         }
         handleCaseHead(node, caseIndex: i, subIndex: 0);
-        flow.switchStatement_endAlternative(guardInfo, {});
-        flow.switchStatement_endAlternatives(null, hasLabels: false);
+        flow.switch_endAlternative(guardInfo, {});
+        flow.switch_endAlternatives(null, hasLabels: false);
         // Stack: (Expression, i * ExpressionCase, CaseHead)
         SharedTypeView ti = analyzeExpression(
           memberInfo.expression,
@@ -2175,7 +2175,7 @@ mixin TypeAnalyzer<
         if (allCasesSatisfyContext && !operations.isSubtypeOf(ti, s)) {
           allCasesSatisfyContext = false;
         }
-        flow.switchStatement_afterCase();
+        flow.switch_afterCase();
         // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
         if (t == null) {
           t = ti;
@@ -2203,7 +2203,7 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: (Expression, numCases * ExpressionCase)
-    flow.switchStatement_end(true);
+    flow.switch_end(true);
     return new SwitchExpressionResult(
       type: staticType,
       nonBooleanGuardErrors: nonBooleanGuardErrors,
@@ -2229,7 +2229,7 @@ mixin TypeAnalyzer<
     SharedTypeView scrutineeType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
-    flow.switchStatement_expressionEnd(
+    flow.switch_scrutineeEnd(
       node,
       scrutineeAnalysisResult.flowAnalysisInfo,
       scrutineeType,
@@ -2241,7 +2241,7 @@ mixin TypeAnalyzer<
     Map<int, Map<int, SharedTypeView>>? guardTypes;
     for (int caseIndex = 0; caseIndex < numCases; caseIndex++) {
       // Stack: (Expression, numExecutionPaths * StatementCase)
-      flow.switchStatement_beginAlternatives();
+      flow.switch_beginAlternatives();
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
       SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
@@ -2251,7 +2251,7 @@ mixin TypeAnalyzer<
       for (int headIndex = 0; headIndex < heads.length; headIndex++) {
         CaseHeadOrDefaultInfo<Node, Expression, Variable> head =
             heads[headIndex];
-        flow.switchStatement_beginAlternative();
+        flow.switch_beginAlternative();
         handleSwitchBeforeAlternative(
           node,
           caseIndex: caseIndex,
@@ -2309,15 +2309,12 @@ mixin TypeAnalyzer<
         }
         // Stack: (Expression, numExecutionPaths * StatementCase,
         //         numHeads * CaseHead),
-        flow.switchStatement_endAlternative(guardInfo, head.variables);
+        flow.switch_endAlternative(guardInfo, head.variables);
       }
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
       PatternVariableInfo<Variable> patternVariableInfo = flow
-          .switchStatement_endAlternatives(
-            node,
-            hasLabels: memberInfo.hasLabels,
-          );
+          .switch_endAlternatives(node, hasLabels: memberInfo.hasLabels);
       Map<String, Variable> variables = memberInfo.variables;
       if (memberInfo.hasLabels || heads.length > 1) {
         _finishJoinedPatternVariables(
@@ -2335,7 +2332,7 @@ mixin TypeAnalyzer<
       }
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads,
       //         n * Statement), where n = body.length
-      lastCaseTerminates = !flow.switchStatement_afterCase();
+      lastCaseTerminates = !flow.switch_afterCase();
       if (caseIndex < numCases - 1 &&
           !typeAnalyzerOptions.patternsEnabled &&
           !lastCaseTerminates) {
@@ -2362,7 +2359,7 @@ mixin TypeAnalyzer<
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
       requiresExhaustivenessValidation = false;
     }
-    flow.switchStatement_end(isExhaustive);
+    flow.switch_end(isExhaustive);
     return new SwitchStatementTypeAnalysisResult(
       hasDefault: hasDefault,
       isExhaustive: isExhaustive,

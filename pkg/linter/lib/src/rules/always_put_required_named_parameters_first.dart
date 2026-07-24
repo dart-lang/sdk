@@ -7,6 +7,7 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -38,6 +39,7 @@ class AlwaysPutRequiredNamedParametersFirst extends AnalysisRule {
 class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    var superParametersInOrder = _superParametersAreInOrder(node);
     var nonRequiredSeen = false;
     for (var param in node.parameters.where((p) => p.isNamed)) {
       var element = param.declaredFragment?.element;
@@ -50,8 +52,41 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
           }
         }
       } else {
-        nonRequiredSeen = true;
+        if (superParametersInOrder && param is SuperFormalParameter) {
+          // A non-required super-parameter that is in order doesn't trigger
+          // a lint on subsequent required parameters.
+        } else {
+          nonRequiredSeen = true;
+        }
       }
     }
+  }
+
+  bool _superParametersAreInOrder(FormalParameterList node) {
+    var superParameters = node.parameters
+        .whereType<SuperFormalParameter>()
+        .where((p) => p.isNamed)
+        .toList();
+
+    if (superParameters.length <= 1) return true;
+
+    var previousIndex = -1;
+    for (var parameter in superParameters) {
+      var element = parameter.declaredFragment?.element;
+      if (element is! SuperFormalParameterElement) return false;
+      var superParameter = element.superConstructorParameter;
+      if (superParameter == null) return false;
+
+      var enclosing = superParameter.enclosingElement;
+      if (enclosing is! FunctionTypedElement) return false;
+
+      var index = enclosing.formalParameters.indexOf(superParameter);
+      if (index == -1) return false;
+      if (index < previousIndex) {
+        return false;
+      }
+      previousIndex = index;
+    }
+    return true;
   }
 }
