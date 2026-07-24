@@ -341,4 +341,32 @@ void f(A a) {
 }
 ''');
   }
+
+  /// Regression test for https://github.com/dart-lang/sdk/issues/63354.
+  ///
+  /// When the variable initializer is an [AssignmentExpression] (e.g. `??=`),
+  /// the cascade operator `..` has higher precedence than the assignment, so
+  /// the initializer must be wrapped in parentheses to preserve semantics.
+  Future<void> test_declaration_assignmentInitializer_property() async {
+    await resolveTestCode('''
+class C {
+  C(this.i);
+  int i = 0;
+}
+void f(Map<int, C> a) {
+  var b = a[1] ??= C(2);
+  b.i = 3;
+}
+''');
+    await assertHasFix('''
+class C {
+  C(this.i);
+  int i = 0;
+}
+void f(Map<int, C> a) {
+  var b = (a[1] ??= C(2))
+  ..i = 3;
+}
+''');
+  }
 }
