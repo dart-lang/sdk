@@ -988,7 +988,18 @@ CompilationUnit
           VariableDeclaration
             name: _abstract
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: new
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  importPrefix: ImportPrefixReference
+                    name: abstract
+                    period: .
+                  name: A
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1107,7 +1118,18 @@ CompilationUnit
           VariableDeclaration
             name: _export
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: new
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  importPrefix: ImportPrefixReference
+                    name: export
+                    period: .
+                  name: A
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1145,7 +1167,18 @@ CompilationUnit
           VariableDeclaration
             name: _export
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: new
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  importPrefix: ImportPrefixReference
+                    name: export
+                    period: .
+                  name: A
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1183,7 +1216,18 @@ CompilationUnit
           VariableDeclaration
             name: _operator
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: new
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  importPrefix: ImportPrefixReference
+                    name: operator
+                    period: .
+                  name: A
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1307,7 +1351,18 @@ CompilationUnit
           VariableDeclaration
             name: _typedef
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: new
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  importPrefix: ImportPrefixReference
+                    name: typedef
+                    period: .
+                  name: A
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1341,7 +1396,18 @@ CompilationUnit
           VariableDeclaration
             name: _abstract
             equals: =
-            initializer2: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              keyword: new
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  importPrefix: ImportPrefixReference
+                    name: abstract
+                    period: .
+                  name: A
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            initializer(v1): InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType

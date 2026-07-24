@@ -767,6 +767,51 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    var constructorReference = node.constructorReference;
+    var typeReference =
+        constructorReference.typeReference as ConstructorTypeReferenceImpl;
+    _checkForAmbiguousImport(
+      name: typeReference.name,
+      element: typeReference.element,
+    );
+    _typeArgumentsVerifier.checkConstructorTypeReference(typeReference);
+    var type = typeReference.type;
+    if (type case InterfaceType type) {
+      _checkForConstOrNewWithAbstractClass(node, typeReference, type);
+      _checkForInvalidGenerativeConstructorReference(
+        constructorReference,
+        constructorReference.element,
+      );
+      _checkForConstOrNewWithMixin(node, typeReference, type);
+      _requiredParametersVerifier.visitConstructorInvocation(node);
+      _constArgumentsVerifier.visitConstructorInvocation(node);
+      _checkUseVerifier.checkConstructorInvocation(node);
+      if (node.isConst) {
+        _checkForConstWithNonConst(
+          node,
+          node.constructorReference.element,
+          node.keyword,
+        );
+        _checkForConstWithUndefinedConstructor(
+          node,
+          constructorReference,
+          typeReference,
+        );
+        _checkForConstDeferredClass(node, constructorReference, typeReference);
+      } else {
+        _checkForNewWithUndefinedConstructor(
+          node,
+          constructorReference,
+          typeReference,
+          type,
+        );
+      }
+    }
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
   void visitConstructorReference(covariant ConstructorReferenceImpl node) {
     _constArgumentsVerifier.visitConstructorReference(node);
     _typeArgumentsVerifier.checkConstructorReference(node);
@@ -774,6 +819,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       node.constructorName,
       node.constructorName.element,
     );
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    _checkForTypeParameterReferencedByStatic(
+      name: node.name,
+      element: node.element,
+    );
+    super.visitConstructorTypeReference(node);
   }
 
   @override
@@ -1392,40 +1446,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorName constructorName = node.constructorName;
-    NamedType namedType = constructorName.type;
-    DartType type = namedType.typeOrThrow;
-    if (type is InterfaceType) {
-      _checkForConstOrNewWithAbstractClass(node, namedType, type);
-      _checkForInvalidGenerativeConstructorReference(
-        constructorName,
-        constructorName.element,
-      );
-      _checkForConstOrNewWithMixin(node, namedType, type);
-      _requiredParametersVerifier.visitInstanceCreationExpression(node);
-      _constArgumentsVerifier.visitInstanceCreationExpression(node);
-      _checkUseVerifier.checkInstanceCreationExpression(node);
-      if (node.isConst) {
-        _checkForConstWithNonConst(
-          node,
-          node.constructorName.element,
-          node.keyword,
-        );
-        _checkForConstWithUndefinedConstructor(
-          node,
-          constructorName,
-          namedType,
-        );
-        _checkForConstDeferredClass(node, constructorName, namedType);
-      } else {
-        _checkForNewWithUndefinedConstructor(node, constructorName, namedType);
-      }
-    }
-    super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -4174,18 +4194,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   /// Verify that the given 'const' instance creation [expression] is not
-  /// creating a deferred type. The [constructorName] is the constructor name,
-  /// always non-`null`. The [namedType] is the name of the type defining the
-  /// constructor, always non-`null`.
+  /// creating a deferred type. The [constructorReference] identifies the
+  /// constructor, and the [typeReference] identifies its declaring type.
   ///
   /// See [diag.constDeferredClass].
   void _checkForConstDeferredClass(
-    InstanceCreationExpression expression,
-    ConstructorName constructorName,
-    NamedType namedType,
+    ConstructorInvocation expression,
+    ConstructorReference2 constructorReference,
+    ConstructorTypeReference typeReference,
   ) {
-    if (namedType.isDeferred) {
-      diagnosticReporter.report(diag.constDeferredClass.at(constructorName));
+    var prefixElement = typeReference.importPrefix?.element;
+    if (prefixElement is PrefixElement &&
+        prefixElement.fragments.any((fragment) => fragment.isDeferred)) {
+      diagnosticReporter.report(
+        diag.constDeferredClass.at(constructorReference),
+      );
     }
   }
 
@@ -4202,32 +4225,30 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   /// Verify that the given instance creation [expression] is not being invoked
-  /// on an abstract class. The [namedType] is the [NamedType] of the
-  /// [ConstructorName] from the [InstanceCreationExpression], this is the AST
-  /// node that the error is attached to. The [type] is the type being
-  /// constructed with this [InstanceCreationExpression].
+  /// on an abstract class. The [typeNode] is the AST node where the diagnostic
+  /// is reported, and [type] is the type being constructed.
   void _checkForConstOrNewWithAbstractClass(
-    InstanceCreationExpression expression,
-    NamedType namedType,
+    ConstructorInvocation expression,
+    AstNode typeNode,
     InterfaceType type,
   ) {
     var element = type.element;
     if (element is ClassElement && element.isAbstract) {
-      var constructorElement = expression.constructorName.element;
+      var constructorElement = expression.constructorReference.element;
       if (constructorElement != null && !constructorElement.isFactory) {
-        diagnosticReporter.report(diag.instantiateAbstractClass.at(namedType));
+        diagnosticReporter.report(diag.instantiateAbstractClass.at(typeNode));
       }
     }
   }
 
   /// Verify that the given [expression] is not a mixin instantiation.
   void _checkForConstOrNewWithMixin(
-    InstanceCreationExpression expression,
-    NamedType namedType,
+    ConstructorInvocation expression,
+    AstNode typeNode,
     InterfaceType type,
   ) {
     if (type.element is MixinElement) {
-      diagnosticReporter.report(diag.mixinInstantiate.at(namedType));
+      diagnosticReporter.report(diag.mixinInstantiate.at(typeNode));
     }
   }
 
@@ -4321,10 +4342,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Verify that if the given 'const' instance creation [expression] is being
-  /// invoked on the resolved constructor. The [constructorName] is the
-  /// constructor name, always non-`null`. The [namedType] is the name of the
-  /// type defining the constructor, always non-`null`.
+  /// Verify that the given 'const' instance creation [expression] resolves to a
+  /// constructor. The [constructorReference] identifies the constructor, and
+  /// the [typeReference] identifies its declaring type.
   ///
   /// This method assumes that the instance creation was tested to be 'const'
   /// before being called.
@@ -4332,30 +4352,34 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// See [diag.constWithUndefinedConstructor], and
   /// [diag.constWithUndefinedConstructorDefault].
   void _checkForConstWithUndefinedConstructor(
-    InstanceCreationExpression expression,
-    ConstructorName constructorName,
-    NamedType namedType,
+    ConstructorInvocation expression,
+    ConstructorReference2 constructorReference,
+    ConstructorTypeReference typeReference,
   ) {
     // OK if resolved
-    if (constructorName.element != null) {
+    if (constructorReference.element != null) {
       return;
     }
     // report as named or default constructor absence
-    var name = constructorName.name;
-    if (name != null) {
+    var selector = constructorReference.selector;
+    var className = [
+      if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
+      typeReference.name.lexeme,
+    ].join('.');
+    if (selector != null) {
       diagnosticReporter.report(
         diag.constWithUndefinedConstructor
             .withArguments(
-              className: namedType.qualifiedName,
-              constructorName: name.name,
+              className: className,
+              constructorName: selector.name2.lexeme,
             )
-            .at(name),
+            .at(selector.name2),
       );
     } else {
       diagnosticReporter.report(
         diag.constWithUndefinedConstructorDefault
-            .withArguments(className: namedType.qualifiedName)
-            .at(constructorName),
+            .withArguments(className: className)
+            .at(constructorReference),
       );
     }
   }
@@ -5686,7 +5710,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
         if (node.parent2 case ConstructorReference(
           parent2: var parent,
-        ) when parent is! InstanceCreationExpression) {
+        ) when parent is! ConstructorInvocation) {
           diagnosticReporter.report(
             diag.invalidReferenceToGenerativeEnumConstructorTearoff.at(node),
           );
@@ -6403,46 +6427,48 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   /// Verify that the given instance creation [expression] invokes an existing
-  /// constructor. The [constructorName] is the constructor name.
-  /// The [namedType] is the name of the type defining the constructor.
+  /// constructor. The [constructorReference] identifies the constructor, and
+  /// the [typeReference] identifies its declaring type.
   ///
   /// This method assumes that the instance creation was tested to be 'new'
   /// before being called.
   ///
   /// See [diag.newWithUndefinedConstructor].
   void _checkForNewWithUndefinedConstructor(
-    InstanceCreationExpression expression,
-    ConstructorName constructorName,
-    NamedType namedType,
+    ConstructorInvocation expression,
+    ConstructorReference2 constructorReference,
+    ConstructorTypeReference typeReference,
+    InterfaceType type,
   ) {
     // OK if resolved
-    if (constructorName.element != null) {
+    if (constructorReference.element != null) {
       return;
     }
-    DartType type = namedType.typeOrThrow;
-    if (type is InterfaceType) {
-      var element = type.element;
-      if (element is EnumElement || element is MixinElement) {
-        // We have already reported the error.
-        return;
-      }
+    var element = type.element;
+    if (element is EnumElement || element is MixinElement) {
+      // We have already reported the error.
+      return;
     }
     // report as named or default constructor absence
-    var name = constructorName.name;
-    if (name != null) {
+    var selector = constructorReference.selector;
+    var className = [
+      if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
+      typeReference.name.lexeme,
+    ].join('.');
+    if (selector != null) {
       diagnosticReporter.report(
         diag.newWithUndefinedConstructor
             .withArguments(
-              typeName: namedType.qualifiedName,
-              constructorName: name.name,
+              typeName: className,
+              constructorName: selector.name2.lexeme,
             )
-            .at(name),
+            .at(selector.name2),
       );
     } else {
       diagnosticReporter.report(
         diag.newWithUndefinedConstructorDefault
-            .withArguments(className: namedType.qualifiedName)
-            .at(constructorName),
+            .withArguments(className: className)
+            .at(constructorReference),
       );
     }
   }

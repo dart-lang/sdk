@@ -90,12 +90,12 @@ main() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: C
       element: <testLibrary>::@class::C
       type: C<dynamic>

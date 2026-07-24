@@ -64,8 +64,7 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
     // prepare excluded names
     var excluded = <String>{};
     var scopedNameFinder = ScopedNameFinder(offset);
-    // ignore:experimental_member_use
-    expression.accept2(scopedNameFinder);
+    expression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals);
     var suggestions = getVariableNameSuggestionsForExpression(
       type,

@@ -1303,7 +1303,21 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
-  expression2: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A<int>
+  expression(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -1365,7 +1379,21 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: A<dynamic>
   equals: =
-  expression2: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<dynamic>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: dynamic}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A<dynamic>
+  expression(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType

@@ -322,6 +322,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.constructorReference);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     _visitNode(node.type);
     _visitNode(node.name, prefix: '.');
@@ -828,13 +835,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.leftBracket);
     _visitNode(node.index2);
     _visitToken(node.rightBracket);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.constructorName);
-    _visitNode(node.argumentList);
   }
 
   @override

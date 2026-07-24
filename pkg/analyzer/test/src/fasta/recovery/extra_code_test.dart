@@ -74,7 +74,21 @@ CompilationUnit
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: InstanceCreationExpression
+              expression2: ConstructorInvocation
+                keyword: new
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: C
+                      rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              expression(v1): InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
                   type: NamedType
@@ -500,7 +514,15 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: InstanceCreationExpression
+                      expression2: ConstructorInvocation
+                        keyword: new
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: C
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                      expression(v1): InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -518,7 +540,15 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: InstanceCreationExpression
+                      expression2: ConstructorInvocation
+                        keyword: new
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: C
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                      expression(v1): InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType

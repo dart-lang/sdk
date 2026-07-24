@@ -7397,17 +7397,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: B @28
                   element: package:test/a.dart::@class::B
                   type: B
-                period: . @29
-                name: SimpleIdentifier
-                  token: named @30
-                  element: package:test/a.dart::@class::B::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @29
+                  name2: named @30
                 element: package:test/a.dart::@class::B::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @35
@@ -24776,6 +24774,34 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @81
                 arguments2
+                  ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @82
+                        typeArguments: TypeArgumentList
+                          leftBracket: < @83
+                          arguments
+                            GenericFunctionType
+                              functionKeyword: Function @84
+                              parameters: FormalParameterList
+                                leftParenthesis: ( @92
+                                rightParenthesis: ) @93
+                              declaredFragment: GenericFunctionTypeElement
+                                parameters
+                                returnType: dynamic
+                                type: dynamic Function()
+                              type: dynamic Function()
+                          rightBracket: > @94
+                        element: <testLibrary>::@class::A
+                        type: A<dynamic Function()>
+                      element: SubstitutedConstructorElementImpl
+                        baseElement: <testLibrary>::@class::A::@constructor::new
+                        substitution: {T: dynamic Function()}
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @95
+                      rightParenthesis: ) @96
+                    staticType: A<dynamic Function()>
+                arguments(v1)
                   InstanceCreationExpression
                     constructorName: ConstructorName
                       type: NamedType
@@ -28225,7 +28251,19 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression2: InstanceCreationExpression
+              expression2: ConstructorInvocation
+                keyword: const @39
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: D @45
+                    element: <testLibrary>::@class::D
+                    type: D
+                  element: <testLibrary>::@class::D::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @46
+                  rightParenthesis: ) @47
+                staticType: D
+              expression(v1): InstanceCreationExpression
                 keyword: const @39
                 constructorName: ConstructorName
                   type: NamedType
@@ -28263,7 +28301,19 @@ library
                 element: <testLibrary>::@class::D::@field::x
                 staticType: null
               equals: = @90
-              expression2: InstanceCreationExpression
+              expression2: ConstructorInvocation
+                keyword: const @92
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @98
+                    element: <testLibrary>::@class::C
+                    type: C
+                  element: <testLibrary>::@class::C::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @99
+                  rightParenthesis: ) @100
+                staticType: C
+              expression(v1): InstanceCreationExpression
                 keyword: const @92
                 constructorName: ConstructorName
                   type: NamedType
@@ -31329,10 +31379,10 @@ library
             #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:47) (firstTokenOffset:47) (offset:47)
               element: <testLibrary>::@class::B::@field::f
               initializer: expression_0
-                InstanceCreationExpression
+                ConstructorInvocation
                   keyword: const @51
-                  constructorName: ConstructorName
-                    type: NamedType
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @57
                       typeArguments: TypeArgumentList
                         leftBracket: < @58
@@ -38056,17 +38106,15 @@ library
         #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @66
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @67
-                name: SimpleIdentifier
-                  token: named @68
-                  element: <testLibrary>::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @67
+                  name2: named @68
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @73

@@ -237,6 +237,23 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
+    var constructor = node.constructorReference.element;
+    var class_ = constructor?.enclosingElement;
+    if (class_.isStructSubclass || class_.isUnionSubclass) {
+      if (!constructor!.isFactory) {
+        _diagnosticReporter.report(
+          diag.creationOfStructOrUnion.at(node.constructorReference),
+        );
+      }
+    } else if (class_.isNativeCallable) {
+      _validateNativeCallable(node);
+    }
+
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (inCompound) {
       _validateFieldsInCompound(node);
@@ -299,25 +316,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         }
       }
     }
-  }
-
-  @override
-  void visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    var constructor = node.constructorName.element;
-    var class_ = constructor?.enclosingElement;
-    if (class_.isStructSubclass || class_.isUnionSubclass) {
-      if (!constructor!.isFactory) {
-        _diagnosticReporter.report(
-          diag.creationOfStructOrUnion.at(node.constructorName),
-        );
-      }
-    } else if (class_.isNativeCallable) {
-      _validateNativeCallable(node);
-    }
-
-    super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -1665,7 +1663,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
 
     var f = node.argumentList.arguments2[0];
-    var FT = f.argumentExpression.typeOrThrow;
+    var FT = f.argumentExpression2.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(
       _FfiTypeCheckDirection.dartToNative,
       FT,
@@ -1699,7 +1697,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
             .at(node.methodName),
       );
     } else {
-      Expression e = node.argumentList.arguments2[1].argumentExpression;
+      Expression e = node.argumentList.arguments2[1].argumentExpression2;
       var eType = e.typeOrThrow;
       if (!_validateCompatibleNativeType(
         _FfiTypeCheckDirection.dartToNative,
@@ -1842,7 +1840,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
               );
             }
           } else {
-            if (argument.argumentExpression.staticType case var staticType?
+            if (argument.argumentExpression2.staticType case var staticType?
                 when nativeType is DynamicType) {
               // No type argument was given on the @Native annotation, so we try
               // to infer the native type from the Dart signature.
@@ -1912,8 +1910,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   /// Validate the invocation of the constructor `NativeCallable.listener(f)`
   /// or `NativeCallable.isolateLocal(f)`.
-  void _validateNativeCallable(InstanceCreationExpressionImpl node) {
-    var name = node.constructorName.name?.toString() ?? '';
+  void _validateNativeCallable(ConstructorInvocationImpl node) {
+    var name = node.constructorReference.selector?.name2.lexeme ?? '';
     var isolateLocal = name == 'isolateLocal';
 
     // listener takes 1 arg, isolateLocal takes 1 or 2.
@@ -1934,13 +1932,13 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       _diagnosticReporter.report(
         diag.mustBeANativeFunctionType
             .withArguments(type: typeArg, functionName: _nativeCallable)
-            .at(node.constructorName),
+            .at(node.constructorReference),
       );
       return;
     }
 
     var f = node.argumentList.arguments2[0];
-    var funcType = f.argumentExpression.typeOrThrow;
+    var funcType = f.argumentExpression2.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(
       _FfiTypeCheckDirection.dartToNative,
       funcType,

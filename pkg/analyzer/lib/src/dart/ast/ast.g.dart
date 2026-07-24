@@ -487,6 +487,9 @@ abstract class AstVisitor2<R> {
 
   R? visitConstructorFieldInitializer(ConstructorFieldInitializer node);
 
+  @experimental
+  R? visitConstructorInvocation(ConstructorInvocation node);
+
   R? visitConstructorName(ConstructorName node);
 
   R? visitConstructorReference(ConstructorReference node);
@@ -616,8 +619,6 @@ abstract class AstVisitor2<R> {
   R? visitImportPrefixReference(ImportPrefixReference node);
 
   R? visitIndexExpression(IndexExpression node);
-
-  R? visitInstanceCreationExpression(InstanceCreationExpression node);
 
   R? visitIntegerLiteral(IntegerLiteral node);
 

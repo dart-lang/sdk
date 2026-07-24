@@ -11,39 +11,40 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// A resolver for [InstanceCreationExpression] and
+/// A resolver for [ConstructorInvocation] and
 /// [DotShorthandConstructorInvocation] nodes.
 ///
 /// This resolver is responsible for rewriting a given
-/// [InstanceCreationExpression] as a [MethodInvocation] if the parsed
+/// [ConstructorInvocation] as a [MethodInvocation] if the parsed
 /// [ConstructorName]'s `type` resolves to a [FunctionReference] or
 /// [ConstructorReference], instead of a [NamedType].
-class InstanceCreationExpressionResolver {
+class ConstructorInvocationResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
-  InstanceCreationExpressionResolver(this._resolver);
+  ConstructorInvocationResolver(this._resolver);
 
   void resolve(
-    InstanceCreationExpressionImpl node, {
+    ConstructorInvocationImpl node, {
     required TypeImpl contextType,
   }) {
-    // The parser can parse certain code as [InstanceCreationExpression] when it
+    // The parser can parse certain code as [ConstructorInvocation] when it
     // might be an invocation of a method on a [FunctionReference] or
     // [ConstructorReference]. In such a case, it is this resolver's
     // responsibility to rewrite. For example, given:
     //
     //     a.m<int>.apply();
     //
-    // the parser will give an InstanceCreationExpression (`a.m<int>.apply()`)
+    // the parser will give an ConstructorInvocation (`a.m<int>.apply()`)
     // with a name of `a.m<int>.apply` (ConstructorName) with a type of
     // `a.m<int>` (TypeName with a name of `a.m` (PrefixedIdentifier) and
     // typeArguments of `<int>`) and a name of `apply` (SimpleIdentifier). If
     // `a.m<int>` is actually a function reference, then the
-    // InstanceCreationExpression needs to be rewritten as a MethodInvocation
+    // ConstructorInvocation needs to be rewritten as a MethodInvocation
     // with a target of `a.m<int>` (a FunctionReference) and a name of `apply`.
     if (node.keyword == null) {
-      var typeNameTypeArguments = node.constructorName.type.typeArguments;
+      var typeNameTypeArguments =
+          node.constructorReference.typeReference.typeArguments;
       if (typeNameTypeArguments != null) {
         // This could be a method call on a function reference or a constructor
         // reference.
@@ -56,7 +57,7 @@ class InstanceCreationExpressionResolver {
       }
     }
 
-    _resolveInstanceCreationExpression(node, contextType: contextType);
+    _resolveConstructorInvocation(node, contextType: contextType);
   }
 
   /// Resolves a [DotShorthandConstructorInvocation] node.
@@ -134,6 +135,45 @@ class InstanceCreationExpressionResolver {
     );
   }
 
+  void _resolveConstructorInvocation(
+    ConstructorInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    var constructorReference = node.constructorReference;
+    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
+      typeElement: constructorReference.typeReference.element,
+      constructorName: constructorReference.selector?.name2,
+      definingLibrary: _resolver.definingLibrary,
+    );
+    constructorReference.element = elementToInfer?.element;
+    _resolver.elementResolver.visitConstructorInvocation(node);
+    var target = elementToInfer == null
+        ? null
+        : InvocationTargetConstructorElement(
+            elementToInfer.element,
+            // TODO(paulberry): eliminate this cast by changing the type of
+            // `ConstructorElementToInfer.asType`.
+            elementToInfer.asType as FunctionTypeImpl,
+          );
+    ConstructorInvocationInferrer(
+      resolver: _resolver,
+      node: node,
+      argumentList: node.argumentList,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      target: target,
+    ).resolveInvocation();
+    node.recordStaticType(
+      node.constructorReference.typeReference.type!,
+      resolver: _resolver,
+    );
+    _resolver.checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+  }
+
   void _resolveDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocationImpl node, {
     required TypeImpl contextType,
@@ -143,7 +183,7 @@ class InstanceCreationExpressionResolver {
     _resolver.elementResolver.visitDotShorthandConstructorInvocation(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       typeElement: dotShorthandContextType.element,
-      constructorName: node.constructorName,
+      constructorName: node.constructorName.token,
       definingLibrary: _resolver.definingLibrary,
     );
     var target = elementToInfer == null
@@ -169,56 +209,18 @@ class InstanceCreationExpressionResolver {
     );
   }
 
-  void _resolveInstanceCreationExpression(
-    InstanceCreationExpressionImpl node, {
-    required TypeImpl contextType,
-  }) {
-    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
-    var constructorName = node.constructorName;
-    constructorName.accept2(_resolver);
-    // Re-assign constructorName in case the node got replaced.
-    constructorName = node.constructorName;
-    _resolver.elementResolver.visitInstanceCreationExpression(node);
-    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: constructorName.type.element,
-      constructorName: node.constructorName.name,
-      definingLibrary: _resolver.definingLibrary,
-    );
-    var target = elementToInfer == null
-        ? null
-        : InvocationTargetConstructorElement(
-            elementToInfer.element,
-            // TODO(paulberry): eliminate this cast by changing the type of
-            // `ConstructorElementToInfer.asType`.
-            elementToInfer.asType as FunctionTypeImpl,
-          );
-    InstanceCreationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      target: target,
-    ).resolveInvocation();
-    node.recordStaticType(node.constructorName.type.type!, resolver: _resolver);
-    _resolver.checkForArgumentTypesNotAssignableInList(
-      node.argumentList,
-      whyNotPromotedArguments,
-    );
-  }
-
   /// Resolve [node] which has a [NamedType] with type arguments (given as
   /// [typeNameTypeArguments]).
   ///
   /// The instance creation expression may actually be a method call on a
   /// type-instantiated function reference or constructor reference.
   void _resolveWithTypeNameWithTypeArguments(
-    InstanceCreationExpressionImpl node,
+    ConstructorInvocationImpl node,
     TypeArgumentListImpl typeNameTypeArguments, {
     required TypeImpl contextType,
   }) {
     // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
     // [MethodInvocation].
-    _resolveInstanceCreationExpression(node, contextType: contextType);
+    _resolveConstructorInvocation(node, contextType: contextType);
   }
 }

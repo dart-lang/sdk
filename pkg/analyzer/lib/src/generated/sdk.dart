@@ -196,7 +196,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor2<void> {
     var libraryName = "$_LIBRARY_PREFIX${key.value}";
 
     Expression value = node.value2;
-    if (value is InstanceCreationExpression) {
+    if (value is ConstructorInvocation) {
       SdkLibraryImpl library = SdkLibraryImpl(libraryName);
       List<Argument> arguments = value.argumentList.arguments2;
       for (Argument argument in arguments) {

@@ -2013,7 +2013,19 @@ main() {
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide2: PropertyAccess
-    target2: InstanceCreationExpression
+    target2: ConstructorInvocation
+      keyword: new
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: B
+          element: <testLibrary>::@class::B
+          type: B
+        element: <testLibrary>::@class::B::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: B
+    target(v1): InstanceCreationExpression
       keyword: new
       constructorName: ConstructorName
         type: NamedType
@@ -3979,7 +3991,18 @@ AssignmentExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ??=
-  rightHandSide2: InstanceCreationExpression
+  rightHandSide2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  rightHandSide(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -4571,7 +4594,18 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: ??=
-  rightHandSide2: InstanceCreationExpression
+  rightHandSide2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  rightHandSide(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C

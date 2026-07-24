@@ -199,13 +199,19 @@ class ContextBuilderImpl {
   ) {
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
-      var options = analysisOptionsParseSession
-          .parse(
-            sourceFactory: sourceFactory,
-            contextRoot: contextRoot.root,
-            file: file,
-          )
-          .analysisOptions;
+      AnalysisOptionsImpl options;
+      try {
+        options = analysisOptionsParseSession
+            .parse(
+              sourceFactory: sourceFactory,
+              contextRoot: contextRoot.root,
+              file: file,
+            )
+            .analysisOptions;
+      } catch (e) {
+        // Ignore exception.
+        options = AnalysisOptionsImpl(file: file);
+      }
       options = _updatedAnalysisOptions(
         options,
         updateAnalysisOptions4,

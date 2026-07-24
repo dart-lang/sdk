@@ -94,12 +94,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
       type: A
@@ -129,12 +129,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: const
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
       type: A

@@ -10,6 +10,18 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 class FindNode extends _FindNodeBase {
   FindNode(super.content, super.unit);
 
+  ConstructorName get singleConstructorName => _single();
+
+  InstanceCreationExpression get singleInstanceCreationExpression => _single();
+
+  ConstructorName constructorName(String search) {
+    return _node(search, (n) => n is ConstructorName);
+  }
+
+  InstanceCreationExpression instanceCreation(String search) {
+    return _node(search, (node) => node is InstanceCreationExpression);
+  }
+
   @override
   AstNode? _locateNode(int offset) {
     return NodeLocator(offset).searchWithin(unit);
@@ -33,6 +45,12 @@ class FindNode extends _FindNodeBase {
 
 class FindNode2 extends _FindNodeBase {
   FindNode2(super.content, super.unit);
+
+  ConstructorInvocation get singleConstructorInvocation => _single();
+
+  ConstructorInvocation constructorInvocation(String search) {
+    return _node(search, (node) => node is ConstructorInvocation);
+  }
 
   @override
   AstNode? _locateNode(int offset) {
@@ -130,8 +148,6 @@ abstract class _FindNodeBase {
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
 
-  ConstructorName get singleConstructorName => _single();
-
   ContinueStatement get singleContinueStatement => _single();
 
   DeclaredVariablePattern get singleDeclaredVariablePattern => _single();
@@ -226,8 +242,6 @@ abstract class _FindNodeBase {
   ImportDirective get singleImportDirective => _single();
 
   IndexExpression get singleIndexExpression => _single();
-
-  InstanceCreationExpression get singleInstanceCreationExpression => _single();
 
   IntegerLiteral get singleIntegerLiteral => _single();
 
@@ -517,10 +531,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is ConstructorFieldInitializer);
   }
 
-  ConstructorName constructorName(String search) {
-    return _node(search, (n) => n is ConstructorName);
-  }
-
   ConstructorReference constructorReference(String search) {
     return _node(search, (n) => n is ConstructorReference);
   }
@@ -742,10 +752,6 @@ abstract class _FindNodeBase {
 
   IndexExpression index(String search) {
     return _node(search, (n) => n is IndexExpression);
-  }
-
-  InstanceCreationExpression instanceCreation(String search) {
-    return _node(search, (n) => n is InstanceCreationExpression);
   }
 
   IntegerLiteral integerLiteral(String search) {

@@ -30,10 +30,12 @@ B<int> b = B(0);
 
     nodeTextConfiguration.withRedirectedConstructors = true;
 
-    var node = result.findNode.constructorName('B(0)');
+    var node = result.findNode
+        .constructorInvocation('B(0)')
+        .constructorReference;
     assertResolvedNodeText(node, r'''
-ConstructorName
-  type: NamedType
+ConstructorReference2
+  typeReference: ConstructorTypeReference
     name: B
     element: <testLibrary>::@class::B
     type: B<int>

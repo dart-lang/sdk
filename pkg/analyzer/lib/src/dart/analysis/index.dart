@@ -43,8 +43,8 @@ Element? declaredNamedArgumentParameter(
   var argumentList = namedArgument.parent2;
   if (argumentList is ArgumentList) {
     var invocation = argumentList.parent2;
-    if (invocation is InstanceCreationExpression) {
-      return namedParameterElement(invocation.constructorName.element);
+    if (invocation is ConstructorInvocation) {
+      return namedParameterElement(invocation.constructorReference.element);
     } else if (invocation is MethodInvocation) {
       var executable = invocation.methodName.element;
       if (executable is ExecutableElement) {
@@ -854,6 +854,30 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    var reference = node.constructorReference;
+    var element = _getActualConstructorElement(reference.element?.baseElement);
+    if (reference.selector case var selector?) {
+      recordRelationOffset(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        selector.period.offset,
+        selector.name2.end - selector.period.offset,
+        true,
+      );
+    } else {
+      recordRelationOffset(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        reference.typeReference.end,
+        0,
+        true,
+      );
+    }
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     var element = node.element?.baseElement;
     element = _getActualConstructorElement(element);
@@ -861,7 +885,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     IndexRelationKind kind;
     if (node.parent2 is ConstructorReference) {
       kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
-    } else if (node.parent2 is InstanceCreationExpression) {
+    } else if (node.parent2 is ConstructorInvocation) {
       kind = IndexRelationKind.IS_INVOKED_BY;
     } else {
       kind = IndexRelationKind.IS_REFERENCED_BY;
@@ -880,6 +904,16 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     recordRelationOffset(element, kind, offset, length, true);
 
     node.type.accept2(this);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name,
+      element: node.element,
+    );
+    node.typeArguments?.accept2(this);
   }
 
   @override

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
@@ -15,7 +16,8 @@ main() {
     defineReflectiveTests(CompilationUnitImplTest);
     defineReflectiveTests(EvaluateExpressionTest);
     defineReflectiveTests(ExpressionImplTest);
-    defineReflectiveTests(InstanceCreationExpressionImplTest);
+    defineReflectiveTests(ConstructorInvocationImplTest);
+    defineReflectiveTests(ForEachPartsImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
     defineReflectiveTests(NodeCoveringTest);
   });
@@ -95,6 +97,251 @@ void main() {}
       unit.languageVersionToken,
       unit.beginToken.precedingComments!.next!.next,
     );
+  }
+}
+
+@reflectiveTest
+class ConstructorInvocationImplTest extends PubPackageResolutionTest {
+  assertIsConst(
+    TestResolvedUnitResult result,
+    String search,
+    bool expectedResult,
+  ) {
+    var node = result.findNode.constructorInvocation(search);
+    expect((node as ConstructorInvocationImpl).isConst, expectedResult);
+  }
+
+  test_isConst_notInContext_constructor_const_constParam_identifier() async {
+    var result = await resolveTestCode('''
+var v = C(C.a);
+class C {
+  static const C a = C.c();
+  const C(c);
+  const C.c();
+}
+''');
+    assertIsConst(result, "C(C", false);
+  }
+
+  test_isConst_notInContext_constructor_const_constParam_named() async {
+    var result = await resolveTestCode('''
+var v = C(c: C());
+class C {
+  const C({c});
+}
+''');
+    assertIsConst(result, "C(c", false);
+  }
+
+  test_isConst_notInContext_constructor_const_constParam_named_parens() async {
+    var result = await resolveTestCode('''
+var v = C(c: (C()));
+class C {
+  const C({c});
+}
+''');
+    assertIsConst(result, "C(c", false);
+  }
+
+  test_isConst_notInContext_constructor_const_constParam_parens() async {
+    var result = await resolveTestCode('''
+var v = C( (C.c()) );
+class C {
+  const C(c);
+  const C.c();
+}
+''');
+    assertIsConst(result, "C( (", false);
+  }
+
+  test_isConst_notInContext_constructor_const_generic_named() async {
+    var result = await resolveTestCode('''
+f() => <Object>[C<int>.n()];
+class C<E> {
+  const C.n();
+}
+''');
+    assertIsConst(result, "C<int>.n", false);
+  }
+
+  test_isConst_notInContext_constructor_const_generic_named_prefixed() async {
+    newFile('$testPackageLibPath/c.dart', '''
+class C<E> {
+  const C.n();
+}
+''');
+    var result = await resolveTestCode('''
+import 'c.dart' as p;
+f() => <Object>[p.C<int>.n()];
+''');
+    assertIsConst(result, "C<int>", false);
+  }
+
+  test_isConst_notInContext_constructor_const_generic_unnamed() async {
+    var result = await resolveTestCode('''
+f() => <Object>[C<int>()];
+class C<E> {
+  const C();
+}
+''');
+    assertIsConst(result, "C<int>", false);
+  }
+
+  test_isConst_notInContext_constructor_const_generic_unnamed_prefixed() async {
+    newFile('$testPackageLibPath/c.dart', '''
+class C<E> {
+  const C();
+}
+''');
+    var result = await resolveTestCode('''
+import 'c.dart' as p;
+f() => <Object>[p.C<int>()];
+''');
+    assertIsConst(result, "C<int>", false);
+  }
+
+  test_isConst_notInContext_constructor_const_nonConstParam_constructor() async {
+    var result = await resolveTestCode('''
+f() {
+  return A(B());
+}
+
+class A {
+  const A(B b);
+}
+
+class B {
+  B();
+}
+''');
+    assertIsConst(result, "B())", false);
+  }
+
+  test_isConst_notInContext_constructor_const_nonConstParam_variable() async {
+    var result = await resolveTestCode('''
+f(int i) => <Object>[C(i)];
+class C {
+  final int f;
+  const C(this.f);
+}
+''');
+    assertIsConst(result, "C(i)", false);
+  }
+
+  test_isConst_notInContext_constructor_const_nonGeneric_named() async {
+    var result = await resolveTestCode('''
+f() => <Object>[C.n()];
+class C<E> {
+  const C.n();
+}
+''');
+    assertIsConst(result, "C.n()]", false);
+  }
+
+  test_isConst_notInContext_constructor_const_nonGeneric_named_prefixed() async {
+    newFile('$testPackageLibPath/c.dart', '''
+class C {
+  const C.n();
+}
+''');
+    var result = await resolveTestCode('''
+import 'c.dart' as p;
+f() => <Object>[p.C.n()];
+''');
+    assertIsConst(result, "C.n()", false);
+  }
+
+  test_isConst_notInContext_constructor_const_nonGeneric_unnamed() async {
+    var result = await resolveTestCode('''
+f() => <Object>[C()];
+class C {
+  const C();
+}
+''');
+    assertIsConst(result, "C()]", false);
+  }
+
+  test_isConst_notInContext_constructor_const_nonGeneric_unnamed_prefixed() async {
+    newFile('$testPackageLibPath/c.dart', '''
+class C {
+  const C();
+}
+''');
+    var result = await resolveTestCode('''
+import 'c.dart' as p;
+f() => <Object>[p.C()];
+''');
+    assertIsConst(result, "C()", false);
+  }
+
+  test_isConst_notInContext_constructor_nonConst() async {
+    var result = await resolveTestCode('''
+f() => <Object>[C()];
+class C {
+  C();
+}
+''');
+    assertIsConst(result, "C()]", false);
+  }
+
+  test_typeArgumentsAfterConstructorName_v1Projection() async {
+    var result = await resolveTestCode('''
+void f() {
+  const C.named<int>();
+}
+class C<E> {
+  const C.named();
+}
+''');
+    var offset = result.content.indexOf('<int>');
+    var node = result.unit.nodeCovering(offset: offset, length: 5);
+    var invocation =
+        result.findNode.constructorInvocation('C.named<int>')
+            as ConstructorInvocationImpl;
+
+    expect(node, isA<TypeArgumentListImpl>());
+    expect(invocation.constructorReference.typeReference.typeArguments, null);
+    expect(invocation.typeArguments, same(node));
+    expect(node?.parent, isA<InstanceCreationExpressionImpl>());
+  }
+
+  test_v1Projection() async {
+    var result = await resolveTestCode('''
+var x = C<int>.named(0);
+class C<T> {
+  C.named(T value);
+}
+''');
+    var v2 =
+        result.findNode.constructorInvocation('C<int>')
+            as ConstructorInvocationImpl;
+    var reference = v2.constructorReference;
+    var v1 = v2.instanceCreationExpression;
+
+    expect(v2.instanceCreationExpression, same(v1));
+    expect(v1.toSource(), 'C<int>.named(0)');
+    expect(v1.constructorName.element, same(reference.element));
+    expect(v1.constructorName.name!.element, same(reference.element));
+    expect(v1.staticType, same(v2.staticType));
+
+    expect(v1.parent, same(v2.parent2));
+    expect(v1.constructorName.parent, same(v1));
+    expect(v1.argumentList, same(v2.argumentList));
+    expect(v1.argumentList.parent, same(v1));
+    expect(v1.argumentList.parent2, same(v2));
+    expect(() => v1.parent2, throwsStateError);
+    expect(() => v2.parent, throwsStateError);
+    expect(() => v1.accept2(ThrowingAstVisitor2<void>()), throwsStateError);
+
+    var selector = reference.selector;
+    reference.selector = null;
+    expect(v1.constructorName.name, isNull);
+    expect(v1.constructorName.period, isNull);
+
+    reference.selector = selector;
+    expect(v1.constructorName.name!.token, selector!.name2);
+    reference.typeReference.typeArguments = null;
+    expect(v1.constructorName.type.typeArguments, isNull);
   }
 }
 
@@ -219,6 +466,40 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
   parse(String source) {
     testSource = source;
     testUnit = parseTestCodeWithDiagnostics(source).unit as CompilationUnitImpl;
+  }
+
+  test_constantContext2_constructorInvocation_v2() {
+    parse('''
+class C {
+  const C(Object value);
+}
+var x = const C(0);
+''');
+    var expression =
+        testUnit.nodeCovering2(offset: testSource.indexOf('0'))!
+            as ExpressionImpl;
+
+    var context = expression.constantContext2(includeSelf: false);
+
+    expect(context?.$1, isA<ConstructorInvocation>());
+    expect(context?.$2?.lexeme, 'const');
+  }
+
+  test_constantContext_constructorInvocation_v1Projection() {
+    parse('''
+class C {
+  const C(Object value);
+}
+var x = const C(0);
+''');
+    var expression =
+        testUnit.nodeCovering(offset: testSource.indexOf('0'))!
+            as ExpressionImpl;
+
+    var context = expression.constantContext(includeSelf: false);
+
+    expect(context?.$1, isA<InstanceCreationExpressionImpl>());
+    expect(context?.$2?.lexeme, 'const');
   }
 
   test_inConstantContext_enumConstant_true() {
@@ -776,187 +1057,22 @@ final x = const (0, (1, 2));
 }
 
 @reflectiveTest
-class InstanceCreationExpressionImplTest extends PubPackageResolutionTest {
-  assertIsConst(
-    TestResolvedUnitResult result,
-    String search,
-    bool expectedResult,
-  ) {
-    var node = result.findNode.instanceCreation(search);
-    expect((node as InstanceCreationExpressionImpl).isConst, expectedResult);
-  }
-
-  test_isConst_notInContext_constructor_const_constParam_identifier() async {
+class ForEachPartsImplTest extends PubPackageResolutionTest {
+  test_iterable_constructorInvocation_astViews() async {
     var result = await resolveTestCode('''
-var v = C(C.a);
-class C {
-  static const C a = C.c();
-  const C(c);
-  const C.c();
+class C {}
+void f() {
+  for (var x in C()) {}
 }
 ''');
-    assertIsConst(result, "C(C", false);
-  }
+    var forStatement = result.findNode.forStatement('for (');
+    var parts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
 
-  test_isConst_notInContext_constructor_const_constParam_named() async {
-    var result = await resolveTestCode('''
-var v = C(c: C());
-class C {
-  const C({c});
-}
-''');
-    assertIsConst(result, "C(c", false);
-  }
+    expect(parts.iterable, isA<InstanceCreationExpression>());
+    expect(parts.iterable2, isA<ConstructorInvocation>());
 
-  test_isConst_notInContext_constructor_const_constParam_named_parens() async {
-    var result = await resolveTestCode('''
-var v = C(c: (C()));
-class C {
-  const C({c});
-}
-''');
-    assertIsConst(result, "C(c", false);
-  }
-
-  test_isConst_notInContext_constructor_const_constParam_parens() async {
-    var result = await resolveTestCode('''
-var v = C( (C.c()) );
-class C {
-  const C(c);
-  const C.c();
-}
-''');
-    assertIsConst(result, "C( (", false);
-  }
-
-  test_isConst_notInContext_constructor_const_generic_named() async {
-    var result = await resolveTestCode('''
-f() => <Object>[C<int>.n()];
-class C<E> {
-  const C.n();
-}
-''');
-    assertIsConst(result, "C<int>.n", false);
-  }
-
-  test_isConst_notInContext_constructor_const_generic_named_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', '''
-class C<E> {
-  const C.n();
-}
-''');
-    var result = await resolveTestCode('''
-import 'c.dart' as p;
-f() => <Object>[p.C<int>.n()];
-''');
-    assertIsConst(result, "C<int>", false);
-  }
-
-  test_isConst_notInContext_constructor_const_generic_unnamed() async {
-    var result = await resolveTestCode('''
-f() => <Object>[C<int>()];
-class C<E> {
-  const C();
-}
-''');
-    assertIsConst(result, "C<int>", false);
-  }
-
-  test_isConst_notInContext_constructor_const_generic_unnamed_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', '''
-class C<E> {
-  const C();
-}
-''');
-    var result = await resolveTestCode('''
-import 'c.dart' as p;
-f() => <Object>[p.C<int>()];
-''');
-    assertIsConst(result, "C<int>", false);
-  }
-
-  test_isConst_notInContext_constructor_const_nonConstParam_constructor() async {
-    var result = await resolveTestCode('''
-f() {
-  return A(B());
-}
-
-class A {
-  const A(B b);
-}
-
-class B {
-  B();
-}
-''');
-    assertIsConst(result, "B())", false);
-  }
-
-  test_isConst_notInContext_constructor_const_nonConstParam_variable() async {
-    var result = await resolveTestCode('''
-f(int i) => <Object>[C(i)];
-class C {
-  final int f;
-  const C(this.f);
-}
-''');
-    assertIsConst(result, "C(i)", false);
-  }
-
-  test_isConst_notInContext_constructor_const_nonGeneric_named() async {
-    var result = await resolveTestCode('''
-f() => <Object>[C.n()];
-class C<E> {
-  const C.n();
-}
-''');
-    assertIsConst(result, "C.n()]", false);
-  }
-
-  test_isConst_notInContext_constructor_const_nonGeneric_named_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', '''
-class C {
-  const C.n();
-}
-''');
-    var result = await resolveTestCode('''
-import 'c.dart' as p;
-f() => <Object>[p.C.n()];
-''');
-    assertIsConst(result, "C.n()", false);
-  }
-
-  test_isConst_notInContext_constructor_const_nonGeneric_unnamed() async {
-    var result = await resolveTestCode('''
-f() => <Object>[C()];
-class C {
-  const C();
-}
-''');
-    assertIsConst(result, "C()]", false);
-  }
-
-  test_isConst_notInContext_constructor_const_nonGeneric_unnamed_prefixed() async {
-    newFile('$testPackageLibPath/c.dart', '''
-class C {
-  const C();
-}
-''');
-    var result = await resolveTestCode('''
-import 'c.dart' as p;
-f() => <Object>[p.C()];
-''');
-    assertIsConst(result, "C()", false);
-  }
-
-  test_isConst_notInContext_constructor_nonConst() async {
-    var result = await resolveTestCode('''
-f() => <Object>[C()];
-class C {
-  C();
-}
-''');
-    assertIsConst(result, "C()]", false);
+    result.unit.accept(RecursiveAstVisitor<void>());
+    result.unit.accept2(RecursiveAstVisitor2<void>());
   }
 }
 
@@ -1734,7 +1850,7 @@ void f() { ^ }
     var node = await coveringNode('''
 class C { void call() {} }  Function f = C^();
 ''');
-    node as NamedType;
+    node as ConstructorTypeReference;
   }
 
   Future<(TestResolvedUnitResult, SourceRange)> _range(

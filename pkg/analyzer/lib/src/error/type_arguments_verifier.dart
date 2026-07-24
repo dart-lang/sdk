@@ -112,6 +112,15 @@ class TypeArgumentsVerifier {
     }
   }
 
+  void checkConstructorTypeReference(ConstructorTypeReferenceImpl node) {
+    _checkForTypeArgumentNotMatchingBounds(
+      node: node,
+      type: node.type,
+      explicitTypeArguments: node.typeArguments,
+      allowSuperBoundedTypes: false,
+    );
+  }
+
   void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
     var constructorElement = node.constructorElement;
     if (constructorElement == null) {
@@ -241,10 +250,15 @@ class TypeArgumentsVerifier {
   }
 
   void checkNamedType(NamedTypeImpl node) {
-    _checkForTypeArgumentNotMatchingBounds(node);
+    _checkForTypeArgumentNotMatchingBounds(
+      node: node,
+      type: node.type,
+      explicitTypeArguments: node.typeArguments,
+      allowSuperBoundedTypes: _shouldAllowSuperBoundedTypes(node),
+    );
     var parent = node.parent2;
     if (parent is! ConstructorNameImpl ||
-        parent.parent2 is! InstanceCreationExpressionImpl) {
+        parent.parent2 is! ConstructorInvocationImpl) {
       _checkForRawTypeName(node);
     }
   }
@@ -307,10 +321,14 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Verify that the type arguments in the given [namedType] are all within
+  /// Verify that the type arguments in the type reference are all within
   /// their bounds.
-  void _checkForTypeArgumentNotMatchingBounds(NamedTypeImpl namedType) {
-    var type = namedType.type;
+  void _checkForTypeArgumentNotMatchingBounds({
+    required AstNode node,
+    required TypeImpl? type,
+    required TypeArgumentList? explicitTypeArguments,
+    required bool allowSuperBoundedTypes,
+  }) {
     if (type == null) {
       return;
     }
@@ -356,7 +374,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _diagnosticReporter.report(
             diag.genericFunctionTypeCannotBeTypeArgument.at(
-              _typeArgumentErrorNode(namedType, i),
+              _typeArgumentErrorNode(node, explicitTypeArguments, i),
             ),
           );
           continue;
@@ -398,9 +416,9 @@ class TypeArgumentsVerifier {
         messages.add(
           DiagnosticMessageImpl(
             filePath: _diagnosticReporter.source.fullName,
-            length: namedType.length,
+            length: node.length,
             message: message,
-            offset: namedType.offset,
+            offset: node.offset,
             url: null,
           ),
         );
@@ -410,7 +428,7 @@ class TypeArgumentsVerifier {
         return typeArguments.map((e) => e.getDisplayString()).join(', ');
       }
 
-      if (namedType.typeArguments == null) {
+      if (explicitTypeArguments == null) {
         var typeStr = '$elementName<${typeArgumentsToString(typeArguments)}>';
         addMessage(
           "The raw type was instantiated as '$typeStr', "
@@ -431,7 +449,7 @@ class TypeArgumentsVerifier {
     }
 
     // If not allowed to be super-bounded, report issues.
-    if (!_shouldAllowSuperBoundedTypes(namedType)) {
+    if (!allowSuperBoundedTypes) {
       for (var issue in issues) {
         _diagnosticReporter.report(
           diag.typeArgumentNotMatchingBounds
@@ -441,7 +459,13 @@ class TypeArgumentsVerifier {
                 bound: issue.parameterBound,
               )
               .withContextMessages(buildContextMessages())
-              .at(_typeArgumentErrorNode(namedType, issue.index)),
+              .at(
+                _typeArgumentErrorNode(
+                  node,
+                  explicitTypeArguments,
+                  issue.index,
+                ),
+              ),
         );
       }
       return;
@@ -493,7 +517,7 @@ class TypeArgumentsVerifier {
                   invertedTypeArguments: invertedTypeArguments,
                 ),
               )
-              .at(_typeArgumentErrorNode(namedType, i)),
+              .at(_typeArgumentErrorNode(node, explicitTypeArguments, i)),
         );
       }
     }
@@ -716,8 +740,12 @@ class TypeArgumentsVerifier {
   }
 
   /// Return the type arguments at [index] from [node], or the [node] itself.
-  static TypeAnnotation _typeArgumentErrorNode(NamedType node, int index) {
-    var typeArguments = node.typeArguments?.arguments;
+  static AstNode _typeArgumentErrorNode(
+    AstNode node,
+    TypeArgumentList? typeArgumentList,
+    int index,
+  ) {
+    var typeArguments = typeArgumentList?.arguments;
     if (typeArguments != null && index < typeArguments.length) {
       return typeArguments[index];
     }

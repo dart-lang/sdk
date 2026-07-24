@@ -99,8 +99,8 @@ bool hasDependentDotShorthand(AstNode node) {
       default:
         return false;
     }
-  } else if (node case InstanceCreationExpressionImpl(
-    constructorName: ConstructorName(:var type),
+  } else if (node case ConstructorInvocationImpl(
+    constructorReference: ConstructorReference2(typeReference: var type),
     :var argumentList,
   )) {
     // Type arguments to the constructor are explicitly given. We know that no

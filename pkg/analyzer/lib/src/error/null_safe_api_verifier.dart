@@ -26,8 +26,8 @@ class NullSafeApiVerifier {
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
-  void instanceCreation(InstanceCreationExpressionImpl expression) {
-    var constructor = expression.constructorName.element;
+  void instanceCreation(ConstructorInvocationImpl expression) {
+    var constructor = expression.constructorReference.element;
     if (constructor == null) return;
 
     var type = constructor.returnType;
@@ -75,7 +75,7 @@ class NullSafeApiVerifier {
     if (args.arguments2.length > 1 || !_typeSystem.isNonNullable(type)) return;
 
     var argument = args.arguments2.isEmpty ? null : args.arguments2.single;
-    var argumentType = argument?.argumentExpression.staticType;
+    var argumentType = argument?.argumentExpression2.staticType;
     // Skip if the type is not currently resolved.
     if (argument != null && argumentType == null) return;
 

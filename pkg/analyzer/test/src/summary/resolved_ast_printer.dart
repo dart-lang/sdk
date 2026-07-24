@@ -379,6 +379,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _sink.writeln('ConstructorInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitConstructorName(ConstructorName node) {
     _sink.writeln('ConstructorName');
     _sink.withIndent(() {
@@ -398,11 +408,32 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _sink.writeln('ConstructorReference2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+    });
+  }
+
+  @override
   void visitConstructorSelector(ConstructorSelector node) {
     _checkChildrenEntitiesLinking(node);
     _sink.writeln('ConstructorSelector');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitConstructorTypeReference(
+    covariant ConstructorTypeReferenceImpl node,
+  ) {
+    _sink.writeln('ConstructorTypeReference');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeType('type', node.type);
     });
   }
 

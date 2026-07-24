@@ -407,10 +407,10 @@ library
         #F9 hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:86) (firstTokenOffset:86) (offset:86)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @90
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @96
                   element: <testLibrary>::@class::C
                   type: C<int>
@@ -429,20 +429,16 @@ library
         #F11 hasInitializer isConst isOriginDeclaration isStatic y (nameOffset:115) (firstTokenOffset:115) (offset:115)
           element: <testLibrary>::@topLevelVariable::y
           initializer: expression_1
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @119
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @125
                   element: <testLibrary>::@class::C
                   type: C<int>
-                period: . @126
-                name: SimpleIdentifier
-                  token: named @127
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: <testLibrary>::@class::C::@constructor::named
-                    substitution: {T: dynamic}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @126
+                  name2: named @127
                 element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {T: int}
@@ -843,9 +839,9 @@ library
             #F2 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:27) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::A::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @31
                       element: <testLibrary>::@class::A
                       type: A
@@ -1289,6 +1285,41 @@ library
             ListLiteral
               leftBracket: [ @140
               elements2
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: P1 @141
+                      element: <testLibrary>::@class::P1
+                      type: P1<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::P1::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @143
+                    rightParenthesis: ) @144
+                  staticType: P1<dynamic>
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: P2 @147
+                      typeArguments: TypeArgumentList
+                        leftBracket: < @149
+                        arguments
+                          NamedType
+                            name: int @150
+                            element: dart:core::@class::int
+                            type: int
+                        rightBracket: > @153
+                      element: <testLibrary>::@class::P2
+                      type: P2<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::P2::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @154
+                    rightParenthesis: ) @155
+                  staticType: P2<int>
+              elements(v1)
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
@@ -2235,10 +2266,10 @@ library
         #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:52) (firstTokenOffset:52) (offset:52)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @56
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @62
                   typeArguments: TypeArgumentList
                     leftBracket: < @63
@@ -2254,13 +2285,9 @@ library
                     rightBracket: > @75
                   element: <testLibrary>::@class::C
                   type: C<int, String>
-                period: . @76
-                name: SimpleIdentifier
-                  token: named @77
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: <testLibrary>::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @76
+                  name2: named @77
                 element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::C::@constructor::named
                   substitution: {K: int, V: String}
@@ -2340,10 +2367,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   typeArguments: TypeArgumentList
                     leftBracket: < @35
@@ -2359,13 +2386,9 @@ library
                     rightBracket: > @47
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                period: . @48
-                name: SimpleIdentifier
-                  token: named @49
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: package:test/a.dart::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @48
+                  name2: named @49
                 element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
@@ -2428,10 +2451,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -2451,13 +2474,9 @@ library
                     rightBracket: > @54
                   element: package:test/a.dart::@class::C
                   type: C<int, String>
-                period: . @55
-                name: SimpleIdentifier
-                  token: named @56
-                  element: SubstitutedConstructorElementImpl
-                    baseElement: package:test/a.dart::@class::C::@constructor::named
-                    substitution: {K: int, V: String}
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @55
+                  name2: named @56
                 element: SubstitutedConstructorElementImpl
                   baseElement: package:test/a.dart::@class::C::@constructor::named
                   substitution: {K: int, V: String}
@@ -2525,10 +2544,10 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @42
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @48
                   element: <testLibrary>::@class::C
                   type: C<dynamic, dynamic>
@@ -2616,10 +2635,10 @@ library
         #F7 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:61) (firstTokenOffset:61) (offset:61)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @65
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: A @71
                   element: <testLibrary>::@class::A
                   type: A<int>
@@ -2716,10 +2735,10 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @42
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @48
                   typeArguments: TypeArgumentList
                     leftBracket: < @49
@@ -2801,10 +2820,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   typeArguments: TypeArgumentList
                     leftBracket: < @35
@@ -2876,10 +2895,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -2967,18 +2986,16 @@ library
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:80) (firstTokenOffset:80) (offset:80)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @84
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @90
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @91
-                name: SimpleIdentifier
-                  token: named @92
-                  element: <testLibrary>::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @91
+                  name2: named @92
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @97
@@ -3075,18 +3092,16 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @35
-                name: SimpleIdentifier
-                  token: named @36
-                  element: package:test/a.dart::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @35
+                  name2: named @36
                 element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @41
@@ -3141,10 +3156,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3152,11 +3167,9 @@ library
                   name: C @41
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @42
-                name: SimpleIdentifier
-                  token: named @43
-                  element: package:test/a.dart::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @42
+                  name2: named @43
                 element: package:test/a.dart::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -3208,18 +3221,16 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @22
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @28
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @29
-                name: SimpleIdentifier
-                  token: named @30
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @29
+                  name2: named @30
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @35
@@ -3270,10 +3281,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: C @16
                     period: . @17
@@ -3334,10 +3345,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3345,11 +3356,9 @@ library
                   name: C @41
                   element: package:test/a.dart::@class::C
                   type: C
-                period: . @42
-                name: SimpleIdentifier
-                  token: named @43
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @42
+                  name2: named @43
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -3401,10 +3410,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3412,11 +3421,9 @@ library
                   name: C @41
                   element: <null>
                   type: InvalidType
-                period: . @42
-                name: SimpleIdentifier
-                  token: named @43
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @42
+                  name2: named @43
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @48
@@ -3459,10 +3466,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @16
                     period: . @17
@@ -3470,11 +3477,9 @@ library
                   name: C @18
                   element: <null>
                   type: InvalidType
-                period: . @19
-                name: SimpleIdentifier
-                  token: named @20
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @19
+                  name2: named @20
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @25
@@ -3529,18 +3534,16 @@ library
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @25
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @31
                   element: <testLibrary>::@class::C
                   type: C<dynamic>
-                period: . @32
-                name: SimpleIdentifier
-                  token: named @33
-                  element: <null>
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @32
+                  name2: named @33
                 element: <null>
               argumentList: ArgumentList
                 leftParenthesis: ( @38
@@ -3606,10 +3609,10 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @36
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @42
                   element: <testLibrary>::@class::C
                   type: C
@@ -3672,10 +3675,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @28
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @34
                   element: package:test/a.dart::@class::C
                   type: C
@@ -3733,10 +3736,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3786,10 +3789,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @16
                   element: <null>
                   type: InvalidType
@@ -3844,10 +3847,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @33
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @39
                     period: . @40
@@ -3897,10 +3900,10 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @10
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   importPrefix: ImportPrefixReference
                     name: p @16
                     period: . @17
@@ -7146,9 +7149,9 @@ library
             #F7 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7161,9 +7164,9 @@ library
             #F9 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7176,9 +7179,9 @@ library
             #F11 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11034,9 +11037,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11049,9 +11052,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11064,9 +11067,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -11252,9 +11255,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E

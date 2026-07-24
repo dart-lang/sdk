@@ -107,12 +107,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.instanceCreation('new B()');
+    var node = result.findNode.constructorInvocation('new B()');
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
       element: <testLibrary>::@typeAlias::B
       type: InvalidType

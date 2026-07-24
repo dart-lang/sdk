@@ -126,6 +126,18 @@ class ElementResolver {
     }
   }
 
+  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
+    var invokedConstructor = node.constructorReference.element;
+    var argumentList = node.argumentList;
+    var parameters = _resolveArgumentsToFunction(
+      argumentList,
+      invokedConstructor,
+    );
+    if (parameters != null) {
+      argumentList.correspondingStaticParameters = parameters;
+    }
+  }
+
   void visitConstructorName(covariant ConstructorNameImpl node) {
     var type = node.type.type;
     if (type == null) {
@@ -230,20 +242,6 @@ class ElementResolver {
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
-    }
-  }
-
-  void visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    var invokedConstructor = node.constructorName.element;
-    var argumentList = node.argumentList;
-    var parameters = _resolveArgumentsToFunction(
-      argumentList,
-      invokedConstructor,
-    );
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
     }
   }
 

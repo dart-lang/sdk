@@ -283,6 +283,15 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
     }
     return _metadata._elementContainingRange(rangeOffset, rangeEnd);
   }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _documentationComment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
+  }
 }
 
 /// An annotation that can be associated with a declaration.
@@ -9419,6 +9428,301 @@ sealed class ConstructorInitializer implements AstNode {}
 sealed class ConstructorInitializerImpl extends AstNodeImpl
     implements ConstructorInitializer {}
 
+/// An invocation of a constructor.
+///
+///    constructorInvocation ::=
+///        ('new' | 'const')? [ConstructorReference2] [ArgumentList]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorInvocation implements Expression {
+  /// The list of arguments to the constructor.
+  ArgumentList get argumentList;
+
+  /// The constructor being invoked.
+  ConstructorReference2 get constructorReference;
+
+  /// Whether this invocation will be evaluated at compile-time, either because
+  /// the keyword `const` was explicitly provided or because no keyword was
+  /// provided and this expression is in a constant context.
+  bool get isConst;
+
+  /// The `new` or `const` keyword, or `null` if no keyword was written.
+  Token? get keyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('keyword', isTokenFinal: false),
+    GenerateNodeProperty('constructorReference'),
+    GenerateNodeProperty(
+      'typeArguments',
+      withOverride: false,
+      type: _TypeLiteral<TypeArgumentList?>,
+    ),
+    GenerateNodeProperty('argumentList'),
+  ],
+)
+final class ConstructorInvocationImpl extends ExpressionImpl
+    implements ConstructorInvocation {
+  @generated
+  @override
+  Token? keyword;
+
+  @generated
+  ConstructorReference2Impl _constructorReference;
+
+  @generated
+  TypeArgumentListImpl? _typeArguments;
+
+  @generated
+  ArgumentListImpl _argumentList;
+
+  InstanceCreationExpressionImpl? _instanceCreationExpression;
+
+  @generated
+  ConstructorInvocationImpl({
+    required this.keyword,
+    required ConstructorReference2Impl constructorReference,
+    required TypeArgumentListImpl? typeArguments,
+    required ArgumentListImpl argumentList,
+  }) : _constructorReference = constructorReference,
+       _typeArguments = typeArguments,
+       _argumentList = argumentList {
+    _becomeParentOf2(constructorReference);
+    _becomeParentOf2(typeArguments);
+    _becomeParentOf2(argumentList);
+  }
+
+  @generated
+  @override
+  ArgumentListImpl get argumentList => _argumentList;
+
+  @generated
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf2(argumentList);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (keyword case var keyword?) {
+      return keyword;
+    }
+    return constructorReference.beginToken;
+  }
+
+  @override
+  bool get canBeConst {
+    var element = constructorReference.element;
+    if (element == null || !element.isConst) return false;
+
+    element.baseElement.computeConstantDependencies();
+
+    var oldKeyword = keyword;
+    try {
+      keyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      keyword = oldKeyword;
+    }
+  }
+
+  @generated
+  @override
+  ConstructorReference2Impl get constructorReference => _constructorReference;
+
+  @generated
+  set constructorReference(ConstructorReference2Impl constructorReference) {
+    _constructorReference = _becomeParentOf2(constructorReference);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  InstanceCreationExpressionImpl get instanceCreationExpression =>
+      _instanceCreationExpression ??= InstanceCreationExpressionImpl._(this);
+
+  @override
+  bool get isConst {
+    if (!isImplicit) {
+      return keyword!.keyword == Keyword.CONST;
+    } else {
+      return inConstantContext;
+    }
+  }
+
+  /// Whether this is an implicit constructor invocation.
+  bool get isImplicit => keyword == null;
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @generated
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf2(typeArguments);
+    _instanceCreationExpression?._becomeParentOf1(typeArguments);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('keyword', keyword)
+    ..addNode('constructorReference', constructorReference)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitConstructorInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(constructorReference, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'constructorReference'.",
+      );
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(constructorReference, oldNode)) {
+      constructorReference = newNode as ConstructorReference2Impl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitConstructorInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    constructorReference.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ConstructorReference2Impl)? visitConstructorReference,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitConstructorReference != null) {
+      visitConstructorReference(constructorReference);
+    } else {
+      constructorReference.accept2(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (constructorReference._containsOffset(rangeOffset, rangeEnd)) {
+      return constructorReference;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
+
 /// The name of a constructor.
 ///
 ///    constructorName ::=
@@ -9446,28 +9750,41 @@ abstract final class ConstructorName
   ],
 )
 final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   NamedTypeImpl _type;
 
-  @generated
-  @override
-  Token? period;
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  Token? _period;
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   SimpleIdentifierImpl? _name;
 
-  @override
-  InternalConstructorElement? element;
+  AstNodeApi? _astNodeApiOverride;
 
-  @generated
+  ConstructorReference2Impl? _v2Origin;
+
+  InternalConstructorElement? _element;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   ConstructorNameImpl({
     required NamedTypeImpl type,
-    required this.period,
+    required Token? period,
     required SimpleIdentifierImpl? name,
   }) : _type = type,
+       _period = period,
        _name = name {
     _becomeParentOf12(type);
     _becomeParentOf12(name);
+  }
+
+  ConstructorNameImpl.v1Projection(ConstructorReference2Impl origin)
+    : _type = origin.typeReference.namedType,
+      _period = origin.selector?.period,
+      _name = origin.selector?.name,
+      _v2Origin = origin,
+      _astNodeApiOverride = AstNodeApi.v1 {
+    _becomeParentOf1(_type);
+    _becomeParentOf1(_name);
   }
 
   @generated
@@ -9476,7 +9793,19 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     return type.beginToken;
   }
 
-  @generated
+  @override
+  InternalConstructorElement? get element => _v2Origin?.element ?? _element;
+
+  set element(InternalConstructorElement? value) {
+    var origin = _v2Origin;
+    if (origin != null) {
+      origin.element = value;
+    } else {
+      _element = value;
+    }
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   Token get endToken {
     if (name case var name?) {
@@ -9488,23 +9817,61 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     return type.endToken;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  SimpleIdentifierImpl? get name => _name;
+  SimpleIdentifierImpl? get name {
+    var origin = _v2Origin;
+    if (origin == null) return _name;
+    var result = origin.selector?.name;
+    if (result != null) {
+      result.element = origin.element;
+      _becomeParentOf1(result);
+    }
+    return result;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set name(SimpleIdentifierImpl? name) {
+    if (_v2Origin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _name = _becomeParentOf12(name);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  NamedTypeImpl get type => _type;
+  Token? get period {
+    var origin = _v2Origin;
+    return origin != null ? origin.selector?.period : _period;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  set period(Token? period) {
+    if (_v2Origin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _period = period;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  NamedTypeImpl get type {
+    var result = _v2Origin?.typeReference.namedType ?? _type;
+    _becomeParentOf1(result);
+    return result;
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set type(NamedTypeImpl type) {
+    if (_v2Origin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _type = _becomeParentOf12(type);
   }
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @generated
   @override
@@ -9513,22 +9880,32 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     ..addToken('period', period)
     ..addNode('name', name);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('type', type)
-    ..addToken('period', period)
-    ..addNode('name', name);
+  ChildEntities get _childEntities2 {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addNode('type', type)
+      ..addToken('period', period)
+      ..addNode('name', name);
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitConstructorName(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
+    return visitor.visitConstructorName(this);
+  }
 
   @generated
   @override
@@ -9564,6 +9941,31 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     super.replaceChild(oldNode, newNode);
   }
 
+  ConstructorReference2Impl toConstructorReference2() {
+    var typeReference =
+        ConstructorTypeReferenceImpl(
+            importPrefix: type.importPrefix,
+            name: type.name,
+            typeArguments: type.typeArguments,
+          )
+          ..element = type.element
+          ..type = type.type;
+    var selector = switch (period) {
+      var period? => ConstructorSelectorImpl.v2(
+        period: period,
+        name2: name?.token ?? period.next!,
+      ),
+      _ => null,
+    };
+    return ConstructorReference2Impl(
+      typeReference: typeReference,
+      selector: selector,
+    )..element = element;
+  }
+
+  @override
+  String toSource() => _v2Origin?.toSource() ?? super.toSource();
+
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
@@ -9572,10 +9974,13 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     name?.accept(visitor);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
     type.accept2(visitor);
     name?.accept2(visitor);
   }
@@ -9585,13 +9990,16 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NamedTypeImpl)? visitType,
     void Function(SimpleIdentifierImpl)? visitName,
   }) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
     if (visitType != null) {
       visitType(type);
     } else {
@@ -9620,9 +10028,12 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     return null;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_v2Origin != null) {
+      throw StateError('ConstructorName is not in the V2 AST view.');
+    }
     if (type._containsOffset(rangeOffset, rangeEnd)) {
       return type;
     }
@@ -9680,8 +10091,11 @@ final class ConstructorReference2Impl extends AstNodeImpl
   @generated
   ConstructorSelectorImpl? _selector;
 
-  @override
-  InternalConstructorElement? element;
+  InternalConstructorElement? _element;
+
+  /// The cached V1 compatibility projection for this reference.
+  late final ConstructorNameImpl constructorName =
+      ConstructorNameImpl.v1Projection(this);
 
   @generated
   ConstructorReference2Impl({
@@ -9697,6 +10111,14 @@ final class ConstructorReference2Impl extends AstNodeImpl
   @override
   Token get beginToken {
     return typeReference.beginToken;
+  }
+
+  @override
+  InternalConstructorElement? get element => _element;
+
+  set element(InternalConstructorElement? element) {
+    _element = element;
+    selector?.name.element = element;
   }
 
   @generated
@@ -10397,6 +10819,12 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
 
   @override
   Element? element;
+
+  /// The instantiated type used while resolving the enclosing constructor.
+  TypeImpl? type;
+
+  /// The cached V1 compatibility projection for this type reference.
+  late final NamedTypeImpl namedType = NamedTypeImpl.v1Projection(this);
 
   @generated
   ConstructorTypeReferenceImpl({
@@ -14465,7 +14893,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   bool get inConstantContext {
-    return constantContext(includeSelf: false) != null;
+    return constantContext2(includeSelf: false) != null;
   }
 
   @override
@@ -14532,6 +14960,74 @@ sealed class ExpressionImpl extends AstNodeImpl
   (AstNode, Token?)? constantContext({required bool includeSelf}) {
     AstNode? current = this;
     if (!includeSelf) {
+      current = current.parent;
+    }
+
+    while (true) {
+      switch (current) {
+        case Annotation():
+          return (current, null);
+        case ConstantContextForExpressionImpl():
+          return (current, null);
+        case ConstantPatternImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
+        case DotShorthandConstructorInvocation():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case EnumConstantArguments():
+          return (current, null);
+        case InstanceCreationExpressionImpl():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+        case RecordLiteral():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case SwitchCase():
+          return (current, null);
+        case TypedLiteralImpl():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+        case VariableDeclarationList():
+          var keyword = current.keyword;
+          if (keyword != null && keyword.keyword == Keyword.CONST) {
+            return (current, keyword);
+          }
+          return null;
+        case ArgumentList():
+        case Expression():
+        case ForElement():
+        case IfElement():
+        case InterpolationExpression():
+        case MapLiteralEntry():
+        case NamedArgument():
+        case RecordLiteralNamedField():
+        case NullAwareElement():
+        case SpreadElement():
+        case VariableDeclaration():
+          break;
+        default:
+          return null;
+      }
+      current = current?.parent;
+    }
+  }
+
+  /// Returns the [AstNode] that puts node into the constant context, and
+  /// the explicit `const` keyword of that node. The keyword might be absent
+  /// if the constness is implicit.
+  ///
+  /// Returns `null` if node is not in the constant context.
+  (AstNode, Token?)? constantContext2({required bool includeSelf}) {
+    AstNode? current = this;
+    if (!includeSelf) {
       current = current.parent2;
     }
 
@@ -14552,7 +15048,7 @@ sealed class ExpressionImpl extends AstNodeImpl
           }
         case EnumConstantArguments():
           return (current, null);
-        case InstanceCreationExpression():
+        case ConstructorInvocation():
           var keyword = current.keyword;
           if (keyword != null && keyword.keyword == Keyword.CONST) {
             return (current, keyword);
@@ -22588,10 +23084,16 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @override
-  CollectionElementImpl? get ifFalse => elseElement2;
+  CollectionElementImpl? get ifFalse => elseElement;
 
   @override
-  CollectionElementImpl get ifTrue => thenElement2;
+  CollectionElementImpl? get ifFalse2 => elseElement2;
+
+  @override
+  CollectionElementImpl get ifTrue => thenElement;
+
+  @override
+  CollectionElementImpl get ifTrue2 => thenElement2;
 
   @generated
   @ToBeDeprecated('Use thenElement2 instead.')
@@ -22820,11 +23322,22 @@ sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
   /// `case` clause.
   ExpressionImpl get expression;
 
+  /// The expression used to either determine which of the statements is
+  /// executed next or to compute the value matched against the pattern in the
+  /// `case` clause.
+  ExpressionImpl get expression2;
+
   /// The node that is executed if the condition evaluates to `false`.
   E? get ifFalse;
 
+  /// The node that is executed if the condition evaluates to `false`.
+  E? get ifFalse2;
+
   /// The node that is executed if the condition evaluates to `true`.
   E get ifTrue;
+
+  /// The node that is executed if the condition evaluates to `true`.
+  E get ifTrue2;
 }
 
 /// An if statement.
@@ -22997,7 +23510,13 @@ final class IfStatementImpl extends StatementImpl
   StatementImpl? get ifFalse => elseStatement;
 
   @override
+  StatementImpl? get ifFalse2 => elseStatement;
+
+  @override
   StatementImpl get ifTrue => thenStatement;
+
+  @override
+  StatementImpl get ifTrue2 => thenStatement;
 
   @generated
   @override
@@ -24497,6 +25016,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 ///    newExpression ::=
 ///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])?
 ///        [ArgumentList]
+@ToBeDeprecated('Use ConstructorInvocation instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InstanceCreationExpression implements Expression {
   /// The list of arguments to the constructor.
@@ -24516,6 +25036,7 @@ abstract final class InstanceCreationExpression implements Expression {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
   childEntitiesOrder: [
     GenerateNodeProperty('keyword', isTokenFinal: false),
     GenerateNodeProperty('constructorName'),
@@ -24527,112 +25048,77 @@ abstract final class InstanceCreationExpression implements Expression {
     GenerateNodeProperty('argumentList'),
   ],
 )
-// TODO(brianwilkerson): Consider making InstanceCreationExpressionImpl extend
-// InvocationExpressionImpl. This would probably be a breaking change, but is
-// also probably worth it.
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
-  @generated
-  @override
-  Token? keyword;
+  final ConstructorInvocationImpl _origin;
 
-  @generated
-  ConstructorNameImpl _constructorName;
-
-  @generated
-  TypeArgumentListImpl? _typeArguments;
-
-  @generated
-  ArgumentListImpl _argumentList;
-
-  @generated
+  @DoNotGenerate(reason: 'Only retained while callers migrate to V2')
   InstanceCreationExpressionImpl({
-    required this.keyword,
+    required Token? keyword,
     required ConstructorNameImpl constructorName,
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
-  }) : _constructorName = constructorName,
-       _typeArguments = typeArguments,
-       _argumentList = argumentList {
-    _becomeParentOf12(constructorName);
-    _becomeParentOf12(typeArguments);
-    _becomeParentOf12(argumentList);
+  }) : _origin = ConstructorInvocationImpl(
+         keyword: keyword,
+         constructorReference: constructorName.toConstructorReference2(),
+         typeArguments: typeArguments,
+         argumentList: argumentList,
+       );
+
+  @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
+  InstanceCreationExpressionImpl._(this._origin) {
+    _attachV1Children();
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  ArgumentListImpl get argumentList => _argumentList;
+  ArgumentListImpl get argumentList => _origin.argumentList;
 
-  @generated
-  set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf12(argumentList);
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken {
-    if (keyword case var keyword?) {
-      return keyword;
-    }
-    return constructorName.beginToken;
-  }
+  Token get beginToken => _origin.beginToken;
 
   @override
-  bool get canBeConst {
-    var element = constructorName.element;
-    if (element == null || !element.isConst) return false;
+  bool get canBeConst => _origin.canBeConst;
 
-    // Ensure that dependencies (e.g. default parameter values) are computed.
-    element.baseElement.computeConstantDependencies();
-
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    var oldKeyword = keyword;
-    try {
-      keyword = KeywordToken(Keyword.CONST, offset);
-      return !hasConstantVerifierError;
-    } finally {
-      keyword = oldKeyword;
-    }
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  ConstructorNameImpl get constructorName => _constructorName;
-
-  @generated
-  set constructorName(ConstructorNameImpl constructorName) {
-    _constructorName = _becomeParentOf12(constructorName);
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return argumentList.endToken;
-  }
+  ConstructorNameImpl get constructorName =>
+      _origin.constructorReference.constructorName;
 
   @override
-  bool get isConst {
-    if (!isImplicit) {
-      return keyword!.keyword == Keyword.CONST;
-    } else {
-      return inConstantContext;
-    }
-  }
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  bool get isConst => _origin.isConst;
 
   /// Whether this is an implicit constructor invocation.
-  bool get isImplicit => keyword == null;
+  bool get isImplicit => _origin.isImplicit;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token? get keyword => _origin.keyword;
 
   @override
   Precedence get precedence => Precedence.primary;
 
-  @generated
-  TypeArgumentListImpl? get typeArguments => _typeArguments;
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  TypeArgumentListImpl? get typeArguments => _origin.typeArguments;
 
   @generated
-  set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf12(typeArguments);
-  }
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -24644,11 +25130,9 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('keyword', keyword)
-    ..addNode('constructorName', constructorName)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities2 {
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -24659,8 +25143,13 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitInstanceCreationExpression(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
 
   @generated
   @override
@@ -24669,45 +25158,27 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     return false;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'constructorName'.");
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = null;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'argumentList'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as ConstructorNameImpl;
-      return;
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = newNode as TypeArgumentListImpl?;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      argumentList = newNode as ArgumentListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are never resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitInstanceCreationExpression(this, contextType: contextType);
+    throw StateError('InstanceCreationExpression is a V1 projection.');
   }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  String toSource() => _origin.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -24722,41 +25193,13 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    constructorName.accept2(visitor);
-    typeArguments?.accept2(visitor);
-    argumentList.accept2(visitor);
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
   }
 
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ConstructorNameImpl)? visitConstructorName,
-    void Function(TypeArgumentListImpl)? visitTypeArguments,
-    void Function(ArgumentListImpl)? visitArgumentList,
-  }) {
-    if (visitConstructorName != null) {
-      visitConstructorName(constructorName);
-    } else {
-      constructorName.accept2(visitor);
-    }
-    if (typeArguments case var typeArguments?) {
-      if (visitTypeArguments != null) {
-        visitTypeArguments(typeArguments);
-      } else {
-        typeArguments.accept2(visitor);
-      }
-    }
-    if (visitArgumentList != null) {
-      visitArgumentList(argumentList);
-    } else {
-      argumentList.accept2(visitor);
-    }
+  void _attachV1Children() {
+    _becomeParentOf1(constructorName);
+    _becomeParentOf1(typeArguments);
+    _becomeParentOf1(argumentList);
   }
 
   @generated
@@ -24779,18 +25222,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
-      return constructorName;
-    }
-    if (typeArguments case var typeArguments?) {
-      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
-        return typeArguments;
-      }
-    }
-    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
-      return argumentList;
-    }
-    return null;
+    throw StateError('InstanceCreationExpression is not in the V2 AST view.');
   }
 }
 
@@ -29547,24 +29979,26 @@ abstract final class NamedType implements TypeAnnotation {
 )
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @generated
-  ImportPrefixReferenceImpl? _importPrefix;
-
-  @generated
   @override
   final Token name;
-
-  @generated
-  TypeArgumentListImpl? _typeArguments;
 
   @generated
   @override
   final Token? question;
 
-  @override
-  Element? element;
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  ImportPrefixReferenceImpl? _importPrefix;
 
-  @override
-  TypeImpl? type;
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  TypeArgumentListImpl? _typeArguments;
+
+  AstNodeApi? _astNodeApiOverride;
+
+  ConstructorTypeReferenceImpl? _constructorTypeReferenceOrigin;
+
+  Element? _element;
+
+  TypeImpl? _type;
 
   @generated
   NamedTypeImpl({
@@ -29578,6 +30012,17 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     _becomeParentOf12(typeArguments);
   }
 
+  NamedTypeImpl.v1Projection(ConstructorTypeReferenceImpl origin)
+    : _importPrefix = origin.importPrefix,
+      name = origin.name,
+      _typeArguments = origin.typeArguments,
+      question = null,
+      _constructorTypeReferenceOrigin = origin,
+      _astNodeApiOverride = AstNodeApi.v1 {
+    _becomeParentOf1(_importPrefix);
+    _becomeParentOf1(_typeArguments);
+  }
+
   @generated
   @override
   Token get beginToken {
@@ -29587,7 +30032,19 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return name;
   }
 
-  @generated
+  @override
+  Element? get element => _constructorTypeReferenceOrigin?.element ?? _element;
+
+  set element(Element? value) {
+    var origin = _constructorTypeReferenceOrigin;
+    if (origin != null) {
+      origin.element = value;
+    } else {
+      _element = value;
+    }
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   Token get endToken {
     if (question case var question?) {
@@ -29599,12 +30056,20 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return name;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  ImportPrefixReferenceImpl? get importPrefix => _importPrefix;
+  ImportPrefixReferenceImpl? get importPrefix {
+    var origin = _constructorTypeReferenceOrigin;
+    var result = origin != null ? origin.importPrefix : _importPrefix;
+    _becomeParentOf1(result);
+    return result;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set importPrefix(ImportPrefixReferenceImpl? importPrefix) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _importPrefix = _becomeParentOf12(importPrefix);
   }
 
@@ -29624,14 +30089,38 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   bool get isSynthetic => name.isSynthetic && typeArguments == null;
 
-  @generated
   @override
-  TypeArgumentListImpl? get typeArguments => _typeArguments;
+  TypeImpl? get type => _constructorTypeReferenceOrigin?.type ?? _type;
 
-  @generated
+  set type(TypeImpl? value) {
+    var origin = _constructorTypeReferenceOrigin;
+    if (origin != null) {
+      origin.type = value;
+    } else {
+      _type = value;
+    }
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeArgumentListImpl? get typeArguments {
+    var origin = _constructorTypeReferenceOrigin;
+    var result = origin != null ? origin.typeArguments : _typeArguments;
+    _becomeParentOf1(result);
+    return result;
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set typeArguments(TypeArgumentListImpl? typeArguments) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _typeArguments = _becomeParentOf12(typeArguments);
   }
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @generated
   @override
@@ -29641,23 +30130,33 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     ..addNode('typeArguments', typeArguments)
     ..addToken('question', question);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('importPrefix', importPrefix)
-    ..addToken('name', name)
-    ..addNode('typeArguments', typeArguments)
-    ..addToken('question', question);
+  ChildEntities get _childEntities2 {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addNode('importPrefix', importPrefix)
+      ..addToken('name', name)
+      ..addNode('typeArguments', typeArguments)
+      ..addToken('question', question);
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedType(this);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNamedType(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
+    return visitor.visitNamedType(this);
+  }
 
   @generated
   @override
@@ -29694,6 +30193,10 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     super.replaceChild(oldNode, newNode);
   }
 
+  @override
+  String toSource() =>
+      _constructorTypeReferenceOrigin?.toSource() ?? super.toSource();
+
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
@@ -29702,10 +30205,13 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     typeArguments?.accept(visitor);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
     importPrefix?.accept2(visitor);
     typeArguments?.accept2(visitor);
   }
@@ -29715,13 +30221,16 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
   }) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
     if (importPrefix case var importPrefix?) {
       if (visitImportPrefix != null) {
         visitImportPrefix(importPrefix);
@@ -29754,9 +30263,12 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return null;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_constructorTypeReferenceOrigin != null) {
+      throw StateError('NamedType is not in the V2 AST view.');
+    }
     if (importPrefix case var importPrefix?) {
       if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
         return importPrefix;
@@ -43111,6 +43623,9 @@ enum V1Projection {
   }
 
   static ExpressionImpl toV1Expression(ExpressionImpl node) {
+    if (node is ConstructorInvocationImpl) {
+      return node.instanceCreationExpression;
+    }
     return node;
   }
 

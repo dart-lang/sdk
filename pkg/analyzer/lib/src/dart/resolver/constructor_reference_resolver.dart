@@ -93,7 +93,7 @@ class ConstructorReferenceResolver {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       typeElement: constructorName.type.element,
-      constructorName: constructorName.name,
+      constructorName: constructorName.name?.token,
       definingLibrary: _resolver.definingLibrary,
     );
 

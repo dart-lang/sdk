@@ -89,7 +89,7 @@ mixin ErrorDetectionHelpers {
 
     if (correspondingParameterType != null) {
       _checkForArgumentTypeNotAssignableForArgument(
-        argument: argument.argumentExpression,
+        argument: argument.argumentExpression2,
         staticParameterType: correspondingParameterType,
         promoteParameterToNullable: promoteParameterToNullable,
         whyNotPromoted: whyNotPromoted,

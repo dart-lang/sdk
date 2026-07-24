@@ -31,20 +31,18 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: M
       element: <testLibrary>::@mixin::M
       type: M
-    period: .
-    name: SimpleIdentifier
-      token: named
-      element: <null>
-      staticType: null
+    selector: ConstructorSelector
+      period: .
+      name2: named
     element: <null>
   argumentList: ArgumentList
     leftParenthesis: (
@@ -66,12 +64,12 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
+ConstructorInvocation
   keyword: new
-  constructorName: ConstructorName
-    type: NamedType
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: M
       element: <testLibrary>::@mixin::M
       type: M

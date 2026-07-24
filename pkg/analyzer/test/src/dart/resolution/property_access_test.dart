@@ -543,7 +543,18 @@ void f() {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target2: InstanceCreationExpression
+  target2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  target(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -578,7 +589,18 @@ void f() {
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide2: PropertyAccess
-    target2: InstanceCreationExpression
+    target2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    target(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -624,7 +646,18 @@ void f() {
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide2: PropertyAccess
-    target2: InstanceCreationExpression
+    target2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    target(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -789,7 +822,18 @@ main() {
     var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: InstanceCreationExpression
+  target2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  target(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -836,7 +880,18 @@ main() {
     var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: InstanceCreationExpression
+  target2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  target(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -1467,7 +1522,18 @@ void f(A a) {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target2: InstanceCreationExpression
+  target2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  target(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -1505,7 +1571,18 @@ void f() {
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide2: PropertyAccess
-    target2: InstanceCreationExpression
+    target2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    target(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -1553,7 +1630,18 @@ void f() {
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide2: PropertyAccess
-    target2: InstanceCreationExpression
+    target2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    target(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A

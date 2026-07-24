@@ -594,7 +594,25 @@ class GenericInferrer {
       // immediately cast with `as`.
       return;
     }
-    if (errorEntity is ConstructorName &&
+    if (errorEntity is ConstructorReference2Impl) {
+      var type = errorEntity.typeReference.type;
+      if (type is InterfaceTypeImpl &&
+          !type.element.metadata.hasOptionalTypeArgs) {
+        var typeReference = errorEntity.typeReference;
+        var constructorName = [
+          if (typeReference.importPrefix case var importPrefix?)
+            '${importPrefix.name.lexeme}.',
+          typeReference.name.lexeme,
+          if (errorEntity.selector case var selector?)
+            '.${selector.name2.lexeme}',
+        ].join();
+        diagnosticReporter.report(
+          diag.inferenceFailureOnInstanceCreation
+              .withArguments(function: constructorName)
+              .at(errorEntity),
+        );
+      }
+    } else if (errorEntity is ConstructorName &&
         !(errorEntity.type.type as InterfaceType)
             .element
             .metadata

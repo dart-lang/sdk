@@ -156,6 +156,20 @@ bool _isNullableJSExportedDartFunction<T extends Function>(Object? any) =>
 external JSFunction _getPrototypeOf(JSAny o);
 
 @pragma('dart2js:prefer-inline')
+bool _isJSArray(Object? any) {
+  return _isJSAny(any) &&
+      foreign_helper.JS(
+        'bool',
+        'Array.isArray(#) || # instanceof Array',
+        any,
+        any,
+      );
+}
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSArray(Object? any) => any == null || _isJSArray(any);
+
+@pragma('dart2js:prefer-inline')
 bool _isJSTypedArray(Object? any) {
   final typedArrayProto = _getPrototypeOf(globalContext['Int8Array']!);
   return _isJSAny(any) && (any as JSAny).instanceof(typedArrayProto);

@@ -119,6 +119,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _useIdentifierElement(node.constructorReference.typeReference.element);
+    _useIdentifierElement(node.constructorReference.element);
+    _addParametersForArguments(node.argumentList);
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -197,12 +205,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     var element = node.writeOrReadElement2;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _addParametersForArguments(node.argumentList);
-    super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -296,7 +298,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (node.inCommentReference) {
+    if (node.inCommentReference2) {
       return;
     }
     var element = node.writeOrReadElement2;
@@ -331,11 +333,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
           // named constructor
           (element is ConstructorElement &&
               parent is ConstructorName &&
-              grandparent is InstanceCreationExpression) ||
+              grandparent is ConstructorInvocation) ||
           // unnamed constructor
           (element is InterfaceElement &&
               grandparent is ConstructorName &&
-              grandparent.parent2 is InstanceCreationExpression);
+              grandparent.parent2 is ConstructorInvocation);
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {

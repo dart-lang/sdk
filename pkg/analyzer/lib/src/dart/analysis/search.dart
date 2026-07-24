@@ -264,6 +264,27 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    if (importedElements.contains(node.element)) {
+      var prefixFragment = import.prefix;
+      var importPrefix = node.importPrefix;
+      if (prefixFragment == null) {
+        if (importPrefix == null) {
+          _addResult(node.offset, 0);
+        }
+      } else if (importPrefix != null &&
+          importPrefix.element == prefixFragment.element) {
+        var offset = importPrefix.offset;
+        var end = importPrefix.period.end;
+        _addResult(offset, end - offset);
+      }
+    }
+
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {}
 
   @override

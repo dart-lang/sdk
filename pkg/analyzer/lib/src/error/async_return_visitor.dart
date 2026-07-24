@@ -29,7 +29,7 @@ class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
     if (_withinTryBlock) return;
     var expression = node.expression2;
     var expressionType = expression.staticType ?? DynamicTypeImpl.instance;
-    var body = node.withAncestors.whereType<FunctionBody>().firstOrNull;
+    var body = node.withAncestors2.whereType<FunctionBody>().firstOrNull;
     _report(body, expressionType, node.functionDefinition);
   }
 
@@ -39,7 +39,7 @@ class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
     if (expression == null) return;
     if (_withinTryBlock != node.isWithinTryBlock) return;
     var expressionType = expression.staticType ?? DynamicTypeImpl.instance;
-    var body = node.withAncestors.whereType<FunctionBody>().firstOrNull;
+    var body = node.withAncestors2.whereType<FunctionBody>().firstOrNull;
     _report(body, expressionType, node.returnKeyword);
   }
 
@@ -71,7 +71,7 @@ class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
 
 extension on ReturnStatement {
   bool get isWithinTryBlock {
-    for (var ancestor in withAncestors) {
+    for (var ancestor in withAncestors2) {
       if (ancestor case Block(parent2: var parent)) {
         if (parent is BlockFunctionBody) {
           return false;

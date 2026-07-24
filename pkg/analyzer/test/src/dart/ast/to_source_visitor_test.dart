@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -128,6 +129,30 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleMixinDeclaration;
     _assertSource(code, node);
+  }
+
+  void test_toSource_ConstructorName_v1Projection() {
+    var code = 'prefix.A.foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = new $code();
+''');
+    var node = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
+    expect(node.toSource(), code);
+  }
+
+  void test_toSource_InstanceCreationExpression_v1Projection() {
+    var code = 'new prefix.A.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleInstanceCreationExpression;
+    expect(node.toSource(), code);
   }
 
   void test_visitAdjacentStrings() {
@@ -1087,7 +1112,8 @@ class C {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -1096,7 +1122,8 @@ final x = new $code();
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -1105,7 +1132,8 @@ final x = new $code();
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -2550,7 +2578,7 @@ final x = $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     _assertSource(code, node);
   }
 
@@ -2559,7 +2587,7 @@ final x = $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     _assertSource(code, node);
   }
 
@@ -2568,7 +2596,7 @@ final x = $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     _assertSource(code, node);
   }
 

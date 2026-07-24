@@ -88,6 +88,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ConstructorDeclaration,
         ConstructorFieldInitializer,
         ConstructorInitializer,
+        ConstructorInvocation,
         ConstructorName,
         ConstructorReference,
         ConstructorReference2,

@@ -583,9 +583,9 @@ library
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: A @39
                   typeArguments: TypeArgumentList
                     leftBracket: < @40
@@ -710,9 +710,9 @@ library
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: A @39
                   typeArguments: TypeArgumentList
                     leftBracket: < @40
@@ -837,9 +837,9 @@ library
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: A @39
                   typeArguments: TypeArgumentList
                     leftBracket: < @40
@@ -964,9 +964,9 @@ library
         #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: A @39
                   typeArguments: TypeArgumentList
                     leftBracket: < @40

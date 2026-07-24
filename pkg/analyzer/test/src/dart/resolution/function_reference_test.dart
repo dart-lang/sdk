@@ -1083,7 +1083,18 @@ foo() {
     var node = result.findNode.implicitCallReference('C()<int>');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  expression(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1332,7 +1343,18 @@ foo() {
     var node = result.findNode.implicitCallReference('C()<int>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  expression(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1375,7 +1397,18 @@ foo() {
     var node = result.findNode.implicitCallReference('C()<int>;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  expression(v1): InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C

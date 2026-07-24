@@ -1246,10 +1246,10 @@ Configuration
 var v = new A.n();
 ''');
     var node =
-        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     assertParsedNodeText(node, r'''
-ConstructorName
-  type: NamedType
+ConstructorReference2
+  typeReference: ConstructorTypeReference
     importPrefix: ImportPrefixReference
       name: A
       period: .
@@ -1262,17 +1262,17 @@ ConstructorName
 var v = new p.A.n();
 ''');
     var node =
-        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     assertParsedNodeText(node, r'''
-ConstructorName
-  type: NamedType
+ConstructorReference2
+  typeReference: ConstructorTypeReference
     importPrefix: ImportPrefixReference
       name: p
       period: .
     name: A
-  period: .
-  name: SimpleIdentifier
-    token: n
+  selector: ConstructorSelector
+    period: .
+    name2: n
 ''');
   }
 
@@ -1281,10 +1281,10 @@ ConstructorName
 var v = new A();
 ''');
     var node =
-        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     assertParsedNodeText(node, r'''
-ConstructorName
-  type: NamedType
+ConstructorReference2
+  typeReference: ConstructorTypeReference
     name: A
 ''');
   }
@@ -1294,10 +1294,10 @@ ConstructorName
 var v = new p.A();
 ''');
     var node =
-        parseResult.findNode.singleInstanceCreationExpression.constructorName;
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     assertParsedNodeText(node, r'''
-ConstructorName
-  type: NamedType
+ConstructorReference2
+  typeReference: ConstructorTypeReference
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -1640,7 +1640,33 @@ CompilationUnit
             name: c
             equals: =
             initializer2: MethodInvocation
-              target2: InstanceCreationExpression
+              target2: ConstructorInvocation
+                keyword: new
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Future
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: int
+                      rightBracket: >
+                  selector: ConstructorSelector
+                    period: .
+                    name2: sync
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                      body: ExpressionFunctionBody
+                        functionDefinition: =>
+                        expression2: IntegerLiteral
+                          literal: 3
+                  rightParenthesis: )
+              target(v1): InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
                   type: NamedType
@@ -1656,14 +1682,14 @@ CompilationUnit
                     token: sync
                 argumentList: ArgumentList
                   leftParenthesis: (
-                  arguments2
+                  arguments
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
                         rightParenthesis: )
                       body: ExpressionFunctionBody
                         functionDefinition: =>
-                        expression2: IntegerLiteral
+                        expression: IntegerLiteral
                           literal: 3
                   rightParenthesis: )
               operator: .
@@ -1715,7 +1741,32 @@ CompilationUnit
             name: c
             equals: =
             initializer2: MethodInvocation
-              target2: InstanceCreationExpression
+              target2: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Future
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: int
+                      rightBracket: >
+                  selector: ConstructorSelector
+                    period: .
+                    name2: sync
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                      body: ExpressionFunctionBody
+                        functionDefinition: =>
+                        expression2: IntegerLiteral
+                          literal: 3
+                  rightParenthesis: )
+              target(v1): InstanceCreationExpression
                 constructorName: ConstructorName
                   type: NamedType
                     name: Future
@@ -1730,14 +1781,14 @@ CompilationUnit
                     token: sync
                 argumentList: ArgumentList
                   leftParenthesis: (
-                  arguments2
+                  arguments
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
                         rightParenthesis: )
                       body: ExpressionFunctionBody
                         functionDefinition: =>
-                        expression2: IntegerLiteral
+                        expression: IntegerLiteral
                           literal: 3
                   rightParenthesis: )
               operator: .
@@ -1789,7 +1840,23 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: C
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: E
+                  rightBracket: >
+              selector: ConstructorSelector
+                period: .
+                name2: n
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          expression(v1): InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 name: C
@@ -1867,7 +1934,26 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: p
+                  period: .
+                name: C
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: E
+                  rightBracket: >
+              selector: ConstructorSelector
+                period: .
+                name2: n
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          expression(v1): InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 importPrefix: ImportPrefixReference

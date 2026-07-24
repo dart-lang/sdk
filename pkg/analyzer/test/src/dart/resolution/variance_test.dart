@@ -62,12 +62,12 @@ main() {
 }
 ''');
 
-    var node = result.findNode.instanceCreation('B(<num>');
+    var node = result.findNode.constructorInvocation('B(<num>');
     nodeTextConfiguration.skipArgumentList = true;
     assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
       element: <testLibrary>::@class::B
       type: B<num>

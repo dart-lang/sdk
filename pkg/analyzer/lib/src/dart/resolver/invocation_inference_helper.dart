@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -79,7 +80,7 @@ class InvocationInferenceHelper {
   /// return the element and type parameters to infer. Otherwise return `null`.
   ConstructorElementToInfer? constructorElementToInfer({
     required Element? typeElement,
-    required SimpleIdentifierImpl? constructorName,
+    required Token? constructorName,
     required LibraryElementImpl definingLibrary,
   }) {
     List<TypeParameterElementImpl> typeParameters;
@@ -90,7 +91,7 @@ class InvocationInferenceHelper {
       if (constructorName == null) {
         rawElement = typeElement.unnamedConstructor;
       } else {
-        var name = constructorName.name;
+        var name = constructorName.lexeme;
         rawElement = typeElement.getNamedConstructor(name);
         if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
@@ -101,7 +102,7 @@ class InvocationInferenceHelper {
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {
         rawElement = aliasedType.lookUpConstructor(
-          constructorName?.name,
+          constructorName?.lexeme,
           definingLibrary,
         );
       }

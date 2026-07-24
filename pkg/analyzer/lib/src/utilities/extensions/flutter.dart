@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -76,6 +77,7 @@ extension ArgumentExtension on Argument {
   }
 }
 
+@ToBeDeprecated('Use AstNodeExtension2 instead.')
 extension AstNodeExtension on AstNode? {
   /// Returns the instance creation expression that surrounds this node, if any,
   /// and otherwise `null`.
@@ -194,12 +196,12 @@ extension AstNodeExtension on AstNode? {
 }
 
 extension AstNodeExtension2 on AstNode? {
-  /// Returns the instance creation expression that surrounds this node, if any,
-  /// and otherwise `null`.
+  /// Returns the constructor invocation that surrounds this node, if any, and
+  /// otherwise `null`.
   ///
-  /// This node may be the instance creation expression itself or an (optionally
-  /// prefixed) identifier that names the constructor.
-  InstanceCreationExpression? get findInstanceCreationExpression2 {
+  /// This node may be the constructor invocation itself or a node in its
+  /// constructor reference.
+  ConstructorInvocation? get findConstructorInvocation {
     var node = this;
     if (node is ImportPrefixReference) {
       node = node.parent2;
@@ -207,16 +209,16 @@ extension AstNodeExtension2 on AstNode? {
     if (node is SimpleIdentifier) {
       node = node.parent2;
     }
-    if (node is PrefixedIdentifier) {
+    if (node is ConstructorSelector) {
       node = node.parent2;
     }
-    if (node is NamedType) {
+    if (node is ConstructorTypeReference) {
       node = node.parent2;
     }
-    if (node is ConstructorName) {
+    if (node is ConstructorReference2) {
       node = node.parent2;
     }
-    if (node is InstanceCreationExpression) {
+    if (node is ConstructorInvocation) {
       return node;
     }
     return null;
@@ -270,9 +272,9 @@ extension AstNodeExtension2 on AstNode? {
   bool get isWidgetExpression2 {
     return switch (this) {
       null => false,
-      AstNode(parent2: NamedType()) ||
-      AstNode(parent2: AstNode(parent2: NamedType())) => false,
-      AstNode(parent2: ConstructorName()) => false,
+      AstNode(parent2: ConstructorTypeReference()) ||
+      AstNode(parent2: AstNode(parent2: ConstructorTypeReference())) => false,
+      AstNode(parent2: ConstructorReference2()) => false,
       NamedArgument() => false,
       Expression(:var staticType) => staticType.isWidgetType,
       _ => false,
@@ -302,8 +304,7 @@ extension AstNodeExtension2 on AstNode? {
     }
 
     var invocation = argument.parent2?.parent2;
-    if (invocation is! InstanceCreationExpression ||
-        !invocation.isWidgetCreation) {
+    if (invocation is! ConstructorInvocation || !invocation.isWidgetCreation) {
       return null;
     }
     return argument;
@@ -320,6 +321,77 @@ extension ClassElementExtension2 on ClassElement {
   /// Whether this is a [ClassElement] that extends the Flutter class
   /// `StatefulWidget`.
   bool get isStatefulWidgetDeclaration => supertype.isExactlyStatefulWidgetType;
+}
+
+extension ConstructorInvocationExtension on ConstructorInvocation {
+  /// The named expression representing the `builder` argument, or `null` if
+  /// there is none.
+  NamedArgument? get builderArgument => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isBuilderArgument);
+
+  /// The named expression representing the `child` argument, or `null` if there
+  /// is none.
+  NamedArgument? get childArgument => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isChildArgument);
+
+  /// The named expression representing the `children` argument, or `null` if
+  /// there is none.
+  NamedArgument? get childrenArgument => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isChildrenArgument);
+
+  bool get isExactlyAlignCreation => staticType.isExactWidgetTypeAlign;
+
+  bool get isExactlyContainerCreation => staticType.isExactWidgetTypeContainer;
+
+  bool get isExactlyPaddingCreation => staticType.isExactWidgetTypePadding;
+
+  bool get isWidgetCreation {
+    var element = constructorReference.element?.enclosingElement;
+    return element.isWidget;
+  }
+
+  /// The named expression representing the `sliver` argument, or `null` if there
+  /// is none.
+  NamedArgument? get sliverArgument => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isSliverArgument);
+
+  /// The named expression representing the `slivers` argument, or `null` if
+  /// there is none.
+  NamedArgument? get sliversArgument => argumentList.arguments2
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((argument) => argument.isSliversArgument);
+
+  /// The presentation for this node.
+  String? get widgetPresentationText {
+    var element = constructorReference.element?.enclosingElement;
+    if (!element.isWidget) {
+      return null;
+    }
+    var arguments = argumentList.arguments2;
+    if (element._isExactly('Icon', _uriWidgetsIcon)) {
+      if (arguments.isNotEmpty) {
+        var text = arguments[0].toString();
+        var arg = text.elideTo(32);
+        return 'Icon($arg)';
+      } else {
+        return 'Icon';
+      }
+    }
+    if (element._isExactly('Text', _uriWidgetsText)) {
+      if (arguments.isNotEmpty) {
+        var text = arguments[0].toString();
+        var arg = text.elideTo(32);
+        return 'Text($arg)';
+      } else {
+        return 'Text';
+      }
+    }
+    return element?.name;
+  }
 }
 
 extension DartTypeExtension on DartType? {
@@ -491,6 +563,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
   }
 }
 
+@ToBeDeprecated('Use ConstructorInvocationExtension instead.')
 extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// The named expression representing the `builder` argument, or `null` if
   /// there is none.
@@ -542,66 +615,6 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
       return null;
     }
     var arguments = argumentList.arguments;
-    if (element._isExactly('Icon', _uriWidgetsIcon)) {
-      if (arguments.isNotEmpty) {
-        var text = arguments[0].toString();
-        var arg = text.elideTo(32);
-        return 'Icon($arg)';
-      } else {
-        return 'Icon';
-      }
-    }
-    if (element._isExactly('Text', _uriWidgetsText)) {
-      if (arguments.isNotEmpty) {
-        var text = arguments[0].toString();
-        var arg = text.elideTo(32);
-        return 'Text($arg)';
-      } else {
-        return 'Text';
-      }
-    }
-    return element?.name;
-  }
-}
-
-extension InstanceCreationExpressionExtension2 on InstanceCreationExpression {
-  /// The named expression representing the `builder` argument, or `null` if
-  /// there is none.
-  NamedArgument? get builderArgument2 => argumentList.arguments2
-      .whereType<NamedArgument>()
-      .firstWhereOrNull((argument) => argument.isBuilderArgument);
-
-  /// The named expression representing the `child` argument, or `null` if there
-  /// is none.
-  NamedArgument? get childArgument2 => argumentList.arguments2
-      .whereType<NamedArgument>()
-      .firstWhereOrNull((argument) => argument.isChildArgument);
-
-  /// The named expression representing the `children` argument, or `null` if
-  /// there is none.
-  NamedArgument? get childrenArgument2 => argumentList.arguments2
-      .whereType<NamedArgument>()
-      .firstWhereOrNull((argument) => argument.isChildrenArgument);
-
-  /// The named expression representing the `sliver` argument, or `null` if there
-  /// is none.
-  NamedArgument? get sliverArgument2 => argumentList.arguments2
-      .whereType<NamedArgument>()
-      .firstWhereOrNull((argument) => argument.isSliverArgument);
-
-  /// The named expression representing the `slivers` argument, or `null` if
-  /// there is none.
-  NamedArgument? get sliversArgument2 => argumentList.arguments2
-      .whereType<NamedArgument>()
-      .firstWhereOrNull((argument) => argument.isSliversArgument);
-
-  /// The presentation for this node.
-  String? get widgetPresentationText2 {
-    var element = constructorName.element?.enclosingElement;
-    if (!element.isWidget) {
-      return null;
-    }
-    var arguments = argumentList.arguments2;
     if (element._isExactly('Icon', _uriWidgetsIcon)) {
       if (arguments.isNotEmpty) {
         var text = arguments[0].toString();

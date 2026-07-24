@@ -62,8 +62,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
     if (objectReferences.isNotEmpty) return;
 
     var scopedNameFinder = ScopedNameFinder(node.offset);
-    // ignore:experimental_member_use
-    node.accept2(scopedNameFinder);
+    node.accept(scopedNameFinder);
     var namesInScope = <String>{};
     namesInScope.addAll(scopedNameFinder.locals);
 
@@ -127,8 +126,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
     var offset = node.offset;
 
     var scopedNameFinder = ScopedNameFinder(offset);
-    // ignore:experimental_member_use
-    node.accept2(scopedNameFinder);
+    node.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals);
 
     var variables = <RecordField>[];

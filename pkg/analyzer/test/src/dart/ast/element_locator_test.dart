@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -392,6 +393,25 @@ void f(int a) {
 ''');
   }
 
+  test_locate_Identifier_instanceCreation_namedConstructor_v1Projection() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.test();
+}
+void f() {
+  A.test();
+}
+''');
+    var node = FindNode(
+      result.content,
+      result.unit,
+    ).singleConstructorName.name!;
+    var element = ElementLocator.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::test
+''');
+  }
+
   test_locate_Identifier_propertyAccess() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
@@ -444,7 +464,10 @@ void main() {
  new A();
 }
 ''');
-    var node = result.findNode.instanceCreation('new A()');
+    var node = FindNode(
+      result.content,
+      result.unit,
+    ).instanceCreation('new A()');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -462,7 +485,7 @@ void main() {
  new pref.A();
 }
 ''');
-    var node = result.findNode.instanceCreation('A();');
+    var node = FindNode(result.content, result.unit).instanceCreation('A();');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 package:test/a.dart::@class::A::@constructor::new
@@ -479,7 +502,7 @@ void main() {
  new A();
 }
 ''');
-    var node = result.findNode.instanceCreation('A();');
+    var node = FindNode(result.content, result.unit).instanceCreation('A();');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -1307,7 +1330,7 @@ void main() {
  new A();
 }
 ''');
-    var node = result.findNode.instanceCreation('new A()');
+    var node = result.findNode.constructorInvocation('new A()');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -1325,7 +1348,7 @@ void main() {
  new pref.A();
 }
 ''');
-    var node = result.findNode.instanceCreation('A();');
+    var node = result.findNode.constructorInvocation('A();');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 package:test/a.dart::@class::A::@constructor::new
@@ -1342,7 +1365,7 @@ void main() {
  new A();
 }
 ''');
-    var node = result.findNode.instanceCreation('A();');
+    var node = result.findNode.constructorInvocation('A();');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new

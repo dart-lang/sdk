@@ -320,6 +320,18 @@ linter:
     assertNoSuggestion('- internal_lint');
   }
 
+  void test_linter_rules_listItem_excludesExisting_disabled() {
+    getCompletions('''
+linter:
+  rules:
+    - camel_case_types
+    - annotate_overrides: false
+    - ^
+''');
+    assertSuggestion('always_declare_return_types');
+    assertNoSuggestion('annotate_overrides');
+  }
+
   void test_linter_rules_listItem_first() {
     getCompletions('''
 linter:
@@ -450,6 +462,18 @@ linter:
 linter:
   rules:
     annotate_overrides: true
+    ^
+''');
+    assertSuggestion('always_declare_return_types: ');
+    assertNoSuggestion('annotate_overrides: ');
+    assertNoSuggestion('annotate_overrides');
+  }
+
+  void test_linter_rules_mapKey_excludesExisting_disabled() {
+    getCompletions('''
+linter:
+  rules:
+    annotate_overrides: false
     ^
 ''');
     assertSuggestion('always_declare_return_types: ');

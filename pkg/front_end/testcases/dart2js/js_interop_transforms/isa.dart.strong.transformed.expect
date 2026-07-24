@@ -72,8 +72,8 @@ static method test(js_::JSAny /* erasure=core::Object */ any, js_::JSAny? /* era
   js_::_isNullableJSObject(any);
   js_::_isJSObject(obj);
   js_::_isNullableJSObject(obj);
-  !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "Array");
-  obj == null || js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "Array");
+  js_::_isJSArray(any);
+  js_::_isNullableJSArray(obj);
   js_::_isJSTypedArray(any);
   js_::_isJSBoxedDartObject(any);
   js_::_isJSExportedDartFunction<core::Function>(any);

@@ -322,112 +322,130 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
 ///
 /// Completion test code coverage is 95%. The two basic blocks that are not
 /// executed cannot be executed. They are included for future reference.
-class ScopedNameFinder extends GeneralizingAstVisitor2<void> {
+class ScopedNameFinder extends GeneralizingAstVisitor<void>
+    with _ScopedNameFinderMixin {
+  @override
+  final int position;
+
+  ScopedNameFinder(this.position);
+
+  @override
+  AstNode? parentOf(AstNode node) => node.parent;
+
+  @override
+  void visitNode(AstNode node) {
+    immediateChild = node;
+    parentOf(node)?.accept(this);
+  }
+}
+
+/// The V2 AST equivalent of [ScopedNameFinder].
+class ScopedNameFinder2 extends GeneralizingAstVisitor2<void>
+    with _ScopedNameFinderMixin {
+  @override
+  final int position;
+
+  ScopedNameFinder2(this.position);
+
+  @override
+  AstNode? parentOf(AstNode node) => node.parent2;
+
+  @override
+  void visitNode(AstNode node) {
+    immediateChild = node;
+    parentOf(node)?.accept2(this);
+  }
+}
+
+mixin _ScopedNameFinderMixin {
   Declaration? _declarationNode;
 
-  AstNode? _immediateChild;
+  AstNode? immediateChild;
 
   final Set<String> _locals = {};
 
-  final int _position;
-
   bool _referenceIsWithinLocalFunction = false;
-
-  ScopedNameFinder(this._position);
 
   Declaration? get declaration => _declarationNode;
 
   Set<String> get locals => _locals;
 
-  @override
+  int get position;
+
+  AstNode? parentOf(AstNode node);
+
   void visitBlock(Block node) {
     _checkStatements(node.statements);
-    super.visitBlock(node);
+    visitNode(node);
   }
 
-  @override
   void visitCatchClause(CatchClause node) {
     _addToScope(node.exceptionParameter?.name);
     _addToScope(node.stackTraceParameter?.name);
-    super.visitCatchClause(node);
+    visitNode(node);
   }
 
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!identical(_immediateChild, node.parameters)) {
+    if (!identical(immediateChild, node.parameters)) {
       _addParameters(node.parameters.parameters);
     }
     _declarationNode = node;
   }
 
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _declarationNode = node;
   }
 
-  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _addToScope(node.loopVariable.name);
-    super.visitForEachPartsWithDeclaration(node);
+    visitNode(node);
   }
 
-  @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     _addVariables(node.variables.variables);
-    super.visitForPartsWithDeclarations(node);
+    visitNode(node);
   }
 
-  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent2 is! FunctionDeclarationStatement) {
+    if (parentOf(node) is! FunctionDeclarationStatement) {
       _declarationNode = node;
     } else {
-      super.visitFunctionDeclaration(node);
+      visitNode(node);
     }
   }
 
-  @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _referenceIsWithinLocalFunction = true;
-    super.visitFunctionDeclarationStatement(node);
+    visitNode(node);
   }
 
-  @override
   void visitFunctionExpression(FunctionExpression node) {
     var parameters = node.parameters;
-    if (parameters != null && !identical(_immediateChild, parameters)) {
+    if (parameters != null && !identical(immediateChild, parameters)) {
       _addParameters(parameters.parameters);
     }
-    super.visitFunctionExpression(node);
+    visitNode(node);
   }
 
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _declarationNode = node;
     var parameters = node.parameters;
-    if (parameters != null && !identical(_immediateChild, parameters)) {
+    if (parameters != null && !identical(immediateChild, parameters)) {
       _addParameters(parameters.parameters);
     }
   }
 
-  @override
-  void visitNode(AstNode node) {
-    _immediateChild = node;
-    node.parent2?.accept2(this);
-  }
+  void visitNode(AstNode node);
 
-  @override
   void visitSwitchMember(SwitchMember node) {
     _checkStatements(node.statements);
-    super.visitSwitchMember(node);
+    visitNode(node);
   }
 
-  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _declarationNode = node;
   }
 
-  @override
   void visitTypeAlias(TypeAlias node) {
     _declarationNode = node;
   }
@@ -455,7 +473,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor2<void> {
   /// immediate child.
   void _checkStatements(List<Statement> statements) {
     for (Statement statement in statements) {
-      if (identical(statement, _immediateChild)) {
+      if (identical(statement, immediateChild)) {
         return;
       }
       if (statement is VariableDeclarationStatement) {
@@ -468,11 +486,11 @@ class ScopedNameFinder extends GeneralizingAstVisitor2<void> {
   }
 
   bool _isInRange(Token token) {
-    if (_position < 0) {
+    if (position < 0) {
       // if source position is not set then all nodes are in range
       return true;
       // not reached
     }
-    return token.end < _position;
+    return token.end < position;
   }
 }

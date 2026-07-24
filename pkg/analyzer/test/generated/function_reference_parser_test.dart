@@ -214,11 +214,11 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.toString();
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleConstructorInvocation;
     assertParsedNodeText(node, r'''
-InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: f
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -228,9 +228,9 @@ InstanceCreationExpression
           NamedType
             name: b
         rightBracket: >
-    period: .
-    name: SimpleIdentifier
-      token: toString
+    selector: ConstructorSelector
+      period: .
+      name2: toString
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

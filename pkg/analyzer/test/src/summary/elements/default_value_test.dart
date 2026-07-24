@@ -236,10 +236,10 @@ library
                 #F7 optionalNamed hasImplicitType isOriginDeclaration a (nameOffset:51) (firstTokenOffset:51) (offset:51)
                   element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @54
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: A @60
                           typeArguments: TypeArgumentList
                             leftBracket: < @61
@@ -671,10 +671,10 @@ library
                 #F8 optionalPositional isOriginDeclaration b (nameOffset:71) (firstTokenOffset:56) (offset:71)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @75
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @81
                           element: <testLibrary>::@class::B
                           type: B<int, double>
@@ -761,10 +761,10 @@ library
                 #F7 optionalPositional isOriginDeclaration b (nameOffset:58) (firstTokenOffset:53) (offset:58)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @62
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @68
                           element: <testLibrary>::@class::B
                           type: B<Never>
@@ -858,10 +858,10 @@ library
                 #F10 optionalPositional isOriginDeclaration a (nameOffset:124) (firstTokenOffset:119) (offset:124)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @128
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @134
                           element: <testLibrary>::@class::B
                           type: B<Never>
@@ -952,10 +952,10 @@ library
             #F6 optionalPositional isOriginDeclaration b (nameOffset:47) (firstTokenOffset:42) (offset:47)
               element: <testLibrary>::@function::foo::@formalParameter::b
               initializer: expression_0
-                InstanceCreationExpression
+                ConstructorInvocation
                   keyword: const @51
-                  constructorName: ConstructorName
-                    type: NamedType
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: B @57
                       element: <testLibrary>::@class::B
                       type: B<Never>
@@ -1038,10 +1038,10 @@ library
                 #F8 optionalPositional isOriginDeclaration b (nameOffset:59) (firstTokenOffset:54) (offset:59)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @63
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @69
                           element: <testLibrary>::@class::B
                           type: B<Never>
@@ -1136,10 +1136,10 @@ library
                 #F10 optionalPositional isOriginDeclaration b (nameOffset:74) (firstTokenOffset:64) (offset:74)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @78
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @84
                           element: <testLibrary>::@class::B
                           type: B<Never, Never>
@@ -1234,10 +1234,10 @@ library
                 #F8 optionalPositional isOriginDeclaration b (nameOffset:59) (firstTokenOffset:54) (offset:59)
                   element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
-                    InstanceCreationExpression
+                    ConstructorInvocation
                       keyword: const @63
-                      constructorName: ConstructorName
-                        type: NamedType
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
                           name: B @69
                           element: <testLibrary>::@class::B
                           type: B<Never>

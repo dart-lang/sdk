@@ -287,6 +287,20 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    names.add(node.name2.lexeme);
+  }
+
+  @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    if (node.importPrefix case var prefix?) {
+      _addIfNotShadowed(prefix.name, hasImportPrefix: false);
+    }
+    _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {

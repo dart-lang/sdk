@@ -10,7 +10,8 @@ library;
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart' as ast show ConstructorInvocation;
+import 'package:analyzer/dart/ast/ast.dart' hide ConstructorInvocation;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -138,7 +139,7 @@ class BoolState extends InstanceState {
 /// [InvalidConstant] represents an invalid result with error information.
 sealed class Constant {}
 
-class ConstructorInvocationImpl implements ConstructorInvocation {
+class ConstructorInvocationDataImpl implements ConstructorInvocation {
   @override
   final ConstructorElement constructor;
 
@@ -148,7 +149,7 @@ class ConstructorInvocationImpl implements ConstructorInvocation {
   @override
   final Map<String, DartObjectImpl> namedArguments;
 
-  ConstructorInvocationImpl(
+  ConstructorInvocationDataImpl(
     this.constructor,
     this.positionalArguments,
     this.namedArguments,
@@ -269,7 +270,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
-  ConstructorInvocationImpl? get constructorInvocation {
+  ConstructorInvocationDataImpl? get constructorInvocation {
     return state.tryCast<GenericState>()?.invocation;
   }
 
@@ -1516,7 +1517,7 @@ class GenericState extends InstanceState {
   int? _hashCode;
 
   /// Information about the constructor invoked to generate this instance.
-  final ConstructorInvocationImpl? invocation;
+  final ConstructorInvocationDataImpl? invocation;
 
   @override
   final bool isUnknown;
@@ -2547,7 +2548,7 @@ class InvalidConstant implements Constant {
     var parent = node.parent2;
     var parent2 = parent?.parent2;
     if (parent is ArgumentList &&
-        parent2 is InstanceCreationExpression &&
+        parent2 is ast.ConstructorInvocation &&
         parent2.isConst) {
       return InvalidConstant.forEntity(
         entity: node,

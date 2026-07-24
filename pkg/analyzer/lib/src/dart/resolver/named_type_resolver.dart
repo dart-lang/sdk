@@ -139,9 +139,174 @@ class NamedTypeResolver with ScopeHelpers {
     }
   }
 
+  /// Resolves the type-shaped portion of a V2 constructor reference.
+  TypeImpl resolveConstructorTypeReference(
+    ConstructorTypeReferenceImpl node, {
+    required TypeConstraintGenerationDataForTesting? dataForTesting,
+  }) {
+    Element? element;
+    var importPrefix = node.importPrefix;
+    if (importPrefix case var importPrefix?) {
+      var prefixElement = _scopeContext.nameScope
+          .lookup(importPrefix.name.lexeme)
+          .getter;
+      importPrefix.element = prefixElement;
+      if (prefixElement is PrefixElement) {
+        element = _lookupGetter(prefixElement.scope, node.name);
+      } else if ((prefixElement is InterfaceElement ||
+              prefixElement is TypeAliasElement) &&
+          node.parent2 is ConstructorReference2Impl &&
+          (node.parent2 as ConstructorReference2Impl).selector == null) {
+        var reference = node.parent2 as ConstructorReference2Impl;
+        var typeArguments = node.typeArguments;
+        if (typeArguments != null) {
+          diagnosticReporter.report(
+            diag.wrongNumberOfTypeArgumentsConstructor
+                .withArguments(
+                  className: importPrefix.name.lexeme,
+                  constructorName: node.name.lexeme,
+                )
+                .at(typeArguments),
+          );
+          node.typeArguments = null;
+          if (reference.parent2 case ConstructorInvocationImpl invocation) {
+            invocation.typeArguments = typeArguments;
+          }
+        }
+
+        var rewrittenTypeReference = ConstructorTypeReferenceImpl(
+          importPrefix: null,
+          name: importPrefix.name,
+          typeArguments: null,
+        );
+        reference
+          ..typeReference = rewrittenTypeReference
+          ..selector = ConstructorSelectorImpl.v2(
+            period: importPrefix.period,
+            name2: node.name,
+          );
+        return resolveConstructorTypeReference(
+          rewrittenTypeReference,
+          dataForTesting: dataForTesting,
+        );
+      } else if (prefixElement is InterfaceElement ||
+          prefixElement is TypeAliasElement) {
+        element = null;
+      } else if (prefixElement != null) {
+        diagnosticReporter.report(
+          diag.prefixShadowedByLocalDeclaration
+              .withArguments(prefix: importPrefix.name.lexeme)
+              .at(importPrefix.name),
+        );
+        return node.type = InvalidTypeImpl.instance;
+      } else {
+        element = null;
+      }
+    } else {
+      element = _lookupGetter(_scopeContext.nameScope, node.name);
+    }
+    node.element = element;
+
+    if (element is MultiplyDefinedElement) {
+      return node.type = InvalidTypeImpl.instance;
+    }
+
+    var typeArguments = node.typeArguments;
+    if (element is InterfaceElementImpl) {
+      if (typeArguments case var typeArguments?) {
+        var arguments = _buildTypeArguments(
+          node,
+          typeArguments,
+          element.typeParameters.length,
+          target: TypeInstantiationTargetInterfaceElement(element),
+        );
+        return node.type = element.instantiateImpl(
+          typeArguments: arguments,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
+      return node.type = typeSystem.instantiateInterfaceToBounds(
+        element: element,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
+    if (element is TypeAliasElementImpl) {
+      TypeImpl type;
+      if (typeArguments case var typeArguments?) {
+        var arguments = _buildTypeArguments(
+          node,
+          typeArguments,
+          element.typeParameters.length,
+          target: TypeInstantiationTargetTypeAliasElement(element),
+        );
+        type = element.instantiateImpl(
+          typeArguments: arguments,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      } else {
+        type = typeSystem.instantiateTypeAliasToBounds(
+          element: element,
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
+      if (element.aliasedType is TypeParameterType) {
+        diagnosticReporter.report(
+          diag.instantiateTypeAliasExpandsToTypeParameter.at(node.name),
+        );
+        type = InvalidTypeImpl.instance;
+      } else if (type is! InterfaceTypeImpl) {
+        var invocation = node.parent2?.parent2;
+        var isConst = switch (invocation) {
+          ConstructorInvocation(isConst: var isConst) => isConst,
+          _ => false,
+        };
+        diagnosticReporter.report(
+          (isConst ? diag.constWithNonType : diag.newWithNonType)
+              .withArguments(name: node.name.lexeme)
+              .at(node.name),
+        );
+        type = InvalidTypeImpl.instance;
+      }
+      return node.type = type;
+    }
+
+    if (importPrefix != null && importPrefix.element == null) {
+      diagnosticReporter.report(
+        diag.undefinedIdentifier
+            .withArguments(name: importPrefix.name.lexeme)
+            .atOffset(
+              offset: importPrefix.offset,
+              length: node.name.end - importPrefix.offset,
+            ),
+      );
+      return node.type = InvalidTypeImpl.instance;
+    }
+
+    if (!node.name.isSynthetic) {
+      var invocation = node.parent2?.parent2;
+      var isConst = switch (invocation) {
+        ConstructorInvocation(isConst: var isConst) => isConst,
+        _ => false,
+      };
+      var diagnostic = (isConst ? diag.constWithNonType : diag.newWithNonType)
+          .withArguments(name: node.name.lexeme);
+      var errorTarget = importPrefix;
+      diagnosticReporter.report(
+        errorTarget != null && errorTarget.element is! PrefixElement
+            ? diagnostic.atOffset(
+                offset: errorTarget.offset,
+                length: node.name.end - errorTarget.offset,
+              )
+            : diagnostic.at(node.name),
+      );
+    }
+    return node.type = InvalidTypeImpl.instance;
+  }
+
   /// Return type arguments, exactly [parameterCount].
   List<TypeImpl> _buildTypeArguments(
-    NamedType node,
+    AstNode node,
     TypeArgumentList argumentList,
     int parameterCount, {
     required TypeInstantiationTarget target,
@@ -395,7 +560,7 @@ class NamedTypeResolver with ScopeHelpers {
               .at(typeArguments),
         );
         var instanceCreation = constructorName.parent2;
-        if (instanceCreation is InstanceCreationExpressionImpl) {
+        if (instanceCreation is ConstructorInvocationImpl) {
           instanceCreation.typeArguments = typeArguments;
         }
       }
@@ -495,7 +660,7 @@ class NamedTypeResolver with ScopeHelpers {
       if (parent is ConstructorName) {
         var errorRange = _ErrorHelper._getErrorRange(node);
         var constructorUsage = parent.parent2;
-        if (constructorUsage is InstanceCreationExpression) {
+        if (constructorUsage is ConstructorInvocation) {
           diagnosticReporter.report(
             diag.instantiateTypeAliasExpandsToTypeParameter.atOffset(
               offset: errorRange.offset,
@@ -548,8 +713,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   static bool _isInstanceCreation(NamedType node) {
     var parent = node.parent2;
-    return parent is ConstructorName &&
-        parent.parent2 is InstanceCreationExpression;
+    return parent is ConstructorName && parent.parent2 is ConstructorInvocation;
   }
 }
 
@@ -563,7 +727,7 @@ class _ErrorHelper {
     var constructorName = node.parent2;
     if (constructorName is ConstructorName) {
       var instanceCreation = constructorName.parent2;
-      if (instanceCreation is InstanceCreationExpression) {
+      if (instanceCreation is ConstructorInvocation) {
         var errorRange = _getErrorRange(node, skipImportPrefix: true);
         var importPrefix = node.importPrefix;
         if (importPrefix != null && importPrefix.element == null) {

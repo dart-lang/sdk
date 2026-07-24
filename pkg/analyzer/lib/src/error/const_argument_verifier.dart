@@ -55,6 +55,15 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    if (node.inConstantContext) return;
+    _check(
+      arguments: node.argumentList.arguments2,
+      errorNode: node.constructorReference,
+    );
+  }
+
+  @override
   void visitConstructorReference(ConstructorReference node) {
     _checkTearoff(node, node.constructorName.element);
   }
@@ -69,15 +78,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     _check(arguments: [node.index2], errorNode: node.leftBracket);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (node.inConstantContext) return;
-    _check(
-      arguments: node.argumentList.arguments2,
-      errorNode: node.constructorName,
-    );
   }
 
   @override
@@ -172,7 +172,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   bool _isConst(Expression expression) {
     if (expression.inConstantContext) {
       return true;
-    } else if (expression is InstanceCreationExpression && expression.isConst) {
+    } else if (expression is ConstructorInvocation && expression.isConst) {
       return true;
     } else if (expression is Literal) {
       return switch (expression) {
@@ -204,7 +204,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     if (node is ConstructorReference) return true;
     if (node is FunctionReference) return true;
     if (node is DotShorthandPropertyAccess) return true;
-    if (node.inCommentReference) return false;
+    if (node.inCommentReference2) return false;
     if (node is SimpleIdentifier) {
       var parent = node.parent2;
       if (parent is ConstructorName) {

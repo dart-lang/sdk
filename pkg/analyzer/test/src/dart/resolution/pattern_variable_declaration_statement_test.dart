@@ -109,7 +109,18 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: A
     equals: =
-    expression2: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A

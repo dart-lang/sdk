@@ -324,6 +324,30 @@ extension IdentifierExtension on Identifier {
 }
 
 extension IdentifierImplExtension on IdentifierImpl {
+  ConstructorTypeReferenceImpl toConstructorTypeReference({
+    required TypeArgumentListImpl? typeArguments,
+  }) {
+    var self = this;
+    if (self is PrefixedIdentifierImpl) {
+      return ConstructorTypeReferenceImpl(
+        importPrefix: ImportPrefixReferenceImpl(
+          name: self.prefix.token,
+          period: self.period,
+        )..element = self.prefix.element,
+        name: self.identifier.token,
+        typeArguments: typeArguments,
+      )..element = self.identifier.element;
+    } else if (self is SimpleIdentifierImpl) {
+      return ConstructorTypeReferenceImpl(
+        importPrefix: null,
+        name: self.token,
+        typeArguments: typeArguments,
+      )..element = self.element;
+    } else {
+      throw UnimplementedError('(${self.runtimeType}) $self');
+    }
+  }
+
   NamedTypeImpl toNamedType({
     required TypeArgumentListImpl? typeArguments,
     required Token? question,

@@ -577,6 +577,9 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addConstructorInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addConstructorName(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addConstructorReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -756,11 +759,6 @@ abstract class RuleVisitorRegistry2 {
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addInstanceCreationExpression(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
 
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
