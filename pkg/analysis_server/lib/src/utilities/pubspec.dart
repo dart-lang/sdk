@@ -7,6 +7,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:pub_semver/pub_semver.dart';
+import 'package:yaml/yaml.dart';
 
 /// Checks if [targetVersion] is compatible with the SDK constraints of all
 /// resolved [packages].
@@ -173,4 +174,19 @@ class PubspecEdit {
     required this.originalConstraint,
     required this.targetVersion,
   });
+}
+
+/// A target package's `pubspec.yaml` file and its derived display name.
+///
+/// Used to avoid reading and parsing the `pubspec.yaml` file multiple times.
+class PubspecTarget {
+  /// The `pubspec.yaml` file for the package.
+  final File file;
+
+  /// The display name of the package, which defaults to the defined package
+  /// name in `pubspec.yaml`, or the parent directory name as a fallback.
+  final String displayName;
+
+  new({required this.file, required YamlMap pubspec})
+    : displayName = (pubspec['name'] as String?) ?? file.parent.shortName;
 }
