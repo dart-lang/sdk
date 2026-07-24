@@ -1143,28 +1143,33 @@ abstract class FlowAnalysis<
   /// any promotions are lost due to this suspension.
   void suspension(Node node);
 
-  /// Call this method just after visiting a `case` or `default` body.
+  /// Call this method just after visiting a `case` or `default` body in a
+  /// switch statement, or one of the expressions in a branch of a switch
+  /// expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.
+  /// See [switch_scrutineeEnd] for details.
   ///
   /// This method returns a boolean indicating whether the end of the case body
   /// is "locally reachable" (i.e. reachable from its start).
-  bool switchStatement_afterCase();
+  bool switch_afterCase();
 
-  /// Call this method just before visiting a `case` or `default` clause.
+  /// Call this method just before visiting a `case` or `default` clause in a
+  /// switch statement, or one of the patterns in a branch of a switch
+  /// expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.
-  void switchStatement_beginAlternative();
+  /// See [switch_scrutineeEnd] for details.
+  void switch_beginAlternative();
 
   /// Call this method just before visiting a sequence of one or more `case` or
-  /// `default` clauses that share a body.
+  /// `default` clauses in a switch statement that share a body, or before
+  /// visiting a branch of a switch expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.
-  void switchStatement_beginAlternatives();
+  /// See [switch_scrutineeEnd] for details.
+  void switch_beginAlternatives();
 
   /// Call this method just after visiting the body of a switch statement.
   ///
-  /// See [switchStatement_expressionEnd] for details.
+  /// See [switch_scrutineeEnd] for details.
   ///
   /// [isExhaustive] indicates whether the switch statement had a "default"
   /// case, or is based on an enumeration and all the enumeration constants
@@ -1173,11 +1178,13 @@ abstract class FlowAnalysis<
   /// Returns a boolean indicating whether flow analysis was able to prove the
   /// switch statement to be exhaustive (e.g. due to the presence of a `default`
   /// clause, or a pattern that is guaranteed to match the scrutinee type).
-  bool switchStatement_end(bool isExhaustive);
+  bool switch_end(bool isExhaustive);
 
-  /// Call this method just after visiting a `case` or `default` clause.
+  /// Call this method just after visiting a `case` or `default` clause in a
+  /// switch statement, or one of the patterns (with optional guard) in a branch
+  /// of a switch expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.`
+  /// See [switch_scrutineeEnd] for details.`
   ///
   /// [guardInfo] should be the expression info for the guard expression. If
   /// there is no guard expression, it should be the value returned by a call to
@@ -1187,15 +1194,16 @@ abstract class FlowAnalysis<
   /// all variables defined by the clause's pattern; the key should be the
   /// variable name and the value should be the variable itself. If the clause
   /// is a `default` clause, [variables] should be an empty map.
-  void switchStatement_endAlternative(
+  void switch_endAlternative(
     ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   );
 
   /// Call this method just after visiting a sequence of one or more `case` or
-  /// `default` clauses that share a body.
+  /// `default` clauses in a switch statement that share a body, or one of the
+  /// patterns (with optional guard) in a branch of a switch expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.
+  /// See [switch_scrutineeEnd] for details.
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the switch statement.
@@ -1204,7 +1212,7 @@ abstract class FlowAnalysis<
   ///
   /// Returns a data structure describing the relationship among variables
   /// defined by patterns in the various alternatives.
-  PatternVariableInfo<Variable> switchStatement_endAlternatives(
+  PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
   });
@@ -1216,24 +1224,38 @@ abstract class FlowAnalysis<
   /// is a switch expression).
   ///
   /// The order of visiting a switch statement should be:
-  /// - Visit the switch expression.
-  /// - Call [switchStatement_expressionEnd].
+  /// - Visit the switch scrutinee.
+  /// - Call [switch_scrutineeEnd].
   /// - For each case body:
-  ///   - Call [switchStatement_beginAlternatives].
+  ///   - Call [switch_beginAlternatives].
   ///   - For each `case` or `default` clause associated with this case body:
-  ///     - Call [switchStatement_beginAlternative].
+  ///     - Call [switch_beginAlternative].
   ///     - If a pattern is present, visit it.
   ///     - If a guard is present, visit it.
-  ///     - Call [switchStatement_endAlternative].
-  ///   - Call [switchStatement_endAlternatives].
+  ///     - Call [switch_endAlternative].
+  ///   - Call [switch_endAlternatives].
   ///   - Visit the case body.
-  ///   - Call [switchStatement_afterCase].
-  /// - Call [switchStatement_end].
+  ///   - Call [switch_afterCase].
+  /// - Call [switch_end].
+  ///
+  /// The order of visiting a switch expression should be:
+  /// - Visit the switch scrutinee.
+  /// - Call [switch_scrutineeEnd].
+  /// - For each branch:
+  ///   - Call [switch_beginAlternatives].
+  ///   - Call [switch_beginAlternative].
+  ///   - Visit the branch's pattern.
+  ///   - If a guard is present, visit it.
+  ///   - Call [switch_endAlternative].
+  ///   - Call [switch_endAlternatives].
+  ///   - Visit the branch's body.
+  ///   - Call [switch_afterCase].
+  /// - Call [switch_end].
   ///
   /// [scrutineeInfo] should be the expression info for the expression appearing
   /// in parentheses after the `switch` keyword, and [scrutineeType] should be
   /// its static type.
-  void switchStatement_expressionEnd(
+  void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
@@ -2459,76 +2481,75 @@ class FlowAnalysisDebug<
   }
 
   @override
-  bool switchStatement_afterCase() {
+  bool switch_afterCase() {
     return _wrap(
-      'switchStatement_afterCase()',
-      () => _wrapped.switchStatement_afterCase(),
+      'switch_afterCase()',
+      () => _wrapped.switch_afterCase(),
       isPure: false,
       isQuery: true,
     );
   }
 
   @override
-  void switchStatement_beginAlternative() {
+  void switch_beginAlternative() {
     _wrap(
-      'switchStatement_beginAlternative()',
-      () => _wrapped.switchStatement_beginAlternative(),
+      'switch_beginAlternative()',
+      () => _wrapped.switch_beginAlternative(),
     );
   }
 
   @override
-  void switchStatement_beginAlternatives() {
+  void switch_beginAlternatives() {
     _wrap(
-      'switchStatement_beginAlternatives()',
-      () => _wrapped.switchStatement_beginAlternatives(),
+      'switch_beginAlternatives()',
+      () => _wrapped.switch_beginAlternatives(),
     );
   }
 
   @override
-  bool switchStatement_end(bool isExhaustive) {
+  bool switch_end(bool isExhaustive) {
     return _wrap(
-      'switchStatement_end($isExhaustive)',
-      () => _wrapped.switchStatement_end(isExhaustive),
+      'switch_end($isExhaustive)',
+      () => _wrapped.switch_end(isExhaustive),
       isQuery: true,
       isPure: false,
     );
   }
 
   @override
-  void switchStatement_endAlternative(
+  void switch_endAlternative(
     ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   ) {
     _wrap(
-      'switchStatement_endAlternative($guardInfo, $variables)',
-      () => _wrapped.switchStatement_endAlternative(guardInfo, variables),
+      'switch_endAlternative($guardInfo, $variables)',
+      () => _wrapped.switch_endAlternative(guardInfo, variables),
     );
   }
 
   @override
-  PatternVariableInfo<Variable> switchStatement_endAlternatives(
+  PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
   }) {
     return _wrap(
-      'switchStatement_endAlternatives($node, hasLabels: $hasLabels)',
-      () =>
-          _wrapped.switchStatement_endAlternatives(node, hasLabels: hasLabels),
+      'switch_endAlternatives($node, hasLabels: $hasLabels)',
+      () => _wrapped.switch_endAlternatives(node, hasLabels: hasLabels),
       isQuery: true,
       isPure: false,
     );
   }
 
   @override
-  void switchStatement_expressionEnd(
+  void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   ) {
     _wrap(
-      'switchStatement_expressionEnd($switchStatement, $scrutineeInfo, '
+      'switch_scrutineeEnd($switchStatement, $scrutineeInfo, '
       '$scrutineeType)',
-      () => _wrapped.switchStatement_expressionEnd(
+      () => _wrapped.switch_scrutineeEnd(
         switchStatement,
         scrutineeInfo,
         scrutineeType,
@@ -6599,8 +6620,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  bool switchStatement_afterCase() {
-    _SwitchStatementContext context = _stack.last as _SwitchStatementContext;
+  bool switch_afterCase() {
+    _SwitchContext context = _stack.last as _SwitchContext;
     bool isLocallyReachable = _current.reachable.locallyReachable;
     _current = _current.unsplit();
     if (isLocallyReachable) {
@@ -6610,23 +6631,22 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void switchStatement_beginAlternative() {
+  void switch_beginAlternative() {
     _SwitchAlternativesContext<Variable> context =
         _stack.last as _SwitchAlternativesContext<Variable>;
-    _current = context._switchStatementContext._unmatched;
-    _pushPattern(context._switchStatementContext._matchedValueInfo);
+    _current = context._switchContext._unmatched;
+    _pushPattern(context._switchContext._matchedValueInfo);
   }
 
   @override
-  void switchStatement_beginAlternatives() {
-    _SwitchStatementContext context = _stack.last as _SwitchStatementContext;
+  void switch_beginAlternatives() {
+    _SwitchContext context = _stack.last as _SwitchContext;
     _stack.add(new _SwitchAlternativesContext<Variable>(context));
   }
 
   @override
-  bool switchStatement_end(bool isExhaustive) {
-    _SwitchStatementContext context =
-        _stack.removeLast() as _SwitchStatementContext;
+  bool switch_end(bool isExhaustive) {
+    _SwitchContext context = _stack.removeLast() as _SwitchContext;
     bool isProvenExhaustive = !context._unmatched.reachable.locallyReachable;
     FlowModel? breakState = context._breakModel;
 
@@ -6650,7 +6670,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void switchStatement_endAlternative(
+  void switch_endAlternative(
     ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   ) {
@@ -6660,7 +6680,7 @@ class _FlowAnalysisImpl<
     // Future alternatives will be analyzed under the assumption that this
     // alternative didn't match.  This models the fact that a switch statement
     // behaves like a chain of if/else tests.
-    context._switchStatementContext._unmatched = unmatched;
+    context._switchContext._unmatched = unmatched;
 
     PatternVariableInfo<Variable> patternVariableInfo =
         context._patternVariableInfo;
@@ -6695,14 +6715,13 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  PatternVariableInfo<Variable> switchStatement_endAlternatives(
+  PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
   }) {
     _SwitchAlternativesContext<Variable> alternativesContext =
         _stack.removeLast() as _SwitchAlternativesContext<Variable>;
-    _SwitchStatementContext switchContext =
-        _stack.last as _SwitchStatementContext;
+    _SwitchContext switchContext = _stack.last as _SwitchContext;
     if (hasLabels) {
       AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
       _current = switchContext._previous.conservativeJoin(
@@ -6713,7 +6732,7 @@ class _FlowAnalysisImpl<
     } else {
       _current = alternativesContext._combinedModel ?? switchContext._unmatched;
     }
-    // Do a control flow split so that in switchStatement_afterCase, we'll be
+    // Do a control flow split so that in switch_afterCase, we'll be
     // able to tell whether the end of the case body was reachable from its
     // start.
     _current = _current.split();
@@ -6721,7 +6740,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void switchStatement_expressionEnd(
+  void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
@@ -6732,7 +6751,7 @@ class _FlowAnalysisImpl<
       allowScrutineePromotion: true,
     );
     _current = _current.split();
-    _SwitchStatementContext context = new _SwitchStatementContext(
+    _SwitchContext context = new _SwitchContext(
       _current.reachable.parent!,
       _current,
       matchedValueInfo,
@@ -8301,8 +8320,8 @@ class _SimpleStatementContext extends _BranchTargetContext {
 }
 
 class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {
-  /// The enclosing [_SwitchStatementContext].
-  final _SwitchStatementContext _switchStatementContext;
+  /// The enclosing [_SwitchContext].
+  final _SwitchContext _switchContext;
 
   /// Data structure accumulating information about the relationship among
   /// variables defined by patterns in the various alternatives.
@@ -8311,7 +8330,7 @@ class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {
 
   FlowModel? _combinedModel;
 
-  _SwitchAlternativesContext(this._switchStatementContext);
+  _SwitchAlternativesContext(this._switchContext);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -8321,21 +8340,18 @@ class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {
   String get _debugType => '_SwitchAlternativesContext';
 }
 
-/// [_FlowContext] representing a switch statement.
-class _SwitchStatementContext extends _SimpleStatementContext {
+/// [_FlowContext] representing a switch statement or switch expression.
+class _SwitchContext extends _SimpleStatementContext {
   /// [_Reference] for the value being matched.
   final _Reference _matchedValueInfo;
 
-  /// Flow state for the code path where no switch cases have matched yet.  If
-  /// we think of a switch statement as syntactic sugar for a chain of if-else
-  /// statements, this is the flow state on entry to the next `if`.
+  /// Flow state for the code path where no patterns have matched yet.  If we
+  /// think of a switch as syntactic sugar for a chain of if-else statements,
+  /// this is the flow state on entry to the next `if`.
   FlowModel _unmatched;
 
-  _SwitchStatementContext(
-    super.checkpoint,
-    super._previous,
-    this._matchedValueInfo,
-  ) : _unmatched = _previous;
+  _SwitchContext(super.checkpoint, super._previous, this._matchedValueInfo)
+    : _unmatched = _previous;
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -8343,7 +8359,7 @@ class _SwitchStatementContext extends _SimpleStatementContext {
     ..['unmatched'] = _unmatched;
 
   @override
-  String get _debugType => '_SwitchStatementContext';
+  String get _debugType => '_SwitchContext';
 }
 
 /// [_FlowContext] representing the top level of a pattern syntax tree.
