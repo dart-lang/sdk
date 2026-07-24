@@ -163,3 +163,34 @@ extension RpcErrorExtension on vm.RPCError {
     return false;
   }
 }
+
+// dart:ffi primitive type name constants.
+const ffiInt8 = 'Int8';
+const ffiUint8 = 'Uint8';
+const ffiInt16 = 'Int16';
+const ffiUint16 = 'Uint16';
+const ffiInt32 = 'Int32';
+const ffiUint32 = 'Uint32';
+const ffiInt64 = 'Int64';
+const ffiUint64 = 'Uint64';
+const ffiFloat = 'Float';
+const ffiDouble = 'Double';
+const ffiBool = 'Bool';
+
+/// Sizes in bytes for each dart:ffi primitive type.
+const _ffiTypeSizes = <String, int>{
+  ffiInt8: 1,
+  ffiUint8: 1,
+  ffiInt16: 2,
+  ffiUint16: 2,
+  ffiInt32: 4,
+  ffiUint32: 4,
+  ffiInt64: 8,
+  ffiUint64: 8,
+  ffiFloat: 4,
+  ffiDouble: 8,
+  ffiBool: 1,
+};
+
+/// Returns the byte count for [ffiTypeName], defaulting to 8 if unrecognized.
+int ffiByteCount(String? ffiTypeName) => _ffiTypeSizes[ffiTypeName] ?? 8;

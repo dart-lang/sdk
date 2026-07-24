@@ -158,22 +158,31 @@ class EvaluationExpression {
 /// RPC call when the user expands it in the debugger.
 class PointerData {
   final String address;
-  final int byteCount;
   final VariableFormat? format;
-
-  /// This flag drives the two-step lazy variable pattern:
-  /// - false (first expansion): returns a single child variable showing
-  ///   the value string (e.g. '8 bytes @ 0x...').
-  /// - true (second expansion): calls `_readNativeMemory` and returns the
-  ///   individual byte variables (`[0]: 0xde, [1]: 0xad, etc.`).
-  final bool showBytes;
+  final InstanceRef? pointerInstance;
+  final InstanceRef? staticType;
+  final PointerDataKind kind;
+  final String? ffiTypeName;
 
   PointerData(
     this.address,
-    this.byteCount,
     this.format, {
-    this.showBytes = false,
+    this.staticType,
+    this.pointerInstance,
+    this.ffiTypeName,
+    this.kind = PointerDataKind.children,
   });
+}
+
+enum PointerDataKind {
+  /// Initial expand: show typed value + lazy [raw bytes] child.
+  children,
+
+  /// Lazy icon clicked: return 1 summary variable ("N bytes @ 0x...").
+  rawBytesSummary,
+
+  /// Summary expanded: return individual byte variables ([0]: 0xde, ...).
+  rawBytes,
 }
 
 /// An expression for evaluating a variable ("evaluateName" in DAP) and a flag
