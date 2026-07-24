@@ -722,6 +722,81 @@ void f() {
     );
   }
 
+  Future<void> test_undefinedIdentifier_differentEnum_noFix() async {
+    await resolveTestCode('''
+enum E {
+  a;
+  void m() {
+    F x = b;
+  }
+}
+
+enum F { c }
+''');
+    await assertNoFix(
+      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_undefinedIdentifier_insideEnumMethod() async {
+    await resolveTestCode('''
+enum E {
+  a;
+  E m() => b;
+}
+''');
+    await assertHasFix('''
+enum E {
+  a, b;
+  E m() => b;
+}
+''');
+  }
+
+  Future<void>
+  test_undefinedIdentifier_insideEnumMethod_withConstructor() async {
+    await resolveTestCode('''
+enum E {
+  a(1);
+  final int i;
+  const E(this.i);
+  E m() => b;
+}
+''');
+    await assertHasFix('''
+enum E {
+  a(1), b(i);
+  final int i;
+  const E(this.i);
+  E m() => b;
+}
+''');
+  }
+
+  Future<void> test_undefinedIdentifier_notEnum_noFix() async {
+    await resolveTestCode('''
+void f() {
+  int x = b;
+}
+''');
+    await assertNoFix(
+      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_undefinedIdentifier_outsideEnum_noFix() async {
+    await resolveTestCode('''
+enum E { a }
+
+void f() {
+  E x = b;
+}
+''');
+    await assertNoFix(
+      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
   Future<void> test_unnamed() async {
     await resolveTestCode('''
 enum E {

@@ -44,6 +44,20 @@ class CreateEnumConstant extends ResolvedCorrectionProducer {
         parent,
         unitResult.libraryElement,
       );
+    } else {
+      var contextTypeElement = computeDotShorthandContextTypeElement(
+        node,
+        unitResult.libraryElement,
+      );
+      // For a bare identifier, adding the constant only resolves the
+      // diagnostic when the identifier is lexically inside the body of the
+      // target enum itself. Outside the enum, the identifier still can't
+      // resolve without an `E.` or `.` prefix, so don't offer the fix.
+      var enclosingEnum = node.thisOrAncestorOfType<EnumDeclaration>();
+      if (enclosingEnum != null &&
+          enclosingEnum.declaredFragment?.element == contextTypeElement) {
+        targetElement = contextTypeElement;
+      }
     }
 
     if (targetElement is! EnumElement) return;
