@@ -7,6 +7,7 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -80,15 +81,25 @@ class WhyNotPromotedDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {
-    TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
-    String? nonPromotionReason =
-        _flowResult.nonPromotionReasons[node] ??
-        _flowResult.nonPromotionReasons[alias];
+    InternalNode? internalNode = _sourceLoaderDataForTesting.toInternalNode(
+      node,
+    );
+    String? nonPromotionReason = _flowResult.nonPromotionReasons[internalNode];
     if (nonPromotionReason != null) {
       return 'notPromoted($nonPromotionReason)';
     }
-    return _flowResult.nonPromotionReasonTargets[node] ??
-        _flowResult.nonPromotionReasonTargets[alias];
+    return _flowResult.nonPromotionReasonTargets[internalNode];
+  }
+
+  @override
+  ActualData<String>? mergeData(
+    ActualData<String> value1,
+    ActualData<String> value2,
+  ) {
+    if (value1.value == value2.value) {
+      return value1;
+    }
+    return null;
   }
 }
 

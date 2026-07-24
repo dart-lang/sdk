@@ -70,6 +70,7 @@ import '../kernel/hierarchy/delayed.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
@@ -3546,18 +3547,17 @@ class Endian {
 
 // Coverage-ignore(suite): Not run.
 class SourceLoaderDataForTesting {
-  final Map<TreeNode, TreeNode> _aliasMap = {};
+  final Map<TreeNode, InternalNode> _externalToInternalMap = {};
 
-  /// Registers that [original] has been replaced by [alias] in the generated
-  /// AST.
-  void registerAlias(TreeNode original, TreeNode alias) {
-    _aliasMap[alias] = original;
+  /// Registers that [internalNode] has been emitted as [externalNode] in the
+  /// generated AST.
+  void registerExternalNode(InternalNode internalNode, TreeNode externalNode) {
+    _externalToInternalMap[externalNode] = internalNode;
   }
 
-  /// Returns the original node for [alias] or [alias] if it was not registered
-  /// as an alias.
-  TreeNode toOriginal(TreeNode alias) {
-    return _aliasMap[alias] ?? alias;
+  /// Returns the internal node for which [externalNode] was created.
+  InternalNode? toInternalNode(TreeNode externalNode) {
+    return _externalToInternalMap[externalNode];
   }
 
   final ExhaustivenessDataForTesting exhaustivenessData =

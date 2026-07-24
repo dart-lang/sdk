@@ -4541,8 +4541,6 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     InternalVariableDeclaration declaration =
         node as InternalVariableDeclaration;
-    declaration.variable.fileOffset = declaration.fileOffset =
-        nameToken.charOffset;
     push(declaration);
 
     // Avoid adding the local identifier to scope if it's a wildcard.
@@ -4675,7 +4673,7 @@ class BodyBuilderImpl extends StackListenerImpl
     LabelTarget target = pop() as LabelTarget;
     _labelScopes.pop();
     if (target.breakTarget.hasUsers || target.continueTarget.hasUsers) {
-      if (intern.isVariablesDeclaration(statement)) {
+      if (statement is MultiVariableDeclaration) {
         internalProblem(
           diag.internalProblemLabelUsageInVariablesDeclaration,
           statement.fileOffset,
@@ -6018,12 +6016,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
 
-      // TODO(62401): Remove the cast when the flow analysis uses
-      // [InternalExpressionVariable]s.
-      assignedVariables.storeInfo(
-        node.variable.astVariable,
-        assignedVariablesInfo!,
-      );
+      assignedVariables.storeInfo(node.variable, assignedVariablesInfo!);
     }
   }
 
@@ -6075,7 +6068,10 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
       push(
-        intern.variablesDeclaration(variables, fileOffset: TreeNode.noOffset),
+        intern.createMultiVariableDeclaration(
+          variables,
+          fileOffset: TreeNode.noOffset,
+        ),
       );
     }
     _exitLocalState();
@@ -9781,7 +9777,8 @@ class BodyBuilderImpl extends StackListenerImpl
     variableDeclaration = intern.createVariableDeclaration(
       internalVariable,
       initializer: initializer,
-      fileOffset: offsetForToken(equalsToken),
+      nameOffset: identifier.nameOffset,
+      equalsOffset: offsetForToken(equalsToken),
     );
     assignedVariables.declare(internalVariable);
     push(variableDeclaration);
@@ -11047,10 +11044,8 @@ class BodyBuilderImpl extends StackListenerImpl
       return [
         intern.createVariableDeclaration(variable, initializer: expression),
       ];
-    } else if (intern.isVariablesDeclaration(variableOrExpression)) {
-      return intern.variablesDeclarationExtractDeclarations(
-        variableOrExpression,
-      );
+    } else if (variableOrExpression is MultiVariableDeclaration) {
+      return variableOrExpression.declarations;
     } else if (variableOrExpression is List<Object>) {
       // Coverage-ignore-block(suite): Not run.
       List<InternalVariableDeclaration> variables = [];
@@ -11177,7 +11172,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ),
         inOffset: inToken.offset,
       );
-    } else if (intern.isVariablesDeclaration(lvalue)) {
+    } else if (lvalue is MultiVariableDeclaration) {
       Token token = forToken.next!.next!;
       InternalInvalidExpression error = buildProblem(
         message: diag.forInLoopExactlyOneVariable,
@@ -11186,10 +11181,9 @@ class BodyBuilderImpl extends StackListenerImpl
         length: lengthForToken(token),
       );
       return new MultiVariableDeclarationForInElement(
-        variableDeclarations: intern.variablesDeclarationExtractDeclarations(
-          lvalue,
-        ),
+        variableDeclarations: lvalue.declarations,
         error: error,
+        fileOffset: lvalue.fileOffset,
       );
     } else {
       lvalue as InternalExpression;

@@ -51,6 +51,12 @@ group("runtime") {
       "utils/dtd:dtd_aot",
       "utils/kernel-service:frontend_server_aot_product",
     ]
+    if (is_linux) {
+      deps += [
+        "runtime/bin:dartcliruntime",
+        "runtime/bin:dartcliruntime_product",
+      ]
+    }
   } else {
     deps += [
       "utils/dart_runtime_service_vm",
@@ -111,6 +117,9 @@ group("runtime_precompiled") {
     "runtime/bin:process_test",
     "runtime/vm:kernel_platform_files($host_toolchain)",
   ]
+  if (is_linux) {
+    deps += [ "runtime/bin:dartcliruntime" ]
+  }
   if (is_linux || is_android) {
     deps += [ "runtime/bin:abstract_socket_test" ]
   }

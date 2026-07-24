@@ -43,7 +43,7 @@ abstract class TypeInferrer {
 
   /// Returns the [FlowAnalysis] used during inference.
   FlowAnalysis<
-    TreeNode,
+    InternalNode,
     InternalStatement,
     InternalExpression,
     InternalVariable
@@ -129,7 +129,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   late final FlowAnalysis<
-    TreeNode,
+    InternalNode,
     InternalStatement,
     InternalExpression,
     InternalVariable
@@ -248,6 +248,7 @@ class TypeInferrerImpl implements TypeInferrer {
         declaredType,
         initializerResult,
         isVoidAllowed: declaredType is VoidType,
+        assignedNode: initializer,
       );
     } else {
       // If the field has no declared type, compute the field type from the
@@ -310,7 +311,7 @@ class TypeInferrerImpl implements TypeInferrer {
     Statement inferredBody = result.statement;
     libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(body, inferredBody);
+    ?.registerExternalNode(body, inferredBody);
     return new InferredFunctionBody(inferredBody, emittedValueType);
   }
 
@@ -494,7 +495,11 @@ class TypeInferrerImpl implements TypeInferrer {
     Expression inferredDefaultValue;
     if (hasDeclaredDefaultValue) {
       inferredDefaultValue = visitor
-          .ensureAssignableResult(declaredType, result)
+          .ensureAssignableResult(
+            declaredType,
+            result,
+            assignedNode: defaultValue,
+          )
           .expression;
     } else {
       inferredDefaultValue = result.expression;
@@ -551,7 +556,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 
   @override
   FlowAnalysis<
-    TreeNode,
+    InternalNode,
     InternalStatement,
     InternalExpression,
     InternalVariable

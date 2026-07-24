@@ -5200,9 +5200,9 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<PromotableElementImpl> reason,
+    DemoteViaExplicitWrite<PromotableElementImpl, AstNode> reason,
   ) {
-    var node = reason.node as AstNode;
+    var node = reason.node;
     if (node is ForEachPartsWithIdentifier) {
       node = node.identifier;
     }
@@ -5215,9 +5215,9 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitDemoteViaSuspension(
-    DemoteViaSuspension<PromotableElementImpl> reason,
+    DemoteViaSuspension<PromotableElementImpl, AstNode> reason,
   ) {
-    var node = reason.node as AstNode;
+    var node = reason.node;
     if (_dataForTesting != null) {
       _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
     }
@@ -5365,7 +5365,7 @@ class _WhyNotPromotedVisitor
   DiagnosticMessageImpl _contextMessageForSuspension(
     String? variableName,
     AstNode node,
-    DemoteViaSuspension<PromotableElementImpl> reason,
+    DemoteViaSuspension<PromotableElementImpl, AstNode> reason,
   ) {
     return DiagnosticMessageImpl(
       filePath: source.fullName,
@@ -5381,7 +5381,7 @@ class _WhyNotPromotedVisitor
   DiagnosticMessageImpl _contextMessageForWrite(
     String? variableName,
     AstNode node,
-    DemoteViaExplicitWrite<PromotableElementImpl> reason,
+    DemoteViaExplicitWrite<PromotableElementImpl, AstNode> reason,
   ) {
     return DiagnosticMessageImpl(
       filePath: source.fullName,

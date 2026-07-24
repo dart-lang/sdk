@@ -62,6 +62,17 @@ void main([List<String> args = const []]) async {
             .resolve(OS.current.executableFileName('dart_app'));
         final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
         expect(await File.fromUri(absoluteExeUri).exists(), true);
+        if (Platform.isLinux) {
+          final relativeSnapshotUri = relativeBundleUri
+              .resolve('lib/')
+              .resolve(_linuxAotSnapshotFileName('dart_app'));
+          expect(
+            await File.fromUri(
+              dartAppUri.resolveUri(relativeSnapshotUri),
+            ).exists(),
+            true,
+          );
+        }
         await _withTempDir((tempUri) async {
           // The link needs to have the same extension as the executable on
           // Windows to be able to be executable.
@@ -430,7 +441,7 @@ void main(List<String> args) {
         );
         final Directory binDir = File(Platform.resolvedExecutable).parent;
         final sanitizedRuntime =
-            File.fromUri(binDir.uri.resolve('dartaotruntime_$sanitizer'));
+            File.fromUri(binDir.uri.resolve('dartcliruntime_$sanitizer'));
         if (sanitizedRuntime.existsSync()) {
           expect(result.exitCode, 0);
           final relativeExeUri = relativeBundleUri
@@ -438,8 +449,17 @@ void main(List<String> args) {
               .resolve(OS.current.executableFileName('dart_app'));
           final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
           expect(await File.fromUri(absoluteExeUri).exists(), true);
+          final relativeSnapshotUri = relativeBundleUri
+              .resolve('lib/')
+              .resolve(_linuxAotSnapshotFileName('dart_app'));
+          expect(
+            await File.fromUri(
+              dartAppUri.resolveUri(relativeSnapshotUri),
+            ).exists(),
+            true,
+          );
         } else {
-          expect(result.stderr, contains('dartaotruntime_$sanitizer'));
+          expect(result.stderr, contains('dartcliruntime_$sanitizer'));
           expect(result.exitCode, 255);
         }
       });
@@ -725,3 +745,6 @@ Uri removeDotExe(Uri withExe) {
   final fileName = exeName.replaceAll('.exe', '');
   return withExe.resolve(fileName);
 }
+
+String _linuxAotSnapshotFileName(String executableName) =>
+    'libdartaot$executableName.so';

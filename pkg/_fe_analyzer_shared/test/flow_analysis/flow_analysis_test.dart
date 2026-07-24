@@ -5467,7 +5467,7 @@ main() {
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var>;
+              reasons.values.single as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writeExpression));
           expect(
             nonPromotionReason.documentationLink,
@@ -5494,7 +5494,7 @@ main() {
             SharedTypeView(Type('int?')),
           ]) {
             var nonPromotionReason =
-                reasons[type] as DemoteViaExplicitWrite<Var>;
+                reasons[type] as DemoteViaExplicitWrite<Var, Node>;
             expect(nonPromotionReason.node, same(writeExpression));
             expect(
               nonPromotionReason.documentationLink,
@@ -5518,7 +5518,7 @@ main() {
           x.whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('int')]));
             var nonPromotionReason =
-                reasons.values.single as DemoteViaSuspension<Var>;
+                reasons.values.single as DemoteViaSuspension<Var, Node>;
             expect(nonPromotionReason.node, same(awaitExpression));
             expect(
               nonPromotionReason.documentationLink,
@@ -5543,7 +5543,7 @@ main() {
           x.whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('int')]));
             var nonPromotionReason =
-                reasons.values.single as DemoteViaSuspension<Var>;
+                reasons.values.single as DemoteViaSuspension<Var, Node>;
             expect(nonPromotionReason.node, same(yieldStatement));
             expect(
               nonPromotionReason.documentationLink,
@@ -5567,7 +5567,7 @@ main() {
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var>;
+              reasons.values.single as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writePattern));
           expect(
             nonPromotionReason.documentationLink,
@@ -5590,7 +5590,7 @@ main() {
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
-              reasons.values.single as DemoteViaExplicitWrite<Var>;
+              reasons.values.single as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writeExpression));
           expect(
             nonPromotionReason.documentationLink,
@@ -5614,7 +5614,7 @@ main() {
         x.whyNotPromoted((reasons) {
           var nonPromotionReason =
               reasons[SharedTypeView(Type('int'))]
-                  as DemoteViaExplicitWrite<Var>;
+                  as DemoteViaExplicitWrite<Var, Node>;
           expect(nonPromotionReason.node, same(writeExpression));
           expect(
             nonPromotionReason.documentationLink,

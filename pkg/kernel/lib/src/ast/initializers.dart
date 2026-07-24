@@ -331,6 +331,12 @@ class LocalInitializer extends Initializer {
     variable.parent = this;
   }
 
+  Expression get value => variable.initializer!;
+
+  void set value(Expression value) {
+    variable.initializer = value;
+  }
+
   @override
   R accept<R>(InitializerVisitor<R> v) => v.visitLocalInitializer(this);
 

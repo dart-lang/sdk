@@ -796,7 +796,7 @@ InvalidInitializer createInvalidInitializer(
     ..isRedirectingInitializer = isRedirectingInitializer;
 }
 
-InvalidInitializer createInvalidInitializer2(
+InvalidInitializer createInvalidInitializerFromErrorText(
   ErrorText errorText, {
   bool isSuperInitializer = false,
   bool isRedirectingInitializer = false,
@@ -970,6 +970,13 @@ LocalFunctionVariable createLocalFunctionVariable({
     )
     ..fileOffset = fileOffset
     ..fileEqualsOffset = fileEqualsOffset;
+}
+
+LocalInitializer createLocalInitializer({
+  required SyntheticVariable variable,
+  required int fileOffset,
+}) {
+  return new LocalInitializer(variable)..fileOffset = fileOffset;
 }
 
 LocalVariable createLocalVariable({

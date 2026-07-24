@@ -25,14 +25,14 @@ class TypeConstraintGatherer
           InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
-          TreeNode
+          InternalNode
         >
     with
         shared.TypeConstraintGeneratorMixin<
           InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
-          TreeNode
+          InternalNode
         > {
   final List<GeneratedTypeConstraint> _protoConstraints = [];
 
@@ -120,7 +120,7 @@ class TypeConstraintGatherer
   void eliminateTypeParametersInGeneratedConstraints(
     covariant List<StructuralParameter> typeParametersToEliminate,
     shared.TypeConstraintGeneratorState eliminationStartState, {
-    required TreeNode? astNodeForTesting,
+    required InternalNode? astNodeForTesting,
   }) {
     List<GeneratedTypeConstraint> constraints = _protoConstraints.sublist(
       eliminationStartState.count,
@@ -160,7 +160,7 @@ class TypeConstraintGatherer
   void constrainArguments(
     List<DartType> formalTypes,
     List<DartType> actualTypes, {
-    required TreeNode? treeNodeForTesting,
+    required InternalNode? internalNodeForTesting,
   }) {
     assert(formalTypes.length == actualTypes.length);
     for (int i = 0; i < formalTypes.length; i++) {
@@ -169,7 +169,7 @@ class TypeConstraintGatherer
       tryConstrainLower(
         formalTypes[i],
         actualTypes[i],
-        treeNodeForTesting: treeNodeForTesting,
+        internalNodeForTesting: internalNodeForTesting,
       );
     }
   }
@@ -218,13 +218,13 @@ class TypeConstraintGatherer
   bool tryConstrainLower(
     DartType type,
     DartType bound, {
-    required TreeNode? treeNodeForTesting,
+    required InternalNode? internalNodeForTesting,
   }) {
     return performSubtypeConstraintGenerationInternal(
       bound,
       type,
       leftSchema: true,
-      astNodeForTesting: treeNodeForTesting,
+      astNodeForTesting: internalNodeForTesting,
     );
   }
 
@@ -235,13 +235,13 @@ class TypeConstraintGatherer
   bool tryConstrainUpper(
     DartType type,
     DartType bound, {
-    required TreeNode? treeNodeForTesting,
+    required InternalNode? internalNodeForTesting,
   }) {
     return performSubtypeConstraintGenerationInternal(
       type,
       bound,
       leftSchema: false,
-      astNodeForTesting: treeNodeForTesting,
+      astNodeForTesting: internalNodeForTesting,
     );
   }
 
@@ -249,7 +249,7 @@ class TypeConstraintGatherer
   void addLowerConstraintForParameter(
     StructuralParameter parameter,
     DartType lower, {
-    required TreeNode? astNodeForTesting,
+    required InternalNode? astNodeForTesting,
   }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.lower(
@@ -270,7 +270,7 @@ class TypeConstraintGatherer
   void addUpperConstraintForParameter(
     StructuralParameter parameter,
     DartType upper, {
-    required TreeNode? astNodeForTesting,
+    required InternalNode? astNodeForTesting,
   }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.upper(
@@ -292,7 +292,7 @@ class TypeConstraintGatherer
     DartType p,
     DartType q, {
     required bool leftSchema,
-    required TreeNode? astNodeForTesting,
+    required InternalNode? astNodeForTesting,
   }) {
     if (p is SharedInvalidType || q is SharedInvalidType) {
       return false;

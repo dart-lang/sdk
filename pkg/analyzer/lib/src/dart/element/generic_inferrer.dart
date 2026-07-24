@@ -143,7 +143,7 @@ class GenericInferrer {
           preliminary: true,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          astNodeForTesting: null,
         )
         .cast<TypeImpl>();
 
@@ -311,7 +311,7 @@ class GenericInferrer {
           preliminary: false,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          astNodeForTesting: null,
         )
         .cast<TypeImpl>();
     // Check the inferred types against all of the constraints.

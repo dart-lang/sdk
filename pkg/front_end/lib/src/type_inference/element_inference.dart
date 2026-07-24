@@ -182,7 +182,7 @@ class InferredListElementInferenceContext extends ElementInferenceContext {
               .dataForTesting
               // Coverage-ignore(suite): Not run.
               ?.typeInferenceResult,
-          treeNodeForTesting: node,
+          internalNodeForTesting: node,
         );
     List<DartType> inferredTypes = visitor.typeSchemaEnvironment
         .choosePreliminaryTypes(
@@ -192,7 +192,7 @@ class InferredListElementInferenceContext extends ElementInferenceContext {
           inferenceUsingBoundsIsEnabled:
               visitor.libraryFeatures.inferenceUsingBounds.isEnabled,
           dataForTesting: visitor.dataForTesting,
-          treeNodeForTesting: node,
+          internalNodeForTesting: node,
           typeOperations: visitor.cfeOperations,
         );
     DartType typeArgument = inferredTypes[0];
@@ -235,7 +235,7 @@ class InferredListElementInferenceContext extends ElementInferenceContext {
     _gatherer.constrainArguments(
       formalTypes,
       _expressionTypes,
-      treeNodeForTesting: _node,
+      internalNodeForTesting: _node,
     );
     List<DartType> inferredTypes = _visitor.typeSchemaEnvironment
         .chooseFinalTypes(
@@ -245,7 +245,7 @@ class InferredListElementInferenceContext extends ElementInferenceContext {
           inferenceUsingBoundsIsEnabled:
               _visitor.libraryFeatures.inferenceUsingBounds.isEnabled,
           dataForTesting: _visitor.dataForTesting,
-          treeNodeForTesting: _node,
+          internalNodeForTesting: _node,
           typeOperations: _visitor.cfeOperations,
         );
     if (_visitor.dataForTesting != null) {
@@ -471,7 +471,7 @@ class InferredMapOrSetElementInferenceContext extends ElementInferenceContext {
               .dataForTesting
               // Coverage-ignore(suite): Not run.
               ?.typeInferenceResult,
-          treeNodeForTesting: node,
+          internalNodeForTesting: node,
         );
     List<DartType> inferredTypes = visitor.typeSchemaEnvironment
         .choosePreliminaryTypes(
@@ -481,7 +481,7 @@ class InferredMapOrSetElementInferenceContext extends ElementInferenceContext {
           inferenceUsingBoundsIsEnabled:
               visitor.libraryFeatures.inferenceUsingBounds.isEnabled,
           dataForTesting: visitor.dataForTesting,
-          treeNodeForTesting: node,
+          internalNodeForTesting: node,
           typeOperations: visitor.cfeOperations,
         );
 
@@ -545,7 +545,7 @@ class InferredMapOrSetElementInferenceContext extends ElementInferenceContext {
       _gatherer.constrainArguments(
         formalTypes,
         actualTypes,
-        treeNodeForTesting: _node,
+        internalNodeForTesting: _node,
       );
     } else {
       // We pretend that the called method has as many parameters as the seen
@@ -561,7 +561,7 @@ class InferredMapOrSetElementInferenceContext extends ElementInferenceContext {
       _gatherer.constrainArguments(
         formalTypes,
         actualTypes,
-        treeNodeForTesting: _node,
+        internalNodeForTesting: _node,
       );
     }
     List<DartType> inferredTypes = _visitor.typeSchemaEnvironment
@@ -572,7 +572,7 @@ class InferredMapOrSetElementInferenceContext extends ElementInferenceContext {
           inferenceUsingBoundsIsEnabled:
               _visitor.libraryFeatures.inferenceUsingBounds.isEnabled,
           dataForTesting: _visitor.dataForTesting,
-          treeNodeForTesting: _node,
+          internalNodeForTesting: _node,
           typeOperations: _visitor.cfeOperations,
         );
     if (asMap) {

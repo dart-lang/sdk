@@ -21,7 +21,7 @@ import 'inference_visitor.dart';
 class SharedTypeAnalyzerErrors
     implements
         TypeAnalyzerErrors<
-          TreeNode,
+          InternalNode,
           InternalStatement,
           InternalExpression,
           InternalVariable,
@@ -106,8 +106,8 @@ class SharedTypeAnalyzerErrors
   InvalidExpression duplicateRecordPatternField({
     required InternalPattern objectOrRecordPattern,
     required String name,
-    required RecordPatternField<TreeNode, InternalPattern> original,
-    required RecordPatternField<TreeNode, InternalPattern> duplicate,
+    required RecordPatternField<InternalNode, InternalPattern> original,
+    required RecordPatternField<InternalNode, InternalPattern> duplicate,
   }) {
     return extern.createInvalidExpressionFromErrorText(
       problemReporting.buildProblem(
@@ -132,8 +132,8 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression duplicateRestPattern({
     required InternalPattern mapOrListPattern,
-    required TreeNode original,
-    required TreeNode duplicate,
+    required InternalNode original,
+    required InternalNode duplicate,
   }) {
     return extern.createInvalidExpressionFromErrorText(
       problemReporting.buildProblem(
@@ -214,7 +214,7 @@ class SharedTypeAnalyzerErrors
 
   @override
   InvalidExpression patternForInExpressionIsNotIterable({
-    required TreeNode node,
+    required InternalNode node,
     required InternalExpression expression,
     required SharedTypeView expressionType,
   }) {
@@ -235,7 +235,7 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression patternTypeMismatchInIrrefutableContext({
     required InternalPattern pattern,
-    required TreeNode context,
+    required InternalNode context,
     required SharedTypeView matchedType,
     required SharedTypeView requiredType,
   }) {
@@ -256,7 +256,7 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression refutablePatternInIrrefutableContext({
     required covariant InternalPattern pattern,
-    required TreeNode context,
+    required InternalNode context,
   }) {
     return extern.createInvalidExpressionFromErrorText(
       problemReporting.buildProblem(
@@ -311,7 +311,7 @@ class SharedTypeAnalyzerErrors
   @override
   InvalidExpression restPatternInMap({
     required InternalPattern node,
-    required TreeNode element,
+    required InternalNode element,
   }) {
     return extern.createInvalidExpressionFromErrorText(
       problemReporting.buildProblem(

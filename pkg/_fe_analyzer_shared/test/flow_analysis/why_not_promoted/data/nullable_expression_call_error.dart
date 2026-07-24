@@ -19,8 +19,7 @@ instance_method_invocation(C1 c) {
   /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/
   c
       .bad
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/
-      ();
+      /*cfe.notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad))*/ ();
 }
 
 class C3 {
@@ -47,8 +46,7 @@ extension_invocation_method(C3 c) {
   /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C3.bad))*/
   c
       .bad
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C3.bad))*/
-      ();
+      /*cfe.notPromoted(propertyNotPromotedForInherentReason(target: member:C3.bad))*/ ();
 }
 
 class C6 {
@@ -64,8 +62,7 @@ instance_getter_invocation(C6 c) {
   /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C6.bad))*/
   c
       .bad
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C6.bad))*/
-      ();
+      /*cfe.notPromoted(propertyNotPromotedForInherentReason(target: member:C6.bad))*/ ();
 }
 
 class C8 {
@@ -92,8 +89,7 @@ extension_invocation_getter(C8 c) {
   /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C8.bad))*/
   c
       .bad
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C8.bad))*/
-      ();
+      /*cfe.notPromoted(propertyNotPromotedForInherentReason(target: member:C8.bad))*/ ();
 }
 
 class C11 {
@@ -105,8 +101,7 @@ function_invocation(C11 c) {
   /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C11.bad))*/
   c
       .bad
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C11.bad))*/
-      ();
+      /*cfe.notPromoted(propertyNotPromotedForInherentReason(target: member:C11.bad))*/ ();
 }
 
 class C12 {
@@ -122,8 +117,5 @@ instance_field_invocation(C12 c) {
   if (c.bad == null) return;
   c.bad
       .
-      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C12.bad))*/
-      foo
-      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C12.bad))*/
-      ();
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C12.bad))*/ foo();
 }

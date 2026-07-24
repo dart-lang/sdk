@@ -379,14 +379,14 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       dataForTesting.flowAnalysisResult.assignedVariables =
-          new AssignedVariablesForTesting<TreeNode, InternalVariable>();
+          new AssignedVariablesForTesting<InternalNode, InternalVariable>();
       assignedVariables = new AssignedVariablesImpl(
         dataForTesting.flowAnalysisResult.assignedVariables!,
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
     } else {
       assignedVariables = new AssignedVariablesImpl(
-        new AssignedVariables<TreeNode, InternalVariable>(),
+        new AssignedVariables<InternalNode, InternalVariable>(),
         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
       );
     }
@@ -418,47 +418,43 @@ class InferenceDataForTesting
     extends
         shared.TypeConstraintGenerationDataForTesting<
           InternalVariable,
-          TreeNode
+          InternalNode
         > {
   final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
 
   final TypeInferenceResultForTesting typeInferenceResult =
       new TypeInferenceResultForTesting();
-
-  /// Map from external nodes to their corresponding internal nodes.
-  ///
-  /// This is only maintained for nodes used in tests.
-  final Map<Node, Node> externalToInternalNodeMap = {};
 }
 
 /// The result of performing flow analysis on a unit.
 class FlowAnalysisResult {
   /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
   /// for example because a previous statement always exits.
-  final List<TreeNode> unreachableNodes = [];
+  final List<InternalNode> unreachableNodes = [];
 
   /// The list of function bodies that don't complete, for example because
   /// there is a `return` statement at the end of the function body block.
-  final List<TreeNode> functionBodiesThatDontComplete = [];
+  final List<InternalNode> functionBodiesThatDontComplete = [];
 
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
-  final List<TreeNode> potentiallyUnassignedNodes = [];
+  final List<InternalNode> potentiallyUnassignedNodes = [];
 
   /// The list of [Expression]s representing variable accesses that occur when
   /// the corresponding variable has been definitely unassigned.
-  final List<TreeNode> definitelyUnassignedNodes = [];
+  final List<InternalNode> definitelyUnassignedNodes = [];
 
   /// The assigned variables information that computed for the member.
-  AssignedVariablesForTesting<TreeNode, InternalVariable>? assignedVariables;
+  AssignedVariablesForTesting<InternalNode, InternalVariable>?
+  assignedVariables;
 
   /// For each expression that led to an error because it was not promoted, a
   /// string describing the reason it was not promoted.
-  final Map<TreeNode, String> nonPromotionReasons = {};
+  final Map<InternalNode, String> nonPromotionReasons = {};
 
   /// For each auxiliary AST node pointed to by a non-promotion reason, a string
   /// describing the non-promotion reason pointing to it.
-  final Map<TreeNode, String> nonPromotionReasonTargets = {};
+  final Map<InternalNode, String> nonPromotionReasonTargets = {};
 }
 
 /// CFE-specific implementation of [FlowAnalysisOperations].
@@ -468,14 +464,14 @@ class OperationsCfe
           InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
-          TreeNode
+          InternalNode
         >
     implements
         TypeAnalyzerOperations<
           InternalVariable,
           TypeDeclarationType,
           TypeDeclaration,
-          TreeNode
+          InternalNode
         > {
   final TypeEnvironment typeEnvironment;
 
@@ -1099,7 +1095,7 @@ class OperationsCfe
     InternalVariable,
     TypeDeclarationType,
     TypeDeclaration,
-    TreeNode
+    InternalNode
   >
   createTypeConstraintGenerator({
     required covariant TypeInferenceResultForTesting?
@@ -1233,10 +1229,10 @@ class TypeInferenceResultForTesting
     extends
         shared.TypeConstraintGenerationDataForTesting<
           InternalVariable,
-          TreeNode
+          InternalNode
         > {
-  final Map<TreeNode, List<DartType>> inferredTypeArguments = {};
-  final Map<TreeNode, DartType> inferredVariableTypes = {};
+  final Map<InternalNode, List<DartType>> inferredTypeArguments = {};
+  final Map<InternalNode, DartType> inferredVariableTypes = {};
 }
 
 abstract class InferableMember {

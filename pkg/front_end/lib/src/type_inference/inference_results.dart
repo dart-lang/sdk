@@ -8,7 +8,6 @@ import 'package:kernel/ast.dart';
 import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../kernel/external_ast_helper.dart' as extern;
-import '../kernel/external_ast_helper.dart';
 import '../kernel/inferred_collections.dart';
 import '../source/check_helper.dart';
 import 'element_inference.dart';
@@ -108,7 +107,7 @@ class DirectVariableDeclarationInferenceResult
   StatementInferenceResult toStatementInferenceResult({
     required int fileOffset,
   }) => new StatementInferenceResult.single(
-    createVariableStatement(declaration, fileOffset: fileOffset),
+    extern.createVariableStatement(declaration, fileOffset: fileOffset),
   );
 }
 
@@ -123,8 +122,8 @@ class EffectVariableDeclarationInferenceResult
     required int fileOffset,
   }) => new StatementInferenceResult.single(
     expression != null
-        ? createExpressionStatement(expression!, fileOffset: fileOffset)
-        : createEmptyStatement(fileOffset: fileOffset),
+        ? extern.createExpressionStatement(expression!, fileOffset: fileOffset)
+        : extern.createEmptyStatement(fileOffset: fileOffset),
   );
 }
 
@@ -145,7 +144,7 @@ class LateVariableDeclarationInferenceResult
     required int fileOffset,
   }) => new StatementInferenceResult.multiple(fileOffset, [
     for (VariableDeclaration variableDeclaration in variableDeclarations)
-      createVariableStatement(variableDeclaration),
+      extern.createVariableStatement(variableDeclaration),
     ...functionDeclarations,
   ]);
 }
@@ -197,7 +196,7 @@ abstract class InvocationInferenceResult {
   ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
-        expression = createLet(
+        expression = extern.createLet(
           variable: hoistedExpressions[index],
           body: expression,
         );
@@ -281,14 +280,14 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         // The hoisting of InstanceGetterInvocation is performed elsewhere.
         return expression;
       } else if (expression is InstanceInvocation) {
-        if (!isPureExpression(expression.receiver)) {
-          SyntheticVariable receiver = createVariable(
+        if (!extern.isPureExpression(expression.receiver)) {
+          SyntheticVariable receiver = extern.createVariable(
             expression.receiver,
             inferredReceiverType ?? const DynamicType(),
           );
-          expression.receiver = createVariableGet(receiver)
+          expression.receiver = extern.createVariableGet(receiver)
             ..parent = expression;
-          return createLet(
+          return extern.createLet(
             variable: receiver,
             body: InvocationInferenceResult._insertHoistedExpressions(
               expression,
@@ -309,15 +308,15 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
       } else if (expression is StaticInvocation) {
         if (extensionReceiverType != null) {
           Expression receiver = expression.arguments.positional.first;
-          if (!isPureExpression(receiver)) {
-            SyntheticVariable receiverVariable = createVariable(
+          if (!extern.isPureExpression(receiver)) {
+            SyntheticVariable receiverVariable = extern.createVariable(
               receiver,
               extensionReceiverType,
             );
-            expression.arguments.positional.first = createVariableGet(
+            expression.arguments.positional.first = extern.createVariableGet(
               receiverVariable,
             )..parent = expression;
-            return createLet(
+            return extern.createLet(
               variable: receiverVariable,
               body: InvocationInferenceResult._insertHoistedExpressions(
                 expression,
@@ -483,8 +482,10 @@ class SuccessfulInitializerInvocationInferenceResult
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
       for (SyntheticVariable hoistedArgument in hoistedArguments) {
         initializers.add(
-          new LocalInitializer(hoistedArgument)
-            ..fileOffset = hoistedArgument.fileOffset,
+          extern.createLocalInitializer(
+            variable: hoistedArgument,
+            fileOffset: hoistedArgument.fileOffset,
+          ),
         );
       }
     }
@@ -573,12 +574,9 @@ class NullAwareGuard {
   /// The file offset used for the null-test.
   int _nullAwareFileOffset;
 
-  final InferenceVisitorBase _inferrer;
-
   new(
     this._nullAwareVariable,
-    this._nullAwareFileOffset,
-    this._inferrer, {
+    this._nullAwareFileOffset, {
     this._nullableExpression,
   });
 
@@ -594,9 +592,9 @@ class NullAwareGuard {
     DartType inferredType,
     Expression nullAwareAction,
   ) {
-    Expression equalsNull = _inferrer.createEqualsNull(
-      _nullAwareFileOffset,
-      createVariableGet(_nullAwareVariable),
+    Expression equalsNull = extern.createEqualsNull(
+      extern.createVariableGet(_nullAwareVariable),
+      fileOffset: _nullAwareFileOffset,
     );
 
     // In case null guards are applied to non-nullable receivers, we still
@@ -635,7 +633,7 @@ class NullAwareGuard {
     Expression typeSafeIfNullBranch =
         inferredType.nullability == Nullability.nullable
         ? extern.createNullLiteral(fileOffset: TreeNode.noOffset)
-        : createVariableGet(_nullAwareVariable);
+        : extern.createVariableGet(_nullAwareVariable);
     typeSafeIfNullBranch.fileOffset = _nullAwareFileOffset;
 
     ConditionalExpression condition = extern.createConditionalExpression(

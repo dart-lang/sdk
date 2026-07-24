@@ -133,7 +133,12 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
   /// If the return type is declared, the expression type is checked. If the
   /// return type is inferred the expression type registered for inference
   /// in [inferReturnType].
-  void handleReturn(ReturnStatement statement, DartType type, bool isArrow);
+  void handleReturn(
+    ReturnStatement statement,
+    DartType type,
+    bool isArrow, {
+    required InternalNode expressionNode,
+  });
 
   /// Handles an explicit yield statement.
   ///
@@ -142,8 +147,9 @@ abstract class BodyInferenceContext implements SharedBodyInferenceContext {
   /// in [inferReturnType].
   void handleYield(
     YieldStatement node,
-    ExpressionInferenceResult expressionResult,
-  );
+    ExpressionInferenceResult expressionResult, {
+    required InternalNode expressionNode,
+  });
 
   /// Handles an implicit return statement.
   ///
@@ -201,15 +207,11 @@ class _SyncContext extends BodyInferenceContext {
   /// Whether the function is an arrow function.
   bool? _isArrow;
 
-  /// A list of return statements in functions whose return type is being
-  /// inferred.
+  /// A list of information for the return statements in functions whose return
+  /// type is being inferred.
   ///
   /// The returns are checked for validity after the return type is inferred.
-  List<ReturnStatement>? _returnStatements;
-
-  /// A list of return expression types in functions whose return type is
-  /// being inferred.
-  List<DartType>? _returnExpressionTypes;
+  List<_ReturnInfo>? _returnStatementInfos;
 
   new(
     this.inferrer,
@@ -219,16 +221,16 @@ class _SyncContext extends BodyInferenceContext {
     super.isRoot,
   ) : super._() {
     if (_needToInferReturnType) {
-      _returnStatements = [];
-      _returnExpressionTypes = [];
+      _returnStatementInfos = [];
     }
   }
 
   void _checkValidReturn(
     DartType returnType,
     ReturnStatement statement,
-    DartType expressionType,
-  ) {
+    DartType expressionType, {
+    required InternalNode expressionNode,
+  }) {
     if (statement.expression == null) {
       // It is a compile-time error if s is `return;`, unless T is void,
       // dynamic, or Null.
@@ -301,6 +303,7 @@ class _SyncContext extends BodyInferenceContext {
           statement.expression!,
           fileOffset: statement.expression!.fileOffset,
           errorTemplate: diag.invalidReturn,
+          assignedNode: expressionNode,
         );
         statement.expression = expression..parent = statement;
       }
@@ -310,7 +313,12 @@ class _SyncContext extends BodyInferenceContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
-  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {
+  void handleReturn(
+    ReturnStatement statement,
+    DartType type,
+    bool isArrow, {
+    required InternalNode expressionNode,
+  }) {
     // The first return we see tells us if we have an arrow function.
     if (this._isArrow == null) {
       this._isArrow = isArrow;
@@ -321,10 +329,20 @@ class _SyncContext extends BodyInferenceContext {
     if (_needToInferReturnType) {
       // Add the return to a list to be checked for validity after we've
       // inferred the return type.
-      _returnStatements!.add(statement);
-      _returnExpressionTypes!.add(type);
+      _returnStatementInfos!.add(
+        new _ReturnInfo(
+          statement: statement,
+          expressionType: type,
+          expressionNode: expressionNode,
+        ),
+      );
     } else {
-      _checkValidReturn(_declaredReturnType, statement, type);
+      _checkValidReturn(
+        _declaredReturnType,
+        statement,
+        type,
+        expressionNode: expressionNode,
+      );
     }
   }
 
@@ -332,8 +350,9 @@ class _SyncContext extends BodyInferenceContext {
   // Coverage-ignore(suite): Not run.
   void handleYield(
     YieldStatement node,
-    ExpressionInferenceResult expressionResult,
-  ) {
+    ExpressionInferenceResult expressionResult, {
+    required InternalNode expressionNode,
+  }) {
     node.expression = expressionResult.expression..parent = node;
   }
 
@@ -354,9 +373,10 @@ class _SyncContext extends BodyInferenceContext {
       actualReturnedType = NeverType.fromNullability(Nullability.nonNullable);
     }
     // Use the types seen from the explicit return statements.
-    for (int i = 0; i < _returnStatements!.length; i++) {
-      ReturnStatement statement = _returnStatements![i];
-      DartType type = _returnExpressionTypes![i];
+    for (int i = 0; i < _returnStatementInfos!.length; i++) {
+      _ReturnInfo info = _returnStatementInfos![i];
+      ReturnStatement statement = info.statement;
+      DartType type = info.expressionType;
       // The return expression has to be assignable to the return type
       // expectation from the downwards inference context.
       if (statement.expression != null) {
@@ -393,11 +413,13 @@ class _SyncContext extends BodyInferenceContext {
       inferredReturnType = returnContext;
     }
 
-    for (int i = 0; i < _returnStatements!.length; ++i) {
+    for (int i = 0; i < _returnStatementInfos!.length; i++) {
+      _ReturnInfo info = _returnStatementInfos![i];
       _checkValidReturn(
         inferredReturnType,
-        _returnStatements![i],
-        _returnExpressionTypes![i],
+        info.statement,
+        info.expressionType,
+        expressionNode: info.expressionNode,
       );
     }
 
@@ -490,15 +512,11 @@ class _AsyncContext extends BodyInferenceContext {
   /// Whether the function is an arrow function.
   bool? _isArrow;
 
-  /// A list of return statements in functions whose return type is being
-  /// inferred.
+  /// A list of information for the return statements in functions whose return
+  /// type is being inferred.
   ///
   /// The returns are checked for validity after the return type is inferred.
-  List<ReturnStatement>? _returnStatements;
-
-  /// A list of return expression types in functions whose return type is
-  /// being inferred.
-  List<DartType>? _returnExpressionTypes;
+  List<_ReturnInfo>? _returnStatementInfos;
 
   new(
     this.inferrer,
@@ -509,16 +527,16 @@ class _AsyncContext extends BodyInferenceContext {
     super.isRoot,
   ) : super._() {
     if (_needToInferReturnType) {
-      _returnStatements = [];
-      _returnExpressionTypes = [];
+      _returnStatementInfos = [];
     }
   }
 
   void _checkValidReturn(
     DartType returnType,
     ReturnStatement statement,
-    DartType expressionType,
-  ) {
+    DartType expressionType, {
+    required InternalNode expressionNode,
+  }) {
     assert(
       emittedValueType != null,
       "Future value type has not been computed.",
@@ -619,6 +637,7 @@ class _AsyncContext extends BodyInferenceContext {
           declaredContextType: returnType,
           isVoidAllowed: false,
           errorTemplate: diag.invalidReturnAsync,
+          assignedNode: expressionNode,
         )..parent = statement;
       }
     }
@@ -627,7 +646,12 @@ class _AsyncContext extends BodyInferenceContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
-  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {
+  void handleReturn(
+    ReturnStatement statement,
+    DartType type,
+    bool isArrow, {
+    required InternalNode expressionNode,
+  }) {
     // The first return we see tells us if we have an arrow function.
     if (this._isArrow == null) {
       this._isArrow = isArrow;
@@ -638,10 +662,20 @@ class _AsyncContext extends BodyInferenceContext {
     if (_needToInferReturnType) {
       // Add the return to a list to be checked for validity after we've
       // inferred the return type.
-      _returnStatements!.add(statement);
-      _returnExpressionTypes!.add(type);
+      _returnStatementInfos!.add(
+        new _ReturnInfo(
+          statement: statement,
+          expressionType: type,
+          expressionNode: expressionNode,
+        ),
+      );
     } else {
-      _checkValidReturn(_declaredReturnType, statement, type);
+      _checkValidReturn(
+        _declaredReturnType,
+        statement,
+        type,
+        expressionNode: expressionNode,
+      );
     }
   }
 
@@ -649,8 +683,9 @@ class _AsyncContext extends BodyInferenceContext {
   // Coverage-ignore(suite): Not run.
   void handleYield(
     YieldStatement node,
-    ExpressionInferenceResult expressionResult,
-  ) {
+    ExpressionInferenceResult expressionResult, {
+    required InternalNode expressionNode,
+  }) {
     node.expression = expressionResult.expression..parent = node;
   }
 
@@ -671,8 +706,9 @@ class _AsyncContext extends BodyInferenceContext {
       inferredType = NeverType.fromNullability(Nullability.nonNullable);
     }
     // Use the types seen from the explicit return statements.
-    for (int i = 0; i < _returnStatements!.length; i++) {
-      DartType type = _returnExpressionTypes![i];
+    for (int i = 0; i < _returnStatementInfos!.length; i++) {
+      _ReturnInfo info = _returnStatementInfos![i];
+      DartType type = info.expressionType;
 
       DartType unwrappedType = inferrer.typeSchemaEnvironment.flatten(type);
       if (inferredType == null) {
@@ -712,11 +748,13 @@ class _AsyncContext extends BodyInferenceContext {
 
     emittedValueType = computeFutureValueType(inferrer.coreTypes, inferredType);
 
-    for (int i = 0; i < _returnStatements!.length; ++i) {
+    for (int i = 0; i < _returnStatementInfos!.length; i++) {
+      _ReturnInfo info = _returnStatementInfos![i];
       _checkValidReturn(
         inferredType,
-        _returnStatements![i],
-        _returnExpressionTypes![i],
+        info.statement,
+        info.expressionType,
+        expressionNode: info.expressionNode,
       );
     }
 
@@ -833,13 +871,19 @@ class _SyncStarContext extends BodyInferenceContext {
   /// statement returning the given [type].
   @override
   // Coverage-ignore(suite): Not run.
-  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {}
+  void handleReturn(
+    ReturnStatement statement,
+    DartType type,
+    bool isArrow, {
+    required InternalNode expressionNode,
+  }) {}
 
   @override
   void handleYield(
     YieldStatement node,
-    ExpressionInferenceResult expressionResult,
-  ) {
+    ExpressionInferenceResult expressionResult, {
+    required InternalNode expressionNode,
+  }) {
     DartType expectedType = node.isYieldStar
         ? inferrer.wrapType(
             _yieldElementContext,
@@ -852,6 +896,7 @@ class _SyncStarContext extends BodyInferenceContext {
           expectedType,
           expressionResult,
           fileOffset: node.fileOffset,
+          assignedNode: expressionNode,
         )
         .expression;
     node.expression = expression..parent = node;
@@ -994,13 +1039,19 @@ class _AsyncStarContext extends BodyInferenceContext {
   /// statement returning the given [type].
   @override
   // Coverage-ignore(suite): Not run.
-  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {}
+  void handleReturn(
+    ReturnStatement statement,
+    DartType type,
+    bool isArrow, {
+    required InternalNode expressionNode,
+  }) {}
 
   @override
   void handleYield(
     YieldStatement node,
-    ExpressionInferenceResult expressionResult,
-  ) {
+    ExpressionInferenceResult expressionResult, {
+    required InternalNode expressionNode,
+  }) {
     DartType expectedType = node.isYieldStar
         ? inferrer.wrapType(
             _yieldElementContext,
@@ -1014,6 +1065,7 @@ class _AsyncStarContext extends BodyInferenceContext {
           expectedType,
           expressionResult,
           fileOffset: node.fileOffset,
+          assignedNode: expressionNode,
         )
         .expression;
     node.expression = expression..parent = node;
@@ -1095,3 +1147,14 @@ class _AsyncStarContext extends BodyInferenceContext {
     return inferenceResult;
   }
 }
+
+class _ReturnInfo({
+  /// The inferred return statement.
+  required final ReturnStatement statement,
+
+  /// The static type of the returned expression.
+  required final DartType expressionType,
+
+  /// The internal node corresponding to the expression.
+  required final InternalNode expressionNode,
+});

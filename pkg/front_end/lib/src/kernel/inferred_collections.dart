@@ -25,7 +25,10 @@ sealed class InferredElement({required super.fileOffset}) extends InternalNode;
 /// Inferred [SpreadElement] in a list, set, or map literal.
 class InferredSpreadElement({
   /// The spread expression.
-  required var Expression expression,
+  required final Expression expression,
+
+  /// The internal node for [expression].
+  required final InternalExpression expressionNode,
 
   /// The type of [expression].
   required final DartType expressionType,

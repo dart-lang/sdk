@@ -53,14 +53,14 @@ class CascadePropertyTarget extends PropertyTarget<Never> {
 /// Non-promotion reason describing the situation where a variable was not
 /// promoted due to an explicit write to the variable appearing somewhere in the
 /// source code.
-class DemoteViaExplicitWrite<Variable extends Object>
+class DemoteViaExplicitWrite<Variable extends Object, Node extends Object>
     extends NonPromotionReason {
   /// The local variable that was not promoted.
   final Variable variable;
 
   /// The node that wrote to the variable; this corresponds to a node that was
   /// passed to [FlowAnalysis.write].
-  final Object node;
+  final Node node;
 
   DemoteViaExplicitWrite(this.variable, this.node);
 
@@ -75,7 +75,7 @@ class DemoteViaExplicitWrite<Variable extends Object>
   R accept<R, Node extends Object, Variable extends Object>(
     NonPromotionReasonVisitor<R, Node, Variable> visitor,
   ) => visitor.visitDemoteViaExplicitWrite(
-    this as DemoteViaExplicitWrite<Variable>,
+    this as DemoteViaExplicitWrite<Variable, Node>,
   );
 
   @override
@@ -86,14 +86,15 @@ class DemoteViaExplicitWrite<Variable extends Object>
 /// because the current function was suspended (due to an `await` or `yield`
 /// statement) while inside a local function, allowing other code to execute and
 /// potentially modify the variable.
-class DemoteViaSuspension<Variable extends Object> extends NonPromotionReason {
+class DemoteViaSuspension<Variable extends Object, Node extends Object>
+    extends NonPromotionReason {
   /// The local variable that was not promoted.
   final Variable variable;
 
   /// The node representing the suspension (e.g. an `await` or `yield`).
   ///
   /// This is the node that was passed to [FlowAnalysis.suspension].
-  final Object node;
+  final Node node;
 
   DemoteViaSuspension(this.variable, this.node);
 
@@ -107,7 +108,9 @@ class DemoteViaSuspension<Variable extends Object> extends NonPromotionReason {
   @override
   R accept<R, Node extends Object, Variable extends Object>(
     NonPromotionReasonVisitor<R, Node, Variable> visitor,
-  ) => visitor.visitDemoteViaSuspension(this as DemoteViaSuspension<Variable>);
+  ) => visitor.visitDemoteViaSuspension(
+    this as DemoteViaSuspension<Variable, Node>,
+  );
 
   @override
   String toString() => 'DemoteViaSuspension($node)';
@@ -3629,9 +3632,9 @@ abstract class NonPromotionReasonVisitor<
 > {
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
-  R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
+  R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable, Node> reason);
 
-  R visitDemoteViaSuspension(DemoteViaSuspension<Variable> reason);
+  R visitDemoteViaSuspension(DemoteViaSuspension<Variable, Node> reason);
 
   R visitPropertyNotPromotedForInherentReason(
     PropertyNotPromotedForInherentReason reason,
@@ -6589,7 +6592,7 @@ class _FlowAnalysisImpl<
           // those keys in turn should always correspond to actual variables
           // declared by the user. So `variable` should never be `null`.
           assert(variablesToDemote.contains(variableKey));
-          return new DemoteViaSuspension<Variable>(variable!, node);
+          return new DemoteViaSuspension<Variable, Node>(variable!, node);
         },
       );
     }
@@ -7901,7 +7904,7 @@ class _FlowAnalysisImpl<
     );
     _current = _current.write(
       this,
-      new DemoteViaExplicitWrite<Variable>(variable, node),
+      new DemoteViaExplicitWrite<Variable, Node>(variable, node),
       variableKey,
       writtenType,
       newSsaNode,

@@ -728,16 +728,17 @@ abstract class _LiteralBuilder(
     DartType type, {
     Expression? nullCheckedValue,
   }) {
-    return new Let(
-      variable,
-      _createConditionalExpression(
+    return extern.createLet(
+      variable: variable,
+      body: _createConditionalExpression(
         fileOffset,
         _createEqualsNull(_createVariableGet(variable)),
         defaultValue,
         nullCheckedValue ?? _createNullCheckedVariableGet(variable),
         type,
       ),
-    )..fileOffset = fileOffset;
+      fileOffset: fileOffset,
+    );
   }
 
   VariableGet _createNullCheckedVariableGet(Variable variable) {
@@ -1047,7 +1048,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(element.nodeForTesting, loop);
+    ?.registerExternalNode(element.nodeForTesting, loop);
     body.add(loop);
   }
 
@@ -1078,7 +1079,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
     )..scope = element.scope;
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(element.nodeForTesting, loop);
+    ?.registerExternalNode(element.nodeForTesting, loop);
 
     InvalidExpression? preLoopError = element.encoding.preLoopError;
     if (preLoopError != null) {
@@ -1124,7 +1125,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(element.nodeForTesting, ifCaseStatement);
+    ?.registerExternalNode(element.nodeForTesting, ifCaseStatement);
     body.add(ifCaseStatement);
   }
 
@@ -1158,7 +1159,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(element.nodeForTesting, ifStatement);
+    ?.registerExternalNode(element.nodeForTesting, ifStatement);
     body.add(ifStatement);
   }
 
@@ -1234,7 +1235,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
 
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(element.nodeForTesting, loop);
+    ?.registerExternalNode(element.nodeForTesting, loop);
   }
 
   void _translateSpreadElement(
@@ -1582,7 +1583,7 @@ class _NonConstMapLiteralBuilder(
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(entry.nodeForTesting, loop);
+    ?.registerExternalNode(entry.nodeForTesting, loop);
     body.add(loop);
   }
 
@@ -1613,7 +1614,7 @@ class _NonConstMapLiteralBuilder(
     )..scope = entry.scope;
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(entry.nodeForTesting, loop);
+    ?.registerExternalNode(entry.nodeForTesting, loop);
 
     InvalidExpression? preLoopError = entry.encoding.preLoopError;
     if (preLoopError != null) {
@@ -1660,7 +1661,7 @@ class _NonConstMapLiteralBuilder(
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(entry.nodeForTesting, ifStatement);
+    ?.registerExternalNode(entry.nodeForTesting, ifStatement);
     body.add(ifStatement);
   }
 
@@ -1694,7 +1695,7 @@ class _NonConstMapLiteralBuilder(
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(entry.nodeForTesting, ifStatement);
+    ?.registerExternalNode(entry.nodeForTesting, ifStatement);
     body.add(ifStatement);
   }
 
@@ -1893,7 +1894,7 @@ class _NonConstMapLiteralBuilder(
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
-    ?.registerAlias(entry.nodeForTesting, loop);
+    ?.registerExternalNode(entry.nodeForTesting, loop);
     body.add(entry.patternVariableDeclaration);
     for (VariableDeclaration intermediateVariable
         in entry.intermediateVariables) {

@@ -5148,6 +5148,12 @@ class Let extends Expression {
     body.parent = this;
   }
 
+  Expression get value => variable.initializer!;
+
+  void set value(Expression value) {
+    variable.initializer = value;
+  }
+
   @override
   DartType getStaticType(StaticTypeContext context) =>
       getStaticTypeInternal(context);

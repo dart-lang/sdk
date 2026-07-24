@@ -214,7 +214,7 @@ class TypeSchemaEnvironmentTest {
               typeCacheLegacy: {},
             ),
             inferenceResultForTesting: null,
-            treeNodeForTesting: null,
+            internalNodeForTesting: null,
           );
       if (formalTypeNodes == null) {
         inferredTypeNodes = typeSchemaEnvironment.choosePreliminaryTypes(
@@ -223,14 +223,14 @@ class TypeSchemaEnvironmentTest {
           inferredTypeNodes,
           inferenceUsingBoundsIsEnabled: true,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          internalNodeForTesting: null,
           typeOperations: _operations,
         );
       } else {
         gatherer.constrainArguments(
           formalTypeNodes,
           actualTypeNodes!,
-          treeNodeForTesting: null,
+          internalNodeForTesting: null,
         );
         inferredTypeNodes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer.computeConstraints(),
@@ -238,7 +238,7 @@ class TypeSchemaEnvironmentTest {
           inferredTypeNodes!,
           inferenceUsingBoundsIsEnabled: true,
           dataForTesting: null,
-          treeNodeForTesting: null,
+          internalNodeForTesting: null,
           typeOperations: _operations,
         );
       }
@@ -283,7 +283,7 @@ class TypeSchemaEnvironmentTest {
             preliminary: downwardsInferPhase,
             inferenceUsingBoundsIsEnabled: true,
             dataForTesting: null,
-            treeNodeForTesting: null,
+            astNodeForTesting: null,
           )
           .cast();
 
