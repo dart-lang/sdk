@@ -16,6 +16,18 @@ main() {
 
 @reflectiveTest
 class AugmentationReturnTypeMismatchTest extends PubPackageResolutionTest {
+  test_class_instanceField_abstractVar_dynamicInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  abstract var foo;
+}
+
+augment class A {
+  augment dynamic foo = 0;
+}
+''');
+  }
+
   test_class_instanceField_int_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -328,6 +340,20 @@ int? get foo => 0;
 augment abstract final String? foo;
 //                             ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+''');
+  }
+
+  test_topLevelVariable_abstractVar_dynamicInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract var foo;
+augment dynamic foo = 0;
+''');
+  }
+
+  test_topLevelVariable_abstractVar_varInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract var foo;
+augment var foo = 0;
 ''');
   }
 

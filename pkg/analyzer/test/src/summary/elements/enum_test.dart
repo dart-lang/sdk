@@ -397,13 +397,13 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <null>
-                      type: null
-                    element: <null>
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: null
+                  staticType: A
               inducedGetter: #F9
               nextFragment: #F10
             #F10 hasImplicitType hasInitializer isAugmentation isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:50) (firstTokenOffset:42) (offset:50)
@@ -413,13 +413,13 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <testLibrary>::@enum::A
-                      type: A
-                    element: <testLibrary>::@enum::A::@constructor::new
+                      element: <null>
+                      type: null
+                    element: <null>
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: A
+                  staticType: null
               inducedGetter: #F11
               previousFragment: #F8
           getters
@@ -529,13 +529,13 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <null>
-                      type: null
-                    element: <null>
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: null
+                  staticType: A
               inducedGetter: #F6
               nextFragment: #F7
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3 (nameOffset:19) (firstTokenOffset:19) (offset:19)
@@ -607,13 +607,13 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <testLibrary>::@enum::A
-                      type: A
-                    element: <testLibrary>::@enum::A::@constructor::new
+                      element: <null>
+                      type: null
+                    element: <null>
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: A
+                  staticType: null
               inducedGetter: #F13
               previousFragment: #F5
           getters
@@ -724,13 +724,13 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <null>
-                      type: null
-                    element: <null>
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: null
+                  staticType: A
               inducedGetter: #F6
               nextFragment: #F7
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:14) (firstTokenOffset:14) (offset:14)
@@ -795,13 +795,13 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <testLibrary>::@enum::A
-                      type: A
-                    element: <testLibrary>::@enum::A::@constructor::new
+                      element: <null>
+                      type: null
+                    element: <null>
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
-                  staticType: A
+                  staticType: null
               inducedGetter: #F12
               previousFragment: #F5
           getters
@@ -888,17 +888,17 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <null>
-                      type: null
-                    element: <null>
+                      element: <testLibrary>::@enum::A
+                      type: A
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @13
                     arguments2
                       IntegerLiteral
                         literal: 1 @14
-                        staticType: null
+                        staticType: int
                     rightParenthesis: ) @15
-                  staticType: null
+                  staticType: A
               inducedGetter: #F4
               nextFragment: #F5
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2 (nameOffset:18) (firstTokenOffset:18) (offset:18)
@@ -971,17 +971,17 @@ library
                   constructorReference: ConstructorReference2
                     typeReference: ConstructorTypeReference
                       name: A @-1
-                      element: <testLibrary>::@enum::A
-                      type: A
-                    element: <testLibrary>::@enum::A::@constructor::new
+                      element: <null>
+                      type: null
+                    element: <null>
                   argumentList: ArgumentList
                     leftParenthesis: ( @79
                     arguments2
                       IntegerLiteral
                         literal: 3 @80
-                        staticType: int
+                        staticType: null
                     rightParenthesis: ) @81
-                  staticType: A
+                  staticType: null
               inducedGetter: #F12
               previousFragment: #F3
           getters

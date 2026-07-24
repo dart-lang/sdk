@@ -214,38 +214,40 @@ class _PropertyInducingElementTypeInference
     Scope? scope;
     ExpressionImpl Function()? getInitializer;
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
-    for (var fragment in _element.fragments) {
-      var node = _linker.getLinkingNode(fragment);
-      switch (node) {
-        case VariableDeclarationImpl():
-          if (node.initializer2 != null) {
-            initializerLibraryFragment = fragment.libraryFragment;
-            scope = node.initializerScope!;
-            getInitializer = () => node.initializer2!;
-            if (_element case FieldElementImpl field) {
-              if (field.isInstanceField && !field.isLate) {
-                inScopePrimaryConstructorParameters = field.enclosingElement
-                    .tryCast<InterfaceElementImpl>()
-                    ?.primaryConstructor
-                    ?.formalParameters;
-              }
+
+    // Augmentations cannot change the type of the element, so only
+    // the initializer of the first fragment can be used for type inference.
+    var firstFragment = _element.firstFragment;
+    var node = _linker.getLinkingNode(firstFragment);
+    switch (node) {
+      case VariableDeclarationImpl():
+        if (node.initializer2 != null) {
+          initializerLibraryFragment = firstFragment.libraryFragment;
+          scope = node.initializerScope!;
+          getInitializer = () => node.initializer2!;
+          if (_element case FieldElementImpl field) {
+            if (field.isInstanceField && !field.isLate) {
+              inScopePrimaryConstructorParameters = field.enclosingElement
+                  .tryCast<InterfaceElementImpl>()
+                  ?.primaryConstructor
+                  ?.formalParameters;
             }
           }
-        case FormalParameterImpl():
-          _assertElementFieldOriginDeclaringFormalParameter();
-          if (node.defaultClause case var defaultClause?) {
-            initializerLibraryFragment = fragment.libraryFragment;
-            scope = node.scope!;
-            getInitializer = () => defaultClause.value2;
-          } else if (node is RegularFormalParameterImpl &&
-              node.functionTypedSuffix == null) {
-            _status = _InferenceStatus.inferred;
-            return (
-              type: _element.library.typeSystem.objectQuestion,
-              isTypeInferredFromInitializer: false,
-            );
-          }
-      }
+        }
+      case FormalParameterImpl():
+        _assertElementFieldOriginDeclaringFormalParameter();
+        if (node.defaultClause case var defaultClause?) {
+          initializerLibraryFragment = firstFragment.libraryFragment;
+          scope = node.scope!;
+          getInitializer = () => defaultClause.value2;
+        } else if (node is RegularFormalParameterImpl &&
+            node.functionTypedSuffix == null) {
+          _status = _InferenceStatus.inferred;
+          return (
+            type: _element.library.typeSystem.objectQuestion,
+            isTypeInferredFromInitializer: false,
+          );
+        }
     }
 
     if (initializerLibraryFragment == null ||

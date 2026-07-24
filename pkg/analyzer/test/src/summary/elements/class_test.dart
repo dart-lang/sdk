@@ -29838,6 +29838,210 @@ library
 ''');
   }
 
+  test_field_augmentation_chain_inferredType_abstractVar_varInitializer() async {
+    var library = await buildLibrary(r'''
+class A {
+  abstract var foo;
+}
+
+augment class A {
+  augment var foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasImplicitType isAbstract isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isAbstract isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
+          setters
+            #F5 isAbstract isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
+        #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F6 hasImplicitType hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F11
+              previousFragment: #F3
+          getters
+            #F8 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F11 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isAbstract isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: dynamic
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: dynamic
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: dynamic
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_field_augmentation_chain_inferredType_varInitializer_varInitializer() async {
+    var library = await buildLibrary(r'''
+class A {
+  var foo = 0;
+}
+
+augment class A {
+  augment var foo = 1.2;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasImplicitType hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
+          setters
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
+        #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F6 hasImplicitType hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F11
+              previousFragment: #F3
+          getters
+            #F8 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F11 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F5
+  classes
+    hasNonFinalField isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_field_augmentation_chain_noIntroductoryDeclaration() async {
     var library = await buildLibrary(r'''
 class A {}
