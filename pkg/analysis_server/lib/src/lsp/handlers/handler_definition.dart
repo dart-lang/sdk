@@ -25,7 +25,7 @@ typedef StaticOptions = Either2<bool, DefinitionOptions>;
 
 class DefinitionHandler
     extends
-        LspMessageHandler<
+        SharedMessageHandler<
           TextDocumentPositionParams,
           TextDocumentDefinitionResult
         >
@@ -37,6 +37,9 @@ class DefinitionHandler
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   Future<List<AnalysisNavigationParams>> getPluginResults(
     String path,
