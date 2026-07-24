@@ -3344,7 +3344,7 @@ abstract class AstCodeGenerator
     DartType bound,
   ) {
     b.local_get(typeLocal);
-    final boundLocal = b.addLocal(translator.runtimeTypeType);
+    final boundLocal = b.addLocal(types.nonNullableTypeType);
     types.makeType(this, bound);
     b.local_tee(boundLocal);
     call(translator.isTypeSubtype.reference);
