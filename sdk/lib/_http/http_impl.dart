@@ -4061,7 +4061,15 @@ final class _HttpClientDigestCredentials extends _HttpClientCredentials
     hasher = _MD5()
       ..add(credentials.ha1!.codeUnits)
       ..add([_CharCode.COLON]);
-    if (credentials.qop == "auth") {
+    // `qop` may be a comma-separated list of options (RFC 2617 section 3.2.1),
+    // for example `auth,auth-int`. Use `auth` whenever the server offers it
+    // rather than requiring an exact match, otherwise cnonce and nc are dropped
+    // and the response falls back to the unprotected RFC 2069 form.
+    var qop = credentials.qop;
+    var useAuthQop =
+        qop != null &&
+        qop.split(",").map((option) => option.trim()).contains("auth");
+    if (useAuthQop) {
       isAuth = true;
       cnonce = _CryptoUtils.bytesToHex(_CryptoUtils.getRandomBytes(4));
       var nonceCount = credentials.nonceCount! + 1;

@@ -103,9 +103,17 @@ class Server {
             Expect.equals("MD5", header.parameters["algorithm"]);
             Expect.equals(nonce, header.parameters["nonce"]);
             Expect.equals(request.uri.toString(), uri);
-            if (qop != null) {
-              // A server qop of auth-int is downgraded to none by the client.
-              Expect.equals("auth", serverQop);
+            // A server that offers `auth` (possibly among other options, e.g.
+            // `auth,auth-int`) must cause the client to respond with qop=auth
+            // and a cnonce/nc pair. A server offering only `auth-int` (which the
+            // client does not implement) or no qop is downgraded to RFC 2069.
+            var offersAuth =
+                serverQop != null &&
+                serverQop
+                    .split(",")
+                    .map((option) => option.trim())
+                    .contains("auth");
+            if (offersAuth) {
               Expect.equals("auth", header.parameters["qop"]);
               Expect.isNotNull(cnonce);
               Expect.isNotNull(nc);
@@ -476,10 +484,12 @@ main() {
   testCredentials("MD5", null);
   testCredentials("MD5", "auth");
   testCredentials("MD5", "auth-int");
+  testCredentials("MD5", "auth,auth-int");
   testAuthenticateCallback(null, null);
   testAuthenticateCallback("MD5", null);
   testAuthenticateCallback("MD5", "auth");
   testAuthenticateCallback("MD5", "auth-int");
+  testAuthenticateCallback("MD5", "auth,auth-int");
   testStaleNonce();
   testNextNonce();
   testMalformedAuthenticateHeaderNoAuthHandler();
