@@ -2464,6 +2464,17 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   loader->SetOffset(cls,
                     members_offset + bytecode_component_->GetMembersOffset());
 
+  if (has_pragma) {
+    // Check for the same pragmas that the KernelLoader does before finalizing
+    // the types in the class.
+    // vm:deeply-immutable is already handled as a declaration flag.
+    if (Library::FindPragma(thread_, /*only_core=*/false, cls,
+                            Symbols::vm_isolate_unsendable(),
+                            /*multiple=*/false)) {
+      cls.set_is_isolate_unsendable_due_to_pragma(true);
+    }
+  }
+
   if (!cls.is_type_finalized()) {
     ClassFinalizer::FinalizeTypesInClass(cls);
   }
