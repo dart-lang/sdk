@@ -26961,7 +26961,7 @@ WarningCode:
       String function: the name of the type
     problemMessage: "The type argument(s) of the generic function type '#function' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#function'."
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
       inferred via the context type, or have type arguments.
@@ -26971,7 +26971,7 @@ WarningCode:
       String function: the name of the constructor
     problemMessage: "The type argument(s) of the constructor '#function' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#function'."
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, types in instance creation
       (constructor calls) must be inferred via the context type, or have type
