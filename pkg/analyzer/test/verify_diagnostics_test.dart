@@ -314,6 +314,11 @@ class DocumentationValidator {
     for (var experiment in experiments) {
       var feature = ExperimentStatus.knownFeatures[experiment];
       if (feature != null) {
+        if (feature.isEnabledByDefault && !onlyValidateFormatting) {
+          _reportProblem(
+            "Experiment '$experiment' is enabled by default in $section $index",
+          );
+        }
         experimentalFeatures.add(feature);
       } else if (!onlyValidateFormatting) {
         _reportProblem("Unknown experiment '$experiment' in $section $index");
@@ -864,6 +869,13 @@ class _SnippetTest extends PubPackageResolutionTest {
       ),
     );
   }
+
+  /// Disables all of the experimental features other than those mentioned
+  /// explicitly in the code blocks via an `%experiments=` directive. This
+  /// removes the need to use a language override in documentation for
+  /// diagnostics associated with features that aren't enabled by default.
+  @override
+  List<Feature> get experimentalFeatures => [];
 
   @override
   String? get testPackageLanguageVersion {
