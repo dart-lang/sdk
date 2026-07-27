@@ -16088,6 +16088,82 @@ LinterLintCode:
         }
       }
       ```
+  unnecessaryThisAlias:
+    type: lint
+    parameters: none
+    problemMessage: "Unnecessary 'this' alias."
+    correctionMessage: "Try removing the variable and using 'this' directly."
+    state:
+      experimental: "3.14"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable is initialized
+      to `this` and the variable is only used in ways that could just use `this`.
+
+      #### Example
+
+      The following code produces this diagnostic because the local variable `self`
+      is initialized to `this`, is never reassigned, and its only usage is a promotion
+      check that could be performed on `this` directly under the `this-promotion` feature:
+
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          var [!self!] = this;
+          if (self is D) {
+            // ...
+          }
+        }
+      }
+
+      class D extends C {}
+      ```
+
+      #### Common fixes
+
+      Remove the local variable and use `this` directly:
+
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          if (this is D) {
+            // ...
+          }
+        }
+      }
+
+      class D extends C {}
+      ```
+    deprecatedDetails: |-
+      **DON'T** assign `this` to a local variable to perform type promotion.
+
+      **BAD:**
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          var [!self!] = this;
+          if (self is D) {}
+        }
+      }
+      class D extends C {}
+      ```
+
+      **GOOD:**
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          if (this is D) {}
+        }
+      }
+      class D extends C {}
+      ```
   unnecessaryToListInSpreads:
     type: lint
     parameters: none

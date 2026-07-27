@@ -238,6 +238,7 @@ import 'rules/unnecessary_statements.dart';
 import 'rules/unnecessary_string_escapes.dart';
 import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
+import 'rules/unnecessary_this_alias.dart';
 import 'rules/unnecessary_to_list_in_spreads.dart';
 import 'rules/unnecessary_type_name_in_constructor.dart';
 import 'rules/unnecessary_unawaited.dart';
@@ -508,6 +509,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryStringEscapes())
     ..registerLintRule(UnnecessaryStringInterpolations())
     ..registerLintRule(UnnecessaryThis())
+    ..registerLintRule(UnnecessaryThisAlias())
     ..registerLintRule(UnnecessaryToListInSpreads())
     ..registerLintRule(UnnecessaryTypeNameInConstructor())
     ..registerLintRule(UnnecessaryUnawaited())

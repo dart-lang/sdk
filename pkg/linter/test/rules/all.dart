@@ -304,6 +304,7 @@ import 'unnecessary_statements_test.dart' as unnecessary_statements;
 import 'unnecessary_string_escapes_test.dart' as unnecessary_string_escapes;
 import 'unnecessary_string_interpolations_test.dart'
     as unnecessary_string_interpolations;
+import 'unnecessary_this_alias_test.dart' as unnecessary_this_alias;
 import 'unnecessary_this_test.dart' as unnecessary_this;
 import 'unnecessary_to_list_in_spreads_test.dart'
     as unnecessary_to_list_in_spreads;
@@ -573,6 +574,7 @@ void main() {
   unnecessary_statements.main();
   unnecessary_string_escapes.main();
   unnecessary_string_interpolations.main();
+  unnecessary_this_alias.main();
   unnecessary_this.main();
   unnecessary_to_list_in_spreads.main();
   unnecessary_type_name_in_constructor.main();

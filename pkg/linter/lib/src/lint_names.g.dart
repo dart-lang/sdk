@@ -600,6 +600,8 @@ abstract final class LintNames {
 
   static const String unnecessary_this = 'unnecessary_this';
 
+  static const String unnecessary_this_alias = 'unnecessary_this_alias';
+
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
 
