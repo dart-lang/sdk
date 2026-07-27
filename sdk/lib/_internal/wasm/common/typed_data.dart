@@ -431,7 +431,8 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
   }
 }
 
-mixin _UnmodifiableByteDataMixin on ByteDataBase {
+mixin _UnmodifiableByteDataMixin on ByteDataBase
+    implements _UnmodifiableTypedData {
   @override
   void setInt8(int byteOffset, int value) {
     throw UnsupportedError("Cannot modify an unmodifiable byte data");
@@ -1949,7 +1950,7 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
 
     if (count == 0) return;
 
-    if (this is _UnmodifiableIntListMixin) {
+    if (this is _UnmodifiableTypedData) {
       throw UnsupportedError("Cannot modify an unmodifiable list");
     }
 
@@ -2302,7 +2303,7 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
 
     if (count == 0) return;
 
-    if (this is _UnmodifiableDoubleListMixin) {
+    if (this is _UnmodifiableTypedData) {
       throw UnsupportedError("Cannot modify an unmodifiable list");
     }
 
@@ -2352,17 +2353,12 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
   }
 }
 
+abstract interface class _UnmodifiableTypedData {}
+
 // TODO(omersa): This mixin should override other update methods (probably just
 // setRange) that don't use `[]=` to modify the list.
-mixin _UnmodifiableIntListMixin {
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-}
-
-// TODO(omersa): Same as above.
-mixin _UnmodifiableDoubleListMixin {
-  void operator []=(int index, double value) {
+mixin _UnmodifiableListMixin<T> implements _UnmodifiableTypedData {
+  void operator []=(int index, T value) {
     throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 }
@@ -2400,7 +2396,7 @@ mixin _SpecializedWasmIntSetRangeMixin<SpawnedType extends TypedDataList<int>>
 
   @override
   void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
+    if (this is! _UnmodifiableTypedData &&
         _trySetRangeFastPath(start, end, from, skipCount)) {
       return;
     }
@@ -2426,7 +2422,7 @@ mixin _SpecializedWasmDoubleSetRangeMixin<
     Iterable<double> from, [
     int skipCount = 0,
   ]) {
-    if (this is! _UnmodifiableDoubleListMixin &&
+    if (this is! _UnmodifiableTypedData &&
         _trySetRangeFastPath(start, end, from, skipCount)) {
       return;
     }
@@ -3240,7 +3236,7 @@ class F64List extends _WasmF64ArrayBase
 // Unmodifiable fast lists
 //
 
-class UnmodifiableI8List extends I8List with _UnmodifiableIntListMixin {
+class UnmodifiableI8List extends I8List with _UnmodifiableListMixin<int> {
   UnmodifiableI8List(I8List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3252,7 +3248,7 @@ class UnmodifiableI8List extends I8List with _UnmodifiableIntListMixin {
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
-class UnmodifiableU8List extends U8List with _UnmodifiableIntListMixin {
+class UnmodifiableU8List extends U8List with _UnmodifiableListMixin<int> {
   UnmodifiableU8List(U8List list)
     : super.withData(list._data, list._offsetInElements, list.length);
 
@@ -3265,7 +3261,7 @@ class UnmodifiableU8List extends U8List with _UnmodifiableIntListMixin {
 }
 
 class UnmodifiableU8ClampedList extends U8ClampedList
-    with _UnmodifiableIntListMixin {
+    with _UnmodifiableListMixin<int> {
   UnmodifiableU8ClampedList(U8ClampedList list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3280,7 +3276,7 @@ class UnmodifiableU8ClampedList extends U8ClampedList
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
-class UnmodifiableI16List extends I16List with _UnmodifiableIntListMixin {
+class UnmodifiableI16List extends I16List with _UnmodifiableListMixin<int> {
   UnmodifiableI16List(I16List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3295,7 +3291,7 @@ class UnmodifiableI16List extends I16List with _UnmodifiableIntListMixin {
   _I16ByteBuffer get buffer => _I16ByteBuffer._(_data, false);
 }
 
-class UnmodifiableU16List extends U16List with _UnmodifiableIntListMixin {
+class UnmodifiableU16List extends U16List with _UnmodifiableListMixin<int> {
   UnmodifiableU16List(U16List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3310,7 +3306,7 @@ class UnmodifiableU16List extends U16List with _UnmodifiableIntListMixin {
   _I16ByteBuffer get buffer => _I16ByteBuffer._(_data, false);
 }
 
-class UnmodifiableI32List extends I32List with _UnmodifiableIntListMixin {
+class UnmodifiableI32List extends I32List with _UnmodifiableListMixin<int> {
   UnmodifiableI32List(I32List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3325,7 +3321,7 @@ class UnmodifiableI32List extends I32List with _UnmodifiableIntListMixin {
   _I32ByteBuffer get buffer => _I32ByteBuffer._(_data, false);
 }
 
-class UnmodifiableU32List extends U32List with _UnmodifiableIntListMixin {
+class UnmodifiableU32List extends U32List with _UnmodifiableListMixin<int> {
   UnmodifiableU32List(U32List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3340,7 +3336,7 @@ class UnmodifiableU32List extends U32List with _UnmodifiableIntListMixin {
   _I32ByteBuffer get buffer => _I32ByteBuffer._(_data, false);
 }
 
-class UnmodifiableI64List extends I64List with _UnmodifiableIntListMixin {
+class UnmodifiableI64List extends I64List with _UnmodifiableListMixin<int> {
   UnmodifiableI64List(I64List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3355,7 +3351,7 @@ class UnmodifiableI64List extends I64List with _UnmodifiableIntListMixin {
   _I64ByteBuffer get buffer => _I64ByteBuffer._(_data, false);
 }
 
-class UnmodifiableU64List extends U64List with _UnmodifiableIntListMixin {
+class UnmodifiableU64List extends U64List with _UnmodifiableListMixin<int> {
   UnmodifiableU64List(U64List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3370,7 +3366,7 @@ class UnmodifiableU64List extends U64List with _UnmodifiableIntListMixin {
   _I64ByteBuffer get buffer => _I64ByteBuffer._(_data, false);
 }
 
-class UnmodifiableF32List extends F32List with _UnmodifiableDoubleListMixin {
+class UnmodifiableF32List extends F32List with _UnmodifiableListMixin<double> {
   UnmodifiableF32List(F32List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3385,7 +3381,7 @@ class UnmodifiableF32List extends F32List with _UnmodifiableDoubleListMixin {
   _F32ByteBuffer get buffer => _F32ByteBuffer._(_data, false);
 }
 
-class UnmodifiableF64List extends F64List with _UnmodifiableDoubleListMixin {
+class UnmodifiableF64List extends F64List with _UnmodifiableListMixin<double> {
   UnmodifiableF64List(F64List list)
     : super._(list._data, list._offsetInElements, list.length);
 
@@ -3926,7 +3922,7 @@ mixin _UnmodifiableSlowListMixin on _SlowListBase {
 }
 
 class UnmodifiableSlowI8List extends _SlowI8List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowI8List(Int8List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -3935,7 +3931,7 @@ class UnmodifiableSlowI8List extends _SlowI8List
 }
 
 class UnmodifiableSlowU8List extends _SlowU8List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowU8List(Uint8List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -3944,7 +3940,7 @@ class UnmodifiableSlowU8List extends _SlowU8List
 }
 
 class UnmodifiableSlowU8ClampedList extends _SlowU8ClampedList
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowU8ClampedList(Uint8ClampedList list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -3956,7 +3952,7 @@ class UnmodifiableSlowU8ClampedList extends _SlowU8ClampedList
 }
 
 class UnmodifiableSlowI16List extends _SlowI16List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowI16List(Int16List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -3965,7 +3961,7 @@ class UnmodifiableSlowI16List extends _SlowI16List
 }
 
 class UnmodifiableSlowU16List extends _SlowU16List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowU16List(Uint16List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -3974,7 +3970,7 @@ class UnmodifiableSlowU16List extends _SlowU16List
 }
 
 class UnmodifiableSlowI32List extends _SlowI32List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowI32List(Int32List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -3983,7 +3979,7 @@ class UnmodifiableSlowI32List extends _SlowI32List
 }
 
 class UnmodifiableSlowU32List extends _SlowU32List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowU32List(Uint32List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -3992,7 +3988,7 @@ class UnmodifiableSlowU32List extends _SlowU32List
 }
 
 class UnmodifiableSlowI64List extends _SlowI64List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowI64List(Int64List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -4001,7 +3997,7 @@ class UnmodifiableSlowI64List extends _SlowI64List
 }
 
 class UnmodifiableSlowU64List extends _SlowU64List
-    with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<int>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowU64List(Uint64List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -4010,7 +4006,7 @@ class UnmodifiableSlowU64List extends _SlowU64List
 }
 
 class UnmodifiableSlowF32List extends _SlowF32List
-    with _UnmodifiableDoubleListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<double>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowF32List(Float32List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
@@ -4019,7 +4015,7 @@ class UnmodifiableSlowF32List extends _SlowF32List
 }
 
 class UnmodifiableSlowF64List extends SlowF64List
-    with _UnmodifiableDoubleListMixin, _UnmodifiableSlowListMixin {
+    with _UnmodifiableListMixin<double>, _UnmodifiableSlowListMixin {
   UnmodifiableSlowF64List(Float64List list)
     : super._(list.buffer, list.offsetInBytes, list.length);
 
