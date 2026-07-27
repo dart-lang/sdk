@@ -1,0 +1,33 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# We make Operation extendable so that dynamic modules can provide their own
+# definition.
+extendable:
+  - library: 'common/common.dart'
+    class: 'Operation'
+
+# Some members in Operation need to be overridden by dynamic modules to properly
+# implement the interface.
+can-be-overridden:
+  - library: 'common/common.dart'
+    class: 'Operation'
+
+# Dynamic modules must define a `void Function(Registry)` and as such, need to
+# refer to the Registry as a type.
+can-be-used-as-type:
+  - library: 'common/common.dart'
+    class: 'Registry'
+  - library: 'common/common.dart'
+    class: 'Operation'
+
+# These APIs may be invoked by dynamic modules. `dart:math` APIs are used to
+# implement operations, while `addOperation` is called during the registration
+# process.
+callable:
+  - library: 'dart:core'
+  - library: 'dart:math'
+  - library: 'common/common.dart'
+    class: 'Registry'
+    member: 'addOperation'
