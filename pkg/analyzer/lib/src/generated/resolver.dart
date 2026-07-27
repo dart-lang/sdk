@@ -2345,8 +2345,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     });
 
     baseOrFinalTypeVerifier.checkElement(
-      declaredElement,
-      node.implementsClause,
+      element: declaredElement,
+      nameToken: node.namePart.typeName,
+      superclass: node.extendsClause?.superclass,
+      withClause: node.withClause,
+      implementsClause: node.implementsClause,
+      onClause: null,
     );
   }
 
@@ -2359,8 +2363,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     node.visitChildren2(this);
     elementResolver.visitClassTypeAlias(node);
     baseOrFinalTypeVerifier.checkElement(
-      declaredElement,
-      node.implementsClause,
+      element: declaredElement,
+      nameToken: node.name,
+      superclass: node.superclass,
+      withClause: node.withClause,
+      implementsClause: node.implementsClause,
+      onClause: null,
     );
   }
 
@@ -3616,8 +3624,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     });
 
     baseOrFinalTypeVerifier.checkElement(
-      declaredElement,
-      node.implementsClause,
+      element: declaredElement,
+      nameToken: node.name,
+      superclass: null,
+      withClause: null,
+      implementsClause: node.implementsClause,
+      onClause: node.onClause,
     );
   }
 
