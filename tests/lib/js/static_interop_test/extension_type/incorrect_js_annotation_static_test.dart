@@ -18,7 +18,22 @@ external jsi.JSVoid jsiTopLevel();
 external jsi.JSVoid pkgJsTopLevel();
 
 @jsi.JS()
-extension type JsiExtensionType._(jsi.JSObject _) {}
+extension type JsiExtensionType._(jsi.JSObject _) {
+  @jsi.JS()
+  external JsiExtensionType();
+  //       ^
+  // [web] The '@JS' annotation on an extension type constructor has no effect.
+
+  @jsi.JS()
+  external JsiExtensionType.literal({int foo});
+  //       ^
+  // [web] The '@JS' annotation on an extension type constructor has no effect.
+
+  @jsi.JS()
+  external factory JsiExtensionType.factory();
+  //               ^
+  // [web] The '@JS' annotation on an extension type constructor has no effect.
+}
 
 @pkgJs.JS()
 extension type PkgJsExtensionType._(jsi.JSObject _) {}

@@ -75,6 +75,7 @@ front_end/JsInteropExportInvalidInteropTypeArgument/example: missingExample # We
 front_end/JsInteropExportInvalidTypeArgument/example: missingExample # Web compiler specific
 front_end/JsInteropExportMemberCollision/example: missingExample # Web compiler specific
 front_end/JsInteropExportNoExportableMembers/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionConstructorJsAnnotationHasNoEffect/example: Fail # Web compiler specific
 front_end/JsInteropExtensionTypeMemberNotInterop/example: missingExample # Web compiler specific
 front_end/JsInteropExtensionTypeNotInterop/example: missingExample # Web compiler specific
 front_end/JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: missingExample # Web compiler specific
