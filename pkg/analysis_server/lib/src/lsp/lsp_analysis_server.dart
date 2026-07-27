@@ -242,6 +242,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions? get initializationOptions => _initializationOptions;
 
+  /// Whether the server has transitioned into the shutting down state.
+  bool get isShuttingDown => messageHandler is ShuttingDownStateMessageHandler;
+
   /// A [Future] that completes with the [InitializedStateMessageHandler] for
   /// the server once it transitions to the initialized state.
   @override
@@ -1329,6 +1332,15 @@ class LspServerContextManagerCallbacks
 
   @override
   void flushResults(List<String> files) {
+    if (analysisServer.isShuttingDown) {
+      // When the server is shutting down, analysis contexts will be destroyed.
+      // Destroying analysis contexts usually flushes all diagnostics, however
+      // we don't want this during a shutdown because for one-shot clients like
+      // 'dart analyze', it will look like the diagnostics went away. Instead,
+      // clients should handle cleaning up diagnostics for a shut-down server.
+      return;
+    }
+
     for (var file in files) {
       analysisServer.publishDiagnostics(file, []);
     }
