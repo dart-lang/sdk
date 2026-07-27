@@ -523,7 +523,7 @@ package:analyzer/dart/analysis/analysis_options.dart:
     contextFeatures (getter: FeatureSet)
     enabledLegacyPluginNames (getter: List<String>)
     errorProcessors (getter: List<ErrorProcessor>)
-    excludePatterns (getter: List<String>)
+    excludePatterns (getter: List<String>, deprecated)
     formatterOptions (getter: FormatterOptions)
     lint (getter: bool)
     lintRules (getter: List<AbstractAnalysisRule>)
