@@ -1275,6 +1275,11 @@ class Assembler : public AssemblerBase {
   }
 #undef __
 
+  void bti() { Emit(BTI); }
+  void bti_c() { Emit(BTI_C); }
+  void bti_j() { Emit(BTI_J); }
+  void bti_jc() { Emit(BTI_JC); }
+
   // Breakpoint.
   void brk(uint16_t imm) { EmitExceptionGenOp(BRK, imm); }
 

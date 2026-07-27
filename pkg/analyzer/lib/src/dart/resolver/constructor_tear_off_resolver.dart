@@ -12,24 +12,31 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// A resolver for [ConstructorReference] nodes.
-class ConstructorReferenceResolver {
+/// A resolver for [ConstructorTearOff] nodes.
+class ConstructorTearOffResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
-  ConstructorReferenceResolver(this._resolver);
+  ConstructorTearOffResolver(this._resolver);
 
-  void resolve(ConstructorReferenceImpl node, {required DartType contextType}) {
+  void resolve(ConstructorTearOffImpl node, {required DartType contextType}) {
     if (!_resolver.isConstructorTearoffsEnabled &&
-        node.constructorName.type.typeArguments == null) {
+        node.typeReference.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
       _resolver.diagnosticReporter.report(
         diag.sdkVersionConstructorTearoffs.at(node),
       );
     }
-    node.constructorName.accept2(_resolver);
-    var element = node.constructorName.element;
+    node.typeReference.typeArguments?.accept2(_resolver);
+    var type = node.typeReference.type;
+    node.element = type is InterfaceTypeImpl
+        ? type.lookUpConstructor(
+            node.selector.name2.lexeme,
+            _resolver.definingLibrary,
+          )
+        : null;
+    var element = node.element;
     if (element != null && !element.isFactory) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
@@ -38,10 +45,8 @@ class ConstructorReferenceResolver {
         );
       }
     }
-    var name = node.constructorName.name;
-    if (element == null &&
-        name != null &&
-        _resolver.isConstructorTearoffsEnabled) {
+    var name = node.selector.name2;
+    if (element == null && _resolver.isConstructorTearoffsEnabled) {
       // The illegal construction, which looks like a type-instantiated
       // constructor tearoff, may be an attempt to reference a member on
       // [enclosingElement]. Try to provide a helpful error, and fall back to
@@ -49,7 +54,7 @@ class ConstructorReferenceResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.constructorName.type.element;
+      var enclosingElement = node.typeReference.element;
       if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
         enclosingElement = aliasedType is InterfaceType
@@ -61,22 +66,22 @@ class ConstructorReferenceResolver {
       // This is illegal.
       if (enclosingElement is InterfaceElement) {
         var method =
-            enclosingElement.getMethod(name.name) ??
-            enclosingElement.getGetter(name.name) ??
-            enclosingElement.getSetter(name.name);
+            enclosingElement.getMethod(name.lexeme) ??
+            enclosingElement.getGetter(name.lexeme) ??
+            enclosingElement.getSetter(name.lexeme);
         if (method != null) {
           var error = method.isStatic
               ? diag.classInstantiationAccessToStaticMember
               : diag.classInstantiationAccessToInstanceMember;
           _resolver.diagnosticReporter.report(
-            error.withArguments(name: name.name).at(node),
+            error.withArguments(name: name.lexeme).at(node),
           );
         } else if (!name.isSynthetic) {
           _resolver.diagnosticReporter.report(
             diag.classInstantiationAccessToUnknownMember
                 .withArguments(
                   className: enclosingElement.name!,
-                  memberName: name.name,
+                  memberName: name.lexeme,
                 )
                 .at(node),
           );
@@ -87,13 +92,12 @@ class ConstructorReferenceResolver {
   }
 
   void _inferArgumentTypes(
-    ConstructorReferenceImpl node, {
+    ConstructorTearOffImpl node, {
     required DartType contextType,
   }) {
-    var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: constructorName.type.element,
-      constructorName: constructorName.name?.token,
+      typeElement: node.typeReference.element,
+      constructorName: node.selector.name2,
       definingLibrary: _resolver.definingLibrary,
     );
 
@@ -105,7 +109,7 @@ class ConstructorReferenceResolver {
     // because there's nothing to infer in a non-generic type.
     if (elementToInfer != null &&
         elementToInfer.typeParameters.isNotEmpty &&
-        constructorName.type.typeArguments == null) {
+        node.typeReference.typeArguments == null) {
       // TODO(leafp): Currently, we may re-infer types here, since we
       // sometimes resolve multiple times.  We should really check that we
       // have not already inferred something.  However, the obvious ways to
@@ -120,11 +124,13 @@ class ConstructorReferenceResolver {
       var constructorType = elementToInfer.asType;
 
       var inferred =
-          _resolver.inferenceHelper.inferTearOff(
+          _resolver.inferenceHelper.inferTearOff2(
                 node,
-                constructorName.name!,
                 constructorType,
                 contextType: contextType,
+                recordTypeArguments: (typeArguments) {
+                  node.tearOffTypeArgumentTypes = typeArguments;
+                },
               )
               as FunctionType?;
 
@@ -138,22 +144,17 @@ class ConstructorReferenceResolver {
           inferredReturnType,
         );
 
-        constructorName.element = constructorElement.baseElement;
-        constructorName.name?.element = constructorElement.baseElement;
+        node.element = constructorElement;
         node.recordStaticType(inferred, resolver: _resolver);
-        // The NamedType child of `constructorName` doesn't have a static type.
-        constructorName.type.type = null;
       }
     } else {
-      var constructorElement = constructorName.element;
+      var constructorElement = node.element;
       node.recordStaticType(
         constructorElement == null
             ? InvalidTypeImpl.instance
             : constructorElement.type,
         resolver: _resolver,
       );
-      // The NamedType child of `constructorName` doesn't have a static type.
-      constructorName.type.type = null;
     }
   }
 }

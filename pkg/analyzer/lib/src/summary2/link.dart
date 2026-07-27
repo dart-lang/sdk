@@ -350,29 +350,27 @@ class Linker {
             }
 
             if (constructor.redirectedConstructor == null) {
+              visited.add(constructor);
               continue;
             }
 
-            var indexOf = Map<ConstructorElementImpl, int>.identity();
             var path = <ConstructorElementImpl>[];
             ConstructorElementImpl? current = constructor;
-            while (current != null) {
-              var cycleStart = indexOf[current];
-              if (cycleStart != null) {
-                for (var i = cycleStart; i < path.length; i++) {
-                  path[i].isInRedirectingConstructorCycle = true;
-                }
-                break;
-              }
-
-              if (visited.contains(current)) {
-                break;
-              }
-
-              indexOf[current] = path.length;
+            while (current != null && visited.add(current)) {
               path.add(current);
-              visited.add(current);
               current = current.redirectedConstructor?.baseElement;
+            }
+
+            if (current != null) {
+              var isInCycle = false;
+              for (var element in path) {
+                if (identical(element, current)) {
+                  isInCycle = true;
+                }
+                if (isInCycle) {
+                  element.isInRedirectingConstructorCycle = true;
+                }
+              }
             }
           }
         }

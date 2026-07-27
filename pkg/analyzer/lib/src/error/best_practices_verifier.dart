@@ -335,6 +335,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _elementUsageFrontierDetector.constructorTearOff(node);
+    _deprecatedFunctionalityVerifier.constructorTearOff(node);
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {

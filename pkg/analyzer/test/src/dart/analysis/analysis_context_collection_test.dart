@@ -564,6 +564,66 @@ workspaces
     );
   }
 
+  test_packageConfigWorkspace_includedAnalysisOptions_exclude_relativeToDeclaringFile() async {
+    configuration.withExcludedGlobs = true;
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
+
+    newAnalysisOptionsYamlFile(workspaceRootPath, r'''
+analyzer:
+  exclude:
+    - test/lib/nested/b.dart
+''');
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+include: ../analysis_options.yaml
+''');
+
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/nested/b.dart', '');
+    newFile('$testPackageRootPath/test/lib/nested/b.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(testPackageRootPath).path],
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/test/lib/nested/b.dart
+        analysisOptions_0
+        workspacePackage_0_0
+    excludedGlobs
+      test/lib/nested/b.dart in /home
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
   test_packageConfigWorkspace_multipleAnalysisOptions() async {
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';

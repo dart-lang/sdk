@@ -7854,7 +7854,7 @@ LinterLintCode:
       the same value (1):
 
       ```dart
-      // @dart = 2.14
+      // @dart = 2.19
       void f(int v) {
         switch (v) {
           case 1:
@@ -8439,8 +8439,8 @@ LinterLintCode:
 
       The analyzer produces this diagnostic when either a parameter or local
       variable whose name consists of only underscores is referenced. Such
-      names will become non-binding in a future version of the Dart language,
-      making the reference illegal.
+      names became non-binding in Dart 3.7, making the reference illegal, so
+      this will only appear in code for earlier language versions.
 
       #### Example
 
@@ -14620,7 +14620,6 @@ LinterLintCode:
       the enum's primary constructor isn't needed:
 
       ```dart
-      %experiments=primary-constructors
       enum [!const!] E(final int i) {
         a(1),
         b(2);
@@ -14631,7 +14630,6 @@ LinterLintCode:
       the enum's in-body constructor isn't needed:
 
       ```dart
-      %experiments=primary-constructors
       enum E {
         a(1),
         b(2);
@@ -14647,7 +14645,6 @@ LinterLintCode:
       Remove the unnecessary keyword:
 
       ```dart
-      %experiments=primary-constructors
       enum E(final int i) {
         a(1),
         b(2);
@@ -14655,7 +14652,6 @@ LinterLintCode:
       ```
 
       ```dart
-      %experiments=primary-constructors
       enum E {
         a(1),
         b(2);
@@ -16092,6 +16088,82 @@ LinterLintCode:
         }
       }
       ```
+  unnecessaryThisAlias:
+    type: lint
+    parameters: none
+    problemMessage: "Unnecessary 'this' alias."
+    correctionMessage: "Try removing the variable and using 'this' directly."
+    state:
+      experimental: "3.14"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable is initialized
+      to `this` and the variable is only used in ways that could just use `this`.
+
+      #### Example
+
+      The following code produces this diagnostic because the local variable `self`
+      is initialized to `this`, is never reassigned, and its only usage is a promotion
+      check that could be performed on `this` directly under the `this-promotion` feature:
+
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          var [!self!] = this;
+          if (self is D) {
+            // ...
+          }
+        }
+      }
+
+      class D extends C {}
+      ```
+
+      #### Common fixes
+
+      Remove the local variable and use `this` directly:
+
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          if (this is D) {
+            // ...
+          }
+        }
+      }
+
+      class D extends C {}
+      ```
+    deprecatedDetails: |-
+      **DON'T** assign `this` to a local variable to perform type promotion.
+
+      **BAD:**
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          var [!self!] = this;
+          if (self is D) {}
+        }
+      }
+      class D extends C {}
+      ```
+
+      **GOOD:**
+      ```dart
+      %experiments=this-promotion
+      class C {
+        void m() {
+          if (this is D) {}
+        }
+      }
+      class D extends C {}
+      ```
   unnecessaryToListInSpreads:
     type: lint
     parameters: none
@@ -16167,7 +16239,6 @@ LinterLintCode:
       constructor declaration includes the type name:
 
       ```dart
-      %experiments=primary-constructors
       class C {
         [!C!]();
       }
@@ -16177,7 +16248,6 @@ LinterLintCode:
       constructor declaration includes the type name:
 
       ```dart
-      %experiments=primary-constructors
       class C {
         factory [!C!]() => C._();
 
@@ -16191,7 +16261,6 @@ LinterLintCode:
       also remove the period before the name:
 
       ```dart
-      %experiments=primary-constructors
       class C {
         new();
       }
@@ -16200,7 +16269,6 @@ LinterLintCode:
       or
 
       ```dart
-      %experiments=primary-constructors
       class C {
         factory() => C._();
 

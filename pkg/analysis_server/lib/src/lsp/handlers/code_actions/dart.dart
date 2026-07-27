@@ -263,6 +263,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
             error,
             supportedTags: callerSupportedDiagnosticTags,
             clientSupportsCodeDescription: callerSupportsCodeDescription,
+            // Only supported for publishDiagnostcs, not code actions.
+            clientSupportsDiagnosticData: false,
           );
           codeActions.addAll(
             fixes.map((fix) {

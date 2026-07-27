@@ -253,12 +253,12 @@ class AstRewriter {
     return node;
   }
 
-  /// Possibly rewrites [node] as a [ConstructorReference].
+  /// Possibly rewrites [node] as a [ConstructorTearOff].
   ///
   /// Code such as `List.filled;` is parsed as (an [ExpressionStatement] with) a
   /// [PrefixedIdentifier] with 'prefix' of `List` and 'identifier' of `filled`.
   /// The [PrefixedIdentifier] may need to be rewritten as a
-  /// [ConstructorReference].
+  /// [ConstructorTearOff].
   AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifierImpl node) {
     var parent = node.parent2;
     if (parent is AnnotationImpl) {
@@ -268,7 +268,7 @@ class AstRewriter {
     }
     if (parent is CommentReferenceImpl) {
       // TODO(srawlins): This probably should be allowed to be rewritten to a
-      // [ConstructorReference] at some point.
+      // [ConstructorTearOff] at some point.
       return node;
     }
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
@@ -332,13 +332,13 @@ class AstRewriter {
     return node;
   }
 
-  /// Possibly rewrites [node] as a [ConstructorReference].
+  /// Possibly rewrites [node] as a [ConstructorTearOff].
   ///
   /// Code such as `async.Future.value;` is parsed as (an [ExpressionStatement]
   /// with) a [PropertyAccess] with a 'target' of [PrefixedIdentifier] (with
   /// 'prefix' of `List` and 'identifier' of `filled`) and a 'propertyName' of
   /// `value`. The [PropertyAccess] may need to be rewritten as a
-  /// [ConstructorReference].
+  /// [ConstructorTearOff].
   AstNode propertyAccess(Scope nameScope, PropertyAccessImpl node) {
     if (node.isCascaded) {
       // For example, `List..filled`: this is a property access on an instance
@@ -347,7 +347,7 @@ class AstRewriter {
     }
     if (node.parent2 is CommentReferenceImpl) {
       // TODO(srawlins): This probably should be allowed to be rewritten to a
-      // [ConstructorReference] at some point.
+      // [ConstructorTearOff] at some point.
       return node;
     }
     var receiver = node.target2!;
@@ -357,13 +357,13 @@ class AstRewriter {
     if (receiver is PrefixedIdentifierImpl) {
       receiverIdentifier = receiver;
     } else if (receiver is FunctionReferenceImpl) {
-      // A [ConstructorReference] with explicit type arguments is initially
+      // A [ConstructorTearOff] with explicit type arguments is initially
       // parsed as a [PropertyAccess] with a [FunctionReference] target; for
       // example: `List<int>.filled` or `core.List<int>.filled`.
       var function = receiver.function2;
       if (function is! IdentifierImpl) {
         // If [receiverIdentifier] is not an Identifier then [node] is not a
-        // ConstructorReference.
+        // ConstructorTearOff.
         return node;
       }
       receiverIdentifier = function;
@@ -421,14 +421,14 @@ class AstRewriter {
     }
 
     // If [receiverIdentifier] is an Identifier, but could not be resolved to
-    // an Element, we cannot assume [node] is a ConstructorReference.
+    // an Element, we cannot assume [node] is a ConstructorTearOff.
     //
     // TODO(srawlins): However, take an example like `Lisst<int>.filled;`
     // (where 'Lisst' does not resolve to any element). Possibilities include:
     // the user tried to write a TypeLiteral or a FunctionReference, then access
     // a property on that (these include: hashCode, runtimeType, tearoff of
     // toString, and extension methods on Type); or the user tried to write a
-    // ConstructReference. It seems much more likely that the user is trying to
+    // ConstructorTearOff. It seems much more likely that the user is trying to
     // do the latter. Consider doing the work so that the user gets an error in
     // this case about `Lisst` not being a type, or `Lisst.filled` not being a
     // known constructor.
@@ -533,22 +533,17 @@ class AstRewriter {
       return node;
     }
 
-    var typeName = NamedTypeImpl(
-      importPrefix: null,
-      name: node.prefix.token,
-      typeArguments: null,
-      question: null,
+    var constructorTearOff = ConstructorTearOffImpl(
+      typeReference: node.prefix.toConstructorTypeReference(
+        typeArguments: null,
+      ),
+      selector: ConstructorSelectorImpl.v2(
+        period: node.period,
+        name2: node.identifier.token,
+      ),
     );
-    var constructorName = ConstructorNameImpl(
-      type: typeName,
-      period: node.period,
-      name: node.identifier,
-    );
-    var constructorReference = ConstructorReferenceImpl(
-      constructorName: constructorName,
-    );
-    node.replaceWith(constructorReference);
-    return constructorReference;
+    node.replaceWith(constructorTearOff);
+    return constructorTearOff;
   }
 
   AstNode _toConstructorReference_propertyAccess({
@@ -571,20 +566,17 @@ class AstRewriter {
 
     var operator = node.operator;
 
-    var typeName = receiver.toNamedType(
-      typeArguments: typeArguments,
-      question: null,
+    var constructorTearOff = ConstructorTearOffImpl(
+      typeReference: receiver.toConstructorTypeReference(
+        typeArguments: typeArguments,
+      ),
+      selector: ConstructorSelectorImpl.v2(
+        period: operator,
+        name2: node.propertyName.token,
+      ),
     );
-    var constructorName = ConstructorNameImpl(
-      type: typeName,
-      period: operator,
-      name: node.propertyName,
-    );
-    var constructorReference = ConstructorReferenceImpl(
-      constructorName: constructorName,
-    );
-    node.replaceWith(constructorReference);
-    return constructorReference;
+    node.replaceWith(constructorTearOff);
+    return constructorTearOff;
   }
 
   ConstructorInvocation _toInstanceCreation_prefix_type({

@@ -243,8 +243,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is BinaryExpression) {
       return node.element;
-    } else if (node is ConstructorReference) {
-      return node.constructorName.element;
+    } else if (node is ConstructorTearOff) {
+      return node.element;
     } else if (node is Declaration) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
@@ -259,8 +259,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
         return function.element;
       } else if (function is PropertyAccess) {
         return function.propertyName.element;
-      } else if (function is ConstructorReference) {
-        return function.constructorName.element;
+      } else if (function is ConstructorTearOff) {
+        return function.element;
       } else {
         fail('Unsupported node: (${function.runtimeType}) $function');
       }
@@ -396,11 +396,21 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withRedirectedConstructors
         ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
-    ResolvedAstPrinter(
+    var printer = ResolvedAstPrinter(
       sink: sink,
       elementPrinter: elementPrinter,
       configuration: nodeTextConfiguration,
-    ).writeNode(node);
+    );
+    printer.writeNode(node);
+
+    // Keep the V1 compatibility view visible when the requested V2 root has a
+    // distinct projection. Printing it as another root preserves its text.
+    if (node case ExpressionImpl expression) {
+      var v1 = V1Projection.toV1Expression(expression);
+      if (!identical(v1, expression)) {
+        printer.writeNode(v1);
+      }
+    }
 
     var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
         ? node.thisOrAncestorOfType<CompilationUnitImpl>()

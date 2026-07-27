@@ -41,7 +41,7 @@ import 'package:analyzer/src/dart/resolver/annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
-import 'package:analyzer/src/dart/resolver/constructor_reference_resolver.dart';
+import 'package:analyzer/src/dart/resolver/constructor_tear_off_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
@@ -224,8 +224,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       AssignmentExpressionResolver(resolver: this);
 
   late final BinaryExpressionResolver _binaryExpressionResolver;
-  late final ConstructorReferenceResolver _constructorReferenceResolver =
-      ConstructorReferenceResolver(this);
+  late final ConstructorTearOffResolver _constructorTearOffResolver =
+      ConstructorTearOffResolver(this);
   late final FunctionExpressionInvocationResolver
   functionExpressionInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
@@ -2345,8 +2345,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     });
 
     baseOrFinalTypeVerifier.checkElement(
-      declaredElement,
-      node.implementsClause,
+      element: declaredElement,
+      nameToken: node.namePart.typeName,
+      superclass: node.extendsClause?.superclass,
+      withClause: node.withClause,
+      implementsClause: node.implementsClause,
+      onClause: null,
     );
   }
 
@@ -2359,8 +2363,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     node.visitChildren2(this);
     elementResolver.visitClassTypeAlias(node);
     baseOrFinalTypeVerifier.checkElement(
-      declaredElement,
-      node.implementsClause,
+      element: declaredElement,
+      nameToken: node.name,
+      superclass: node.superclass,
+      withClause: node.withClause,
+      implementsClause: node.implementsClause,
+      onClause: null,
     );
   }
 
@@ -2558,20 +2566,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitConstructorReference(
-    covariant ConstructorReferenceImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    _constructorReferenceResolver.resolve(node, contextType: contextType);
-    _insertImplicitCallReference(node, contextType: contextType);
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitConstructorSelector(ConstructorSelector node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitConstructorTearOff(
+    covariant ConstructorTearOffImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    _constructorTearOffResolver.resolve(node, contextType: contextType);
+    _insertImplicitCallReference(node, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -3616,8 +3624,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     });
 
     baseOrFinalTypeVerifier.checkElement(
-      declaredElement,
-      node.implementsClause,
+      element: declaredElement,
+      nameToken: node.name,
+      superclass: null,
+      withClause: null,
+      implementsClause: node.implementsClause,
+      onClause: node.onClause,
     );
   }
 

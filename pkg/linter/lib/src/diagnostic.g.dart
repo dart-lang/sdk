@@ -3542,6 +3542,16 @@ const LinterLintWithoutArguments unnecessaryThis = LinterLintWithoutArguments(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments unnecessaryThisAlias =
+    LinterLintWithoutArguments(
+      name: 'unnecessary_this_alias',
+      problemMessage: "Unnecessary 'this' alias.",
+      correctionMessage: "Try removing the variable and using 'this' directly.",
+      uniqueName: 'unnecessary_this_alias',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments unnecessaryToListInSpreads =
     LinterLintWithoutArguments(
       name: 'unnecessary_to_list_in_spreads',

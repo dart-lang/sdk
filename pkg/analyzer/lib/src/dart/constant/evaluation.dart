@@ -879,7 +879,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitConstructorReference(ConstructorReference node) {
+  Constant visitConstructorTearOff(ConstructorTearOff node) {
     var constructorFunctionType = node.typeOrThrow;
     if (constructorFunctionType is! FunctionTypeImpl) {
       return InvalidConstant.forEntity(
@@ -891,7 +891,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     var typeArguments = classType.typeArguments;
     // The result is already instantiated during resolution;
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
-    var typeElement = node.constructorName.type.element;
+    var typeElement = node.typeReference.element;
 
     TypeAliasElementImpl? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
@@ -904,7 +904,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       }
     }
 
-    var constructorElement = node.constructorName.element?.baseElement
+    var constructorElement = node.element?.baseElement
         .tryCast<ConstructorElementImpl>();
     if (constructorElement == null) {
       return InvalidConstant.forEntity(

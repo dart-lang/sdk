@@ -64,8 +64,8 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorReference(ConstructorReference node) {
-    _checkTearoff(node, node.constructorName.element);
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _checkTearoff(node, node.element);
   }
 
   @override
@@ -201,7 +201,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   bool _isTearOff(Expression node) {
-    if (node is ConstructorReference) return true;
+    if (node is ConstructorTearOff) return true;
     if (node is FunctionReference) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;

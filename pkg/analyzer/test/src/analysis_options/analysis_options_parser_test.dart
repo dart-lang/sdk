@@ -739,25 +739,56 @@ AnalysisOptionsImpl
   }
 
   test_analyzer_exclude_include_merged() {
-    var options = parseAnalysisOptionsFilesWithDiagnostics({
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
-include: other_options.yaml
+include: ../other_options.yaml
 analyzer:
   exclude:
     - lowlevelexclude.dart
 ''',
-      getFile('$testPackageRootPath/other_options.yaml'): '''
+      getFile('/home/other_options.yaml'): '''
 analyzer:
   exclude:
-    - toplevelexclude.dart
+    - test/toplevelexclude.dart
 ''',
     });
 
-    assertAnalysisOptionsText(options, r'''
+    assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    toplevelexclude.dart
-    lowlevelexclude.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/other_options.yaml
+      pattern: test/toplevelexclude.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: lowlevelexclude.dart
+''');
+  }
+
+  test_analyzer_exclude_include_samePatternDifferentFiles() {
+    var analysisOptions = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include: ../other_options.yaml
+analyzer:
+  exclude:
+    - generated/**
+''',
+      getFile('/home/other_options.yaml'): '''
+analyzer:
+  exclude:
+    - generated/**
+''',
+    });
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/other_options.yaml
+      pattern: generated/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: generated/**
 ''');
   }
 
@@ -791,7 +822,9 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    included.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/included.yaml
+      pattern: included.dart
 ''');
   }
 
@@ -809,8 +842,12 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    foo/bar.dart
-    test/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: foo/bar.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/**
 ''');
   }
 
@@ -825,8 +862,12 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    foo/bar.dart
-    test/**
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: foo/bar.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/**
 ''');
   }
 
@@ -840,7 +881,9 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   excludePatterns
-    test/_data/p4/lib/lib1.dart
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: test/_data/p4/lib/lib1.dart
 ''');
   }
 

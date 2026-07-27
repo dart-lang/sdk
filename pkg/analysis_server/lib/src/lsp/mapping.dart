@@ -821,6 +821,7 @@ lsp.Diagnostic pluginToDiagnostic(
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
   required bool clientSupportsCodeDescription,
+  required bool clientSupportsDiagnosticData,
 }) {
   List<lsp.DiagnosticRelatedInformation>? relatedInformation;
   var contextMessages = error.contextMessages;
@@ -838,7 +839,7 @@ lsp.Diagnostic pluginToDiagnostic(
   }
 
   var message = error.message;
-  if (error.correction != null) {
+  if (error.correction != null && !clientSupportsDiagnosticData) {
     message = '$message\n${error.correction}';
   }
 
@@ -866,6 +867,14 @@ lsp.Diagnostic pluginToDiagnostic(
     // (a minor optimization to avoid unnecessary payload/(de)serialization).
     codeDescription: clientSupportsCodeDescription && documentationUrl != null
         ? CodeDescription(href: Uri.parse(documentationUrl))
+        : null,
+    data: clientSupportsDiagnosticData
+        ? {
+            'offset': error.location.offset,
+            'length': error.location.length,
+            'type': error.type.name,
+            'correctionMessage': ?error.correction,
+          }
         : null,
   );
 }
@@ -1431,6 +1440,7 @@ lsp.Diagnostic toDiagnostic(
   server.Diagnostic diagnostic, {
   required Set<lsp.DiagnosticTag> supportedTags,
   required bool clientSupportsCodeDescription,
+  required bool clientSupportsDiagnosticData,
 }) {
   return pluginToDiagnostic(
     uriConverter,
@@ -1438,6 +1448,7 @@ lsp.Diagnostic toDiagnostic(
     server.newAnalysisError_fromEngine(result, diagnostic),
     supportedTags: supportedTags,
     clientSupportsCodeDescription: clientSupportsCodeDescription,
+    clientSupportsDiagnosticData: clientSupportsDiagnosticData,
   );
 }
 

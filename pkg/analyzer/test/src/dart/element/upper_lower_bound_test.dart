@@ -1138,6 +1138,15 @@ class LowerBoundTest extends _BoundsTestBase {
     check(bound: 'num', T2: parseType('int'));
   }
 
+  void test_typeSchema_subtypeComparisonUsesGreatestClosure() {
+    _checkGreatestLowerBound(
+      parseType('List<UnknownInferredType>'),
+      parseType('List<int>'),
+      parseType('List<int>'),
+      checkSubtype: false,
+    );
+  }
+
   void _checkGreatestLowerBound(
     TypeImpl T1,
     TypeImpl T2,

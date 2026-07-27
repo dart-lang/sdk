@@ -6073,6 +6073,11 @@ jsInteropIsATearoff:
   problemMessage: "'isA' can't be torn off."
   correctionMessage: "Use a method that calls 'isA' and tear off that method instead."
 
+jsInteropExtensionConstructorJsAnnotationHasNoEffect:
+  parameters: none
+  problemMessage: "The '@JS' annotation on an extension type constructor has no effect."
+  correctionMessage: "Remove the '@JS' annotation from the extension type constructor and put it on the extension type to rename non-object literal constructors."
+
 jsInteropExtensionTypeNotInterop:
   parameters:
     Name extensionTypeName: The name of the extension type that is marked with a `@JS` annotation.

@@ -110,6 +110,18 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    var typeReference = node.typeReference;
+    _checkSinceSdkVersion(
+      typeReference.element,
+      typeReference,
+      errorEntity: typeReference.name,
+    );
+    _checkSinceSdkVersion(node.element, node, errorEntity: node.selector.name2);
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkSinceSdkVersion(node.element, node);
     super.visitFunctionExpressionInvocation(node);

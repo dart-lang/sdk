@@ -63,6 +63,27 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::A::@constructor::new
+      staticType: null
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 }
@@ -105,6 +126,25 @@ ConstructorInvocation
         name: x
         colon: :
         argumentExpression2: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticType: C
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <null>
@@ -158,6 +198,36 @@ ConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression: BooleanLiteral
+          literal: true
+          staticType: bool
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+      NamedArgument
+        name: c
+        colon: :
+        argumentExpression: DoubleLiteral
+          literal: 1.2
+          staticType: double
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -189,6 +259,33 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -237,6 +334,34 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::A
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A<int>
 ''');
   }
 
@@ -273,6 +398,26 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
 ''');
   }
 
@@ -290,6 +435,27 @@ void f() {
 ConstructorInvocation
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::A
+      type: A<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -343,6 +509,27 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: <testLibrary>::@class::A::@constructor::named
+      staticType: null
+    element: <testLibrary>::@class::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -370,6 +557,22 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -407,6 +610,28 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: unresolved
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -453,6 +678,27 @@ ConstructorInvocation
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A<S>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: S}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: s
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
+          substitution: {T: S}
+        element: <testLibrary>::@function::f::@formalParameter::s
+        staticType: S & int
+    rightParenthesis: )
+  staticType: A<S>
 ''');
   }
 
@@ -468,6 +714,27 @@ final foo = Map<int>();
 ConstructorInvocation
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: Map
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: dart:core::@class::Map
+      type: Map<dynamic, dynamic>
+    element: SubstitutedConstructorElementImpl
+      baseElement: dart:core::@class::Map::@constructor::new
+      substitution: {K: dynamic, V: dynamic}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Map<dynamic, dynamic>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
       name: Map
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -529,6 +796,35 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<dynamic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: Foo
+      element: <testLibrary>::@class::Foo
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::Foo::@constructor::bar
+        substitution: {X: dynamic}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
 ''');
   }
 
@@ -557,6 +853,35 @@ ConstructorInvocation
     selector: ConstructorSelector
       period: .
       name2: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::new
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: Foo
+      element: <testLibrary>::@class::Foo
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: new
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::Foo::@constructor::new
+        substitution: {X: dynamic}
+      staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::new
       substitution: {X: dynamic}
@@ -624,6 +949,39 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<dynamic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: Foo
+      element: package:test/a.dart::@class::Foo
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::Foo::@constructor::bar
+        substitution: {X: dynamic}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::Foo::@constructor::bar
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
 ''');
   }
 
@@ -651,6 +1009,34 @@ ConstructorInvocation
     selector: ConstructorSelector
       period: .
       name2: bar
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<dynamic>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: Foo
+      element: <testLibrary>::@class::Foo
+      type: Foo<dynamic>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::Foo::@constructor::bar
+        substitution: {X: dynamic}
+      staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::bar
       substitution: {X: dynamic}
@@ -715,6 +1101,38 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: Foo
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::Foo
+      type: Foo<int>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::Foo::@constructor::bar
+        substitution: {X: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
 ''');
   }
 
@@ -741,6 +1159,26 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@extensionType::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -785,6 +1223,26 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@extensionType::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
 ''');
   }
 
@@ -818,6 +1276,27 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: <testLibrary>::@extensionType::A::@constructor::named
+      staticType: null
+    element: <testLibrary>::@extensionType::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -842,6 +1321,22 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    element: <testLibrary>::@extensionType::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -883,6 +1378,27 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: <testLibrary>::@extensionType::A::@constructor::named
+      staticType: null
+    element: <testLibrary>::@extensionType::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -909,6 +1425,22 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    element: <testLibrary>::@extensionType::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -951,6 +1483,28 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -979,6 +1533,23 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: InvalidType
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: prefix
+      element: <testLibraryFragment>::@prefix::prefix
+      type: InvalidType
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1023,6 +1594,31 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: package:test/a.dart::@class::A::@constructor::named
+      staticType: null
+    element: package:test/a.dart::@class::A::@constructor::named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
@@ -1085,6 +1681,45 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::A
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
 ''');
   }
 
@@ -1138,6 +1773,38 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::A
+      type: A<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
 ''');
   }
 
@@ -1173,6 +1840,26 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    element: package:test/a.dart::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
@@ -1224,6 +1911,32 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -1259,6 +1972,32 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: InvalidType
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: Foo
+      element: <null>
+      type: InvalidType
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1361,6 +2100,76 @@ ConstructorInvocation
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::d
     rightParenthesis: )
   staticType: X
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: X
+      element: <testLibrary>::@class::X
+      type: X
+    element: <testLibrary>::@class::X::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: g1
+          element: <testLibrary>::@function::g1
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::a
+        staticInvokeType: A Function()
+        staticType: A
+        typeArgumentTypes
+          A
+      NamedArgument
+        name: c
+        colon: :
+        argumentExpression: MethodInvocation
+          methodName: SimpleIdentifier
+            token: g3
+            element: <testLibrary>::@function::g3
+            staticType: T Function<T>()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: C? Function()
+          staticType: C?
+          typeArgumentTypes
+            C?
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::c
+      MethodInvocation
+        methodName: SimpleIdentifier
+          token: g2
+          element: <testLibrary>::@function::g2
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::b
+        staticInvokeType: B Function()
+        staticType: B
+        typeArgumentTypes
+          B
+      NamedArgument
+        name: d
+        colon: :
+        argumentExpression: MethodInvocation
+          methodName: SimpleIdentifier
+            token: g4
+            element: <testLibrary>::@function::g4
+            staticType: T Function<T>()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: D? Function()
+          staticType: D?
+          typeArgumentTypes
+            D?
+        correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::d
+    rightParenthesis: )
+  staticType: X
 ''');
   }
 
@@ -1396,6 +2205,25 @@ ConstructorInvocation
         name: _x
         colon: :
         argumentExpression2: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticType: C
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedArgument
+        name: _x
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <null>
@@ -1439,6 +2267,25 @@ ConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
     rightParenthesis: )
   staticType: C
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+    rightParenthesis: )
+  staticType: C
 ''');
   }
 
@@ -1472,6 +2319,33 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: B
+      element: <testLibrary>::@typeAlias::B
+      type: A<int>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1523,6 +2397,35 @@ ConstructorInvocation
         literal: ''
     rightParenthesis: )
   staticType: A<int, String>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: B
+      element: <testLibrary>::@typeAlias::B
+      type: A<int, String>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int, U: String}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
+          substitution: {T: int, U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticType: A<int, String>
 ''');
   }
 
@@ -1561,6 +2464,26 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: B
+      element: <testLibrary>::@typeAlias::B
+      type: A<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<int>
 ''');
   }
 
@@ -1591,6 +2514,28 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
+          substitution: {T: int, U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  staticType: A<int, String>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: B
+      element: <testLibrary>::@typeAlias::B
+      type: A<int, String>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1644,6 +2589,33 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<String>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: B
+      element: <testLibrary>::@typeAlias::B
+      type: A<String>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: String}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
+          substitution: {T: String}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<String>
 ''');
   }
 
@@ -1684,6 +2656,26 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<String>
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: B
+      element: <testLibrary>::@typeAlias::B
+      type: A<String>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
+          substitution: {T: String}
+        staticType: int
+    rightParenthesis: )
+  staticType: A<String>
 ''');
   }
 
@@ -1711,6 +2703,22 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -1753,6 +2761,27 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::A::@constructor::new
+      staticType: null
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -1789,6 +2818,27 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    period: .
+    name: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::A::@constructor::new
+      staticType: null
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -1815,6 +2865,23 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: InvalidType
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: Unresolved
+      element: <null>
+      type: InvalidType
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -1857,6 +2924,27 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: InvalidType
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: Unresolved
+        period: .
+        element: <null>
+      name: named
+      element: <null>
+      type: InvalidType
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: InvalidType
 ''');
   }
 
@@ -1890,6 +2978,32 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticType: InvalidType
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: unresolved
+        period: .
+        element: <null>
+      name: Foo
+      element: <null>
+      type: InvalidType
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>

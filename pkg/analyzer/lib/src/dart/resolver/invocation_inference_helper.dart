@@ -125,6 +125,22 @@ class InvocationInferenceHelper {
     DartType tearOffType, {
     required DartType contextType,
   }) {
+    return inferTearOff2(
+      expression,
+      tearOffType,
+      contextType: contextType,
+      recordTypeArguments: (typeArguments) {
+        identifier.tearOffTypeArgumentTypes = typeArguments;
+      },
+    );
+  }
+
+  DartType inferTearOff2(
+    ExpressionImpl expression,
+    DartType tearOffType, {
+    required DartType contextType,
+    required void Function(List<TypeImpl>) recordTypeArguments,
+  }) {
     if (contextType is FunctionTypeImpl && tearOffType is FunctionTypeImpl) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,
@@ -139,7 +155,7 @@ class InvocationInferenceHelper {
         dataForTesting: dataForTesting,
         nodeForTesting: expression,
       );
-      identifier.tearOffTypeArgumentTypes = typeArguments;
+      recordTypeArguments(typeArguments);
       if (typeArguments.isNotEmpty) {
         return tearOffType.instantiate(typeArguments);
       }

@@ -141,7 +141,7 @@ final class _ApplyState {
   _ApplyState(File file) : builder = AnalysisOptionsBuilder(file: file);
 
   void apply(_ParsedFileData fileData) {
-    _applyAnalyzer(fileData.analyzer);
+    _applyAnalyzer(fileData.file, fileData.analyzer);
     _applyCodeStyle(fileData.codeStyle);
     _applyFormatter(fileData.formatter);
     _applyPlugins(fileData.plugins);
@@ -161,11 +161,11 @@ final class _ApplyState {
     return builder.build();
   }
 
-  void _applyAnalyzer(_ParsedAnalyzerData analyzer) {
+  void _applyAnalyzer(File file, _ParsedAnalyzerData analyzer) {
     _applyEnableExperiments(analyzer.enableExperiments);
     _applyErrorProcessors(analyzer.errorProcessors);
     _applyCannotIgnore(analyzer.cannotIgnore);
-    _applyExcludes(analyzer.excludes);
+    _applyExcludes(file, analyzer.excludes);
     _applyLanguage(analyzer.language);
     _applyOptionalChecks(analyzer.optionalChecks);
   }
@@ -229,12 +229,12 @@ final class _ApplyState {
     }
   }
 
-  void _applyExcludes(_ParsedExcludesData excludes) {
+  void _applyExcludes(File file, _ParsedExcludesData excludes) {
     if (excludes.patterns case var patterns?) {
       for (var pattern in patterns) {
-        if (!builder.excludePatterns.contains(pattern)) {
-          builder.excludePatterns.add(pattern);
-        }
+        builder.excludePatterns.add(
+          AnalysisOptionsExcludePattern(declaringFile: file, pattern: pattern),
+        );
       }
     }
   }

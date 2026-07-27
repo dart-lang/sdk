@@ -179,13 +179,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorReference(ConstructorReference node) {
-    _writeByte(Tag.ConstructorReference);
-    _writeNode(node.constructorName);
-    _storeExpression(node);
-  }
-
-  @override
   void visitConstructorReference2(ConstructorReference2 node) {
     _writeByte(Tag.ConstructorReference2);
     _writeNode(node.typeReference);
@@ -197,6 +190,19 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitConstructorSelector(ConstructorSelector node) {
     _writeByte(Tag.ConstructorSelector);
     _writeStringReference(node.name2.lexeme);
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _writeByte(Tag.ConstructorTearOff);
+    _writeNode(node.typeReference);
+    _writeNode(node.selector);
+    // A substituted element can refer to type parameters declared by the
+    // tear-off's function type. Those parameters aren't in scope while the
+    // element is written, so store the declaration and recreate the
+    // substitution from the function type when reading.
+    _sink.writeElement(node.element?.baseElement);
+    _storeExpression(node);
   }
 
   @override

@@ -7614,6 +7614,14 @@ Message _withArgumentsJsInteropExportNoExportableMembers({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode jsInteropExtensionConstructorJsAnnotationHasNoEffect =
+    const MessageCode(
+      "JsInteropExtensionConstructorJsAnnotationHasNoEffect",
+      problemMessage: """The '@JS' annotation on an extension type constructor has no effect.""",
+      correctionMessage: """Remove the '@JS' annotation from the extension type constructor and put it on the extension type to rename non-object literal constructors.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode jsInteropExtensionTypeMemberNotInterop = const MessageCode(
   "JsInteropExtensionTypeMemberNotInterop",
   problemMessage: """Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",

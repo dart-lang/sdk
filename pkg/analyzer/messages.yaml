@@ -8087,8 +8087,11 @@ CompileTimeErrorCode:
       isn't a subtype of the type of the parameter of a setter with the same
       name.
 
-      The subtype relationship is a requirement whether the getter and setter are
-      in the same class or whether one of them is in a superclass of the other.
+      The subtype relationship is a requirement whether the getter and setter
+      are in the same class or whether one of them is in a superclass of the
+      other.
+
+      Note: This is no longer an error starting in Dart 3.9.
 
       #### Example
 
@@ -8447,7 +8450,6 @@ CompileTimeErrorCode:
       twice:
 
       ```dart
-      // @dart = 3.5
       class A {}
 
       class B implements A, [!A!] {}
@@ -8458,7 +8460,6 @@ CompileTimeErrorCode:
       Remove all except one occurrence of the class name:
 
       ```dart
-      // @dart = 3.5
       class A {}
 
       class B implements A {}
@@ -8483,7 +8484,6 @@ CompileTimeErrorCode:
       in both the `extends` and `implements` clauses for the class `B`:
 
       ```dart
-      // @dart = 3.5
       class A {}
 
       class B extends A implements [!A!] {}
@@ -9831,7 +9831,7 @@ CompileTimeErrorCode:
       constructor (`A`) isn't the same as the surrounding class (`C`):
 
       ```dart
-      // @dart = 3.10
+      // @dart = 3.12
       class A {}
 
       class C {
@@ -21513,7 +21513,6 @@ FfiCode:
       constructor with an initializer for the field `f`:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21529,7 +21528,6 @@ FfiCode:
       Remove the field initializer:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21560,7 +21558,6 @@ FfiCode:
       initializer:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21573,7 +21570,6 @@ FfiCode:
       Remove the initializer:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -23068,8 +23064,6 @@ HintCode:
 
       ```dart
       %uri="lib/a.dart"
-      // @dart = 2.9
-
       class A {}
       ```
 
@@ -30620,7 +30614,7 @@ WarningCode:
       parameter has the keyword `final`:
 
       ```dart
-      // @dart = 3.10
+      // @dart = 3.11
       class A {
         int value;
 
@@ -30632,7 +30626,7 @@ WarningCode:
       `B` has the keyword `final`:
 
       ```dart
-      // @dart = 3.10
+      // @dart = 3.11
       class A {
         A(int value);
       }
@@ -30647,6 +30641,7 @@ WarningCode:
       Remove the unnecessary `final` keyword:
 
       ```dart
+      // @dart = 3.11
       class A {
         A(int value);
       }

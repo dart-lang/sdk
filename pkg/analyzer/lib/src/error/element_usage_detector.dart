@@ -194,6 +194,11 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void constructorTearOff(ConstructorTearOff node) {
+    checkUsage(node.typeReference.element, node.typeReference);
+    checkUsage(node.element, node);
+  }
+
   void dotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -631,6 +636,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void constructorName(ConstructorName node) {
+    checkUsage(node.element, node);
+  }
+
+  void constructorTearOff(ConstructorTearOff node) {
+    checkUsage(node.typeReference.element, node.typeReference);
     checkUsage(node.element, node);
   }
 

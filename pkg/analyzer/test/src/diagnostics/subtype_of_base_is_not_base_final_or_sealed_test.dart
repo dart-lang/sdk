@@ -73,6 +73,26 @@ class B implements A {}
 ''');
   }
 
+  test_class_implements_hasAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base class A {}
+class B implements A {}
+//    ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
+augment class B {}
+''');
+  }
+
+  test_class_implements_hasAugmentation_withImplementsClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base class A {}
+class B {}
+augment class B implements A {}
+//            ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
+''');
+  }
+
   test_class_implements_outside() async {
     newFile('$testPackageLibPath/a.dart', r'''
 base class A {}
@@ -280,6 +300,16 @@ class C extends B {}
 base mixin class A {}
 class B with A {}
 //    ^
+// [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
+''');
+  }
+
+  test_mixinClass_with_hasAugmentation_withWithClause() async {
+    await resolveTestCodeWithDiagnostics(r'''
+base mixin class A {}
+class B {}
+augment class B with A {}
+//            ^
 // [diag.subtypeOfBaseIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.
 ''');
   }

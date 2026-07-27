@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// This resolver is responsible for rewriting a given
 /// [ConstructorInvocation] as a [MethodInvocation] if the parsed
 /// [ConstructorName]'s `type` resolves to a [FunctionReference] or
-/// [ConstructorReference], instead of a [NamedType].
+/// [ConstructorReference2], instead of a [NamedType].
 class ConstructorInvocationResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
@@ -30,7 +30,7 @@ class ConstructorInvocationResolver {
   }) {
     // The parser can parse certain code as [ConstructorInvocation] when it
     // might be an invocation of a method on a [FunctionReference] or
-    // [ConstructorReference]. In such a case, it is this resolver's
+    // [ConstructorReference2]. In such a case, it is this resolver's
     // responsibility to rewrite. For example, given:
     //
     //     a.m<int>.apply();

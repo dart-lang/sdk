@@ -30,9 +30,9 @@ class B extends A {}
     await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 class B {}
-//    ^
-// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
 augment class B extends A {}
+//            ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
 ''');
   }
 

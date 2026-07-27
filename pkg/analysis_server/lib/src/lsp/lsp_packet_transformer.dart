@@ -24,6 +24,23 @@ class LspHeaders {
   new(this.rawHeaders, this.contentLength, this.encoding);
 }
 
+/// Transforms a stream of JSON payloads into LSP packets with the required
+/// headers.
+class LspPacketEncoder extends StreamTransformerBase<String, List<int>> {
+  @override
+  Stream<List<int>> bind(Stream<String> stream) {
+    return stream.map((json) {
+      var utf8EncodedBody = utf8.encode(json);
+      var header =
+          'Content-Length: ${utf8EncodedBody.length}\r\n'
+          'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
+
+      // Header is always ASCII, body is always UTF-8.
+      return ascii.encode(header).followedBy(utf8EncodedBody).toList();
+    });
+  }
+}
+
 /// Transforms a stream of LSP data in the form:
 ///
 ///     Content-Length: xxx\r\n
