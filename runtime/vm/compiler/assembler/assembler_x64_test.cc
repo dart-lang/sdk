@@ -6587,6 +6587,44 @@ intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
   return ZeroExtendValue(SignExtendValue(value, sz) >> shift, sz);
 }
 
+ASSEMBLER_TEST_GENERATE(TestEndbr, assembler) {
+  __ endbr64();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestEndbr, test) {
+  typedef int (*TestNop)();
+  reinterpret_cast<TestNop>(test->payload_start())();
+  EXPECT_DISASSEMBLY(
+      "endbr64\n"
+      "ret\n");
+}
+
+static constexpr intptr_t kTestNotrackOffset = 4;
+
+ASSEMBLER_TEST_GENERATE(TestNotrack, assembler) {
+  // notrack prefix makes the indirect call valid even though the target doesn't
+  // have an endbr.
+  __ notrack();
+  __ jmp(CallingConventions::kArg1Reg);
+  __ int3();
+
+  ASSERT_EQUAL(__ CodeSize(), kTestNotrackOffset);
+  __ LoadImmediate(RAX, 42);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TestNotrack, test) {
+  typedef intptr_t (*TestNotrack)(intptr_t);
+  EXPECT_EQ(42, reinterpret_cast<TestNotrack>(test->payload_start())(
+                    test->payload_start() + kTestNotrackOffset));
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "notrack jmp rdi\n"
+      "int3\n"
+      "movl rax,0x2a\n"
+      "ret\n");
+}
+
 }  // namespace compiler
 }  // namespace dart
 

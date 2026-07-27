@@ -1156,6 +1156,14 @@ void Assembler::nop(int size) {
   }
 }
 
+void Assembler::endbr64() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0x1E);
+  EmitUint8(0xFA);
+}
+
 void Assembler::j(Condition condition, Label* label, JumpDistance distance) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {

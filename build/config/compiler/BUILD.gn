@@ -11,6 +11,8 @@ declare_args() {
   } else {
     debug_optimization_level = "2"
   }
+
+  enable_cfi = false
 }
 
 import("//build/config/sysroot.gni")
@@ -368,6 +370,16 @@ config("compiler") {
           ldflags += [ "--target=i386-linux-gnu" ]
         }
       }
+    }
+  }
+
+  if (is_linux && enable_cfi) {
+    if (current_cpu == "x64") {
+      cflags += [ "-fcf-protection=full" ]
+      ldflags += [ "-Wl,-z,cet-report=warning" ]
+    } else if (current_cpu == "arm64") {
+      cflags += [ "-mbranch-protection=standard" ]
+      ldflags += [ "-Wl,-z,cet-report=warning" ]
     }
   }
 

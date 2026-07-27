@@ -993,6 +993,22 @@ void ARM64Decoder::DecodeSystem(Instr* instr) {
     Format(instr, "clrex");
     return;
   }
+  if (instr->InstructionBits() == BTI) {
+    Format(instr, "bti");
+    return;
+  }
+  if (instr->InstructionBits() == BTI_C) {
+    Format(instr, "bti c");
+    return;
+  }
+  if (instr->InstructionBits() == BTI_J) {
+    Format(instr, "bti j");
+    return;
+  }
+  if (instr->InstructionBits() == BTI_JC) {
+    Format(instr, "bti jc");
+    return;
+  }
 
   if (instr->InstructionBits() == kDMB_ISH) {
     Format(instr, "dmb ish");

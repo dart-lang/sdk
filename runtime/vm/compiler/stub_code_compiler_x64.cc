@@ -1486,6 +1486,7 @@ static const RegisterSet kCalleeSavedRegisterSet(
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub() {
+  if (FLAG_support_cfi) __ endbr64();
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -1640,6 +1641,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
 #if defined(DART_DYNAMIC_MODULES)
+  if (FLAG_support_cfi) __ endbr64();
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -3339,6 +3341,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
                         target::kWordSize));
     __ jmp(&again);
     __ Bind(&done);
+  } else if (FLAG_support_cfi) {
+    // TODO(63457): How to unwind to appease SHSTK?
   }
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
