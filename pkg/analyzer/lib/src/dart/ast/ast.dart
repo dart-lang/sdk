@@ -1432,7 +1432,7 @@ base mixin ArgumentImpl on AstNodeImpl implements Argument {
 
   @override
   InternalFormalParameterElement? get correspondingParameter {
-    var parent = parent2;
+    var parent = parentInPrimaryView;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     }
@@ -9761,7 +9761,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   AstNodeApi? _astNodeApiOverride;
 
-  ConstructorReference2Impl? _v2Origin;
+  _ConstructorReferenceV2Origin? _v2Origin;
 
   InternalConstructorElement? _element;
 
@@ -9777,7 +9777,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _becomeParentOf12(name);
   }
 
-  ConstructorNameImpl.v1Projection(ConstructorReference2Impl origin)
+  ConstructorNameImpl.v1Projection(_ConstructorReferenceV2Origin origin)
     : _type = origin.typeReference.namedType,
       _period = origin.selector?.period,
       _name = origin.selector?.name,
@@ -9825,6 +9825,9 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     var result = origin.selector?.name;
     if (result != null) {
       result.element = origin.element;
+      if (origin is ConstructorTearOffImpl) {
+        result.tearOffTypeArgumentTypes = origin.tearOffTypeArgumentTypes;
+      }
       _becomeParentOf1(result);
     }
     return result;
@@ -10053,6 +10056,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an identifier refers to a type); they are
 /// produced at resolution time.
+@ToBeDeprecated('Use ConstructorTearOff instead')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReference
     implements Expression, CommentReferableExpression {
@@ -10066,8 +10070,18 @@ abstract final class ConstructorReference
 ///        [ConstructorTypeReference] [ConstructorSelector]?
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ConstructorReference2
-    implements AstNode, ConstructorReferenceNode {
+abstract final class ConstructorReference2 implements AstNode {
+  /// The element associated with the referenced constructor based on static
+  /// type information.
+  ///
+  /// This is the constructor element after applying any explicit or inferred
+  /// type arguments. Use [ConstructorElement.baseElement] to access the
+  /// declaration element.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if the
+  /// constructor couldn't be resolved.
+  ConstructorElement? get element;
+
   /// The constructor selector, or `null` if the unnamed constructor is
   /// referenced without an explicit `.new` selector.
   ConstructorSelector? get selector;
@@ -10084,7 +10098,7 @@ abstract final class ConstructorReference2
   ],
 )
 final class ConstructorReference2Impl extends AstNodeImpl
-    implements ConstructorReference2 {
+    implements _ConstructorReferenceV2Origin, ConstructorReference2 {
   @generated
   ConstructorTypeReferenceImpl _typeReference;
 
@@ -10116,6 +10130,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   @override
   InternalConstructorElement? get element => _element;
 
+  @override
   set element(InternalConstructorElement? element) {
     _element = element;
     selector?.name.element = element;
@@ -10273,41 +10288,49 @@ final class ConstructorReference2Impl extends AstNodeImpl
   }
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('constructorName')])
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  childEntitiesOrder: [GenerateNodeProperty('constructorName')],
+  generateConstructor: false,
+)
+@ToBeDeprecated('Use ConstructorTearOffImpl instead')
 final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
-  @generated
-  ConstructorNameImpl _constructorName;
+  final ConstructorTearOffImpl _origin;
 
-  @generated
-  ConstructorReferenceImpl({required ConstructorNameImpl constructorName})
-    : _constructorName = constructorName {
-    _becomeParentOf12(constructorName);
+  @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
+  ConstructorReferenceImpl._(this._origin) {
+    _attachV1Children();
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken {
-    return constructorName.beginToken;
-  }
+  Token get beginToken => _origin.beginToken;
 
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  ConstructorNameImpl get constructorName => _constructorName;
+  ConstructorNameImpl get constructorName => _origin.constructorName;
 
-  @generated
-  set constructorName(ConstructorNameImpl constructorName) {
-    _constructorName = _becomeParentOf12(constructorName);
-  }
-
-  @generated
   @override
-  Token get endToken {
-    return constructorName.endToken;
-  }
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
 
   @override
   Precedence get precedence => Precedence.postfix;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -10316,8 +10339,9 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addNode('constructorName', constructorName);
+  ChildEntities get _childEntities2 {
+    throw StateError('ConstructorReference is not in the V2 AST view.');
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -10328,8 +10352,13 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitConstructorReference(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('ConstructorReference is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
 
   @generated
   @override
@@ -10338,30 +10367,27 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     return false;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(constructorName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'constructorName'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as ConstructorNameImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections are never resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitConstructorReference(this, contextType: contextType);
+    throw StateError('ConstructorReference is a V1 projection.');
   }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  String toSource() => _origin.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -10374,25 +10400,11 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    constructorName.accept2(visitor);
+    throw StateError('ConstructorReference is not in the V2 AST view.');
   }
 
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ConstructorNameImpl)? visitConstructorName,
-  }) {
-    if (visitConstructorName != null) {
-      visitConstructorName(constructorName);
-    } else {
-      constructorName.accept2(visitor);
-    }
+  void _attachV1Children() {
+    _becomeParentOf1(constructorName);
   }
 
   @generated
@@ -10407,14 +10419,12 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
-      return constructorName;
-    }
-    return null;
+    throw StateError('ConstructorReference is not in the V2 AST view.');
   }
 }
 
 /// An AST node that makes reference to a constructor.
+@ToBeDeprecated('Use element on the concrete node instead')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReferenceNode implements AstNode {
   /// The element associated with the referenced constructor based on static
@@ -10564,10 +10574,18 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorTearOff
-    implements
-        Expression,
-        CommentReferableExpression,
-        ConstructorReferenceNode {
+    implements Expression, CommentReferableExpression {
+  /// The element associated with the referenced constructor based on static
+  /// type information.
+  ///
+  /// This is the constructor element after applying any explicit or inferred
+  /// type arguments. Use [ConstructorElement.baseElement] to access the
+  /// declaration element.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if the
+  /// constructor couldn't be resolved.
+  ConstructorElement? get element;
+
   /// The constructor selector.
   ConstructorSelector get selector;
 
@@ -10583,15 +10601,21 @@ abstract final class ConstructorTearOff
   ],
 )
 final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
-    implements ConstructorTearOff {
+    implements _ConstructorReferenceV2Origin, ConstructorTearOff {
   @generated
   ConstructorTypeReferenceImpl _typeReference;
 
   @generated
   ConstructorSelectorImpl _selector;
 
-  @override
-  InternalConstructorElement? element;
+  InternalConstructorElement? _element;
+
+  ConstructorReferenceImpl? _constructorReference;
+
+  late final ConstructorNameImpl constructorName =
+      ConstructorNameImpl.v1Projection(this);
+
+  List<TypeImpl>? tearOffTypeArgumentTypes;
 
   @generated
   ConstructorTearOffImpl({
@@ -10607,6 +10631,19 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
   @override
   Token get beginToken {
     return typeReference.beginToken;
+  }
+
+  ConstructorReferenceImpl get constructorReference {
+    return _constructorReference ??= ConstructorReferenceImpl._(this);
+  }
+
+  @override
+  InternalConstructorElement? get element => _element;
+
+  @override
+  set element(InternalConstructorElement? element) {
+    _element = element;
+    selector.name.element = element;
   }
 
   @generated
@@ -10698,10 +10735,10 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'The node is not used by the resolver yet.')
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('ConstructorTearOff is not used by the resolver yet.');
+    resolver.visitConstructorTearOff(this, contextType: contextType);
   }
 
   @generated
@@ -14853,7 +14890,9 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   InternalFormalParameterElement? get correspondingParameter {
-    var parent = parent2;
+    // V1 compatibility projections, such as the constructor-name identifier
+    // of a ConstructorReference, don't have a V2 parent.
+    var parent = parentInPrimaryView;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
     } else if (parent is IndexExpressionImpl) {
@@ -21863,9 +21902,13 @@ class GenerateNodeImpl {
   /// The order is important for [AstNodeImpl._childEntities].
   final List<GenerateNodeProperty> childEntitiesOrder;
 
+  /// Whether to generate the implementation class's unnamed constructor.
+  final bool generateConstructor;
+
   const GenerateNodeImpl({
     this.api = AstNodeApi.shared,
     required this.childEntitiesOrder,
+    this.generateConstructor = true,
   });
 }
 
@@ -29960,7 +30003,7 @@ abstract final class NamedType implements TypeAnnotation {
   Token get name;
 
   /// The type being named, or `null` if the AST structure hasn't been resolved,
-  /// or if this is part of a [ConstructorReference].
+  /// or if this is part of the legacy constructor-reference projection.
   @override
   DartType? get type;
 
@@ -30090,7 +30133,16 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   bool get isSynthetic => name.isSynthetic && typeArguments == null;
 
   @override
-  TypeImpl? get type => _constructorTypeReferenceOrigin?.type ?? _type;
+  TypeImpl? get type {
+    var origin = _constructorTypeReferenceOrigin;
+    if (origin != null) {
+      if (origin.parent2 is ConstructorTearOffImpl) {
+        return null;
+      }
+      return origin.type;
+    }
+    return _type;
+  }
 
   set type(TypeImpl? value) {
     var origin = _constructorTypeReferenceOrigin;
@@ -43626,6 +43678,9 @@ enum V1Projection {
     if (node is ConstructorInvocationImpl) {
       return node.instanceCreationExpression;
     }
+    if (node is ConstructorTearOffImpl) {
+      return node.constructorReference;
+    }
     return node;
   }
 
@@ -45521,6 +45576,18 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
       }
     }
   }
+}
+
+abstract interface class _ConstructorReferenceV2Origin {
+  InternalConstructorElement? get element;
+
+  set element(InternalConstructorElement? value);
+
+  ConstructorSelectorImpl? get selector;
+
+  ConstructorTypeReferenceImpl get typeReference;
+
+  String toSource();
 }
 
 final class _FormalParameterListV1NodeList

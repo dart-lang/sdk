@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -246,13 +247,6 @@ class AstBinaryReader {
     return node;
   }
 
-  ConstructorReference _readConstructorReference() {
-    var constructorName = _readNode() as ConstructorNameImpl;
-    var node = ConstructorReferenceImpl(constructorName: constructorName);
-    _readExpressionResolution(node);
-    return node;
-  }
-
   ConstructorReference2Impl _readConstructorReference2() {
     var typeReference = _readNode() as ConstructorTypeReferenceImpl;
     var selector = _readOptionalNode() as ConstructorSelectorImpl?;
@@ -268,6 +262,29 @@ class AstBinaryReader {
       period: Token(TokenType.PERIOD, -1),
       name2: StringToken(TokenType.STRING, name, -1),
     );
+  }
+
+  ConstructorTearOffImpl _readConstructorTearOff() {
+    var typeReference = _readNode() as ConstructorTypeReferenceImpl;
+    var selector = _readNode() as ConstructorSelectorImpl;
+    var element = _reader.readElement() as InternalConstructorElement?;
+    var node = ConstructorTearOffImpl(
+      typeReference: typeReference,
+      selector: selector,
+    );
+    _readExpressionResolution(node);
+    node.element = switch ((element, node.staticType)) {
+      (
+        InternalConstructorElement element,
+        FunctionTypeImpl(returnType: InterfaceTypeImpl returnType),
+      ) =>
+        SubstitutedConstructorElementImpl.from2(
+          element.baseElement,
+          returnType,
+        ),
+      _ => element,
+    };
+    return node;
   }
 
   ConstructorTypeReferenceImpl _readConstructorTypeReference() {
@@ -883,8 +900,8 @@ class AstBinaryReader {
         return _readConstructorFieldInitializer();
       case Tag.ConstructorName:
         return _readConstructorName();
-      case Tag.ConstructorReference:
-        return _readConstructorReference();
+      case Tag.ConstructorTearOff:
+        return _readConstructorTearOff();
       case Tag.ConstructorReference2:
         return _readConstructorReference2();
       case Tag.ConstructorSelector:

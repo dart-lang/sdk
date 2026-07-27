@@ -114,6 +114,28 @@ ConstructorInvocation
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: dynamic}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: p
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
+          substitution: {T: dynamic}
+        element: <testLibraryFragment>::@prefix::p
+        staticType: InvalidType
+    rightParenthesis: )
+  staticType: C<dynamic>
 ''');
   }
 

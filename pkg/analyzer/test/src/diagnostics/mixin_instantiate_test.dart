@@ -48,6 +48,23 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: M
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: M
+      element: <testLibrary>::@mixin::M
+      type: M
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: M
 invalidNodes
   ConstructorDeclarationImpl [12, 24)
 ''');
@@ -70,6 +87,18 @@ ConstructorInvocation
   keyword: new
   constructorReference: ConstructorReference2
     typeReference: ConstructorTypeReference
+      name: M
+      element: <testLibrary>::@mixin::M
+      type: M
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: M
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
       name: M
       element: <testLibrary>::@mixin::M
       type: M

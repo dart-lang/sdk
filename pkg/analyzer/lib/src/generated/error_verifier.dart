@@ -812,13 +812,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitConstructorReference(covariant ConstructorReferenceImpl node) {
-    _constArgumentsVerifier.visitConstructorReference(node);
-    _typeArgumentsVerifier.checkConstructorReference(node);
-    _checkForInvalidGenerativeConstructorReference(
-      node.constructorName,
-      node.constructorName.element,
-    );
+  void visitConstructorTearOff(covariant ConstructorTearOffImpl node) {
+    _constArgumentsVerifier.visitConstructorTearOff(node);
+    _typeArgumentsVerifier.checkConstructorTearOff(node);
+    _checkForInvalidGenerativeConstructorReference(node, node.element);
   }
 
   @override
@@ -5708,9 +5705,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         constructorElement.isGenerative &&
         constructorElement.enclosingElement is EnumElement) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
-        if (node.parent2 case ConstructorReference(
-          parent2: var parent,
-        ) when parent is! ConstructorInvocation) {
+        if (node is ConstructorTearOff) {
           diagnosticReporter.report(
             diag.invalidReferenceToGenerativeEnumConstructorTearoff.at(node),
           );

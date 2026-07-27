@@ -473,7 +473,7 @@ class A {
 }
 
 class B<T> {}
-''', (result) => result.findNode.constructorReference('B<int>.new'));
+''', (result) => result.findNode.constructorTearOff('B<int>.new'));
   }
 
   test_constructorReference_explicitTypeArguments_nonConst() async {
@@ -487,7 +487,7 @@ class A {
 
 class B<T> {}
 ''',
-      (result) => result.findNode.constructorReference('B<self.A>.new'),
+      (result) => result.findNode.constructorTearOff('B<self.A>.new'),
       (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
@@ -500,7 +500,7 @@ class A {
 }
 
 class B {}
-''', (result) => result.findNode.constructorReference('B.new'));
+''', (result) => result.findNode.constructorTearOff('B.new'));
   }
 
   test_dotShorthandConstructorInvocation_const() async {

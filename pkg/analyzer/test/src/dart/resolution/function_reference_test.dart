@@ -36,7 +36,19 @@ var x = (A.foo)<int>;
 FunctionReference
   function2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: ConstructorReference
+    expression2: ConstructorTearOff
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<dynamic>
+      selector: ConstructorSelector
+        period: .
+        name2: foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: T}
+      staticType: A<T> Function<T>()
+    expression(v1): ConstructorReference
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -45,9 +57,13 @@ FunctionReference
         period: .
         name: SimpleIdentifier
           token: foo
-          element: <testLibrary>::@class::A::@constructor::foo
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::foo
+            substitution: {T: T}
           staticType: null
-        element: <testLibrary>::@class::A::@constructor::foo
+        element: SubstitutedConstructorElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::foo
+          substitution: {T: T}
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()
@@ -79,7 +95,19 @@ var x = (A.new)<int>;
 FunctionReference
   function2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: ConstructorReference
+    expression2: ConstructorTearOff
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<dynamic>
+      selector: ConstructorSelector
+        period: .
+        name2: new
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: T}
+      staticType: A<T> Function<T>()
+    expression(v1): ConstructorReference
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -88,9 +116,13 @@ FunctionReference
         period: .
         name: SimpleIdentifier
           token: new
-          element: <testLibrary>::@class::A::@constructor::new
+          element: SubstitutedConstructorElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new
+            substitution: {T: T}
           staticType: null
-        element: <testLibrary>::@class::A::@constructor::new
+        element: SubstitutedConstructorElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::new
+          substitution: {T: T}
       staticType: A<T> Function<T>()
     rightParenthesis: )
     staticType: A<T> Function<T>()
@@ -122,7 +154,19 @@ var x = A.foo<int>;
     var node = result.findNode.functionReference('A.foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: ConstructorReference
+  function2: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@class::A
+      type: A<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: T}
+    staticType: A<T> Function<T>()
+  function(v1): ConstructorReference
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -131,9 +175,13 @@ FunctionReference
       period: .
       name: SimpleIdentifier
         token: foo
-        element: <testLibrary>::@class::A::@constructor::foo
+        element: SubstitutedConstructorElementImpl
+          baseElement: <testLibrary>::@class::A::@constructor::foo
+          substitution: {T: T}
         staticType: null
-      element: <testLibrary>::@class::A::@constructor::foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: T}
     staticType: A<T> Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -157,7 +205,23 @@ var x = a.Future.delayed<int>;
     var node = result.findNode.functionReference('a.Future.delayed<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: ConstructorReference
+  function2: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: <testLibraryFragment>::@prefix::a
+      name: Future
+      element: dart:async::@class::Future
+      type: Future<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: delayed
+    element: SubstitutedConstructorElementImpl
+      baseElement: dart:async::@class::Future::@constructor::delayed
+      substitution: {T: T}
+    staticType: Future<T> Function<T>(Duration, [FutureOr<T> Function()?])
+  function(v1): ConstructorReference
     constructorName: ConstructorName
       type: NamedType
         importPrefix: ImportPrefixReference
@@ -170,9 +234,13 @@ FunctionReference
       period: .
       name: SimpleIdentifier
         token: delayed
-        element: dart:async::@class::Future::@constructor::delayed
+        element: SubstitutedConstructorElementImpl
+          baseElement: dart:async::@class::Future::@constructor::delayed
+          substitution: {T: T}
         staticType: null
-      element: dart:async::@class::Future::@constructor::delayed
+      element: SubstitutedConstructorElementImpl
+        baseElement: dart:async::@class::Future::@constructor::delayed
+        substitution: {T: T}
     staticType: Future<T> Function<T>(Duration, [FutureOr<T> Function()?])
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -4585,8 +4653,20 @@ C<int> Function(int) foo() {
 
     // TODO(srawlins): Leave the constructor reference uninstantiated, then
     // perform generic function instantiation as a wrapping node.
-    var node = result.findNode.constructorReference('C.new');
+    var node = result.findNode.constructorTearOff('C.new');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: C
+    element: <testLibrary>::@class::C
+    type: C<dynamic>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::C::@constructor::new
+    substitution: {T: int}
+  staticType: C<int> Function(int)
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -4596,11 +4676,15 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: <testLibrary>::@class::C::@constructor::new
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: int}
       staticType: null
       tearOffTypeArgumentTypes
         int
-    element: <testLibrary>::@class::C::@constructor::new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: int}
   staticType: C<int> Function(int)
 ''');
   }

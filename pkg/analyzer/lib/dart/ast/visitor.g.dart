@@ -908,10 +908,6 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitConstructorName(ConstructorName node) => visitNode(node);
 
-  @override
-  R? visitConstructorReference(ConstructorReference node) =>
-      visitCommentReferableExpression(node);
-
   @experimental
   @override
   R? visitConstructorReference2(ConstructorReference2 node) => visitNode(node);
@@ -2858,12 +2854,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
-  @override
-  R? visitConstructorReference(ConstructorReference node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
   @experimental
   @override
   R? visitConstructorReference2(ConstructorReference2 node) {
@@ -4486,9 +4476,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitConstructorName(ConstructorName node) => null;
 
-  @override
-  R? visitConstructorReference(ConstructorReference node) => null;
-
   @experimental
   @override
   R? visitConstructorReference2(ConstructorReference2 node) => null;
@@ -5689,9 +5676,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitConstructorName(ConstructorName node) => _throw(node);
-
-  @override
-  R? visitConstructorReference(ConstructorReference node) => _throw(node);
 
   @experimental
   @override
@@ -7988,14 +7972,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
-  @override
-  T? visitConstructorReference(ConstructorReference node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitConstructorReference(node);
-    stopwatch.stop();
-    return result;
-  }
-
   @experimental
   @override
   T? visitConstructorReference2(ConstructorReference2 node) {
@@ -9965,9 +9941,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitConstructorName(ConstructorName node) => visitNode(node);
-
-  @override
-  R? visitConstructorReference(ConstructorReference node) => visitNode(node);
 
   @experimental
   @override

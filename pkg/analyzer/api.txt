@@ -348,7 +348,6 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addConstructorFieldInitializer (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addConstructorInvocation (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addConstructorName (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
-    addConstructorReference (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addConstructorReference2 (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addConstructorSelector (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addConstructorTearOff (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
@@ -1083,7 +1082,6 @@ package:analyzer/dart/ast/ast.dart:
     visitConstructorFieldInitializer (method: R? Function(ConstructorFieldInitializer))
     visitConstructorInvocation (method: R? Function(ConstructorInvocation@1), experimental)
     visitConstructorName (method: R? Function(ConstructorName))
-    visitConstructorReference (method: R? Function(ConstructorReference))
     visitConstructorReference2 (method: R? Function(ConstructorReference2), experimental)
     visitConstructorSelector (method: R? Function(ConstructorSelector))
     visitConstructorTearOff (method: R? Function(ConstructorTearOff), experimental)
@@ -1420,7 +1418,8 @@ package:analyzer/dart/ast/ast.dart:
     type (getter: NamedType)
   ConstructorReference (class extends Object implements Expression, CommentReferableExpression, abstract, final):
     constructorName (getter: ConstructorName)
-  ConstructorReference2 (class extends Object implements AstNode, ConstructorReferenceNode, abstract, final, experimental):
+  ConstructorReference2 (class extends Object implements AstNode, abstract, final, experimental):
+    element (getter: ConstructorElement?)
     selector (getter: ConstructorSelector?)
     typeReference (getter: ConstructorTypeReference)
   ConstructorReferenceNode (class extends Object implements AstNode, abstract, final):
@@ -1429,7 +1428,8 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: SimpleIdentifier)
     name2 (getter: Token, experimental)
     period (getter: Token)
-  ConstructorTearOff (class extends Object implements Expression, CommentReferableExpression, ConstructorReferenceNode, abstract, final, experimental):
+  ConstructorTearOff (class extends Object implements Expression, CommentReferableExpression, abstract, final, experimental):
+    element (getter: ConstructorElement?)
     selector (getter: ConstructorSelector)
     typeReference (getter: ConstructorTypeReference)
   ConstructorTypeReference (class extends Object implements AstNode, abstract, final, experimental):
@@ -2945,7 +2945,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitConstructorInitializer (method: R? Function(ConstructorInitializer))
     visitConstructorInvocation (method: R? Function(ConstructorInvocation@1), experimental)
     visitConstructorName (method: R? Function(ConstructorName))
-    visitConstructorReference (method: R? Function(ConstructorReference))
     visitConstructorReference2 (method: R? Function(ConstructorReference2), experimental)
     visitConstructorSelector (method: R? Function(ConstructorSelector))
     visitConstructorTearOff (method: R? Function(ConstructorTearOff), experimental)
@@ -3345,7 +3344,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitConstructorFieldInitializer (method: R? Function(ConstructorFieldInitializer))
     visitConstructorInvocation (method: R? Function(ConstructorInvocation@1), experimental)
     visitConstructorName (method: R? Function(ConstructorName))
-    visitConstructorReference (method: R? Function(ConstructorReference))
     visitConstructorReference2 (method: R? Function(ConstructorReference2), experimental)
     visitConstructorSelector (method: R? Function(ConstructorSelector))
     visitConstructorTearOff (method: R? Function(ConstructorTearOff), experimental)
@@ -3719,7 +3717,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitConstructorFieldInitializer (method: R? Function(ConstructorFieldInitializer))
     visitConstructorInvocation (method: R? Function(ConstructorInvocation@1), experimental)
     visitConstructorName (method: R? Function(ConstructorName))
-    visitConstructorReference (method: R? Function(ConstructorReference))
     visitConstructorReference2 (method: R? Function(ConstructorReference2), experimental)
     visitConstructorSelector (method: R? Function(ConstructorSelector))
     visitConstructorTearOff (method: R? Function(ConstructorTearOff), experimental)
@@ -4093,7 +4090,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitConstructorFieldInitializer (method: R? Function(ConstructorFieldInitializer))
     visitConstructorInvocation (method: R? Function(ConstructorInvocation@1), experimental)
     visitConstructorName (method: R? Function(ConstructorName))
-    visitConstructorReference (method: R? Function(ConstructorReference))
     visitConstructorReference2 (method: R? Function(ConstructorReference2), experimental)
     visitConstructorSelector (method: R? Function(ConstructorSelector))
     visitConstructorTearOff (method: R? Function(ConstructorTearOff), experimental)
@@ -4469,7 +4465,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitConstructorFieldInitializer (method: T? Function(ConstructorFieldInitializer))
     visitConstructorInvocation (method: T? Function(ConstructorInvocation@1), experimental)
     visitConstructorName (method: T? Function(ConstructorName))
-    visitConstructorReference (method: T? Function(ConstructorReference))
     visitConstructorReference2 (method: T? Function(ConstructorReference2), experimental)
     visitConstructorSelector (method: T? Function(ConstructorSelector))
     visitConstructorTearOff (method: T? Function(ConstructorTearOff), experimental)
@@ -4844,7 +4839,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitConstructorFieldInitializer (method: R? Function(ConstructorFieldInitializer))
     visitConstructorInvocation (method: R? Function(ConstructorInvocation@1), experimental)
     visitConstructorName (method: R? Function(ConstructorName))
-    visitConstructorReference (method: R? Function(ConstructorReference))
     visitConstructorReference2 (method: R? Function(ConstructorReference2), experimental)
     visitConstructorSelector (method: R? Function(ConstructorSelector))
     visitConstructorTearOff (method: R? Function(ConstructorTearOff), experimental)

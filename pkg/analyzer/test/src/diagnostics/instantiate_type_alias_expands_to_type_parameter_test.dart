@@ -121,6 +121,18 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: InvalidType
+InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: B
+      element: <testLibrary>::@typeAlias::B
+      type: InvalidType
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
 ''');
   }
 }

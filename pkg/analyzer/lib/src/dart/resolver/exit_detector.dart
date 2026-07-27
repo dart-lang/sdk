@@ -132,7 +132,7 @@ class ExitDetector extends GeneralizingAstVisitor2<bool> {
       _nodeExits(node.argumentList);
 
   @override
-  bool visitConstructorReference(ConstructorReference node) => false;
+  bool visitConstructorTearOff(ConstructorTearOff node) => false;
 
   @override
   bool visitContinueStatement(ContinueStatement node) {

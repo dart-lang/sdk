@@ -560,18 +560,15 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            ConstructorReference
-              constructorName: ConstructorName
-                type: NamedType
-                  name: A @36
-                  element: <testLibrary>::@class::A
-                  type: null
+            ConstructorTearOff
+              typeReference: ConstructorTypeReference
+                name: A @36
+                element: <testLibrary>::@class::A
+                type: A
+              selector: ConstructorSelector
                 period: . @37
-                name: SimpleIdentifier
-                  token: named @38
-                  element: <testLibrary>::@class::A::@constructor::named
-                  staticType: null
-                element: <testLibrary>::@class::A::@constructor::named
+                name2: named @38
+              element: <testLibrary>::@class::A::@constructor::named
               staticType: A Function()
           inducedGetter: #F4
       getters
@@ -601,6 +598,143 @@ library
       firstFragment: #F4
       returnType: A Function()
       variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
+  test_const_constructorTearOff_genericElementIsSubstituted() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  const A();
+}
+typedef TA<T> = A<T>;
+
+const inferred = TA.new;
+const explicit = TA<int>.new;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 21
+      typeAliases
+        #F4 TA (nameOffset:36) (firstTokenOffset:28) (offset:36)
+          element: <testLibrary>::@typeAlias::TA
+          typeParameters
+            #F5 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
+              element: #E1 T
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic inferred (nameOffset:57) (firstTokenOffset:57) (offset:57)
+          element: <testLibrary>::@topLevelVariable::inferred
+          initializer: expression_0
+            ConstructorTearOff
+              typeReference: ConstructorTypeReference
+                name: TA @68
+                element: <testLibrary>::@typeAlias::TA
+                type: A<dynamic>
+                  alias: <testLibrary>::@typeAlias::TA
+                    typeArguments
+                      dynamic
+              selector: ConstructorSelector
+                period: . @70
+                name2: new @71
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: T}
+              staticType: A<T> Function<T>()
+          inducedGetter: #F7
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic explicit (nameOffset:82) (firstTokenOffset:82) (offset:82)
+          element: <testLibrary>::@topLevelVariable::explicit
+          initializer: expression_1
+            ConstructorTearOff
+              typeReference: ConstructorTypeReference
+                name: TA @93
+                typeArguments: TypeArgumentList
+                  leftBracket: < @95
+                  arguments
+                    NamedType
+                      name: int @96
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @99
+                element: <testLibrary>::@typeAlias::TA
+                type: A<int>
+                  alias: <testLibrary>::@typeAlias::TA
+                    typeArguments
+                      int
+              selector: ConstructorSelector
+                period: . @100
+                name2: new @101
+              element: SubstitutedConstructorElementImpl
+                baseElement: <testLibrary>::@class::A::@constructor::new
+                substitution: {T: int}
+              staticType: A<int> Function()
+          inducedGetter: #F9
+      getters
+        #F7 isComplete isOriginVariable isStatic inferred (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+          element: <testLibrary>::@getter::inferred
+          inducingVariable: #F6
+        #F9 isComplete isOriginVariable isStatic explicit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
+          element: <testLibrary>::@getter::explicit
+          inducingVariable: #F8
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+  typeAliases
+    isSimplyBounded TA
+      reference: <testLibrary>::@typeAlias::TA
+      firstFragment: #F4
+      typeParameters
+        #E1 T
+          firstFragment: #F5
+      aliasedType: A<T>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer inferred
+      reference: <testLibrary>::@topLevelVariable::inferred
+      firstFragment: #F6
+      type: A<T> Function<T>()
+      constantInitializer
+        fragment: #F6
+        expression: expression_0
+      getter: <testLibrary>::@getter::inferred
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer explicit
+      reference: <testLibrary>::@topLevelVariable::explicit
+      firstFragment: #F8
+      type: A<int> Function()
+      constantInitializer
+        fragment: #F8
+        expression: expression_1
+      getter: <testLibrary>::@getter::explicit
+  getters
+    isOriginVariable isStatic inferred
+      reference: <testLibrary>::@getter::inferred
+      firstFragment: #F7
+      returnType: A<T> Function<T>()
+      variable: <testLibrary>::@topLevelVariable::inferred
+    isOriginVariable isStatic explicit
+      reference: <testLibrary>::@getter::explicit
+      firstFragment: #F9
+      returnType: A<int> Function()
+      variable: <testLibrary>::@topLevelVariable::explicit
 ''');
   }
 

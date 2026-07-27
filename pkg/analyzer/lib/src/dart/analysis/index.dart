@@ -883,9 +883,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     element = _getActualConstructorElement(element);
 
     IndexRelationKind kind;
-    if (node.parent2 is ConstructorReference) {
-      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
-    } else if (node.parent2 is ConstructorInvocation) {
+    if (node.parent2 is ConstructorInvocation) {
       kind = IndexRelationKind.IS_INVOKED_BY;
     } else {
       kind = IndexRelationKind.IS_REFERENCED_BY;
@@ -904,6 +902,22 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     recordRelationOffset(element, kind, offset, length, true);
 
     node.type.accept2(this);
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    var element = node.element?.baseElement;
+    element = _getActualConstructorElement(element);
+    if (element != null) {
+      recordRelationOffset(
+        element,
+        IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF,
+        node.selector.period.offset,
+        node.selector.end - node.selector.period.offset,
+        true,
+      );
+    }
+    node.visitChildren2(this);
   }
 
   @override

@@ -194,6 +194,13 @@ main() {
 ''');
   }
 
+  test_class_isUsed_tearOff() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class _A {}
+var f = _A.new;
+''');
+  }
+
   test_class_isUsed_typeArgument() async {
     await resolveTestCodeWithDiagnostics(r'''
 class _A {}
@@ -1432,6 +1439,15 @@ mixin _$Foo on Foo {
 }
 
 class _Foo = Foo with _$Foo;
+''');
+  }
+
+  test_constructor_isUsed_tearOff() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A._named({int? optional});
+}
+var f = A._named;
 ''');
   }
 

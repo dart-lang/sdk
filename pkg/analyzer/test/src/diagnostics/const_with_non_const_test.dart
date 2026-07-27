@@ -113,6 +113,23 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
 ''');
   }
 
@@ -142,6 +159,23 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  staticType: A
+InstanceCreationExpression
+  keyword: const
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a

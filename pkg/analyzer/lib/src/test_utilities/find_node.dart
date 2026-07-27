@@ -48,8 +48,14 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorInvocation get singleConstructorInvocation => _single();
 
+  ConstructorTearOff get singleConstructorTearOff => _single();
+
   ConstructorInvocation constructorInvocation(String search) {
     return _node(search, (node) => node is ConstructorInvocation);
+  }
+
+  ConstructorTearOff constructorTearOff(String search) {
+    return _node(search, (node) => node is ConstructorTearOff);
   }
 
   @override

@@ -47,7 +47,7 @@ class Tag {
   static const int ConditionalExpression = 51;
   static const int ConstructorFieldInitializer = 50;
   static const int ConstructorName = 7;
-  static const int ConstructorReference = 101;
+  static const int ConstructorTearOff = 101;
   static const int ConstructorSelector = 120;
   static const int ConstructorReference2 = 121;
   static const int ConstructorTypeReference = 122;

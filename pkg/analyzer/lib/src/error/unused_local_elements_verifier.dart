@@ -127,6 +127,19 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _useIdentifierElement(node.typeReference.element);
+    var element = node.element;
+    _useIdentifierElement(element);
+    if (element != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {

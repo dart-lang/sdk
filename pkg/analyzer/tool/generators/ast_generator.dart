@@ -91,6 +91,9 @@ class AstNodeImplGenerator {
     var api = _AstNodeApi.values.byName(
       generateObject.getField('api')!.variable!.name!,
     );
+    var generateConstructor = generateObject
+        .getField('generateConstructor')!
+        .toBoolValue()!;
 
     currentClassElement = classElement;
     var interfaceElement = classElement.interfaces.last.element;
@@ -190,6 +193,7 @@ class AstNodeImplGenerator {
     return _ImplClass(
       node: nodeImpl,
       api: api,
+      generateConstructor: generateConstructor,
       interfaceElement: interfaceElement,
       properties: properties,
       leftBracketOffset: nodeBody.leftBracket.offset,
@@ -580,6 +584,9 @@ ChildEntities get _childEntities2 =>''');
   }
 
   void _generateConstructor(_ImplClass implClass, StringBuffer buffer) {
+    if (!implClass.generateConstructor) {
+      return;
+    }
     if (implClass.doNotGenerateLookupNames.contains('new')) {
       return;
     }
@@ -1580,6 +1587,7 @@ enum _AstVersionPolicy {
 class _ImplClass {
   final ClassDeclarationImpl node;
   final _AstNodeApi api;
+  final bool generateConstructor;
   final InterfaceElement interfaceElement;
   final List<_Property> properties;
   final Set<String> doNotGenerateLookupNames = {};
@@ -1635,6 +1643,7 @@ class _ImplClass {
   _ImplClass({
     required this.node,
     required this.api,
+    required this.generateConstructor,
     required this.interfaceElement,
     required this.properties,
     required this.leftBracketOffset,

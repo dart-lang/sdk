@@ -582,8 +582,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addConstructorName(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addConstructorReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   @experimental
   void addConstructorReference2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

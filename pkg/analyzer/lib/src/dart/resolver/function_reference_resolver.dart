@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// A resolver for [FunctionReference] nodes.
 ///
 /// This resolver is responsible for writing a given [FunctionReference] as a
-/// [ConstructorReference] or as a [TypeLiteral], depending on how a function
+/// [ConstructorTearOff] or as a [TypeLiteral], depending on how a function
 /// reference's `function` resolves.
 class FunctionReferenceResolver {
   /// The resolver driving this participant.
@@ -47,24 +47,26 @@ class FunctionReferenceResolver {
       _resolvePrefixedIdentifierFunction(node, function);
     } else if (function is PropertyAccessImpl) {
       _resolvePropertyAccessFunction(node, function);
-    } else if (function is ConstructorReferenceImpl) {
+    } else if (function is ConstructorTearOffImpl) {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
         // Something like `List.filled<int>`.
         _resolver.analyzeExpression(function, _resolver.operations.unknownType);
         _resolver.popRewrite();
-        // We can safely assume `function.constructorName.name` is non-null
-        // because if no name had been given, the construct would have been
-        // interpreted as a type literal (e.g. `List<int>`).
+        var typeReference = function.typeReference;
+        var className = switch (typeReference.importPrefix) {
+          var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+          _ => typeReference.name.lexeme,
+        };
         _diagnosticReporter.report(
           diag.wrongNumberOfTypeArgumentsConstructor
               .withArguments(
-                className: function.constructorName.type.qualifiedName,
-                constructorName: function.constructorName.name!.name,
+                className: className,
+                constructorName: function.selector.name2.lexeme,
               )
               .at(typeArguments),
         );
-        var constructorElement = function.constructorName.element;
+        var constructorElement = function.element;
         _resolve(
           node: node,
           rawType: function.staticType,
@@ -223,10 +225,10 @@ class FunctionReferenceResolver {
 
     if (rawType is FunctionType) {
       // A FunctionReference with type arguments and with a
-      // ConstructorReference child is invalid. E.g. `List.filled<int>`.
+      // ConstructorTearOff child is invalid. E.g. `List.filled<int>`.
       // [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR] is
       // reported elsewhere; don't check type arguments here.
-      if (node.function2 is ConstructorReference) {
+      if (node.function2 is ConstructorTearOff) {
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       } else {
         var typeArguments = node.typeArguments;
@@ -285,7 +287,7 @@ class FunctionReferenceResolver {
     callReference.recordStaticType(instantiatedType, resolver: _resolver);
   }
 
-  void _resolveConstructorReference(FunctionReferenceImpl node) {
+  void _resolveConstructorTearOff(FunctionReferenceImpl node) {
     // TODO(srawlins): Rewrite and resolve [node] as a constructor reference.
     node.function2.accept2(_resolver);
     node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -583,7 +585,7 @@ class FunctionReferenceResolver {
       // initially represented as a [PropertyAccess] with a
       // [FunctionReference] 'target'.
       if (node.parent2 is PropertyAccess) {
-        _resolveConstructorReference(node);
+        _resolveConstructorTearOff(node);
         return;
       } else if (element is InterfaceElementImpl) {
         _resolveDirectTypeLiteral(node, prefix, element);
@@ -696,7 +698,7 @@ class FunctionReferenceResolver {
           function.element = element;
           _resolveTypeAlias(node: node, element: element, typeAlias: function);
         } else {
-          _resolveConstructorReference(node);
+          _resolveConstructorTearOff(node);
         }
         return;
       } else if (element is InterfaceElementImpl) {

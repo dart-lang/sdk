@@ -426,6 +426,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _sink.writeln('ConstructorTearOff');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeElement('element', node.element);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitConstructorTypeReference(
     covariant ConstructorTypeReferenceImpl node,
   ) {
@@ -2189,9 +2200,9 @@ Expected parent: (${parent.runtimeType}) $parent
 
       if (node is Expression) {
         var parent = _viewParent(node);
-        if (parent is AssignmentExpression && parent.rightHandSide == node ||
-            parent is BinaryExpression && parent.rightOperand == node ||
-            parent is IndexExpression && parent.index == node) {
+        if (parent is AssignmentExpression && parent.rightHandSide2 == node ||
+            parent is BinaryExpression && parent.rightOperand2 == node ||
+            parent is IndexExpression && parent.index2 == node) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }
       }

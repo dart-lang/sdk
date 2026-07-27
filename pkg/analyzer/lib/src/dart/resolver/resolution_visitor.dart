@@ -347,6 +347,11 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitConstructorTearOff(covariant ConstructorTearOffImpl node) {
+    node.typeReference.accept2(this);
+  }
+
+  @override
   void visitConstructorTypeReference(
     covariant ConstructorTypeReferenceImpl node,
   ) {

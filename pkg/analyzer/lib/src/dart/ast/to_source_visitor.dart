@@ -335,11 +335,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitConstructorReference(ConstructorReference node) {
-    _visitNode(node.constructorName);
-  }
-
-  @override
   @experimental
   void visitConstructorReference2(ConstructorReference2 node) {
     _visitNode(node.typeReference);

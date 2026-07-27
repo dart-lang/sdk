@@ -514,9 +514,7 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
     int offset;
     int length;
     if (e == element) {
-      if (node.parent2 is ConstructorReference) {
-        kind = MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
-      } else if (node.parent2 is ConstructorInvocation) {
+      if (node.parent2 is ConstructorInvocation) {
         kind = MatchKind.INVOCATION;
       } else {
         kind = MatchKind.REFERENCE;
@@ -535,6 +533,22 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
       length = element.name?.length ?? 0;
       references.add(MatchInfo(offset, length, kind));
     }
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    var e = node.element?.baseElement;
+    e = _getActualConstructorElement(e);
+    if (e == element) {
+      references.add(
+        MatchInfo(
+          node.selector.period.offset,
+          node.selector.end - node.selector.period.offset,
+          MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+        ),
+      );
+    }
+    node.visitChildren2(this);
   }
 
   @override

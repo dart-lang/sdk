@@ -205,8 +205,8 @@ class _Collector {
       return;
     }
 
-    if (node is ConstructorReference) {
-      _typeArgumentList(node.constructorName.type.typeArguments);
+    if (node is ConstructorTearOff) {
+      _typeArgumentList(node.typeReference.typeArguments);
       return;
     }
 

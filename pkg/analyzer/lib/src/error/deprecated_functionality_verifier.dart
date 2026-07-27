@@ -83,6 +83,12 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
 
+  void constructorTearOff(ConstructorTearOff node) {
+    var interfaceElement = node.typeReference.element;
+    if (interfaceElement is! InterfaceElement) return;
+    _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
+  }
+
   void dotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {

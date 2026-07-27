@@ -227,13 +227,23 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorReference(ConstructorReference node) {
-    super.visitConstructorReference(node);
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    super.visitConstructorTearOff(node);
     if (node.inConstantContext || node.inConstantExpression) {
-      _checkForConstWithTypeParameters(
-        node.constructorName.type,
-        diag.constWithTypeParametersConstructorTearoff,
-      );
+      var typeReference = node.typeReference;
+      if (typeReference.element is TypeParameterElement) {
+        _diagnosticReporter.report(
+          diag.constWithTypeParametersConstructorTearoff.at(typeReference),
+        );
+      }
+      if (typeReference.typeArguments case var typeArguments?) {
+        for (var argument in typeArguments.arguments) {
+          _checkForConstWithTypeParameters(
+            argument,
+            diag.constWithTypeParametersConstructorTearoff,
+          );
+        }
+      }
     }
   }
 
