@@ -1654,288 +1654,20 @@ mixin _TypedListCommonOperationsMixin {
   String toString() => ListBase.listToString(this as List);
 }
 
-mixin _IntListMixin implements TypedDataList<int> {
-  Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
-
-  Iterable<int> followedBy(Iterable<int> other) =>
-      FollowedByIterable<int>.firstEfficient(this, other);
-
-  List<R> cast<R>() => List.castFrom<int, R>(this);
-  void set first(int value) {
-    this[0] = value;
-  }
-
-  void set last(int value) {
-    this[this.length - 1] = value;
-  }
-
-  int indexWhere(bool test(int element), [int start = 0]) {
-    if (start < 0) start = 0;
-    for (int i = start; i < length; i++) {
-      if (test(this[i])) return i;
-    }
-    return -1;
-  }
-
-  int lastIndexWhere(bool test(int element), [int? start]) {
-    int startIndex = (start == null || start >= this.length)
-        ? this.length - 1
-        : start;
-    for (int i = startIndex; i >= 0; i--) {
-      if (test(this[i])) return i;
-    }
-    return -1;
-  }
-
-  List<int> operator +(List<int> other) => [...this, ...other];
-
-  bool contains(Object? element) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      if (this[i] == element) return true;
-    }
-    return false;
-  }
-
-  void shuffle([Random? random]) {
-    random ??= Random();
-    var i = this.length;
-    while (i > 1) {
-      int pos = random.nextInt(i);
-      i -= 1;
-      var tmp = this[i];
-      this[i] = this[pos];
-      this[pos] = tmp;
-    }
-  }
-
-  Iterable<int> where(bool f(int element)) => WhereIterable<int>(this, f);
-
-  Iterable<int> take(int n) => SubListIterable<int>(this, 0, n);
-
-  Iterable<int> takeWhile(bool test(int element)) =>
-      TakeWhileIterable<int>(this, test);
-
-  Iterable<int> skip(int n) => SubListIterable<int>(this, n, null);
-
-  Iterable<int> skipWhile(bool test(int element)) =>
-      SkipWhileIterable<int>(this, test);
-
-  Iterable<int> get reversed => ReversedListIterable<int>(this);
-
-  Map<int, int> asMap() => ListMapView<int>(this);
-
-  Iterable<int> getRange(int start, [int? end]) {
-    end = RangeErrorUtils.checkValidRange(start, end, length);
-    return SubListIterable<int>(this, start, end);
-  }
-
-  Iterator<int> get iterator => _TypedListIterator<int>(this);
-
-  List<int> toList({bool growable = true}) {
-    return List<int>.of(this, growable: growable);
-  }
-
-  Set<int> toSet() {
-    return Set<int>.of(this);
-  }
-
-  void forEach(void f(int element)) {
-    var len = this.length;
-    for (var i = 0; i < len; i++) {
-      f(this[i]);
-    }
-  }
-
-  int reduce(int combine(int value, int element)) {
-    var len = this.length;
-    if (len == 0) throw IterableElementError.noElement();
-    var value = this[0];
-    for (var i = 1; i < len; ++i) {
-      value = combine(value, this[i]);
-    }
-    return value;
-  }
-
-  T fold<T>(T initialValue, T combine(T initialValue, int element)) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      initialValue = combine(initialValue, this[i]);
-    }
-    return initialValue;
-  }
-
-  Iterable<T> map<T>(T f(int element)) => MappedIterable<int, T>(this, f);
-
-  Iterable<T> expand<T>(Iterable<T> f(int element)) =>
-      ExpandIterable<int, T>(this, f);
-
-  bool every(bool f(int element)) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      if (!f(this[i])) return false;
-    }
-    return true;
-  }
-
-  bool any(bool f(int element)) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      if (f(this[i])) return true;
-    }
-    return false;
-  }
-
-  int firstWhere(bool test(int element), {int orElse()?}) {
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      var element = this[i];
-      if (test(element)) return element;
-    }
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  int lastWhere(bool test(int element), {int orElse()?}) {
-    var len = this.length;
-    for (var i = len - 1; i >= 0; --i) {
-      var element = this[i];
-      if (test(element)) {
-        return element;
-      }
-    }
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  int singleWhere(bool test(int element), {int orElse()?}) {
-    var result = null;
-    bool foundMatching = false;
-    var len = this.length;
-    for (var i = 0; i < len; ++i) {
-      var element = this[i];
-      if (test(element)) {
-        if (foundMatching) {
-          throw IterableElementError.tooMany();
-        }
-        result = element;
-        foundMatching = true;
-      }
-    }
-    if (foundMatching) return result;
-    if (orElse != null) return orElse();
-    throw IterableElementError.noElement();
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  void add(int value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void addAll(Iterable<int> value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void insert(int index, int value) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
-  void insertAll(int index, Iterable<int> values) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
-  void sort([int compare(int a, int b)?]) {
-    Sort.sort(this, compare ?? Comparable.compare);
-  }
-
-  int indexOf(int element, [int start = 0]) {
-    if (start >= this.length) {
-      return -1;
-    } else if (start < 0) {
-      start = 0;
-    }
-    for (int i = start; i < this.length; i++) {
-      if (this[i] == element) return i;
-    }
-    return -1;
-  }
-
-  int lastIndexOf(int element, [int? start]) {
-    int startIndex = (start == null || start >= this.length)
-        ? this.length - 1
-        : start;
-    for (int i = startIndex; i >= 0; i--) {
-      if (this[i] == element) return i;
-    }
-    return -1;
-  }
-
-  int removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  int removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  int get first {
-    if (length > 0) return this[0];
-    throw IterableElementError.noElement();
-  }
-
-  int get last {
-    if (length > 0) return this[length - 1];
-    throw IterableElementError.noElement();
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw IterableElementError.noElement();
-    throw IterableElementError.tooMany();
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    final end = iterable.length + index;
-    setRange(index, end, iterable);
-  }
-
-  void fillRange(int start, int end, [int? fillValue]) {
-    RangeErrorUtils.checkValidRange(start, end, this.length);
-    if (start == end) return;
-    if (fillValue == null) {
-      throw ArgumentError.notNull("fillValue");
-    }
-    for (var i = start; i < end; ++i) {
-      this[i] = fillValue;
-    }
-  }
-}
-
 /// Outside of the standalone build, checks if [from] is a JS typed array and
 /// copies contents into a WASM array.
 ///
 /// Returns whether a copy was made, or false if [from] is not a typed array.
 external bool tryCopyExternalIntTypedData(
   Iterable<int> from,
-  _IntListMixin to,
+  TypedDataList<int> to,
   int start,
   int skipCount,
   int count,
 );
 
 mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
-    on _IntListMixin {
+    on _FixedLengthListMixin<int> {
   SpawnedType _createList(int length);
 
   void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
@@ -2001,22 +1733,22 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
   }
 }
 
-mixin _DoubleListMixin implements TypedDataList<double> {
+mixin _FixedLengthListMixin<E extends num> implements TypedDataList<E> {
   Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
-  Iterable<double> followedBy(Iterable<double> other) =>
-      FollowedByIterable<double>.firstEfficient(this, other);
+  Iterable<E> followedBy(Iterable<E> other) =>
+      FollowedByIterable<E>.firstEfficient(this, other);
 
-  List<R> cast<R>() => List.castFrom<double, R>(this);
-  void set first(double value) {
+  List<R> cast<R>() => List.castFrom<E, R>(this);
+  void set first(E value) {
     this[0] = value;
   }
 
-  void set last(double value) {
+  void set last(E value) {
     this[this.length - 1] = value;
   }
 
-  int indexWhere(bool test(double element), [int start = 0]) {
+  int indexWhere(bool test(E element), [int start = 0]) {
     if (start < 0) start = 0;
     for (int i = start; i < length; i++) {
       if (test(this[i])) return i;
@@ -2024,7 +1756,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(double element), [int? start]) {
+  int lastIndexWhere(bool test(E element), [int? start]) {
     int startIndex = (start == null || start >= this.length)
         ? this.length - 1
         : start;
@@ -2034,7 +1766,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return -1;
   }
 
-  List<double> operator +(List<double> other) => [...this, ...other];
+  List<E> operator +(List<E> other) => [...this, ...other];
 
   bool contains(Object? element) {
     var len = this.length;
@@ -2056,46 +1788,45 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     }
   }
 
-  Iterable<double> where(bool f(double element)) =>
-      WhereIterable<double>(this, f);
+  Iterable<E> where(bool f(E element)) => WhereIterable<E>(this, f);
 
-  Iterable<double> take(int n) => SubListIterable<double>(this, 0, n);
+  Iterable<E> take(int n) => SubListIterable<E>(this, 0, n);
 
-  Iterable<double> takeWhile(bool test(double element)) =>
-      TakeWhileIterable<double>(this, test);
+  Iterable<E> takeWhile(bool test(E element)) =>
+      TakeWhileIterable<E>(this, test);
 
-  Iterable<double> skip(int n) => SubListIterable<double>(this, n, null);
+  Iterable<E> skip(int n) => SubListIterable<E>(this, n, null);
 
-  Iterable<double> skipWhile(bool test(double element)) =>
-      SkipWhileIterable<double>(this, test);
+  Iterable<E> skipWhile(bool test(E element)) =>
+      SkipWhileIterable<E>(this, test);
 
-  Iterable<double> get reversed => ReversedListIterable<double>(this);
+  Iterable<E> get reversed => ReversedListIterable<E>(this);
 
-  Map<int, double> asMap() => ListMapView<double>(this);
+  Map<int, E> asMap() => ListMapView<E>(this);
 
-  Iterable<double> getRange(int start, [int? end]) {
+  Iterable<E> getRange(int start, [int? end]) {
     end = RangeErrorUtils.checkValidRange(start, end, length);
-    return SubListIterable<double>(this, start, end);
+    return SubListIterable<E>(this, start, end);
   }
 
-  Iterator<double> get iterator => _TypedListIterator<double>(this);
+  Iterator<E> get iterator => _TypedListIterator<E>(this);
 
-  List<double> toList({bool growable = true}) {
-    return List<double>.of(this, growable: growable);
+  List<E> toList({bool growable = true}) {
+    return List<E>.of(this, growable: growable);
   }
 
-  Set<double> toSet() {
-    return Set<double>.of(this);
+  Set<E> toSet() {
+    return Set<E>.of(this);
   }
 
-  void forEach(void f(double element)) {
+  void forEach(void f(E element)) {
     var len = this.length;
     for (var i = 0; i < len; i++) {
       f(this[i]);
     }
   }
 
-  double reduce(double combine(double value, double element)) {
+  E reduce(E combine(E value, E element)) {
     var len = this.length;
     if (len == 0) throw IterableElementError.noElement();
     var value = this[0];
@@ -2105,7 +1836,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T initialValue, double element)) {
+  T fold<T>(T initialValue, T combine(T initialValue, E element)) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       initialValue = combine(initialValue, this[i]);
@@ -2113,12 +1844,12 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(double element)) => MappedIterable<double, T>(this, f);
+  Iterable<T> map<T>(T f(E element)) => MappedIterable<E, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(double element)) =>
-      ExpandIterable<double, T>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+      ExpandIterable<E, T>(this, f);
 
-  bool every(bool f(double element)) {
+  bool every(bool f(E element)) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (!f(this[i])) return false;
@@ -2126,7 +1857,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return true;
   }
 
-  bool any(bool f(double element)) {
+  bool any(bool f(E element)) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (f(this[i])) return true;
@@ -2134,7 +1865,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return false;
   }
 
-  double firstWhere(bool test(double element), {double orElse()?}) {
+  E firstWhere(bool test(E element), {E orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -2144,7 +1875,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     throw IterableElementError.noElement();
   }
 
-  double lastWhere(bool test(double element), {double orElse()?}) {
+  E lastWhere(bool test(E element), {E orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -2156,7 +1887,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     throw IterableElementError.noElement();
   }
 
-  double singleWhere(bool test(double element), {double orElse()?}) {
+  E singleWhere(bool test(E element), {E orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -2175,31 +1906,31 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     throw IterableElementError.noElement();
   }
 
-  double elementAt(int index) {
+  E elementAt(int index) {
     return this[index];
   }
 
-  void add(double value) {
+  void add(E value) {
     throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
-  void addAll(Iterable<double> value) {
+  void addAll(Iterable<E> value) {
     throw UnsupportedError("Cannot add to a fixed-length list");
   }
 
-  void insert(int index, double value) {
+  void insert(int index, E value) {
     throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void insertAll(int index, Iterable<double> values) {
+  void insertAll(int index, Iterable<E> values) {
     throw UnsupportedError("Cannot insert into a fixed-length list");
   }
 
-  void sort([int compare(double a, double b)?]) {
+  void sort([int compare(E a, E b)?]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
 
-  int indexOf(double element, [int start = 0]) {
+  int indexOf(E element, [int start = 0]) {
     if (start >= this.length) {
       return -1;
     } else if (start < 0) {
@@ -2211,7 +1942,7 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return -1;
   }
 
-  int lastIndexOf(double element, [int? start]) {
+  int lastIndexOf(E element, [int? start]) {
     int startIndex = (start == null || start >= this.length)
         ? this.length - 1
         : start;
@@ -2221,44 +1952,44 @@ mixin _DoubleListMixin implements TypedDataList<double> {
     return -1;
   }
 
-  double removeLast() {
+  E removeLast() {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  double removeAt(int index) {
+  E removeAt(int index) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void removeWhere(bool test(double element)) {
+  void removeWhere(bool test(E element)) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void retainWhere(bool test(double element)) {
+  void retainWhere(bool test(E element)) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  double get first {
+  E get first {
     if (length > 0) return this[0];
     throw IterableElementError.noElement();
   }
 
-  double get last {
+  E get last {
     if (length > 0) return this[length - 1];
     throw IterableElementError.noElement();
   }
 
-  double get single {
+  E get single {
     if (length == 1) return this[0];
     if (length == 0) throw IterableElementError.noElement();
     throw IterableElementError.tooMany();
   }
 
-  void setAll(int index, Iterable<double> iterable) {
+  void setAll(int index, Iterable<E> iterable) {
     final end = iterable.length + index;
     setRange(index, end, iterable);
   }
 
-  void fillRange(int start, int end, [double? fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     // TODO(eernst): Could use zero as default and not throw; issue .
     RangeErrorUtils.checkValidRange(start, end, length);
     if (start == end) return;
@@ -2277,14 +2008,14 @@ mixin _DoubleListMixin implements TypedDataList<double> {
 /// Returns whether a copy was made, or false if [from] is not a typed array.
 external bool tryCopyExternalFloatTypedData(
   Iterable<double> from,
-  _DoubleListMixin to,
+  TypedDataList<double> to,
   int start,
   int skipCount,
   int count,
 );
 
 mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
-    on _DoubleListMixin {
+    on _FixedLengthListMixin<double> {
   SpawnedType _createList(int length);
 
   void setRange(
@@ -2752,7 +2483,7 @@ extension WasmF64ArrayBaseExt on _WasmF64ArrayBase {
 
 class I8List extends WasmI8ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I8List>,
         _SpecializedWasmIntSetRangeMixin<I8List>,
         _TypedListCommonOperationsMixin
@@ -2794,7 +2525,7 @@ class I8List extends WasmI8ArrayBase
 
 class U8List extends WasmI8ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U8List>,
         _SpecializedWasmIntSetRangeMixin<U8List>,
         _TypedListCommonOperationsMixin
@@ -2846,7 +2577,7 @@ extension U8ListUncheckedOperations on U8List {
 
 class U8ClampedList extends WasmI8ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U8ClampedList>,
         _TypedListCommonOperationsMixin
     implements Uint8ClampedList {
@@ -2888,7 +2619,7 @@ class U8ClampedList extends WasmI8ArrayBase
 
 class I16List extends WasmI16ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I16List>,
         _SpecializedWasmIntSetRangeMixin<I16List>,
         _TypedListCommonOperationsMixin
@@ -2930,7 +2661,7 @@ class I16List extends WasmI16ArrayBase
 
 class U16List extends WasmI16ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U16List>,
         _SpecializedWasmIntSetRangeMixin<U16List>,
         _TypedListCommonOperationsMixin
@@ -2982,7 +2713,7 @@ extension U16ListUncheckedOperations on U16List {
 
 class I32List extends _WasmI32ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I32List>,
         _SpecializedWasmIntSetRangeMixin<I32List>,
         _TypedListCommonOperationsMixin
@@ -3024,7 +2755,7 @@ class I32List extends _WasmI32ArrayBase
 
 class U32List extends _WasmI32ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U32List>,
         _SpecializedWasmIntSetRangeMixin<U32List>,
         _TypedListCommonOperationsMixin
@@ -3066,7 +2797,7 @@ class U32List extends _WasmI32ArrayBase
 
 class I64List extends _WasmI64ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I64List>,
         _SpecializedWasmIntSetRangeMixin<I64List>,
         _TypedListCommonOperationsMixin
@@ -3108,7 +2839,7 @@ class I64List extends _WasmI64ArrayBase
 
 class U64List extends _WasmI64ArrayBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U64List>,
         _SpecializedWasmIntSetRangeMixin<U64List>,
         _TypedListCommonOperationsMixin
@@ -3150,7 +2881,7 @@ class U64List extends _WasmI64ArrayBase
 
 class F32List extends _WasmF32ArrayBase
     with
-        _DoubleListMixin,
+        _FixedLengthListMixin<double>,
         _TypedDoubleListMixin<Float32List>,
         _SpecializedWasmDoubleSetRangeMixin<Float32List>,
         _TypedListCommonOperationsMixin
@@ -3192,7 +2923,7 @@ class F32List extends _WasmF32ArrayBase
 
 class F64List extends _WasmF64ArrayBase
     with
-        _DoubleListMixin,
+        _FixedLengthListMixin<double>,
         _TypedDoubleListMixin<Float64List>,
         _SpecializedWasmDoubleSetRangeMixin<Float64List>,
         _TypedListCommonOperationsMixin
@@ -3413,7 +3144,7 @@ class _SlowListBase extends WasmTypedDataBase {
 
 class _SlowI8List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I8List>,
         _TypedListCommonOperationsMixin
     implements Int8List {
@@ -3453,7 +3184,7 @@ class _SlowI8List extends _SlowListBase
 
 class _SlowU8List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U8List>,
         _TypedListCommonOperationsMixin
     implements Uint8List {
@@ -3493,7 +3224,7 @@ class _SlowU8List extends _SlowListBase
 
 class _SlowU8ClampedList extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U8ClampedList>,
         _TypedListCommonOperationsMixin
     implements Uint8ClampedList {
@@ -3537,7 +3268,7 @@ class _SlowU8ClampedList extends _SlowListBase
 
 class _SlowI16List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I16List>,
         _TypedListCommonOperationsMixin
     implements Int16List {
@@ -3584,7 +3315,7 @@ class _SlowI16List extends _SlowListBase
 
 class _SlowU16List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U16List>,
         _TypedListCommonOperationsMixin
     implements Uint16List {
@@ -3631,7 +3362,7 @@ class _SlowU16List extends _SlowListBase
 
 class _SlowI32List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I32List>,
         _TypedListCommonOperationsMixin
     implements Int32List {
@@ -3678,7 +3409,7 @@ class _SlowI32List extends _SlowListBase
 
 class _SlowU32List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U32List>,
         _TypedListCommonOperationsMixin
     implements Uint32List {
@@ -3725,7 +3456,7 @@ class _SlowU32List extends _SlowListBase
 
 class _SlowI64List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<I64List>,
         _TypedListCommonOperationsMixin
     implements Int64List {
@@ -3772,7 +3503,7 @@ class _SlowI64List extends _SlowListBase
 
 class _SlowU64List extends _SlowListBase
     with
-        _IntListMixin,
+        _FixedLengthListMixin<int>,
         _TypedIntListMixin<U64List>,
         _TypedListCommonOperationsMixin
     implements Uint64List {
@@ -3819,7 +3550,7 @@ class _SlowU64List extends _SlowListBase
 
 class _SlowF32List extends _SlowListBase
     with
-        _DoubleListMixin,
+        _FixedLengthListMixin<double>,
         _TypedDoubleListMixin<F32List>,
         _TypedListCommonOperationsMixin
     implements Float32List {
@@ -3866,7 +3597,7 @@ class _SlowF32List extends _SlowListBase
 
 class SlowF64List extends _SlowListBase
     with
-        _DoubleListMixin,
+        _FixedLengthListMixin<double>,
         _TypedDoubleListMixin<F64List>,
         _TypedListCommonOperationsMixin
     implements Float64List {
