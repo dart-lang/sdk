@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/src/analysis_server.dart';
 import 'package:dartdev/src/commands/analyze.dart';
@@ -553,47 +555,47 @@ void f() {
   });
 
   group('display mode', () {
-    final sampleInfoJson = {
+    Map<String, Object?> sampleInfoJson(TestProject p) => {
       'severity': 'INFO',
       'type': 'TODO',
       'code': 'dead_code',
       'location': {
-        'endLine': 16,
-        'endColumn': 12,
-        'file': 'lib/test.dart',
-        'offset': 362,
-        'length': 72,
-        'startLine': 15,
-        'startColumn': 4,
+        'endLine': 223,
+        'endColumn': 4,
+        'file': p.mainPath,
+        'offset': 1123,
+        'length': 1111,
+        'startLine': 112,
+        'startColumn': 3,
       },
       'message': 'Foo bar baz.',
       'hasFix': false,
     };
-    final fullDiagnosticJson = {
+    Map<String, Object?> fullDiagnosticJson(TestProject p) => {
       'severity': 'ERROR',
       'type': 'COMPILE_TIME_ERROR',
       'location': {
-        'file': 'lib/test.dart',
-        'offset': 19,
-        'length': 1,
-        'startLine': 2,
-        'startColumn': 9,
+        'file': p.mainPath,
+        'offset': 1123,
+        'length': 1111,
+        'startLine': 112,
+        'startColumn': 3,
       },
       'message':
           "Local variable 's' can't be referenced before it is declared.",
       'correction':
           "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope.",
       'code': 'referenced_before_declaration',
-      'url': 'https:://dart.dev/diagnostics/referenced_before_declaration',
+      'url': 'https://dart.dev/diagnostics/referenced_before_declaration',
       'contextMessages': [
         {
           'message': "The declaration of 's' is on line 3.",
           'location': {
-            'file': 'lib/test.dart',
-            'offset': 29,
-            'length': 1,
-            'startLine': 3,
-            'startColumn': 7,
+            'file': p.mainPath,
+            'offset': 3345,
+            'length': 1111,
+            'startLine': 334,
+            'startColumn': 5,
           },
         },
       ],
@@ -602,15 +604,16 @@ void f() {
 
     group('default', () {
       test('emits correct format', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(sampleInfoJson)];
+        final errors = [AnalysisError(sampleInfoJson(p))];
 
-        AnalyzeCommand.emitDefaultFormat(logger, errors);
+        AnalyzeCommand.emitDefaultFormat(logger, errors, relativeToDir: p.dir);
 
         expect(logger.stderrBuffer, isEmpty);
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(stdout, contains('info'));
-        expect(stdout, contains('lib${path.separator}test.dart:15:4'));
+        expect(stdout, contains('lib${path.separator}main.dart:112:3'));
         expect(stdout, contains('Foo bar baz.'));
         expect(stdout, contains('dead_code'));
       });
@@ -754,6 +757,7 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         });
       });
       test('empty', () {
+        p = project();
         final logger = TestLogger(false);
         const List<AnalysisError> errors = [];
 
@@ -764,8 +768,9 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         expect(stdout, '{"version":1,"diagnostics":[]}');
       });
       test('short', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(sampleInfoJson)];
+        final errors = [AnalysisError(sampleInfoJson(p))];
 
         AnalyzeCommand.emitJsonFormat(logger, errors, null);
 
@@ -773,15 +778,30 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(
           stdout,
-          '{"version":1,"diagnostics":[{"code":"dead_code","severity":"INFO",'
-          '"type":"TODO","location":{"file":"lib/test.dart","range":{'
-          '"start":{"offset":362,"line":15,"column":4},"end":{"offset":434,'
-          '"line":16,"column":12}}},"problemMessage":"Foo bar baz."}]}',
+          jsonEncode({
+            'version': 1,
+            'diagnostics': [
+              {
+                'code': 'dead_code',
+                'severity': 'INFO',
+                'type': 'TODO',
+                'location': {
+                  'file': p.mainPath,
+                  'range': {
+                    'start': {'offset': 1123, 'line': 112, 'column': 3},
+                    'end': {'offset': 2234, 'line': 223, 'column': 4},
+                  },
+                },
+                'problemMessage': 'Foo bar baz.',
+              },
+            ],
+          }),
         );
       });
       test('full', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(fullDiagnosticJson)];
+        final errors = [AnalysisError(fullDiagnosticJson(p))];
 
         AnalyzeCommand.emitJsonFormat(logger, errors, null);
 
@@ -789,20 +809,44 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         final stdout = logger.stdoutBuffer.toString().trim();
         expect(
           stdout,
-          '{"version":1,"diagnostics":[{'
-          '"code":"referenced_before_declaration","severity":"ERROR",'
-          '"type":"COMPILE_TIME_ERROR","location":{"file":"lib/test.dart",'
-          '"range":{"start":{"offset":19,"line":2,"column":9},"end":{'
-          '"offset":20,"line":null,"column":null}}},"problemMessage":'
-          '"Local variable \'s\' can\'t be referenced before it is declared.",'
-          '"correctionMessage":"Try moving the declaration to before the'
-          ' first use, or renaming the local variable so that it doesn\'t hide'
-          ' a name from an enclosing scope.","contextMessages":[{"location":{'
-          '"file":"lib/test.dart","range":{"start":{"offset":29,"line":3,'
-          '"column":7},"end":{"offset":30,"line":null,"column":null}}},'
-          '"message":"The declaration of \'s\' is on line 3."}],'
-          '"documentation":'
-          '"https:://dart.dev/diagnostics/referenced_before_declaration"}]}',
+          jsonEncode({
+            'version': 1,
+            'diagnostics': [
+              {
+                'code': 'referenced_before_declaration',
+                'severity': 'ERROR',
+                'type': 'COMPILE_TIME_ERROR',
+                'location': {
+                  'file': p.mainPath,
+                  'range': {
+                    'start': {'offset': 1123, 'line': 112, 'column': 3},
+                    'end': {'offset': 2234, 'line': null, 'column': null},
+                  },
+                },
+                'problemMessage':
+                    "Local variable 's' can't be referenced before it is "
+                    'declared.',
+                'correctionMessage':
+                    'Try moving the declaration to before the first use, '
+                    "or renaming the local variable so that it doesn't hide a "
+                    'name from an enclosing scope.',
+                'contextMessages': [
+                  {
+                    'location': {
+                      'file': p.mainPath,
+                      'range': {
+                        'start': {'offset': 3345, 'line': 334, 'column': 5},
+                        'end': {'offset': 4456, 'line': null, 'column': null},
+                      },
+                    },
+                    'message': "The declaration of 's' is on line 3.",
+                  },
+                ],
+                'documentation':
+                    'https://dart.dev/diagnostics/referenced_before_declaration',
+              },
+            ],
+          }),
         );
       });
     });
@@ -846,15 +890,17 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
         });
       });
       test('short', () {
+        p = project();
         final logger = TestLogger(false);
-        final errors = [AnalysisError(sampleInfoJson)];
+        final errors = [AnalysisError(sampleInfoJson(p))];
 
         AnalyzeCommand.emitMachineFormat(logger, errors);
 
+        var escapedPath = p.mainPath.replaceAll(r'\', r'\\');
         expect(logger.stderrBuffer, isEmpty);
         expect(
           logger.stdoutBuffer.toString().trim(),
-          'INFO|TODO|DEAD_CODE|lib/test.dart|15|4|72|Foo bar baz.',
+          'INFO|TODO|DEAD_CODE|$escapedPath|112|3|1111|Foo bar baz.',
         );
       });
     });
