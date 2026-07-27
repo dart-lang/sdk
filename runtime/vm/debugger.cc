@@ -2130,6 +2130,11 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
   }
   // Exceptions coming from invalid token positions should be skipped
   ActivationFrame* top_frame = stack_trace->FrameAt(0);
+  // If this is an async awaiter stack trace, skip over
+  // an initial async suspend marker.
+  if (top_frame->kind() == ActivationFrame::kAsyncSuspensionMarker) {
+    top_frame = stack_trace->FrameAt(1);
+  }
   if (!top_frame->TokenPos().IsReal() && top_frame->TryIndex() != -1) {
     return false;
   }
