@@ -34,7 +34,15 @@ _CFE_PATHS_ONLY = [
 
 _CFE_PATHS = _STANDARD_PATHS + _CFE_PATHS_ONLY
 
-_VM_PATHS = _CFE_PATHS + [
+_DART2BYTECODE_PATHS = [
+    "pkg/(dart2bytecode|dynamic_modules)/.+",
+]
+
+_MODULAR_AOT_PATHS = [
+    "pkg/(cfg|native_compiler)/.+",
+]
+
+_VM_PATHS = _CFE_PATHS + _DART2BYTECODE_PATHS + _MODULAR_AOT_PATHS + [
     # VM sources
     "pkg/vm/.+",
     "runtime/.+",
@@ -43,7 +51,6 @@ _VM_PATHS = _CFE_PATHS + [
 
     # Dependencies that are copied into the SDK repo: can change without changing DEPS.
     "third_party/double-conversion/.+",
-    "third_party/fallback_root_certificates/.+",
 
     # Tests that run on VM builders
     "pkg/dartdev/.+",
@@ -96,14 +103,6 @@ _IO_PATHS = [
     "sdk/lib/_internal/vm/bin/.+",
     "sdk/lib/io/.+",
     "tests/standalone/io/.+",
-]
-
-_DART2BYTECODE_PATHS = [
-    "pkg/(dart2bytecode|dynamic_modules)/.+",
-]
-
-_MODULAR_AOT_PATHS = [
-    "pkg/(cfg|native_compiler)/.+",
 ]
 
 _WEB_PATHS = _CFE_PATHS + [
