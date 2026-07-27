@@ -212,7 +212,7 @@ class C {
 class X implements A, B, C {
   var foo;
 //    ^^^
-// [diag.inconsistentInheritedGetterAndSetterTypes] Can't infer a type for 'foo' because the combined member signature of the getter has return type 'int', which doesn't match the parameter type 'String' of the combined member signature of the setter.
+// [diag.differentInheritedGetterAndSetterTypes] Can't infer a type for 'foo' because the combined member signature of the getter has return type 'int', which is not the same as the parameter type 'String' of the combined member signature of the setter.
 // [diag.invalidOverride][context 1] 'X.foo' ('dynamic Function()') isn't a valid override of 'A.foo' ('num Function()').
 // [diag.invalidOverride][context 2] 'X.foo' ('dynamic Function()') isn't a valid override of 'B.foo' ('int Function()').
 }

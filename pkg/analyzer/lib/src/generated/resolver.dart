@@ -4517,10 +4517,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             )
             .at(node.name),
       );
-    } else if (error
-        is TopLevelInferenceErrorInconsistentGetterAndSetterTypes) {
+    } else if (error is TopLevelInferenceErrorDifferentGetterAndSetterTypes) {
       diagnosticReporter.report(
-        diag.inconsistentInheritedGetterAndSetterTypes
+        diag.differentInheritedGetterAndSetterTypes
             .withArguments(
               fieldName: node.name.lexeme,
               getterType: error.getterType,

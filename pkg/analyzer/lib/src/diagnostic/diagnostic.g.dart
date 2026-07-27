@@ -3960,6 +3960,34 @@ deprecatedSubclass = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// Parameters:
+/// String fieldName: the name of the field whose type can't be inferred
+/// String getterType: the return type of the combined getter signature
+/// String setterType: the parameter type of the combined setter signature
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String fieldName,
+    required String getterType,
+    required String setterType,
+  })
+>
+differentInheritedGetterAndSetterTypes = DiagnosticWithArguments(
+  name: 'different_inherited_getter_and_setter_types',
+  problemMessage:
+      "Can't infer a type for '{0}' because the combined member signature of the "
+      "getter has return type '{1}', which is not the same as the parameter "
+      "type '{2}' of the combined member signature of the setter.",
+  correctionMessage: "Try adding an explicit type.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'different_inherited_getter_and_setter_types',
+  withArguments: _withArgumentsDifferentInheritedGetterAndSetterTypes,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments directiveAfterDeclaration =
     DiagnosticWithoutArgumentsImpl(
@@ -7735,34 +7763,6 @@ inconsistentInheritanceGetterAndMethod = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'inconsistent_inheritance_getter_and_method',
   withArguments: _withArgumentsInconsistentInheritanceGetterAndMethod,
-  expectedTypes: [
-    ExpectedType.string,
-    ExpectedType.string,
-    ExpectedType.string,
-  ],
-);
-
-/// Parameters:
-/// String fieldName: the name of the field whose type can't be inferred
-/// String getterType: the return type of the combined getter signature
-/// String setterType: the parameter type of the combined setter signature
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String fieldName,
-    required String getterType,
-    required String setterType,
-  })
->
-inconsistentInheritedGetterAndSetterTypes = DiagnosticWithArguments(
-  name: 'inconsistent_inherited_getter_and_setter_types',
-  problemMessage:
-      "Can't infer a type for '{0}' because the combined member signature of the "
-      "getter has return type '{1}', which doesn't match the parameter type "
-      "'{2}' of the combined member signature of the setter.",
-  correctionMessage: "Try adding an explicit type.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'inconsistent_inherited_getter_and_setter_types',
-  withArguments: _withArgumentsInconsistentInheritedGetterAndSetterTypes,
   expectedTypes: [
     ExpectedType.string,
     ExpectedType.string,
@@ -19624,6 +19624,18 @@ LocatableDiagnostic _withArgumentsDeprecatedSubclass({
   return LocatableDiagnosticImpl(diag.deprecatedSubclass, [typeName]);
 }
 
+LocatableDiagnostic _withArgumentsDifferentInheritedGetterAndSetterTypes({
+  required String fieldName,
+  required String getterType,
+  required String setterType,
+}) {
+  return LocatableDiagnosticImpl(diag.differentInheritedGetterAndSetterTypes, [
+    fieldName,
+    getterType,
+    setterType,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({
   required String argumentName,
   required String expectedFormat,
@@ -20365,17 +20377,6 @@ LocatableDiagnostic _withArgumentsInconsistentInheritanceGetterAndMethod({
     getterInterface,
     methodInterface,
   ]);
-}
-
-LocatableDiagnostic _withArgumentsInconsistentInheritedGetterAndSetterTypes({
-  required String fieldName,
-  required String getterType,
-  required String setterType,
-}) {
-  return LocatableDiagnosticImpl(
-    diag.inconsistentInheritedGetterAndSetterTypes,
-    [fieldName, getterType, setterType],
-  );
 }
 
 LocatableDiagnostic _withArgumentsInconsistentPatternVariableLogicalOr({

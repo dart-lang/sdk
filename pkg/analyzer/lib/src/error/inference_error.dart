@@ -18,8 +18,8 @@ sealed class TopLevelInferenceError {
         return TopLevelInferenceErrorNoCombinedSuperSignature(
           candidateSignatures: reader.readStringUtf8(),
         );
-      case TopLevelInferenceErrorKind.inconsistentGetterAndSetterTypes:
-        return TopLevelInferenceErrorInconsistentGetterAndSetterTypes(
+      case TopLevelInferenceErrorKind.differentGetterAndSetterTypes:
+        return TopLevelInferenceErrorDifferentGetterAndSetterTypes(
           getterType: reader.readStringUtf8(),
           setterType: reader.readStringUtf8(),
         );
@@ -51,14 +51,7 @@ class TopLevelInferenceErrorDependencyCycle implements TopLevelInferenceError {
   }
 }
 
-/// Enum used to indicate the kind of the error during top-level inference.
-enum TopLevelInferenceErrorKind {
-  dependencyCycle,
-  overrideNoCombinedSuperSignature,
-  inconsistentGetterAndSetterTypes,
-}
-
-class TopLevelInferenceErrorInconsistentGetterAndSetterTypes
+class TopLevelInferenceErrorDifferentGetterAndSetterTypes
     implements TopLevelInferenceError {
   /// The return type of the combined getter signature.
   final String getterType;
@@ -66,25 +59,30 @@ class TopLevelInferenceErrorInconsistentGetterAndSetterTypes
   /// The parameter type of the combined setter signature.
   final String setterType;
 
-  TopLevelInferenceErrorInconsistentGetterAndSetterTypes({
+  TopLevelInferenceErrorDifferentGetterAndSetterTypes({
     required this.getterType,
     required this.setterType,
   });
 
   @override
   bool operator ==(Object other) =>
-      other is TopLevelInferenceErrorInconsistentGetterAndSetterTypes &&
+      other is TopLevelInferenceErrorDifferentGetterAndSetterTypes &&
       other.getterType == getterType &&
       other.setterType == setterType;
 
   @override
   void write(BinaryWriter writer) {
-    writer.writeEnum(
-      TopLevelInferenceErrorKind.inconsistentGetterAndSetterTypes,
-    );
+    writer.writeEnum(TopLevelInferenceErrorKind.differentGetterAndSetterTypes);
     writer.writeStringUtf8(getterType);
     writer.writeStringUtf8(setterType);
   }
+}
+
+/// Enum used to indicate the kind of the error during top-level inference.
+enum TopLevelInferenceErrorKind {
+  dependencyCycle,
+  overrideNoCombinedSuperSignature,
+  differentGetterAndSetterTypes,
 }
 
 class TopLevelInferenceErrorNoCombinedSuperSignature

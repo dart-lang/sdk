@@ -205,6 +205,8 @@ import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'deprecated_mixin_test.dart' as deprecated_mixin;
 import 'deprecated_optional_test.dart' as deprecated_optional;
 import 'deprecated_subclass_test.dart' as deprecated_subclass;
+import 'different_inherited_getter_and_setter_types_test.dart'
+    as different_inherited_getter_and_setter_types;
 import 'doc_directive_argument_wrong_format_test.dart'
     as doc_directive_argument_wrong_format;
 import 'doc_directive_has_extra_arguments_test.dart'
@@ -398,8 +400,6 @@ import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_inheritance_getter_and_method_test.dart'
     as inconsistent_inheritance_getter_and_method;
 import 'inconsistent_inheritance_test.dart' as inconsistent_inheritance;
-import 'inconsistent_inherited_getter_and_setter_types_test.dart'
-    as inconsistent_inherited_getter_and_setter_types;
 import 'inconsistent_language_version_override_test.dart'
     as inconsistent_language_version_override;
 import 'inference_failure_on_collection_literal_test.dart'
@@ -1098,6 +1098,7 @@ main() {
     deprecated_mixin.main();
     deprecated_optional.main();
     deprecated_subclass.main();
+    different_inherited_getter_and_setter_types.main();
     doc_directive_argument_wrong_format.main();
     doc_directive_has_extra_arguments.main();
     doc_directive_has_unexpected_named_argument.main();
@@ -1220,7 +1221,6 @@ main() {
     import_of_non_library.main();
     inconsistent_inheritance_getter_and_method.main();
     inconsistent_inheritance.main();
-    inconsistent_inherited_getter_and_setter_types.main();
     inconsistent_language_version_override.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_invocation.main();

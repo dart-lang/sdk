@@ -1703,12 +1703,12 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.withIndent(() {
           _sink.writelnWithIndent('arguments: $cycle');
         });
-      case TopLevelInferenceErrorInconsistentGetterAndSetterTypes(
+      case TopLevelInferenceErrorDifferentGetterAndSetterTypes(
         :var getterType,
         :var setterType,
       ):
         _sink.writelnWithIndent(
-          'typeInferenceError: inconsistentGetterAndSetterTypes',
+          'typeInferenceError: differentGetterAndSetterTypes',
         );
         _sink.withIndent(() {
           _sink.writelnWithIndent('getterType: $getterType');
