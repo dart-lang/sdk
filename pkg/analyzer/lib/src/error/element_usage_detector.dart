@@ -767,12 +767,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       return;
     }
 
-    // Report full ConstructorName, not just the constructor name.
     var parent = node.parent2;
-    if (parent is ConstructorName && identical(node, parent.name)) {
-      return;
-    }
-
     // Report full SuperConstructorInvocation, not just the constructor name.
     if (parent is SuperConstructorInvocation &&
         identical(node, parent.constructorName)) {

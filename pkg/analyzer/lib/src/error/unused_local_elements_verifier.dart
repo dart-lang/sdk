@@ -344,18 +344,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       _useIdentifierElement(node.readElement2);
       _useIdentifierElement(node.writeElement2);
       _useIdentifierElement(node.element);
-      var grandparent = parent.parent2;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
-          (element is ExecutableElement && parent is MethodInvocation) ||
-          // named constructor
-          (element is ConstructorElement &&
-              parent is ConstructorName &&
-              grandparent is ConstructorInvocation) ||
-          // unnamed constructor
-          (element is InterfaceElement &&
-              grandparent is ConstructorName &&
-              grandparent.parent2 is ConstructorInvocation);
+          element is ExecutableElement && parent is MethodInvocation;
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {

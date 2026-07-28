@@ -8241,9 +8241,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (parent is CommentReference) {
       return true;
     }
-    if (parent is ConstructorName) {
-      return identical(parent.name, identifier);
-    }
     if (parent is MethodInvocation) {
       return identical(parent.methodName, identifier);
     }

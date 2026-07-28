@@ -149,8 +149,7 @@ class PrefixedIdentifierResolver {
         return false;
       }
     }
-    if (parent is ConstructorName ||
-        parent is MethodInvocation ||
+    if (parent is MethodInvocation ||
         parent is PrefixedIdentifier && parent.prefix == node ||
         parent is PropertyAccess ||
         parent is NamedType) {

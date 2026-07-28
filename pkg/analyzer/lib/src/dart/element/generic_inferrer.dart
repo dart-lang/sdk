@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -612,19 +611,6 @@ class GenericInferrer {
               .at(errorEntity),
         );
       }
-    } else if (errorEntity is ConstructorName &&
-        !(errorEntity.type.type as InterfaceType)
-            .element
-            .metadata
-            .hasOptionalTypeArgs) {
-      String constructorName = errorEntity.name == null
-          ? errorEntity.type.qualifiedName
-          : '${errorEntity.type}.${errorEntity.name}';
-      diagnosticReporter.report(
-        diag.inferenceFailureOnInstanceCreation
-            .withArguments(function: constructorName)
-            .at(errorEntity),
-      );
     } else if (errorEntity is Annotation) {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.

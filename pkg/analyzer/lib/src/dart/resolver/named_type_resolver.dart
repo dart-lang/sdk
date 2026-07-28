@@ -424,9 +424,6 @@ class NamedTypeResolver with ScopeHelpers {
           nullabilitySuffix: nullability,
         );
         return _verifyTypeAliasForContext(node, element, type);
-      } else if (_isInstanceCreation(node)) {
-        _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
-        return InvalidTypeImpl.instance;
       } else if (element is DynamicElementImpl) {
         _buildTypeArguments(
           node,
@@ -478,9 +475,6 @@ class NamedTypeResolver with ScopeHelpers {
         nullabilitySuffix: nullability,
       );
       return _verifyTypeAliasForContext(node, element, type);
-    } else if (_isInstanceCreation(node)) {
-      _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
-      return InvalidTypeImpl.instance;
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
     } else if (element is NeverElementImpl) {
@@ -650,10 +644,6 @@ class NamedTypeResolver with ScopeHelpers {
         return InvalidTypeImpl.instance;
       }
     }
-    if (type is! InterfaceType && _isInstanceCreation(node)) {
-      _ErrorHelper(diagnosticReporter).reportNewWithNonType(node);
-      return InvalidTypeImpl.instance;
-    }
     return type;
   }
 
@@ -673,11 +663,6 @@ class NamedTypeResolver with ScopeHelpers {
     }
     return false;
   }
-
-  static bool _isInstanceCreation(NamedType node) {
-    var parent = node.parent2;
-    return parent is ConstructorName && parent.parent2 is ConstructorInvocation;
-  }
 }
 
 /// Helper for reporting diagnostics during type name resolution.
@@ -685,42 +670,6 @@ class _ErrorHelper {
   final DiagnosticReporter diagnosticReporter;
 
   _ErrorHelper(this.diagnosticReporter);
-
-  bool reportNewWithNonType(NamedType node) {
-    var constructorName = node.parent2;
-    if (constructorName is ConstructorName) {
-      var instanceCreation = constructorName.parent2;
-      if (instanceCreation is ConstructorInvocation) {
-        var errorRange = _getErrorRange(node, skipImportPrefix: true);
-        var importPrefix = node.importPrefix;
-        if (importPrefix != null && importPrefix.element == null) {
-          // The constructor name is in two or three parts and the first part,
-          // which is either a prefix or a class name, is unresolved. In this
-          // case, report that the first name is undefined, instead of reporting
-          // that the last name is not a class.
-          // TODO(johnniwinther): We could report "Undefined prefix 'x'." when
-          // we know it can only be a prefix, for instance in `x.y.z()`.
-          String prefixOrClassName = importPrefix.name.lexeme;
-          diagnosticReporter.report(
-            diag.undefinedIdentifier
-                .withArguments(name: prefixOrClassName)
-                .atOffset(offset: errorRange.offset, length: errorRange.length),
-          );
-        } else {
-          String className = node.name.lexeme;
-          diagnosticReporter.report(
-            (instanceCreation.isConst
-                    ? diag.constWithNonType
-                    : diag.newWithNonType)
-                .withArguments(name: className)
-                .atSourceRange(errorRange),
-          );
-        }
-        return true;
-      }
-    }
-    return false;
-  }
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
     if (node.name.isSynthetic) {
@@ -782,10 +731,6 @@ class _ErrorHelper {
             .withArguments(name: node.name.lexeme)
             .atOffset(offset: errorRange.offset, length: errorRange.length),
       );
-      return;
-    }
-
-    if (reportNewWithNonType(node)) {
       return;
     }
 

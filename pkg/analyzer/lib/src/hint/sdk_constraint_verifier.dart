@@ -201,9 +201,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           if (target is AssignmentExpression) {
             target = target.leftHandSide2;
           }
-          if (target is ConstructorName) {
-            errorEntity = target.name?.token ?? target.type.name;
-          } else if (target is ExtensionOverride) {
+          if (target is ExtensionOverride) {
             errorEntity = target.name;
           } else if (target is FunctionExpressionInvocation) {
             errorEntity = target.argumentList;
