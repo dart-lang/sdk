@@ -485,54 +485,31 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
 
   @override
   void visitConstructorInvocation(ConstructorInvocation node) {
-    var reference = node.constructorReference;
-    var e = _getActualConstructorElement(reference.element?.baseElement);
-    if (e == element) {
-      if (reference.selector case var selector?) {
-        var offset = selector.period.offset;
-        var length = selector.name2.end - offset;
-        references.add(MatchInfo(offset, length, MatchKind.INVOCATION));
-      } else {
-        references.add(
-          MatchInfo(reference.typeReference.end, 0, MatchKind.INVOCATION),
-        );
-      }
-    } else if (e != null && e.enclosingElement == element) {
-      var name = reference.typeReference.name;
-      references.add(MatchInfo(name.offset, name.length, MatchKind.REFERENCE));
-    }
-
-    reference.typeReference.typeArguments?.accept2(this);
+    node.constructorReference.accept2(this);
     node.argumentList.accept2(this);
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
+  void visitConstructorReference2(ConstructorReference2 node) {
     var e = node.element?.baseElement;
     e = _getActualConstructorElement(e);
-    MatchKind kind;
-    int offset;
-    int length;
     if (e == element) {
-      if (node.parent2 is ConstructorInvocation) {
-        kind = MatchKind.INVOCATION;
+      if (node.selector case var selector?) {
+        var offset = selector.period.offset;
+        var length = selector.name2.end - offset;
+        references.add(
+          MatchInfo(offset, length, _constructorReferenceKind(node)),
+        );
       } else {
-        kind = MatchKind.REFERENCE;
+        references.add(
+          MatchInfo(node.typeReference.end, 0, _constructorReferenceKind(node)),
+        );
       }
-      if (node.name != null) {
-        offset = node.period!.offset;
-        length = node.name!.end - offset;
-      } else {
-        offset = node.type.end;
-        length = 0;
-      }
-      references.add(MatchInfo(offset, length, kind));
     } else if (e != null && e.enclosingElement == element) {
-      kind = MatchKind.REFERENCE;
-      offset = node.offset;
-      length = element.name?.length ?? 0;
-      references.add(MatchInfo(offset, length, kind));
+      var name = node.typeReference.name;
+      references.add(MatchInfo(name.offset, name.length, MatchKind.REFERENCE));
     }
+    node.typeReference.typeArguments?.accept2(this);
   }
 
   @override
@@ -665,5 +642,15 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
         references.add(MatchInfo(offset, 0, MatchKind.INVOCATION));
       }
     }
+  }
+
+  MatchKind _constructorReferenceKind(ConstructorReference2 node) {
+    return switch (node.parent2) {
+      ConstructorInvocation() => MatchKind.INVOCATION,
+      ConstructorDeclaration() => MatchKind.REFERENCE,
+      _ => throw StateError(
+        'Unexpected ConstructorReference2 parent: ${node.parent2.runtimeType}',
+      ),
+    };
   }
 }

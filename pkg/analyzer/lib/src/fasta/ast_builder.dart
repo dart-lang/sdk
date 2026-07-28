@@ -1459,20 +1459,6 @@ class AstBuilder extends StackListener {
     var constructorName = pop() as SimpleIdentifierImpl?;
     var typeArguments = pop() as TypeArgumentListImpl?;
     var typeNameIdentifier = pop() as IdentifierImpl;
-    if (constructorReferenceContext ==
-        ConstructorReferenceContext.RedirectingFactory) {
-      push(
-        ConstructorNameImpl(
-          type: typeNameIdentifier.toNamedType(
-            typeArguments: typeArguments,
-            question: null,
-          ),
-          period: periodBeforeName,
-          name: constructorName,
-        ),
-      );
-      return;
-    }
     var selector = switch (periodBeforeName) {
       var period? => ConstructorSelectorImpl.v2(
         period: period,
@@ -2931,7 +2917,7 @@ class AstBuilder extends StackListener {
     assert(optional('=', equalToken));
     debugEvent("RedirectingFactoryBody");
 
-    var constructorName = pop() as ConstructorNameImpl;
+    var constructorReference = pop() as ConstructorReference2Impl;
     var starToken = pop() as Token?;
     var asyncToken = pop() as Token?;
     push(
@@ -2939,7 +2925,7 @@ class AstBuilder extends StackListener {
         asyncToken,
         starToken,
         equalToken,
-        constructorName,
+        constructorReference,
       ),
     );
   }
@@ -5878,13 +5864,13 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
 
-    ConstructorNameImpl? redirectedConstructor;
+    ConstructorReference2Impl? factoryRedirectionTarget;
     FunctionBodyImpl body;
     if (bodyObject is FunctionBodyImpl) {
       body = bodyObject;
     } else if (bodyObject is _RedirectingFactoryBody) {
       separator = bodyObject.equalToken;
-      redirectedConstructor = bodyObject.constructorName;
+      factoryRedirectionTarget = bodyObject.constructorReference;
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
@@ -5958,7 +5944,7 @@ class AstBuilder extends StackListener {
       parameters: parameters,
       separator: separator,
       initializers: initializers,
-      redirectedConstructor: redirectedConstructor,
+      factoryRedirectionTarget: factoryRedirectionTarget,
       body: body,
     );
     return constructor;
@@ -5971,13 +5957,13 @@ class AstBuilder extends StackListener {
   }) {
     FunctionBodyImpl body;
     Token? separator;
-    ConstructorNameImpl? redirectedConstructor;
+    ConstructorReference2Impl? factoryRedirectionTarget;
     var bodyObject = pop();
     if (bodyObject is FunctionBodyImpl) {
       body = bodyObject;
     } else if (bodyObject is _RedirectingFactoryBody) {
       separator = bodyObject.equalToken;
-      redirectedConstructor = bodyObject.constructorName;
+      factoryRedirectionTarget = bodyObject.constructorReference;
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
@@ -6049,7 +6035,7 @@ class AstBuilder extends StackListener {
       parameters: parameters,
       separator: separator,
       initializers: [],
-      redirectedConstructor: redirectedConstructor,
+      factoryRedirectionTarget: factoryRedirectionTarget,
       body: body,
     );
     return constructor;
@@ -6868,12 +6854,12 @@ class _RedirectingFactoryBody {
   final Token? asyncKeyword;
   final Token? starKeyword;
   final Token equalToken;
-  final ConstructorNameImpl constructorName;
+  final ConstructorReference2Impl constructorReference;
 
   _RedirectingFactoryBody(
     this.asyncKeyword,
     this.starKeyword,
     this.equalToken,
-    this.constructorName,
+    this.constructorReference,
   );
 }

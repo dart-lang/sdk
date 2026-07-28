@@ -69,16 +69,10 @@ class DeprecatedFunctionalityVerifier {
       argumentList: node.argumentList,
       errorEntity: node.constructorReference,
     );
-    var interfaceElement = node.constructorReference.typeReference.element;
-    if (interfaceElement is! InterfaceElement) return;
-    _checkForDeprecatedInstantiate(
-      element: interfaceElement,
-      errorNode: node.constructorReference,
-    );
   }
 
-  void constructorName(ConstructorName node) {
-    var interfaceElement = node.type.element;
+  void constructorReference2(ConstructorReference2 node) {
+    var interfaceElement = node.typeReference.element;
     if (interfaceElement is! InterfaceElement) return;
     _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
@@ -243,7 +237,8 @@ class DeprecatedFunctionalityVerifier {
   void _checkForDeprecatedOptionalRedirectedParameters(
     ConstructorDeclaration node,
   ) {
-    if (node.redirectedConstructor?.element case var redirectedConstructor?) {
+    if (node.factoryRedirectionTarget?.element
+        case var redirectedConstructor?) {
       var SourceRange(offset: errorOffset, length: errorLength) =
           node.errorRange;
       var positionalArgumentCount = node.parameters.parameters

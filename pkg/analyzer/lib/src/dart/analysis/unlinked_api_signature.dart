@@ -92,7 +92,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(_kindConstructorDeclaration);
     _addTokens(node.beginToken, node.parameters.endToken);
     _addNodeList(node.initializers);
-    _addNode(node.redirectedConstructor);
+    _addNode(node.factoryRedirectionTarget);
     signature.addBool(node.isComplete);
   }
 

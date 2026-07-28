@@ -321,17 +321,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
     _elementUsageFrontierDetector.constructorInvocation(node);
     _deprecatedFunctionalityVerifier.constructorInvocation(node);
-    _invalidAccessVerifier.verifyConstructorInvocation(node);
     _nullSafeApiVerifier.instanceCreation(node);
     _checkForLiteralConstructorUse(node);
     super.visitConstructorInvocation(node);
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    _elementUsageFrontierDetector.constructorName(node);
-    _deprecatedFunctionalityVerifier.constructorName(node);
-    super.visitConstructorName(node);
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _elementUsageFrontierDetector.constructorReference2(node);
+    _deprecatedFunctionalityVerifier.constructorReference2(node);
+    _invalidAccessVerifier.verifyConstructorReference2(node);
+    super.visitConstructorReference2(node);
   }
 
   @override
@@ -1706,19 +1706,18 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void verifyConstructorInvocation(ConstructorInvocation node) {
-    var reference = node.constructorReference;
-    var element = reference.element;
+  void verifyConstructorReference2(ConstructorReference2 node) {
+    var element = node.element;
     if (element == null || _inCurrentLibrary(element)) {
       return;
     }
 
     _checkForInvalidInternalAccess(
-      parent: reference,
-      nameToken: reference.typeReference.name,
+      parent: node,
+      nameToken: node.typeReference.name,
       element: element,
     );
-    _checkForOtherInvalidAccess(reference, element);
+    _checkForOtherInvalidAccess(node, element);
   }
 
   void verifyImport(ImportDirective node) {

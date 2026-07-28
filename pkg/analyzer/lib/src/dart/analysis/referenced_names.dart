@@ -280,13 +280,6 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    if (node.parent2 is! ConstructorDeclaration) {
-      super.visitConstructorName(node);
-    }
-  }
-
-  @override
   void visitConstructorSelector(ConstructorSelector node) {
     names.add(node.name2.lexeme);
   }

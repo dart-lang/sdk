@@ -771,11 +771,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     var constructorReference = node.constructorReference;
     var typeReference =
         constructorReference.typeReference as ConstructorTypeReferenceImpl;
-    _checkForAmbiguousImport(
-      name: typeReference.name,
-      element: typeReference.element,
-    );
-    _typeArgumentsVerifier.checkConstructorTypeReference(typeReference);
     var type = typeReference.type;
     if (type case InterfaceType type) {
       _checkForConstOrNewWithAbstractClass(node, typeReference, type);
@@ -809,6 +804,17 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
     super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorReference2(covariant ConstructorReference2Impl node) {
+    var typeReference = node.typeReference;
+    _checkForAmbiguousImport(
+      name: typeReference.name,
+      element: typeReference.element,
+    );
+    _typeArgumentsVerifier.checkConstructorTypeReference(typeReference);
+    super.visitConstructorReference2(node);
   }
 
   @override
@@ -2559,31 +2565,27 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     ConstructorDeclarationImpl declaration,
   ) {
     // Prepare redirected constructor node
-    var redirectedConstructor = declaration.redirectedConstructor;
-    if (redirectedConstructor == null) {
+    var factoryRedirectionTarget = declaration.factoryRedirectionTarget;
+    if (factoryRedirectionTarget == null) {
       return;
     }
 
     // Prepare redirected constructor type
-    var redirectedElement = redirectedConstructor.element;
+    var redirectedElement = factoryRedirectionTarget.element;
     if (redirectedElement == null) {
       // If the element is null, we check for the
       // REDIRECT_TO_MISSING_CONSTRUCTOR case
-      NamedType constructorNamedType = redirectedConstructor.type;
-      DartType redirectedType = constructorNamedType.typeOrThrow;
+      var redirectedType =
+          factoryRedirectionTarget.typeReference.type ??
+          InvalidTypeImpl.instance;
       if (!(redirectedType is DynamicType || redirectedType is InvalidType)) {
-        // Prepare the constructor name
-        String constructorStrName = constructorNamedType.qualifiedName;
-        if (redirectedConstructor.name != null) {
-          constructorStrName += ".${redirectedConstructor.name!.name}";
-        }
         diagnosticReporter.report(
           diag.redirectToMissingConstructor
               .withArguments(
-                constructorName: constructorStrName,
+                constructorName: factoryRedirectionTarget.toSource(),
                 redirectedType: redirectedType,
               )
-              .at(redirectedConstructor),
+              .at(factoryRedirectionTarget),
         );
       }
       return;
@@ -2605,7 +2607,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               redirectedReturnType: redirectedReturnType,
               redirectingReturnType: constructorReturnType,
             )
-            .at(redirectedConstructor),
+            .at(factoryRedirectionTarget),
       );
       return;
     } else if (!typeSystem.isSubtypeOf(redirectedType, constructorType)) {
@@ -2616,7 +2618,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               redirectedType: redirectedType,
               redirectingType: constructorType,
             )
-            .at(redirectedConstructor),
+            .at(factoryRedirectionTarget),
       );
     }
   }
@@ -6972,8 +6974,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     ConstructorElementImpl element,
   ) {
     // prepare redirected constructor
-    var redirectedConstructorNode = declaration.redirectedConstructor;
-    if (redirectedConstructorNode == null) {
+    var factoryRedirectionTarget = declaration.factoryRedirectionTarget;
+    if (factoryRedirectionTarget == null) {
       return false;
     }
     // OK if no cycle
@@ -6982,7 +6984,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     // report error
     diagnosticReporter.report(
-      diag.recursiveFactoryRedirect.at(redirectedConstructorNode),
+      diag.recursiveFactoryRedirect.at(factoryRedirectionTarget),
     );
     return true;
   }
@@ -6992,15 +6994,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForRedirectingConstructorErrorCodes(
     ConstructorDeclaration declaration,
   ) {
-    var redirectedConstructor = declaration.redirectedConstructor;
-    if (redirectedConstructor == null) {
+    var factoryRedirectionTarget = declaration.factoryRedirectionTarget;
+    if (factoryRedirectionTarget == null) {
       return;
     }
-    var redirectedElement = redirectedConstructor.element;
+    var redirectedElement = factoryRedirectionTarget.element;
     _checkForRedirectToNonConstConstructor(
       declaration.declaredFragment!.element,
       redirectedElement,
-      redirectedConstructor,
+      factoryRedirectionTarget,
     );
     var redirectedClass = redirectedElement?.enclosingElement;
     if (redirectedClass is ClassElement &&
@@ -7018,11 +7020,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               redirectingConstructorName: constructorStrName,
               abstractClass: redirectedClass.name!,
             )
-            .at(redirectedConstructor),
+            .at(factoryRedirectionTarget),
       );
     }
     _checkForInvalidGenerativeConstructorReference(
-      redirectedConstructor,
+      factoryRedirectionTarget,
       redirectedElement,
     );
   }

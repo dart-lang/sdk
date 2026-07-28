@@ -163,22 +163,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorName(ConstructorName node) {
-    _writeByte(Tag.ConstructorName);
-
-    // When we parse `C() = A.named` we don't know that `A` is a class name.
-    // We parse it as a `TypeName(PrefixedIdentifier)`.
-    // But when we resolve, we rewrite it.
-    // We need to inform the applier about the right shape of the AST.
-    // _sink.writeByte(node.name != null ? 1 : 0);
-
-    _writeNode(node.type);
-    _writeOptionalNode(node.name);
-
-    _sink.writeElement(node.element);
-  }
-
-  @override
   void visitConstructorReference2(ConstructorReference2 node) {
     _writeByte(Tag.ConstructorReference2);
     _writeNode(node.typeReference);

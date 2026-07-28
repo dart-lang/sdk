@@ -2736,6 +2736,17 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+      name: B
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -2745,8 +2756,6 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: foo
-  body: EmptyFunctionBody
-    semicolon: ;
 ''');
   }
 
@@ -2791,11 +2800,14 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
 ''');
   }
 

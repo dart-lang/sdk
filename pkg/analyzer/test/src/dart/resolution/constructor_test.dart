@@ -297,6 +297,17 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: <testLibrary>::@class::A::@constructor::named
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -308,8 +319,6 @@ ConstructorDeclaration
       element: <testLibrary>::@class::A::@constructor::named
       staticType: null
     element: <testLibrary>::@class::A::@constructor::named
-  body: EmptyFunctionBody
-    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
@@ -339,6 +348,27 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: U
+            element: #E0 U
+            type: U
+        rightBracket: >
+      element: <testLibrary>::@class::A
+      type: A<U>
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: U}
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -362,8 +392,6 @@ ConstructorDeclaration
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: U}
-  body: EmptyFunctionBody
-    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B<U> Function()
@@ -395,6 +423,17 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: <null>
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -406,8 +445,6 @@ ConstructorDeclaration
       element: <null>
       staticType: null
     element: <null>
-  body: EmptyFunctionBody
-    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
@@ -439,14 +476,20 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <testLibrary>::@class::A::@constructor::new
   declaredFragment: <testLibraryFragment> named@55
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()
@@ -478,8 +521,8 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -496,6 +539,22 @@ ConstructorDeclaration
       substitution: {T: U}
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: U
+            element: #E0 U
+            type: U
+        rightBracket: >
+      element: <testLibrary>::@class::A
+      type: A<U>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: U}
   declaredFragment: <testLibraryFragment> named@64
     element: <testLibrary>::@class::B::@constructor::named
       type: B<U> Function()
@@ -529,14 +588,20 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
       type: A
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    element: <null>
   declaredFragment: <testLibraryFragment> named@61
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()

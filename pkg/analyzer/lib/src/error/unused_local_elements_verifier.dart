@@ -101,9 +101,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
-    var redirectedConstructor = node.redirectedConstructor;
-    if (redirectedConstructor != null) {
-      var redirectedElement = redirectedConstructor.element;
+    var factoryRedirectionTarget = node.factoryRedirectionTarget;
+    if (factoryRedirectionTarget != null) {
+      var redirectedElement = factoryRedirectionTarget.element;
       if (redirectedElement != null) {
         // TODO(scheglov): Only if not _isPubliclyAccessible
         _matchParameters(
@@ -120,10 +120,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitConstructorInvocation(ConstructorInvocation node) {
-    _useIdentifierElement(node.constructorReference.typeReference.element);
-    _useIdentifierElement(node.constructorReference.element);
     _addParametersForArguments(node.argumentList);
     super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _useIdentifierElement(node.typeReference.element);
+    _useIdentifierElement(node.element);
+    super.visitConstructorReference2(node);
   }
 
   @override

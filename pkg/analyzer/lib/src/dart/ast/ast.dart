@@ -8689,6 +8689,11 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// factory constructor.
   Token? get factoryKeyword;
 
+  /// The constructor to which this factory redirects, or `null` if this isn't
+  /// a redirecting factory constructor.
+  @experimental
+  ConstructorReference2? get factoryRedirectionTarget;
+
   /// The initializers associated with the constructor.
   NodeList<ConstructorInitializer> get initializers;
 
@@ -8715,8 +8720,10 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// constructor being declared is unnamed.
   Token? get period;
 
-  /// The name of the constructor to which this constructor is redirected, or
-  /// `null` if this isn't a redirecting factory constructor.
+  /// The name of the constructor to which this constructor is redirected.
+  ///
+  /// Returns `null` if this isn't a redirecting factory constructor.
+  @ToBeDeprecated('Use factoryRedirectionTarget instead.')
   ConstructorName? get redirectedConstructor;
 
   /// The token for the separator (colon or equals) before the initializer list
@@ -8743,7 +8750,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
     GenerateNodeProperty('parameters'),
     GenerateNodeProperty('separator', isTokenFinal: false),
     GenerateNodeProperty('initializers'),
-    GenerateNodeProperty('redirectedConstructor'),
+    GenerateNodeProperty('factoryRedirectionTarget'),
     GenerateNodeProperty('body'),
   ],
 )
@@ -8793,7 +8800,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
       NodeListImpl._();
 
   @generated
-  ConstructorNameImpl? _redirectedConstructor;
+  ConstructorReference2Impl? _factoryRedirectionTarget;
 
   @generated
   FunctionBodyImpl _body;
@@ -8806,7 +8813,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// The fields that are not initialized by the constructor.
   List<FieldElement>? notInitializedFields;
 
-  @generated
+  @DoNotGenerate(
+    reason: 'Wires a V2-only child in a node shared by both AST views',
+  )
   ConstructorDeclarationImpl({
     required super.comment,
     required super.metadata,
@@ -8821,16 +8830,16 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required FormalParameterListImpl parameters,
     required this.separator,
     required List<ConstructorInitializerImpl> initializers,
-    required ConstructorNameImpl? redirectedConstructor,
+    required ConstructorReference2Impl? factoryRedirectionTarget,
     required FunctionBodyImpl body,
   }) : _typeName = typeName,
        _parameters = parameters,
-       _redirectedConstructor = redirectedConstructor,
+       _factoryRedirectionTarget = factoryRedirectionTarget,
        _body = body {
     _becomeParentOf12(typeName);
     _becomeParentOf12(parameters);
     this.initializers._initialize(this, initializers);
-    _becomeParentOf12(redirectedConstructor);
+    _becomeParentOf2(factoryRedirectionTarget);
     _becomeParentOf12(body);
   }
 
@@ -8854,6 +8863,20 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
     var endEntity = name ?? startEntity;
     return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
+  }
+
+  @generated
+  @override
+  ConstructorReference2Impl? get factoryRedirectionTarget =>
+      _factoryRedirectionTarget;
+
+  @DoNotGenerate(
+    reason: 'Wires a V2-only child in a node shared by both AST views',
+  )
+  set factoryRedirectionTarget(
+    ConstructorReference2Impl? factoryRedirectionTarget,
+  ) {
+    _factoryRedirectionTarget = _becomeParentOf2(factoryRedirectionTarget);
   }
 
   @generated
@@ -8885,7 +8908,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   bool get isComplete {
     if (externalKeyword != null) return true;
     if (body is! EmptyFunctionBody) return true;
-    if (redirectedConstructor != null || initializers.isNotEmpty) return true;
+    if (factoryRedirectionTarget != null || initializers.isNotEmpty) {
+      return true;
+    }
     return parameters.allFormalParameters.any((parameter) {
       return parameter is FieldFormalParameterImpl ||
           parameter is SuperFormalParameterImpl;
@@ -8902,7 +8927,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// constructor, declares no parameters, has no initializer list, has no body,
   /// and isn't external.
   bool get isTrivial =>
-      redirectedConstructor == null &&
+      factoryRedirectionTarget == null &&
       parameters.allFormalParameters.isEmpty &&
       initializers.isEmpty &&
       body is EmptyFunctionBody &&
@@ -8917,14 +8942,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _parameters = _becomeParentOf12(parameters);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Projects the canonical V2 constructor reference')
+  @Deprecated('Use factoryRedirectionTarget instead.')
   @override
-  ConstructorNameImpl? get redirectedConstructor => _redirectedConstructor;
-
-  @generated
-  set redirectedConstructor(ConstructorNameImpl? redirectedConstructor) {
-    _redirectedConstructor = _becomeParentOf12(redirectedConstructor);
-  }
+  ConstructorNameImpl? get redirectedConstructor =>
+      _becomeParentOf1(factoryRedirectionTarget?.constructorName);
 
   @generated
   @override
@@ -8935,7 +8957,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _typeName = _becomeParentOf12(typeName);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
+  @Deprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -8966,7 +8989,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addNode('parameters', parameters)
     ..addToken('separator', separator)
     ..addNodeList('initializers', initializers)
-    ..addNode('redirectedConstructor', redirectedConstructor)
+    ..addNode('factoryRedirectionTarget', factoryRedirectionTarget)
     ..addNode('body', body);
 
   @generated
@@ -9003,8 +9026,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
         "Cannot remove child 'initializers' because NodeList cannot be resized.",
       );
     }
-    if (identical(redirectedConstructor, oldNode)) {
-      redirectedConstructor = null;
+    if (identical(factoryRedirectionTarget, oldNode)) {
+      factoryRedirectionTarget = null;
       return;
     }
     if (identical(body, oldNode)) {
@@ -9027,8 +9050,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     if (initializers.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (identical(redirectedConstructor, oldNode)) {
-      redirectedConstructor = newNode as ConstructorNameImpl?;
+    if (identical(factoryRedirectionTarget, oldNode)) {
+      factoryRedirectionTarget = newNode as ConstructorReference2Impl?;
       return;
     }
     if (identical(body, oldNode)) {
@@ -9038,8 +9061,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @DoNotGenerate(reason: 'Visits the legacy ConstructorName projection')
+  @Deprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -9058,7 +9081,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     typeName?.accept2(visitor);
     parameters.accept2(visitor);
     initializers.accept2(visitor);
-    redirectedConstructor?.accept2(visitor);
+    factoryRedirectionTarget?.accept2(visitor);
     body.accept2(visitor);
   }
 
@@ -9074,7 +9097,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     void Function(SimpleIdentifierImpl)? visitTypeName,
     void Function(FormalParameterListImpl)? visitParameters,
     void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
-    void Function(ConstructorNameImpl)? visitRedirectedConstructor,
+    void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
     _visitCommentAndAnnotations2(visitor);
@@ -9095,11 +9118,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     } else {
       initializers.accept2(visitor);
     }
-    if (redirectedConstructor case var redirectedConstructor?) {
-      if (visitRedirectedConstructor != null) {
-        visitRedirectedConstructor(redirectedConstructor);
+    if (factoryRedirectionTarget case var factoryRedirectionTarget?) {
+      if (visitFactoryRedirectionTarget != null) {
+        visitFactoryRedirectionTarget(factoryRedirectionTarget);
       } else {
-        redirectedConstructor.accept2(visitor);
+        factoryRedirectionTarget.accept2(visitor);
       }
     }
     if (visitBody != null) {
@@ -9109,7 +9132,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
+  @Deprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -9156,9 +9180,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
         case var result?) {
       return result;
     }
-    if (redirectedConstructor case var redirectedConstructor?) {
-      if (redirectedConstructor._containsOffset(rangeOffset, rangeEnd)) {
-        return redirectedConstructor;
+    if (factoryRedirectionTarget case var factoryRedirectionTarget?) {
+      if (factoryRedirectionTarget._containsOffset(rangeOffset, rangeEnd)) {
+        return factoryRedirectionTarget;
       }
     }
     if (body._containsOffset(rangeOffset, rangeEnd)) {
@@ -9743,6 +9767,8 @@ abstract final class ConstructorName
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('type'),
     GenerateNodeProperty('period', isTokenFinal: false),
@@ -9750,41 +9776,11 @@ abstract final class ConstructorName
   ],
 )
 final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
-  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  NamedTypeImpl _type;
+  final _ConstructorReferenceV2Origin _origin;
 
-  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  Token? _period;
-
-  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  SimpleIdentifierImpl? _name;
-
-  AstNodeApi? _astNodeApiOverride;
-
-  _ConstructorReferenceV2Origin? _v2Origin;
-
-  InternalConstructorElement? _element;
-
-  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  ConstructorNameImpl({
-    required NamedTypeImpl type,
-    required Token? period,
-    required SimpleIdentifierImpl? name,
-  }) : _type = type,
-       _period = period,
-       _name = name {
-    _becomeParentOf12(type);
-    _becomeParentOf12(name);
-  }
-
-  ConstructorNameImpl.v1Projection(_ConstructorReferenceV2Origin origin)
-    : _type = origin.typeReference.namedType,
-      _period = origin.selector?.period,
-      _name = origin.selector?.name,
-      _v2Origin = origin,
-      _astNodeApiOverride = AstNodeApi.v1 {
-    _becomeParentOf1(_type);
-    _becomeParentOf1(_name);
+  ConstructorNameImpl._(this._origin) {
+    _becomeParentOf1(type);
+    _becomeParentOf1(name);
   }
 
   @generated
@@ -9794,16 +9790,9 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }
 
   @override
-  InternalConstructorElement? get element => _v2Origin?.element ?? _element;
+  InternalConstructorElement? get element => _origin.element;
 
-  set element(InternalConstructorElement? value) {
-    var origin = _v2Origin;
-    if (origin != null) {
-      origin.element = value;
-    } else {
-      _element = value;
-    }
-  }
+  set element(InternalConstructorElement? value) => _origin.element = value;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
@@ -9820,12 +9809,10 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   SimpleIdentifierImpl? get name {
-    var origin = _v2Origin;
-    if (origin == null) return _name;
-    var result = origin.selector?.name;
+    var result = _origin.selector?.name;
     if (result != null) {
-      result.element = origin.element;
-      if (origin is ConstructorTearOffImpl) {
+      result.element = _origin.element;
+      if (_origin case ConstructorTearOffImpl origin) {
         result.tearOffTypeArgumentTypes = origin.tearOffTypeArgumentTypes;
       }
       _becomeParentOf1(result);
@@ -9833,48 +9820,21 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     return result;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
-  set name(SimpleIdentifierImpl? name) {
-    if (_v2Origin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _name = _becomeParentOf12(name);
-  }
-
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  Token? get period {
-    var origin = _v2Origin;
-    return origin != null ? origin.selector?.period : _period;
-  }
-
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
-  set period(Token? period) {
-    if (_v2Origin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _period = period;
-  }
+  Token? get period => _origin.selector?.period;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   NamedTypeImpl get type {
-    var result = _v2Origin?.typeReference.namedType ?? _type;
+    var result = _origin.typeReference.namedType;
     _becomeParentOf1(result);
     return result;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
-  set type(NamedTypeImpl type) {
-    if (_v2Origin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _type = _becomeParentOf12(type);
-  }
-
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   @override
-  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -9883,32 +9843,21 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     ..addToken('period', period)
     ..addNode('name', name);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @DoNotGenerate(reason: 'ConstructorName is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 {
-    if (_v2Origin != null) {
+  ChildEntities get _childEntities2 =>
       throw StateError('ConstructorName is not in the V2 AST view.');
-    }
-    return ChildEntities()
-      ..addNode('type', type)
-      ..addToken('period', period)
-      ..addNode('name', name);
-  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @DoNotGenerate(reason: 'ConstructorName is not in the V2 AST view')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    if (_v2Origin != null) {
+  E? accept2<E>(AstVisitor2<E> visitor) =>
       throw StateError('ConstructorName is not in the V2 AST view.');
-    }
-    return visitor.visitConstructorName(this);
-  }
 
   @generated
   @override
@@ -9920,54 +9869,17 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(type, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'type'.");
-    }
-    if (identical(name, oldNode)) {
-      name = null;
-      return;
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(type, oldNode)) {
-      type = newNode as NamedTypeImpl;
-      return;
-    }
-    if (identical(name, oldNode)) {
-      name = newNode as SimpleIdentifierImpl?;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  ConstructorReference2Impl toConstructorReference2() {
-    var typeReference =
-        ConstructorTypeReferenceImpl(
-            importPrefix: type.importPrefix,
-            name: type.name,
-            typeArguments: type.typeArguments,
-          )
-          ..element = type.element
-          ..type = type.type;
-    var selector = switch (period) {
-      var period? => ConstructorSelectorImpl.v2(
-        period: period,
-        name2: name?.token ?? period.next!,
-      ),
-      _ => null,
-    };
-    return ConstructorReference2Impl(
-      typeReference: typeReference,
-      selector: selector,
-    )..element = element;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @override
-  String toSource() => _v2Origin?.toSource() ?? super.toSource();
+  String toSource() => _origin.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -9977,45 +9889,24 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     name?.accept(visitor);
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @DoNotGenerate(reason: 'ConstructorName is not in the V2 AST view')
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {
-    if (_v2Origin != null) {
+  void visitChildren2(AstVisitor2 visitor) =>
       throw StateError('ConstructorName is not in the V2 AST view.');
-    }
-    type.accept2(visitor);
-    name?.accept2(visitor);
-  }
 
   /// Visits the children of this node.
   ///
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @DoNotGenerate(reason: 'ConstructorName is not in the V2 AST view')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NamedTypeImpl)? visitType,
     void Function(SimpleIdentifierImpl)? visitName,
-  }) {
-    if (_v2Origin != null) {
-      throw StateError('ConstructorName is not in the V2 AST view.');
-    }
-    if (visitType != null) {
-      visitType(type);
-    } else {
-      type.accept2(visitor);
-    }
-    if (name case var name?) {
-      if (visitName != null) {
-        visitName(name);
-      } else {
-        name.accept2(visitor);
-      }
-    }
-  }
+  }) => throw StateError('ConstructorName is not in the V2 AST view.');
 
   @generated
   @override
@@ -10031,22 +9922,10 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     return null;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @DoNotGenerate(reason: 'ConstructorName is not in the V2 AST view')
   @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_v2Origin != null) {
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) =>
       throw StateError('ConstructorName is not in the V2 AST view.');
-    }
-    if (type._containsOffset(rangeOffset, rangeEnd)) {
-      return type;
-    }
-    if (name case var name?) {
-      if (name._containsOffset(rangeOffset, rangeEnd)) {
-        return name;
-      }
-    }
-    return null;
-  }
 }
 
 /// An expression representing a reference to a constructor.
@@ -10108,8 +9987,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   InternalConstructorElement? _element;
 
   /// The cached V1 compatibility projection for this reference.
-  late final ConstructorNameImpl constructorName =
-      ConstructorNameImpl.v1Projection(this);
+  late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   @generated
   ConstructorReference2Impl({
@@ -10367,13 +10245,13 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     return false;
   }
 
-  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
+  @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
+  @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
@@ -10612,8 +10490,7 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
 
   ConstructorReferenceImpl? _constructorReference;
 
-  late final ConstructorNameImpl constructorName =
-      ConstructorNameImpl.v1Projection(this);
+  late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   List<TypeImpl>? tearOffTypeArgumentTypes;
 
@@ -25080,6 +24957,7 @@ abstract final class InstanceCreationExpression implements Expression {
 
 @GenerateNodeImpl(
   api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('keyword', isTokenFinal: false),
     GenerateNodeProperty('constructorName'),
@@ -25094,19 +24972,6 @@ abstract final class InstanceCreationExpression implements Expression {
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   final ConstructorInvocationImpl _origin;
-
-  @DoNotGenerate(reason: 'Only retained while callers migrate to V2')
-  InstanceCreationExpressionImpl({
-    required Token? keyword,
-    required ConstructorNameImpl constructorName,
-    required TypeArgumentListImpl? typeArguments,
-    required ArgumentListImpl argumentList,
-  }) : _origin = ConstructorInvocationImpl(
-         keyword: keyword,
-         constructorReference: constructorName.toConstructorReference2(),
-         typeArguments: typeArguments,
-         argumentList: argumentList,
-       );
 
   @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
   InstanceCreationExpressionImpl._(this._origin) {
@@ -25201,13 +25066,13 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     return false;
   }
 
-  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
+  @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'V1 projections are not mutable implementation nodes')
+  @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');

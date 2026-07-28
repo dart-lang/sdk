@@ -627,15 +627,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void constructorInvocation(ConstructorInvocation node) {
-    checkUsage(
-      node.constructorReference.typeReference.element,
-      node.constructorReference.typeReference,
-    );
-    checkUsage(node.constructorReference.element, node.constructorReference);
     _invocationArguments(node.constructorReference.element, node.argumentList);
   }
 
-  void constructorName(ConstructorName node) {
+  void constructorReference2(ConstructorReference2 node) {
+    checkUsage(node.typeReference.element, node.typeReference);
     checkUsage(node.element, node);
   }
 
@@ -684,7 +680,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   void formalParameter(FormalParameter node) {
     var parameterList = node.parentFormalParameterList2;
     if (parameterList.parent2 case ConstructorDeclaration constructor) {
-      if (constructor.redirectedConstructor?.element
+      if (constructor.factoryRedirectionTarget?.element
           case var redirectedConstructor?) {
         if (node.isNamed) {
           var redirectedParameter = redirectedConstructor.formalParameters

@@ -1081,6 +1081,62 @@ void func() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_class_constructorReferences() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+class A {
+  factory A() = B.named;
+}
+
+class B {
+  B.named();
+}
+
+void f() {
+  B.named();
+}
+''');
+
+    await resolveFile(a);
+    var element = await _findElement(44, a);
+    var result = await fileResolver.findReferences(element);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(a.path, [
+        CiderSearchInfo(CharacterLocation(2, 17), 1, MatchKind.REFERENCE),
+        CiderSearchInfo(CharacterLocation(6, 3), 1, MatchKind.REFERENCE),
+        CiderSearchInfo(CharacterLocation(10, 3), 1, MatchKind.REFERENCE),
+      ]),
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_constructor() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+class A {
+  factory A() = B.named;
+}
+
+class B {
+  B.named();
+}
+
+void f() {
+  B.named();
+}
+''');
+
+    await resolveFile(a);
+    var element = await _findElement(53, a);
+    var result = await fileResolver.findReferences(element);
+    var expected = <CiderSearchMatch>[
+      CiderSearchMatch(a.path, [
+        CiderSearchInfo(CharacterLocation(2, 18), 6, MatchKind.REFERENCE),
+        CiderSearchInfo(CharacterLocation(6, 4), 6, MatchKind.DECLARATION),
+        CiderSearchInfo(CharacterLocation(10, 4), 6, MatchKind.INVOCATION),
+      ]),
+    ];
+    expect(result, unorderedEquals(expected));
+  }
+
   test_findReferences_field() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {

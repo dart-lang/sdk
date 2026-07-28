@@ -234,19 +234,6 @@ class AstBinaryReader {
     return node;
   }
 
-  ConstructorName _readConstructorName() {
-    var type = _readNode() as NamedTypeImpl;
-    var name = _readOptionalNode() as SimpleIdentifierImpl?;
-
-    var node = ConstructorNameImpl(
-      type: type,
-      period: name != null ? Tokens.period() : null,
-      name: name,
-    );
-    node.element = _reader.readElement() as InternalConstructorElement?;
-    return node;
-  }
-
   ConstructorReference2Impl _readConstructorReference2() {
     var typeReference = _readNode() as ConstructorTypeReferenceImpl;
     var selector = _readOptionalNode() as ConstructorSelectorImpl?;
@@ -898,8 +885,6 @@ class AstBinaryReader {
         return _readConditionalExpression();
       case Tag.ConstructorFieldInitializer:
         return _readConstructorFieldInitializer();
-      case Tag.ConstructorName:
-        return _readConstructorName();
       case Tag.ConstructorTearOff:
         return _readConstructorTearOff();
       case Tag.ConstructorReference2:

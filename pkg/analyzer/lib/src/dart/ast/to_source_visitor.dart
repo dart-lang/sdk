@@ -309,7 +309,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     }
     _visitNode(node.parameters);
     _visitNodeList(node.initializers, prefix: ' : ', separator: ', ');
-    _visitNode(node.redirectedConstructor, prefix: ' = ');
+    _visitNode(node.factoryRedirectionTarget, prefix: ' = ');
     _visitFunctionBody(node.body);
   }
 
@@ -326,12 +326,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.keyword, suffix: ' ');
     _visitNode(node.constructorReference);
     _visitNode(node.argumentList);
-  }
-
-  @override
-  void visitConstructorName(ConstructorName node) {
-    _visitNode(node.type);
-    _visitNode(node.name, prefix: '.');
   }
 
   @override
