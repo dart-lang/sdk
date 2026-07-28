@@ -438,6 +438,9 @@ LinterLintCode:
       stable: "2.10"
     categories: [errorProne]
     hasPublishedDocs: true
+    # In the documentation, the `uri_does_not_exist` diagnostic is being ignored
+    # because the absence of the file doesn't impact the readability of the
+    # example.
     documentation: |-
       #### Description
 
@@ -3502,6 +3505,9 @@ LinterLintCode:
       stable: "2.14"
     categories: [errorProne, flutter, web]
     hasPublishedDocs: true
+    # In the documentation, the `unused_import` diagnostic is being ignored
+    # because having a reference to something in the library isn't necessary
+    # for the example to make sense.
     documentation: |-
       #### Description
 
@@ -4593,6 +4599,9 @@ LinterLintCode:
       stable: "2.14"
     categories: [pub]
     hasPublishedDocs: true
+    # In the documentation, the `unused_import` diagnostic is being ignored
+    # because having a reference to something in the library isn't necessary
+    # for the example to make sense.
     documentation: |-
       #### Description
 
@@ -5910,6 +5919,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `uri_does_not_exist` diagnostic is being ignored
+    # because the library doesn't need to exist in order for the example to make
+    # sense.
     documentation: |-
       #### Description
 
@@ -7049,6 +7061,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `uri_does_not_exist` diagnostic is being ignored
+    # because the library doesn't need to exist in order for the example to make
+    # sense.
     documentation: |-
       #### Description
 
@@ -7101,6 +7116,8 @@ LinterLintCode:
       stable: "2.14"
     categories: [publicInterface]
     hasPublishedDocs: true
+    # In the documentation, the `unused_element` diagnostic is being ignored
+    # because adding a reference would unnecessarily complicate the example.
     documentation: |-
       #### Description
 
@@ -12337,6 +12354,8 @@ LinterLintCode:
       stable: "2.0"
     categories: [errorProne, unintentional]
     hasPublishedDocs: true
+    # In the documentation, the `unused_field` diagnostic is being ignored
+    # because adding a reference would unnecessarily complicate the example.
     documentation: |-
       #### Description
 
@@ -17883,6 +17902,8 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `unused_field` diagnostic is being ignored
+    # because adding a reference would unnecessarily complicate the example.
     documentation: |-
       #### Description
 
