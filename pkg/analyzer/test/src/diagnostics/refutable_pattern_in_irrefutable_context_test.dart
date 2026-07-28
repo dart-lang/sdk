@@ -33,14 +33,14 @@ PatternVariableDeclaration
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: ConstantPattern
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: _
@@ -76,7 +76,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: _
@@ -107,7 +107,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: int?
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
@@ -132,7 +132,7 @@ PatternVariableDeclaration
     leftParenthesis: (
     pattern: RelationalPattern
       operator: >
-      operand: IntegerLiteral
+      operand2: IntegerLiteral
         literal: 0
         staticType: int
       element: dart:core::@class::num::@method::>
@@ -140,7 +140,7 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression: IntegerLiteral
+  expression2: IntegerLiteral
     literal: 0
     staticType: int
   patternTypeSchema: _

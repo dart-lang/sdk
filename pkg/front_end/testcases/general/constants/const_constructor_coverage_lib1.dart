@@ -19,7 +19,7 @@ class Bar {
   const /*x*/ Bar.named2() : baz = const Baz.named1();
   const /*x*/ Bar.named3() : baz = const Baz.named1();
   const Bar.named4(int i)
-      : baz = i > 0 ? const Baz.named5() : const Baz.named6();
+    : baz = i > 0 ? const Baz.named5() : const Baz.named6();
 }
 
 const Foo foo = const Foo.named3();

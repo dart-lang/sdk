@@ -23,7 +23,7 @@ class NamedParameter {
 
 class InitializerList {
   Color c;
-  InitializerList(): c = .red;
+  InitializerList() : c = .red;
 }
 
 class Initializer {
@@ -42,17 +42,26 @@ enum NestedEnum {
 }
 
 Color get getterArrow => .red;
-Color get getterBody { return .red; }
+Color get getterBody {
+  return .red;
+}
 
 class Getters {
   static Color get getterArrowStatic => .red;
-  static Color get getterBodyStatic { return .red; }
+  static Color get getterBodyStatic {
+    return .red;
+  }
+
   Color get getterArrow => .red;
-  Color get getterBody { return .red; }
+  Color get getterBody {
+    return .red;
+  }
 }
 
 Color Function() anonymousFunctionArrow = () => .red;
-Color Function() anonymousFunctionBody = () { return .red; };
+Color Function() anonymousFunctionBody = () {
+  return .red;
+};
 
 class E {
   static const e1 = E(null);

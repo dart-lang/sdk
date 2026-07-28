@@ -18,7 +18,7 @@ class DocumentIgnoresTest extends LintRuleTest {
   String get lintRule => LintNames.document_ignores;
 
   test_precedingDeclaration_notDocumented() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int x = 0;
 
 [!// ignore: unused_element!]
@@ -27,7 +27,7 @@ int _y = 0;
   }
 
   test_precedingLine_butIsTrailing_notDocumented() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int x = 0; // Text.
 [!// ignore: unused_element!]
 int _y = 0;
@@ -60,7 +60,7 @@ int _y = 0 as int;
   }
 
   test_precedingLine_multiple_notDocumented() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // Text.
 // ignore_for_file: unused_element
 

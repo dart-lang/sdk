@@ -15,15 +15,12 @@ import '../test/utils/io_utils.dart'
 
 void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
-  new File.fromUri(
-    computeFeAnalyzerSharedGeneratedFile(repoDir),
-  ).writeAsStringSync(generateFeAnalyzerSharedFile(repoDir), flush: true);
-  new File.fromUri(
-    computeCfeGeneratedFile(repoDir),
-  ).writeAsStringSync(generateCfeFile(repoDir), flush: true);
-  new File.fromUri(
-    computeKernelGeneratedFile(repoDir),
-  ).writeAsStringSync(generateKernelFile(repoDir), flush: true);
+  new File.fromUri(computeFeAnalyzerSharedGeneratedFile(repoDir))
+      .writeAsStringSync(generateFeAnalyzerSharedFile(repoDir), flush: true);
+  new File.fromUri(computeCfeGeneratedFile(repoDir))
+      .writeAsStringSync(generateCfeFile(repoDir), flush: true);
+  new File.fromUri(computeKernelGeneratedFile(repoDir))
+      .writeAsStringSync(generateKernelFile(repoDir), flush: true);
 }
 
 Uri computeFeAnalyzerSharedGeneratedFile(Uri repoDir) {
@@ -225,9 +222,8 @@ import "ast.dart";
 const Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 ''');
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("kernel"),
-  ).format("$sb");
+  return new DartFormatter(languageVersion: getPackageVersionFor("kernel"))
+      .format("$sb");
 }
 
 String generateCfeFile(Uri repoDir) {
@@ -545,9 +541,8 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   };
   ''');
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("front_end"),
-  ).format("$sb");
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
+      .format("$sb");
 }
 
 String keyToIdentifier(String key, {bool upperCaseFirst = false}) {

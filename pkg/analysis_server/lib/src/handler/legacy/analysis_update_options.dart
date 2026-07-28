@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 
 /// The handler for the `analysis.updateOptions` request.
 class AnalysisUpdateOptionsHandler extends LegacyHandler {

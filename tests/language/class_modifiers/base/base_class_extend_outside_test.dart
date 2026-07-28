@@ -5,6 +5,7 @@
 // Allow base classes to be extended by multiple classes outside its library.
 
 import 'package:expect/expect.dart';
+
 import 'base_class_extend_lib.dart';
 
 abstract base class AOutside extends BaseClass {}

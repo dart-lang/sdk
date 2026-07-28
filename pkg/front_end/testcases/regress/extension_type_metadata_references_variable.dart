@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension type Foo._(int _x) {
-  Foo(this._x, int bar){
+  Foo(this._x, int bar) {
     @bar
     int a1, a2;
   }

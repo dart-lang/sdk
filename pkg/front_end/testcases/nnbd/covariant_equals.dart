@@ -63,7 +63,13 @@ testNonNullable(A a, B b, C c_dynamic, C<int> c_int, C<String> c_string, D d) {
 }
 
 testNullable(
-    A? a, B? b, C? c_dynamic, C<int>? c_int, C<String>? c_string, D? d) {
+  A? a,
+  B? b,
+  C? c_dynamic,
+  C<int>? c_int,
+  C<String>? c_string,
+  D? d,
+) {
   // Since the receiver type is nullable, the calls are checked against the
   // Object member.
 

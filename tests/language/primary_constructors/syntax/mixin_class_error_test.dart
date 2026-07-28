@@ -12,7 +12,6 @@ mixin class M1(int x);
 //            ^
 // [cfe] Can't use 'M1' as a mixin because it has constructors.
 
-
 mixin class M2(int x) {
   //        ^^
   // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR

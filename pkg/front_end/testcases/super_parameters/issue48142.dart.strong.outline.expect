@@ -35,6 +35,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:19:43 -> ListConstant(const <String>["six"])
-Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:28:27 -> ListConstant(const <String>["six"])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:24:24 -> ListConstant(const <String>["six"])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:42:11 -> ListConstant(const <String>["six"])
 Extra constant evaluation: evaluated: 2, effectively constant: 2

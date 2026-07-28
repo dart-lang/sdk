@@ -18,7 +18,7 @@ class AvoidSlowAsyncIoTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_slow_async_io;
 
   test_directory_exists() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(Directory dir) async {
   await [!dir.exists()!];
@@ -27,7 +27,7 @@ void f(Directory dir) async {
   }
 
   test_directory_exists_extensionType_implements() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 extension type MyDir(Directory dir) implements Directory {}
 void f(MyDir dir) async {
@@ -46,7 +46,7 @@ void f(Directory dir) async {
   }
 
   test_directory_stat() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(Directory dir) async {
   await [!dir.stat()!];
@@ -64,7 +64,7 @@ void f(Directory dir) async {
   }
 
   test_file_exists() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(File file) async {
   await [!file.exists()!];
@@ -73,7 +73,7 @@ void f(File file) async {
   }
 
   test_file_exists_extensionType_implements() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 extension type MyFile(File file) implements File {}
 void f(MyFile file) async {
@@ -104,7 +104,7 @@ void f(File file) async {
   }
 
   test_file_lastModified() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(File file) async {
   await [!file.lastModified()!];
@@ -122,7 +122,7 @@ void f(File file) async {
   }
 
   test_file_stat() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(File file) async {
   await [!file.stat()!];
@@ -140,7 +140,7 @@ void f(File file) async {
   }
 
   test_fileSystemEntity_isDirectory() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(String path) async {
   await [!FileSystemEntity.isDirectory(path)!];
@@ -158,7 +158,7 @@ void f(String path) async {
   }
 
   test_fileSystemEntity_isFile() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(String path) async {
   await [!FileSystemEntity.isFile(path)!];
@@ -176,7 +176,7 @@ void f(String path) async {
   }
 
   test_fileSystemEntity_isLink() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(String path) async {
   await [!FileSystemEntity.isLink(path)!];
@@ -194,7 +194,7 @@ void f(String path) async {
   }
 
   test_fileSystemEntity_type() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:io';
 void f(String path) async {
   [!FileSystemEntity.type(path)!];

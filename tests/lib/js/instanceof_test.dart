@@ -7,6 +7,7 @@ library instanceof_test;
 
 import 'package:js/js.dart';
 import 'package:expect/expect.dart';
+
 import 'dart:js_util';
 
 @JS()

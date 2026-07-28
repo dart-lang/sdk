@@ -9,10 +9,9 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
+import 'parser_suite_utils.dart';
 import 'testing/folder_options.dart';
 import 'utils/suite_utils.dart';
-import 'parser_suite.dart'
-    show ListenerStep, ParserTestListenerWithMessageFormatting;
 import 'testing_utils.dart' show checkEnvironment;
 
 void main([List<String> arguments = const []]) => internalMain(
@@ -29,9 +28,11 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
   return new Future.value(new Context(suite.root, suite.name, environment));
 }
 
-class Context extends ChainContext {
+class Context extends ChainContext implements StandardContextAdditions {
+  @override
   final SuiteFolderOptions folderOptions;
   final String suiteName;
+  @override
   final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
 
   new(Uri baseUri, this.suiteName, Map<String, String> environment)
@@ -67,7 +68,7 @@ class ListenerCompareStep
     Set<String> ignored = new Set<String>.from(yaml["ignored"] ?? []);
 
     ParserTestListenerWithMessageFormatting? parserTestListenerFirst =
-        ListenerStep.doListenerParsing(
+        doListenerParsing(
           files[0],
           context.suiteName,
           experimentalFlags,
@@ -79,7 +80,7 @@ class ListenerCompareStep
 
     for (int i = 1; i < files.length; i++) {
       ParserTestListenerWithMessageFormatting? parserTestListener =
-          ListenerStep.doListenerParsing(
+          doListenerParsing(
             files[i],
             context.suiteName,
             experimentalFlags,
@@ -88,11 +89,11 @@ class ListenerCompareStep
       if (parserTestListener == null) {
         return Future.value(crash(description, StackTrace.current));
       }
-      String? compareResult = compare(
+      String? compareResult = compareTestListeners(
         parserTestListenerFirst,
         parserTestListener,
-        filters,
-        ignored,
+        filters: filters,
+        ignored: ignored,
       );
       if (compareResult != null) {
         return Future.value(
@@ -102,90 +103,5 @@ class ListenerCompareStep
     }
 
     return new Future.value(new Result<TestDescription>.pass(description));
-  }
-
-  String? compare(
-    ParserTestListenerWithMessageFormatting a,
-    ParserTestListenerWithMessageFormatting b,
-    Set<String> filters,
-    Set<String> ignored,
-  ) {
-    List<String> aLines = a.sb.toString().split("\n");
-    List<String> bLines = b.sb.toString().split("\n");
-
-    bool doRemoveListenerArguments = filters.contains(
-      "ignoreListenerArguments",
-    );
-
-    int aIndex = 0;
-    int bIndex = 0;
-    while (aIndex < aLines.length && bIndex < bLines.length) {
-      String aLine = aLines[aIndex];
-      String bLine = bLines[bIndex];
-      if (doRemoveListenerArguments) {
-        aLine = removeListenerArguments(aLine);
-        bLine = removeListenerArguments(bLine);
-      }
-      bool anyIgnored = false;
-      if (ignored.contains(aLine.trim())) {
-        anyIgnored = true;
-        aIndex++;
-      }
-      if (ignored.contains(bLine.trim())) {
-        anyIgnored = true;
-        bIndex++;
-      }
-      if (anyIgnored) continue;
-      if (aLine.trim() != bLine.trim()) {
-        return "Disagreement: '${aLine}' vs '${bLine}'";
-      }
-      aIndex++;
-      bIndex++;
-    }
-
-    // Any trailing lines?
-    while (aIndex < aLines.length) {
-      String aLine = aLines[aIndex];
-      if (doRemoveListenerArguments) {
-        aLine = removeListenerArguments(aLine);
-      }
-      if (ignored.contains(aLine.trim())) {
-        aIndex++;
-        continue;
-      }
-      return "Unmatched line at end: '$aLine'";
-    }
-    while (bIndex < bLines.length) {
-      String bLine = bLines[bIndex];
-      if (doRemoveListenerArguments) {
-        bLine = removeListenerArguments(bLine);
-      }
-      if (ignored.contains(bLine.trim())) {
-        bIndex++;
-        continue;
-      }
-      return "Unmatched line at end: '$bLine'";
-    }
-    return null;
-  }
-
-  String removeListenerArguments(String s) {
-    int index = s.indexOf("(");
-    if (index < 0) return s;
-    return s.substring(0, index);
-  }
-}
-
-extension on TestDescription {
-  FolderOptions computeFolderOptions(Context context) {
-    return context.folderOptions.computeFolderOptions(this);
-  }
-
-  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
-    Context context,
-  ) {
-    return computeFolderOptions(
-      context,
-    ).computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
   }
 }

@@ -18,8 +18,10 @@ import '../codes/cfe_codes.dart';
 import '../compute_platform_binaries_location.dart';
 import '../kernel_generator_impl.dart';
 
-typedef PerformAnalysisFunction =
-    void Function(DiagnosticMessageHandler onDiagnostic, Component component);
+typedef PerformAnalysisFunction = void Function(
+  DiagnosticMessageHandler onDiagnostic,
+  Component component,
+);
 typedef UriFilter = bool Function(Uri uri);
 
 /// Analysis the [entryPoints] using [performAnalysis].
@@ -65,15 +67,13 @@ Future<void> _runAnalysis(
   options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
   };
-  InternalCompilerResult compilerResult =
-      await kernelForProgramInternal(
-            entryPoints.first,
-            options,
-            retainDataForTesting: true,
-            requireMain: false,
-            additionalSources: entryPoints.skip(1).toList(),
-          )
-          as InternalCompilerResult;
+  InternalCompilerResult compilerResult = await kernelForProgramInternal(
+    entryPoints.first,
+    options,
+    retainDataForTesting: true,
+    requireMain: false,
+    additionalSources: entryPoints.skip(1).toList(),
+  ) as InternalCompilerResult;
 
   performAnalysis(options.onDiagnostic!, compilerResult.component!);
 }
@@ -236,8 +236,10 @@ class AnalysisInterface {
   }
 }
 
-typedef GeneralAnalysisFunction =
-    void Function(TreeNode node, AnalysisInterface interface);
+typedef GeneralAnalysisFunction = void Function(
+  TreeNode node,
+  AnalysisInterface interface,
+);
 
 /// Generalized analyzer that uses a single [GeneralAnalysisFunction] on all
 /// [TreeNode]s.

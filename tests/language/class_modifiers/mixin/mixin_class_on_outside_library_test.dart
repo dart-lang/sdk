@@ -6,9 +6,11 @@
 // of its library.
 
 import 'package:expect/expect.dart';
+
 import 'mixin_class_lib.dart';
 
 mixin MA on Class {}
+
 mixin MB on Class {}
 
 abstract class A extends Class {}

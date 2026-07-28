@@ -152,7 +152,7 @@ extension type N(Null _) implements B<Never> {}
   }
 
   test_instanceField_futureOfNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   Future<[!Null!]>? x;
 }
@@ -160,7 +160,7 @@ class C {
   }
 
   test_instanceField_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!Null!] x;
 }
@@ -168,7 +168,7 @@ class C {
   }
 
   test_instanceField_null_prefixed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:core' as core;
 class C {
   core.[!Null!] x;
@@ -199,7 +199,7 @@ void f() {
   }
 
   test_listLiteralTypeArg_null_nonEmpty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   <[!Null!]>[null];
 }
@@ -215,7 +215,7 @@ void f() {
   }
 
   test_localVariable_futureOfNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   Future<[!Null!]> x;
 }
@@ -231,7 +231,7 @@ void f() {
   }
 
   test_mapLiteralTypeArg_nullKey_nonEmpty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   <[!Null!], String>{null: "foo"};
 }
@@ -247,7 +247,7 @@ void f() {
   }
 
   test_mapLiteralTypeArg_nullValue_nonEmpty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   <String, [!Null!]>{"foo": null};
 }
@@ -255,7 +255,7 @@ void f() {
   }
 
   test_methodInvocation_typeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Future<void> p) {
   p.then<[!Null!]>((_) {});
 }
@@ -263,7 +263,7 @@ void f(Future<void> p) {
   }
 
   test_methodParameter_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void m([!Null!] x) {}
 }
@@ -283,7 +283,7 @@ class C {
   }
 
   test_methodReturnType_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!Null!] m() {}
 }
@@ -291,7 +291,7 @@ class C {
   }
 
   test_methodReturnType_null_prefixed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:core' as core;
 class C {
   core.[!Null!] m() {}
@@ -300,7 +300,7 @@ class C {
   }
 
   test_methodReturnType_overrideChangingType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 abstract class C {
   FutureOr<void>? m();
@@ -336,26 +336,26 @@ class C {
   }
 
   test_topLevelFunction_parameterType_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([!Null!] x) {}
 ''');
   }
 
   test_topLevelFunction_parameterType_null_prefixed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:core' as core;
 void f(core.[!Null!] x) {}
 ''');
   }
 
   test_topLevelFunction_returnType_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!Null!] f() {}
 ''');
   }
 
   test_topLevelFunction_returnType_null_prefixed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:core' as core;
 core.[!Null!] f() {}
 ''');
@@ -368,7 +368,7 @@ Null a;
   }
 
   test_topLevelVariable_functionReturnType_functionParameterType_futureOfNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function(Future<[!Null!]>)? f;
 ''');
   }
@@ -380,7 +380,7 @@ void Function(Null)? f;
   }
 
   test_topLevelVariable_functionReturnType_functionReturnType_futureOfNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<[!Null!]> Function()? f;
 ''');
   }
@@ -392,7 +392,7 @@ Null Function()? f;
   }
 
   test_topLevelVariable_futureOfNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<[!Null!]>? x;
 ''');
   }

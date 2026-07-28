@@ -50,6 +50,7 @@ namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
 class CodeDeserializationCluster;
 class CodeSourceMapDeserializationCluster;
+class CompressedStackMapsDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
@@ -175,7 +176,7 @@ enum TypedDataElementType {
   friend class object##MessageDeserializationCluster;                          \
   friend class Serializer;                                                     \
   friend class Deserializer;                                                   \
-  template <typename Base>                                                     \
+  template <typename Base, bool>                                               \
   friend class ObjectCopy;                                                     \
   friend class Pass2Visitor;
 
@@ -2474,6 +2475,7 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   friend class Object;
   friend class ImageWriter;
   friend class StackMapEntry;
+  friend class module_snapshot::CompressedStackMapsDeserializationCluster;
 };
 
 class UntaggedInstructionsTable : public UntaggedObject {
@@ -3704,8 +3706,9 @@ class UntaggedDynamicLibrary : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
-  bool isClosed_;
-  bool canBeClosed_;
+  Dart_NativeAssetsDlsymCallback dlsym_;
+  Dart_NativeAssetsDlcloseCallback dlclose_;
+  bool is_closed_;
 
   friend class DynamicLibrary;
 };

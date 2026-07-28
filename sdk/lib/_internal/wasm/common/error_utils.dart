@@ -10,7 +10,8 @@ import 'dart:_internal';
 /// They are designed such that
 ///   * actual index checks will be inlined
 ///   * the slow path (which throws) is outlined
-///   * in --minify mode the slow paths do not use the passed arguments
+///   * in --omit-error-details mode the slow paths do not use the passed
+///     arguments
 ///     => together with signature shaking the parameters will all be removed
 ///   * BCE methods: eliminate bounds checks iff `--omit-bounds-checks` is on
 ///
@@ -39,7 +40,8 @@ class IndexErrorUtils {
 /// They are designed such that
 ///   * actual index/range checks will be inlined
 ///   * the slow path (which throws) is outlined
-///   * in --minify mode the slow paths do not use the passed arguments
+///   * in --omit-error-details mode the slow paths do not use the passed
+///     arguments
 ///     => together with signature shaking the parameters will all be removed
 ///
 /// Most methods assume `length` or `max` values are non-negative.
@@ -127,7 +129,7 @@ class RangeErrorUtils {
 
 @pragma("wasm:never-inline")
 Never _throwIndexError(int invalidValue, int length, String? name) {
-  if (minify) throw _indexErrorWithoutDetails;
+  if (omitErrorDetails) throw _indexErrorWithoutDetails;
   throw IndexError.withLength(invalidValue, length, name: name);
 }
 
@@ -139,62 +141,62 @@ Never _throwRangeError(
   String? name,
   String? message,
 ]) {
-  if (minify) throw _rangeErrorWithoutDetails;
+  if (omitErrorDetails) throw _rangeErrorWithoutDetails;
   throw RangeError.range(invalidValue, min, max, name, message);
 }
 
 @pragma("wasm:never-inline")
 Never _throwRangeAlignmentError(int offset, int alignment) {
-  if (minify) throw _alignmentErrorWithoutDetails;
+  if (omitErrorDetails) throw _alignmentErrorWithoutDetails;
   throw RangeError('Offset ($offset) must be a multiple of $alignment');
 }
 
 @pragma("wasm:never-inline")
 Never _throwNegativeError(int value, [String? name]) {
-  if (minify) throw _negativeValueErrorWithoutDetails;
+  if (omitErrorDetails) throw _negativeValueErrorWithoutDetails;
   throw RangeError.range(value, 0, null, name);
 }
 
 @pragma("wasm:never-inline")
 Never _throwNegativeOrZeroError(int value, [String? name]) {
-  if (minify) throw _negativeOrZeroValueErrorWithoutDetails;
+  if (omitErrorDetails) throw _negativeOrZeroValueErrorWithoutDetails;
   throw RangeError.range(value, 1, null, name);
 }
 
 @pragma("wasm:never-inline")
 @pragma("wasm:entry-point")
 Never _throwArgumentNullError() {
-  if (minify) throw _nullErrorWithoutDetails;
+  if (omitErrorDetails) throw _nullErrorWithoutDetails;
   throw ArgumentError.notNull();
 }
 
 Never _throwLateErrorFieldADI(String fieldName) {
-  if (minify) throw _lateErrorFieldADI;
+  if (omitErrorDetails) throw _lateErrorFieldADI;
   throw LateError.fieldADI(fieldName);
 }
 
 Never _throwLateErrorLocalADI(String fieldName) {
-  if (minify) throw _lateErrorLocalADI;
+  if (omitErrorDetails) throw _lateErrorLocalADI;
   throw LateError.localADI(fieldName);
 }
 
 Never _throwLateErrorFieldNI(String fieldName) {
-  if (minify) throw _lateErrorFieldNI;
+  if (omitErrorDetails) throw _lateErrorFieldNI;
   throw LateError.fieldNI(fieldName);
 }
 
 Never _throwLateErrorLocalNI(String fieldName) {
-  if (minify) throw _lateErrorLocalNI;
+  if (omitErrorDetails) throw _lateErrorLocalNI;
   throw LateError.localNI(fieldName);
 }
 
 Never _throwLateErrorFieldAI(String fieldName) {
-  if (minify) throw _lateErrorFieldAI;
+  if (omitErrorDetails) throw _lateErrorFieldAI;
   throw LateError.fieldAI(fieldName);
 }
 
 Never _throwLateErrorLocalAI(String fieldName) {
-  if (minify) throw _lateErrorLocalAI;
+  if (omitErrorDetails) throw _lateErrorLocalAI;
   throw LateError.localAI(fieldName);
 }
 
@@ -202,58 +204,58 @@ Never _throwNoSuchMethodErrorWithInvocation(
   Object? receiver,
   Invocation invocation,
 ) {
-  if (minify) throw _noSuchMethodErrorWithoutDetails;
+  if (omitErrorDetails) throw _noSuchMethodErrorWithoutDetails;
   throw NoSuchMethodError.withInvocation(receiver, invocation);
 }
 
 Never _throwReachabilityError([String? _message]) {
-  if (minify) throw _reachabilityError;
+  if (omitErrorDetails) throw _reachabilityError;
   throw ReachabilityError(_message);
 }
 
 const _indexErrorWithoutDetails = _IndexErrorWithoutDetails();
 const _rangeErrorWithoutDetails = _RangeErrorWithoutDetails(
-  'RangeError (details omitted due to --minify)',
+  'RangeError (details omitted due to --omit-error-details)',
 );
 const _alignmentErrorWithoutDetails = _RangeErrorWithoutDetails(
-  'Offset had incorrect alignment (details omitted due to --minify)',
+  'Offset had incorrect alignment (details omitted due to --omit-error-details)',
 );
 const _negativeValueErrorWithoutDetails = _RangeErrorWithoutDetails(
-  'Value was negative (details omitted due to --minify)',
+  'Value was negative (details omitted due to --omit-error-details)',
 );
 const _negativeOrZeroValueErrorWithoutDetails = _RangeErrorWithoutDetails(
-  'Value was negative or zero (details omitted due to --minify)',
+  'Value was negative or zero (details omitted due to --omit-error-details)',
 );
 const _nullErrorWithoutDetails = _ArgumentErrorWithoutDetails(
-  'Value must not be null (details omitted due to --minify)',
+  'Value must not be null (details omitted due to --omit-error-details)',
 );
 
 const _lateErrorFieldADI = _LateErrorWithoutDetails(
-  'LateInitializationError: Field has been assigned during initialization (details omitted due to --minify)',
+  'LateInitializationError: Field has been assigned during initialization (details omitted due to --omit-error-details)',
 );
 
 const _lateErrorLocalADI = _LateErrorWithoutDetails(
-  'LateInitializationError: Local has been assigned during initialization (details omitted due to --minify)',
+  'LateInitializationError: Local has been assigned during initialization (details omitted due to --omit-error-details)',
 );
 
 const _lateErrorFieldNI = _LateErrorWithoutDetails(
-  'LateInitializationError: Field has not been initialized (details omitted due to --minify)',
+  'LateInitializationError: Field has not been initialized (details omitted due to --omit-error-details)',
 );
 
 const _lateErrorLocalNI = _LateErrorWithoutDetails(
-  'LateInitializationError: Local has not been initialized (details omitted due to --minify)',
+  'LateInitializationError: Local has not been initialized (details omitted due to --omit-error-details)',
 );
 
 const _lateErrorFieldAI = _LateErrorWithoutDetails(
-  'LateInitializationError: Field has already been initialized (details omitted due to --minify)',
+  'LateInitializationError: Field has already been initialized (details omitted due to --omit-error-details)',
 );
 
 const _lateErrorLocalAI = _LateErrorWithoutDetails(
-  'LateInitializationError: Local has already been initialized (details omitted due to --minify)',
+  'LateInitializationError: Local has already been initialized (details omitted due to --omit-error-details)',
 );
 
 const _reachabilityError = _LateErrorWithoutDetails(
-  'ReachabilityError (details omitted due to --minify)',
+  'ReachabilityError (details omitted due to --omit-error-details)',
 );
 
 const _noSuchMethodErrorWithoutDetails = _NoSuchMethodErrorWithoutDetails();
@@ -289,7 +291,7 @@ class _ArgumentErrorWithoutDetails extends _ErrorWithoutDetails
 class _IndexErrorWithoutDetails extends _ArgumentErrorWithoutDetails
     implements IndexError {
   const _IndexErrorWithoutDetails()
-    : super('IndexError (details omitted due to --minify)');
+    : super('IndexError (details omitted due to --omit-error-details)');
 
   @override
   int get start => throw _unsupportedErrorWithoutDetails;
@@ -324,13 +326,15 @@ class _RangeErrorWithoutDetails extends _ArgumentErrorWithoutDetails
 class _TypeErrorWithoutDetails extends _ErrorWithoutDetails
     implements TypeError {
   const _TypeErrorWithoutDetails()
-    : super('Runtime type check failed (details omitted due to --minify)');
+    : super(
+        'Runtime type check failed (details omitted due to --omit-error-details)',
+      );
 }
 
 class _NoSuchMethodErrorWithoutDetails extends _ErrorWithoutDetails
     implements NoSuchMethodError {
   const _NoSuchMethodErrorWithoutDetails()
-    : super('NoSuchMethodError (details omitted due to --minify)');
+    : super('NoSuchMethodError (details omitted due to --omit-error-details)');
 }
 
 class _LateErrorWithoutDetails extends _ErrorWithoutDetails
@@ -341,7 +345,7 @@ class _LateErrorWithoutDetails extends _ErrorWithoutDetails
 class _UnsupportedErrorWithoutDetails extends _ErrorWithoutDetails
     implements UnsupportedError {
   const _UnsupportedErrorWithoutDetails()
-    : super('UnsupportedError (details omitted due to --minify)');
+    : super('UnsupportedError (details omitted due to --omit-error-details)');
 
   @override
   String get message => _message;

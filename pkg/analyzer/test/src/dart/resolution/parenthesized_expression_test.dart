@@ -31,7 +31,7 @@ class A {
     assertResolvedNodeText(node, r'''
 ParenthesizedExpression
   leftParenthesis: (
-  expression: SuperExpression
+  expression2: SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )

@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't move the "Error" comments.
+// dart format off
+
 const a1 = 'outer a1';
 const b1 = 'outer b1';
 
@@ -9,7 +12,7 @@ test1(dynamic x) {
   return switch (x) {
     var a1 && == a1 => 0, // Error.
     var b1 && == b1 when b1 < 0 => 1, // Error.
-    _ => null
+    _ => null,
   };
 }
 

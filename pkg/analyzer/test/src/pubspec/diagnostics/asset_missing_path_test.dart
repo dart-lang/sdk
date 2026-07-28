@@ -34,7 +34,7 @@ name: sample
 flutter:
   assets:
     - flavors:
-// [diag.assetMissingPath][column 7][length 27] Asset map entry must contain a 'path' field.
+// [diag.assetMissingPath][column 7][length 26] Asset map entry must contain a 'path' field.
         - premium
 ''');
   }

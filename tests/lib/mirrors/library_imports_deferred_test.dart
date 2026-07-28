@@ -5,7 +5,9 @@
 library test.library_imports_deferred;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
+
 import 'stringify.dart';
 
 import 'dart:math' as eagermath;

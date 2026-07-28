@@ -25,13 +25,13 @@ dynamic f<T>(T? p) => p!;
   }
 
   test_expectedSameTypeVariable_arrow() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 T f<T>(T? p) => p[!!!];
 ''');
   }
 
   test_expectedSameTypeVariable_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<T>(T? p) {
   T t;
   t = p[!!!];
@@ -40,13 +40,13 @@ void f<T>(T? p) {
   }
 
   test_expectedSameTypeVariable_assignmentInDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<T>(T? p) { T t = p[!!!]; }
 ''');
   }
 
   test_expectedSameTypeVariable_block() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 T f<T>(T? p) { return p[!!!]; }
 ''');
   }
@@ -58,7 +58,7 @@ R f<P, R>(P? p) => p! as R;
   }
 
   test_inAssignmentToNonNullableField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> {
   late T t;
   void f(T? p) {
@@ -69,25 +69,25 @@ class C<T> {
   }
 
   test_inListLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<T> f<T>(T? p) => [p[!!/**/!]];
 ''');
   }
 
   test_inMapLiteralKey() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<T, String> f<T>(T? p) => {p[!!!]: ''};
 ''');
   }
 
   test_inMapLiteralValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, T> f<T>(T? p) => {'': p[!!!]};
 ''');
   }
 
   test_inSetLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Set<T> f<T>(T? p) => {p[!!!]};
 ''');
   }
@@ -111,19 +111,19 @@ T f<T>(T? p) => p!..toString();
   }
 
   test_inYieldAsync() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Stream<T> f<T>(T? p) async* {yield p[!!!];}
 ''');
   }
 
   test_inYieldSync() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Iterable<T> f<T>(T? p) sync* {yield p[!!!];}
 ''');
   }
 
   test_nullAssertPattern_ifCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f<T>(T? x){
   if (x case var y[!!!]) print(y);
 }
@@ -131,7 +131,7 @@ f<T>(T? x){
   }
 
   test_nullAssertPattern_list() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f<T>(List<T?> l){
   var [x[!!!], y] = l;
 }
@@ -152,7 +152,7 @@ f<T>(T? x){
   }
 
   test_nullAssertPattern_map() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f<T>(Map<String, T?> m){
   var {'x': y[!!!]} = m;
 }
@@ -160,7 +160,7 @@ f<T>(Map<String, T?> m){
   }
 
   test_nullAssertPattern_object() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A<E> {
   E? a;
   A(this.a);
@@ -173,7 +173,7 @@ f<T>(T? t, A<T> u) {
   }
 
   test_nullAssertPattern_record() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f<T>((T?, T?) p){
   var (x[!!!], y) = p;
 }
@@ -187,13 +187,13 @@ T f<T>(T p) => p!; // OK
   }
 
   test_typeParameterBoundToDynamic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 T f<T extends dynamic>(T? p) => p[!!!];
 ''');
   }
 
   test_typeParameterBoundToNullableObject() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 T f<T extends Object?>(T? p) => p[!!!];
 ''');
   }
@@ -205,13 +205,13 @@ T f<T extends Object>(T? p) => p!;
   }
 
   test_typeParameterExtendsNullableObject_inAwaited() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<T> f<T extends Object?>(T? p) async => await p[!!!];
 ''');
   }
 
   test_typeParameterExtendsNullableObject_inAwaitedInList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<List<T>> f<T extends Object?>(T? p) async => await [p[!!/**/!]];
 ''');
   }

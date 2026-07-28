@@ -119,28 +119,50 @@ class MemoryByteStore implements ByteStore {
 class MemoryCachingByteStore implements ByteStore {
   final ByteStore _store;
   final Cache<String, Uint8List> _cache;
+  int _cacheHitCount = 0;
+  int _cacheMissCount = 0;
+  int _putCount = 0;
+  int _storeHitCount = 0;
+  int _storeMissCount = 0;
 
   MemoryCachingByteStore(this._store, int maxSizeBytes)
     : _cache = Cache<String, Uint8List>(maxSizeBytes, (v) => v.length);
+
+  int get cacheHitCount => _cacheHitCount;
+  int get cacheMissCount => _cacheMissCount;
+  int get currentSizeBytes => _cache.currentSizeBytes;
+  int get entryCount => _cache.entryCount;
+  int get evictedBytes => _cache.evictedBytes;
+  int get evictedEntryCount => _cache.evictedEntryCount;
+  int get evictionCount => _cache.evictionCount;
+  int get maxSizeBytes => _cache.maxSizeBytes;
+  int get putCount => _putCount;
+  int get storeHitCount => _storeHitCount;
+  int get storeMissCount => _storeMissCount;
 
   @override
   Uint8List? get(String key) {
     var cached = _cache.get(key);
     if (cached != null) {
+      _cacheHitCount++;
       return cached;
     }
 
+    _cacheMissCount++;
     var fromStore = _store.get(key);
     if (fromStore != null) {
+      _storeHitCount++;
       _cache.put(key, fromStore);
       return fromStore;
     }
 
+    _storeMissCount++;
     return null;
   }
 
   @override
   Uint8List putGet(String key, Uint8List bytes) {
+    _putCount++;
     _store.putGet(key, bytes);
     _cache.put(key, bytes);
     return bytes;

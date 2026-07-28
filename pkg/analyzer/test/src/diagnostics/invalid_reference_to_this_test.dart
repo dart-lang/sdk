@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidReferenceToThisTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -99,7 +101,6 @@ class A(num a) {
     await resolveTestCodeWithDiagnostics(r'''
 class A([int p = this]) {}
 //               ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 ''');
   }
@@ -383,7 +384,6 @@ enum E([int p = this]) {
 //          ^
 // [diag.unusedElementParameter] A value for optional parameter 'p' isn't ever given.
 //              ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
   v;
 }
@@ -745,7 +745,6 @@ extension type E(int it) {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E([int it = this]) {}
 //                         ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 ''');
   }
@@ -1036,12 +1035,19 @@ mixin M {
   }
 
   test_topLevelFunction__body() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 void f() {
   this;
 //^^^^
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 }
+''');
+
+    var node = result.findNode.singleThisExpression;
+    assertResolvedNodeText(node, r'''
+ThisExpression
+  thisKeyword: this
+  staticType: InvalidType
 ''');
   }
 
@@ -1049,7 +1055,6 @@ void f() {
     await resolveTestCodeWithDiagnostics('''
 void f([Object p = this]) {}
 //                 ^^^^
-// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
 // [diag.invalidReferenceToThis] Invalid reference to 'this' expression.
 ''');
   }

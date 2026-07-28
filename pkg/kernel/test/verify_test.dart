@@ -35,7 +35,7 @@ void main() {
     return variable;
   }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
   negative1Test('Variable block scope', (TestHarness test) {
-    Variable variable = test.makeVariable();
+    DeclaredVariable variable = test.makeVariable();
     test.addNode(
       Block([
         new Block([new VariableStatement(VariableDeclaration(variable))]),
@@ -785,7 +785,7 @@ void main() {
     },
     (Node? foo) =>
         "${errorPrefix}"
-        "Unset bound on type parameter NominalTypeParameter(Foo.T)",
+        "Unset bound on type parameter NominalParameter(Foo.T)",
   );
   negative1Test(
     'Unset default type typedef Foo<T> = dynamic',
@@ -803,7 +803,7 @@ void main() {
     },
     (Node? foo) =>
         "${errorPrefix}"
-        "Unset default type on type parameter NominalTypeParameter(Foo.T)",
+        "Unset default type on type parameter NominalParameter(Foo.T)",
   );
   negative1Test(
     'Non-static top-level field',

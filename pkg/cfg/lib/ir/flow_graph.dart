@@ -96,14 +96,15 @@ class FlowGraph extends Uint32Arena {
     postorder.clear();
 
     final stack = <(Block, int)>[];
-    _discoverBlock(null, entryBlock);
+    final oldPredecessors = <JoinBlock, List<Block>>{};
+    _discoverBlock(null, entryBlock, oldPredecessors);
     stack.add((entryBlock, entryBlock.successors.length - 1));
     while (stack.isNotEmpty) {
       final (block, successorIndex) = stack.removeLast();
       if (successorIndex >= 0) {
         stack.add((block, successorIndex - 1));
         final successor = block.successors[successorIndex];
-        if (_discoverBlock(block, successor)) {
+        if (_discoverBlock(block, successor, oldPredecessors)) {
           stack.add((successor, successor.successors.length - 1));
         }
       } else {
@@ -113,6 +114,10 @@ class FlowGraph extends Uint32Arena {
       }
     }
     assert(postorder.length == preorder.length);
+
+    for (final e in oldPredecessors.entries) {
+      _reorderPhiInputs(e.key, e.value);
+    }
 
     invalidateDominators();
     invalidateLoops();
@@ -136,7 +141,11 @@ class FlowGraph extends Uint32Arena {
   /// [FlowGraph.preorder].
   /// Returns true when called the first time on this particular block
   /// within one graph traversal, and false on all successive calls.
-  bool _discoverBlock(Block? predecessor, Block block) {
+  bool _discoverBlock(
+    Block? predecessor,
+    Block block,
+    Map<JoinBlock, List<Block>> oldPredecessors,
+  ) {
     // If this block has a predecessor (i.e., is not the graph entry) we can
     // assume the preorder array is non-empty.
     assert(predecessor == null || preorder.isNotEmpty);
@@ -150,8 +159,11 @@ class FlowGraph extends Uint32Arena {
       return false;
     }
 
-    // Otherwise, clear the predecessors which might have been computed on
-    // some earlier call to DiscoverBlocks and record this predecessor.
+    // Save old list of predecessors as it defines order of Phi inputs.
+    if (block is JoinBlock && block.hasPhis) {
+      assert(block.predecessors.isNotEmpty);
+      oldPredecessors[block] = List<Block>.of(block.predecessors);
+    }
     block.predecessors.clear();
     if (predecessor != null) block.predecessors.add(predecessor);
 
@@ -160,6 +172,37 @@ class FlowGraph extends Uint32Arena {
     preorder.add(block);
 
     return true;
+  }
+
+  /// Reorder inputs of Phi instructions in the JoinBlock
+  /// if its predecessors where reordered during [discoverBlocks].
+  void _reorderPhiInputs(JoinBlock block, List<Block> oldPreds) {
+    final newPreds = block.predecessors;
+    final n = newPreds.length;
+    assert(oldPreds.length == n);
+    var sameOrder = true;
+    for (var i = 0; i < n; ++i) {
+      if (newPreds[i] != oldPreds[i]) {
+        sameOrder = false;
+        break;
+      }
+    }
+    if (sameOrder) {
+      return;
+    }
+    final permutation = [for (final pred in newPreds) oldPreds.indexOf(pred)];
+    final inputs = List<Definition?>.filled(n, null);
+    for (final phi in block.phis) {
+      assert(phi.inputCount == n);
+      for (var i = 0; i < n; ++i) {
+        phi.removeInputFromUseList(i);
+        inputs[i] = phi.inputDefAt(i);
+      }
+      for (var i = 0; i < n; ++i) {
+        phi.setInputAt(i, inputs[permutation[i]]!);
+        phi.addInputToUseList(i);
+      }
+    }
   }
 
   /// Returns dominators for this graph, computing them if necessary.

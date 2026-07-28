@@ -69,10 +69,8 @@ void main() {
       isFalse,
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(0, createList([(20, 30)]), 0),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(0, createList([(20, 30)]), 0),
       equals(-1),
     );
 
@@ -81,17 +79,13 @@ void main() {
       isTrue,
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(0, createList([(5, 45)]), 0),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(0, createList([(5, 45)]), 0),
       equals(10),
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(1, createList([(5, 45)]), 0),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(1, createList([(5, 45)]), 0),
       equals(30),
     );
 
@@ -100,10 +94,8 @@ void main() {
       isTrue,
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(0, createList([(35, 36)]), 0),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(0, createList([(35, 36)]), 0),
       equals(35),
     );
 
@@ -112,46 +104,34 @@ void main() {
       isTrue,
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(0, createList([(15, 35)]), 0),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(0, createList([(15, 35)]), 0),
       equals(15),
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(1, createList([(15, 35)]), 0),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(1, createList([(15, 35)]), 0),
       equals(30),
     );
 
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).intersects(createList([(21, 22), (25, 26), (39, 41)])),
+      createList([(10, 20), (30, 40)])
+          .intersects(createList([(21, 22), (25, 26), (39, 41)])),
       isTrue,
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(0, createList([(21, 22), (25, 26), (39, 41)]), 0),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(0, createList([(21, 22), (25, 26), (39, 41)]), 0),
       equals(39),
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(0, createList([(21, 22), (25, 26), (39, 41)]), 1),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(0, createList([(21, 22), (25, 26), (39, 41)]), 1),
       equals(39),
     );
     expect(
-      createList([
-        (10, 20),
-        (30, 40),
-      ]).firstIntersection(1, createList([(21, 22), (25, 26), (39, 41)]), 2),
+      createList([(10, 20), (30, 40)])
+          .firstIntersection(1, createList([(21, 22), (25, 26), (39, 41)]), 2),
       equals(39),
     );
   });

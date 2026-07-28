@@ -47,7 +47,7 @@ void f(Map<String, int>? people) {
   }
 
   test_functionExpression_targetDoesNotHaveMethodChain() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<List<String>> people) {
   people
       .first
@@ -91,7 +91,7 @@ void f(List<String> people) {
   }
 
   test_functionExpression_targetInIrrelevantNestedCascade() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<List<List<String>>> lists) {
   final lists2 = lists..forEach((list) {
     list.[!forEach!]((item) {
@@ -103,7 +103,7 @@ void f(List<List<List<String>>> lists) {
   }
 
   test_functionExpressionWithBlockBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String> people) {
   people.[!forEach!]((person) {
     print('$person!');
@@ -113,7 +113,7 @@ void f(List<String> people) {
   }
 
   test_functionExpressionWithExpressionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String> people) {
   people.[!forEach!]((person) => print('$person!'));
 }

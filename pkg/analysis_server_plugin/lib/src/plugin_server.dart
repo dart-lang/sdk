@@ -29,9 +29,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -105,6 +105,11 @@ class PluginServer {
   /// [AnalysisDriverScheduler.events] Stream. This must be cancelled when
   /// [_contextCollection] is disposed.
   StreamSubscription<Object>? _eventsSubscription;
+
+  /// Whether we have received an 'analysis.setAnalysisRoots' request.
+  ///
+  /// If we have, we can ignore 'analysis.setContextRoots' requests.
+  bool _receivedAnalysisRoots = false;
 
   /// Whether to fall back to the global [Registry.ruleRegistry] if a plugin
   /// registry is not found by name.
@@ -255,6 +260,8 @@ class PluginServer {
     var lineInfo = unitResult.lineInfo;
     var requestLine = lineInfo.getLocation(offset).lineNumber;
 
+    var diagnostics = errors.map((e) => e.diagnostic);
+
     var lintAtOffset = errors.where((error) {
       var errorLine = lineInfo.getLocation(error.diagnostic.offset).lineNumber;
       return errorLine == requestLine;
@@ -279,7 +286,7 @@ class PluginServer {
       try {
         // TODO(srawlins): Somehow wrap each ProducerGenerator invocation in a
         // zone, to support `print` capturing per-plugin.
-        fixes = await computeFixes(context);
+        fixes = await computeFixes(context, diagnostics: diagnostics);
       } on InconsistentAnalysisException {
         // TODO(srawlins): Is it important to at least log this? Or does it
         // happen on the regular?
@@ -613,6 +620,48 @@ class PluginServer {
     return severity;
   }
 
+  Future<void> _createContextCollection(List<String> includedPaths) async {
+    if (_contextCollection case var contextCollection?) {
+      _contextCollection = null;
+      await contextCollection.dispose();
+    }
+    if (_eventsSubscription case var eventsSubscription?) {
+      _eventsSubscription = null;
+      await eventsSubscription.cancel();
+    }
+
+    var contextCollection = AnalysisContextCollectionImpl(
+      resourceProvider: _resourceProvider,
+      includedPaths: includedPaths,
+      byteStore: _byteStore,
+      sdkPath: _sdkPath,
+      fileContentCache: FileContentCache(_resourceProvider),
+      configureAnalysisOptionsBuilder:
+          // Disable extra warning computation and lint computation, because
+          // these are reported in the main analysis server isolate, not in the
+          // plugins isolate.
+          ({required analysisOptionsBuilder}) => analysisOptionsBuilder
+            ..warning = false
+            ..lint = false,
+      withFineDependencies: true,
+      drainStreams: false,
+    );
+    _contextCollection = contextCollection;
+    _updatePriorityFiles();
+    _eventsSubscription = contextCollection.scheduler.events.listen((event) {
+      if (event is ResolvedUnitResult) {
+        _handleResolvedUnit(event);
+      } else if (event is AnalysisStatus) {
+        _handleAnalysisStatus(event);
+      } else if (event is ErrorsResult) {
+        _handleErrorsResult(event);
+      }
+    });
+    await _analyzeAllFilesInContextCollection(
+      contextCollection: contextCollection,
+    );
+  }
+
   /// Invokes [fn] first for priority analysis contexts, then for the rest.
   Future<void> _forAnalysisContexts(
     AnalysisContextCollectionImpl contextCollection,
@@ -643,9 +692,10 @@ class PluginServer {
         result = await _handleAnalysisWatchEvents(params);
 
       case protocol.ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
-        // This request is for legacy plugins. New plugins use
-        // `protocol.ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS`.
-        result = null;
+        var params = protocol.AnalysisSetContextRootsParams.fromRequest(
+          request,
+        );
+        result = await _handleAnalysisSetContextRoots(params);
 
       case protocol.ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS:
         var params = protocol.AnalysisSetAnalysisRootsParams.fromRequest(
@@ -728,47 +778,24 @@ class PluginServer {
   _handleAnalysisSetAnalysisRoots(
     protocol.AnalysisSetAnalysisRootsParams parameters,
   ) async {
-    if (_contextCollection case var contextCollection?) {
-      _contextCollection = null;
-      await contextCollection.dispose();
-    }
-    if (_eventsSubscription case var eventsSubscription?) {
-      _eventsSubscription = null;
-      await eventsSubscription.cancel();
-    }
-
-    var contextCollection = AnalysisContextCollectionImpl(
-      resourceProvider: _resourceProvider,
-      includedPaths: parameters.included,
-      byteStore: _byteStore,
-      sdkPath: _sdkPath,
-      fileContentCache: FileContentCache(_resourceProvider),
-      configureAnalysisOptionsBuilder:
-          // Disable extra warning computation and lint computation, because
-          // these are reported in the main analysis server isolate, not in the
-          // plugins isolate.
-          ({required analysisOptionsBuilder}) => analysisOptionsBuilder
-            ..warning = false
-            ..lint = false,
-      withFineDependencies: true,
-      drainStreams: false,
-    );
-    _contextCollection = contextCollection;
-    _updatePriorityFiles();
-    _eventsSubscription = contextCollection.scheduler.events.listen((event) {
-      if (event is ResolvedUnitResult) {
-        _handleResolvedUnit(event);
-      } else if (event is AnalysisStatus) {
-        _handleAnalysisStatus(event);
-      } else if (event is ErrorsResult) {
-        _handleErrorsResult(event);
-      }
-    });
-    await _analyzeAllFilesInContextCollection(
-      contextCollection: contextCollection,
-    );
-
+    _receivedAnalysisRoots = true;
+    await _createContextCollection(parameters.included);
     return protocol.AnalysisSetAnalysisRootsResult();
+  }
+
+  /// Handles an 'analysis.setContextRoots' request.
+  Future<protocol.AnalysisSetContextRootsResult> _handleAnalysisSetContextRoots(
+    protocol.AnalysisSetContextRootsParams parameters,
+  ) async {
+    // Allow any "simultaneous" requests to be processed.
+    await Future<void>.delayed(Duration.zero);
+    if (_receivedAnalysisRoots) {
+      return protocol.AnalysisSetContextRootsResult();
+    }
+
+    var includedPaths = parameters.roots.map((e) => e.root).toList();
+    await _createContextCollection(includedPaths);
+    return protocol.AnalysisSetContextRootsResult();
   }
 
   void _handleAnalysisStatus(AnalysisStatus status) {

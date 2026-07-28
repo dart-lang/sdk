@@ -5,6 +5,7 @@
 library test.private_types;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 typedef int _F(int i);

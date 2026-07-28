@@ -16,6 +16,7 @@ mixin Mixin {
 }
 
 mixin MA on Class {}
+
 mixin MB on Class {}
 
 abstract class A extends Class {}

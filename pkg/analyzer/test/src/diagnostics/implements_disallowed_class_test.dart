@@ -133,7 +133,7 @@ class A implements String {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_class_String_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}

@@ -6,6 +6,7 @@ library tests.html.events_test;
 
 import 'dart:async';
 import 'dart:html';
+
 import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 import 'package:expect/expect.dart';
 

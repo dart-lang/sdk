@@ -126,9 +126,8 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
             insertLeadingComma = arguments.length > 1;
           }
         }
-        if (lastArgument.endToken.next case Token(
-          type: TokenType.COMMA,
-        ) when !insertBetweenFlutterParams) {
+        if (lastArgument.endToken.next case Token(type: TokenType.COMMA)
+            when !insertBetweenFlutterParams) {
           // If there is a trailing comma after the last argument, don't add
           // another one.
           insertFlutterTrailingComma = false;

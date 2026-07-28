@@ -335,16 +335,23 @@ class JsInteropChecks extends RecursiveVisitor {
     } else {
       _checkJsInteropOperator(node);
 
-      // Check JS Interop positional and named parameters. Literal constructors
-      // can only have named parameters, and every other interop member can only
-      // have positional parameters.
-      final isObjectLiteralConstructor =
+      final isConstructor =
           node.isExtensionTypeMember &&
           (extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
                   ExtensionTypeMemberKind.Constructor ||
               extensionIndex.getExtensionTypeDescriptor(node)!.kind ==
-                  ExtensionTypeMemberKind.Factory) &&
-          node.function.namedParameters.isNotEmpty;
+                  ExtensionTypeMemberKind.Factory);
+
+      // `@JS` annotations on extension type constructors have no effect.
+      if (isConstructor && hasJSInteropAnnotation(node)) {
+        report(diag.jsInteropExtensionConstructorJsAnnotationHasNoEffect);
+      }
+
+      // Check JS Interop positional and named parameters. Literal constructors
+      // can only have named parameters, and every other interop member can only
+      // have positional parameters.
+      final isObjectLiteralConstructor =
+          isConstructor && node.function.namedParameters.isNotEmpty;
       final isAnonymousFactory = _classHasAnonymousAnnotation && node.isFactory;
       if (isObjectLiteralConstructor || isAnonymousFactory) {
         _checkLiteralConstructorHasNoPositionalParams(
@@ -873,7 +880,7 @@ class JsInteropChecks extends RecursiveVisitor {
                   : 'Object literal constructors',
             ),
         firstPositionalParam.fileOffset,
-        firstPositionalParam.name!.length,
+        firstPositionalParam.cosmeticName!.length,
         firstPositionalParam.location!.file,
       );
     }
@@ -886,7 +893,7 @@ class JsInteropChecks extends RecursiveVisitor {
       _reporter.report(
         diag.jsInteropNamedParameters,
         firstNamedParam.fileOffset,
-        firstNamedParam.name!.length,
+        firstNamedParam.parameterName.length,
         firstNamedParam.location!.file,
       );
     }
@@ -899,11 +906,11 @@ class JsInteropChecks extends RecursiveVisitor {
       ...node.positionalParameters,
       ...node.namedParameters,
     ]) {
-      if (param.hasDeclaredInitializer) {
+      if (param.hasDeclaredDefaultValue) {
         _reporter.report(
           diag.jsInteropStaticInteropParameterInitializersAreIgnored,
           param.fileOffset,
-          param.name!.length,
+          param.cosmeticName!.length,
           param.location!.file,
         );
       }

@@ -143,25 +143,32 @@ void Function() _microtaskEntryCallback(_AsyncCallbackEntry entry) =>
 /// better asynchronous code with fewer surprises.
 @pragma('vm:entry-point', 'call')
 void scheduleMicrotask(void Function() callback) {
-  _Zone currentZone = Zone._current;
+  Zone currentZone = Zone._current;
   if (identical(_rootZone, currentZone)) {
-    // No need to bind the callback. We know that the root's scheduleMicrotask
-    // will be invoked in the root zone.
-    _rootScheduleMicrotask(null, null, _rootZone, callback);
+    // We know register has no effect, run just calls the function,
+    // and `_rootScheduleMicrotask` will run its code in the root zone.
+    // No need to do anything extra,
+    _rootScheduleMicrotask(_rootZone, callback);
     return;
   }
-  _ZoneFunction implementation = currentZone._scheduleMicrotask;
-  if (identical(_rootZone, implementation.zone) &&
-      _rootZone.inSameErrorZone(currentZone)) {
+  if (currentZone._scheduleMicrotaskFunction == null &&
+      currentZone._handleUncaughtErrorFunction == null) {
+    // No overrides of schedule microtask and not in other error zone.
+    // Just register.
     _rootScheduleMicrotask(
-      null,
-      null,
       currentZone,
-      currentZone.registerCallback(callback),
+      currentZone._registerCallbackZoned(currentZone, callback),
     );
     return;
   }
-  Zone.current.scheduleMicrotask(Zone.current.bindCallbackGuarded(callback));
+  // SHOULD NOT BE BINDING!
+  // The binding should only happen in `_rootScheduleMicrotask`,
+  // as an implementation detail. The wrapped function should not
+  // be passed to intermediate `scheduleMicrotask` handlers.
+  currentZone._scheduleMicrotaskZoned(
+    currentZone,
+    currentZone.bindCallbackGuarded(callback),
+  );
 }
 
 class _AsyncRun {

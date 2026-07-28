@@ -15,7 +15,6 @@ error() {
   expect(null, GenericExtension<double>(genericClass).setter = null);
 }
 
-
 expect(expected, actual) {
   if (expected != actual) {
     throw 'Mismatch: expected=$expected, actual=$actual';

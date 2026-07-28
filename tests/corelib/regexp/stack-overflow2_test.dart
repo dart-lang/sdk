@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'v8_regexp_utils.dart';
+
 import 'package:expect/expect.dart';
 
 // Failing tests extracted from pcre_test.dart. Large generated functions

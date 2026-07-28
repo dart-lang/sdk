@@ -345,9 +345,9 @@ class DateTime implements Comparable<DateTime> {
       int milliAndMicroseconds = parseMilliAndMicroseconds(match[7]);
       int millisecond =
           milliAndMicroseconds ~/ Duration.microsecondsPerMillisecond;
-      int microsecond =
-          milliAndMicroseconds.remainder(Duration.microsecondsPerMillisecond)
-              as int;
+      int microsecond = milliAndMicroseconds.remainder(
+        Duration.microsecondsPerMillisecond,
+      ) as int;
       bool isUtc = false;
       if (match[8] != null) {
         // timezone part

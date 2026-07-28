@@ -299,9 +299,10 @@ class ResidentCompiler {
   ) async {
     final List<Uri> sourcesToRecompile = <Uri>[];
     for (Uri uri in trackedSources) {
-      final DateTime sourceModifiedTime = new File(
-        uri.toFilePath(),
-      ).statSync().modified.floorTime();
+      final DateTime sourceModifiedTime = new File(uri.toFilePath())
+          .statSync()
+          .modified
+          .floorTime();
       if (!lastKernelCompileTime.isAfter(sourceModifiedTime)) {
         sourcesToRecompile.add(uri);
       }

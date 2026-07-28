@@ -27,11 +27,17 @@ B1<T> contextB1<T>(B1<T> x) => x;
 test(int i) {
   var c1Int = C1<int>();
   var c2Double = C2<double>();
-  contextB1(switch (i) { 0 => c1Int, _ => c2Double });
+  contextB1(switch (i) {
+    0 => c1Int,
+    _ => c2Double,
+  });
 
   var iterableInt = <int>[] as Iterable<int>;
   var listNum = <num>[];
-  contextIterable<num>(switch (i) { 0 => iterableInt, _ => listNum });
+  contextIterable<num>(switch (i) {
+    0 => iterableInt,
+    _ => listNum,
+  });
 }
 
 main() {

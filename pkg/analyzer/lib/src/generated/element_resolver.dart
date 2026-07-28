@@ -126,6 +126,18 @@ class ElementResolver {
     }
   }
 
+  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
+    var invokedConstructor = node.constructorReference.element;
+    var argumentList = node.argumentList;
+    var parameters = _resolveArgumentsToFunction(
+      argumentList,
+      invokedConstructor,
+    );
+    if (parameters != null) {
+      argumentList.correspondingStaticParameters = parameters;
+    }
+  }
+
   void visitConstructorName(covariant ConstructorNameImpl node) {
     var type = node.type.type;
     if (type == null) {
@@ -233,20 +245,6 @@ class ElementResolver {
     }
   }
 
-  void visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    var invokedConstructor = node.constructorName.element;
-    var argumentList = node.argumentList;
-    var parameters = _resolveArgumentsToFunction(
-      argumentList,
-      invokedConstructor,
-    );
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
-    }
-  }
-
   void visitLibraryDirective(LibraryDirective node) {}
 
   void visitMethodDeclaration(MethodDeclaration node) {}
@@ -282,26 +280,25 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
   ) {
-    var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl) {
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
     ConstructorElementImpl? element;
-    var name = node.constructorName;
+    var selector = node.constructorSelector;
+    var name = selector?.name2.lexeme;
     if (name == null) {
-      element = enclosingClass.unnamedConstructor;
+      element = enclosingInterface.unnamedConstructor;
     } else {
-      element = enclosingClass.getNamedConstructor(name.name);
+      element = enclosingInterface.getNamedConstructor(name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to
       // associate with the node.
       return;
     }
-    if (name != null) {
-      name.element = element;
-    }
+    selector?.name.element = element;
     node.element = element;
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
@@ -315,24 +312,24 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
   ) {
-    var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl) {
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    var superType = enclosingClass.supertype;
+    var superType = enclosingInterface.supertype;
     if (superType == null) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    var name = node.constructorName;
-    var superName = name?.name;
+    var selector = node.constructorSelector;
+    var superName = selector?.name2.lexeme;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
-      if (name != null) {
+      if (superName != null) {
         _diagnosticReporter.report(
           diag.undefinedConstructorInInitializer
-              .withArguments(type: superType, constructorName: name.name)
+              .withArguments(type: superType, constructorName: superName)
               .at(node),
         );
       } else {
@@ -356,13 +353,11 @@ class ElementResolver {
         );
       }
     }
-    if (name != null) {
-      name.element = element;
-    }
+    selector?.name.element = element;
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
-    var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var declaration = node.thisOrAncestorOfType2<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
         _resolver.libraryFragment.shouldIgnoreUndefinedNamedType(
@@ -375,8 +370,8 @@ class ElementResolver {
       argumentList,
       element,
       enclosingConstructorFormalParameterList:
-          node.parent.tryCast<ConstructorDeclarationImpl>()?.parameters ??
-          node.parent
+          node.parent2.tryCast<ConstructorDeclarationImpl>()?.parameters ??
+          node.parent2
               .tryCast<PrimaryConstructorBodyImpl>()
               ?.declaration
               ?.formalParameters,

@@ -866,6 +866,7 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
       _findExtensionTypeMember(node);
     }
     classTypeParametersAreInScope = !node.isStatic;
+    node.thisVariable?.accept(this);
     node.initializer?.accept(this);
     node.type.accept(this);
     classTypeParametersAreInScope = false;
@@ -1085,9 +1086,9 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
           positionalIndex++
         ) {
           if (positionalIndex >= node.requiredParameterCount) {
-            Variable positionalParameter =
+            PositionalParameter positionalParameter =
                 node.positionalParameters[positionalIndex];
-            if (positionalParameter.initializer == null &&
+            if (positionalParameter.defaultValue == null &&
                 // Global transformations like TFA may not maintain this
                 // invariant.
                 stage != VerificationStage.afterGlobalTransformations) {
@@ -1099,9 +1100,9 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
             }
           }
         }
-        for (Variable namedParameter in node.namedParameters) {
+        for (NamedParameter namedParameter in node.namedParameters) {
           if (!namedParameter.isRequired &&
-              namedParameter.initializer == null &&
+              namedParameter.defaultValue == null &&
               // Global transformations like TFA may not maintain this
               // invariant.
               stage != VerificationStage.afterGlobalTransformations) {
@@ -1287,7 +1288,17 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
   void visitLateVariable(LateVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
     _verifyVariable(node);
   }
 
@@ -1478,7 +1489,9 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
       NamedExpression argument = arguments.named[i];
       String name = argument.name;
       for (int j = 0; j < function.namedParameters.length; ++j) {
-        if (function.namedParameters[j].name == name) continue namedLoop;
+        if (function.namedParameters[j].parameterName == name) {
+          continue namedLoop;
+        }
       }
       return false;
     }
@@ -2259,10 +2272,18 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 }
 
+class StaticTypeError {
+  TreeNode context;
+  String message;
+
+  new({required this.context, required this.message});
+}
+
 class VerifyGetStaticType extends RecursiveVisitor {
   final TypeEnvironment env;
   Member? currentMember;
   final StatefulStaticTypeContext _staticTypeContext;
+  final List<StaticTypeError> errors = [];
 
   new(this.env)
     : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
@@ -2305,6 +2326,22 @@ class VerifyGetStaticType extends RecursiveVisitor {
   void visitLet(Let node) {
     if (_isCompileTimeErrorEncoding(node)) return;
     super.visitLet(node);
+  }
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    if (node.isCovarianceCheck &&
+        node.operand.getStaticType(_staticTypeContext) == node.type) {
+      String message =
+          "The operand of the as-check with isCovarianceCheck flag set has the "
+          "same static type as the target type of the check. "
+          "Operand node kind is '${node.operand.runtimeType}'. Target check "
+          "type is '${node.type}'.";
+      errors.add(new StaticTypeError(context: node, message: message));
+      // TODO(cstefantsova): Make sure the 'errors' are reported, then remove
+      // the throw statement below.
+      throw message;
+    }
   }
 
   @override

@@ -18,7 +18,7 @@ class UnnecessaryLibraryNameTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_library_name;
 
   test_namedLibrary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 library [!name!];
 ''');
   }

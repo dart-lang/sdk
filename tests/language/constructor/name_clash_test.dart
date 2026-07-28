@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'name_clash_lib.dart' as lib;
 
 class A extends lib.A {

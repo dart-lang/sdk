@@ -14,12 +14,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 Future<SourceEdit?> buildEditForInsertedConstructor(
   CompilationUnitMember container,
   void Function(DartEditBuilder builder) buildEdit, {
+  bool isNamed = false,
   required ResolvedUnitResult resolvedUnit,
   required AnalysisSession session,
 }) async {
   var builder = ChangeBuilder(session: session);
   await builder.addDartFileEdit(resolvedUnit.path, (builder) {
-    builder.insertConstructor(container, buildEdit);
+    builder.insertConstructor(container, buildEdit, isNamed: isNamed);
   });
   var fileEdit = builder.sourceChange.getFileEdit(resolvedUnit.path);
   if (fileEdit == null) {

@@ -193,7 +193,7 @@ include:
 
   Future<void> test_unignorable() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       cannotIgnore: ['unused_local_variable'],
     );
 
@@ -221,7 +221,7 @@ class IgnoreDiagnosticFileTest extends FixProcessorTest {
 
   Future<void> test_cannotIgnore_other() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       cannotIgnore: ['unused_label'],
     );
 
@@ -335,7 +335,7 @@ var _a = 1;''');
 
   Future<void> test_unignorable() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       cannotIgnore: ['unused_local_variable'],
     );
 
@@ -355,7 +355,7 @@ class IgnoreDiagnosticLineTest extends FixProcessorTest {
 
   Future<void> test_cannotIgnore_other() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       cannotIgnore: ['unused_label'],
     );
 
@@ -401,7 +401,7 @@ void f() {
 
   Future<void> test_unignorable() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       cannotIgnore: ['unused_local_variable'],
     );
 

@@ -5,6 +5,7 @@
 // The view implementation requires flattening views of views.
 
 import "dart:typed_data";
+
 import "package:expect/expect.dart";
 
 const int kListSize = 100;

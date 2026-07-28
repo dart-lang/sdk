@@ -13,14 +13,15 @@ import 'package:path/path.dart';
 /// package.
 List<GeneratedContent> allTargetsForPackage(
   String packageName, {
-  ApiSummaryCustomizer Function()? createCustomizer,
+  ApiSummaryCustomizer? customizer,
 }) => [
   GeneratedFile('$packageName/api.txt', (pkgRoot) async {
     var packagePath = join(pkgRoot, packageName);
-    return await summarizePackage(
+    var summary = await apiSummary(
       packagePath,
-      packageName,
-      createCustomizer: createCustomizer,
+      packageName: packageName,
+      customizer: customizer,
     );
+    return summary.toString();
   }),
 ];

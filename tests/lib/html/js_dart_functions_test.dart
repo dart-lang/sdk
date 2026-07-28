@@ -50,9 +50,19 @@ main() {
   });
 
   test('invoke Dart callback from JS with 11 parameters', () {
-    context['callbackWith11params'] =
-        (p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) =>
-            '$p1$p2$p3$p4$p5$p6$p7$p8$p9$p10$p11';
+    context['callbackWith11params'] = (
+      p1,
+      p2,
+      p3,
+      p4,
+      p5,
+      p6,
+      p7,
+      p8,
+      p9,
+      p10,
+      p11,
+    ) => '$p1$p2$p3$p4$p5$p6$p7$p8$p9$p10$p11';
     expect(
       context.callMethod('invokeCallbackWith11params'),
       equals('1234567891011'),

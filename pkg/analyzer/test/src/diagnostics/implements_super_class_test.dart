@@ -14,12 +14,18 @@ main() {
 
 @reflectiveTest
 class ImplementsSuperClassTest extends PubPackageResolutionTest {
-  test_class() async {
+  test_class_extendsClass_implementsClass() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
-class B extends A implements A {}
-//                           ^
-// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
+class C extends A implements A {}
+''');
+  }
+
+  test_class_extendsClass_implementsTypeAlias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+typedef B = A;
+class C extends A implements B {}
 ''');
   }
 
@@ -28,8 +34,6 @@ class B extends A implements A {}
 class A {}
 class B extends A {}
 augment class B implements A {}
-//                         ^
-// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
 ''');
   }
 
@@ -48,18 +52,30 @@ class B extends A {}
 part of 'a.dart';
 
 augment class B implements A {}
-//                         ^
-// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
 ''',
     });
+  }
+
+  test_class_extendsTypeAlias_implementsClass() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+typedef B = A;
+class C extends B implements A {}
+''');
+  }
+
+  test_class_extendsTypeAlias_implementsTypeAlias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+typedef B = A;
+class C extends B implements B {}
+''');
   }
 
   test_class_implementsThenAugmentsExtends() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
 class B implements A {}
-//                 ^
-// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
 augment class B extends A {}
 ''');
   }
@@ -74,8 +90,6 @@ part 'b.dart';
 
 class A {}
 class B implements A {}
-//                 ^
-// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
 ''',
       b: r'''
 part of 'a.dart';
@@ -85,8 +99,25 @@ augment class B extends A {}
     });
   }
 
+  test_class_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
+class B extends A implements A {}
+//                           ^
+// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
+''');
+  }
+
   test_class_Object() async {
     await resolveTestCodeWithDiagnostics(r'''
+class A implements Object {}
+''');
+  }
+
+  test_class_Object_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
 class A implements Object {}
 //                 ^^^^^^
 // [diag.implementsSuperClass] 'class Object' can't be used in both the 'extends' and 'implements' clauses.
@@ -95,6 +126,15 @@ class A implements Object {}
 
   test_class_viaTypeAlias() async {
     await resolveTestCodeWithDiagnostics(r'''
+class A {}
+typedef B = A;
+class C extends A implements B {}
+''');
+  }
+
+  test_class_viaTypeAlias_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
 class A {}
 typedef B = A;
 class C extends A implements B {}
@@ -108,6 +148,15 @@ class C extends A implements B {}
 class A {}
 mixin M {}
 class B = A with M implements A;
+''');
+  }
+
+  test_classAlias_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+class A {}
+mixin M {}
+class B = A with M implements A;
 //                            ^
 // [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
 ''');
@@ -117,6 +166,14 @@ class B = A with M implements A;
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
 class A = Object with M implements Object;
+''');
+  }
+
+  test_classAlias_Object_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
+mixin M {}
+class A = Object with M implements Object;
 //                                 ^^^^^^
 // [diag.implementsSuperClass] 'class Object' can't be used in both the 'extends' and 'implements' clauses.
 ''');
@@ -124,6 +181,16 @@ class A = Object with M implements Object;
 
   test_classAlias_viaTypeAlias() async {
     await resolveTestCodeWithDiagnostics(r'''
+class A {}
+mixin M {}
+typedef B = A;
+class C = A with M implements B;
+''');
+  }
+
+  test_classAlias_viaTypeAlias_language305() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.5
 class A {}
 mixin M {}
 typedef B = A;

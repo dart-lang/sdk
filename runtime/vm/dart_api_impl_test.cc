@@ -9,6 +9,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "include/dart_api.h"
+#include "include/dart_embedder_api.h"
 #include "include/dart_native_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
@@ -10593,6 +10594,19 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod_Exp) {
   InvokeVMServiceMethodCommon();
 }
 #endif  // defined(EXPERIMENTAL_VM_SERVICE)
+
+TEST_CASE(DartAPI_VmService_OriginCheckDisabled_Runtime) {
+  embedder::VmServiceConfiguration config;
+  config.ip = "127.0.0.1";
+  config.port = 0;
+  config.dev_mode = false;
+  config.disable_auth_codes = true;
+  config.disable_origin_check = true;
+  EXPECT(config.disable_origin_check);
+  EXPECT(!config.dev_mode);
+
+  InvokeVMServiceMethodCommon();
+}
 
 static Monitor* loop_test_lock = new Monitor();
 static bool loop_test_exit = false;

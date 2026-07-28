@@ -6,38 +6,19 @@ import 'dart:convert' show jsonDecode;
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/experiments/errors.dart'
-    show getExperimentNotEnabledMessage;
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart'
-    as shared
-    show ExperimentalFlag;
-import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
-import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show Parser, lengthOfSpan;
+import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show
-        ErrorToken,
-        ScannerConfiguration,
-        ScannerResult,
-        Token,
-        scan,
-        LanguageVersionChanged;
-import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show SyntheticStringToken;
+    show Token, Scanner, LanguageVersionToken;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/base/command_line_reporting.dart'
-    as command_line_reporting;
-import 'package:front_end/src/base/messages.dart' show Message;
 import 'package:front_end/src/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
-import 'package:front_end/src/source/stack_listener_impl.dart'
-    show offsetForToken;
 import 'package:front_end/src/util/parser_ast.dart';
 import 'package:front_end/src/util/parser_ast_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
+import 'parser_suite_utils.dart';
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
 import 'testing/environment_keys.dart';
@@ -92,7 +73,9 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
   );
 }
 
-class Context extends ChainContext with MatchContext {
+class Context extends ChainContext
+    with MatchContext
+    implements StandardContextAdditions {
   @override
   final bool updateExpectations;
 
@@ -106,8 +89,10 @@ class Context extends ChainContext with MatchContext {
   final bool addTrace;
   final bool annotateLines;
   final String suiteName;
+  @override
   final SuiteFolderOptions folderOptions;
 
+  @override
   final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
   new({
     required Uri baseUri,
@@ -122,10 +107,12 @@ class Context extends ChainContext with MatchContext {
 
   @override
   final List<Step> steps = const <Step>[
+    const TokenStep(true, ".scanner.directives.expect", directivesOnly: true),
     const TokenStep(true, ".scanner.expect"),
     const TokenStep(false, ".parser.expect"),
     const ParserAstStep(true),
     const ListenerStep(true),
+    const CompareDirectivesStep(),
     const IntertwinedStep(),
   ];
 
@@ -152,6 +139,7 @@ class ContextChecksOnly extends Context {
   @override
   final List<Step> steps = const <Step>[
     const ListenerStep(false),
+    const CompareDirectivesStep(),
     const ParserAstStep(false),
   ];
 
@@ -222,52 +210,12 @@ class ExtractSomeMembers extends RecursiveParserAstVisitor {
 
 class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   final bool doExpects;
+  final bool compareDirectives;
 
-  const new(this.doExpects);
+  const new(this.doExpects, {this.compareDirectives = false});
 
   @override
   String get name => "listener";
-
-  /// Scans the uri, parses it with the test listener and returns it.
-  ///
-  /// Returns null if scanner doesn't return any Token.
-  static ParserTestListenerWithMessageFormatting? doListenerParsing(
-    Uri uri,
-    String suiteName,
-    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    String shortName, {
-    bool addTrace = false,
-    bool annotateLines = false,
-  }) {
-    ExperimentalFeaturesFromFlags experimentalFeatures =
-        new ExperimentalFeaturesFromFlags(explicitExperimentalFlags);
-    List<int> lineStarts = <int>[];
-    Token firstToken = scanUri(
-      uri,
-      experimentalFeatures,
-      lineStarts: lineStarts,
-      languageVersionChanged: experimentalFeatures.onLanguageVersionChanged,
-    );
-
-    File f = new File.fromUri(uri);
-    Uint8List rawBytes = f.readAsBytesSync();
-    Source source = new Source(lineStarts, rawBytes, uri, uri);
-    String shortNameId = "${suiteName}/${shortName}";
-    ParserTestListenerWithMessageFormatting parserTestListener =
-        new ParserTestListenerWithMessageFormatting(
-          addTrace,
-          annotateLines,
-          source,
-          shortNameId,
-        );
-    Parser parser = new Parser(
-      parserTestListener,
-      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      experimentalFeatures: experimentalFeatures,
-    );
-    parser.parseUnit(firstToken);
-    return parserTestListener;
-  }
 
   @override
   Future<Result<TestDescription>> run(
@@ -275,6 +223,9 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     Context context,
   ) {
     Uri uri = description.uri;
+    if (compareDirectives) {
+      return _compareDirectives(uri, context, description);
+    }
     ParserTestListenerWithMessageFormatting? parserTestListener =
         doListenerParsing(
           uri,
@@ -305,6 +256,109 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     } else {
       return new Future.value(new Result<TestDescription>.pass(description));
     }
+  }
+
+  Future<Result<TestDescription>> _compareDirectives(
+    Uri uri,
+    Context context,
+    TestDescription description,
+  ) {
+    ParserTestListenerWithMessageFormatting? scanParseDirectivesOnly =
+        doListenerParsing(
+          uri,
+          context.suiteName,
+          description.computeExplicitExperimentalFlags(context),
+          description.shortName,
+          addTrace: context.addTrace,
+          annotateLines: context.annotateLines,
+          parseDirectivesOnly: true,
+          scanDirectivesOnly: true,
+        );
+    ParserTestListenerWithMessageFormatting? parseDirectivesOnly =
+        doListenerParsing(
+          uri,
+          context.suiteName,
+          description.computeExplicitExperimentalFlags(context),
+          description.shortName,
+          addTrace: context.addTrace,
+          annotateLines: context.annotateLines,
+          parseDirectivesOnly: true,
+          scanDirectivesOnly: false,
+        );
+    String? scanParseResult = scanParseDirectivesOnly?.sb.toString();
+    String? parseResult = parseDirectivesOnly?.sb.toString();
+    if (scanParseResult != parseResult) {
+      return Future.value(
+        new Result<TestDescription>.fail(
+          description,
+          "Different definitions:\n$scanParseResult\n\nvs\n\n$parseResult",
+        ),
+      );
+    }
+    return Future.value(new Result<TestDescription>.pass(description));
+  }
+}
+
+class CompareDirectivesStep
+    extends Step<TestDescription, TestDescription, Context> {
+  const new();
+
+  @override
+  String get name => "compare directives";
+
+  @override
+  Future<Result<TestDescription>> run(
+    TestDescription description,
+    Context context,
+  ) {
+    Uri uri = description.uri;
+
+    ParserTestListenerWithMessageFormatting? scanParseDirectivesOnly =
+        doListenerParsing(
+          uri,
+          context.suiteName,
+          description.computeExplicitExperimentalFlags(context),
+          description.shortName,
+          addTrace: context.addTrace,
+          annotateLines: context.annotateLines,
+          parseDirectivesOnly: true,
+          scanDirectivesOnly: true,
+        );
+    ParserTestListenerWithMessageFormatting? parseDirectivesOnly =
+        doListenerParsing(
+          uri,
+          context.suiteName,
+          description.computeExplicitExperimentalFlags(context),
+          description.shortName,
+          addTrace: context.addTrace,
+          annotateLines: context.annotateLines,
+          parseDirectivesOnly: true,
+          scanDirectivesOnly: false,
+        );
+    if (scanParseDirectivesOnly == null || parseDirectivesOnly == null) {
+      throw "";
+    }
+    String? compareResult = compareTestListeners(
+      scanParseDirectivesOnly,
+      parseDirectivesOnly,
+      filters: {"ignoreListenerArguments"},
+      ignored: {"beginMetadataStar", "endMetadataStar", "handleDirectivesOnly"},
+    );
+    if (compareResult != null) {
+      return Future.value(
+        fail(
+          description,
+          "$compareResult\n\n"
+          "Comparing:\n(scan and parse only directives:)\n\n"
+          "${scanParseDirectivesOnly.sb.toString()}"
+          "\n\nwith\n(scan normally, parse only directives:)\n\n"
+          "${parseDirectivesOnly.sb.toString()}",
+          StackTrace.current,
+        ),
+      );
+    }
+
+    return Future.value(new Result<TestDescription>.pass(description));
   }
 }
 
@@ -367,11 +421,17 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
 class TokenStep extends Step<TestDescription, TestDescription, Context> {
   final bool onlyScanner;
   final String suffix;
+  final bool directivesOnly;
 
-  const new(this.onlyScanner, this.suffix);
+  const new(this.onlyScanner, this.suffix, {this.directivesOnly = false});
 
   @override
-  String get name => "token";
+  String get name =>
+      "token (${directivesOnly
+          ? "directives"
+          : onlyScanner
+          ? "scanner"
+          : "parser"})";
 
   @override
   Future<Result<TestDescription>> run(
@@ -383,14 +443,41 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     ExperimentalFeaturesFromFlags experimentalFeatures =
         new ExperimentalFeaturesFromFlags(explicitExperimentalFlags);
     List<int> lineStarts = <int>[];
+    List<LanguageVersionToken> languageVersionTokensSeen = [];
     Token firstToken = scanUri(
       description.uri,
       experimentalFeatures,
       lineStarts: lineStarts,
-      languageVersionChanged: experimentalFeatures.onLanguageVersionChanged,
+      languageVersionChanged:
+          (Scanner scanner, LanguageVersionToken languageVersion) {
+            languageVersionTokensSeen.add(languageVersion);
+            experimentalFeatures.onLanguageVersionChanged(
+              scanner,
+              languageVersion,
+            );
+          },
+      directivesOnly: directivesOnly,
     );
 
-    StringBuffer beforeParser = tokenStreamToString(firstToken, lineStarts);
+    if (directivesOnly &&
+        firstToken.isEof &&
+        languageVersionTokensSeen.isEmpty) {
+      // Expect no file.
+      return context.match<TestDescription>(
+        suffix,
+        // An empty actual parameter deletes any existing file if asked to
+        // update expectations.
+        "",
+        description.uri,
+        description,
+      );
+    }
+
+    StringBuffer beforeParser = tokenStreamToString(
+      firstToken,
+      lineStarts,
+      languageVersionTokensSeen: languageVersionTokensSeen,
+    );
     StringBuffer beforeParserWithTypes = tokenStreamToString(
       firstToken,
       lineStarts,
@@ -453,226 +540,6 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
   }
 }
 
-StringBuffer tokenStreamToString(
-  Token firstToken,
-  List<int> lineStarts, {
-  bool addTypes = false,
-}) {
-  StringBuffer sb = new StringBuffer();
-  Token? token = firstToken;
-
-  Token? process(Token? token, bool errorTokens) {
-    bool printed = false;
-    int endOfLast = -1;
-    int lineStartsIteratorLine = 1;
-    Iterator<int> lineStartsIterator = lineStarts.iterator;
-    lineStartsIterator.moveNext();
-    lineStartsIterator.moveNext();
-    lineStartsIteratorLine++;
-
-    Set<Token> seenTokens = new Set<Token>.identity();
-    while (token != null) {
-      if (errorTokens && token is! ErrorToken) return token;
-      if (!errorTokens && token is ErrorToken) {
-        if (token == token.next) break;
-        token = token.next;
-        continue;
-      }
-
-      int prevLine = lineStartsIteratorLine;
-      while (token.offset >= lineStartsIterator.current &&
-          lineStartsIterator.moveNext()) {
-        lineStartsIteratorLine++;
-      }
-      if (printed &&
-          (token.offset > endOfLast || prevLine < lineStartsIteratorLine)) {
-        if (prevLine < lineStartsIteratorLine) {
-          for (int i = prevLine; i < lineStartsIteratorLine; i++) {
-            sb.write("\n");
-          }
-        } else {
-          sb.write(" ");
-        }
-      }
-      if (token is! ErrorToken) {
-        sb.write(token.lexeme);
-        if (!addTypes && token.lexeme == "" && token is SyntheticStringToken) {
-          sb.write("*synthetic*");
-        }
-      }
-      if (addTypes) {
-        // Avoid 6000+ changes caused by "Impl" being added to some token
-        // classes.
-        String type = token.runtimeType.toString().replaceFirst("Impl", "");
-        sb.write("[$type]");
-      }
-      printed = true;
-      endOfLast = token.end;
-      if (token == token.next) break;
-      token = token.next;
-      if (!seenTokens.add(token!)) {
-        // Loop in tokens: Print error and break to avoid infinite loop.
-        sb.write(
-          "\n\nERROR: Loop in tokens: $token "
-          "(${token.runtimeType}, ${token.type}, ${token.offset})) "
-          "was seen before "
-          "(linking to ${token.next}, ${token.next.runtimeType}, "
-          "${token.next!.type}, ${token.next!.offset})!\n\n",
-        );
-        break;
-      }
-    }
-
-    return token;
-  }
-
-  if (addTypes) {
-    token = process(token, true);
-  }
-  token = process(token, false);
-
-  return sb;
-}
-
-Token scanUri(
-  Uri uri,
-  ExperimentalFeaturesFromFlags experimentalFeatures, {
-  List<int>? lineStarts,
-  LanguageVersionChanged? languageVersionChanged,
-}) {
-  File f = new File.fromUri(uri);
-  Uint8List rawBytes = f.readAsBytesSync();
-  return scanRawBytes(
-    rawBytes,
-    experimentalFeatures.buildScannerConfiguration(),
-    lineStarts,
-    languageVersionChanged: languageVersionChanged,
-  );
-}
-
-Token scanRawBytes(
-  Uint8List rawBytes,
-  ScannerConfiguration config,
-  List<int>? lineStarts, {
-  LanguageVersionChanged? languageVersionChanged,
-}) {
-  ScannerResult scanResult = scan(
-    rawBytes,
-    configuration: config,
-    includeComments: true,
-    languageVersionChanged: languageVersionChanged,
-  );
-  Token firstToken = scanResult.tokens;
-  if (lineStarts != null) {
-    lineStarts.addAll(scanResult.lineStarts);
-  }
-  return firstToken;
-}
-
-class ParserTestListenerWithMessageFormatting extends ParserTestListener {
-  final bool annotateLines;
-  final Source? source;
-  final String? shortName;
-  final List<String> errors = <String>[];
-  Location? latestSeenLocation;
-
-  new(bool trace, this.annotateLines, this.source, this.shortName)
-    : super(trace);
-
-  @override
-  void doPrint(String s) {
-    super.doPrint(s);
-    if (!annotateLines) {
-      if (s.startsWith("beginCompilationUnit(") ||
-          s.startsWith("endCompilationUnit(")) {
-        if (indent != 0) {
-          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
-              "${sb.toString()}";
-        }
-      } else {
-        if (indent <= 0) {
-          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
-              "${sb.toString()}";
-        }
-      }
-    }
-  }
-
-  @override
-  void seen(Token? token) {
-    if (!annotateLines) return;
-    if (token == null) return;
-    if (source == null) return;
-    if (offsetForToken(token) < 0) return;
-    Location location = source!.getLocation(
-      source!.fileUri!,
-      offsetForToken(token),
-    );
-    if (latestSeenLocation == null ||
-        location.line > latestSeenLocation!.line) {
-      latestSeenLocation = location;
-      String? sourceLine = source!.getTextLine(location.line);
-      doPrint("");
-      doPrint("// Line ${location.line}: $sourceLine");
-    }
-  }
-
-  @override
-  bool checkEof(Token token) {
-    bool result = super.checkEof(token);
-    if (result) {
-      errors.add("WARNING: Reporting at eof --- see below for details.");
-    }
-    return result;
-  }
-
-  void _reportMessage(Message message, Token startToken, Token endToken) {
-    if (source != null) {
-      Location location = source!.getLocation(
-        source!.fileUri!,
-        offsetForToken(startToken),
-      );
-      int length = lengthOfSpan(startToken, endToken);
-      if (length <= 0) length = 1;
-      errors.add(
-        command_line_reporting.formatErrorMessage(
-          source!.getTextLine(location.line),
-          location,
-          length,
-          shortName,
-          message.problemMessage,
-        ),
-      );
-    } else {
-      errors.add(message.problemMessage);
-    }
-  }
-
-  @override
-  void handleRecoverableError(
-    Message message,
-    Token startToken,
-    Token endToken,
-  ) {
-    _reportMessage(message, startToken, endToken);
-    super.handleRecoverableError(message, startToken, endToken);
-  }
-
-  @override
-  void handleExperimentNotEnabled(
-    shared.ExperimentalFlag experimentalFlag,
-    Token startToken,
-    Token endToken,
-  ) {
-    _reportMessage(
-      getExperimentNotEnabledMessage(experimentalFlag),
-      startToken,
-      endToken,
-    );
-    super.handleExperimentNotEnabled(experimentalFlag, startToken, endToken);
-  }
-}
-
 class ParserTestListenerForIntertwined
     extends ParserTestListenerWithMessageFormatting {
   late TestParser parser;
@@ -690,19 +557,5 @@ class ParserTestListenerForIntertwined
       super.doPrint("listener: " + s);
     }
     super.indent = prevIndent;
-  }
-}
-
-extension on TestDescription {
-  FolderOptions computeFolderOptions(Context context) {
-    return context.folderOptions.computeFolderOptions(this);
-  }
-
-  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
-    Context context,
-  ) {
-    return computeFolderOptions(
-      context,
-    ).computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
   }
 }

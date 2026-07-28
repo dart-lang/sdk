@@ -251,15 +251,23 @@ abstract class MachOLoadCommand {
     }
 
     return switch (type) {
-      LoadCommandType.segment ||
-      LoadCommandType.segment64 =>
+      LoadCommandType.segment || LoadCommandType.segment64 =>
         MachOSegmentCommand.fromStream(code, size, stream),
-      LoadCommandType.dynamicLibraryInfo =>
-        MachODyldInfoCommand.fromStream(code, size, stream),
-      LoadCommandType.symbolTable =>
-        MachOSymtabCommand.fromStream(code, size, stream),
-      LoadCommandType.dynamicSymbolTable =>
-        MachODysymtabCommand.fromStream(code, size, stream),
+      LoadCommandType.dynamicLibraryInfo => MachODyldInfoCommand.fromStream(
+        code,
+        size,
+        stream,
+      ),
+      LoadCommandType.symbolTable => MachOSymtabCommand.fromStream(
+        code,
+        size,
+        stream,
+      ),
+      LoadCommandType.dynamicSymbolTable => MachODysymtabCommand.fromStream(
+        code,
+        size,
+        stream,
+      ),
       LoadCommandType.codeSignature ||
       LoadCommandType.segmentSplitInfo ||
       LoadCommandType.functionStarts ||
@@ -269,14 +277,19 @@ abstract class MachOLoadCommand {
       LoadCommandType.dynamicLibraryExportsTrie ||
       LoadCommandType.dynamicLibraryChainedFixups =>
         MachOLinkeditDataCommand.fromStream(code, size, stream),
-      LoadCommandType.encryptionInfo ||
-      LoadCommandType.encryptionInfo64 =>
+      LoadCommandType.encryptionInfo || LoadCommandType.encryptionInfo64 =>
         MachOEncryptionInfoCommand.fromStream(code, size, stream),
-      LoadCommandType.main =>
-        MachOEntryPointCommand.fromStream(code, size, stream),
+      LoadCommandType.main => MachOEntryPointCommand.fromStream(
+        code,
+        size,
+        stream,
+      ),
       LoadCommandType.note => MachONoteCommand.fromStream(code, size, stream),
-      LoadCommandType.fileSetEntry =>
-        MachOFileSetEntryCommand.fromStream(code, size, stream),
+      LoadCommandType.fileSetEntry => MachOFileSetEntryCommand.fromStream(
+        code,
+        size,
+        stream,
+      ),
     };
   }
 
@@ -366,8 +379,16 @@ class MachOHeader {
   /// `uint32_t reserved` in the C headers.
   final int? reserved;
 
-  MachOHeader(this.magic, this.cpu, this.machine, this.type,
-      this.loadCommandsCount, this.loadCommandsSize, this.flags, this.reserved);
+  MachOHeader(
+    this.magic,
+    this.cpu,
+    this.machine,
+    this.type,
+    this.loadCommandsCount,
+    this.loadCommandsSize,
+    this.flags,
+    this.reserved,
+  );
 
   /// Constant for the magic field of a 32-bit mach_header with host endianness.
   static const int _magic32 = 0xfeedface;
@@ -403,8 +424,16 @@ class MachOHeader {
     final flags = stream.readUint32();
     final reserved = is64Bit ? stream.readUint32() : null;
 
-    return MachOHeader(magic, cpu, machine, type, loadCommandsCount,
-        loadCommandsSize, flags, reserved);
+    return MachOHeader(
+      magic,
+      cpu,
+      machine,
+      type,
+      loadCommandsCount,
+      loadCommandsSize,
+      flags,
+      reserved,
+    );
   }
 
   static bool validMagic(int magic) =>
@@ -415,10 +444,10 @@ class MachOHeader {
 
   static Endian magicEndian(int magic) =>
       (magic == _magic64 || magic == _magic32)
-          ? Endian.host
-          : Endian.host == Endian.big
-              ? Endian.little
-              : Endian.big;
+      ? Endian.host
+      : Endian.host == Endian.big
+      ? Endian.little
+      : Endian.big;
 
   // A faster check than rechecking the magic number.
   bool get is64Bit => reserved != null;
@@ -524,7 +553,10 @@ class MachOSegmentCommand extends MachOLoadCommand {
   static const _nameLength = 16;
 
   static MachOSegmentCommand fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final is64Bit = LoadCommandType.fromCode(code) == LoadCommandType.segment64;
     final wordSize = is64Bit ? 8 : 4;
 
@@ -539,21 +571,24 @@ class MachOSegmentCommand extends MachOLoadCommand {
     final flags = stream.readUint32();
 
     final sections = List<MachOSection>.generate(
-        sectionCount, (_) => MachOSection.fromStream(stream, is64Bit),
-        growable: false);
+      sectionCount,
+      (_) => MachOSection.fromStream(stream, is64Bit),
+      growable: false,
+    );
 
     return MachOSegmentCommand(
-        code,
-        size,
-        name,
-        memoryAddress,
-        memorySize,
-        fileOffset,
-        fileSize,
-        maxProtection,
-        initialProtection,
-        flags,
-        sections);
+      code,
+      size,
+      name,
+      memoryAddress,
+      memorySize,
+      fileOffset,
+      fileSize,
+      maxProtection,
+      initialProtection,
+      flags,
+      sections,
+    );
   }
 
   int get _wordSize =>
@@ -561,17 +596,18 @@ class MachOSegmentCommand extends MachOLoadCommand {
 
   @override
   MachOSegmentCommand adjust(OffsetsAdjuster adjuster) => MachOSegmentCommand(
-      code,
-      size,
-      name,
-      memoryAddress,
-      memorySize,
-      adjuster.adjust(fileOffset),
-      fileSize,
-      maxProtection,
-      initialProtection,
-      flags,
-      sections.map((s) => s.adjust(adjuster)).toList());
+    code,
+    size,
+    name,
+    memoryAddress,
+    memorySize,
+    adjuster.adjust(fileOffset),
+    fileSize,
+    maxProtection,
+    initialProtection,
+    flags,
+    sections.map((s) => s.adjust(adjuster)).toList(),
+  );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -701,8 +737,9 @@ class MachOSection {
     final wordSize = is64Bit ? 8 : 4;
 
     final name = stream.readFixedLengthNullTerminatedString(_nameLength);
-    final segmentName = stream
-        .readFixedLengthNullTerminatedString(MachOSegmentCommand._nameLength);
+    final segmentName = stream.readFixedLengthNullTerminatedString(
+      MachOSegmentCommand._nameLength,
+    );
     final memoryAddress = stream.readUword(wordSize);
     final size = stream.readUword(wordSize);
     final fileOffset = stream.readUint32();
@@ -718,18 +755,19 @@ class MachOSection {
     }
 
     return MachOSection(
-        name,
-        segmentName,
-        memoryAddress,
-        size,
-        fileOffset,
-        alignment,
-        relocationsFileOffset,
-        relocationsCount,
-        flags,
-        reserved1,
-        reserved2,
-        reserved3);
+      name,
+      segmentName,
+      memoryAddress,
+      size,
+      fileOffset,
+      alignment,
+      relocationsFileOffset,
+      relocationsCount,
+      flags,
+      reserved1,
+      reserved2,
+      reserved3,
+    );
   }
 
   static const _nameLength = 16;
@@ -748,24 +786,27 @@ class MachOSection {
   }
 
   MachOSection adjust(OffsetsAdjuster adjuster) => MachOSection(
-      name,
-      segmentName,
-      memoryAddress,
-      size,
-      adjuster.adjust(fileOffset),
-      alignment,
-      adjuster.adjust(relocationsFileOffset),
-      relocationsCount,
-      flags,
-      reserved1,
-      reserved2,
-      reserved3);
+    name,
+    segmentName,
+    memoryAddress,
+    size,
+    adjuster.adjust(fileOffset),
+    alignment,
+    adjuster.adjust(relocationsFileOffset),
+    relocationsCount,
+    flags,
+    reserved1,
+    reserved2,
+    reserved3,
+  );
 
   void writeContentsSync(MachOWriter stream) {
     final wordSize = is64Bit ? 8 : 4;
     stream.writeFixedLengthNullTerminatedString(name, _nameLength);
     stream.writeFixedLengthNullTerminatedString(
-        segmentName, MachOSegmentCommand._nameLength);
+      segmentName,
+      MachOSegmentCommand._nameLength,
+    );
     stream.writeUword(memoryAddress, wordSize);
     stream.writeUword(size, wordSize);
     stream.writeUint32(fileOffset);
@@ -818,18 +859,25 @@ class MachOSymtabCommand extends MachOLoadCommand {
     final stringTableFileOffset = stream.readUint32();
     final stringTableSize = stream.readUint32();
 
-    return MachOSymtabCommand(code, size, fileOffset, symbolsCount,
-        stringTableFileOffset, stringTableSize);
+    return MachOSymtabCommand(
+      code,
+      size,
+      fileOffset,
+      symbolsCount,
+      stringTableFileOffset,
+      stringTableSize,
+    );
   }
 
   @override
   MachOSymtabCommand adjust(OffsetsAdjuster adjuster) => MachOSymtabCommand(
-      code,
-      size,
-      adjuster.adjust(fileOffset),
-      symbolsCount,
-      adjuster.adjust(stringTableFileOffset),
-      stringTableSize);
+    code,
+    size,
+    adjuster.adjust(fileOffset),
+    symbolsCount,
+    adjuster.adjust(stringTableFileOffset),
+    stringTableSize,
+  );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -933,29 +981,33 @@ class MachODysymtabCommand extends MachOLoadCommand {
   final int localRelocationsCount;
 
   MachODysymtabCommand(
-      super.code,
-      super.size,
-      this.localSymbolsIndex,
-      this.localSymbolsCount,
-      this.externalSymbolsIndex,
-      this.externalSymbolsCount,
-      this.undefinedSymbolsIndex,
-      this.undefinedSymbolsCount,
-      this.tableOfContentsFileOffset,
-      this.tableOfContentsEntryCount,
-      this.moduleTableFileOffset,
-      this.moduleTableEntryCount,
-      this.referencedSymbolTableFileOffset,
-      this.referencedSymbolTableEntryCount,
-      this.indirectSymbolTableFileOffset,
-      this.indirectSymbolTableEntryCount,
-      this.externalRelocationsFileOffset,
-      this.externalRelocationsCount,
-      this.localRelocationsFileOffset,
-      this.localRelocationsCount);
+    super.code,
+    super.size,
+    this.localSymbolsIndex,
+    this.localSymbolsCount,
+    this.externalSymbolsIndex,
+    this.externalSymbolsCount,
+    this.undefinedSymbolsIndex,
+    this.undefinedSymbolsCount,
+    this.tableOfContentsFileOffset,
+    this.tableOfContentsEntryCount,
+    this.moduleTableFileOffset,
+    this.moduleTableEntryCount,
+    this.referencedSymbolTableFileOffset,
+    this.referencedSymbolTableEntryCount,
+    this.indirectSymbolTableFileOffset,
+    this.indirectSymbolTableEntryCount,
+    this.externalRelocationsFileOffset,
+    this.externalRelocationsCount,
+    this.localRelocationsFileOffset,
+    this.localRelocationsCount,
+  );
 
   static MachODysymtabCommand fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final localSymbolsIndex = stream.readUint32();
     final localSymbolsCount = stream.readUint32();
     final externalSymbolsIndex = stream.readUint32();
@@ -976,30 +1028,6 @@ class MachODysymtabCommand extends MachOLoadCommand {
     final localRelocationsCount = stream.readUint32();
 
     return MachODysymtabCommand(
-        code,
-        size,
-        localSymbolsIndex,
-        localSymbolsCount,
-        externalSymbolsIndex,
-        externalSymbolsCount,
-        undefinedSymbolsIndex,
-        undefinedSymbolsCount,
-        tableOfContentsFileOffset,
-        tableOfContentsEntryCount,
-        moduleTableFileOffset,
-        moduleTableEntryCount,
-        referencedSymbolTableFileOffset,
-        referencedSymbolTableEntryCount,
-        indirectSymbolTableFileOffset,
-        indirectSymbolTableEntryCount,
-        externalRelocationsFileOffset,
-        externalRelocationsCount,
-        localRelocationsFileOffset,
-        localRelocationsCount);
-  }
-
-  @override
-  MachODysymtabCommand adjust(OffsetsAdjuster adjuster) => MachODysymtabCommand(
       code,
       size,
       localSymbolsIndex,
@@ -1008,18 +1036,44 @@ class MachODysymtabCommand extends MachOLoadCommand {
       externalSymbolsCount,
       undefinedSymbolsIndex,
       undefinedSymbolsCount,
-      adjuster.adjust(tableOfContentsFileOffset),
+      tableOfContentsFileOffset,
       tableOfContentsEntryCount,
-      adjuster.adjust(moduleTableFileOffset),
+      moduleTableFileOffset,
       moduleTableEntryCount,
-      adjuster.adjust(referencedSymbolTableFileOffset),
+      referencedSymbolTableFileOffset,
       referencedSymbolTableEntryCount,
-      adjuster.adjust(indirectSymbolTableFileOffset),
+      indirectSymbolTableFileOffset,
       indirectSymbolTableEntryCount,
-      adjuster.adjust(externalRelocationsFileOffset),
+      externalRelocationsFileOffset,
       externalRelocationsCount,
-      adjuster.adjust(localRelocationsFileOffset),
-      localRelocationsCount);
+      localRelocationsFileOffset,
+      localRelocationsCount,
+    );
+  }
+
+  @override
+  MachODysymtabCommand adjust(OffsetsAdjuster adjuster) => MachODysymtabCommand(
+    code,
+    size,
+    localSymbolsIndex,
+    localSymbolsCount,
+    externalSymbolsIndex,
+    externalSymbolsCount,
+    undefinedSymbolsIndex,
+    undefinedSymbolsCount,
+    adjuster.adjust(tableOfContentsFileOffset),
+    tableOfContentsEntryCount,
+    adjuster.adjust(moduleTableFileOffset),
+    moduleTableEntryCount,
+    adjuster.adjust(referencedSymbolTableFileOffset),
+    referencedSymbolTableEntryCount,
+    adjuster.adjust(indirectSymbolTableFileOffset),
+    indirectSymbolTableEntryCount,
+    adjuster.adjust(externalRelocationsFileOffset),
+    externalRelocationsCount,
+    adjuster.adjust(localRelocationsFileOffset),
+    localRelocationsCount,
+  );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -1066,7 +1120,10 @@ class MachOLinkeditDataCommand extends MachOLoadCommand {
   );
 
   static MachOLinkeditDataCommand fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final dataFileOffset = stream.readUint32();
     final dataSize = stream.readUint32();
 
@@ -1076,7 +1133,11 @@ class MachOLinkeditDataCommand extends MachOLoadCommand {
   @override
   MachOLinkeditDataCommand adjust(OffsetsAdjuster adjuster) =>
       MachOLinkeditDataCommand(
-          code, size, adjuster.adjust(dataFileOffset), dataSize);
+        code,
+        size,
+        adjuster.adjust(dataFileOffset),
+        dataSize,
+      );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -1109,11 +1170,20 @@ class MachOEncryptionInfoCommand extends MachOLoadCommand {
   /// `uint32_t pad` for `encryption_info_command_64` in the C headers.
   final int? padding;
 
-  MachOEncryptionInfoCommand(super.code, super.size, this.fileOffset,
-      this.fileSize, this.encryptionSystem, this.padding);
+  MachOEncryptionInfoCommand(
+    super.code,
+    super.size,
+    this.fileOffset,
+    this.fileSize,
+    this.encryptionSystem,
+    this.padding,
+  );
 
   static MachOEncryptionInfoCommand fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final is64Bit =
         LoadCommandType.fromCode(code) == LoadCommandType.encryptionInfo64;
 
@@ -1126,13 +1196,25 @@ class MachOEncryptionInfoCommand extends MachOLoadCommand {
     }
 
     return MachOEncryptionInfoCommand(
-        code, size, fileOffset, fileSize, encryptionSystem, padding);
+      code,
+      size,
+      fileOffset,
+      fileSize,
+      encryptionSystem,
+      padding,
+    );
   }
 
   @override
   MachOEncryptionInfoCommand adjust(OffsetsAdjuster adjuster) =>
-      MachOEncryptionInfoCommand(code, size, adjuster.adjust(fileOffset),
-          fileSize, encryptionSystem, padding);
+      MachOEncryptionInfoCommand(
+        code,
+        size,
+        adjuster.adjust(fileOffset),
+        fileSize,
+        encryptionSystem,
+        padding,
+      );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -1200,21 +1282,25 @@ class MachODyldInfoCommand extends MachOLoadCommand {
   final int exportSize;
 
   MachODyldInfoCommand(
-      super.code,
-      super.size,
-      this.rebaseOffset,
-      this.rebaseSize,
-      this.bindingOffset,
-      this.bindingSize,
-      this.weakBindingOffset,
-      this.weakBindingSize,
-      this.lazyBindingOffset,
-      this.lazyBindingSize,
-      this.exportOffset,
-      this.exportSize);
+    super.code,
+    super.size,
+    this.rebaseOffset,
+    this.rebaseSize,
+    this.bindingOffset,
+    this.bindingSize,
+    this.weakBindingOffset,
+    this.weakBindingSize,
+    this.lazyBindingOffset,
+    this.lazyBindingSize,
+    this.exportOffset,
+    this.exportSize,
+  );
 
   static MachODyldInfoCommand fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final rebaseOffset = stream.readUint32();
     final rebaseSize = stream.readUint32();
     final bindingOffset = stream.readUint32();
@@ -1227,34 +1313,36 @@ class MachODyldInfoCommand extends MachOLoadCommand {
     final exportSize = stream.readUint32();
 
     return MachODyldInfoCommand(
-        code,
-        size,
-        rebaseOffset,
-        rebaseSize,
-        bindingOffset,
-        bindingSize,
-        weakBindingOffset,
-        weakBindingSize,
-        lazyBindingOffset,
-        lazyBindingSize,
-        exportOffset,
-        exportSize);
+      code,
+      size,
+      rebaseOffset,
+      rebaseSize,
+      bindingOffset,
+      bindingSize,
+      weakBindingOffset,
+      weakBindingSize,
+      lazyBindingOffset,
+      lazyBindingSize,
+      exportOffset,
+      exportSize,
+    );
   }
 
   @override
   MachODyldInfoCommand adjust(OffsetsAdjuster adjuster) => MachODyldInfoCommand(
-      code,
-      size,
-      adjuster.adjust(rebaseOffset),
-      rebaseSize,
-      adjuster.adjust(bindingOffset),
-      bindingSize,
-      adjuster.adjust(weakBindingOffset),
-      weakBindingSize,
-      adjuster.adjust(lazyBindingOffset),
-      lazyBindingSize,
-      adjuster.adjust(exportOffset),
-      exportSize);
+    code,
+    size,
+    adjuster.adjust(rebaseOffset),
+    rebaseSize,
+    adjuster.adjust(bindingOffset),
+    bindingSize,
+    adjuster.adjust(weakBindingOffset),
+    weakBindingSize,
+    adjuster.adjust(lazyBindingOffset),
+    lazyBindingSize,
+    adjuster.adjust(exportOffset),
+    exportSize,
+  );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -1285,10 +1373,17 @@ class MachOEntryPointCommand extends MachOLoadCommand {
   final int stackSize;
 
   MachOEntryPointCommand(
-      super.code, super.size, this.entryOffset, this.stackSize);
+    super.code,
+    super.size,
+    this.entryOffset,
+    this.stackSize,
+  );
 
   static MachOEntryPointCommand fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final entryOffset = stream.readUint64();
     final stackSize = stream.readUint64();
     return MachOEntryPointCommand(code, size, entryOffset, stackSize);
@@ -1297,7 +1392,11 @@ class MachOEntryPointCommand extends MachOLoadCommand {
   @override
   MachOEntryPointCommand adjust(OffsetsAdjuster adjuster) =>
       MachOEntryPointCommand(
-          code, size, adjuster.adjust(entryOffset), stackSize);
+        code,
+        size,
+        adjuster.adjust(entryOffset),
+        stackSize,
+      );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -1334,7 +1433,10 @@ class MachODataInCodeEntry extends MachOLoadCommand {
   );
 
   static MachODataInCodeEntry fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final offset = stream.readUint32();
     final length = stream.readUint16();
     final kind = stream.readUint16();
@@ -1371,11 +1473,17 @@ class MachONoteCommand extends MachOLoadCommand {
   final int fileSize;
 
   MachONoteCommand(
-      super.code, super.size, this.dataOwner, this.fileOffset, this.fileSize);
+    super.code,
+    super.size,
+    this.dataOwner,
+    this.fileOffset,
+    this.fileSize,
+  );
 
   static MachONoteCommand fromStream(int code, int size, MachOReader stream) {
-    final dataOwner =
-        stream.readFixedLengthNullTerminatedString(_dataOwnerLength);
+    final dataOwner = stream.readFixedLengthNullTerminatedString(
+      _dataOwnerLength,
+    );
     final fileOffset = stream.readUint64();
     final fileSize = stream.readUint64();
     return MachONoteCommand(code, size, dataOwner, fileOffset, fileSize);
@@ -1384,9 +1492,16 @@ class MachONoteCommand extends MachOLoadCommand {
   /// Constructs a note load command given the content of the note-specific
   /// fields, using the default values for the code and size fields.
   static MachONoteCommand fromFields(
-          String dataOwner, int fileOffset, int fileSize) =>
-      MachONoteCommand(LoadCommandType.note.code, _defaultSize, dataOwner,
-          fileOffset, fileSize);
+    String dataOwner,
+    int fileOffset,
+    int fileSize,
+  ) => MachONoteCommand(
+    LoadCommandType.note.code,
+    _defaultSize,
+    dataOwner,
+    fileOffset,
+    fileSize,
+  );
 
   /// The maximum size of the dataOwner field contents.
   static const _dataOwnerLength = 16;
@@ -1398,7 +1513,12 @@ class MachONoteCommand extends MachOLoadCommand {
 
   @override
   MachONoteCommand adjust(OffsetsAdjuster adjuster) => MachONoteCommand(
-      code, size, dataOwner, adjuster.adjust(fileOffset), fileSize);
+    code,
+    size,
+    dataOwner,
+    adjuster.adjust(fileOffset),
+    fileSize,
+  );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -1430,23 +1550,44 @@ class MachOFileSetEntryCommand extends MachOLoadCommand {
   /// `uint32_t reserved` in the C headers.
   final int reserved;
 
-  MachOFileSetEntryCommand(super.code, super.size, this.memoryAddress,
-      this.fileOffset, this.entryId, this.reserved);
+  MachOFileSetEntryCommand(
+    super.code,
+    super.size,
+    this.memoryAddress,
+    this.fileOffset,
+    this.entryId,
+    this.reserved,
+  );
 
   static MachOFileSetEntryCommand fromStream(
-      int code, int size, MachOReader stream) {
+    int code,
+    int size,
+    MachOReader stream,
+  ) {
     final memoryAddress = stream.readUint64();
     final fileOffset = stream.readUint64();
     final entryId = stream.readLCString();
     final reserved = stream.readUint32();
     return MachOFileSetEntryCommand(
-        code, size, memoryAddress, fileOffset, entryId, reserved);
+      code,
+      size,
+      memoryAddress,
+      fileOffset,
+      entryId,
+      reserved,
+    );
   }
 
   @override
   MachOFileSetEntryCommand adjust(OffsetsAdjuster adjuster) =>
-      MachOFileSetEntryCommand(code, size, memoryAddress,
-          adjuster.adjust(fileOffset), entryId, reserved);
+      MachOFileSetEntryCommand(
+        code,
+        size,
+        memoryAddress,
+        adjuster.adjust(fileOffset),
+        entryId,
+        reserved,
+      );
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -1478,27 +1619,32 @@ class MachOFile {
     final fileLength = file.lengthSync();
     if (fileLength < 4) {
       throw FormatException(
-          'File was not formatted properly. Length was too short: $fileLength');
+        'File was not formatted properly. Length was too short: $fileLength',
+      );
     }
 
     final stream = file.openSync();
     final header = MachOHeader.fromStream(stream);
     if (header == null) {
       throw FormatException(
-          'Could not parse a MachO header from the file: ${file.path}');
+        'Could not parse a MachO header from the file: ${file.path}',
+      );
     }
 
     final uses64BitPointers = CpuType.cpuTypeUses64BitPointers(header.cpu);
     final reader = MachOReader(stream, header.endian, uses64BitPointers);
 
     final commands = List<MachOLoadCommand>.generate(
-        header.loadCommandsCount, (_) => MachOLoadCommand.fromStream(reader));
+      header.loadCommandsCount,
+      (_) => MachOLoadCommand.fromStream(reader),
+    );
 
     final size = _totalSize(header, commands);
     assert(size == stream.positionSync());
 
-    final hasCodeSignature =
-        commands.any((c) => c.type == LoadCommandType.codeSignature);
+    final hasCodeSignature = commands.any(
+      (c) => c.type == LoadCommandType.codeSignature,
+    );
 
     return MachOFile._(header, commands, hasCodeSignature);
   }
@@ -1512,7 +1658,8 @@ class MachOFile {
     // This is not an idempotent operation.
     if (snapshotNote != null) {
       throw const FormatException(
-          'The executable already has a Dart snapshot inserted');
+        'The executable already has a Dart snapshot inserted',
+      );
     }
 
     final reserved = reservedSegment;
@@ -1530,26 +1677,32 @@ class MachOFile {
     final fileOffset = align(linkedit.fileOffset, segmentAlignment);
     final fileSize = snapshotSize;
 
-    final note =
-        MachONoteCommand.fromFields(snapshotNoteName, fileOffset, fileSize);
+    final note = MachONoteCommand.fromFields(
+      snapshotNoteName,
+      fileOffset,
+      fileSize,
+    );
 
     // Now we need to build the new header from these modified pieces.
     final newHeader = MachOHeader(
-        header.magic,
-        header.cpu,
-        header.machine,
-        header.type,
-        // We remove the reserved section and replace it with the note.
-        header.loadCommandsCount,
-        header.loadCommandsSize - reserved.size + note.size,
-        header.flags,
-        header.reserved);
+      header.magic,
+      header.cpu,
+      header.machine,
+      header.type,
+      // We remove the reserved section and replace it with the note.
+      header.loadCommandsCount,
+      header.loadCommandsSize - reserved.size + note.size,
+      header.flags,
+      header.reserved,
+    );
 
     // We'll want the __LINKEDIT segment to start at the next aligned file
     // offset after the end of the snapshot, so we'll need to adjust all
     // file offsets pointing into it (including its own segment) accordingly.
-    final snapshotEnd =
-        align(note.fileOffset + note.fileSize, segmentAlignment);
+    final snapshotEnd = align(
+      note.fileOffset + note.fileSize,
+      segmentAlignment,
+    );
     final adjuster = OffsetsAdjuster()
       ..add(linkedit.fileOffset, snapshotEnd - linkedit.fileOffset);
     final newCommands = <MachOLoadCommand>[];
@@ -1569,8 +1722,10 @@ class MachOFile {
     final newFile = MachOFile._(newHeader, newCommands, hasCodeSignature);
 
     if (newFile.size > size) {
-      throw FormatException('Cannot add new note load command to header: '
-          'new size ${newFile.size} > the old size $size)');
+      throw FormatException(
+        'Cannot add new note load command to header: '
+        'new size ${newFile.size} > the old size $size)',
+      );
     }
 
     return newFile;
@@ -1585,7 +1740,8 @@ class MachOFile {
   /// unexpected form.
   MachOSegmentCommand? get reservedSegment {
     final reservedIndex = commands.indexWhere(
-        (c) => c is MachOSegmentCommand && c.name == reservedSegmentName);
+      (c) => c is MachOSegmentCommand && c.name == reservedSegmentName,
+    );
     if (reservedIndex < 0) {
       return null;
     }
@@ -1598,14 +1754,16 @@ class MachOFile {
   /// Retrieves the __LINKEDIT segment load command. Returns null if not found.
   MachOSegmentCommand? get linkEditSegment {
     final linkEditIndex = commands.indexWhere(
-        (c) => c is MachOSegmentCommand && c.name == _linkEditSegmentName);
+      (c) => c is MachOSegmentCommand && c.name == _linkEditSegmentName,
+    );
     if (linkEditIndex < 0) {
       return null;
     }
 
     // __LINKEDIT  should be the last segment load command.
     assert(
-        !commands.skip(linkEditIndex + 1).any((c) => c is MachOSegmentCommand));
+      !commands.skip(linkEditIndex + 1).any((c) => c is MachOSegmentCommand),
+    );
 
     return commands[linkEditIndex] as MachOSegmentCommand;
   }
@@ -1614,7 +1772,8 @@ class MachOFile {
   /// the executable. Returns null if not found.
   MachONoteCommand? get snapshotNote {
     final snapshotIndex = commands.indexWhere(
-        (c) => c is MachONoteCommand && c.dataOwner == snapshotNoteName);
+      (c) => c is MachONoteCommand && c.dataOwner == snapshotNoteName,
+    );
     if (snapshotIndex < 0) {
       return null;
     }

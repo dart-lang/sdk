@@ -47,7 +47,7 @@ class C {}
   }
 
   test_throwInFinally() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
   void f() {
   try {
   } catch (e) {

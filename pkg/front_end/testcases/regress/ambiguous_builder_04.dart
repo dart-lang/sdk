@@ -4,12 +4,12 @@
 
 class Foo {
   int? x;
-  
+
   void foo() {
-    for(x in [42]) {
+    for (x in [42]) {
       print(x);
     }
   }
 
-  void x() { }
+  void x() {}
 }

@@ -62,7 +62,7 @@ FunctionExpression
       statements
         ReturnStatement
           returnKeyword: return
-          expression: MethodInvocation
+          expression2: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -117,7 +117,7 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -159,7 +159,7 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -194,7 +194,7 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -245,7 +245,7 @@ FunctionExpression
       statements
         YieldStatement
           yieldKeyword: yield
-          expression: MethodInvocation
+          expression2: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -296,7 +296,7 @@ FunctionExpression
       statements
         ReturnStatement
           returnKeyword: return
-          expression: MethodInvocation
+          expression2: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -350,7 +350,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -401,7 +401,7 @@ FunctionExpression
       statements
         YieldStatement
           yieldKeyword: yield
-          expression: MethodInvocation
+          expression2: MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -436,6 +436,15 @@ void f(List<int> items) {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: item
+        declaredFragment: <testLibraryFragment> item@43
+          element: hasImplicitType isPublic
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       name: item
       declaredFragment: <testLibraryFragment> item@43
@@ -447,7 +456,7 @@ FunctionExpression
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: item
             element: item@43
             staticType: int
@@ -474,6 +483,15 @@ main() {
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: x
+        declaredFragment: <testLibraryFragment> x@53
+          element: hasImplicitType isPublic
+            type: Object?
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: x
@@ -506,6 +524,15 @@ main() {
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: x
+        declaredFragment: <testLibraryFragment> x@52
+          element: hasImplicitType isPublic
+            type: Object?
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: x
@@ -547,6 +574,19 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: a
+        declaredFragment: <testLibraryFragment> a@29
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -559,7 +599,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: ListLiteral
+    expression2: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
@@ -569,7 +609,7 @@ FunctionExpression
             type: T
         rightBracket: >
       leftBracket: [
-      elements
+      elements2
         SimpleIdentifier
           token: a
           element: a@29
@@ -598,7 +638,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 42
       staticType: int
   declaredFragment: <testLibraryFragment> null@null
@@ -621,7 +661,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 42
       staticType: int
   declaredFragment: <testLibraryFragment> null@null
@@ -979,8 +1019,8 @@ int test<T extends int Function(int)>(T Function() createT) {
 
     var node = result.findNode.functionExpressionInvocation("('')");
     assertResolvedNodeText(node, r'''FunctionExpressionInvocation
-  function: FunctionExpressionInvocation
-    function: SimpleIdentifier
+  function2: FunctionExpressionInvocation
+    function2: SimpleIdentifier
       token: createT
       element: <testLibrary>::@function::test::@formalParameter::createT
       staticType: T Function()
@@ -992,7 +1032,7 @@ int test<T extends int Function(int)>(T Function() createT) {
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -1011,8 +1051,8 @@ int test<T extends int Function(int)>(T Function() createT) {
 
     var node = result.findNode.functionExpressionInvocation('(0)');
     assertResolvedNodeText(node, r'''FunctionExpressionInvocation
-  function: FunctionExpressionInvocation
-    function: SimpleIdentifier
+  function2: FunctionExpressionInvocation
+    function2: SimpleIdentifier
       token: createT
       element: <testLibrary>::@function::test::@formalParameter::createT
       staticType: T Function()
@@ -1024,7 +1064,7 @@ int test<T extends int Function(int)>(T Function() createT) {
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null

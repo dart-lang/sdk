@@ -31,7 +31,6 @@ void main(List<String> args) {
 
   final result = Process.runSync(createProcessHelper, [
     Platform.executable,
-    'run',
     Platform.script.toFilePath(),
     'child-process',
   ]);

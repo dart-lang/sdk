@@ -12,6 +12,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
@@ -90,7 +91,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     String? defaultEol,
   }) : assert(session == null || workspace == null),
        workspace = workspace ?? _SingleSessionWorkspace(session!),
-       defaultEol = defaultEol ?? Platform.lineTerminator;
+       defaultEol = defaultEol ?? platform.lineTerminator;
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits {
@@ -408,13 +409,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
     if (firstFragment != null && firstFragment != declaredFragment) {
       // If the receiver is a part file builder, then proactively cache the
       // library file builder so that imports can be finalized synchronously.
-      await addDartFileEdit(
-        firstFragment.source.fullName,
-        (builder) {
-          libraryEditBuilder = builder as DartFileEditBuilderImpl;
-        },
-        createEditsForImports: createEditsForImports,
-      );
+      await addDartFileEdit(firstFragment.source.fullName, (builder) {
+        libraryEditBuilder = builder as DartFileEditBuilderImpl;
+      }, createEditsForImports: createEditsForImports);
     }
 
     var eol = unitResult.content.endOfLine ?? defaultEol;
@@ -549,9 +546,7 @@ class EditBuilderImpl implements EditBuilder {
       var end = offset + _buffer.length;
       var length = end - start;
       if (length != 0) {
-        var position = Position(
-          fileEditBuilder.fileEdit.file,
-          start);
+        var position = Position(fileEditBuilder.fileEdit.file, start);
         fileEditBuilder._pendingPositions.add(
           _PendingPosition(
             position: position,
@@ -694,10 +689,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addLinkedPosition(SourceRange range, String groupName) {
     var group = changeBuilder.getLinkedEditGroup(groupName);
-    var position = Position(
-      fileEdit.file,
-      range.offset,
-    );
+    var position = Position(fileEdit.file, range.offset);
     group.addPosition(position, range.length);
     var revertData = changeBuilder._revertData;
     revertData._addedLinkedEditGroupPositions

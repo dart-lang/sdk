@@ -6,10 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as path;
 
-import 'generate_stress_test.dart';
+import '../../tools/generate_stress_test.dart';
 
 final sdkRoot = path.canonicalize(path.join(thisDirectory, '../../../'));
 final tempFile = path.join(thisDirectory, 'temp.dart');

@@ -8,12 +8,12 @@ typedef IntFn = int Function(int);
 typedef TFn = T Function<T>(T);
 
 abstract class CompareBase {
-  operator<(IntFn f);
+  operator <(IntFn f);
 }
 
 class Compare extends CompareBase {
   @override
-  operator<(Object f) => f is TFn;
+  operator <(Object f) => f is TFn;
 }
 
 test1(CompareBase x) {

@@ -350,10 +350,20 @@ The `pkg/dartdev` tests must be run with the `dart` executable in the `bin` fold
 /// be different but is not important to the test (for example where a drive
 /// letter might have different casing).
 String replacePathsWithMatchingCase(String input, {required String filePath}) {
-  return input.replaceAll(
+  var output = input.replaceAll(
     RegExp(RegExp.escape(filePath), caseSensitive: false),
     filePath,
   );
+  try {
+    final canonicalPath = Directory(filePath).resolveSymbolicLinksSync();
+    if (canonicalPath != filePath) {
+      output = output.replaceAll(
+        RegExp(RegExp.escape(canonicalPath), caseSensitive: false),
+        filePath,
+      );
+    }
+  } catch (_) {}
+  return output;
 }
 
 /// Resolves a relative URI from the pkg/dartdev folder.

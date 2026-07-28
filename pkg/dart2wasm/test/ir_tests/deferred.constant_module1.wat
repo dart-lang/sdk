@@ -38,7 +38,7 @@
     (ref.null none))
   (global $"\">(\"" (ref $JSExternWrapper) <...>)
   (global $"\"globalH1Bar<\"" (ref $JSExternWrapper)
-    (i32.const 63)
+    (i32.const 67)
     (i32.const 0)
     (global.get $.globalH1Bar<)
     (struct.new $JSExternWrapper))
@@ -58,17 +58,17 @@
     (local $var1 (ref $_FunctionType))
     (local $var2 (ref $#Closure-0-1))
     (local $var3 (ref $H1))
-    i32.const 107
+    i32.const 109
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"InstantiationConstant(globalH1Foo<int>)"
       br_on_non_null $label0
-      i32.const 48
+      i32.const 36
       i32.const 0
       block $label1 (result (ref $#Closure-1-1))
         global.get $"globalH1Foo tear-off"
         br_on_non_null $label1
-        i32.const 48
+        i32.const 36
         i32.const 0
         global.get $global0
         global.get $global2
@@ -145,7 +145,7 @@
     struct.get $H1 $fun
     local.tee $var0
     struct.get $#Closure-0-1 $context
-    i32.const 96
+    i32.const 93
     i64.const 1
     struct.new $BoxedInt
     local.get $var0
@@ -156,7 +156,7 @@
   )
   (@binaryen.inline 0)
   (func $modMainUseH0
-    i64.const 0
+    i64.const 1
     i32.const 7
     call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop
@@ -169,7 +169,7 @@
     end $label0
     i32.const 5
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top))
-    i64.const 0
+    i64.const 1
     i32.const 7
     call_indirect $M.cross-module-funcs-0 (param i64) (result i32)
     drop

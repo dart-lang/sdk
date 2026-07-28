@@ -319,34 +319,18 @@ class RegularSetterDeclaration
         declaredFormals.length != 1 ||
         declaredFormals.single.isOptionalPositional) {
       int fileOffset = _fragment.formalsOffset;
-      if (body == null) {
-        body = extern.createEmptyStatement(fileOffset: fileOffset);
-      }
-      if (declaredFormals != null) {
-        // Illegal parameters were removed by the function builder.
-        // Add them as local variable to put them in scope of the body.
-        List<Statement> statements = <Statement>[];
-        for (FormalParameterBuilder parameter in declaredFormals) {
-          statements.add(
-            extern.createVariableStatement(
-              extern.createVariableDeclaration(parameter.variable.astVariable),
-            ),
-          );
-        }
-        statements.add(body);
-        body = extern.createBlock(statements, fileOffset: fileOffset);
-      }
       body = extern.createBlock([
         extern.createExpressionStatement(
-          problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.setterWithWrongNumberOfFormals,
-            fileUri: _fragment.fileUri,
-            fileOffset: fileOffset,
-            length: noLength,
+          extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.setterWithWrongNumberOfFormals,
+              fileUri: _fragment.fileUri,
+              fileOffset: fileOffset,
+              length: noLength,
+            ),
           ),
         ),
-        body,
       ], fileOffset: fileOffset);
     }
     assert(

@@ -855,8 +855,7 @@ class Driver implements ServerStarter {
             'Dart\'s analysis server protocol '
             '(https://dart.dev/go/analysis-server-protocol)',
       },
-      help:
-          'Specify the protocol to use to communicate with the analysis server.',
+      help: 'Specify the protocol to use to communicate with the analysis server.',
     );
     // This option is hidden but still accepted; it's effectively translated to
     // the 'protocol' option above.

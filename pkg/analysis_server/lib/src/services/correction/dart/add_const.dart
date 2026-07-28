@@ -109,15 +109,13 @@ class AddConst extends ResolvedCorrectionProducer {
               :var parent,
               constKeyword: var keyword,
             )) {
-      var constDeclarations = getCodeStyleOptions(
-        unitResult.file,
-      ).preferConstDeclarations;
+      var constDeclarations = getCodeStyleOptions(unitResult.file)
+          .preferConstDeclarations;
 
       if (parent is VariableDeclaration && constDeclarations) {
-        if (parent.parent case VariableDeclarationList(
-          :var finalKeyword?,
-          :var variables,
-        ) when _declarationListIsFullyConst(variables)) {
+        if (parent.parent
+            case VariableDeclarationList(:var finalKeyword?, :var variables)
+            when _declarationListIsFullyConst(variables)) {
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(range.token(finalKeyword), 'const');
           });

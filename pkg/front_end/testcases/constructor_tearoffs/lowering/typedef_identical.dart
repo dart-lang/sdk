@@ -70,7 +70,6 @@ main() {
   expect(false, identical(F_redirect, H_redirect));
 }
 
-
 expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }

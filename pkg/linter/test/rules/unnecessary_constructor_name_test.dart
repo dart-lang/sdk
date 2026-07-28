@@ -27,7 +27,7 @@ class A {
   }
 
   test_constructorDeclaration_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A.[!new!]();
 }
@@ -71,7 +71,7 @@ extension type E(int i) {
   }
 
   test_extensionTypeDeclaration_primaryNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E.a(int i) {
   E.[!new!](this.i);
 }
@@ -79,7 +79,7 @@ extension type E.a(int i) {
   }
 
   test_extensionTypeDeclaration_primaryNamedNew() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E.[!new!](int i) { }
 ''');
   }
@@ -94,7 +94,7 @@ var aaa = A.ok();
   }
 
   test_instanceCreation_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {}
 var a = A.[!new!]();
 ''');
@@ -116,7 +116,7 @@ class A {
   }
 
   test_primaryConstructorDeclaration_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A.[!new!]();
 ''');
   }

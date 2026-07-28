@@ -62,8 +62,8 @@
   }
 #if defined(EVENTHANDLER_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Syslog::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__, __LINE__,     \
-                ##__VA_ARGS__)
+  Syslog::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__,               \
+                __LINE__, ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(EVENTHANDLER_LOG_INFO)
@@ -526,6 +526,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       if (registry->CloseSafe(socket)) {
         ASSERT(new_mask == 0);
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+        // Ensure no pending packets with `di` as key, as handling such packets
+        // would involve a use-after-free.
+        RemoveFromPort(port_handle_, di);
         di->Close();
         delete di;
         socket->CloseFd();
@@ -534,6 +537,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
     } else {
       ASSERT(new_mask == 0);
       socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+      // Ensure no pending packets with `di` as key, as handling such packets
+      // would involve a use-after-free.
+      RemoveFromPort(port_handle_, di);
       di->Close();
       delete di;
       socket->CloseFd();

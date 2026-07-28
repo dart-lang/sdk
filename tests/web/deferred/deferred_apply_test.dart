@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'deferred_apply_lib.dart' deferred as lib;
 
 // Test that the `_Required` sentinel in apply-metadata is initialized.

@@ -5,12 +5,14 @@
 // All three libraries have an HttpRequest class.
 import "conditional_import.dart"
     if (dart.library.io) "dart:io"
-    if (dart.library.html) "dart:html" as a;
+    if (dart.library.html) "dart:html"
+    as a;
 
 // All three libraries have an HttpRequest class.
 import "conditional_import.dart"
     if (dart.library.html) "dart:html"
-    if (dart.library.io) "dart:io" as b;
+    if (dart.library.io) "dart:io"
+    as b;
 
 import "conditional_import.dart" if (dart.library.foo) "dart:foo" as c;
 

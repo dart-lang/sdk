@@ -292,9 +292,9 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       // Round-trip response via JSON because this doesn't happen automatically
       // when we're bypassing the streams (running in-process) and we want to
       // validate everything.
-      var lspNotificationJson =
-          jsonDecode(jsonEncode(params.lspNotification))
-              as Map<String, Object?>;
+      var lspNotificationJson = jsonDecode(
+        jsonEncode(params.lspNotification),
+      ) as Map<String, Object?>;
       var lspNotificationMessage = NotificationMessage.fromJson(
         lspNotificationJson,
       );
@@ -366,9 +366,8 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         // A client-provided response to an LSP reverse-request is always
         // a full LSP result payload as the "result". The legacy request should
         // always succeed and any errors handled as LSP error responses within.
-        result: LspHandleResult(
-          response,
-        ).toJson(clientUriConverter: uriConverter),
+        result: LspHandleResult(response)
+            .toJson(clientUriConverter: uriConverter),
       ),
     );
   }
@@ -401,9 +400,6 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   /// The current set of priority files. This is the same as the set of
   /// currently-open files (see [openFile]/[closeFile]).
   final Set<String> _priorityFiles = {};
-
-  @override
-  Future<void> get currentAnalysis => waitForTasksFinished();
 
   @override
   Future<void> closeFile(Uri uri) async {
@@ -461,6 +457,9 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
     // For legacy, we can use addOverlay to replace the whole file.
     await addOverlay(fromUri(uri), content);
   }
+
+  @override
+  Future<void> workspaceAnalysisComplete() => waitForTasksFinished();
 
   void _updatePriorityFiles() {
     setPriorityFiles(_priorityFiles.map(getFile).toList());

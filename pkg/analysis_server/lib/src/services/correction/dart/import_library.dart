@@ -986,10 +986,9 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
         :var identifier,
       )) {
         nodeRange = range.startStart(prefixNode, identifier);
-      } else if (targetNode.parent case MethodInvocation(
-        :SimpleIdentifier target,
-        :var methodName,
-      ) when target.name == _nodePrefix) {
+      } else if (targetNode.parent
+          case MethodInvocation(:SimpleIdentifier target, :var methodName)
+          when target.name == _nodePrefix) {
         nodeRange = range.startStart(target, methodName);
       } else {
         return;

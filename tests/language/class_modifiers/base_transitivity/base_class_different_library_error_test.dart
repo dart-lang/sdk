@@ -5,6 +5,7 @@
 /// Test the invalid uses of a base class defined in a different library
 
 import 'dart:collection';
+
 import "shared_library_definitions.dart" show SimpleClass, BaseClass;
 import 'shared_library_definitions_legacy.dart' show LegacyImplementBaseCore;
 
@@ -407,12 +408,11 @@ base mixin class BaseMixinClassImplement implements BaseClass {}
 
 // Implementing with a mixin application class.
 
-class SimpleImplementApplication = Object
-//    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [error line 414, column 7, length 26]
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'SimpleImplementApplication' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
-        with
-        _MixinOnObject
+class SimpleImplementApplication = Object
+    with _MixinOnObject
     implements BaseClass;
 //             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY

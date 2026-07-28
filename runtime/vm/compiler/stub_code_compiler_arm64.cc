@@ -245,7 +245,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
     __ mov(R25, CSP);
     __ mov(CSP, SP);
 
-    __ blr(R5);
+    __ CallCFunction(R5);
     __ Comment("CallToRuntimeStub return");
 
     // Restore SP and CSP.
@@ -349,7 +349,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ mov(CSP, SP);
 
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
-  __ blr(R0);
+  __ CallCFunction(R0);
 
   __ mov(SP, CALLEE_SAVED_TEMP2);
   __ mov(CSP, CALLEE_SAVED_TEMP);
@@ -375,7 +375,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(R0);
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
-  __ blr(R0);
+  __ CallCFunction(R0);
 
   __ mov(SP, CALLEE_SAVED_TEMP2);
   __ mov(CSP, CALLEE_SAVED_TEMP);
@@ -421,7 +421,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
     __ Emit(Instr::kSimulatorFfiRedirectInstruction);
   }
 #endif
-  __ blr(R9);
+  __ CallCFunction(R9);
 
   __ mov(SP, CSP);
   __ mov(CSP, R25);
@@ -455,6 +455,13 @@ void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   Label body;
 
+  // Padding for ubsan target function pointer validation
+  while (__ CodeSize() <
+         FfiCallbackMetadata::kUbsanTargetValidationPaddingSize) {
+    __ Breakpoint();
+  }
+  ASSERT_EQUAL(FfiCallbackMetadata::kUbsanTargetValidationPaddingSize,
+               __ CodeSize());
   // R9 is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
   for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
@@ -466,20 +473,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_EQUAL(__ CodeSize(),
-               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
-                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
+               FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                   FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                       FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   __ Bind(&body);
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR (callee-saved) and LR on the real C stack (CSP). Keeps it
-  // aligned.
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
+  // Save THR, R20, R21, R22 (callee-saved) and LR on the real C stack (CSP).
+  // Keeps it aligned.
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 6);
   SPILLS_LR_TO_FRAME(__ stp(
       FP, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
   __ mov(FP, CSP);
   __ stp(R20, THR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  __ stp(R22, R21, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
 
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
@@ -495,14 +504,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   {
     __ mov(SP, CSP);
     // This saves too much: we only need the D half of Q registers.
-    __ PushRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PushRegistersAligned(argument_registers, 5 * target::kWordSize);
     __ mov(R0, R9);
     __ mov(R1, SP);
 
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
     __ mov(CSP, SP);
-    __ blr(R4);  // DLRT_GetFfiCallbackMetadata
+    __ CallCFunction(R4);  // DLRT_GetFfiCallbackMetadata
     __ mov(SP, CSP);
 
     __ mov(THR, R0);
@@ -512,8 +521,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ ldr(R11, Address(CSP, 1 * target::kWordSize));  // is_tail
     COMPILE_ASSERT(IsCalleeSavedRegister(R20));
     __ ldr(R20, Address(CSP, 2 * target::kWordSize));  // epilogue
+    COMPILE_ASSERT(IsCalleeSavedRegister(R21));
+    __ ldr(R21, Address(CSP, 3 * target::kWordSize));  // isolate
+    COMPILE_ASSERT(IsCalleeSavedRegister(R22));
+    __ ldr(R22, Address(CSP, 4 * target::kWordSize));  // isolate_group
 
-    __ PopRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PopRegistersAligned(argument_registers, 5 * target::kWordSize);
     __ mov(CSP, SP);
   }
 
@@ -526,13 +539,17 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ fstp(V0, V1, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
     __ fstp(V2, V3, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
     __ mov(R0, THR);
-    __ blr(R20);  // DLRT_ExitSyncCallback, etc
+    __ mov(R1, R21);
+    __ mov(R2, R22);
+    __ CallCFunction(R20);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
-      __ blr(R0);  // dart_msan_unpoison_retval
+      __ CallCFunction(R0);  // dart_msan_unpoison_retval
     }
     __ fldp(V2, V3, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ fldp(V0, V1, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ ldp(R0, R1, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+    __ ldp(R22, R21,
+           Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     __ ldp(R20, THR,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     RESTORES_LR_FROM_FRAME(__ ldp(
@@ -546,6 +563,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blr(R10);
     __ mov(R0, THR);
     __ mov(R1, R20);
+    __ ldp(R22, R21,
+           Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     __ ldp(R20, THR,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     RESTORES_LR_FROM_FRAME(__ ldp(
@@ -553,12 +572,13 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ br(R1);  // DLRT_ExitTemporaryIsolate.
+    __ TailCallCFunction(R1);  // DLRT_ExitTemporaryIsolate.
     __ brk(0);
   }
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
-                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+                       FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                           FfiCallbackMetadata::kNativeCallbackSharedStubSize);
   ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
@@ -728,7 +748,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
     __ mov(R1, R5);  // Pass the function entrypoint to call.
 
     // Call native function invocation wrapper or redirection via simulator.
-    __ Call(wrapper);
+    __ CallCFunction(wrapper);
 
     // Restore SP and CSP.
     __ mov(SP, CSP);
@@ -1474,6 +1494,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
 //   R3 : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ Comment("InvokeDartCodeStub");
+  if (FLAG_support_cfi) __ bti_c();
 
   // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
   // use to access the stack (SP/R15) and set the C stack pointer to near the
@@ -1619,6 +1640,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
 #if defined(DART_DYNAMIC_MODULES)
   __ Comment("InvokeDartCodeFromBytecodeStub");
+  if (FLAG_support_cfi) __ bti_c();
 
   // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
   // use to access the stack (SP/R15) and set the C stack pointer to near the
@@ -3351,6 +3373,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
                        target::kWordSize));
     __ b(&again);
     __ Bind(&done);
+  } else if (FLAG_support_cfi) {
+    // TODO(63457): How to unwind to appease GCS?
   }
   __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
   __ mov(SP, R1);                 // Stack pointer.

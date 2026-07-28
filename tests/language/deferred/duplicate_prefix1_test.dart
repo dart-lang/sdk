@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// The formatter puts a blank line after the second import.
+// dart format off
+
 import "prefix_constraints_lib2.dart" as lib;
 import "prefix_constraints_lib.dart" deferred as lib;
 //                                   ^^^^^^^^

@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/cyclicity_checks_order_in_outline.dart:9:9: Error: The typedef 'F1' has a reference to itself.
+// pkg/front_end/testcases/extension_types/cyclicity_checks_order_in_outline.dart:10:9: Error: The typedef 'F1' has a reference to itself.
 // typedef F1 = F1; // Error.
 //         ^^
 //
-// pkg/front_end/testcases/extension_types/cyclicity_checks_order_in_outline.dart:11:9: Error: The typedef 'F2' has a reference to itself.
+// pkg/front_end/testcases/extension_types/cyclicity_checks_order_in_outline.dart:12:9: Error: The typedef 'F2' has a reference to itself.
 // typedef F2 = F2; // Error.
 //         ^^
 //

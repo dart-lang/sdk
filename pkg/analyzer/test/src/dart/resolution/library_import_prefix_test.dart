@@ -62,7 +62,7 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
@@ -90,8 +90,30 @@ main() {
 }
 ''');
 
-    var node = result.findNode.singleInstanceCreationExpression;
+    var node = result.findNode.singleConstructorInvocation;
     assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  keyword: new
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: dynamic}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleIdentifier
+        token: p
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
+          substitution: {T: dynamic}
+        element: <testLibraryFragment>::@prefix::p
+        staticType: InvalidType
+    rightParenthesis: )
+  staticType: C<dynamic>
 InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
@@ -99,7 +121,7 @@ InstanceCreationExpression
       name: C
       element: <testLibrary>::@class::C
       type: C<dynamic>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: dynamic}
   argumentList: ArgumentList
@@ -107,7 +129,7 @@ InstanceCreationExpression
     arguments
       SimpleIdentifier
         token: p
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
         element: <testLibraryFragment>::@prefix::p

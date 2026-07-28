@@ -18,19 +18,19 @@ class UseRawStringsTest extends LintRuleTest {
   String get lintRule => LintNames.use_raw_strings;
 
   test_escapedBackslash() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var f = [!'\\'!];
 ''');
   }
 
   test_escapedDollar() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var f = [!'\$'!];
 ''');
   }
 
   test_escapedMultiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var f = [!'\$ and \\'!];
 ''');
   }
@@ -80,19 +80,19 @@ var f = r'\$ and \\ and \n';
   }
 
   test_triple_escapedBackslash() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var f = [!'''\\'''!];
 """);
   }
 
   test_triple_escapedDollar() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var f = [!'''\$'''!];
 """);
   }
 
   test_triple_escapedMultiple() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var f = [!'''\$ and \\'''!];
 """);
   }

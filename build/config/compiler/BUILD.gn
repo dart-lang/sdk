@@ -11,6 +11,8 @@ declare_args() {
   } else {
     debug_optimization_level = "2"
   }
+
+  enable_cfi = false
 }
 
 import("//build/config/sysroot.gni")
@@ -236,12 +238,22 @@ config("compiler") {
         common_mac_flags += [ "--target=x86_64-apple-macos" ]
       } else if (current_cpu == "arm64") {
         common_mac_flags += [ "--target=arm64-apple-macos" ]
+      } else if (current_cpu == "arm64e") {
+        common_mac_flags += [ "--target=arm64e-apple-macos" ]
+
+        # TODO(https://github.com/llvm/llvm-project/pull/188378): Use lld (default).
+        ldflags += [ "-fuse-ld=ld" ]
       }
     } else if (is_ios) {
       if (current_cpu == "x64") {
         common_mac_flags += [ "--target=x86_64-apple-darwin" ]
       } else if (current_cpu == "arm64") {
         common_mac_flags += [ "--target=arm64-apple-darwin" ]
+      } else if (current_cpu == "arm64e") {
+        common_mac_flags += [ "--target=arm64e-apple-darwin" ]
+
+        # TODO(https://github.com/llvm/llvm-project/pull/188378): Use lld (default).
+        ldflags += [ "-fuse-ld=ld" ]
       }
     }
 
@@ -361,6 +373,16 @@ config("compiler") {
     }
   }
 
+  if (is_linux && enable_cfi) {
+    if (current_cpu == "x64") {
+      cflags += [ "-fcf-protection=full" ]
+      ldflags += [ "-Wl,-z,cet-report=warning" ]
+    } else if (current_cpu == "arm64") {
+      cflags += [ "-mbranch-protection=standard" ]
+      ldflags += [ "-Wl,-z,cet-report=warning" ]
+    }
+  }
+
   # Clang-specific compiler flags setup.
   # ------------------------------------
   if (is_clang) {
@@ -389,13 +411,6 @@ config("compiler") {
       "-funwind-tables",
       "-fno-short-enums",
     ]
-    if (is_asan) {
-      # Android build relies on -Wl,--gc-sections removing unreachable code.
-      # ASan instrumentation for globals inhibits this and results in a library
-      # with unresolvable relocations.
-      # TODO(eugenis): find a way to reenable this.
-      cflags += [ "-mllvm -asan-globals=0" ]
-    }
 
     defines += [ "ANDROID" ]
 
@@ -444,7 +459,8 @@ config("compiler") {
     } else if (is_linux) {
       toolchain_stamp_file =
           "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
-    } else if ((is_mac || is_ios) && host_cpu == "arm64") {
+    } else if ((is_mac || is_ios) &&
+               (host_cpu == "arm64" || host_cpu == "arm64e")) {
       toolchain_stamp_file =
           "//buildtools/mac-arm64/clang/.versions/clang.cipd_version"
     } else if (is_mac || is_ios) {
@@ -643,9 +659,7 @@ if (is_win) {
       "-Wno-unused-value",  # crashpad
       "-Wno-deprecated-non-prototype",  # zlib
     ]
-    default_warning_flags_cc += [
-      "-Wno-microsoft-unqualified-friend",
-    ]
+    default_warning_flags_cc += [ "-Wno-microsoft-unqualified-friend" ]
   } else {
     default_warning_flags += [
       # Permanent.
@@ -795,7 +809,11 @@ config("no_rtti") {
   if (is_win) {
     cflags_cc = [ "/GR-" ]
   } else {
-    rtti_flags = [ "-fno-rtti" ]
+    if (is_android && is_asan) {
+      rtti_flags = [ "-frtti" ]
+    } else {
+      rtti_flags = [ "-fno-rtti" ]
+    }
     cflags_cc = rtti_flags
     cflags_objcc = rtti_flags
   }
@@ -892,7 +910,7 @@ if (is_win) {
     }
   }
 
-  if (is_clang && !using_sanitizer) {
+  if (is_clang && !using_sanitizer && current_cpu != "arm64e") {
     # Identical code folding to reduce size.
     # Warning: This changes C/C++ semantics of function pointer comparison.
     # Needs lld/gold/mold instead of GNU ld/Mac ld.

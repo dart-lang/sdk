@@ -32,7 +32,7 @@ const cc = []..addAll(thangs);
   }
 
   test_listLiteralTarget_conditional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String> x) {
   var y = ['a']..[!addAll!](1 == 2 ? x : []);
 }
@@ -40,7 +40,7 @@ void f(List<String> x) {
   }
 
   test_listLiteralTarget_conditional_constList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String> x) {
   var y = ['a']..[!addAll!](1 == 2 ? x : const []);
 }
@@ -48,7 +48,7 @@ void f(List<String> x) {
   }
 
   test_listLiteralTarget_identifier() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> x) {
   var y = <int>[]..[!addAll!](x);
 }
@@ -56,7 +56,7 @@ void f(List<int> x) {
   }
 
   test_listLiteralTarget_ifNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String>? x) {
   var y = ['a']..[!addAll!](x ?? []);
 }
@@ -64,7 +64,7 @@ void f(List<String>? x) {
   }
 
   test_listLiteralTarget_ifNull_constList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String>? x) {
   var y = ['a']..[!addAll!](x ?? const []);
 }
@@ -79,7 +79,7 @@ var l = ['a']..addAll(['b']);
   }
 
   test_listLiteralTarget_multipleCascades() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> p) {
   ['a']..[!addAll!](p.map((i) => i.toString()))..addAll(['c']);
 }

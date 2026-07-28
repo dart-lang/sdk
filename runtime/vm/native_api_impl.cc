@@ -286,12 +286,11 @@ DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
     IsolateGroup::Current()->heap()->CollectAllGarbage(GCReason::kDebugging);
     return nullptr;
 
-  } else if (strcmp(command, "is-thread-in-generated") == 0) {
-    if (Thread::Current()->execution_state() == Thread::kThreadInGenerated) {
+  } else if (strcmp(command, "is-thread-in-native") == 0) {
+    if (Thread::Current()->execution_state() == Thread::kThreadInNative) {
       return reinterpret_cast<void*>(1);
     }
     return nullptr;
-
   } else if (strcmp(command, "is-mutator-blocked-at-safepoint") == 0) {
     Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
     CHECK_ISOLATE(isolate);

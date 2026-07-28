@@ -37,6 +37,8 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSBoxedDartObject;
   final Procedure _isJSExportedDartFunction;
   final Procedure _isJSObject;
+  final Procedure _isJSArray;
+  final Procedure _isNullableJSArray;
   final Procedure _isJSTypedArray;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
@@ -107,6 +109,10 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         '_isJSObject',
       ),
+      _isJSArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSArray',
+      ),
       _isJSTypedArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isJSTypedArray',
@@ -127,6 +133,8 @@ class SharedInteropTransformer extends Transformer {
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
+      _isNullableJSArray = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSArray'),
       _isNullableJSTypedArray = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSTypedArray'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
@@ -690,6 +698,16 @@ class SharedInteropTransformer extends Transformer {
             [VariableGet(receiverVar)],
             types: [interopType.typeArguments.first],
           ),
+        );
+        break;
+      case 'JSArray' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable ? _isNullableJSArray : _isJSArray,
+          Arguments([VariableGet(receiverVar)]),
         );
         break;
       case 'JSTypedArray' when interopTypeDecl == jsType:

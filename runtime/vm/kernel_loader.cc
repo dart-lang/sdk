@@ -1011,15 +1011,15 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_has_deeply_immutable_type(
         DeeplyImmutablePragma::decode(pragma_bits));
     const AbstractType& type = T.BuildType();  // read type.
+    field_helper.SetJustRead(FieldHelper::kType);
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
+    field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     CheckForInitializer(field);
     // Static fields with initializers are implicitly late.
     if (field.has_initializer()) {
       field.set_is_late(true);
     }
-    field_helper.SetJustRead(FieldHelper::kType);
-    field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
     intptr_t field_initializer_offset = helper_.ReaderOffset();
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
 
@@ -1445,12 +1445,12 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_dynamically_callable(
           DynModuleDynamicallyCallablePragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
+      field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       CheckForInitializer(field);
       // Static fields with initializers are implicitly late.
       if (field_helper.IsStatic() && field.has_initializer()) {
         field.set_is_late(true);
       }
-      field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = helper_.ReaderOffset();
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
 

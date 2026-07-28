@@ -5,9 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dap/dap.dart';
+import 'package:dap_adapters/dap.dart';
 import 'package:dds/dds.dart';
-import 'package:dds/src/dap/constants.dart';
 import 'package:dds_service_extensions/dap.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -48,15 +47,13 @@ void main() {
   });
 
   var nextSeq = 1;
-  Future<DapResponse> sendDapRequest(String request,
-      [Object? arguments]) async {
+  Future<DapResponse> sendDapRequest(
+    String request, [
+    Object? arguments,
+  ]) async {
     final result = await service.sendDapRequest(
       jsonEncode(
-        Request(
-          command: request,
-          seq: nextSeq++,
-          arguments: arguments,
-        ),
+        Request(command: request, seq: nextSeq++, arguments: arguments),
       ),
     );
 
@@ -104,19 +101,14 @@ void main() {
     service = await vmServiceConnectUri(serviceUri.toString());
 
     final breakpointArguments = SetBreakpointsArguments(
-      breakpoints: [
-        SourceBreakpoint(line: 20),
-        SourceBreakpoint(line: 30),
-      ],
-      source: Source(
-        name: 'main.dart',
-        path: '/file/to/main.dart',
-      ),
+      breakpoints: [SourceBreakpoint(line: 20), SourceBreakpoint(line: 30)],
+      source: Source(name: 'main.dart', path: '/file/to/main.dart'),
     );
 
     final result = await sendDapRequest('setBreakpoints', breakpointArguments);
     final response = SetBreakpointsResponseBody.fromMap(
-        result.dapResponse.body as Map<String, Object?>);
+      result.dapResponse.body as Map<String, Object?>,
+    );
     expect(response.breakpoints, hasLength(2));
     expect(response.breakpoints[0].verified, isFalse);
     expect(response.breakpoints[1].verified, isFalse);
@@ -155,9 +147,7 @@ void main() {
     // And now ask DAP to convert it back to an instance ID.
     final getInstanceResult = await sendDapRequest(
       Command.getVariablesInstanceId,
-      {
-        Parameters.variablesReference: variablesReference,
-      },
+      {Parameters.variablesReference: variablesReference},
     );
     final getInstanceRefBody =
         getInstanceResult.dapResponse.body as Map<String, Object?>;
@@ -188,10 +178,6 @@ void main() {
     final threads = threadsBody['threads'] as List;
     expect(threads, hasLength(1));
     final thread = threads[0] as Map<String, Object?>;
-    expect(thread, {
-      'id': 1,
-      'name': 'main',
-      'isolateId': isolateId,
-    });
+    expect(thread, {'id': 1, 'name': 'main', 'isolateId': isolateId});
   });
 }

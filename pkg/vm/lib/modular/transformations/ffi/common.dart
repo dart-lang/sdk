@@ -1946,6 +1946,10 @@ class FfiTransformer extends Transformer {
           variance: Variance.covariant,
         )!;
         if (env.isSubtypeOf(dartType, correspondingDartType)) {
+          if (correspondingDartType is FunctionType &&
+              dartType is! FunctionType) {
+            throw FfiStaticTypeError();
+          }
           return correspondingDartType;
         }
     }

@@ -253,7 +253,7 @@ A f(A p) {
     var node = result.findNode.methodInvocation('p.m()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: p
     element: <testLibrary>::@function::f::@formalParameter::p
     staticType: B

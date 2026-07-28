@@ -20,7 +20,7 @@ class UnicodeTextVerifier {
     for (var offset = 0; offset < source.length; ++offset) {
       var codeUnit = source.codeUnitAt(offset);
       if (_isCodeUnitMatch(codeUnit)) {
-        var node = unit.nodeCovering(offset: offset);
+        var node = unit.nodeCovering2(offset: offset);
         // If it's not in a string literal, we assume we're in a comment.
         // This can potentially over-report on syntactically incorrect sources
         // (where Unicode is outside a string or comment).

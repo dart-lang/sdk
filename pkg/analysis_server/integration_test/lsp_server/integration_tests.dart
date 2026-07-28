@@ -241,7 +241,7 @@ class LspServerClient {
       inputStream,
       outputStream,
       instrumentationService ?? InstrumentationLogAdapter(PrintableLogger()),
-    )..listen(_serverToClient.add);
+    )..listen(_serverToClient.add, onDone: () => _serverToClient.close());
   }
 
   /// Checks the first line in the [input], and if it is the DevTools URI

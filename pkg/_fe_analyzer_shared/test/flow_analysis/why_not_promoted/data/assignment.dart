@@ -23,7 +23,7 @@ compound_assignment(C? c, int i) {
 
 via_postfix_op(C? c) {
   if (c == null) return;
-  /*cfe.update: explicitWrite*/ /*analyzer.explicitWrite*/
+  /*cfe.update: explicitWrite*/ /*explicitWrite*/
   c++;
   c. /*notPromoted(explicitWrite)*/ cProperty;
 }
@@ -31,7 +31,7 @@ via_postfix_op(C? c) {
 via_prefix_op(C? c) {
   if (c == null) return;
   /*analyzer.explicitWrite*/
-  ++ /*cfe.update: explicitWrite*/ c;
+  ++ /*cfe.update: explicitWrite*/ /*cfe.explicitWrite*/ c;
   c. /*notPromoted(explicitWrite)*/ cProperty;
 }
 

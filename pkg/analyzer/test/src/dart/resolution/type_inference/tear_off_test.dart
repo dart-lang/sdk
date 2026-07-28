@@ -74,8 +74,20 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: InstanceCreationExpression
+  function2: PropertyAccess
+    target2: ConstructorInvocation
+      keyword: new
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+        element: <testLibrary>::@class::C::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C
+    target(v1): InstanceCreationExpression
       keyword: new
       constructorName: ConstructorName
         type: NamedType
@@ -110,7 +122,7 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: f@31
     staticType: T Function<T>(T)
@@ -134,7 +146,7 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
@@ -168,8 +180,8 @@ class D extends C {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: SuperExpression
+  function2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
@@ -196,7 +208,7 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
@@ -224,10 +236,10 @@ MethodInvocation
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::f::@formalParameter::x
           substitution: {T: int}
         staticType: int

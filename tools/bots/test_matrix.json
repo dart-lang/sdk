@@ -135,6 +135,7 @@
       "pkg/",
       "samples/",
       "tools/",
+      "utils/",
       "buildtools/linux-arm64/clang/bin/",
       "buildtools/linux-x64/clang/bin/",
       "buildtools/mac-arm64/clang/bin/",
@@ -168,30 +169,10 @@
       "tests/search/",
       "tests/standalone/",
       "tests/ffi/",
-      "pkg/_fe_analyzer_shared/",
-      "pkg/build_integration/",
-      "pkg/dart_data_home/",
-      "pkg/dart_internal/",
-      "pkg/dart2native/",
-      "pkg/dart2js_tools/",
-      "pkg/dart_runtime_service/",
-      "pkg/dds/",
-      "pkg/expect/",
-      "pkg/front_end/",
-      "pkg/js/",
-      "pkg/kernel/",
-      "pkg/meta/",
-      "pkg/native_stack_traces/",
-      "pkg/pkg.status",
-      "pkg/smith/",
-      "pkg/status_file/",
-      "pkg/test_runner/",
-      "pkg/vm/",
-      "pkg/vm_service/",
-      "pkg/vm_snapshot_analysis/",
       "runtime/",
       "sdk/",
-      ".dart_tool/package_config.json"
+      ".dart_tool/package_config.json",
+      "pubspec.yaml"
     ],
     "android": [
       ".dart_tool/package_config.json",
@@ -207,6 +188,8 @@
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM64C/",
       "out/ReleaseAndroidARM_X64/",
+      "out/ReleaseAndroidHWASANX64C/",
+      "out/ReleaseAndroidUBSANX64C/",
       "out/ReleaseAndroidX64C/",
       "pkg/",
       "runtime/tests/",
@@ -215,6 +198,7 @@
       "sdk/",
       "tests/",
       "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
+      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/",
       "third_party/android_tools/sdk/",
       "third_party/openjdk/",
       "third_party/pkg/",
@@ -242,7 +226,7 @@
         "use-sdk": true
       }
     },
-    "unittest-asserts-(debug|product|release)-(linux|mac|win)-(arm64|x64)": {
+    "unittest-asserts-(debug|product|release)-(linux|mac|win)-(arm64|arm64e|x64)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
@@ -270,6 +254,16 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
+        "use-sdk": true
+      }
+    },
+    "web-dev-integration-(linux|win)": {
+      "options": {
+        "builder-tag": "ddc",
+        "compiler": "dartk",
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 300,
         "use-sdk": true
       }
     },
@@ -355,10 +349,19 @@
         "enable-asserts": true
       }
     },
-    "vm-aot-(linux|fuchsia|win)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-aot-win-(debug|product|release)-(x64|x64c)": {
+      "options": {
+        "gen-snapshot-format": "coff"
+      }
+    },
+    "vm-aot-win-(debug|product|release)-(arm64|arm64c)": {
       "options": {}
     },
-    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+    "vm-aot-(linux|fuchsia)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+      "options": {}
+    },
+    "vm-mac-(debug|product|release)-arm64e": {},
+    "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c|arm64e)": {
       "options": {
         "gen-snapshot-format": "macho-dylib"
       }
@@ -368,17 +371,23 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-(asan|hwasan|lsan|tsan|ubsan)-android-(debug|product|release)-(x64|x64c|arm64|arm64c)": {},
+      "vm-aot-(asan|hwasan|lsan|tsan|ubsan)-android-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
+      "options": {
+        "gen-snapshot-format": "elf"
+      }
+    },
+    "vm-asan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {},
-    "vm-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
+    "vm-tsan-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm64|simriscv64)": {},
+    "vm-ubsan-(fuchsia|linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {},
     "vm-aot-(asan|lsan|tsan|ubsan)-mac-(debug|product|release)-(x64|arm64|simarm64)": {
       "options": {
         "gen-snapshot-format": "macho-dylib"
       }
     },
-    "vm-aot-asan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-asan-(fuchsia|linux|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -393,12 +402,12 @@
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-tsan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
+    "vm-aot-tsan-linux-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm64|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
     },
-    "vm-aot-ubsan-(linux|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
+    "vm-aot-ubsan-(fuchsia|linux|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format": "elf"
       }
@@ -857,10 +866,48 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-android-${mode}-${arch}"
+            "-nvm-aot-android-${mode}-${arch}",
+            "--exclude-suite=language"
           ],
           "fileset": "android",
           "shards": 4
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-hwasan-android-release-x64c",
+        "vm-ubsan-android-release-x64c"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm precomp builders on Android."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=android",
+            "android_bot"
+          ]
+        },
+        {
+          "name": "vm jit tests",
+          "arguments": [
+            "-nvm-${sanitizer}-android-${mode}-${arch}",
+            "--exclude-suite=language"
+          ],
+          "fileset": "android",
+          "shards": 2
+        },
+        {
+          "name": "vm aot tests",
+          "arguments": [
+            "-nvm-aot-${sanitizer}-android-${mode}-${arch}",
+            "--exclude-suite=language"
+          ],
+          "fileset": "android",
+          "shards": 2
         }
       ]
     },
@@ -887,7 +934,8 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-aot-android-${mode}-${arch}",
-            "-j2"
+            "-j2",
+            "--exclude-suite=language"
           ],
           "fileset": "android",
           "shards": 16
@@ -922,7 +970,7 @@
             "ffi"
           ],
           "fileset": "android",
-          "shards": 2
+          "shards": 4
         }
       ]
     },
@@ -1122,7 +1170,9 @@
     {
       "builders": [
         "vm-mac-debug-arm64",
-        "vm-mac-release-arm64"
+        "vm-mac-debug-arm64e",
+        "vm-mac-release-arm64",
+        "vm-mac-release-arm64e"
       ],
       "meta": {
         "description": "This configuration is used by the VM JIT builders on mac arm64. Includes VM service testing and building shared libraries for iOS target."
@@ -1198,7 +1248,9 @@
         "vm-aot-linux-debug-x64",
         "vm-aot-linux-release-x64",
         "vm-aot-mac-release-arm64",
+        "vm-aot-mac-release-arm64e",
         "vm-aot-mac-debug-arm64",
+        "vm-aot-mac-debug-arm64e",
         "vm-aot-win-debug-x64",
         "vm-aot-win-release-x64"
       ],
@@ -1693,6 +1745,42 @@
     },
     {
       "builders": [
+        "vm-asan-fuchsia-release-x64",
+        "vm-ubsan-fuchsia-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM fuchsia builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=fuchsia",
+            "fuchsia_test_package"
+          ]
+        },
+        {
+          "name": "vm jit tests",
+          "arguments": [
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}",
+            "-j8",
+            "ffi",
+            "standalone/io/"
+          ]
+        },
+        {
+          "name": "vm aot tests",
+          "arguments": [
+              "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
+            "-j8",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-fuchsia-release-arm64"
       ],
       "meta": {
@@ -1974,6 +2062,15 @@
             "-nweb-dev-unittest-asserts-${system}",
             "pkg//dev_compiler/"
           ]
+        },
+        {
+          "name": "dwds integration tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dwds/test/integration/integration_suite_test.dart",
+            "-nweb-dev-integration-${system}"
+          ]
         }
       ]
     },
@@ -2247,6 +2344,22 @@
             "-nddc-canary-linux-chrome",
             "--verbose",
             "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc sourcemap tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_canary_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc sourcemap stacktrace tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_canary_suite.dart",
+            "-rnone"
           ]
         },
         {
@@ -3042,21 +3155,21 @@
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/generate_stress_test.dart",
+          "name": "analyze runtime/tools/generate_stress_test.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/generate_stress_test.dart"
+            "runtime/tools/generate_stress_test.dart"
           ]
         },
         {
-          "name": "analyze runtime/tests/concurrency/run_stress_test_shards.dart",
+          "name": "analyze runtime/tools/run_stress_test_shards.dart",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
-            "runtime/tests/concurrency/run_stress_test_shards.dart"
+            "runtime/tools/run_stress_test_shards.dart"
           ]
         }
       ]
@@ -3068,6 +3181,7 @@
         "pkg-linux-release-arm64",
         "pkg-mac-release",
         "pkg-mac-release-arm64",
+        "pkg-mac-release-arm64e",
         "pkg-win-release",
         "pkg-win-release-arm64"
       ],
@@ -3186,7 +3300,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|dwds/test/integration|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -3416,8 +3530,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug",
-            "runtime",
-            "dartaotruntime"
+            "iso_stress"
           ]
         },
         {
@@ -3425,8 +3538,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
-            "runtime",
-            "dartaotruntime"
+            "iso_stress"
           ]
         },
         {
@@ -3435,20 +3547,19 @@
           "arguments": [
             "--mode=release",
             "--sanitizer=tsan",
-            "runtime",
-            "dartaotruntime"
+            "iso_stress"
           ]
         },
         {
           "name": "Generate Isolate Stress Test",
-          "script": "${build_root}/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
-            "runtime/tests/concurrency/generate_stress_test.dart"
+            "runtime/tools/generate_stress_test.dart"
           ]
         },
         {
           "name": "Generate Isolate Stress Test - JIT Dill",
-          "script": "${build_root}/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
@@ -3461,7 +3572,7 @@
         },
         {
           "name": "Generate Isolate Stress Test - AOT Dill",
-          "script": "${build_root}/dart",
+          "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=${build_root}/vm_platform.dill",
@@ -3476,8 +3587,8 @@
           "name": "Run Isolate Stress Tests",
           "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
-            "${build_root}/dart",
-            "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "tools/sdks/dart-sdk/bin/dart",
+            "runtime/tools/run_stress_test_shards.dart",
             "--arch=${arch}",
             "--copy-coredumps"
           ],

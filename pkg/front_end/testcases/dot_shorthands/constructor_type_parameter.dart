@@ -31,6 +31,8 @@ main() {
   C<int> c2 = .id("String").toInt(2);
   ET<int> et1 = .new("String").toInt(3);
   ET<int> et2 = .id("String").toInt(4);
-  List<String> l =
-      .generate(10, (int i) => i + 1).map((x) => x.toRadixString(16)).toList();
+  List<String> l = .generate(
+    10,
+    (int i) => i + 1,
+  ).map((x) => x.toRadixString(16)).toList();
 }

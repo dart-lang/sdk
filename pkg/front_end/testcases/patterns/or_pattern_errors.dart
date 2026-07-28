@@ -14,8 +14,8 @@ test(o) {
       break;
     case Class(field1: var s1) || Class(field1: _):
       break;
-    case Class(field1: var field1, field2: var f)
-        || Class(:var field1, :var field2):
+    case Class(field1: var field1, field2: var f) ||
+        Class(:var field1, :var field2):
       break;
     default:
   }

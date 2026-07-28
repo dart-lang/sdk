@@ -26,7 +26,8 @@ class NoSuchMethodResolver {
   bool hasForwardingSyntax(JFunction method) {
     ir.Procedure node = elementMap.lookupProcedure(method);
     if (node.function.positionalParameters.isEmpty) return false;
-    ir.Variable firstParameter = node.function.positionalParameters.first;
+    ir.PositionalParameter firstParameter =
+        node.function.positionalParameters.first;
     ir.Statement? body = node.function.body;
     ir.Expression? expr;
     if (body is ir.Block && body.statements.isNotEmpty) {

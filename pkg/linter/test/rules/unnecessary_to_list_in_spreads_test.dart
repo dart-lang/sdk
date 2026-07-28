@@ -18,7 +18,7 @@ class UnnecessaryToListInSpreadsTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_to_list_in_spreads;
 
   test_iterableToList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [
   ...[1, 2].whereType<int>().[!toList!](),
 ];
@@ -26,7 +26,7 @@ var x = [
   }
 
   test_listToList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [
   ...[1, 2].[!toList!](),
 ];
@@ -34,7 +34,7 @@ var x = [
   }
 
   test_listToList_nullAwareSpread() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int>? p) {
   var x = [
     ...?p?.[!toList!](),
@@ -52,7 +52,7 @@ var x = [
   }
 
   test_setToList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [
   ...{1, 2}.[!toList!](),
 ];
@@ -60,7 +60,7 @@ var x = [
   }
 
   test_setToList_nullAwareSpread() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Set<int>? p) {
   var x = [
     ...?p?.[!toList!](),

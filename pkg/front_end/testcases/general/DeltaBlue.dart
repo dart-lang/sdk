@@ -59,13 +59,13 @@ class Strength {
   const Strength(this.value, this.name);
 
   Strength nextWeaker() => const <Strength>[
-        STRONG_PREFERRED,
-        PREFERRED,
-        STRONG_DEFAULT,
-        NORMAL,
-        WEAK_DEFAULT,
-        WEAKEST
-      ][value];
+    STRONG_PREFERRED,
+    PREFERRED,
+    STRONG_DEFAULT,
+    NORMAL,
+    WEAK_DEFAULT,
+    WEAKEST,
+  ][value];
 
   static bool stronger(Strength s1, Strength s2) {
     return s1.value < s2.value;
@@ -172,7 +172,8 @@ abstract class UnaryConstraint extends Constraint {
 
   /// Decides if this constraint can be satisfied and records that decision.
   void chooseMethod(int mark) {
-    satisfied = (myOutput.mark != mark) &&
+    satisfied =
+        (myOutput.mark != mark) &&
         Strength.stronger(strength, myOutput.walkStrength);
   }
 
@@ -266,21 +267,23 @@ abstract class BinaryConstraint extends Constraint {
     if (v1.mark == mark) {
       direction =
           (v2.mark != mark && Strength.stronger(strength, v2.walkStrength))
-              ? FORWARD
-              : NONE;
+          ? FORWARD
+          : NONE;
     }
     if (v2.mark == mark) {
       direction =
           (v1.mark != mark && Strength.stronger(strength, v1.walkStrength))
-              ? BACKWARD
-              : NONE;
+          ? BACKWARD
+          : NONE;
     }
     if (Strength.weaker(v1.walkStrength, v2.walkStrength)) {
-      direction =
-          Strength.stronger(strength, v1.walkStrength) ? BACKWARD : NONE;
+      direction = Strength.stronger(strength, v1.walkStrength)
+          ? BACKWARD
+          : NONE;
     } else {
-      direction =
-          Strength.stronger(strength, v2.walkStrength) ? FORWARD : BACKWARD;
+      direction = Strength.stronger(strength, v2.walkStrength)
+          ? FORWARD
+          : BACKWARD;
     }
   }
 
@@ -346,8 +349,12 @@ class ScaleConstraint extends BinaryConstraint {
   final Variable offset;
 
   ScaleConstraint(
-      Variable src, this.scale, this.offset, Variable dest, Strength strength)
-      : super(src, dest, strength);
+    Variable src,
+    this.scale,
+    this.offset,
+    Variable dest,
+    Strength strength,
+  ) : super(src, dest, strength);
 
   /// Adds this constraint to the constraint graph.
   void addToGraph() {
@@ -394,7 +401,7 @@ class ScaleConstraint extends BinaryConstraint {
  */
 class EqualityConstraint extends BinaryConstraint {
   EqualityConstraint(Variable v1, Variable v2, Strength strength)
-      : super(v1, v2, strength);
+    : super(v1, v2, strength);
 
   /// Enforce this constraint. Assume that it is satisfied.
   void execute() {
@@ -453,9 +460,12 @@ class Planner {
    */
   void incrementalAdd(Constraint c) {
     int mark = newMark();
-    for (Constraint? overridden = c.satisfy(mark);
-        overridden != null;
-        overridden = overridden.satisfy(mark));
+    for (
+      Constraint? overridden = c.satisfy(mark);
+      overridden != null;
+      overridden = overridden.satisfy(mark)
+    )
+      ;
   }
 
   /**

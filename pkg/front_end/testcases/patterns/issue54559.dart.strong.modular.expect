@@ -51,7 +51,6 @@ static method main() → void {
       }
     }
   } =>#t2);
-  #L2:
   {
     final synthesized core::String #3#0 = fooValue{core::String};
     {

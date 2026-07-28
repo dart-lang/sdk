@@ -18,8 +18,7 @@ String test2(List<int> v) {
   return "no match";
 }
 
-String test3(List<int> v) =>
-  switch (v) {
-    [var a, _] when a - 1 => "match",
-    _ => "no match"
-  };
+String test3(List<int> v) => switch (v) {
+  [var a, _] when a - 1 => "match",
+  _ => "no match",
+};

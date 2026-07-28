@@ -5,6 +5,7 @@
 library LibraryPrefixesTest.dart;
 
 import "package:expect/expect.dart";
+
 import "prefixes.dart";
 
 class LibraryPrefixesTest {

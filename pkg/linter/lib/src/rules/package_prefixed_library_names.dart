@@ -37,11 +37,8 @@ class PackagePrefixedLibraryNames extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final PackagePrefixedLibraryNames rule;
-
-  new(this.rule);
-
+class _Visitor(final PackagePrefixedLibraryNames rule)
+    extends SimpleAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     // Project info is not being set.

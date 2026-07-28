@@ -638,7 +638,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
   // Has no initializer.
-  Variable variable;
+  DeclaredVariable variable;
 
   Expression iterable;
 
@@ -724,9 +724,8 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
         new Name('iterator'),
       );
       if (member != null) {
-        iteratorType = Substitution.fromInterfaceType(
-          iterableType,
-        ).substituteType(member.getterType);
+        iteratorType = Substitution.fromInterfaceType(iterableType)
+            .substituteType(member.getterType);
       }
     }
     return iteratorType ?? const DynamicType();
@@ -1498,7 +1497,7 @@ class VariableStatement extends Statement {
 ///
 /// The body of the function may use [variable] as its self-reference.
 class FunctionDeclaration extends Statement implements LocalFunction {
-  Variable variable; // Is final and has no initializer.
+  LocalFunctionVariable variable; // Is final and has no initializer.
 
   @override
   FunctionNode function;

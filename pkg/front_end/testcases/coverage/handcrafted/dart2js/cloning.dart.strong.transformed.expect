@@ -22,5 +22,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///cloning.dart:13:18 -> DoubleConstant(-1.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///cloning.dart:10:18 -> DoubleConstant(-1.0)
 Extra constant evaluation: evaluated: 13, effectively constant: 1

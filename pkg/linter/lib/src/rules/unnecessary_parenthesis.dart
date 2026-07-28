@@ -51,12 +51,8 @@ class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final TypeSystem typeSystem;
-
-  new(this.rule, this.typeSystem);
-
+class _Visitor(final AnalysisRule rule, final TypeSystem typeSystem)
+    extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     var parent = node.parent;
@@ -175,9 +171,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     // `a..b = (c..d)` is OK.
     if (expression is CascadeExpression ||
         node.thisOrAncestorMatching(
-              (n) => n is Statement || n is CascadeExpression,
-            )
-            is CascadeExpression) {
+          (n) => n is Statement || n is CascadeExpression,
+        ) is CascadeExpression) {
       return;
     }
 

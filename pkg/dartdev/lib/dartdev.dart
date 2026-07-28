@@ -11,7 +11,6 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
-import 'package:dartdev/src/commands/dart_mcp_server.dart';
 import 'package:meta/meta.dart';
 import 'package:pub/pub.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -21,6 +20,7 @@ import 'src/commands/build.dart';
 import 'src/commands/compilation_server.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
+import 'src/commands/dart_mcp_server.dart';
 import 'src/commands/debug_adapter.dart';
 import 'src/commands/development_service.dart';
 import 'src/commands/devtools.dart';
@@ -259,7 +259,11 @@ class DartdevRunner extends CommandRunner<int> {
     if (disableAnalytics) {
       // Disable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(false);
-      await unifiedAnalytics.close();
+      try {
+        await unifiedAnalytics.close().timeout(
+          const Duration(milliseconds: 250),
+        );
+      } on TimeoutException catch (_) {}
 
       // Alert the user that analytics has been disabled.
       print(analyticsDisabledNoticeMessage);
@@ -267,7 +271,11 @@ class DartdevRunner extends CommandRunner<int> {
     } else if (enableAnalytics) {
       // Enable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(true);
-      await unifiedAnalytics.close();
+      try {
+        await unifiedAnalytics.close().timeout(
+          const Duration(milliseconds: 250),
+        );
+      } on TimeoutException catch (_) {}
 
       // Alert the user again that data will be collected.
       if (!analyticsMessagePrinted) {
@@ -341,7 +349,11 @@ class DartdevRunner extends CommandRunner<int> {
 
       // Set the exitCode, if it wasn't set in the catch block above.
       exitCode ??= 0;
-      await unifiedAnalytics.close();
+      try {
+        await unifiedAnalytics.close().timeout(
+          const Duration(milliseconds: 250),
+        );
+      } on TimeoutException catch (_) {}
     }
 
     return exitCode;

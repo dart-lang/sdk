@@ -85,9 +85,9 @@ void main() {
     final Uint8List dartValue = jsUint8ArrayBox.toDart;
   });
 
-  final JSUint8ClampedArray jsUint8ClampedArrayBox =
-      JSValue(JS<WasmExternRef?>('() => new Uint8Array(10)'))
-          as JSUint8ClampedArray;
+  final JSUint8ClampedArray jsUint8ClampedArrayBox = JSValue(
+    JS<WasmExternRef?>('() => new Uint8Array(10)'),
+  ) as JSUint8ClampedArray;
   Expect.throws<ArgumentError>(() {
     final Uint8ClampedList dartValue = jsUint8ClampedArrayBox.toDart;
   });
@@ -116,23 +116,23 @@ void main() {
     final Uint32List dartValue = jsUint32ArrayBox.toDart;
   });
 
-  final JSFloat32Array jsFloat32ArrayBox =
-      JSValue(JS<WasmExternRef?>('() => new Float64Array(10)'))
-          as JSFloat32Array;
+  final JSFloat32Array jsFloat32ArrayBox = JSValue(
+    JS<WasmExternRef?>('() => new Float64Array(10)'),
+  ) as JSFloat32Array;
   Expect.throws<ArgumentError>(() {
     final Float32List dartValue = jsFloat32ArrayBox.toDart;
   });
 
-  final JSFloat64Array jsFloat64ArrayBox =
-      JSValue(JS<WasmExternRef?>('() => new Float32Array(10)'))
-          as JSFloat64Array;
+  final JSFloat64Array jsFloat64ArrayBox = JSValue(
+    JS<WasmExternRef?>('() => new Float32Array(10)'),
+  ) as JSFloat64Array;
   Expect.throws<ArgumentError>(() {
     final Float64List dartValue = jsFloat64ArrayBox.toDart;
   });
 
-  final JSArrayBuffer jsArrayBufferBox =
-      JSValue(JS<WasmExternRef?>('() => new DataView(new ArrayBuffer(10))'))
-          as JSArrayBuffer;
+  final JSArrayBuffer jsArrayBufferBox = JSValue(
+    JS<WasmExternRef?>('() => new DataView(new ArrayBuffer(10))'),
+  ) as JSArrayBuffer;
   Expect.throws<ArgumentError>(() {
     final ByteBuffer dartValue = jsArrayBufferBox.toDart;
   });

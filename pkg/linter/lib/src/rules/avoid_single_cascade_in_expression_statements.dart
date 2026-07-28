@@ -36,11 +36,7 @@ class AvoidSingleCascadeInExpressionStatements extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   String operatorFor(Expression section) {
     Token? operator;
     if (section is PropertyAccess) {

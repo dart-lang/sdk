@@ -34,11 +34,11 @@ external int returnIntPtr(int x);
 @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr', isLeaf: true)
 external int returnIntPtrLeaf(int x);
 
-@Native<IntPtr Function()>(symbol: 'IsThreadInGenerated')
-external int isThreadInGenerated();
+@Native<IntPtr Function()>(symbol: 'IsThreadInNative')
+external int isThreadInNative();
 
-@Native<IntPtr Function()>(symbol: 'IsThreadInGenerated', isLeaf: true)
-external int isThreadInGeneratedLeaf();
+@Native<IntPtr Function()>(symbol: 'IsThreadInNative', isLeaf: true)
+external int isThreadInNativeLeaf();
 
 class Classy {
   @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
@@ -127,11 +127,13 @@ void main() {
   Expect.equals(123, returnIntPtrLeaf(123));
   Expect.equals(123, Classy.returnIntPtrStatic(123));
 
-  // Test Native leaf calls remain in generated code.
-  // Regular calls should transition generated -> native.
-  Expect.equals(0, isThreadInGenerated());
-  // Leaf calls should remain in generated state.
-  Expect.equals(1, isThreadInGeneratedLeaf());
+  // Test Native leaf calls do not transition to native mode.
+  // Regular calls should transition to native mode.
+  Expect.equals(1, isThreadInNative());
+  // Leaf calls should remain in generated state for compiled code, or
+  // in the VM (due to FFI calls being implemented as a runtime call)
+  // for interpreted code.
+  Expect.equals(0, isThreadInNativeLeaf());
 
   // Test that objects extending NativeFieldWrapperClass1 can be passed to
   // Native functions that take Pointer.

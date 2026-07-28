@@ -5,6 +5,7 @@
 library GetterSetterInLibTest;
 
 import "package:expect/expect.dart";
+
 import 'setter_in_lib.dart';
 import 'setter_in_lib2.dart';
 import 'setter_in_lib3.dart' as L3;

@@ -36,7 +36,7 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    await assertDiagnosticsInBinFromMarkdown(r'''
+    await assertDiagnosticsInBinFromMarkup(r'''
 import [!'package:meta/meta.dart'!];
 
 @visibleForTesting
@@ -63,7 +63,7 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    await assertDiagnosticsInHookFromMarkdown('build.dart', r'''
+    await assertDiagnosticsInHookFromMarkup('build.dart', r'''
 import [!'package:meta/meta.dart'!];
 
 @visibleForTesting
@@ -76,7 +76,7 @@ class C {}
 name: fancy
 version: 1.1.1
 ''');
-    await assertDiagnosticsInHookFromMarkdown('build.dart', r'''
+    await assertDiagnosticsInHookFromMarkup('build.dart', r'''
 import [!'package:meta/meta.dart'!];
 
 @visibleForTesting
@@ -122,7 +122,7 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import [!'package:meta/meta.dart'!];
 
 @visibleForTesting
@@ -135,7 +135,7 @@ class C {}
 name: fancy
 version: 1.1.1
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import [!'package:meta/meta.dart'!];
 
 @visibleForTesting
@@ -164,7 +164,7 @@ version: 1.1.1
 dev_dependencies:
   meta: any
 ''');
-    await assertDiagnosticsInHookFromMarkdown('link.dart', r'''
+    await assertDiagnosticsInHookFromMarkup('link.dart', r'''
 import [!'package:meta/meta.dart'!];
 
 @visibleForTesting

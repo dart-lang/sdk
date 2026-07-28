@@ -4,6 +4,7 @@
 
 import 'dart:math' hide Rectangle;
 import 'dart:math' as math show Point, Rectangle, MutableRectangle;
+
 import 'package:expect/expect.dart' show Expect;
 
 void main() {

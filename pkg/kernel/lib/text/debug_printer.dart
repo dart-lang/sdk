@@ -87,7 +87,7 @@ class DebugPrinter extends VisitorDefault<void>
   @override
   void defaultVariable(Variable node) {
     openNode(node, '${node.runtimeType}', {
-      'name': '${node.name ?? '--unnamed--'}',
+      'name': '${node.cosmeticName ?? '--unnamed--'}',
       'isFinal': '${node.isFinal}',
       'isConst': '${node.isConst}',
       'isInitializingFormal': '${node.isInitializingFormal}',

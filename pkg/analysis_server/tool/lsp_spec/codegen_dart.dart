@@ -6,8 +6,8 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
@@ -435,9 +435,9 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
-  var fields = _getAllFields(
-    interface,
-  ).whereNot((f) => isNullableAnyType(f.type)).toList();
+  var fields = _getAllFields(interface)
+      .whereNot((f) => isNullableAnyType(f.type))
+      .toList();
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     var type = field.type;

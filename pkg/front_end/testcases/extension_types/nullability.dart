@@ -3,13 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension type E1<T>(T foo) {}
+
 extension type E2(Object? foo) {}
+
 extension type E3(E1<String?> foo) {}
+
 extension type E4(E1<int> foo) {}
+
 extension type E5(E2 foo) {}
 
 // Test that the extension types that don't implement Object are not non-nullable.
-testNotNonNullable(E1<num?> e1numNullableNNN, E1<double> e1doubleNNN, E2 e2NNN, E3 e3NNN, E4 e4NNN, E5 e5NNN) {
+testNotNonNullable(
+  E1<num?> e1numNullableNNN,
+  E1<double> e1doubleNNN,
+  E2 e2NNN,
+  E3 e3NNN,
+  E4 e4NNN,
+  E5 e5NNN,
+) {
   Object x1numNullable = e1numNullableNNN; // Error.
   Object x1double = e1doubleNNN; // Error.
   Object x2 = e2NNN; // Error.
@@ -20,8 +31,18 @@ testNotNonNullable(E1<num?> e1numNullableNNN, E1<double> e1doubleNNN, E2 e2NNN, 
 
 // Test that the extension types that don't implement Object are not nullable either.
 testNotNullable(
-  E1<num?> e1numNullableNN, E1<double> e1doubleNN, E2 e2NN, E3 e3NN, E4 e4NN, E5 e5NN,
-  E1<num?>? e1numNullableNNNullable, E1<double>? e1doubleNNNullable, E2? e2NNNullable, E3? e3NNNullable, E4? e4NNNullable, E5? e5NNNullable,
+  E1<num?> e1numNullableNN,
+  E1<double> e1doubleNN,
+  E2 e2NN,
+  E3 e3NN,
+  E4 e4NN,
+  E5 e5NN,
+  E1<num?>? e1numNullableNNNullable,
+  E1<double>? e1doubleNNNullable,
+  E2? e2NNNullable,
+  E3? e3NNNullable,
+  E4? e4NNNullable,
+  E5? e5NNNullable,
 ) {
   e1numNullableNN = null; // Error.
   e1doubleNN = null; // Error.
@@ -55,38 +76,36 @@ class A {
   E3? e3ANullable; // Ok.
   E4? e4ANullable; // Ok.
   E5? e5ANullable; // Ok.
-
 }
 
 testOptionalPositional([
-    E1<num?> e1numNullableOP, // Error.
-    E1<double> e1doubleOP, // Error.
-    E2 e2OP, // Error.
-    E3 e3OP, // Error.
-    E4 e4OP, // Error.
-    E5 e5OP, // Error.
+  E1<num?> e1numNullableOP, // Error.
+  E1<double> e1doubleOP, // Error.
+  E2 e2OP, // Error.
+  E3 e3OP, // Error.
+  E4 e4OP, // Error.
+  E5 e5OP, // Error.
 
-    E1<num?>? e1numNullableOPNullable, // Ok.
-    E1<double>? e1doubleOPNullable, // Ok.
-    E2? e2OPNullable, // Ok.
-    E3? e3OPNullable, // Ok.
-    E4? e4OPNullable, // Ok.
-    E5? e5OPNullable // Ok.
+  E1<num?>? e1numNullableOPNullable, // Ok.
+  E1<double>? e1doubleOPNullable, // Ok.
+  E2? e2OPNullable, // Ok.
+  E3? e3OPNullable, // Ok.
+  E4? e4OPNullable, // Ok.
+  E5? e5OPNullable, // Ok.
 ]) {}
 
 testNamedNotRequired({
-    E1<num?> e1numNullableNNR, // Error.
-    E1<double> e1doubleNNR, // Error.
-    E2 e2NNR, // Error.
-    E3 e3NNR, // Error.
-    E4 e4NNR, // Error.
-    E5 e5NNR, // Error.
+  E1<num?> e1numNullableNNR, // Error.
+  E1<double> e1doubleNNR, // Error.
+  E2 e2NNR, // Error.
+  E3 e3NNR, // Error.
+  E4 e4NNR, // Error.
+  E5 e5NNR, // Error.
 
-    E1<num?>? e1numNullableNNRNullable, // Ok.
-    E1<double>? e1doubleNNRNullable, // Ok.
-    E2? e2NNRNullable, // Ok.
-    E3? e3NNRNullable, // Ok.
-    E4? e4NNRNullable, // Ok.
-    E5? e5NNRNullable // Ok.
-
+  E1<num?>? e1numNullableNNRNullable, // Ok.
+  E1<double>? e1doubleNNRNullable, // Ok.
+  E2? e2NNRNullable, // Ok.
+  E3? e3NNRNullable, // Ok.
+  E4? e4NNRNullable, // Ok.
+  E5? e5NNRNullable, // Ok.
 }) {}

@@ -16,6 +16,18 @@ main() {
 
 @reflectiveTest
 class AugmentationReturnTypeMismatchTest extends PubPackageResolutionTest {
+  test_class_instanceField_abstractVar_dynamicInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  abstract var foo;
+}
+
+augment class A {
+  augment dynamic foo = 0;
+}
+''');
+  }
+
   test_class_instanceField_int_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -221,6 +233,16 @@ augment mixin M {
 ''');
   }
 
+  test_topLevelFunction_dynamic_objectQuestion() async {
+    await resolveTestCodeWithDiagnostics(r'''
+dynamic foo() => null;
+
+augment Object? foo();
+//      ^^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'Object?' must be the same as the introductory declaration's return type 'dynamic'.
+''');
+  }
+
   test_topLevelFunction_int_int_withImportPrefix() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:core';
@@ -229,6 +251,16 @@ import 'dart:core' as core;
 int foo() => 0;
 
 augment core.int foo();
+''');
+  }
+
+  test_topLevelFunction_objectQuestion_dynamic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Object? foo() => null;
+
+augment dynamic foo();
+//      ^^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'dynamic' must be the same as the introductory declaration's return type 'Object?'.
 ''');
   }
 
@@ -308,6 +340,20 @@ int? get foo => 0;
 augment abstract final String? foo;
 //                             ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+''');
+  }
+
+  test_topLevelVariable_abstractVar_dynamicInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract var foo;
+augment dynamic foo = 0;
+''');
+  }
+
+  test_topLevelVariable_abstractVar_varInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract var foo;
+augment var foo = 0;
 ''');
   }
 

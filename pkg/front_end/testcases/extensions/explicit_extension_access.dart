@@ -32,12 +32,7 @@ extension on int {
     method2<int>([0], [1], (_) => 2, () => 3);
   }
 
-  method2<T>(
-    List<T> a,
-    List<int> b,
-    void Function(T) c,
-    void Function()? d,
-  ) {}
+  method2<T>(List<T> a, List<int> b, void Function(T) c, void Function()? d) {}
 }
 
 test(Class c) {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html_common';
+
 import 'package:expect/expect.dart';
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 

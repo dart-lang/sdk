@@ -18,14 +18,10 @@ class SecurePubspecUrls extends AnalysisRule {
   DiagnosticCode get diagnosticCode => diag.securePubspecUrls;
 
   @override
-  PubspecVisitor<void> get pubspecVisitor => Visitor(this);
+  PubspecVisitor<void> get pubspecVisitor => _Visitor(this);
 }
 
-class Visitor extends PubspecVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends PubspecVisitor<void> {
   @override
   void visitPackageDependencies(PubspecDependencyList dependencies) {
     _visitDeps(dependencies);

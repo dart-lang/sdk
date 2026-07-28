@@ -68,9 +68,8 @@ Future withApplicationDirAndDotDartToolPackageConfig(
       dotDartToolDir,
       spawnWithArg ? 'baz.packages' : 'package_config.json',
     );
-    await File(
-      packageConfigJsonFile,
-    ).writeAsString(buildPackageConfig('foo', optionalPackageUri));
+    await File(packageConfigJsonFile)
+        .writeAsString(buildPackageConfig('foo', optionalPackageUri));
 
     // Setup actual application
     final mainFile = path.join(tempDir, 'main.dart');

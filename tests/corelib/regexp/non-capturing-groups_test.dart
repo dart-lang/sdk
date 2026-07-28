@@ -23,12 +23,12 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'v8_regexp_utils.dart';
+
 import 'package:expect/expect.dart';
 
 void main() {
   description(
-    'Test for behavior of non-capturing groups, as described in <a href="http://blog.stevenlevithan.com/archives/npcg-javascript">' +
-        'a blog post by Steven Levithan</a> and <a href="http://bugs.webkit.org/show_bug.cgi?id=14931">bug 14931</a>.',
+    'Test for behavior of non-capturing groups, as described in <a href="http://blog.stevenlevithan.com/archives/npcg-javascript">' + 'a blog post by Steven Levithan</a> and <a href="http://bugs.webkit.org/show_bug.cgi?id=14931">bug 14931</a>.',
   );
 
   shouldBeTrue(new RegExp(r"(x)?\1y").hasMatch("y"));

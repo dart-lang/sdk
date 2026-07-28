@@ -20,29 +20,38 @@ void main() {
     var id3 = DataId("data_c");
     validateSteps([
       ModularStep(
-          needsSources: true, dependencyDataNeeded: [id1], resultData: [id1]),
+        needsSources: true,
+        dependencyDataNeeded: [id1],
+        resultData: [id1],
+      ),
       ModularStep(moduleDataNeeded: [id1], resultData: [id2]),
       ModularStep(
-          moduleDataNeeded: [id2],
-          dependencyDataNeeded: [id1, id3],
-          resultData: [id3]),
+        moduleDataNeeded: [id2],
+        dependencyDataNeeded: [id1, id3],
+        resultData: [id3],
+      ),
     ]);
   });
 
   test('circular step dependency is not allowed', () {
     var id1 = DataId("data_a");
     expect(
-        () => validateSteps([
-              ModularStep(moduleDataNeeded: [id1], resultData: [id1]),
-            ]),
-        throwsA(TypeMatcher<InvalidPipelineError>()));
+      () => validateSteps([
+        ModularStep(moduleDataNeeded: [id1], resultData: [id1]),
+      ]),
+      throwsA(TypeMatcher<InvalidPipelineError>()),
+    );
   });
 
   test('some results must be declared', () {
-    expect(() => validateSteps([ModularStep()]),
-        throwsA(TypeMatcher<InvalidPipelineError>()));
-    expect(() => validateSteps([ModularStep(resultData: [])]),
-        throwsA(TypeMatcher<InvalidPipelineError>()));
+    expect(
+      () => validateSteps([ModularStep()]),
+      throwsA(TypeMatcher<InvalidPipelineError>()),
+    );
+    expect(
+      () => validateSteps([ModularStep(resultData: [])]),
+      throwsA(TypeMatcher<InvalidPipelineError>()),
+    );
   });
 
   test('out of order dependencies are not allowed', () {
@@ -55,21 +64,23 @@ void main() {
     ]);
 
     expect(
-        () => validateSteps([
-              ModularStep(dependencyDataNeeded: [id1], resultData: [id2]),
-              ModularStep(resultData: [id1]),
-            ]),
-        throwsA(TypeMatcher<InvalidPipelineError>()));
+      () => validateSteps([
+        ModularStep(dependencyDataNeeded: [id1], resultData: [id2]),
+        ModularStep(resultData: [id1]),
+      ]),
+      throwsA(TypeMatcher<InvalidPipelineError>()),
+    );
   });
 
   test('same data cannot be produced by two steps', () {
     var id1 = DataId("data_a");
     expect(
-        () => validateSteps([
-              ModularStep(resultData: [id1]),
-              ModularStep(resultData: [id1]),
-            ]),
-        throwsA(TypeMatcher<InvalidPipelineError>()));
+      () => validateSteps([
+        ModularStep(resultData: [id1]),
+        ModularStep(resultData: [id1]),
+      ]),
+      throwsA(TypeMatcher<InvalidPipelineError>()),
+    );
   });
 }
 
@@ -83,7 +94,10 @@ class _NoopPipeline extends Pipeline {
   _NoopPipeline(List<ModularStep> steps) : super(steps, false);
 
   @override
-  Future<void> runStep(ModularStep step, Module module,
-          Map<Module, Set<DataId>> visibleData, List<String> flags) =>
-      Future.value(null);
+  Future<void> runStep(
+    ModularStep step,
+    Module module,
+    Map<Module, Set<DataId>> visibleData,
+    List<String> flags,
+  ) => Future.value(null);
 }

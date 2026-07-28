@@ -20,7 +20,7 @@ class AvoidInitToNullSuperFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_init_to_null;
 
   test_forLoop() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var [!i = null!]; i != null; i++) {
   }
@@ -29,7 +29,7 @@ void f() {
   }
 
   test_nullableStringInit() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? a;
   A({[!this.a = null!]});
@@ -38,7 +38,7 @@ class A {
   }
 
   test_superInit_2() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? a;
   A({/*[0*/this.a = null/*0]*/});
@@ -72,7 +72,7 @@ class AvoidInitToNullTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_init_to_null;
 
   test_fieldFormalParameter_inferredType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int? i;
   C({[!this.i = null!]});
@@ -98,7 +98,7 @@ class C {
   }
 
   test_instanceField_nullableIntType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int? [!i = null!];
   C(): i = 1;
@@ -162,7 +162,7 @@ int i = null;
   }
 
   test_namedParameter_inferredType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 foo({[!p = null!]}) {}
 ''');
   }
@@ -180,14 +180,14 @@ foo({p}) {}
   }
 
   test_namedParameter_inferredType_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 foo({[!var p = null!]}) {}
 ''');
   }
 
   test_optionalParameter_inferredType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 foo([[!p = null!]]) {}
 ''');
   }
@@ -205,7 +205,7 @@ foo([p]) {}
   }
 
   test_optionalParameter_inferredType_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 foo([[!var p = null!]]) {}
 ''');
@@ -220,13 +220,13 @@ class C {
   }
 
   test_topLevelVariable_dynamic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 dynamic [!i = null!];
 ''');
   }
 
   test_topLevelVariable_inferredType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var [!i = null!];
 ''');
   }
@@ -256,7 +256,7 @@ var i;
   }
 
   test_topLevelVariable_nullableType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? [!ii = null!];
 ''');
   }

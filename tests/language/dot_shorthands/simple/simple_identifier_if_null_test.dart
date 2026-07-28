@@ -5,6 +5,7 @@
 // Context type is propagated down in an if-null `??` expression.
 
 import '../dot_shorthand_helper.dart';
+
 import 'package:expect/expect.dart';
 
 Color colorTest(Color? color) => color ?? .blue;
@@ -25,8 +26,7 @@ void noContextLHSContextIntegerExt(IntegerExt? integer) {
   integer ?? .one;
 }
 
-IntegerMixin integerMixinTest(IntegerMixin? integer) =>
-    integer ?? .mixinOne;
+IntegerMixin integerMixinTest(IntegerMixin? integer) => integer ?? .mixinOne;
 
 void noContextLHSContextIntegerMixin(IntegerMixin? integer) {
   integer ?? .mixinOne;
@@ -66,5 +66,6 @@ void main() {
   noContextLHSContextIntegerMixin(null);
   noContextLHSContextIntegerMixin(IntegerMixin.mixinOne);
 
-  IntegerMixin possiblyNullableIntegerMixin = .mixinNullable ?? IntegerMixin.mixinOne;
+  IntegerMixin possiblyNullableIntegerMixin =
+      .mixinNullable ?? IntegerMixin.mixinOne;
 }

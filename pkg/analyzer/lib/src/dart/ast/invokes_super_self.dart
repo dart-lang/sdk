@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-class _SuperVisitor extends RecursiveAstVisitor<void> {
+class _SuperVisitor extends RecursiveAstVisitor2<void> {
   final String name;
   final _Usage _usage;
 
@@ -17,9 +17,9 @@ class _SuperVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     if (_usage == _Usage.writing) {
-      var left = node.leftHandSide;
+      var left = node.leftHandSide2;
       if (left is PropertyAccess) {
-        if (left.target is SuperExpression && left.propertyName.name == name) {
+        if (left.target2 is SuperExpression && left.propertyName.name == name) {
           hasSuperInvocation = true;
           return;
         }
@@ -31,7 +31,8 @@ class _SuperVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (_usage == _Usage.reading) {
-      if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
+      if (node.leftOperand2 is SuperExpression &&
+          node.operator.lexeme == name) {
         hasSuperInvocation = true;
         return;
       }
@@ -42,7 +43,7 @@ class _SuperVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (_usage == _Usage.reading) {
-      if (node.target is SuperExpression && node.methodName.name == name) {
+      if (node.target2 is SuperExpression && node.methodName.name == name) {
         hasSuperInvocation = true;
         return;
       }
@@ -53,11 +54,11 @@ class _SuperVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     if (_usage == _Usage.reading) {
-      var parent = node.parent;
-      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      var parent = node.parent2;
+      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
         // Not reading, skip.
       } else {
-        if (node.target is SuperExpression && node.propertyName.name == name) {
+        if (node.target2 is SuperExpression && node.propertyName.name == name) {
           hasSuperInvocation = true;
           return;
         }
@@ -75,7 +76,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
       name.lexeme,
       isSetter ? _Usage.writing : _Usage.reading,
     );
-    body.accept(visitor);
+    body.accept2(visitor);
     return visitor.hasSuperInvocation;
   }
 }

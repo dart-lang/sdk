@@ -39,7 +39,7 @@ VariableDeclarationStatement
       VariableDeclaration
         name: a
         equals: =
-        initializer: SuperExpression
+        initializer2: SuperExpression
           superKeyword: super
           staticType: A
         declaredFragment: isFinal isPublic a@33
@@ -69,7 +69,7 @@ VariableDeclarationStatement
       VariableDeclaration
         name: a
         equals: =
-        initializer: ThisExpression
+        initializer2: ThisExpression
           thisKeyword: this
           staticType: A
         declaredFragment: isFinal isPublic a@33

@@ -2,15 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_59870_01.dart:14:32: Error: Type 'C' not found.
-// mixin MAiBC on A implements B, C { }
+// pkg/front_end/testcases/regress/issue_59870_01.dart:18:32: Error: Type 'C' not found.
+// mixin MAiBC on A implements B, C {}
 //                                ^
 //
-// pkg/front_end/testcases/regress/issue_59870_01.dart:15:20: Error: Type 'C' not found.
-// mixin MBCiIJ on B, C implements I, J { }
+// pkg/front_end/testcases/regress/issue_59870_01.dart:20:20: Error: Type 'C' not found.
+// mixin MBCiIJ on B, C implements I, J {}
 //                    ^
 //
-// pkg/front_end/testcases/regress/issue_59870_01.dart:17:7: Error: 'CAaMAiBC' doesn't implement '_MBCiIJ&B&C' so it can't be used with 'MBCiIJ'.
+// pkg/front_end/testcases/regress/issue_59870_01.dart:24:7: Error: 'CAaMAiBC' doesn't implement '_MBCiIJ&B&C' so it can't be used with 'MBCiIJ'.
 //  - 'CAaMAiBC' is from 'pkg/front_end/testcases/regress/issue_59870_01.dart'.
 //  - 'B with C' is from 'pkg/front_end/testcases/regress/issue_59870_01.dart'.
 //  - 'MBCiIJ' is from 'pkg/front_end/testcases/regress/issue_59870_01.dart'.

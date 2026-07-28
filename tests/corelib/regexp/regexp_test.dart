@@ -371,10 +371,8 @@ void main() {
 
   for (var i = 0; i < 128; i++) {
     var testName = "backref-ASCII-char-$i,,${i ^ 0x20}";
-    var test = new String.fromCharCodes([
-      i,
-      i ^ 0x20,
-    ]).contains(new RegExp(r"^(.)\1$", caseSensitive: false));
+    var test = new String.fromCharCodes([i, i ^ 0x20])
+        .contains(new RegExp(r"^(.)\1$", caseSensitive: false));
     if (('A'.codeUnitAt(0) <= i && i <= 'Z'.codeUnitAt(0)) ||
         ('a'.codeUnitAt(0) <= i && i <= 'z'.codeUnitAt(0))) {
       assertTrue(test, testName);

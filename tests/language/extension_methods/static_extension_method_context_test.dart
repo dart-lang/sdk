@@ -31,9 +31,8 @@ main() {
     ),
   );
   context<int?>(
-    E(
-      nullableString,
-    )?.f(contextType([1])..expectStaticType<Exactly<List<int?>>>()),
+    E(nullableString)
+        ?.f(contextType([1])..expectStaticType<Exactly<List<int?>>>()),
   );
 
   // And just to verify that the expectations above are reasonable, repeat the

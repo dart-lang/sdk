@@ -352,9 +352,8 @@ class Server {
   }
 
   RequestData sendAnalysisGetReachableSources(String file) {
-    var params = AnalysisGetReachableSourcesParams(
-      file,
-    ).toJson(clientUriConverter: null);
+    var params = AnalysisGetReachableSourcesParams(file)
+        .toJson(clientUriConverter: null);
     return _send('analysis.getReachableSources', params);
   }
 
@@ -380,25 +379,22 @@ class Server {
   void sendAnalysisSetGeneralSubscriptions(
     List<GeneralAnalysisService> subscriptions,
   ) {
-    var params = AnalysisSetGeneralSubscriptionsParams(
-      subscriptions,
-    ).toJson(clientUriConverter: null);
+    var params = AnalysisSetGeneralSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     _send('analysis.setGeneralSubscriptions', params);
   }
 
   void sendAnalysisSetPriorityFiles(List<String> files) {
-    var params = AnalysisSetPriorityFilesParams(
-      files,
-    ).toJson(clientUriConverter: null);
+    var params = AnalysisSetPriorityFilesParams(files)
+        .toJson(clientUriConverter: null);
     _send('analysis.setPriorityFiles', params);
   }
 
   void sendAnalysisSetSubscriptions(
     Map<AnalysisService, List<String>> subscriptions,
   ) {
-    var params = AnalysisSetSubscriptionsParams(
-      subscriptions,
-    ).toJson(clientUriConverter: null);
+    var params = AnalysisSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     _send('analysis.setSubscriptions', params);
   }
 
@@ -410,16 +406,14 @@ class Server {
         filesWithOverlays.remove(path);
       }
     });
-    var params = AnalysisUpdateContentParams(
-      files,
-    ).toJson(clientUriConverter: null);
+    var params = AnalysisUpdateContentParams(files)
+        .toJson(clientUriConverter: null);
     _send('analysis.updateContent', params);
   }
 
   void sendAnalysisUpdateOptions(AnalysisOptions options) {
-    var params = AnalysisUpdateOptionsParams(
-      options,
-    ).toJson(clientUriConverter: null);
+    var params = AnalysisUpdateOptionsParams(options)
+        .toJson(clientUriConverter: null);
     _send('analysis.updateOptions', params);
   }
 
@@ -492,9 +486,8 @@ class Server {
   }
 
   RequestData sendEditOrganizeDirectives(String file) {
-    var params = EditOrganizeDirectivesParams(
-      file,
-    ).toJson(clientUriConverter: null);
+    var params = EditOrganizeDirectivesParams(file)
+        .toJson(clientUriConverter: null);
     return _send('edit.organizeDirectives', params);
   }
 
@@ -504,16 +497,14 @@ class Server {
   }
 
   RequestData sendExecutionCreateContext(String contextRoot) {
-    var params = ExecutionCreateContextParams(
-      contextRoot,
-    ).toJson(clientUriConverter: null);
+    var params = ExecutionCreateContextParams(contextRoot)
+        .toJson(clientUriConverter: null);
     return _send('execution.createContext', params);
   }
 
   RequestData sendExecutionDeleteContext(String id) {
-    var params = ExecutionDeleteContextParams(
-      id,
-    ).toJson(clientUriConverter: null);
+    var params = ExecutionDeleteContextParams(id)
+        .toJson(clientUriConverter: null);
     return _send('execution.deleteContext', params);
   }
 
@@ -529,9 +520,8 @@ class Server {
   RequestData sendExecutionSetSubscriptions(
     List<ExecutionService> subscriptions,
   ) {
-    var params = ExecutionSetSubscriptionsParams(
-      subscriptions,
-    ).toJson(clientUriConverter: null);
+    var params = ExecutionSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     return _send('execution.setSubscriptions', params);
   }
 
@@ -549,23 +539,20 @@ class Server {
   }
 
   void sendSearchFindMemberDeclarations(String name) {
-    var params = SearchFindMemberDeclarationsParams(
-      name,
-    ).toJson(clientUriConverter: null);
+    var params = SearchFindMemberDeclarationsParams(name)
+        .toJson(clientUriConverter: null);
     _send('search.findMemberDeclarations', params);
   }
 
   void sendSearchFindMemberReferences(String name) {
-    var params = SearchFindMemberReferencesParams(
-      name,
-    ).toJson(clientUriConverter: null);
+    var params = SearchFindMemberReferencesParams(name)
+        .toJson(clientUriConverter: null);
     _send('search.findMemberReferences', params);
   }
 
   void sendSearchFindTopLevelDeclarations(String pattern) {
-    var params = SearchFindTopLevelDeclarationsParams(
-      pattern,
-    ).toJson(clientUriConverter: null);
+    var params = SearchFindTopLevelDeclarationsParams(pattern)
+        .toJson(clientUriConverter: null);
     _send('search.findTopLevelDeclarations', params);
   }
 
@@ -583,9 +570,8 @@ class Server {
   }
 
   void sendServerSetSubscriptions(List<ServerService> subscriptions) {
-    var params = ServerSetSubscriptionsParams(
-      subscriptions,
-    ).toJson(clientUriConverter: null);
+    var params = ServerSetSubscriptionsParams(subscriptions)
+        .toJson(clientUriConverter: null);
     _send('server.setSubscriptions', params);
   }
 

@@ -2131,6 +2131,7 @@ library
         #F2 isAugmentation class A (nameOffset:46) (firstTokenOffset:32) (offset:46)
           element: <testLibrary>::@class::A
           previousFragment: #F1
+          withClauseMixinStartIndex: 1
       mixins
         #F4 mixin M1 (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@mixin::M1
@@ -2206,6 +2207,7 @@ library
           element: <testLibrary>::@class::A
           previousFragment: #F4
           nextFragment: #F9
+          withClauseMixinStartIndex: 1
           typeParameters
             #F7 T (nameOffset:91) (firstTokenOffset:91) (offset:91)
               element: #E1 T
@@ -2214,6 +2216,7 @@ library
         #F9 isAugmentation class A (nameOffset:146) (firstTokenOffset:132) (offset:146)
           element: <testLibrary>::@class::A
           previousFragment: #F5
+          withClauseMixinStartIndex: 2
           typeParameters
             #F10 T (nameOffset:148) (firstTokenOffset:148) (offset:148)
               element: #E1 T
@@ -2260,7 +2263,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F8
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {S: T}
   mixins
@@ -2288,6 +2291,91 @@ library
           firstFragment: #F16
       superclassConstraints
         M2<U3>
+''');
+  }
+
+  test_class_mixins_augmentation_extensionType() async {
+    var library = await buildLibrary(r'''
+mixin A {}
+
+extension type B(int it) {}
+
+mixin C {}
+
+class D extends Object with A, B {}
+
+augment class D with C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 hasExtendsClause class D (nameOffset:59) (firstTokenOffset:53) (offset:59)
+          element: <testLibrary>::@class::D
+          nextFragment: #F2
+        #F2 isAugmentation class D (nameOffset:104) (firstTokenOffset:90) (offset:104)
+          element: <testLibrary>::@class::D
+          previousFragment: #F1
+          withClauseMixinStartIndex: 1
+      extensionTypes
+        #F3 extension type B (nameOffset:27) (firstTokenOffset:12) (offset:27)
+          element: <testLibrary>::@extensionType::B
+          fields
+            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+              element: <testLibrary>::@extensionType::B::@field::it
+              inducedGetter: #F5
+          getters
+            #F5 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+              element: <testLibrary>::@extensionType::B::@getter::it
+              inducingVariable: #F4
+      mixins
+        #F6 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+        #F7 mixin C (nameOffset:47) (firstTokenOffset:41) (offset:47)
+          element: <testLibrary>::@mixin::C
+  classes
+    isSimplyBounded class D
+      reference: <testLibrary>::@class::D
+      firstFragment: #F1
+      supertype: Object
+      mixins
+        A
+        C
+  extensionTypes
+    isSimplyBounded extension type B
+      reference: <testLibrary>::@extensionType::B
+      firstFragment: #F3
+      representation: <testLibrary>::@extensionType::B::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::B::@field::it
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@extensionType::B::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::B::@getter::it
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extensionType::B::@field::it
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F6
+      superclassConstraints
+        Object
+    isSimplyBounded mixin C
+      reference: <testLibrary>::@mixin::C
+      firstFragment: #F7
+      superclassConstraints
+        Object
 ''');
   }
 
@@ -4454,7 +4542,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}
 ''');
@@ -4652,7 +4740,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::new
             substitution: {T1: int, T2: double}
     isSimplyBounded class D
@@ -4752,7 +4840,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: B}
 ''');
@@ -4943,6 +5031,7 @@ augment class A<T extends String> {}
 ''');
 
     configuration.withConstructors = false;
+    configuration.withDefaultType = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4972,6 +5061,7 @@ library
         #E0 T
           firstFragment: #F3
           bound: int
+          defaultType: int
 ''');
   }
 
@@ -6634,14 +6724,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::B::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::B::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::B::@constructor::named
           superConstructor: <testLibrary>::@class::B::@constructor::named
     isMixinApplication isSimplyBounded class B
@@ -6657,14 +6750,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::A::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::named
           superConstructor: <testLibrary>::@class::A::@constructor::named
   mixins
@@ -6738,14 +6834,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::A::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::A::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::named
           superConstructor: <testLibrary>::@class::A::@constructor::named
     isMixinApplication isSimplyBounded class C
@@ -6761,14 +6860,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: <testLibrary>::@class::B::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: <testLibrary>::@class::B::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::B::@constructor::named
           superConstructor: <testLibrary>::@class::B::@constructor::named
   mixins
@@ -6954,7 +7056,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: i @-1
                     element: <testLibrary>::@class::C2::@constructor::new::@formalParameter::i
@@ -6981,7 +7083,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: i @-1
                     element: <testLibrary>::@class::C1::@constructor::new::@formalParameter::i
@@ -7150,19 +7252,22 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: c1 @-1
-                element: <testLibrary>::@class::A::@constructor::c1
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: c1 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c1::@formalParameter::a
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: c1 @0
+                element: <testLibrary>::@class::A::@constructor::c1
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::c1
           superConstructor: <testLibrary>::@class::A::@constructor::c1
         isOriginMixinApplication c2
@@ -7184,14 +7289,12 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: c2 @-1
-                element: <testLibrary>::@class::A::@constructor::c2
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: c2 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::a
@@ -7205,6 +7308,11 @@ library
                     element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::c
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: c2 @0
+                element: <testLibrary>::@class::A::@constructor::c2
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::c2
           superConstructor: <testLibrary>::@class::A::@constructor::c2
         isOriginMixinApplication c3
@@ -7226,14 +7334,12 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: c3 @-1
-                element: <testLibrary>::@class::A::@constructor::c3
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: c3 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::a
@@ -7247,6 +7353,11 @@ library
                     element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::c
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: c3 @0
+                element: <testLibrary>::@class::A::@constructor::c3
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::c3
           superConstructor: <testLibrary>::@class::A::@constructor::c3
   mixins
@@ -7286,17 +7397,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: B @28
                   element: package:test/a.dart::@class::B
                   type: B
-                period: . @29
-                name: SimpleIdentifier
-                  token: named @30
-                  element: package:test/a.dart::@class::B::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @29
+                  name2: named @30
                 element: package:test/a.dart::@class::B::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @35
@@ -7419,7 +7528,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
@@ -7430,7 +7539,7 @@ library
                     staticType: E
                 rightParenthesis: ) @0
               element: <testLibrary>::@class::A::@constructor::new
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: E}
   mixins
@@ -8355,14 +8464,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: package:test/a.dart::@class::Base::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::named
           superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
@@ -8479,14 +8591,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: package:test/a.dart::@class::Base::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::named
           superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
@@ -8603,14 +8718,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: named @-1
-                element: package:test/a.dart::@class::Base::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: named @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: named @0
+                element: package:test/a.dart::@class::Base::@constructor::named
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::named
           superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
@@ -8741,14 +8859,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: noArgs @-1
-                element: package:test/a.dart::@class::Base::@constructor::noArgs
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: noArgs @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: noArgs @0
+                element: package:test/a.dart::@class::Base::@constructor::noArgs
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::noArgs
           superConstructor: package:test/a.dart::@class::Base::@constructor::noArgs
         isOriginMixinApplication requiredArg
@@ -8761,19 +8882,22 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: requiredArg @-1
-                element: package:test/a.dart::@class::Base::@constructor::requiredArg
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: requiredArg @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
                     staticType: dynamic
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: requiredArg @0
+                element: package:test/a.dart::@class::Base::@constructor::requiredArg
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::requiredArg
           superConstructor: package:test/a.dart::@class::Base::@constructor::requiredArg
         isOriginMixinApplication positionalArg
@@ -8789,19 +8913,22 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: positionalArg @-1
-                element: package:test/a.dart::@class::Base::@constructor::positionalArg
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: positionalArg @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
                     staticType: bool
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: positionalArg @0
+                element: package:test/a.dart::@class::Base::@constructor::positionalArg
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::positionalArg
           superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg
         isOriginMixinApplication positionalArg2
@@ -8817,19 +8944,22 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: positionalArg2 @-1
-                element: package:test/a.dart::@class::Base::@constructor::positionalArg2
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: positionalArg2 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
                     staticType: bool
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: positionalArg2 @0
+                element: package:test/a.dart::@class::Base::@constructor::positionalArg2
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::positionalArg2
           superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg2
         isOriginMixinApplication namedArg
@@ -8845,19 +8975,22 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: namedArg @-1
-                element: package:test/a.dart::@class::Base::@constructor::namedArg
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: namedArg @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
                     staticType: int
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: namedArg @0
+                element: package:test/a.dart::@class::Base::@constructor::namedArg
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::namedArg
           superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg
         isOriginMixinApplication namedArg2
@@ -8873,19 +9006,22 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: namedArg2 @-1
-                element: package:test/a.dart::@class::Base::@constructor::namedArg2
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: namedArg2 @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
                     staticType: bool
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: namedArg2 @0
+                element: package:test/a.dart::@class::Base::@constructor::namedArg2
+                staticType: null
               element: package:test/a.dart::@class::Base::@constructor::namedArg2
           superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg2
 ''');
@@ -8986,14 +9122,12 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: ctor @-1
-                element: <testLibrary>::@class::Base::@constructor::ctor
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: ctor @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: t @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
@@ -9003,8 +9137,13 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
                     staticType: List<dynamic>
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: ctor @0
+                element: <testLibrary>::@class::Base::@constructor::ctor
+                staticType: null
               element: <testLibrary>::@class::Base::@constructor::ctor
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::Base::@constructor::ctor
             substitution: {T: dynamic}
 ''');
@@ -9111,14 +9250,12 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
-              period: . @0
-              constructorName: SimpleIdentifier
-                token: ctor @-1
-                element: <testLibrary>::@class::Base::@constructor::ctor
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @0
+                name2: ctor @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: t @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
@@ -9128,8 +9265,13 @@ library
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
                     staticType: List<List<U>>
                 rightParenthesis: ) @0
+              period: . @0
+              constructorName: SimpleIdentifier
+                token: ctor @0
+                element: <testLibrary>::@class::Base::@constructor::ctor
+                staticType: null
               element: <testLibrary>::@class::Base::@constructor::ctor
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::Base::@constructor::ctor
             substitution: {T: List<U>}
 ''');
@@ -9354,7 +9496,7 @@ library
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
-            #F3 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -9391,6 +9533,51 @@ library
 ''');
   }
 
+  test_constructor_primary_augmentation_chain_completedByAugmentation() async {
+    var library = await buildLibrary(r'''
+class A() {}
+
+augment class A {
+  augment A() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:42)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 42
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+''');
+  }
+
   test_constructor_primary_body_constantInitializers_assertInitializer() async {
     var library = await buildLibrary(r'''
 class const A() {
@@ -9424,7 +9611,7 @@ library
             AssertInitializer
               assertKeyword: assert @27
               leftParenthesis: ( @33
-              condition: BooleanLiteral
+              condition2: BooleanLiteral
                 literal: true @34
                 staticType: bool
               rightParenthesis: ) @38
@@ -9482,7 +9669,7 @@ library
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
               equals: = @44
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @46
                 staticType: int
       getters
@@ -9512,7 +9699,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -9552,7 +9739,7 @@ library
               superKeyword: super @54
               argumentList: ArgumentList
                 leftParenthesis: ( @59
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 0 @60
                     staticType: int
@@ -9582,7 +9769,7 @@ library
         #F1 class A (nameOffset:27) (firstTokenOffset:0) (offset:27)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:27)
+            #F2 isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:21) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               documentationComment: /// first\n/// second\n/// third
               typeName: A
@@ -9636,7 +9823,7 @@ library
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @46
-                    arguments
+                    arguments2
                       SimpleStringLiteral
                         literal: '0' @47
                     rightParenthesis: ) @50
@@ -9671,7 +9858,7 @@ library
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @46
-                arguments
+                arguments2
                   SimpleStringLiteral
                     literal: '0' @47
                 rightParenthesis: ) @50
@@ -9683,7 +9870,7 @@ library
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
               equals: = @63
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @65
                 staticType: int
       getters
@@ -9807,7 +9994,7 @@ library
             AssertInitializer
               assertKeyword: assert @33
               leftParenthesis: ( @39
-              condition: BooleanLiteral
+              condition2: BooleanLiteral
                 literal: true @40
                 staticType: bool
               rightParenthesis: ) @44
@@ -9932,13 +10119,13 @@ library
             AssertInitializer
               assertKeyword: assert @38
               leftParenthesis: ( @44
-              condition: BinaryExpression
-                leftOperand: SimpleIdentifier
+              condition2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: x @45
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: > @47
-                rightOperand: IntegerLiteral
+                rightOperand2: IntegerLiteral
                   literal: 0 @49
                   staticType: int
                 element: dart:core::@class::num::@method::>
@@ -11087,6 +11274,83 @@ library
 ''');
   }
 
+  test_constructor_primary_declaringFormalParameter_requiredPositional_simple_covariantVar() async {
+    var library = await buildLibrary(r'''
+class A(covariant var int foo);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isExplicitlyCovariant isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F3
+              inducedSetter: #F4
+          constructors
+            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 6
+              formalParameters
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:26) (firstTokenOffset:8) (offset:26)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          getters
+            #F3 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
+          setters
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F2
+              formalParameters
+                #F7 requiredPositional isExplicitlyCovariant value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+  classes
+    hasNonFinalField isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isCovariant isOriginDeclaringFormalParameter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+          declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+      constructors
+        isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional isDeclaring isFinal this.foo
+              firstFragment: #F6
+              type: int
+              field: <testLibrary>::@class::A::@field::foo
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F4
+          formalParameters
+            #E1 requiredPositional isCovariant value
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_constructor_primary_declaringFormalParameter_requiredPositional_simple_final() async {
     var library = await buildLibrary(r'''
 class A(
@@ -11491,7 +11755,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -11858,7 +12122,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -11894,7 +12158,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -11932,7 +12196,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -11994,7 +12258,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F2 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -12438,7 +12702,7 @@ library
                   staticType: int
               inducedGetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:22) (offset:22)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 22
@@ -12560,7 +12824,7 @@ library
             #F3 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: #E1 U
           constructors
-            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F4 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -13230,7 +13494,7 @@ library
                 element: <testLibrary>::@class::A::@field::f
                 staticType: null
               equals: = @68
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @70
                 staticType: int
       getters
@@ -14009,6 +14273,152 @@ library
 ''');
   }
 
+  test_constructor_secondary_augmentation_chain_formalParameters_rn1__fn1_intQ_numQ_nothing() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? n1;
+  A({num? n1});
+  augment A({this.n1});
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isFinal isOriginDeclaration n1 (nameOffset:23) (firstTokenOffset:23) (offset:23)
+              element: <testLibrary>::@class::A::@field::n1
+              inducedGetter: #F3
+          constructors
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 29
+              formalParameters
+                #F5 optionalNamed isOriginDeclaration n1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+                  nextFragment: #F6
+              nextFragment: #F7
+            #F7 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:45) (offset:53)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 53
+              formalParameters
+                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:61) (firstTokenOffset:56) (offset:61)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+                  previousFragment: #F5
+              previousFragment: #F4
+          getters
+            #F3 isComplete isOriginVariable n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@class::A::@getter::n1
+              inducingVariable: #F2
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isFinal isOriginDeclaration n1
+          reference: <testLibrary>::@class::A::@field::n1
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::n1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 optionalNamed isFinal this.n1
+              firstFragment: #F5
+              type: num?
+              field: <testLibrary>::@class::A::@field::n1
+      getters
+        isOriginVariable n1
+          reference: <testLibrary>::@class::A::@getter::n1
+          firstFragment: #F3
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::n1
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_formalParameters_rn1__fn1_omittedIntroductoryType() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int? n1;
+  A({n1});
+  augment A({this.n1});
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isFinal isOriginDeclaration n1 (nameOffset:23) (firstTokenOffset:23) (offset:23)
+              element: <testLibrary>::@class::A::@field::n1
+              inducedGetter: #F3
+          constructors
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 29
+              formalParameters
+                #F5 optionalNamed hasImplicitType isOriginDeclaration n1 (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+                  nextFragment: #F6
+              nextFragment: #F7
+            #F7 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:40) (offset:48)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 48
+              formalParameters
+                #F6 optionalNamed hasImplicitType isFinal isOriginDeclaration this.n1 (nameOffset:56) (firstTokenOffset:51) (offset:56)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+                  previousFragment: #F5
+              previousFragment: #F4
+          getters
+            #F3 isComplete isOriginVariable n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@class::A::@getter::n1
+              inducingVariable: #F2
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isFinal isOriginDeclaration n1
+          reference: <testLibrary>::@class::A::@field::n1
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::n1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 optionalNamed hasImplicitType isFinal this.n1
+              firstFragment: #F5
+              type: dynamic
+              field: <testLibrary>::@class::A::@field::n1
+      getters
+        isOriginVariable n1
+          reference: <testLibrary>::@class::A::@getter::n1
+          firstFragment: #F3
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::n1
+''');
+  }
+
   test_constructor_secondary_augmentation_chain_formalParameters_rN1__rN1() async {
     var library = await buildLibrary(r'''
 class A {
@@ -14725,6 +15135,162 @@ library
 ''');
   }
 
+  test_constructor_secondary_augmentation_chain_formalParameters_rN1__sN1_omittedIntroductoryType() async {
+    var library = await buildLibrary(r'''
+class A {
+  A({required int n1});
+}
+class B extends A {
+  B({required n1});
+  augment B({required super.n1});
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 requiredNamed isOriginDeclaration n1 (nameOffset:28) (firstTokenOffset:15) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+        #F4 hasExtendsClause class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:58) (offset:58)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 58
+              formalParameters
+                #F6 requiredNamed hasImplicitType isOriginDeclaration n1 (nameOffset:70) (firstTokenOffset:61) (offset:70)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+            #F8 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:78) (offset:86)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 86
+              formalParameters
+                #F7 requiredNamed hasImplicitType isFinal isOriginDeclaration super.n1 (nameOffset:104) (firstTokenOffset:89) (offset:104)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::n1
+                  previousFragment: #F6
+              previousFragment: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F3
+              type: int
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      supertype: A
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredNamed hasImplicitType isFinal super.n1
+              firstFragment: #F6
+              type: dynamic
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_formalParameters_rn1__sn1_omittedIntroductoryType() async {
+    var library = await buildLibrary(r'''
+class A {
+  A({int? n1});
+}
+class B extends A {
+  B({n1});
+  augment B({super.n1});
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 optionalNamed isOriginDeclaration n1 (nameOffset:20) (firstTokenOffset:15) (offset:20)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+        #F4 hasExtendsClause class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:50) (offset:50)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 50
+              formalParameters
+                #F6 optionalNamed hasImplicitType isOriginDeclaration n1 (nameOffset:53) (firstTokenOffset:53) (offset:53)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+            #F8 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:61) (offset:69)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 69
+              formalParameters
+                #F7 optionalNamed hasImplicitType isFinal isOriginDeclaration super.n1 (nameOffset:78) (firstTokenOffset:72) (offset:78)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::n1
+                  previousFragment: #F6
+              previousFragment: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 optionalNamed n1
+              firstFragment: #F3
+              type: int?
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      supertype: A
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 optionalNamed hasImplicitType isFinal super.n1
+              firstFragment: #F6
+              type: dynamic
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::n1
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
   test_constructor_secondary_augmentation_chain_formalParameters_rN1_rN1__rN1() async {
     var library = await buildLibrary(r'''
 class A {
@@ -15354,6 +15920,79 @@ library
         isOriginVariable p1
           reference: <testLibrary>::@class::A::@getter::p1
           firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::p1
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_formalParameters_rP1__fP1_int_nothing_nothing() async {
+    var library = await buildLibrary(r'''
+class A {
+  final int p1;
+  A(p1);
+  augment A(this.p1);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isFinal isOriginDeclaration p1 (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: <testLibrary>::@class::A::@field::p1
+              inducedGetter: #F3
+          constructors
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 28
+              formalParameters
+                #F5 requiredPositional hasImplicitType isOriginDeclaration p1 (nameOffset:30) (firstTokenOffset:30) (offset:30)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
+                  nextFragment: #F6
+              nextFragment: #F7
+            #F7 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:45)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 45
+              formalParameters
+                #F6 requiredPositional hasImplicitType isFinal isOriginDeclaration this.p1 (nameOffset:52) (firstTokenOffset:47) (offset:52)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
+                  previousFragment: #F5
+              previousFragment: #F4
+          getters
+            #F3 isComplete isOriginVariable p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@class::A::@getter::p1
+              inducingVariable: #F2
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isFinal isOriginDeclaration p1
+          reference: <testLibrary>::@class::A::@field::p1
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::p1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional hasImplicitType isFinal this.p1
+              firstFragment: #F5
+              type: dynamic
+              field: <testLibrary>::@class::A::@field::p1
+      getters
+        isOriginVariable p1
+          reference: <testLibrary>::@class::A::@getter::p1
+          firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@class::A::@field::p1
 ''');
@@ -16621,6 +17260,162 @@ library
             #E1 requiredPositional isFinal super.p1
               firstFragment: #F7
               type: int
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_formalParameters_rP1__sP1_int_nothing_nothing() async {
+    var library = await buildLibrary(r'''
+class A {
+  A(int p1);
+}
+class B extends A {
+  B(p1);
+  augment B(super.p1);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration p1 (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
+        #F4 hasExtendsClause class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 47
+              formalParameters
+                #F6 requiredPositional hasImplicitType isOriginDeclaration p1 (nameOffset:49) (firstTokenOffset:49) (offset:49)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
+                  nextFragment: #F7
+              nextFragment: #F8
+            #F8 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:56) (offset:64)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 64
+              formalParameters
+                #F7 requiredPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:72) (firstTokenOffset:66) (offset:72)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
+                  previousFragment: #F6
+              previousFragment: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F3
+              type: int
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      supertype: A
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional hasImplicitType isFinal super.p1
+              firstFragment: #F6
+              type: dynamic
+              superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
+          superConstructor: <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_formalParameters_rp1__sp1_intQ_nothing_nothing() async {
+    var library = await buildLibrary(r'''
+class A {
+  A([int? p1]);
+}
+class B extends A {
+  B([p1]);
+  augment B([super.p1]);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              formalParameters
+                #F3 optionalPositional isOriginDeclaration p1 (nameOffset:20) (firstTokenOffset:15) (offset:20)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
+        #F4 hasExtendsClause class B (nameOffset:34) (firstTokenOffset:28) (offset:34)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:50) (offset:50)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 50
+              formalParameters
+                #F6 optionalPositional hasImplicitType isOriginDeclaration p1 (nameOffset:53) (firstTokenOffset:53) (offset:53)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
+                  nextFragment: #F7
+              nextFragment: #F8
+            #F8 isAugmentation isComplete isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:61) (offset:69)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 69
+              formalParameters
+                #F7 optionalPositional hasImplicitType isFinal isOriginDeclaration super.p1 (nameOffset:78) (firstTokenOffset:72) (offset:78)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p1
+                  previousFragment: #F6
+              previousFragment: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F3
+              type: int?
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      supertype: A
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 optionalPositional hasImplicitType isFinal super.p1
+              firstFragment: #F6
+              type: dynamic
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::p1
           superConstructor: <testLibrary>::@class::A::@constructor::new
 ''');
@@ -19046,6 +19841,100 @@ library
 ''');
   }
 
+  test_constructor_secondary_augmentation_chain_isExternal_factory() async {
+    var library = await buildLibrary(r'''
+class A {
+  factory A();
+}
+
+augment class A {
+  augment external factory A();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 12
+              typeName: A
+              typeNameOffset: 20
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isExternal isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:48) (offset:73)
+              element: <testLibrary>::@class::A::@constructor::new
+              factoryKeywordOffset: 65
+              typeName: A
+              typeNameOffset: 73
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isExternal isFactory isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+''');
+  }
+
+  test_constructor_secondary_augmentation_chain_isExternal_generative() async {
+    var library = await buildLibrary(r'''
+class A {
+  A();
+}
+
+augment class A {
+  augment external A();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:34) (firstTokenOffset:20) (offset:34)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isExternal isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:40) (offset:57)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 57
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isExternal isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+''');
+  }
+
   test_constructor_secondary_augmentation_chain_named() async {
     var library = await buildLibrary(r'''
 class A {
@@ -19156,7 +20045,7 @@ library
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
-            #F3 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F3 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -19367,6 +20256,54 @@ library
       constructors
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+''');
+  }
+
+  test_constructor_secondary_augmentation_sameName_external() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.foo();
+}
+
+augment class A {
+  augment external A.foo();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration foo (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              nextFragment: #F4
+        #F2 isAugmentation class A (nameOffset:38) (firstTokenOffset:24) (offset:38)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F4 isAugmentation isComplete isExternal isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:44) (offset:63)
+              element: <testLibrary>::@class::A::@constructor::foo
+              typeName: A
+              typeNameOffset: 61
+              periodOffset: 62
+              previousFragment: #F3
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isExternal isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@constructor::foo
           firstFragment: #F3
 ''');
   }
@@ -20250,7 +21187,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        isConst isFactory isOriginDeclaration isRedirecting new
+        isConst isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
           redirectedConstructor: <testLibrary>::@class::C::@constructor::new
@@ -22864,10 +23801,10 @@ library
             #E2 requiredPositional hasImplicitType isFinal super.a
               firstFragment: #F6
               type: int
-              superConstructorParameter: SuperFormalParameterMember
+              superConstructorParameter: SubstitutedSuperFormalParameterElementImpl
                 baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
                 substitution: {T: String}
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
     isSimplyBounded class B
@@ -23161,13 +24098,13 @@ library
             AssertInitializer
               assertKeyword: assert @29
               leftParenthesis: ( @35
-              condition: BinaryExpression
-                leftOperand: SimpleIdentifier
+              condition2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: x @36
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: >= @38
-                rightOperand: IntegerLiteral
+                rightOperand2: IntegerLiteral
                   literal: 42 @41
                   staticType: int
                 element: dart:core::@class::num::@method::>=
@@ -23216,20 +24153,20 @@ library
             AssertInitializer
               assertKeyword: assert @29
               leftParenthesis: ( @35
-              condition: BinaryExpression
-                leftOperand: SimpleIdentifier
+              condition2: BinaryExpression
+                leftOperand2: SimpleIdentifier
                   token: x @36
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   staticType: int
                 operator: >= @38
-                rightOperand: IntegerLiteral
+                rightOperand2: IntegerLiteral
                   literal: 42 @41
                   staticType: int
                 element: dart:core::@class::num::@method::>=
                 staticInvokeType: bool Function(num)
                 staticType: bool
               comma: , @43
-              message: SimpleStringLiteral
+              message2: SimpleStringLiteral
                 literal: 'foo' @45
               rightParenthesis: ) @50
 ''');
@@ -23285,7 +24222,7 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 42 @39
                 staticType: int
       getters
@@ -23353,7 +24290,7 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression: MethodInvocation
+              expression2: MethodInvocation
                 methodName: SimpleIdentifier
                   token: foo @39
                   element: <testLibrary>::@function::foo
@@ -23441,7 +24378,7 @@ library
                 element: <testLibrary>::@class::A::@field::_f
                 staticType: null
               equals: = @54
-              expression: SimpleIdentifier
+              expression2: SimpleIdentifier
                 token: f @56
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
                 staticType: int
@@ -23511,9 +24448,9 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @49
-              expression: RecordLiteral
+              expression2: RecordLiteral
                 leftParenthesis: ( @51
-                fields
+                fields2
                   IntegerLiteral
                     literal: 0 @52
                     staticType: int
@@ -23582,13 +24519,13 @@ library
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
               equals: = @37
-              expression: StringInterpolation
+              expression2: StringInterpolation
                 elements
                   InterpolationString
                     contents: ' @39
                   InterpolationExpression
                     leftBracket: ${ @40
-                    expression: IntegerLiteral
+                    expression2: IntegerLiteral
                       literal: 42 @42
                       staticType: int
                     rightBracket: } @44
@@ -23662,13 +24599,13 @@ library
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
               equals: = @42
-              expression: StringInterpolation
+              expression2: StringInterpolation
                 elements
                   InterpolationString
                     contents: ' @44
                   InterpolationExpression
                     leftBracket: $ @45
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: x @46
                       element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                       staticType: int
@@ -23742,12 +24679,12 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @42
-              expression: BinaryExpression
-                leftOperand: IntegerLiteral
+              expression2: BinaryExpression
+                leftOperand2: IntegerLiteral
                   literal: 1 @44
                   staticType: int
                 operator: + @46
-                rightOperand: SimpleIdentifier
+                rightOperand2: SimpleIdentifier
                   token: p @48
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
                   staticType: int
@@ -23836,7 +24773,35 @@ library
               thisKeyword: this @77
               argumentList: ArgumentList
                 leftParenthesis: ( @81
-                arguments
+                arguments2
+                  ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @82
+                        typeArguments: TypeArgumentList
+                          leftBracket: < @83
+                          arguments
+                            GenericFunctionType
+                              functionKeyword: Function @84
+                              parameters: FormalParameterList
+                                leftParenthesis: ( @92
+                                rightParenthesis: ) @93
+                              declaredFragment: GenericFunctionTypeElement
+                                parameters
+                                returnType: dynamic
+                                type: dynamic Function()
+                              type: dynamic Function()
+                          rightBracket: > @94
+                        element: <testLibrary>::@class::A
+                        type: A<dynamic Function()>
+                      element: SubstitutedConstructorElementImpl
+                        baseElement: <testLibrary>::@class::A::@constructor::new
+                        substitution: {T: dynamic Function()}
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @95
+                      rightParenthesis: ) @96
+                    staticType: A<dynamic Function()>
+                arguments(v1)
                   InstanceCreationExpression
                     constructorName: ConstructorName
                       type: NamedType
@@ -23857,7 +24822,7 @@ library
                           rightBracket: > @94
                         element: <testLibrary>::@class::A
                         type: A<dynamic Function()>
-                      element: ConstructorMember
+                      element: SubstitutedConstructorElementImpl
                         baseElement: <testLibrary>::@class::A::@constructor::new
                         substitution: {T: dynamic Function()}
                     argumentList: ArgumentList
@@ -23929,7 +24894,7 @@ library
               superKeyword: super @79
               argumentList: ArgumentList
                 leftParenthesis: ( @84
-                arguments
+                arguments2
                   ListLiteral
                     constKeyword: const @85
                     leftBracket: [ @91
@@ -23999,18 +24964,21 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @69
+              constructorSelector: ConstructorSelector
+                period: . @74
+                name2: aaa @75
+              argumentList: ArgumentList
+                leftParenthesis: ( @78
+                arguments2
+                  IntegerLiteral
+                    literal: 42 @79
+                    staticType: int
+                rightParenthesis: ) @81
               period: . @74
               constructorName: SimpleIdentifier
                 token: aaa @75
                 element: <testLibrary>::@class::A::@constructor::aaa
                 staticType: null
-              argumentList: ArgumentList
-                leftParenthesis: ( @78
-                arguments
-                  IntegerLiteral
-                    literal: 42 @79
-                    staticType: int
-                rightParenthesis: ) @81
               element: <testLibrary>::@class::A::@constructor::aaa
           superConstructor: <testLibrary>::@class::A::@constructor::aaa
 ''');
@@ -24067,14 +25035,17 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @62
+              constructorSelector: ConstructorSelector
+                period: . @67
+                name2: _ @68
+              argumentList: ArgumentList
+                leftParenthesis: ( @69
+                rightParenthesis: ) @70
               period: . @67
               constructorName: SimpleIdentifier
                 token: _ @68
                 element: <testLibrary>::@class::A::@constructor::_
                 staticType: null
-              argumentList: ArgumentList
-                leftParenthesis: ( @69
-                rightParenthesis: ) @70
               element: <testLibrary>::@class::A::@constructor::_
           superConstructor: <testLibrary>::@class::A::@constructor::_
 ''');
@@ -24143,24 +25114,27 @@ library
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @74
-              period: . @79
-              constructorName: SimpleIdentifier
-                token: aaa @80
-                element: <testLibrary>::@class::A::@constructor::aaa
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @79
+                name2: aaa @80
               argumentList: ArgumentList
                 leftParenthesis: ( @83
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @84
                     staticType: int
                   NamedArgument
                     name: b @87
                     colon: : @88
-                    argumentExpression: IntegerLiteral
+                    argumentExpression2: IntegerLiteral
                       literal: 2 @90
                       staticType: int
                 rightParenthesis: ) @91
+              period: . @79
+              constructorName: SimpleIdentifier
+                token: aaa @80
+                element: <testLibrary>::@class::A::@constructor::aaa
+                staticType: null
               element: <testLibrary>::@class::A::@constructor::aaa
           superConstructor: <testLibrary>::@class::A::@constructor::aaa
 ''');
@@ -24226,7 +25200,7 @@ library
               superKeyword: super @69
               argumentList: ArgumentList
                 leftParenthesis: ( @74
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 42 @75
                     staticType: int
@@ -24285,7 +25259,7 @@ library
               thisKeyword: this @62
               argumentList: ArgumentList
                 leftParenthesis: ( @66
-                arguments
+                arguments2
                   ListLiteral
                     constKeyword: const @67
                     leftBracket: [ @73
@@ -24339,20 +25313,23 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @24
-              period: . @28
-              constructorName: SimpleIdentifier
-                token: named @29
-                element: <testLibrary>::@class::C::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @28
+                name2: named @29
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @35
                     staticType: int
                   SimpleStringLiteral
                     literal: 'bbb' @38
                 rightParenthesis: ) @43
+              period: . @28
+              constructorName: SimpleIdentifier
+                token: named @29
+                element: <testLibrary>::@class::C::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
         isConst isOriginDeclaration named
@@ -24410,24 +25387,27 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @24
-              period: . @28
-              constructorName: SimpleIdentifier
-                token: named @29
-                element: <testLibrary>::@class::C::@constructor::named
-                staticType: null
+              constructorSelector: ConstructorSelector
+                period: . @28
+                name2: named @29
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @35
                     staticType: int
                   NamedArgument
                     name: b @38
                     colon: : @39
-                    argumentExpression: IntegerLiteral
+                    argumentExpression2: IntegerLiteral
                       literal: 2 @41
                       staticType: int
                 rightParenthesis: ) @42
+              period: . @28
+              constructorName: SimpleIdentifier
+                token: named @29
+                element: <testLibrary>::@class::C::@constructor::named
+                staticType: null
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
         isConst isOriginDeclaration named
@@ -24487,7 +25467,7 @@ library
               thisKeyword: this @30
               argumentList: ArgumentList
                 leftParenthesis: ( @34
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 1 @35
                     staticType: int
@@ -24729,6 +25709,53 @@ library
 ''');
   }
 
+  test_constructor_secondary_redirected_factory_named_cycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  factory C.a() = C.b;
+  factory C.b() = C.a;
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isFactory isOriginDeclaration isRedirecting a (nameOffset:22) (firstTokenOffset:12) (offset:22)
+              element: <testLibrary>::@class::C::@constructor::a
+              factoryKeywordOffset: 12
+              typeName: C
+              typeNameOffset: 20
+              periodOffset: 21
+            #F3 isComplete isFactory isOriginDeclaration isRedirecting b (nameOffset:45) (firstTokenOffset:35) (offset:45)
+              element: <testLibrary>::@class::C::@constructor::b
+              factoryKeywordOffset: 35
+              typeName: C
+              typeNameOffset: 43
+              periodOffset: 44
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+''');
+  }
+
   test_constructor_secondary_redirected_factory_named_generic() async {
     var library = await buildLibrary(r'''
 class C<T, U> {
@@ -24791,7 +25818,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -24810,7 +25837,7 @@ library
         hasEnclosingTypeParameterReference isOriginDeclaration named
           reference: <testLibrary>::@class::D::@constructor::named
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::_
             substitution: {T: U, U: T}
 ''');
@@ -24886,7 +25913,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::named
             substitution: {T: T2, U: U2}
 ''');
@@ -24964,7 +25991,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25102,7 +26129,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25224,12 +26251,70 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::named
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+''');
+  }
+
+  test_constructor_secondary_redirected_factory_named_redirectsIntoCycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  factory C.a() = C.b;
+  factory C.b() = C.a;
+  factory C.c() = C.a;
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isFactory isOriginDeclaration isRedirecting a (nameOffset:22) (firstTokenOffset:12) (offset:22)
+              element: <testLibrary>::@class::C::@constructor::a
+              factoryKeywordOffset: 12
+              typeName: C
+              typeNameOffset: 20
+              periodOffset: 21
+            #F3 isComplete isFactory isOriginDeclaration isRedirecting b (nameOffset:45) (firstTokenOffset:35) (offset:45)
+              element: <testLibrary>::@class::C::@constructor::b
+              factoryKeywordOffset: 35
+              typeName: C
+              typeNameOffset: 43
+              periodOffset: 44
+            #F4 isComplete isFactory isOriginDeclaration isRedirecting c (nameOffset:68) (firstTokenOffset:58) (offset:68)
+              element: <testLibrary>::@class::C::@constructor::c
+              factoryKeywordOffset: 58
+              typeName: C
+              typeNameOffset: 66
+              periodOffset: 67
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isFactory isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+        isFactory isOriginDeclaration isRedirecting c
+          reference: <testLibrary>::@class::C::@constructor::c
+          firstFragment: #F4
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
 ''');
   }
 
@@ -25447,7 +26532,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::D::@constructor::new
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25466,7 +26551,7 @@ library
         hasEnclosingTypeParameterReference isOriginDeclaration new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::_
             substitution: {T: U, U: T}
 ''');
@@ -25541,7 +26626,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T2, U: U2}
 ''');
@@ -25591,7 +26676,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting redirected
           reference: <testLibrary>::@class::A::@constructor::redirected
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}
 ''');
@@ -25666,7 +26751,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::C::@constructor::new
             substitution: {T: U, U: T}
       methods
@@ -25807,7 +26892,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::new
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -25982,7 +27067,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: package:test/foo.dart::@class::D::@constructor::new
             substitution: {T: U, U: T}
         hasEnclosingTypeParameterReference isOriginDeclaration _
@@ -26157,6 +27242,51 @@ library
 ''');
   }
 
+  test_constructor_secondary_redirected_thisInvocation_cycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  C.a() : this.b();
+  C.b() : this.a();
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isOriginDeclaration isRedirecting a (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::C::@constructor::a
+              typeName: C
+              typeNameOffset: 12
+              periodOffset: 13
+            #F3 isComplete isOriginDeclaration isRedirecting b (nameOffset:34) (firstTokenOffset:32) (offset:34)
+              element: <testLibrary>::@class::C::@constructor::b
+              typeName: C
+              typeNameOffset: 32
+              periodOffset: 33
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+''');
+  }
+
   test_constructor_secondary_redirected_thisInvocation_named() async {
     var library = await buildLibrary(r'''
 class C {
@@ -26197,14 +27327,17 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @43
+              constructorSelector: ConstructorSelector
+                period: . @47
+                name2: named @48
+              argumentList: ArgumentList
+                leftParenthesis: ( @53
+                rightParenthesis: ) @54
               period: . @47
               constructorName: SimpleIdentifier
                 token: named @48
                 element: <testLibrary>::@class::C::@constructor::named
                 staticType: null
-              argumentList: ArgumentList
-                leftParenthesis: ( @53
-                rightParenthesis: ) @54
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
 ''');
@@ -26256,14 +27389,17 @@ library
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @46
+              constructorSelector: ConstructorSelector
+                period: . @50
+                name2: named @51
+              argumentList: ArgumentList
+                leftParenthesis: ( @56
+                rightParenthesis: ) @57
               period: . @50
               constructorName: SimpleIdentifier
                 token: named @51
                 element: <testLibrary>::@class::C::@constructor::named
                 staticType: null
-              argumentList: ArgumentList
-                leftParenthesis: ( @56
-                rightParenthesis: ) @57
               element: <testLibrary>::@class::C::@constructor::named
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
 ''');
@@ -26307,6 +27443,61 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           redirectedConstructor: <testLibrary>::@class::C::@constructor::named
+''');
+  }
+
+  test_constructor_secondary_redirected_thisInvocation_redirectsIntoCycle() async {
+    var library = await buildLibrary(r'''
+class C {
+  C.a() : this.b();
+  C.b() : this.a();
+  C.c() : this.a();
+}
+''');
+
+    configuration.forClassConstructors(classNames: {'C'});
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isComplete isOriginDeclaration isRedirecting a (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::C::@constructor::a
+              typeName: C
+              typeNameOffset: 12
+              periodOffset: 13
+            #F3 isComplete isOriginDeclaration isRedirecting b (nameOffset:34) (firstTokenOffset:32) (offset:34)
+              element: <testLibrary>::@class::C::@constructor::b
+              typeName: C
+              typeNameOffset: 32
+              periodOffset: 33
+            #F4 isComplete isOriginDeclaration isRedirecting c (nameOffset:54) (firstTokenOffset:52) (offset:54)
+              element: <testLibrary>::@class::C::@constructor::c
+              typeName: C
+              typeNameOffset: 52
+              periodOffset: 53
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting a
+          reference: <testLibrary>::@class::C::@constructor::a
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::b
+        isInRedirectingConstructorCycle isOriginDeclaration isRedirecting b
+          reference: <testLibrary>::@class::C::@constructor::b
+          firstFragment: #F3
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
+        isOriginDeclaration isRedirecting c
+          reference: <testLibrary>::@class::C::@constructor::c
+          firstFragment: #F4
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::a
 ''');
   }
 
@@ -26495,7 +27686,7 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: V}
             redirectedConstructor: <testLibrary>::@class::A::@constructor::new
@@ -26541,10 +27732,10 @@ library
         hasEnclosingTypeParameterReference isFactory isOriginDeclaration isRedirecting new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          redirectedConstructor: ConstructorMember
+          redirectedConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: V}
-            redirectedConstructor: ConstructorMember
+            redirectedConstructor: SubstitutedConstructorElementImpl
               baseElement: <testLibrary>::@class::A::@constructor::new
               substitution: {T: V}
               redirectedConstructor: <null>
@@ -26585,7 +27776,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: int}
             superConstructor: <testLibrary>::@class::A::@constructor::new
@@ -26626,10 +27817,10 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: int}
-            superConstructor: ConstructorMember
+            superConstructor: SubstitutedConstructorElementImpl
               baseElement: <testLibrary>::@class::A::@constructor::new
               substitution: {T: String}
               superConstructor: dart:core::@class::Object::@constructor::new
@@ -26697,7 +27888,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::named
             substitution: {T: int}
 ''');
@@ -27060,7 +28251,19 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression: InstanceCreationExpression
+              expression2: ConstructorInvocation
+                keyword: const @39
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: D @45
+                    element: <testLibrary>::@class::D
+                    type: D
+                  element: <testLibrary>::@class::D::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @46
+                  rightParenthesis: ) @47
+                staticType: D
+              expression(v1): InstanceCreationExpression
                 keyword: const @39
                 constructorName: ConstructorName
                   type: NamedType
@@ -27098,7 +28301,19 @@ library
                 element: <testLibrary>::@class::D::@field::x
                 staticType: null
               equals: = @90
-              expression: InstanceCreationExpression
+              expression2: ConstructorInvocation
+                keyword: const @92
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @98
+                    element: <testLibrary>::@class::C
+                    type: C
+                  element: <testLibrary>::@class::C::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @99
+                  rightParenthesis: ) @100
+                staticType: C
+              expression(v1): InstanceCreationExpression
                 keyword: const @92
                 constructorName: ConstructorName
                   type: NamedType
@@ -27831,7 +29046,7 @@ library
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
               equals: = @28
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0 @30
                 staticType: int
       getters
@@ -28387,12 +29602,12 @@ library
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
                 BinaryExpression
-                  leftOperand: SimpleIdentifier
+                  leftOperand2: SimpleIdentifier
                     token: augmented @91
                     element: <null>
                     staticType: InvalidType
                   operator: + @101
-                  rightOperand: IntegerLiteral
+                  rightOperand2: IntegerLiteral
                     literal: 1 @103
                     staticType: int
                   element: <null>
@@ -28614,6 +29829,210 @@ library
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@setter::foo
           firstFragment: #F8
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_field_augmentation_chain_inferredType_abstractVar_varInitializer() async {
+    var library = await buildLibrary(r'''
+class A {
+  abstract var foo;
+}
+
+augment class A {
+  augment var foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasImplicitType isAbstract isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isAbstract isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
+          setters
+            #F5 isAbstract isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
+        #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F6 hasImplicitType hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F11
+              previousFragment: #F3
+          getters
+            #F8 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F11 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isAbstract isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: dynamic
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: dynamic
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F9
+              type: dynamic
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_field_augmentation_chain_inferredType_varInitializer_varInitializer() async {
+    var library = await buildLibrary(r'''
+class A {
+  var foo = 0;
+}
+
+augment class A {
+  augment var foo = 1.2;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasImplicitType hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F4
+              inducedSetter: #F5
+              nextFragment: #F6
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F8
+          setters
+            #F5 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F3
+              formalParameters
+                #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  nextFragment: #F10
+              nextFragment: #F11
+        #F2 isAugmentation class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F6 hasImplicitType hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F8
+              inducedSetter: #F11
+              previousFragment: #F3
+          getters
+            #F8 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F6
+              previousFragment: #F4
+          setters
+            #F11 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@class::A::@setter::foo
+              inducingVariable: #F6
+              formalParameters
+                #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+                  previousFragment: #F9
+              previousFragment: #F5
+  classes
+    hasNonFinalField isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F7
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F9
@@ -29724,7 +31143,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration x
+        isCovariant isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -29745,7 +31164,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional value
+            #E0 requiredPositional isCovariant value
               firstFragment: #F6
               type: int
           returnType: void
@@ -30164,10 +31583,10 @@ library
             #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration f (nameOffset:47) (firstTokenOffset:47) (offset:47)
               element: <testLibrary>::@class::B::@field::f
               initializer: expression_0
-                InstanceCreationExpression
+                ConstructorInvocation
                   keyword: const @51
-                  constructorName: ConstructorName
-                    type: NamedType
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: A @57
                       typeArguments: TypeArgumentList
                         leftBracket: < @58
@@ -30179,6 +31598,19 @@ library
                               type: int
                             functionKeyword: Function @63
                             parameters: FormalParameterList
+                              leftParenthesis: ( @71
+                              requiredPositionalFormalParameters
+                                RegularFormalParameter
+                                  type: NamedType
+                                    name: double @72
+                                    element: dart:core::@class::double
+                                    type: double
+                                  name: a @79
+                                  declaredFragment: <testLibraryFragment> a@79
+                                    element: isPublic
+                                      type: double
+                              rightParenthesis: ) @80
+                            parameters(v1): FormalParameterList
                               leftParenthesis: ( @71
                               parameter: RegularFormalParameter
                                 type: NamedType
@@ -30202,7 +31634,7 @@ library
                         rightBracket: > @81
                       element: <testLibrary>::@class::A
                       type: A<int Function(double)>
-                    element: ConstructorMember
+                    element: SubstitutedConstructorElementImpl
                       baseElement: <testLibrary>::@class::A::@constructor::new
                       substitution: {T: int Function(double)}
                   argumentList: ArgumentList
@@ -30923,7 +32355,7 @@ library
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @113
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @114
                       element: <testLibrary>::@getter::a
@@ -36878,21 +38310,19 @@ library
         #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @66
                   element: <testLibrary>::@class::C
                   type: C
-                period: . @67
-                name: SimpleIdentifier
-                  token: named @68
-                  element: <testLibrary>::@class::C::@constructor::named
-                  staticType: null
+                selector: ConstructorSelector
+                  period: . @67
+                  name2: named @68
                 element: <testLibrary>::@class::C::@constructor::named
               argumentList: ArgumentList
                 leftParenthesis: ( @73
-                arguments
+                arguments2
                   IntegerLiteral
                     literal: 42 @74
                     staticType: int
@@ -44782,7 +46212,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -44954,7 +46384,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -45031,7 +46461,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -45108,7 +46538,7 @@ library
               inducedGetter: #F3
               inducedSetter: #F4
           constructors
-            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
+            #F5 isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 6
@@ -46228,7 +47658,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional value
+            #E0 requiredPositional isCovariant value
               firstFragment: #F5
               type: int
           returnType: void

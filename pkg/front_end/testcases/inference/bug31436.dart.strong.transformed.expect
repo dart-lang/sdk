@@ -16,11 +16,11 @@ library test;
 //     g().add("hello"); // runtime error
 //             ^
 //
-// pkg/front_end/testcases/inference/bug31436.dart:54:7: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
+// pkg/front_end/testcases/inference/bug31436.dart:53:13: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
 //  - 'Object' is from 'dart:core'.
 //  - 'List' is from 'dart:core'.
-//       o; // No implicit downcast on the assignment, implicit downcast on the return
-//       ^
+//   g = () => o; // No implicit downcast on the assignment, implicit downcast on the return
+//             ^
 //
 import self as self;
 import "dart:core" as core;
@@ -84,11 +84,11 @@ static method arrow_test(() → core::List<core::Object> g) → void {
   on core::TypeError catch(no-exception-var) {
   }
   core::Object o = l;
-  g = () → core::List<core::int> => invalid-expression "pkg/front_end/testcases/inference/bug31436.dart:54:7: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
+  g = () → core::List<core::int> => invalid-expression "pkg/front_end/testcases/inference/bug31436.dart:53:13: Error: A value of type 'Object' can't be returned from a function with return type 'List<int>'.
  - 'Object' is from 'dart:core'.
  - 'List' is from 'dart:core'.
-      o; // No implicit downcast on the assignment, implicit downcast on the return
-      ^" in o as{TypeError} core::List<core::int>;
+  g = () => o; // No implicit downcast on the assignment, implicit downcast on the return
+            ^" in o as{TypeError} core::List<core::int>;
   assert(g{() → core::List<core::int>} is () → core::List<core::Object>);
   assert(!(g{() → core::List<core::int>} is () → core::List<core::int>));
   assert(!(g{() → core::List<core::int>} is () → core::Object));

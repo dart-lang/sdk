@@ -147,6 +147,7 @@ class DependenciesCollector {
 
     final args = node.arguments.positional;
     final loadId = (args[0] as IntLiteral).value;
+    assert(loadId > 0); // 0 means root
     return _loadingMap.loadIdToDeferredImport[loadId];
   }
 

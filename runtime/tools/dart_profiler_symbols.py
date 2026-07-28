@@ -24,7 +24,6 @@
 import optparse
 import os
 import re
-import utils
 import subprocess
 import struct
 

@@ -513,6 +513,7 @@ class MatchingExpressionVisitor
       List<DartType>? typeArguments;
       switch (field.accessKind) {
         case ObjectAccessKind.Object:
+          assert(!field.checkReturn);
           expression = new DelayedInstanceGet(
             typedMatchedExpression,
             field.target!,
@@ -528,9 +529,16 @@ class MatchingExpressionVisitor
             field.resultType!,
             isObjectAccess: false,
             fileOffset: field.fileOffset,
+            covarianceCheckTypes: field.checkReturn
+                ? new CovarianceCheckTypes(
+                    operandStaticType: coreTypes.objectNullableRawType,
+                    checkedType: field.resultType!,
+                  )
+                : null,
           );
           break;
         case ObjectAccessKind.Direct:
+          assert(!field.checkReturn);
           expression = new DelayedAsExpression(
             typedMatchedExpression,
             field.resultType!,
@@ -539,6 +547,7 @@ class MatchingExpressionVisitor
           );
         case ObjectAccessKind.Extension:
         case ObjectAccessKind.ExtensionType:
+          assert(!field.checkReturn);
           expression = new DelayedExtensionInvocation(
             field.target as Procedure,
             [typedMatchedExpression],
@@ -550,6 +559,7 @@ class MatchingExpressionVisitor
           typeArguments = field.typeArguments;
           break;
         case ObjectAccessKind.RecordNamed:
+          assert(!field.checkReturn);
           expression = new DelayedRecordNameGet(
             typedMatchedExpression,
             field.recordType!,
@@ -558,6 +568,7 @@ class MatchingExpressionVisitor
           );
           break;
         case ObjectAccessKind.RecordIndexed:
+          assert(!field.checkReturn);
           expression = new DelayedRecordIndexGet(
             typedMatchedExpression,
             field.recordType!,
@@ -566,6 +577,7 @@ class MatchingExpressionVisitor
           );
           break;
         case ObjectAccessKind.Dynamic:
+          assert(!field.checkReturn);
           expression = new DelayedDynamicGet(
             typedMatchedExpression,
             field.fieldName,
@@ -575,6 +587,7 @@ class MatchingExpressionVisitor
           );
           break;
         case ObjectAccessKind.Never:
+          assert(!field.checkReturn);
           expression = new DelayedDynamicGet(
             typedMatchedExpression,
             field.fieldName,
@@ -584,6 +597,7 @@ class MatchingExpressionVisitor
           );
           break;
         case ObjectAccessKind.Invalid:
+          assert(!field.checkReturn);
           expression = new DelayedDynamicGet(
             typedMatchedExpression,
             field.fieldName,
@@ -593,6 +607,7 @@ class MatchingExpressionVisitor
           );
           break;
         case ObjectAccessKind.FunctionTearOff:
+          assert(!field.checkReturn);
           expression = new DelayedFunctionTearOff(
             typedMatchedExpression,
             node.requiredType,
@@ -600,6 +615,7 @@ class MatchingExpressionVisitor
           );
           break;
         case ObjectAccessKind.Error:
+          assert(!field.checkReturn);
           expression = new FixedExpression(
             (field.pattern as InvalidPattern).invalidExpression,
             const InvalidType(),
@@ -615,13 +631,6 @@ class MatchingExpressionVisitor
             typeArguments: typeArguments,
             fileOffset: field.fileOffset,
           );
-      if (field.checkReturn) {
-        objectExpression = new CovariantCheckCacheableExpression(
-          objectExpression,
-          field.resultType!,
-          fileOffset: field.fileOffset,
-        );
-      }
 
       DelayedExpression subExpression = visitPattern(
         field.pattern,

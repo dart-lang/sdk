@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A<X extends A<X>> {}
+
 class B extends A<B> {}
+
 class C extends B {}
 
 void f<X extends A<X>>(X x) {}

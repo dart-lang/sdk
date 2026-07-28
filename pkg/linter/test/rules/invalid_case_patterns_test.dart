@@ -20,7 +20,7 @@ class InvalidCasePatternsTestLanguage219 extends LintRuleTest
   String get lintRule => LintNames.invalid_case_patterns;
 
   test_binaryExpression_logicalAnd() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(bool b) {
   switch (b) {
     case [!true && false!]:
@@ -30,7 +30,7 @@ f(bool b) {
   }
 
   test_binaryExpression_plus() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
     case [!1 + 2!]:
@@ -53,7 +53,7 @@ void f(Object o) {
   }
 
   test_constConstructorCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   const C();
 }
@@ -80,7 +80,7 @@ f(C c) {
   }
 
   test_identicalCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
     case [!identical(1, 2)!]:
@@ -116,7 +116,7 @@ void f(Object o) {
   }
 
   test_lengthCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
     case [!''.length!]:
@@ -126,7 +126,7 @@ void f(Object o) {
   }
 
   test_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
     case [![1, 2]!]:
@@ -146,7 +146,7 @@ void f(Object o) {
   }
 
   test_listLiteral_typeArgs() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
     case [!<int>[1, 2]!]:
@@ -156,7 +156,7 @@ void f(Object o) {
   }
 
   test_mapLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
    case [!{'k': 'v'}!]:
@@ -176,7 +176,7 @@ void f(Object o) {
   }
 
   test_mapLiteral_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
    case ([!{'k': 'v'}!]):
@@ -186,7 +186,7 @@ void f(Object o) {
   }
 
   test_mapLiteral_parenthesized_twice() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
    case (([!{'k': 'v'}!])):
@@ -196,7 +196,7 @@ void f(Object o) {
   }
 
   test_mapLiteral_typeArgs() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
    case [!<String,String>{'k': 'v'}!]:
@@ -226,7 +226,7 @@ void f(Object o) {
   }
 
   test_setLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
     case [!{1}!]:
@@ -246,7 +246,7 @@ void f(Object o) {
   }
 
   test_setLiteral_typeArgs() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object o) {
   switch (o) {
     case [!<int>{1}!]:
@@ -256,7 +256,7 @@ void f(Object o) {
   }
 
   test_unaryOperator_minus() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   const o = 1;
   switch (1) {
@@ -267,7 +267,7 @@ void f() {
   }
 
   test_unaryOperator_not() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
   void f() {
     const b = false;
     switch (true) {
@@ -278,7 +278,7 @@ void f() {
   }
 
   test_wildcard() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f(int n) {
   const _ = 3;
   switch (n) {

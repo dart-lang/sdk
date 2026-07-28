@@ -18,7 +18,7 @@ class EmptyStatementsTest extends LintRuleTest {
   String get lintRule => LintNames.empty_statements;
 
   test_emptyFor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool b) {
   for ( ; b; )[!;!]
 }
@@ -26,7 +26,7 @@ void f(bool b) {
   }
 
   test_emptyIf_followedByBlock() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool b) {
   if (b)[!;!]
   {
@@ -37,7 +37,7 @@ void f(bool b) {
   }
 
   test_emptyIf_followedByStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool b) {
   if (b)[!;!]
     print(b);
@@ -46,7 +46,7 @@ void f(bool b) {
   }
 
   test_emptyWhile() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool b) {
   while (b)[!;!]
 }
@@ -71,7 +71,7 @@ void f(bool b) {
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_justEmpties() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch(true) {
     case true :
@@ -87,7 +87,7 @@ f() {
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_leading() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch(true) {
     case true :
@@ -102,7 +102,7 @@ f() {
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_leading_trailing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch(true) {
     case true :
@@ -131,7 +131,7 @@ f() {
 
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_trailing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch(true) {
     case true :

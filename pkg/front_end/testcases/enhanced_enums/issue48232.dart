@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 enum E {
-    v([]); // No error.
+  v([]); // No error.
+
   const E(_);
 }
 

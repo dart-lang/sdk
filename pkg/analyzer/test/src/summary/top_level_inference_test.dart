@@ -5489,7 +5489,7 @@ library
     // TODO(scheglov): I don't understand this yet
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_instanceCreation_hasTypeParameter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A<T> {}
@@ -5874,7 +5874,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNull = null;
@@ -6176,7 +6176,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal_list_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = [];
@@ -6496,7 +6496,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_literal_map_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = {};
@@ -6696,7 +6696,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_methodInvocation_hasTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -8098,7 +8098,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_prefix_incDec_custom() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -8952,7 +8952,7 @@ library
 ''');
   }
 
-  @skippedTest
+  @failingTest
   test_initializer_throw() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = throw 42;
@@ -12519,7 +12519,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F11
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
       getters
@@ -12630,7 +12630,7 @@ library
           reference: <testLibrary>::@class::A::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _
+            #E0 requiredPositional isCovariant _
               firstFragment: #F6
               type: num
           returnType: void
@@ -12662,7 +12662,7 @@ library
           reference: <testLibrary>::@class::B::@setter::x
           firstFragment: #F10
           formalParameters
-            #E1 requiredPositional inheritsCovariant value
+            #E1 requiredPositional isCovariant value
               firstFragment: #F12
               type: int
           returnType: void
@@ -12746,7 +12746,7 @@ library
           reference: <testLibrary>::@class::A::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _
+            #E0 requiredPositional isCovariant _
               firstFragment: #F6
               type: num
           returnType: void
@@ -12771,7 +12771,7 @@ library
           reference: <testLibrary>::@class::B::@setter::x
           firstFragment: #F10
           formalParameters
-            #E1 requiredPositional inheritsCovariant _
+            #E1 requiredPositional isCovariant _
               firstFragment: #F11
               type: int
           returnType: void
@@ -13428,7 +13428,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
       methods
@@ -13558,7 +13558,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F13
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
@@ -14086,7 +14086,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: T}
     isSimplyBounded class C
@@ -14097,7 +14097,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F11
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
       methods
@@ -14528,7 +14528,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods
@@ -14888,7 +14888,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: T}
     isSimplyBounded class C
@@ -14899,7 +14899,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F11
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {T: String}
       methods
@@ -15172,7 +15172,7 @@ library
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F10
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: T2, V: T1}
     isSimplyBounded class C
@@ -15460,7 +15460,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F13
-          superConstructor: ConstructorMember
+          superConstructor: SubstitutedConstructorElementImpl
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: String}
       methods

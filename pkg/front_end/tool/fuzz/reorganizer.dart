@@ -17,9 +17,8 @@ Future<void> main(List<String> args) async {
   for (int i = 0; i < args.length; i++) {
     String arg = args[i];
     if (arg.startsWith("--output=")) {
-      outputDirectory = new Directory(
-        arg.substring("--output=".length),
-      ).absolute;
+      outputDirectory = new Directory(arg.substring("--output=".length))
+          .absolute;
     } else {
       Directory d = new Directory(arg);
       if (d.existsSync()) {

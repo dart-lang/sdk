@@ -65,7 +65,7 @@ class UnnecessaryIgnoreTest extends LintRuleTest {
   String get lintRule => 'unnecessary_ignore';
 
   test_file() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore_for_file: [!unused_local_variable!]
 void f() {}
 ''');
@@ -99,7 +99,7 @@ void f() {}
   }
 
   test_line() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore: [!unused_local_variable!]
 void f() {}
 ''');

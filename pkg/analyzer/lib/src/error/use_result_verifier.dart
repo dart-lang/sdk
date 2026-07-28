@@ -13,8 +13,8 @@ class UseResultVerifier {
 
   UseResultVerifier(this._diagnosticReporter);
 
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var element = node.element;
+  void checkConstructorInvocation(ConstructorInvocation node) {
+    var element = node.constructorReference.element;
     if (element == null) {
       return;
     }
@@ -22,8 +22,8 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.element;
+  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -54,7 +54,7 @@ class UseResultVerifier {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
     // Covered by checkPropertyAccess, checkMethodInvocation
     // and checkFunctionExpressionInvocation respectively.
     if (parent is PropertyAccess ||
@@ -72,9 +72,9 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is PrefixedIdentifier) {
-      parent = parent.parent;
+      parent = parent.parent2;
     }
     if (parent is CommentReference) {
       // Don't flag references in comments.
@@ -157,13 +157,13 @@ class UseResultVerifier {
   }
 
   static bool _isUsed(AstNode node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent == null) {
       return false;
     }
 
     if (parent is CascadeExpression) {
-      return parent.target == node;
+      return parent.target2 == node;
     }
 
     if (parent is PrefixedIdentifier) {
@@ -253,7 +253,7 @@ extension on AstNode {
   AstNode get nodeToAnnotate => switch (this) {
     MethodInvocation node => node.methodName,
     PropertyAccess node => node.propertyName,
-    FunctionExpressionInvocation node => node.function.nodeToAnnotate,
+    FunctionExpressionInvocation node => node.function2.nodeToAnnotate,
     _ => this,
   };
 }

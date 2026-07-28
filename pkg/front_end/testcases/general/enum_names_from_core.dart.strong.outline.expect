@@ -40,10 +40,10 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:16:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "int"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:17:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "Object"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:18:3 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "String"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:19:3 -> InstanceConstant(const E{_Enum.index: 3, _Enum._name: "_Enum"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:20:3 -> InstanceConstant(const E{_Enum.index: 4, _Enum._name: "List"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:15:10 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "int"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:15:15 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "Object"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:15:23 -> InstanceConstant(const E{_Enum.index: 2, _Enum._name: "String"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:15:31 -> InstanceConstant(const E{_Enum.index: 3, _Enum._name: "_Enum"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_names_from_core.dart:15:38 -> InstanceConstant(const E{_Enum.index: 4, _Enum._name: "List"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum_names_from_core.dart:15:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "int"}, const E{_Enum.index: 1, _Enum._name: "Object"}, const E{_Enum.index: 2, _Enum._name: "String"}, const E{_Enum.index: 3, _Enum._name: "_Enum"}, const E{_Enum.index: 4, _Enum._name: "List"}])
 Extra constant evaluation: evaluated: 11, effectively constant: 6

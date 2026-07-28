@@ -34,7 +34,8 @@ enum E1(final int x) {
 
 enum E2.named(final int x) {
   e(1);
-  // [error column 3, length 1]
+
+  // [error line 36, column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ENUM_CONSTRUCTOR
   // [cfe] Couldn't find constructor 'E2'.
 

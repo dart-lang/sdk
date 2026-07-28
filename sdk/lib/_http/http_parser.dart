@@ -237,14 +237,13 @@ class _HttpDetachedIncoming extends Stream<Uint8List> {
         onData,
       )..resume();
     } else {
-      return Stream<Uint8List>.fromIterable([
-        _bufferedData ?? Uint8List(0),
-      ]).listen(
-        onData,
-        onError: onError,
-        onDone: onDone,
-        cancelOnError: cancelOnError,
-      );
+      return Stream<Uint8List>.fromIterable([_bufferedData ?? Uint8List(0)])
+          .listen(
+            onData,
+            onError: onError,
+            onDone: onDone,
+            cancelOnError: cancelOnError,
+          );
     }
   }
 }

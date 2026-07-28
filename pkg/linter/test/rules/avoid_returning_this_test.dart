@@ -95,7 +95,7 @@ class A {
   }
 
   test_methodReturnsThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A m() {
     return [!this!];
@@ -129,7 +129,7 @@ class E implements C<E> {
   }
 
   test_methodReturnsThis_containsFunctionExpressionWithBlockBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int x = 1;
   A m() {
@@ -144,7 +144,7 @@ class A {
   }
 
   test_methodReturnsThis_containsFunctionExpressionWithExpressionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int x = 1;
   A m() {
@@ -157,7 +157,7 @@ class A {
   }
 
   test_methodReturnsThis_inEnum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum A {
   a, b, c;
   A [!m!]() => this;
@@ -190,7 +190,7 @@ class B extends A {
   }
 
   test_methodReturnsThis_subclass_notDefinedInInterface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {}
 class B extends A{
   B m() {

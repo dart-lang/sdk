@@ -460,11 +460,8 @@ class VMService extends MessageRouter {
         _exit();
         return;
       }
-      if (message case [
-        int opcode,
-        List<int> messageBytes,
-        SendPort replyPort,
-      ] when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+      if (message case [int opcode, List<int> messageBytes, SendPort replyPort]
+          when opcode == Constants.METHOD_CALL_FROM_NATIVE) {
         _handleNativeRpcCall(messageBytes, replyPort);
         return;
       }

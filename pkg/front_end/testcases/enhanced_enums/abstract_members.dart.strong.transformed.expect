@@ -2,19 +2,19 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:8:8: Error: Enums can't declare abstract members.
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:11:8: Error: Enums can't declare abstract members.
 //   void foo(); // Error.
 //        ^^^
 //
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:14:11: Error: Enums can't declare abstract members.
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:17:11: Error: Enums can't declare abstract members.
 //   int get foo; // Error.
 //           ^^^
 //
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:20:12: Error: Enums can't declare abstract members.
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:23:12: Error: Enums can't declare abstract members.
 //   void set foo(int val); // Error.
 //            ^^^
 //
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:27:6: Error: The non-abstract class 'E4' is missing implementations for these members:
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:30:6: Error: The non-abstract class 'E4' is missing implementations for these members:
 //  - InterfaceMethod.foo
 // Try to either
 //  - provide an implementation,
@@ -23,11 +23,11 @@ library;
 //  - provide a 'noSuchMethod' implementation.
 // enum E4 implements InterfaceMethod { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:24:8: Context: 'InterfaceMethod.foo' is defined here.
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:27:8: Context: 'InterfaceMethod.foo' is defined here.
 //   void foo();
 //        ^^^
 //
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:35:6: Error: The non-abstract class 'E5' is missing implementations for these members:
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:38:6: Error: The non-abstract class 'E5' is missing implementations for these members:
 //  - InterfaceGetter.foo
 // Try to either
 //  - provide an implementation,
@@ -36,11 +36,11 @@ library;
 //  - provide a 'noSuchMethod' implementation.
 // enum E5 implements InterfaceGetter { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:32:11: Context: 'InterfaceGetter.foo' is defined here.
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:35:11: Context: 'InterfaceGetter.foo' is defined here.
 //   int get foo;
 //           ^^^
 //
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:43:6: Error: The non-abstract class 'E6' is missing implementations for these members:
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:46:6: Error: The non-abstract class 'E6' is missing implementations for these members:
 //  - InterfaceSetter.foo=
 // Try to either
 //  - provide an implementation,
@@ -49,7 +49,7 @@ library;
 //  - provide a 'noSuchMethod' implementation.
 // enum E6 implements InterfaceSetter { // Error.
 //      ^^
-// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:40:12: Context: 'InterfaceSetter.foo=' is defined here.
+// pkg/front_end/testcases/enhanced_enums/abstract_members.dart:43:12: Context: 'InterfaceSetter.foo=' is defined here.
 //   void set foo(int val);
 //            ^^^
 //
@@ -174,13 +174,13 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///abstract_members.dart:
-- E1. (from org-dartlang-testcase:///abstract_members.dart:5:6)
+- E1. (from org-dartlang-testcase:///abstract_members.dart:8:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E2. (from org-dartlang-testcase:///abstract_members.dart:11:6)
-- E3. (from org-dartlang-testcase:///abstract_members.dart:17:6)
-- E4. (from org-dartlang-testcase:///abstract_members.dart:27:6)
-- E5. (from org-dartlang-testcase:///abstract_members.dart:35:6)
-- E6. (from org-dartlang-testcase:///abstract_members.dart:43:6)
-- E7. (from org-dartlang-testcase:///abstract_members.dart:51:6)
-- _E7&_Enum&MethodImplementation. (from org-dartlang-testcase:///abstract_members.dart:51:6)
+- E2. (from org-dartlang-testcase:///abstract_members.dart:14:6)
+- E3. (from org-dartlang-testcase:///abstract_members.dart:20:6)
+- E4. (from org-dartlang-testcase:///abstract_members.dart:30:6)
+- E5. (from org-dartlang-testcase:///abstract_members.dart:38:6)
+- E6. (from org-dartlang-testcase:///abstract_members.dart:46:6)
+- E7. (from org-dartlang-testcase:///abstract_members.dart:54:6)
+- _E7&_Enum&MethodImplementation. (from org-dartlang-testcase:///abstract_members.dart:54:6)

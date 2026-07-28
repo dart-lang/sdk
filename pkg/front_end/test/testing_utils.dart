@@ -82,9 +82,8 @@ Future<List<Uri>> computeSourceFiles(Uri repoDir) async {
   List<Uri> inputs = [];
   for (Uri uri in libUris) {
     Set<Uri> gitFiles = await getGitFiles(uri);
-    List<FileSystemEntity> entities = new Directory.fromUri(
-      uri,
-    ).listSync(recursive: true);
+    List<FileSystemEntity> entities = new Directory.fromUri(uri)
+        .listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
       if (entity is File &&
           entity.path.endsWith(".dart") &&

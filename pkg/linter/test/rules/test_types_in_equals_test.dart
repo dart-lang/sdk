@@ -18,7 +18,7 @@ class TestTypesInEqualsTest extends LintRuleTest {
   String get lintRule => LintNames.test_types_in_equals;
 
   test_doesNotUseIs() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int? x;
 

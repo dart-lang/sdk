@@ -86,6 +86,7 @@ enum PredefinedClusters {
   exceptionHandlers,
   pcDescriptors,
   catchEntryMoves,
+  compressedStackMaps,
   codeSourceMap,
   instances, // Separate cluster for every class.
 }
@@ -387,6 +388,9 @@ class SnapshotSerializer {
     CatchEntryMoves() => getPredefinedCluster(
       PredefinedClusters.catchEntryMoves,
     ),
+    CompressedStackMaps() => getPredefinedCluster(
+      PredefinedClusters.compressedStackMaps,
+    ),
     CodeSourceMap() => getPredefinedCluster(PredefinedClusters.codeSourceMap),
     _ => throw 'Unxpected ${obj.runtimeType} $obj',
   };
@@ -431,6 +435,7 @@ class SnapshotSerializer {
         .exceptionHandlers => ExceptionHandlersSerializationCluster(),
         .pcDescriptors => PcDescriptorsSerializationCluster(),
         .catchEntryMoves => CatchEntryMovesSerializationCluster(),
+        .compressedStackMaps => CompressedStackMapsSerializationCluster(),
         .codeSourceMap => CodeSourceMapSerializationCluster(),
         .instances => throw 'Each class has a separate instance cluster',
       };
@@ -1528,6 +1533,7 @@ final class CodeSerializationCluster extends SerializationCluster {
     serializer.push(code.exceptionHandlers);
     serializer.push(code.pcDescriptors);
     serializer.push(code.catchEntryMoves);
+    serializer.push(code.compressedStackMaps);
     serializer.push(code.codeSourceMap);
   }
 
@@ -1552,6 +1558,7 @@ final class CodeSerializationCluster extends SerializationCluster {
       serializer.writeRefId(code.exceptionHandlers);
       serializer.writeRefId(code.pcDescriptors);
       serializer.writeRefId(code.catchEntryMoves);
+      serializer.writeRefId(code.compressedStackMaps);
       serializer.writeRefId(code.codeSourceMap);
       serializer.writeUint(code.instructions.lengthInBytes);
     }
@@ -1866,6 +1873,64 @@ final class CatchEntryMovesSerializationCluster extends SerializationCluster {
     for (final catchEntryMoves in _objects) {
       serializer.assignRef(catchEntryMoves);
       final encoded = _encode(serializer, catchEntryMoves);
+      _encoded.add(encoded);
+      serializer.writeUint(encoded.position);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final encoded in _encoded) {
+      serializer.writeUint(encoded.position);
+      for (final buf in encoded.getContents()) {
+        serializer.out.writeUint8List(buf);
+      }
+    }
+  }
+}
+
+final class CompressedStackMapsSerializationCluster
+    extends SerializationCluster {
+  final List<CompressedStackMaps> _objects = [];
+  final List<SnapshotStreamWriter> _encoded = [];
+
+  static const int bitsPerByte = 8;
+
+  SnapshotStreamWriter _encode(
+    SnapshotSerializer serializer,
+    CompressedStackMaps compressedStackMaps,
+  ) {
+    final stream = SnapshotStreamWriter(initialSize: 16);
+    var currentPcOffset = 0;
+    for (final map in compressedStackMaps.stackMaps) {
+      stream.writeSLEB128(map.pcOffset - currentPcOffset);
+      currentPcOffset = map.pcOffset;
+      stream.writeSLEB128(map.prefixBits);
+      stream.writeSLEB128(map.suffixBits);
+      final numBytes =
+          (map.prefixBits + map.suffixBits + bitsPerByte - 1) ~/ bitsPerByte;
+      stream.writeUint8List(map.bits.buffer.asUint8List(0, numBytes));
+    }
+    return stream;
+  }
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final compressedStackMaps = object as CompressedStackMaps;
+    _objects.add(compressedStackMaps);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.compressedStackMaps.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final compressedStackMaps in _objects) {
+      serializer.assignRef(compressedStackMaps);
+      final encoded = _encode(serializer, compressedStackMaps);
       _encoded.add(encoded);
       serializer.writeUint(encoded.position);
     }

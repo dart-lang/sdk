@@ -18,7 +18,7 @@ class NoLiteralBoolComparisonsTest extends LintRuleTest {
   String get lintRule => LintNames.no_literal_bool_comparisons;
 
   test_ampersand_true() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool value) {
   if (value & [!true!]) {}
 }
@@ -26,7 +26,7 @@ void f(bool value) {
   }
 
   test_ampersandAmpersand_true() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool value) {
   if (value && [!true!]) {}
 }
@@ -34,7 +34,7 @@ void f(bool value) {
   }
 
   test_bangeq_true_expression_nonNullableBool() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool x, bool y) {
   print((x && y) != [!true!]);
 }
@@ -42,7 +42,7 @@ void f(bool x, bool y) {
   }
 
   test_bar_true() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool value) {
   if (value | [!true!]) {}
 }
@@ -50,7 +50,7 @@ void f(bool value) {
   }
 
   test_barBar_true() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool value) {
   if (value || [!true!]) {}
 }
@@ -78,7 +78,7 @@ void f(bool value1, bool value2) {
   }
 
   test_eqeq_true_field_nonNullableBool() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   if (c.x == [!true!]) {}
 }
@@ -89,7 +89,7 @@ abstract class C {
   }
 
   test_eqeq_true_invocation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool Function() fn) {
   if (fn() == [!true!]) {}
 }
@@ -97,7 +97,7 @@ void f(bool Function() fn) {
   }
 
   test_eqeq_true_localVariable_nonNullableBool() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool x) {
   if (x == [!true!]) {}
 }
@@ -113,7 +113,7 @@ void f(bool? x) {
   }
 
   test_eqeq_true_propertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on List {
   void m() {
     if (this.isNotEmpty == [!true!]) {}
@@ -123,7 +123,7 @@ extension E on List {
   }
 
   test_true_eqeq_localVariable_nonNullableBool() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool x) {
   while ([!true!] == x) {}
 }

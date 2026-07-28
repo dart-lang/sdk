@@ -48,9 +48,7 @@ void main() {
     ..memberSet = {.member(), .memberType<String, int>('s')}
     ..memberMap = {
       .member(): .member(),
-      .memberType<String, int>(
-        's',
-      ): .memberType<String, int>('s'),
+      .memberType<String, int>('s'): .memberType<String, int>('s'),
     }
     ..memberMap2 = {
       .member(): (.member(), .member()),
@@ -63,9 +61,7 @@ void main() {
     ..memberExtSet = {.member(), .memberType<String, int>('s')}
     ..memberExtMap = {
       .member(): .member(),
-      .memberType<String, int>(
-        's',
-      ): .memberType<String, int>('s'),
+      .memberType<String, int>('s'): .memberType<String, int>('s'),
     }
     ..memberExtMap2 = {
       .member(): (.member(), .member()),
@@ -82,9 +78,7 @@ void main() {
     ..memberExt(.memberType<String, int>('s'));
 
   StaticMember member = .member()..toString();
-  StaticMember memberType = .memberType<String, int>('s')
-    ..toString();
+  StaticMember memberType = .memberType<String, int>('s')..toString();
   StaticMemberExt memberExt = .member()..toString();
-  StaticMemberExt memberTypeExt = .memberType<String, int>('s')
-    ..toString();
+  StaticMemberExt memberTypeExt = .memberType<String, int>('s')..toString();
 }

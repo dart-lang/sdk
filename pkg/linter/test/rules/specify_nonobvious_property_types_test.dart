@@ -96,7 +96,7 @@ class A {
   }
 
   test_genericInvocation_paramIsType_instance() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   [!final h = bar('')!];
 }
@@ -133,7 +133,7 @@ T bar<T>(T d) => d;
   }
 
   test_genericInvocation_paramIsType_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   static [!final h = bar('')!];
 }
@@ -143,7 +143,7 @@ T bar<T>(T d) => d;
   }
 
   test_genericInvocation_paramIsType_topLevel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final h = bar('')!];
 
 T bar<T>(T d) => d;
@@ -151,7 +151,7 @@ T bar<T>(T d) => d;
   }
 
   test_genericInvocation_typeNeededForInference_instance() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   static [!var h = bar('')!];
 }
@@ -188,7 +188,7 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeNeededForInference_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   static [!var h = bar('')!];
 }
@@ -198,14 +198,14 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeNeededForInference_topLevel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!var h = bar('')!];
 T bar<T>(dynamic d) => d;
 ''');
   }
 
   test_genericInvocation_typeParamProvided_instance() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   [!var h = bar<String>('')!];
 }
@@ -242,7 +242,7 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeParamProvided_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   static [!var h = bar<String>('')!];
 }
@@ -252,14 +252,14 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeParamProvided_topLevel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!var h = bar<String>('')!];
 T bar<T>(dynamic d) => d;
 ''');
   }
 
   test_instanceCreation_generic_instance() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   [!var c = C(1)!];
 }
@@ -327,7 +327,7 @@ class A<X> {}
   }
 
   test_instanceCreation_generic_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   static [!var c = C(1)!];
 }
@@ -339,7 +339,7 @@ class C<X> {
   }
 
   test_instanceCreation_generic_topLevel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!var a = A(1)!];
 
 class A<X> {
@@ -537,7 +537,7 @@ Symbol s = #print;
   }
 
   test_multiple_instance() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   var /*[0*/a = 'a' + 'a'/*0]*/, /*[1*/b = 'b' * 2/*1]*/;
 }
@@ -567,7 +567,7 @@ String a = 'a' + 'a', b = 'b'.toString();
   }
 
   test_multiple_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   static var /*[0*/a = 'a' + 'a'/*0]*/, /*[1*/b = 'b' * 2/*1]*/;
 }
@@ -575,7 +575,7 @@ class A {
   }
 
   test_multiple_topLevel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var /*[0*/a = 'a' + 'a'/*0]*/, /*[1*/b = 'b' * 2/*1]*/;
 ''');
   }

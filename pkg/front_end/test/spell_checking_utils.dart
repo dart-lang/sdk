@@ -232,9 +232,9 @@ List<String> splitStringIntoWords(
     regExp = "(?:&[a-zA-Z0-9]+;|[$regExpStringInner]|\\\\n)+";
   }
 
-  Iterator<RegExpMatch> matchesIterator = new RegExp(
-    regExp,
-  ).allMatches(s).iterator;
+  Iterator<RegExpMatch> matchesIterator = new RegExp(regExp)
+      .allMatches(s)
+      .iterator;
   int latestMatch = 0;
   List<String> split = <String>[];
   List<int> splitOffset = <int>[];
@@ -384,6 +384,7 @@ void spellSummarizeAndInteractiveMode(
   Set<String> reportedWordsDenylisted,
   List<Dictionaries> dictionaries,
   bool interactive,
+  bool justAddEverything,
   String interactiveLaunchExample,
 ) {
   if (reportedWordsDenylisted.isNotEmpty) {
@@ -426,44 +427,47 @@ void spellSummarizeAndInteractiveMode(
       }
     }
 
-    if (interactive && dictionaryToUse != null) {
+    if ((justAddEverything || interactive) && dictionaryToUse != null) {
       List<String> addedWords = <String>[];
       for (MapEntry<String, List<String>?> wordAndAlternative
           in reportedWordsAndAlternatives.entries) {
         String s = wordAndAlternative.key;
-        List<String>? alternative = wordAndAlternative.value;
-        if (alternative != null) {
-          print(" - $s (notice close word(s)): ${alternative.join(", ")})");
-        } else {
-          print(" - $s");
-        }
-        String answer;
         bool? add;
-        while (true) {
-          stdout.write(
-            "Do you want to add the word to the dictionary "
-            "$dictionaryToUse (y/n)? ",
-          );
-          answer = stdin.readLineSync()!.trim().toLowerCase();
-          switch (answer) {
-            case "y":
-            case "yes":
-            case "true":
-              add = true;
-              break;
-            case "n":
-            case "no":
-            case "false":
-              add = false;
-              break;
-            default:
-              add = null;
-              print("'$answer' is not a valid answer. Please try again.");
-              break;
+
+        if (interactive) {
+          List<String>? alternative = wordAndAlternative.value;
+          if (alternative != null) {
+            print(" - $s (notice close word(s)): ${alternative.join(", ")})");
+          } else {
+            print(" - $s");
           }
-          if (add != null) break;
+          String answer;
+          while (true) {
+            stdout.write(
+              "Do you want to add the word to the dictionary "
+              "$dictionaryToUse (y/n)? ",
+            );
+            answer = stdin.readLineSync()!.trim().toLowerCase();
+            switch (answer) {
+              case "y":
+              case "yes":
+              case "true":
+                add = true;
+                break;
+              case "n":
+              case "no":
+              case "false":
+                add = false;
+                break;
+              default:
+                add = null;
+                print("'$answer' is not a valid answer. Please try again.");
+                break;
+            }
+            if (add != null) break;
+          }
         }
-        if (add) {
+        if (add ?? justAddEverything) {
           addedWords.add(s);
         }
       }

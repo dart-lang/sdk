@@ -230,9 +230,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
           preferRaw: simpleString?.isRaw ?? false,
         ),
       );
-    } else if (parameter.type case InterfaceType(
-      :EnumElement element,
-    ) when value is String) {
+    } else if (parameter.type case InterfaceType(:EnumElement element)
+        when value is String) {
       var enumConstant = getEnumConstantMatching(element, matching: value);
       if (enumConstant != null) {
         return success(

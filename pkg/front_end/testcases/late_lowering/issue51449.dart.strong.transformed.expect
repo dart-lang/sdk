@@ -31,5 +31,5 @@ static method main() → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: RecordLiteral @ org-dartlang-testcase:///issue51449.dart:11:12 -> RecordConstant(const (2, "Hello"))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///issue51449.dart:12:12 -> RecordConstant(const (2, "Hello"))
 Extra constant evaluation: evaluated: 37, effectively constant: 1

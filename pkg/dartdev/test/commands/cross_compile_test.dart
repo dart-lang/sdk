@@ -6,7 +6,10 @@ import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
 import 'package:dartdev/src/commands/compile.dart'
-    show CompileNativeCommand, crossCompileErrorExitCode;
+    show
+        CompileNativeCommand,
+        crossCompileErrorExitCode,
+        CompileSubcommandCommand;
 import 'package:hooks_runner/hooks_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -41,7 +44,7 @@ void defineCrossCompileTests() {
     CompileNativeCommand.aotSnapshotCmdName,
     CompileNativeCommand.exeCmdName,
   ];
-  final crossCompileTargets = CompileNativeCommand.supportedTargetPlatforms;
+  final crossCompileTargets = CompileSubcommandCommand.supportedTargetPlatforms;
   String mainMessage(Target target) => 'I love ${target.os}';
 
   Future<(ProcessResult, String)> crossCompile(
@@ -159,4 +162,98 @@ void defineCrossCompileTests() {
       crossCompileFailureTest(subcommand, target),
     );
   }
+
+  Future<(ProcessResult, String)> crossBuild(
+    Target target,
+  ) async {
+    final p = project(
+      mainSrc: 'void main() {print("${mainMessage(target)}");}',
+    );
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outDir = path.canonicalize(path.join(p.dirPath, 'mybuild'));
+    final result = await p.run([
+      'build',
+      'cli',
+      '-v',
+      '--target-os',
+      target.os.name,
+      '--target-arch',
+      target.architecture.name,
+      '--target',
+      inFile,
+      '-o',
+      outDir,
+    ]);
+
+    print('Build terminated with exit code ${result.exitCode}.');
+    if (result.stdout.isNotEmpty) {
+      print('Build stdout:');
+      print(result.stdout);
+    }
+    if (result.stderr.isNotEmpty) {
+      print('Build stderr:');
+      print(result.stderr);
+    }
+
+    return (result, outDir);
+  }
+
+  TestFunction crossBuildTest(Target target) => () async {
+    expect(target, isIn(crossCompileTargets));
+    var (result, outDir) = await crossBuild(target);
+
+    expect(result.stdout, contains(usingTargetOSMessage(target.os)));
+    expect(result.stderr, isNot(contains(unsupportedTargetMessage(target))));
+    expect(result.exitCode, 0);
+
+    final exeName = target.os.executableFileName('main');
+    final exeFile = File(path.join(outDir, 'bundle', 'bin', exeName));
+    expect(
+      exeFile.existsSync(),
+      true,
+      reason: 'Executable not found: ${exeFile.path}',
+    );
+
+    if (target != Target.current) return;
+
+    final runResult = Process.runSync(exeFile.path, const []);
+    expect(runResult.stdout, contains(mainMessage(target)));
+    expect(runResult.stderr, isEmpty);
+    expect(runResult.exitCode, 0);
+  };
+
+  TestFunction crossBuildFailureTest(Target target) => () async {
+    expect(target, isNot(Target.current));
+    expect(target, isNot(isIn(crossCompileTargets)));
+    final (result, outDir) = await crossBuild(target);
+
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
+    expect(result.stdout, isNot(contains(usingTargetOSMessage(target.os))));
+    expect(result.stderr, contains(unsupportedTargetMessage(target)));
+    expect(result.exitCode, crossCompileErrorExitCode);
+  };
+
+  for (final target in crossCompileTargets) {
+    test(
+      'Build cli can cross compile to $target',
+      crossBuildTest(target),
+    );
+  }
+  final invalidOsTarget = Target.fromArchitectureAndOS(
+    Architecture.arm64,
+    Platform.isWindows ? OS.macOS : OS.windows,
+  );
+  test(
+    'Build cli fails on invalid target OS',
+    crossBuildFailureTest(invalidOsTarget),
+  );
+
+  final invalidArchTarget = Target.fromArchitectureAndOS(
+    Architecture.riscv32,
+    OS.linux,
+  );
+  test(
+    'Build cli fails on invalid target architecture',
+    crossBuildFailureTest(invalidArchTarget),
+  );
 }

@@ -11,5 +11,7 @@ class C {
 }
 
 class D extends C {
-  set x(num value) { super.x = value.toInt(); }
+  set x(num value) {
+    super.x = value.toInt();
+  }
 }

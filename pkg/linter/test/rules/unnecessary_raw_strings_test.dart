@@ -18,7 +18,7 @@ class UnnecessaryRawStringsTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_raw_strings;
 
   test_doubleQuotes_raw() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var s = [!r"a b c d"!];
 ''');
   }
@@ -42,7 +42,7 @@ var s = 'a b c d';
   }
 
   test_singleQuote_raw() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var s = [!r'a b c d'!];
 ''');
   }
@@ -60,7 +60,7 @@ var s = r'a b c$d';
   }
 
   test_tripleDoubleQuotes_raw() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var s = [!r"""a b c d"""!];
 ''');
   }
@@ -78,7 +78,7 @@ var s = r"""a b c$d""";
   }
 
   test_tripleSingleQuote_raw() async {
-    await assertDiagnosticsFromMarkdown(r"""
+    await assertDiagnosticsFromMarkup(r"""
 var s = [!r'''a b c d'''!];
 """);
   }

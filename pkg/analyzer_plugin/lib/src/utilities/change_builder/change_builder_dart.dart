@@ -1657,6 +1657,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           seenTypes: seenTypes,
         );
       }
+      if (type.positionalFields.length == 1 && type.namedFields.isEmpty) {
+        write(',');
+      }
       var namedFields = type.namedFields;
       if (namedFields.isNotEmpty) {
         if (isFirst) {
@@ -2222,8 +2225,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   void insertConstructor(
     CompilationUnitMember container,
-    void Function(DartEditBuilder builder) buildEdit,
-  ) {
+    void Function(DartEditBuilder builder) buildEdit, {
+    bool isNamed = false,
+  }) {
     if (container is! ClassDeclaration &&
         container is! EnumDeclaration &&
         container is! ExtensionTypeDeclaration) {
@@ -2236,14 +2240,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             'declarations.',
       );
     }
-    final sortConstructorsFirst = resolvedUnit.session.analysisContext
+    final codeStyleOptions = resolvedUnit.session.analysisContext
         .getAnalysisOptionsForFile(resolvedUnit.file)
-        .codeStyleOptions
-        .sortConstructorsFirst;
-    var lastMemberFilter = sortConstructorsFirst
-        ? (member) => member is ConstructorDeclaration
-        : (member) =>
-              member is ConstructorDeclaration || member is FieldDeclaration;
+        .codeStyleOptions;
+    bool Function(ClassMember) lastMemberFilter;
+    if (codeStyleOptions.sortConstructorsFirst) {
+      lastMemberFilter = (member) => member is ConstructorDeclaration;
+    } else if (!isNamed && codeStyleOptions.sortUnnamedConstructorsFirst) {
+      lastMemberFilter = (member) =>
+          (member is ConstructorDeclaration && member.name == null) ||
+          member is FieldDeclaration;
+    } else {
+      lastMemberFilter = (member) =>
+          member is ConstructorDeclaration || member is FieldDeclaration;
+    }
     insertIntoUnitMember(
       container,
       buildEdit,
@@ -2300,12 +2310,38 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         builder.writeln(' {');
         if (indent) {
           builder.write('  ');
+          if (compilationUnitMember case EnumDeclaration(
+            body: EmptyEnumBody(),
+          )) {
+            builder.writeln(';');
+            builder.writeln();
+            builder.write('  ');
+          }
         }
         buildEdit(builder);
         builder.writeln();
         builder.write('}');
       });
       return;
+    }
+
+    var enumSingleLine = false;
+    Token? enumRightBracket;
+    if (compilationUnitMember case EnumDeclaration(:BlockEnumBody body)
+        when resolvedUnit.lineInfo.onSameLine(
+          body.leftBracket.offset,
+          body.rightBracket.offset,
+        )) {
+      enumRightBracket = body.rightBracket;
+      enumSingleLine = true;
+      var token =
+          body.constants.firstOrNull ??
+          body.leftBracket.next?.precedingCommentOrThis ??
+          body.rightBracket.precedingCommentOrThis;
+      addReplacement(range.endStart(body.leftBracket, token), (builder) {
+        builder.writeln();
+        builder.writeIndent();
+      });
     }
 
     var preparer = _InsertionPreparer(
@@ -2317,11 +2353,28 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    addInsertion(offset, insertBeforeExisting: false, (builder) {
+    void write(DartEditBuilder builder) {
       preparer.writePrefix(builder, indent: indent);
       buildEdit(builder);
       preparer.writeSuffix(builder);
-    });
+    }
+
+    if (enumRightBracket != null && enumSingleLine) {
+      addReplacement(
+        range.endStart(
+          enumRightBracket.precedingComments ?? enumRightBracket.previous!,
+          enumRightBracket,
+        ),
+        write,
+      );
+    } else {
+      var trailingComma = preparer._trailingComma;
+      if (trailingComma != null) {
+        addReplacement(range.token(trailingComma), write);
+      } else {
+        addInsertion(offset, insertBeforeExisting: false, write);
+      }
+    }
   }
 
   @override
@@ -3176,6 +3229,8 @@ class _InsertionPreparer {
 
   late final bool _foundTargetMember;
 
+  Token? _trailingComma;
+
   factory _InsertionPreparer(
     CompilationUnitMember declaration,
     LineInfo lineInfo,
@@ -3222,11 +3277,16 @@ class _InsertionPreparer {
       Token? semicolon;
       var hasConstants = false;
       EnumConstantDeclaration? lastConstant;
+      Token? token;
       var body = declaration.body;
       if (body is BlockEnumBody) {
         semicolon = body.semicolon;
         hasConstants = body.constants.isNotEmpty;
         lastConstant = body.constants.lastOrNull;
+        token =
+            lastConstant?.endToken.next?.precedingCommentOrThis ??
+            body.members.firstOrNull?.precedingCommentOrbeginToken ??
+            body.rightBracket.precedingCommentOrThis;
       } else if (body is EmptyEnumBody) {
         semicolon = body.semicolon;
       }
@@ -3234,7 +3294,13 @@ class _InsertionPreparer {
       if (semicolon != null) {
         return semicolon.end;
       } else if (hasConstants) {
-        return lastConstant!.end;
+        var next = lastConstant!.endToken.next;
+        if (next != null && next.type == TokenType.COMMA) {
+          _trailingComma = next;
+        }
+        return lastConstant.end;
+      } else if (token != null) {
+        return token.offset;
       }
     }
 
@@ -3272,6 +3338,9 @@ class _InsertionPreparer {
     }
     if (declaration is EnumDeclaration && !hasSemicolon) {
       builder.write(';');
+      if (declaration.body.constants.isEmpty) {
+        builder.writeln();
+      }
     }
 
     var hasConstants = false;
@@ -3306,7 +3375,13 @@ class _InsertionPreparer {
     if (declaration is EnumDeclaration) {
       hasConstants = declaration.body.constants.isNotEmpty;
     }
-    if (declaration is EnumDeclaration && hasConstants) {
+    var declarationIsSingleLine = _lineInfo.onSameLine(
+      _declaration.firstTokenAfterCommentAndMetadata.offset,
+      _declaration.end,
+    );
+    if (declaration is EnumDeclaration &&
+        hasConstants &&
+        !declarationIsSingleLine) {
       return;
     }
 
@@ -3315,10 +3390,6 @@ class _InsertionPreparer {
       return;
     }
 
-    var declarationIsSingleLine = _lineInfo.onSameLine(
-      _declaration.firstTokenAfterCommentAndMetadata.offset,
-      _declaration.end,
-    );
     if (declarationIsSingleLine) {
       builder.writeln();
     }
@@ -3427,6 +3498,14 @@ class _LibraryImport implements Comparable<_LibraryImport> {
     }
     hiddenNames.removeWhere((nameList) => nameList.isEmpty);
   }
+}
+
+extension on AstNode {
+  Token get precedingCommentOrbeginToken => beginToken.precedingCommentOrThis;
+}
+
+extension on Token {
+  Token get precedingCommentOrThis => precedingComments ?? this;
 }
 
 extension on Set<DartType> {

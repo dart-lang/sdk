@@ -5,6 +5,7 @@
 library utf8_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:convert';
 
 String decode(List<int> bytes, int chunkSize) {

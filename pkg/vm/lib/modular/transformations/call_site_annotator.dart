@@ -106,9 +106,9 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
     }
   }
 
-  /// Return [true] if the given list of [Variable] contains
+  /// Return [true] if the given list of [FunctionParameter] contains
   /// any annotated with generic-covariant-impl.
-  static bool containsGenericCovariantImpl(List<Variable> decls) =>
+  static bool containsGenericCovariantImpl(List<FunctionParameter> decls) =>
       decls.any((p) => p.isCovariantByClass);
 
   /// Returns [true] if the given [member] has any parameters annotated with

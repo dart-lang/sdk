@@ -185,7 +185,7 @@ ObjectPattern
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
-      element: GetterMember
+      element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::A::@getter::foo
         substitution: {T: int}
   rightParenthesis: )
@@ -220,7 +220,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
@@ -259,7 +259,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
@@ -422,7 +422,7 @@ ObjectPattern
       name: PatternFieldName
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -668,7 +668,7 @@ ObjectPattern
   fields
     PatternField
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -705,7 +705,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -781,7 +781,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
@@ -858,7 +858,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -896,7 +896,7 @@ ObjectPattern
         name: foo
         colon: :
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: dynamic
@@ -1241,13 +1241,13 @@ PatternVariableDeclaration
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: A<int>
@@ -1297,20 +1297,34 @@ PatternVariableDeclaration
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
-  expression: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A<int>
+  expression(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
         name: A
         element: <testLibrary>::@class::A
         type: A<int>
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
     argumentList: ArgumentList
@@ -1359,20 +1373,34 @@ PatternVariableDeclaration
             element: isPublic
               type: int
           matchedValueType: dynamic
-        element: GetterMember
+        element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: dynamic}
     rightParenthesis: )
     matchedValueType: A<dynamic>
   equals: =
-  expression: InstanceCreationExpression
+  expression2: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<dynamic>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: dynamic}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A<dynamic>
+  expression(v1): InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
         name: A
         element: <testLibrary>::@class::A
         type: A<dynamic>
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: dynamic}
     argumentList: ArgumentList

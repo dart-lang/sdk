@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
@@ -136,6 +137,74 @@ class const C^() {}
     await assertHasAssist('''
 class C {
   const new();
+}
+''');
+  }
+
+  Future<void> test_lint_noLint_defaultBehavior() async {
+    await resolveTestCode('''
+class C^(int x) {
+  new named() : this(0);
+}
+''');
+    await assertHasAssist('''
+class C {
+  new(int x);
+
+  new named() : this(0);
+}
+''');
+  }
+
+  Future<void> test_lint_sortConstructorsFirst_unnamedPrimary() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await resolveTestCode('''
+class C^(int x) {
+  new named() : this(0);
+}
+''');
+    await assertHasAssist('''
+class C {
+  new named() : this(0);
+
+  new(int x);
+}
+''');
+  }
+
+  Future<void>
+  test_lint_sortConstructorsFirst_unnamedPrimary_noConflict() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await resolveTestCode('''
+class C^(var int x) {
+  void m() {}
+}
+''');
+    await assertHasAssist('''
+class C {
+  new(this.x);
+  int x;
+
+
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_lint_sortUnnamedConstructorsFirst_namedPrimary() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.sort_unnamed_constructors_first],
+    );
+    await resolveTestCode('''
+class C.n^amed(int x) {
+  new() : this.named(0);
+}
+''');
+    await assertHasAssist('''
+class C {
+  new() : this.named(0);
+
+  new named(int x);
 }
 ''');
   }

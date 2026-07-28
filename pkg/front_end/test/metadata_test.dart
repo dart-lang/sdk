@@ -169,12 +169,10 @@ void main() async {
       node.kind == ProcedureKind.Method &&
       node.enclosingClass != null;
 
-  final Uri platform = computePlatformBinariesLocation(
-    forceBuildDir: true,
-  ).resolve("vm_platform.dill");
-  final Uint8List platformBinary = await new File(
-    platform.toFilePath(),
-  ).readAsBytes();
+  final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
+      .resolve("vm_platform.dill");
+  final Uint8List platformBinary = await new File(platform.toFilePath())
+      .readAsBytes();
 
   Future<void> testRoundTrip(
     Uint8List Function(Uint8List) binaryTransformer,

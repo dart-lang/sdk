@@ -226,6 +226,10 @@ enum Opcode {
   // Coverage
   kRecordCoverage,
   kRecordCoverage_Wide,
+
+  // More FFI
+  kResolveNativeFunction,
+  kResolveNativeFunction_Wide,
 }
 
 /// Compact variants of opcodes are always even.
@@ -784,6 +788,11 @@ const Map<Opcode, Format> BytecodeFormats = const {
   ]),
   Opcode.kDup: const Format(Encoding.k0, const [
     Operand.none,
+    Operand.none,
+    Operand.none,
+  ]),
+  Opcode.kResolveNativeFunction: const Format(Encoding.kD, const [
+    Operand.lit,
     Operand.none,
     Operand.none,
   ]),

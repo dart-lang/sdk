@@ -80,7 +80,7 @@ extension GenericExtension<T> on GenericClass<T> {
   }
 
   writeSetterOptional([T? value]) {
-   property = value;
+    property = value;
   }
 
   writeSetterNamed({T? value}) {
@@ -88,7 +88,7 @@ extension GenericExtension<T> on GenericClass<T> {
   }
 
   genericWriteSetterRequired<S extends T>(S value) {
-   property = value;
+    property = value;
   }
 
   genericWriteSetterOptional<S extends T>([S? value]) {
@@ -96,7 +96,7 @@ extension GenericExtension<T> on GenericClass<T> {
   }
 
   genericWriteSetterNamed<S extends T>({S? value}) {
-   property = value;
+    property = value;
   }
 
   T? get property => this.field;

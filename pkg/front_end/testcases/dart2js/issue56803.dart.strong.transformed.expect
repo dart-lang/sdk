@@ -38,8 +38,8 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated with empty environment: Not @ org-dartlang-testcase:///issue56803.dart:8:22 -> BoolConstant(false)
-Evaluated with empty environment: EqualsNull @ org-dartlang-testcase:///issue56803.dart:8:22 -> BoolConstant(true)
-Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///issue56803.dart:8:16 -> NullConstant(null)
+Evaluated with empty environment: Not @ org-dartlang-testcase:///issue56803.dart:8:30 -> BoolConstant(false)
+Evaluated with empty environment: EqualsNull @ org-dartlang-testcase:///issue56803.dart:8:30 -> BoolConstant(true)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///issue56803.dart:8:24 -> NullConstant(null)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///issue56803.dart:5:57 -> NullConstant(null)
 Extra constant evaluation: evaluated: 13, effectively constant: 4

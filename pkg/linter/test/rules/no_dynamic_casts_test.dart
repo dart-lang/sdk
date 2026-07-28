@@ -18,7 +18,7 @@ class NoDynamicCastsTest extends LintRuleTest {
   String get lintRule => LintNames.no_dynamic_casts;
 
   test_argument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x) {}
 void g(dynamic a) {
   f([!a!]);
@@ -27,7 +27,7 @@ void g(dynamic a) {
   }
 
   test_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   int x = [!a!];
 }
@@ -44,7 +44,7 @@ void f(dynamic a) {
   }
 
   test_condition_conditionalExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [!a!] ? 1 : 2;
 }
@@ -52,7 +52,7 @@ void f(dynamic a) {
   }
 
   test_condition_doLoop() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   do {} while ([!a!]);
 }
@@ -60,7 +60,7 @@ void f(dynamic a) {
   }
 
   test_condition_forLoop() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   for (; [!a!];) {}
 }
@@ -68,7 +68,7 @@ void f(dynamic a) {
   }
 
   test_condition_ifExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   [if ([!a!]) 7];
 }
@@ -76,7 +76,7 @@ void f(dynamic a) {
   }
 
   test_condition_ifStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   if ([!a!]) {}
 }
@@ -84,7 +84,7 @@ void f(dynamic a) {
   }
 
   test_condition_whileLoop() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   while ([!a!]) {}
 }
@@ -100,13 +100,13 @@ void f(dynamic a) {
   }
 
   test_expressionFunctionBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int f(dynamic a) => [!a!];
 ''');
   }
 
   test_forEach_iterable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   for (var x in [!a!]) {}
 }
@@ -114,7 +114,7 @@ void f(dynamic a) {
   }
 
   test_forEach_variable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<dynamic> list) {
   for (int x in [!list!]) {}
 }
@@ -130,7 +130,7 @@ void f(List<dynamic> list) {
   }
 
   test_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   var list = <int>[[!a!]];
 }
@@ -138,7 +138,7 @@ void f(dynamic a) {
   }
 
   test_logicalBinary_left() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a, bool b) {
   [!a!] && b;
 }
@@ -146,7 +146,7 @@ void f(dynamic a, bool b) {
   }
 
   test_logicalBinary_right() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(bool a, dynamic b) {
   a && [!b!];
 }
@@ -154,7 +154,7 @@ void f(bool a, dynamic b) {
   }
 
   test_mapLiteral_key() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   var map = <int, String>{[!a!]: 'x'};
 }
@@ -162,7 +162,7 @@ void f(dynamic a) {
   }
 
   test_mapLiteral_spread() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   var map = <String, int>{...[!a!]};
 }
@@ -170,7 +170,7 @@ void f(dynamic a) {
   }
 
   test_mapLiteral_value() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   var map = <String, int>{'x': [!a!]};
 }
@@ -178,7 +178,7 @@ void f(dynamic a) {
   }
 
   test_namedArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({required int x}) {}
 void g(dynamic a) {
   f(x: [!a!]);
@@ -187,7 +187,7 @@ void g(dynamic a) {
   }
 
   test_negation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   ![!a!];
 }
@@ -195,7 +195,7 @@ void f(dynamic a) {
   }
 
   test_return() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int f(dynamic a) {
   return [!a!];
 }
@@ -203,7 +203,7 @@ int f(dynamic a) {
   }
 
   test_return_async() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int> f(dynamic a) async {
   return [!a!];
 }
@@ -211,7 +211,7 @@ Future<int> f(dynamic a) async {
   }
 
   test_setLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   var set = <int>{[!a!]};
 }
@@ -219,7 +219,7 @@ void f(dynamic a) {
   }
 
   test_spreadList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   var list = <int>[...[!a!]];
 }
@@ -227,7 +227,7 @@ void f(dynamic a) {
   }
 
   test_yield() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Iterable<int> f(dynamic a) sync* {
   yield [!a!];
 }
@@ -235,7 +235,7 @@ Iterable<int> f(dynamic a) sync* {
   }
 
   test_yieldStar() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Iterable<int> f(dynamic a) sync* {
   yield* [!a!];
 }

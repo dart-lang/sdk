@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:test/test.dart';
+
 import '../test_helpers.dart';
 
 void main() {

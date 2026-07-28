@@ -36,9 +36,8 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     String pattern,
   ) async {
     await waitForTasksFinished();
-    var request = SearchFindTopLevelDeclarationsParams(
-      pattern,
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = SearchFindTopLevelDeclarationsParams(pattern)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     if (response.error != null) {
       return response.error;

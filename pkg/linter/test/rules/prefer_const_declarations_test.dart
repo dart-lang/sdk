@@ -18,7 +18,7 @@ class PreferConstDeclarationsTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_const_declarations;
 
   test_constructorTearoff_inference() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final C<int> Function() c = C.new!];
 }
@@ -27,7 +27,7 @@ class C<T> {}
   }
 
   test_constructorTearoff_instantiatedWithType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final c = C<int>.new!];
 }
@@ -46,7 +46,7 @@ class C<T> {}
   }
 
   test_constructorTearoff_uninstantiated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = C.new!];
 }
@@ -71,7 +71,7 @@ void f() {
   }
 
   test_localVariable_final_constructorInvocation_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = const C()!];
 }
@@ -93,7 +93,7 @@ class C {
   }
 
   test_localVariable_final_doubleLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = 1.3!];
 }
@@ -101,7 +101,7 @@ void f() {
   }
 
   test_localVariable_final_intLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = 1!];
 }
@@ -126,7 +126,7 @@ void f() {
   }
 
   test_localVariable_final_listLiteral_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = const []!];
 }
@@ -134,7 +134,7 @@ void f() {
   }
 
   test_localVariable_final_mapOrSetLiteral_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = const {}!];
 }
@@ -150,7 +150,7 @@ void f() {
   }
 
   test_localVariable_final_nullLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = null!];
 }
@@ -166,7 +166,7 @@ void f() {
   }
 
   test_localVariable_final_staticProperty_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = C.p!];
 }
@@ -178,7 +178,7 @@ class C {
   }
 
   test_localVariable_final_stringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = ''!];
 }
@@ -258,7 +258,7 @@ void f() {
   }
 
   test_recordLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final tuple = const ("first", 2, true)!];
 ''');
   }
@@ -272,7 +272,7 @@ class C {
   }
 
   test_staticField_final_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!final x = const []!];
 }
@@ -280,7 +280,7 @@ class C {
   }
 
   test_staticField_final_listLiteral_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!final x = const []!];
 }
@@ -288,7 +288,7 @@ class C {
   }
 
   test_staticField_final_nullLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!final x = null!];
 }
@@ -296,7 +296,7 @@ class C {
   }
 
   test_staticFunctionTearoff_inference() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final C<int> Function() c = C.m!];
 }
@@ -307,7 +307,7 @@ class C<T> {
   }
 
   test_staticFunctionTearoff_instantiatedWithType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final c = C.m<int>!];
 }
@@ -329,7 +329,7 @@ class C<T> {
   }
 
   test_staticFunctionTearoff_uninstantiated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!final x = C.m!];
 }
@@ -352,7 +352,7 @@ const record = (number: 123, name: "Main", type: "Street");
   }
 
   test_topLevelVariable_final_doubleLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final x = 1.3!];
 ''');
   }
@@ -364,7 +364,7 @@ final x = [];
   }
 
   test_topLevelVariable_final_listLiteral_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final x = const []!];
 ''');
   }
@@ -376,19 +376,19 @@ final o9 = {};
   }
 
   test_topLevelVariable_final_mapOrSetLiteral_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final x = const {}!];
 ''');
   }
 
   test_topLevelVariable_final_nullLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final a = null!];
 ''');
   }
 
   test_topLevelVariable_final_topLevelVariable_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const x = const [];
 [!final y = x!];
 ''');

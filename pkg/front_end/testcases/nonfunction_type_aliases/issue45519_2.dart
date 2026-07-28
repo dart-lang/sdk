@@ -7,11 +7,13 @@ class C<X> {
   C.foo() {}
   factory C.bar() = C;
 }
+
 class D<X> {
   D();
   factory D.foo() => new D();
   factory D.bar() = D;
 }
+
 typedef G<X> = X Function(X);
 typedef A<X extends G<C<X>>> = C<X>;
 typedef B<X extends G<D<X>>> = D<X>;

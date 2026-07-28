@@ -91,6 +91,7 @@ import 'rules/erase_dart_type_extension_types.dart';
 import 'rules/exhaustive_cases.dart';
 import 'rules/file_names.dart';
 import 'rules/flutter_style_todos.dart';
+import 'rules/future_sync_value.dart';
 import 'rules/hash_and_equals.dart';
 import 'rules/implementation_imports.dart';
 import 'rules/implicit_call_tearoffs.dart';
@@ -110,6 +111,7 @@ import 'rules/lines_longer_than_80_chars.dart';
 import 'rules/list_remove_unrelated_type.dart';
 import 'rules/literal_only_boolean_expressions.dart';
 import 'rules/matching_super_parameters.dart';
+import 'rules/migrate_design_widgets.dart';
 import 'rules/missing_code_block_language_in_doc_comment.dart';
 import 'rules/missing_whitespace_between_adjacent_strings.dart';
 import 'rules/no_adjacent_strings_in_list.dart';
@@ -236,6 +238,7 @@ import 'rules/unnecessary_statements.dart';
 import 'rules/unnecessary_string_escapes.dart';
 import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
+import 'rules/unnecessary_this_alias.dart';
 import 'rules/unnecessary_to_list_in_spreads.dart';
 import 'rules/unnecessary_type_name_in_constructor.dart';
 import 'rules/unnecessary_unawaited.dart';
@@ -360,6 +363,7 @@ void registerLintRules() {
     ..registerLintRule(ExhaustiveCases())
     ..registerLintRule(FileNames())
     ..registerLintRule(FlutterStyleTodos())
+    ..registerLintRule(FutureSyncValue())
     ..registerLintRule(HashAndEquals())
     ..registerLintRule(ImplementationImports())
     ..registerLintRule(ImplicitCallTearoffs())
@@ -379,6 +383,7 @@ void registerLintRules() {
     ..registerLintRule(listRemoveUnrelatedType)
     ..registerLintRule(LiteralOnlyBooleanExpressions())
     ..registerLintRule(MatchingSuperParameters())
+    ..registerLintRule(MigrateDesignWidgets())
     ..registerLintRule(MissingCodeBlockLanguageInDocComment())
     ..registerLintRule(MissingWhitespaceBetweenAdjacentStrings())
     ..registerLintRule(NoAdjacentStringsInList())
@@ -504,6 +509,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryStringEscapes())
     ..registerLintRule(UnnecessaryStringInterpolations())
     ..registerLintRule(UnnecessaryThis())
+    ..registerLintRule(UnnecessaryThisAlias())
     ..registerLintRule(UnnecessaryToListInSpreads())
     ..registerLintRule(UnnecessaryTypeNameInConstructor())
     ..registerLintRule(UnnecessaryUnawaited())

@@ -98,9 +98,8 @@ Future testCreate() {
               )
               .then(
                 (_) => FutureExpect.isTrue(
-                  new Directory(
-                    join(base, 'target', 'createdThroughLink'),
-                  ).exists(),
+                  new Directory(join(base, 'target', 'createdThroughLink'))
+                      .exists(),
                 ),
               )
               .then(
@@ -238,31 +237,34 @@ Future testCreateLoopingLink(_) {
         (String base) => new Directory(join(base, 'a', 'b', 'c'))
             .create(recursive: true)
             .then(
-              (_) => new Link(
-                join(base, 'a', 'b', 'c', 'd'),
-              ).create(join(base, 'a', 'b')),
+              (_) =>
+                  new Link(join(base, 'a', 'b', 'c', 'd'))
+                      .create(join(base, 'a', 'b')),
             )
             .then(
-              (_) => new Link(
-                join(base, 'a', 'b', 'c', 'e'),
-              ).create(join(base, 'a')),
+              (_) =>
+                  new Link(join(base, 'a', 'b', 'c', 'e'))
+                      .create(join(base, 'a')),
             )
             .then(
-              (_) => new Directory(
-                join(base, 'a'),
-              ).list(recursive: true, followLinks: false).last,
-            )
-            // This directory listing must terminate, even though it contains loops.
-            .then(
-              (_) => new Directory(
-                join(base, 'a'),
-              ).list(recursive: true, followLinks: true).last,
+              (_) =>
+                  new Directory(join(base, 'a'))
+                      .list(recursive: true, followLinks: false)
+                      .last,
             )
             // This directory listing must terminate, even though it contains loops.
             .then(
-              (_) => new Directory(
-                join(base, 'a', 'b', 'c'),
-              ).list(recursive: true, followLinks: true).last,
+              (_) =>
+                  new Directory(join(base, 'a'))
+                      .list(recursive: true, followLinks: true)
+                      .last,
+            )
+            // This directory listing must terminate, even though it contains loops.
+            .then(
+              (_) =>
+                  new Directory(join(base, 'a', 'b', 'c'))
+                      .list(recursive: true, followLinks: true)
+                      .last,
             )
             .then((_) => new Directory(base).delete(recursive: true))
             .then((_) => FutureExpect.isFalse(new Directory(base).exists())),
@@ -406,9 +408,9 @@ Future testRelativeLinks(_) {
           (_) => new Link(join('dir2', 'link2_1')).create(join(temp, 'dir1')),
         )
         .then(
-          (_) => new Link(
-            join(temp, 'dir1', 'dir2', 'link2_0'),
-          ).create(join('..', '..')),
+          (_) =>
+              new Link(join(temp, 'dir1', 'dir2', 'link2_0'))
+                  .create(join('..', '..')),
         )
         // Test that the links go to the right targets.
         .then((_) => checkExists(join('..', 'link0_1', 'file1')))
@@ -427,13 +429,11 @@ Future testRelativeLinkToDirectoryNotRelativeToCurrentWorkingDirectory(
   _,
 ) async {
   final tempDirectory = await Directory.systemTemp.createTemp('dart_link');
-  final dir2 = await Directory(
-    join(tempDirectory.path, 'dir1', 'dir2'),
-  ).create(recursive: true);
+  final dir2 = await Directory(join(tempDirectory.path, 'dir1', 'dir2'))
+      .create(recursive: true);
 
-  final link = await Link(
-    join(tempDirectory.path, 'link'),
-  ).create(join('dir1', 'dir2'));
+  final link = await Link(join(tempDirectory.path, 'link'))
+      .create(join('dir1', 'dir2'));
 
   String resolvedDir2Path = await link.resolveSymbolicLinks();
   Expect.isTrue(await FileSystemEntity.identical(dir2.path, resolvedDir2Path));

@@ -1,3 +1,11 @@
+## 14.2.0-dev
+
+* Added experimental structural formal parameter list APIs: `FormalParameterList.requiredPositionalFormalParameters`, `FormalParameterList.delimitedFormalParameters`, and the `DelimitedFormalParameters` node.
+
+## 14.1.0
+
+* Internal changes only
+
 ## 14.0.0
 
 * **Breaking Change:** Removed `FormalParameterElement.isInitializingFormal`. Use type checks (`element is FieldFormalParameterElement`) instead.

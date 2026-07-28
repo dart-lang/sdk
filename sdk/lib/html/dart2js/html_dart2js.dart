@@ -5571,9 +5571,8 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
   _CssStyleDeclarationSet(this._elementIterable)
-    : _elementCssStyleDeclarationSetIterable = new List.of(
-        _elementIterable,
-      ).map((e) => e.style);
+    : _elementCssStyleDeclarationSetIterable = new List.of(_elementIterable)
+          .map((e) => e.style);
 
   String getPropertyValue(String propertyName) =>
       _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
@@ -41361,14 +41360,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     // _initKeyboardEvent to also take charCode and keyCode values to
     // initialize initKeyEvent.
 
-    eventObj =
-        new Event.eventType(
-              'KeyboardEvent',
-              type,
-              canBubble: canBubble,
-              cancelable: cancelable,
-            )
-            as KeyboardEvent;
+    eventObj = new Event.eventType(
+      'KeyboardEvent',
+      type,
+      canBubble: canBubble,
+      cancelable: cancelable,
+    ) as KeyboardEvent;
 
     // Chromium Hack
     JS(

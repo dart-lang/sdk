@@ -49,7 +49,7 @@ class C extends A {}
   }
 
   test_implementsClass_indirectlyWithEqualEqual() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @override
   bool operator ==(Object o) => false;
@@ -62,7 +62,7 @@ class C implements [!B!] {}
   }
 
   test_implementsClassWithEqualEqual() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @override
   bool operator ==(Object o) => false;

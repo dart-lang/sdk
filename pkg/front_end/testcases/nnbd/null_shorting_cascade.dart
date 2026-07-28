@@ -13,7 +13,11 @@ extension Extension on Class {
 main() {
   Class? c;
   c?..method();
-  c?..method()..method();
+  c
+    ?..method()
+    ..method();
   c?..extensionMethod();
-  c?..extensionMethod()..extensionMethod();
+  c
+    ?..extensionMethod()
+    ..extensionMethod();
 }

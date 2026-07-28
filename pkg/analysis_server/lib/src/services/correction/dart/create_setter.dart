@@ -54,9 +54,8 @@ class CreateSetter extends ResolvedCorrectionProducer {
     InterfaceType? targetType;
     if (target is ExtensionOverride) {
       targetElement = target.element;
-    } else if (target case Identifier(
-      :InstanceElement element,
-    ) when element is! ExtensionElement) {
+    } else if (target case Identifier(:InstanceElement element)
+        when element is! ExtensionElement) {
       targetElement = element;
       staticModifier = true;
     } else if (target != null) {

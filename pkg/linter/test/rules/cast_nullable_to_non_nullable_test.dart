@@ -35,7 +35,7 @@ void f(dynamic a) {
   }
 
   test_castNullable_toNonNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 String? s;
 var a = [!s as String!];
 ''');

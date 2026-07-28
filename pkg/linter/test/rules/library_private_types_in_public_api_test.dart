@@ -46,7 +46,7 @@ abstract interface class E {
   }
 
   test_enum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _O {}
 enum E {
   a, b, c;
@@ -89,7 +89,7 @@ class LibraryPrivateTypesInPublicApiExtensionTypeTest extends LintRuleTest {
   String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_constructorParam() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E(Object o) {
   E.e([!_C!] c) : o = c;
@@ -98,7 +98,7 @@ extension type E(Object o) {
   }
 
   test_extensionTypeDeclaration_representation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E([!_C!] c) {}
 ''');
@@ -118,7 +118,7 @@ extension type E(_C _c) {}
   }
 
   test_extensionTypeDeclaration_typeParam() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E<T extends [!_C!]>(Object o) {}
 ''');
@@ -140,7 +140,7 @@ extension type E(Object o) {
   }
 
   test_field_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E(Object o) {
   static [!_C!]? c;
@@ -149,7 +149,7 @@ extension type E(Object o) {
   }
 
   test_method_instance_param() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E(Object o) {
   m([!_C!] c){}
@@ -167,7 +167,7 @@ extension type E(Object o) {
   }
 
   test_method_instance_returnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E(Object o) {
   [!_C!]? m() => null;
@@ -176,7 +176,7 @@ extension type E(Object o) {
   }
 
   test_method_static_param() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E(Object o) {
   static m([!_C!] c){}
@@ -194,7 +194,7 @@ extension type E(Object o) {
   }
 
   test_method_static_returnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _C {}
 extension type E(Object o) {
   static [!_C!]? m() => null;
@@ -209,7 +209,7 @@ class LibraryPrivateTypesInPublicApiSuperParamTest extends LintRuleTest {
   String get lintRule => LintNames.library_private_types_in_public_api;
 
   test_implicitTypeFieldFormalParam() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _O {}
 class C {
   _O _x;
@@ -222,7 +222,7 @@ class C {
   }
 
   test_implicitTypeSuperFormalParam() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _O extends Object {}
 class _A {
   _A(_O o);
@@ -234,7 +234,7 @@ class B extends _A {
   }
 
   test_recursiveInterfaceInheritance() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class _O extends Object {}
 class A {
   Object o;
@@ -300,7 +300,7 @@ class _P {}
   }
 
   test_constructor_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.named([!_P!] p);
 }
@@ -309,7 +309,7 @@ class _P {}
   }
 
   test_constructor_unnamed_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C([!_P!] p);
 }
@@ -318,7 +318,7 @@ class _P {}
   }
 
   test_extension_onPrivateType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on [!_P!] {}
 class _P {}
 ''');
@@ -332,14 +332,14 @@ class _P {}
   }
 
   test_function_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 String f([!_P!] p) => '';
 class _P {}
 ''');
   }
 
   test_function_privateReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!_P!] f2(int i) => _P();
 class _P {}
 ''');
@@ -370,7 +370,7 @@ class _P {}
   }
 
   test_instanceField_privateType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!_P!] f = _P();
 }
@@ -379,7 +379,7 @@ class _P {}
   }
 
   test_instanceField_privateTypeTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   List<[!_P!]> f = [];
 }
@@ -397,7 +397,7 @@ class _P {}
   }
 
   test_instanceGetter_privateReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!_P!] get g2 => _P();
 }
@@ -424,7 +424,7 @@ class _P {}
   }
 
   test_instanceMethod_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String m([!_P!] p) => '';
 }
@@ -433,7 +433,7 @@ class _P {}
   }
 
   test_instanceMethod_privateReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!_P!] m(int i) => _P();
 }
@@ -459,7 +459,7 @@ class _P {}
   }
 
   test_instanceSetter_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   set s([!_P!] i) {}
 }
@@ -475,7 +475,7 @@ class _P {}
   }
 
   test_mixin_onPrivateType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M on [!_P!] {}
 class _P {}
 ''');
@@ -489,7 +489,7 @@ class _P {}
   }
 
   test_operator_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int operator+([!_P!] p) => 0;
 }
@@ -498,7 +498,7 @@ class _P {}
   }
 
   test_operator_privateReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!_P!] operator-(int i) => _P();
 }
@@ -507,7 +507,7 @@ class _P {}
   }
 
   test_primaryConstructor_declaring_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!_P!] p);
 class _P {}
 ''');
@@ -521,7 +521,7 @@ class P {}
   }
 
   test_primaryConstructor_named_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C.named([!_P!] p);
 class _P {}
 ''');
@@ -542,7 +542,7 @@ class _P {}
   }
 
   test_topLevelGetter_privateReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!_P!] get g => _P();
 class _P {}
 ''');
@@ -556,7 +556,7 @@ class _P {}
   }
 
   test_topLevelSetter_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 set s([!_P!] i) {}
 class _P {}
 ''');
@@ -570,14 +570,14 @@ class _P {}
   }
 
   test_topLevelVariable_privateType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!_P!]? v;
 class _P {}
 ''');
   }
 
   test_topLevelVariable_privateTypeTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<[!_P!]> v = [];
 class _P {}
 ''');
@@ -590,28 +590,28 @@ String v = '';
   }
 
   test_typedef_legacy_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef void F([!_P!] p);
 class _P {}
 ''');
   }
 
   test_typedef_legacy_privateReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef [!_P!] F();
 class _P {}
 ''');
   }
 
   test_typedef_privateParameterType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef F = void Function([!_P!]);
 class _P {}
 ''');
   }
 
   test_typedef_privateReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef F = [!_P!] Function();
 class _P {}
 ''');

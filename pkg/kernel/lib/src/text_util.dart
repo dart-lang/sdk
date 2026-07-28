@@ -390,7 +390,7 @@ String? _qualifiedTypeParameterGenericDeclarationNameToString(
     case LocalFunction():
       if (recurseOnLocalFunction &&
           declaration is FunctionDeclaration &&
-          declaration.variable.name != null) {
+          declaration.variable.cosmeticName != null) {
         TreeNode? parent = declaration.parent;
         while (parent != null && parent is! GenericDeclaration) {
           parent = parent.parent;
@@ -402,7 +402,7 @@ String? _qualifiedTypeParameterGenericDeclarationNameToString(
                 includeLibraryName: includeLibraryName,
                 recurseOnLocalFunction: recurseOnLocalFunction,
               );
-          return "$parentName.${declaration.variable.name}";
+          return "$parentName.${declaration.variable.cosmeticName}";
         }
       }
       return null;

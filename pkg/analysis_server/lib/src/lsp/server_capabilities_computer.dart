@@ -221,9 +221,13 @@ class ServerCapabilitiesComputer {
         // allow for future expansion without potentially breaking clients by
         // changing the data type.
 
-        // Indicate that we support the 'updateDiagnosticInformation'
+        // Indicate that we support the 'dart/updateDiagnosticInformation'
         // custom request.
         'updateDiagnosticInformation': {},
+
+        // Indicate that we support the 'dart/workspace/analysis/complete'
+        // custom request.
+        'workspaceAnalysisComplete': {},
 
         // Interactive Forms support.
         'interactiveResolveProvider': {

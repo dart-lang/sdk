@@ -42,9 +42,9 @@ class LspCompletionAfterChange extends DartLanguageServerBenchmark {
 
     Future<void> openFile(Uri uri, String content) async {
       await send(LspMessages.open(uri, 1, content));
-      await (await send(
-        LspMessages.documentColor(uri, largestIdSeen + 1),
-      ))?.completer.future;
+      await (await send(LspMessages.documentColor(uri, largestIdSeen + 1)))
+          ?.completer
+          .future;
       await (await send(
         LspMessages.documentSymbol(
           runDetails.orderedFileCopies.last.uri,

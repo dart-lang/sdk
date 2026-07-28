@@ -19,24 +19,24 @@ extension<T> on A<T> {
 }
 
 exhaustiveInferred(A<num> a) => switch (a) {
-      A<int>(:var member) => 0,
-      A<num>(:var member) => 1,
-    };
+  A<int>(:var member) => 0,
+  A<num>(:var member) => 1,
+};
 
 exhaustiveTyped(A<num> a) => switch (a) {
-      A<int>(:void Function(int) member) => 0,
-      A<num>(:void Function(num) member) => 1,
-    };
+  A<int>(:void Function(int) member) => 0,
+  A<num>(:void Function(num) member) => 1,
+};
 
 unreachable(A<num> a) => switch (a) {
-      A<num>(:var member) => 1,
-      A<int>(:var member) => 0,
-    };
+  A<num>(:var member) => 1,
+  A<int>(:var member) => 0,
+};
 
 nonExhaustiveRestricted(A<num> a) => switch (a) {
-      A<num>(:void Function(num) member) => 1,
-      A<int>(:var member) => 0,
-    };
+  A<num>(:void Function(num) member) => 1,
+  A<int>(:var member) => 0,
+};
 
 intersection(o) {
   switch (o) {
@@ -47,6 +47,6 @@ intersection(o) {
 
 // TODO(johnniwinther): This should be exhaustive.
 num exhaustiveMixed(I<num> i) => switch (i) {
-      I<num>(:int member) => member,
-      J<num>(:double member) => member,
-    };
+  I<num>(:int member) => member,
+  J<num>(:double member) => member,
+};

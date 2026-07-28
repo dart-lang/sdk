@@ -13,7 +13,7 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 export 'package:analyzer/dart/analysis/analysis_options.dart';
 export 'package:analyzer/error/listener.dart' show RecordingDiagnosticListener;
 export 'package:analyzer/source/timestamped_data.dart' show TimestampedData;
-export 'package:analyzer/src/dart/analysis/analysis_options.dart';
+export 'package:analyzer/src/analysis_options/analysis_options.dart';
 
 /// A context in which a single analysis can be performed and incrementally
 /// maintained. The context includes such information as the version of the SDK

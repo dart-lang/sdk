@@ -1,10 +1,4 @@
-enum Foo {
-  a,
-  b,
-  c,
-  d,
-  e,
-}
+enum Foo { a, b, c, d, e }
 
 extension FooExtension on Foo {
   int get giveInt => 42;

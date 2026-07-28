@@ -19,7 +19,6 @@ class C() extends B {}
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE
 // [cfe] 'C' is a supertype of itself.
 
-
 class SuperA(super.x) extends SuperC {}
 //    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_INTERFACE_INHERITANCE

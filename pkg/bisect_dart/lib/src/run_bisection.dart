@@ -29,8 +29,9 @@ Future<void> runBisection(BisectionConfig config) async {
   final failurePattern = config.failurePattern;
   final sdkCheckout = config.sdkPath;
 
-  final logsDir =
-      Directory.current.uri.resolve('.dart_tool/bisect_dart/$name/logs/');
+  final logsDir = Directory.current.uri.resolve(
+    '.dart_tool/bisect_dart/$name/logs/',
+  );
   await Directory.fromUri(logsDir).create(recursive: true);
   final logFileUri = logsDir.resolve('full.txt');
   final logFile = File.fromUri(logFileUri);
@@ -41,33 +42,59 @@ Future<void> runBisection(BisectionConfig config) async {
   logger.info('Writing detailed log to ${logFileUri.toFilePath()}.');
   logger.config('Bisection configuration: $config.');
 
-  final ancestorHash =
-      await _ascestorCommitHash(startHash, endHash, sdkCheckout, logger);
+  final ancestorHash = await _ascestorCommitHash(
+    startHash,
+    endHash,
+    sdkCheckout,
+    logger,
+  );
   final descendantHash = ancestorHash == startHash ? endHash : startHash;
-  final hashBeforeRange =
-      await _parentCommitHash(ancestorHash, sdkCheckout, logger);
+  final hashBeforeRange = await _parentCommitHash(
+    ancestorHash,
+    sdkCheckout,
+    logger,
+  );
   logger.info('Commit range $hashBeforeRange...$descendantHash.');
 
   await _ensureSdkRepo(sdkCheckout, logger);
 
   logger.info('Ensuring failure reproduces on $descendantHash.');
   final shouldFail = await _checkCommit(
-      descendantHash, testCommands, failurePattern, sdkCheckout, logger);
+    descendantHash,
+    testCommands,
+    failurePattern,
+    sdkCheckout,
+    logger,
+  );
   if (!shouldFail) {
     throw Exception('$descendantHash failed to reproduce the error.');
   }
 
   logger.info('Ensuring failure does not reproduce on $hashBeforeRange.');
   final shouldSucceed = await _checkCommit(
-      hashBeforeRange, testCommands, failurePattern, sdkCheckout, logger);
+    hashBeforeRange,
+    testCommands,
+    failurePattern,
+    sdkCheckout,
+    logger,
+  );
   if (shouldSucceed) {
     throw Exception('$ancestorHash failed to reproduced the error.');
   }
 
   final commitHashes = await _commitHashesInRange(
-      ancestorHash, descendantHash, sdkCheckout, logger);
+    ancestorHash,
+    descendantHash,
+    sdkCheckout,
+    logger,
+  );
   final regressionCommit = await _bisect(
-      commitHashes, testCommands, failurePattern, sdkCheckout, logger);
+    commitHashes,
+    testCommands,
+    failurePattern,
+    sdkCheckout,
+    logger,
+  );
   logger.info('Bisected to $regressionCommit.');
 }
 
@@ -84,8 +111,11 @@ Future<String> _bisect(
   final numCommits = commitHashes.length;
   final pivotIndex = numCommits ~/ 2;
   final pivot = commitHashes[pivotIndex];
-  final parentHashBeforeLast =
-      await _parentCommitHash(commitHashes.last, sdkCheckout, logger);
+  final parentHashBeforeLast = await _parentCommitHash(
+    commitHashes.last,
+    sdkCheckout,
+    logger,
+  );
   logger.info(
     'Bisecting $parentHashBeforeLast...${commitHashes.first} '
     '($numCommits commits). Trying $pivot.',
@@ -105,12 +135,22 @@ Future<String> _bisect(
     remainingCommits = commitHashes.take(pivotIndex).toList();
   }
   return await _bisect(
-      remainingCommits, testCommands, failurePattern, sdkCheckout, logger);
+    remainingCommits,
+    testCommands,
+    failurePattern,
+    sdkCheckout,
+    logger,
+  );
 }
 
 /// Returns true if the commit has the [failurePattern].
-Future<bool> _checkCommit(String hash, List<String> testCommands,
-    Pattern failurePattern, Uri sdkCheckout, Logger logger) async {
+Future<bool> _checkCommit(
+  String hash,
+  List<String> testCommands,
+  Pattern failurePattern,
+  Uri sdkCheckout,
+  Logger logger,
+) async {
   logger.config('Testing $hash.');
   await _gitCheckout(hash, sdkCheckout, logger);
   await _gclientSync(sdkCheckout, logger);
@@ -171,7 +211,10 @@ Future<void> _gclientSync(Uri sdkCheckout, Logger logger) {
 }
 
 Future<String> _runTest(
-    List<String> testCommands, Uri sdkCheckout, Logger logger) async {
+  List<String> testCommands,
+  Uri sdkCheckout,
+  Logger logger,
+) async {
   var output = '';
   for (final command in testCommands) {
     final commandSplit = command.split(' ');
@@ -191,8 +234,12 @@ Future<String> _runTest(
 /// Ordered from now to old.
 ///
 /// Inclusive.
-Future<List<String>> _commitHashesInRange(String ancestorHash,
-    String descendantHash, Uri sdkCheckout, Logger logger) async {
+Future<List<String>> _commitHashesInRange(
+  String ancestorHash,
+  String descendantHash,
+  Uri sdkCheckout,
+  Logger logger,
+) async {
   final result = await runProcess(
     executable: Uri.file('git'),
     arguments: [
@@ -207,8 +254,12 @@ Future<List<String>> _commitHashesInRange(String ancestorHash,
   return result.stdout.trim().replaceAll('"', '').split('\n');
 }
 
-Future<bool> _isAncestorOf(String commitAncestor, String commitDescendant,
-    Uri sdkCheckout, Logger logger) async {
+Future<bool> _isAncestorOf(
+  String commitAncestor,
+  String commitDescendant,
+  Uri sdkCheckout,
+  Logger logger,
+) async {
   final result = await runProcess(
     executable: Uri.file('git'),
     arguments: [
@@ -225,7 +276,11 @@ Future<bool> _isAncestorOf(String commitAncestor, String commitDescendant,
 }
 
 Future<String> _ascestorCommitHash(
-    String commit1, String commit2, Uri sdkCheckout, Logger logger) async {
+  String commit1,
+  String commit2,
+  Uri sdkCheckout,
+  Logger logger,
+) async {
   if (await _isAncestorOf(commit1, commit2, sdkCheckout, logger)) {
     return commit1;
   }
@@ -233,18 +288,18 @@ Future<String> _ascestorCommitHash(
     return commit2;
   }
   throw Exception(
-      'Commits $commit1 and $commit2 are not ancestors of each other.');
+    'Commits $commit1 and $commit2 are not ancestors of each other.',
+  );
 }
 
 Future<String> _parentCommitHash(
-    String commitHash, Uri sdkCheckout, Logger logger) async {
+  String commitHash,
+  Uri sdkCheckout,
+  Logger logger,
+) async {
   final result = await runProcess(
     executable: Uri.file('git'),
-    arguments: [
-      'log',
-      '--pretty=format:"%h"',
-      '$commitHash~1...$commitHash~2',
-    ],
+    arguments: ['log', '--pretty=format:"%h"', '$commitHash~1...$commitHash~2'],
     captureOutput: true,
     logger: logger,
     workingDirectory: sdkCheckout,
@@ -260,9 +315,6 @@ Logger _mainLogger(String name, Uri filePath) {
       if (record.level >= Level.INFO) {
         print(record.message);
       }
-      file.writeAsStringSync(
-        '${record.message}\n',
-        mode: FileMode.append,
-      );
+      file.writeAsStringSync('${record.message}\n', mode: FileMode.append);
     });
 }

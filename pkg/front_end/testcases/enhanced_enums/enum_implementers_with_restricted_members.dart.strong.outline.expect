@@ -2,59 +2,59 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:6:11: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:9:11: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 //   int get index => 0; // Error.
 //           ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:8:11: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:11:11: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 //   int get hashCode => 1; // Error.
 //           ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:7:16: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
-//   bool operator==(Object other) => true; // Error.
-//                ^^
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:10:17: Error: 'A1' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
+//   bool operator ==(Object other) => true; // Error.
+//                 ^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:12:11: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:15:11: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 //   int get index => 0; // Error.
 //           ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:14:11: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:17:11: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 //   int get hashCode => 1; // Error.
 //           ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:13:16: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
-//   bool operator==(Object other) => true; // Error.
-//                ^^
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:16:17: Error: 'M1' has 'Enum' as a superinterface and can't contain non-static members with name '=='.
+//   bool operator ==(Object other) => true; // Error.
+//                 ^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:40:7: Error: 'A4' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:43:7: Error: 'A4' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 //   int index = 0; // Error.
 //       ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:41:7: Error: 'A4' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:44:7: Error: 'A4' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 //   int hashCode = 1; // Error.
 //       ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:45:7: Error: 'M4' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:48:7: Error: 'M4' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 //   int index = 0; // Error.
 //       ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:46:7: Error: 'M4' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:49:7: Error: 'M4' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 //   int hashCode = 1; // Error.
 //       ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:51:5: Error: 'A5' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:54:5: Error: 'A5' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 //     index = 2, // Error.
 //     ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:52:5: Error: 'A5' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:55:5: Error: 'A5' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 //     hashCode = 3; // Error.
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:57:5: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:60:5: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static members with name 'index'.
 //     index = 2, // Error.
 //     ^^^^^
 //
-// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:58:5: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
+// pkg/front_end/testcases/enhanced_enums/enum_implementers_with_restricted_members.dart:61:5: Error: 'M5' has 'Enum' as a superinterface and can't contain non-static members with name 'hashCode'.
 //     hashCode = 3; // Error.
 //     ^^^^^^^^
 //

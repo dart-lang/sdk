@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import "split_constants_canonicalization_a.dart" deferred as a;
 import "split_constants_canonicalization_b.dart" deferred as b;
 

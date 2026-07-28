@@ -1941,31 +1941,6 @@ bool _canParseCompletionItemLabelDetails(
   return true;
 }
 
-bool _canParseCompletionItemResolutionInfo(
-    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
-    {required bool allowsUndefined, required bool allowsNull}) {
-  reporter.push(fieldName);
-  try {
-    if (!allowsUndefined && !map.containsKey(fieldName)) {
-      reporter.reportError('must not be undefined');
-      return false;
-    }
-    final value = map[fieldName];
-    final nullCheck = allowsNull || allowsUndefined;
-    if (!nullCheck && value == null) {
-      reporter.reportError('must not be null');
-      return false;
-    }
-    if ((!nullCheck || value != null) &&
-        !CompletionItemResolutionInfo.canParse(value, reporter)) {
-      return false;
-    }
-  } finally {
-    reporter.pop();
-  }
-  return true;
-}
-
 bool _canParseCompletionItemTagOptions(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -2033,6 +2008,31 @@ bool _canParseCompletionOptions(
     }
     if ((!nullCheck || value != null) &&
         !CompletionOptions.canParse(value, reporter)) {
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseCompletionResolutionInfo(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !CompletionResolutionInfo.canParse(value, reporter)) {
       return false;
     }
   } finally {
@@ -3450,7 +3450,7 @@ bool _canParseLinkedEditingRangeClientCapabilities(
   return true;
 }
 
-bool _canParseListAnnotatedTextEditSnippetableTextEditTextEdit(
+bool _canParseListAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
   reporter.push(fieldName);
@@ -3469,10 +3469,11 @@ bool _canParseListAnnotatedTextEditSnippetableTextEditTextEdit(
         (value is! List<Object?> ||
             value.any((item) =>
                 !AnnotatedTextEdit.canParse(item, reporter) &&
-                !SnippetableTextEdit.canParse(item, reporter) &&
+                !LegacySnippetTextEdit.canParse(item, reporter) &&
+                !SnippetTextEdit.canParse(item, reporter) &&
                 !TextEdit.canParse(item, reporter)))) {
       reporter.reportError(
-          'must be of type List<Either3<AnnotatedTextEdit, SnippetableTextEdit, TextEdit>>');
+          'must be of type List<Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit, TextEdit>>');
       return false;
     }
   } finally {
@@ -7194,16 +7195,20 @@ bool _canParseWorkspaceSymbolClientCapabilities(
   return true;
 }
 
-Either3<AnnotatedTextEdit, SnippetableTextEdit, TextEdit>
-    _eitherAnnotatedTextEditSnippetableTextEditTextEdit(Object? value) {
+Either4<AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit, TextEdit>
+    _eitherAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
+        Object? value) {
   return AnnotatedTextEdit.canParse(value, nullLspJsonReporter)
-      ? Either3.t1(AnnotatedTextEdit.fromJson(value as Map<String, Object?>))
-      : SnippetableTextEdit.canParse(value, nullLspJsonReporter)
-          ? Either3.t2(
-              SnippetableTextEdit.fromJson(value as Map<String, Object?>))
-          : TextEdit.canParse(value, nullLspJsonReporter)
-              ? Either3.t3(TextEdit.fromJson(value as Map<String, Object?>))
-              : throw '$value was not one of (AnnotatedTextEdit, SnippetableTextEdit, TextEdit)';
+      ? Either4.t1(AnnotatedTextEdit.fromJson(value as Map<String, Object?>))
+      : LegacySnippetTextEdit.canParse(value, nullLspJsonReporter)
+          ? Either4.t2(
+              LegacySnippetTextEdit.fromJson(value as Map<String, Object?>))
+          : SnippetTextEdit.canParse(value, nullLspJsonReporter)
+              ? Either4.t3(
+                  SnippetTextEdit.fromJson(value as Map<String, Object?>))
+              : TextEdit.canParse(value, nullLspJsonReporter)
+                  ? Either4.t4(TextEdit.fromJson(value as Map<String, Object?>))
+                  : throw '$value was not one of (AnnotatedTextEdit, LegacySnippetTextEdit, SnippetTextEdit, TextEdit)';
 }
 
 Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>
@@ -13864,7 +13869,7 @@ class CompletionItem implements ToJsonable {
 
   /// A data entry field that is preserved on a completion item between a
   /// [CompletionRequest] and a [CompletionResolveRequest].
-  final CompletionItemResolutionInfo? data;
+  final CompletionResolutionInfo? data;
 
   /// Indicates if this item is deprecated.
   /// @deprecated Use `tags` instead.
@@ -14123,7 +14128,7 @@ class CompletionItem implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      if (!_canParseCompletionItemResolutionInfo(obj, reporter, 'data',
+      if (!_canParseCompletionResolutionInfo(obj, reporter, 'data',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -14206,8 +14211,7 @@ class CompletionItem implements ToJsonable {
         .toList();
     final dataJson = json['data'];
     final data = dataJson != null
-        ? CompletionItemResolutionInfo.fromJson(
-            dataJson as Map<String, Object?>)
+        ? CompletionResolutionInfo.fromJson(dataJson as Map<String, Object?>)
         : null;
     final deprecatedJson = json['deprecated'];
     final deprecated = deprecatedJson as bool?;
@@ -39999,7 +40003,7 @@ class TextDocumentEdit implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseListAnnotatedTextEditSnippetableTextEditTextEdit(
+      if (!_canParseListAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
           obj, reporter, 'edits',
           allowsUndefined: false, allowsNull: false)) {
         return false;
@@ -40016,8 +40020,9 @@ class TextDocumentEdit implements ToJsonable {
   static TextDocumentEdit fromJson(Map<String, Object?> json) {
     final editsJson = json['edits'];
     final edits = (editsJson as List<Object?>)
-        .map(
-            (item) => _eitherAnnotatedTextEditSnippetableTextEditTextEdit(item))
+        .map((item) =>
+            _eitherAnnotatedTextEditLegacySnippetTextEditSnippetTextEditTextEdit(
+                item))
         .toList();
     final textDocumentJson = json['textDocument'];
     final textDocument = OptionalVersionedTextDocumentIdentifier.fromJson(
@@ -41234,8 +41239,8 @@ class TextEdit implements ToJsonable {
     if (AnnotatedTextEdit.canParse(json, nullLspJsonReporter)) {
       return AnnotatedTextEdit.fromJson(json);
     }
-    if (SnippetableTextEdit.canParse(json, nullLspJsonReporter)) {
-      return SnippetableTextEdit.fromJson(json);
+    if (LegacySnippetTextEdit.canParse(json, nullLspJsonReporter)) {
+      return LegacySnippetTextEdit.fromJson(json);
     }
     final newTextJson = json['newText'];
     final newText = newTextJson as String;

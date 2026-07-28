@@ -28,7 +28,7 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
       );
 
   @override
-  Variable? getTearOffParameter(int index) {
+  FunctionParameter? getTearOffParameter(int index) {
     return _declaration.getTearOffParameter(index);
   }
 

@@ -17,6 +17,7 @@ dependencies:
   cli_util: any
   code_assets: any
   collection: any
+  dap_adapters: any
   dart2native: any
   dart_data_home: any
   dart_style: any

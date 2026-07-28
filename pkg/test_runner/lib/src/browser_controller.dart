@@ -75,7 +75,10 @@ abstract class Browser {
         browser = Firefox(configuration.browserLocation);
         break;
       case Runtime.chrome:
-        browser = Chrome(configuration.browserLocation);
+        browser = Chrome(
+          configuration.browserLocation,
+          noSandbox: configuration.noSandbox,
+        );
         break;
       case Runtime.safari:
         var service = WebDriverService.fromRuntime(Runtime.safari);
@@ -360,9 +363,10 @@ class Safari extends WebDriverBrowser {
 }
 
 class Chrome extends Browser {
-  Chrome(this._binary);
+  Chrome(this._binary, {this.noSandbox = false});
 
   final String _binary;
+  final bool noSandbox;
 
   @override
   Future<String> get version async {
@@ -416,6 +420,7 @@ class Chrome extends Browser {
         }
       };
       var args = [
+        if (noSandbox) "--no-sandbox",
         "--bwsi",
         "--disable-component-update",
         "--disable-extensions",

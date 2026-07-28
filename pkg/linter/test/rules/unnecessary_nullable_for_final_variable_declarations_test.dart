@@ -19,7 +19,7 @@ class UnnecessaryNullableForFinalVariableDeclarationsTest extends LintRuleTest {
       LintNames.unnecessary_nullable_for_final_variable_declarations;
 
   test_list() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   final [int a, num? [!c!]] = [0, 1];
   print('$a$c');
@@ -87,7 +87,7 @@ f() {
   }
 
   test_nullableType_field() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   // ignore: unused_field
   final int? /*[0*/_i/*0]*/ = 1;
@@ -98,7 +98,7 @@ class A {
   }
 
   test_nullableType_field_extension() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on Object {
   // ignore: unused_field
   static final int? /*[0*/_e/*0]*/ = 1;
@@ -108,7 +108,7 @@ extension E on Object {
   }
 
   test_nullableType_topLevel() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore: unused_element
 final int? /*[0*/_i/*0]*/ = 1;
 final int? /*[1*/i/*1]*/ = 1;
@@ -117,7 +117,7 @@ const int? /*[2*/ic/*2]*/ = 1;
   }
 
   test_nullableType_variable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   final int? /*[0*/_i/*0]*/ = 1;
   final int? /*[1*/i/*1]*/ = 1;
@@ -126,7 +126,7 @@ f() {
   }
 
   test_record() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   final (List<int>? /*[0*/a/*0]*/, num? /*[1*/c/*1]*/) = ([], 1);
   print('$a$c');

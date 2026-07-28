@@ -81,7 +81,7 @@ sealed class CFunction {
   bool get hasNamedParameters =>
       functionNode?.namedParameters.isNotEmpty ?? false;
 
-  ast.Variable _getOptionalOrNamedParameter(int index) =>
+  ast.FunctionParameter _getOptionalOrNamedParameter(int index) =>
       hasOptionalPositionalParameters
       ? functionNode!.positionalParameters[index - numberOfImplicitParameters]
       : functionNode!.namedParameters[index -
@@ -89,7 +89,7 @@ sealed class CFunction {
 
   /// Default value of the [index]-th optional or named parameter.
   ConstantValue getParameterDefaultValue(int index) => ConstantValue(
-    (_getOptionalOrNamedParameter(index).initializer as ast.ConstantExpression)
+    (_getOptionalOrNamedParameter(index).defaultValue as ast.ConstantExpression)
         .constant,
   );
 
@@ -97,7 +97,7 @@ sealed class CFunction {
   /// Named parameters are sorted by name and follow required positional parameters.
   String getParameterName(int index) {
     assert(hasNamedParameters);
-    return _getOptionalOrNamedParameter(index).name!;
+    return _getOptionalOrNamedParameter(index).cosmeticName!;
   }
 
   /// Whether the [index]-th named parameter is required.

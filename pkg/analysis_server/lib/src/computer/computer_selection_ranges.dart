@@ -73,9 +73,8 @@ class DartSelectionRangeComputer {
       return;
     }
 
-    if (node case FormalParameter(
-      defaultClause: var defaultClause?,
-    ) when _offset < defaultClause.offset) {
+    if (node case FormalParameter(defaultClause: var defaultClause?)
+        when _offset < defaultClause.offset) {
       var end = _formalParameterEndWithoutDefault(node);
       if (end != null) {
         _recordOffsetLength(node.offset, end - node.offset);

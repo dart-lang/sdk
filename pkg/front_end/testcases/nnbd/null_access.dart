@@ -19,8 +19,13 @@ class NullableIndexClass {
 
 main() {}
 
-errors(Class? nullableClass, Class nonNullableClass, int? nullableInt,
-    int nonNullableInt, NullableIndexClass? nullableNullableIndexClass) {
+errors(
+  Class? nullableClass,
+  Class nonNullableClass,
+  int? nullableInt,
+  int nonNullableInt,
+  NullableIndexClass? nullableNullableIndexClass,
+) {
   -nullableInt; // error
   nullableInt + 2; // error
   nullableClass[nonNullableInt]; // error

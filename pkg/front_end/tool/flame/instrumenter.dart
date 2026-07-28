@@ -413,9 +413,9 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   }
 
   bool _memberCallsCertainThings(Member m) {
-    return _CollectCallsVisitor.collectCalls(
-      m.function?.body,
-    ).intersection(onlyIfIncludingCertainCalls!).isNotEmpty;
+    return _CollectCallsVisitor.collectCalls(m.function?.body)
+        .intersection(onlyIfIncludingCertainCalls!)
+        .isNotEmpty;
   }
 }
 

@@ -24,7 +24,13 @@ external int close(int fd);
 //            int fd, off_t offset)
 @Native<Pointer<Uint8> Function(Pointer<Uint8>, Size, Int, Int, Int, IntPtr)>()
 external Pointer<Uint8> mmap(
-    Pointer<Uint8> address, int len, int prot, int flags, int fd, int offset);
+  Pointer<Uint8> address,
+  int len,
+  int prot,
+  int flags,
+  int fd,
+  int offset,
+);
 
 // int munmap(void *addr, size_t length)
 @Native<IntPtr Function(Pointer<Uint8> address, Size len)>()
@@ -46,14 +52,22 @@ external int mprotect(Pointer<Uint8> addr, int len, int prot);
 //                                       void* peer,
 //                                       intptr_t external_allocation_size,
 //                                       Dart_HandleFinalizer callback)
-typedef Dart_NewExternalTypedDataWithFinalizerNative = Handle Function(
-    Int, Pointer<Void>, IntPtr, Pointer<Void>, IntPtr, Pointer<Void>);
-typedef Dart_NewExternalTypedDataWithFinalizerDart = Object Function(
-    int, Pointer<Void>, int, Pointer<Void>, int, Pointer<Void>);
-final Dart_NewExternalTypedDataWithFinalizer = processSymbols.lookupFunction<
-        Dart_NewExternalTypedDataWithFinalizerNative,
-        Dart_NewExternalTypedDataWithFinalizerDart>(
-    'Dart_NewExternalTypedDataWithFinalizer');
+typedef Dart_NewExternalTypedDataWithFinalizerNative =
+    Handle Function(
+      Int,
+      Pointer<Void>,
+      IntPtr,
+      Pointer<Void>,
+      IntPtr,
+      Pointer<Void>,
+    );
+typedef Dart_NewExternalTypedDataWithFinalizerDart =
+    Object Function(int, Pointer<Void>, int, Pointer<Void>, int, Pointer<Void>);
+final Dart_NewExternalTypedDataWithFinalizer = processSymbols
+    .lookupFunction<
+      Dart_NewExternalTypedDataWithFinalizerNative,
+      Dart_NewExternalTypedDataWithFinalizerDart
+    >('Dart_NewExternalTypedDataWithFinalizer');
 
 const int kPageSize = 4096;
 const int kProtRead = 1;
@@ -130,8 +144,14 @@ final finalizerAddress = () {
   // addressable and leave it initialized to NULL.
   final offset = 8;
 
-  final Pointer<Uint8> finalizerStub = mmap(nullptr, kPageSize,
-      kProtRead | kProtWrite, kMapPrivate | kMapAnon, -1, 0);
+  final Pointer<Uint8> finalizerStub = mmap(
+    nullptr,
+    kPageSize,
+    kProtRead | kProtWrite,
+    kMapPrivate | kMapAnon,
+    -1,
+    0,
+  );
   finalizerStub
       .cast<Uint8>()
       .asTypedList(kPageSize)
@@ -155,7 +175,11 @@ base class PeerData extends Struct {
 }
 
 Uint8List toExternalDataWithFinalizer(
-    Pointer<Uint8> memory, int size, int length, int fd) {
+  Pointer<Uint8> memory,
+  int size,
+  int length,
+  int fd,
+) {
   final Pointer<PeerData> peer = malloc.allocate<PeerData>(sizeOf<PeerData>());
   peer.ref.close = closeNative;
   peer.ref.munmap = munmapNative;
@@ -164,11 +188,12 @@ Uint8List toExternalDataWithFinalizer(
   peer.ref.size = size;
   peer.ref.fd = fd;
   return Dart_NewExternalTypedDataWithFinalizer(
-    /*Dart_TypedData_kUint8*/ 2,
-    memory.cast(),
-    length,
-    peer.cast(),
-    size,
-    finalizerAddress,
-  ) as Uint8List;
+        /*Dart_TypedData_kUint8*/ 2,
+        memory.cast(),
+        length,
+        peer.cast(),
+        size,
+        finalizerAddress,
+      )
+      as Uint8List;
 }

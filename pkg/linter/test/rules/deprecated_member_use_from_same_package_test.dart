@@ -23,7 +23,7 @@ class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   String get lintRule => LintNames.deprecated_member_use_from_same_package;
 
   test_deprecatedCallMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @deprecated
   void call() {}
@@ -34,7 +34,7 @@ void f(C c) => [!c()!];
   }
 
   test_deprecatedClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class C {}
 
@@ -43,7 +43,7 @@ void f([!C!] c) {}
   }
 
   test_deprecatedClass_usedInClassTypeAlias() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 mixin class C {}
 
@@ -203,7 +203,7 @@ C? x;
   }
 
   test_deprecatedClass_usedInExtensionTypeRepresentation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class C {}
 
@@ -212,7 +212,7 @@ extension type E([!C!] c) { }
   }
 
   test_deprecatedClass_usedInFieldFormalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class C {}
 
@@ -224,7 +224,7 @@ class D {
   }
 
   test_deprecatedClass_usedInFunctionTypeAlias() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class C {}
 
@@ -233,7 +233,7 @@ typedef void Callback([!C!] c);
   }
 
   test_deprecatedClass_usedInFunctionTypedParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class C {}
 
@@ -252,7 +252,7 @@ typedef Callback = void Function(C);
   }
 
   test_deprecatedClass_usedInGenericTypeAlias() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class C {}
 
@@ -290,7 +290,7 @@ import 'lib.dart' show C;
   }
 
   test_deprecatedConstructor_usedInRedirectingConstructorInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   A();
@@ -300,7 +300,7 @@ class A {
   }
 
   test_deprecatedConstructor_usedInSuperConstructorCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   A();
@@ -312,7 +312,7 @@ class B extends A {
   }
 
   test_deprecatedConstructor_usedInSuperConstructorCall_implicit() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   A();
@@ -324,7 +324,7 @@ class B extends A {
   }
 
   test_deprecatedDefaultParameterOfFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({@deprecated int p = 1}) {}
 
 void g() => f([!p!]: 1);
@@ -332,7 +332,7 @@ void g() => f([!p!]: 1);
   }
 
   test_deprecatedEnum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 enum E {
   one, two;
@@ -342,7 +342,7 @@ late [!E!] e;
   }
 
   test_deprecatedEnumValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   one, @deprecated two;
 }
@@ -351,7 +351,7 @@ late E e = E.[!two!];
   }
 
   test_deprecatedExtension_usedInExtensionOverride_getter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 extension E on int {
   int get foo => 1;
@@ -362,7 +362,7 @@ var x = [!E!](0).foo;
   }
 
   test_deprecatedExtension_usedInExtensionOverride_methodInvocation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 extension E on int {
   void f() {}
@@ -373,7 +373,7 @@ var x = [!E!](0).f();
   }
 
   test_deprecatedExtensionType_usedInExtensionTypeImplements() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 extension type E(int i) { }
 
@@ -382,7 +382,7 @@ extension type F(int i) implements [!E!] { }
   }
 
   test_deprecatedExtensionType_usedInExtensionTypeRepresentation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 extension type E(int i) { }
 
@@ -391,7 +391,7 @@ extension type F([!E!] c) { }
   }
 
   test_deprecatedExtensionType_usedInField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 extension type E(int i) { }
 
@@ -402,7 +402,7 @@ class C {
   }
 
   test_deprecatedExtensionType_usedInFunctionParam() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 extension type E(int i) { }
 
@@ -411,7 +411,7 @@ void f([!E!] e) { }
   }
 
   test_deprecatedField_inObjectPattern_explicitName() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @Deprecated('')
   final int foo = 0;
@@ -426,7 +426,7 @@ int f(Object x) =>
   }
 
   test_deprecatedField_inObjectPattern_inferredName() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @Deprecated('')
   final int foo = 0;
@@ -441,7 +441,7 @@ int f(Object x) =>
   }
 
   test_deprecatedField_usedAsGetter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   int f = 0;
@@ -454,7 +454,7 @@ void f(A a) {
   }
 
   test_deprecatedField_usedAsSetter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   int f = 0;
@@ -499,7 +499,7 @@ void f(A a) {
   }
 
   test_deprecatedField_usedInPostfix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   int f = 0;
@@ -512,7 +512,7 @@ void f(A a) {
   }
 
   test_deprecatedField_usedInPrefix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   int f = 0;
@@ -525,7 +525,7 @@ void f(A a) {
   }
 
   test_deprecatedField_usedInSuper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   int f = 0;
@@ -551,7 +551,7 @@ void f() {
   }
 
   test_deprecatedGetter_usedInCompoundAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 int get x => 1;
 
@@ -564,7 +564,7 @@ void f() {
   }
 
   test_deprecatedIndexOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @deprecated
   int operator[](int p) => 1;
@@ -581,7 +581,7 @@ void f(C c) {
 @deprecated
 library a;
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!export 'lib.dart';!]
 ''');
   }
@@ -600,7 +600,7 @@ import 'lib.dart';
   }
 
   test_deprecatedMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   void m() {}
@@ -642,7 +642,7 @@ class B extends A {
   }
 
   test_deprecatedMethod_usedInPrimaryConstructorBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 void deprecatedMethod() {}
 
@@ -655,7 +655,7 @@ class B(var int x) {
   }
 
   test_deprecatedMethod_withMessage() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @Deprecated('Message')
   void m() {}
@@ -668,7 +668,7 @@ class A {
   }
 
   test_deprecatedNamedConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @deprecated
   C.named();
@@ -679,7 +679,7 @@ var x = [!C.named!]();
   }
 
   test_deprecatedNamedConstructor_usedInSuperConstructorCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   A.named();
@@ -691,7 +691,7 @@ class B extends A {
   }
 
   test_deprecatedNamedParameterOfFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({@deprecated int? p}) {}
 
 void g() => f([!p!]: 1);
@@ -705,7 +705,7 @@ int? f({@deprecated int? p}) => p;
   }
 
   test_deprecatedNamedParameterOfMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void f({@deprecated int? p}) {}
 
@@ -715,7 +715,7 @@ class C {
   }
 
   test_deprecatedOperator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @deprecated
   C operator+(int other) => C();
@@ -727,7 +727,7 @@ void f(C c) {
   }
 
   test_deprecatedOperator_usedInCompoundAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @deprecated
   C operator+(int other) => C();
@@ -757,7 +757,7 @@ class C {
   }
 
   test_deprecatedParameterOfConstructor_usedInRedirectingConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C({@deprecated int? p});
   C.two() : this([!p!]: 0);
@@ -775,7 +775,7 @@ class C({@deprecated int? p}) {
   }
 
   test_deprecatedPositionalParameterOfFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([@deprecated int? p]) {}
 
 void g() => f([!1!]);
@@ -783,7 +783,7 @@ void g() => f([!1!]);
   }
 
   test_deprecatedPrimaryConstructor_bodyPart() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A(var int x) {
   @deprecated
   this;
@@ -796,7 +796,7 @@ void f() {
   }
 
   test_deprecatedSetter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated set f(int value) {}
 
 void g() => [!f!] = 1;
@@ -804,7 +804,7 @@ void g() => [!f!] = 1;
   }
 
   test_deprecatedSetter_usedInCompoundAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int get x => 1;
 
 @deprecated
@@ -817,7 +817,7 @@ void f() {
   }
 
   test_deprecatedStaticField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   static int f = 0;
@@ -828,7 +828,7 @@ var a = A.[!f!];
   }
 
   test_deprecatedTopLevelVariable_usedInAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 int x = 1;
 
@@ -839,7 +839,7 @@ void f() {
   }
 
   test_deprecatedUnnamedConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @deprecated
   C();
@@ -850,7 +850,7 @@ var x = [!C!]();
   }
 
   test_deprecatedUnnamedConstructor_newSyntax() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   @deprecated
   new();

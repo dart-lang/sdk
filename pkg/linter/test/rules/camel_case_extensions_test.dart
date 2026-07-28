@@ -32,13 +32,13 @@ augment extension e { }
   }
 
   test_lowerCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension [!fooBar!] on Object {}
 ''');
   }
 
   test_underscore() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension [!Foo_Bar!] on Object { }
 ''');
   }

@@ -4,12 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_options_build_test.dart' as analysis_options_build;
-import 'analysis_options_validation_test.dart' as analysis_options_validation;
+import 'analysis_options_parser_test.dart' as analysis_options_parser;
 
 main() {
   defineReflectiveSuite(() {
-    analysis_options_build.main();
-    analysis_options_validation.main();
+    analysis_options_parser.main();
   }, name: 'analysis_options');
 }

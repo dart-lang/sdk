@@ -25,13 +25,13 @@ final int? nullableFinalTopLevelFieldWithInitializer1 = init(32);
 int nonNullableFinalTopLevelFieldWithInitializer2Init = 0;
 final int nonNullableFinalTopLevelFieldWithInitializer2 =
     nonNullableFinalTopLevelFieldWithInitializer2Init++ == 0
-        ? nonNullableFinalTopLevelFieldWithInitializer2 + 1
-        : 87;
+    ? nonNullableFinalTopLevelFieldWithInitializer2 + 1
+    : 87;
 int nullableFinalTopLevelFieldWithInitializer2Init = 0;
 final int? nullableFinalTopLevelFieldWithInitializer2 =
     nullableFinalTopLevelFieldWithInitializer2Init++ == 0
-        ? nullableFinalTopLevelFieldWithInitializer2! + 1
-        : 32;
+    ? nullableFinalTopLevelFieldWithInitializer2! + 1
+    : 32;
 
 class Class {
   static const int staticConstField = 123;
@@ -53,13 +53,13 @@ class Class {
   static int nonNullableStaticFinalFieldWithInitializer2Init = 0;
   static final int nonNullableStaticFinalFieldWithInitializer2 =
       nonNullableStaticFinalFieldWithInitializer2Init++ == 0
-          ? nonNullableStaticFinalFieldWithInitializer2 + 1
-          : 87;
+      ? nonNullableStaticFinalFieldWithInitializer2 + 1
+      : 87;
   static int nullableStaticFinalFieldWithInitializer2Init = 0;
   static final int? nullableStaticFinalFieldWithInitializer2 =
       nullableStaticFinalFieldWithInitializer2Init++ == 0
-          ? nullableStaticFinalFieldWithInitializer2! + 1
-          : 32;
+      ? nullableStaticFinalFieldWithInitializer2! + 1
+      : 32;
 }
 
 main() {
@@ -91,11 +91,15 @@ main() {
   expect(32, nullableFinalTopLevelFieldWithInitializer1);
   expect(32, lastInit);
 
-  throws(() => nonNullableFinalTopLevelFieldWithInitializer2,
-      'Read nonNullableFinalTopLevelFieldWithInitializer2');
+  throws(
+    () => nonNullableFinalTopLevelFieldWithInitializer2,
+    'Read nonNullableFinalTopLevelFieldWithInitializer2',
+  );
 
-  throws(() => nullableFinalTopLevelFieldWithInitializer2,
-      'Read nullableFinalTopLevelFieldWithInitializer2');
+  throws(
+    () => nullableFinalTopLevelFieldWithInitializer2,
+    'Read nullableFinalTopLevelFieldWithInitializer2',
+  );
 
   expect(55, Class.nonNullableStaticFieldWithInitializer1);
   expect(55, lastInit);
@@ -119,11 +123,15 @@ main() {
   expect(19, Class.nullableStaticFinalFieldWithInitializer1);
   expect(19, lastInit);
 
-  throws(() => Class.nonNullableStaticFinalFieldWithInitializer2,
-      'Read nonNullableStaticFinalFieldWithInitializer2');
+  throws(
+    () => Class.nonNullableStaticFinalFieldWithInitializer2,
+    'Read nonNullableStaticFinalFieldWithInitializer2',
+  );
 
-  throws(() => Class.nullableStaticFinalFieldWithInitializer2,
-      'Read nullableStaticFinalFieldWithInitializer2');
+  throws(
+    () => Class.nullableStaticFinalFieldWithInitializer2,
+    'Read nullableStaticFinalFieldWithInitializer2',
+  );
 
   var c = new Class();
   expect(17, lastInit);

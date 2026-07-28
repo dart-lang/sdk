@@ -36,6 +36,9 @@ extension on SimpleObject {
   external JSString get foo;
 }
 
+@JS('Object.create')
+external JSObject create([JSObject? proto]);
+
 @JS()
 external JSFunction fun;
 
@@ -215,6 +218,7 @@ class DartObject {
 @pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
+// TODO(srujzs): Split this test into multiple tests.
 void syncTests() {
   eval('''
     globalThis.obj = {
@@ -232,6 +236,13 @@ void syncTests() {
   Expect.isTrue(obj is JSObject);
   Expect.isTrue(confuse(obj) is JSObject);
   Expect.equals('bar', (obj as SimpleObject).foo.toDart);
+  Expect.isNull(JSObject.getPrototypeOf(create(null)));
+  final prototype = JSObject();
+  Expect.equals(prototype, JSObject.getPrototypeOf(create(prototype)));
+  // JS auto-boxes primitive values for `getPrototypeOf`.
+  final stringPrototype = JSObject.getPrototypeOf(''.toJS);
+  Expect.isNotNull(stringPrototype);
+  Expect.isTrue(stringPrototype!.has('charAt'));
 
   // [JSFunction]
   Expect.isTrue(fun is JSFunction);
@@ -674,9 +685,9 @@ void syncTests() {
   // test runner.
   if (supportsSharedArrayBuffer) {
     final sharedArrayBuffer = JSSharedArrayBuffer(4);
-    final sharedByteBuffer = JSUint8ArrayShared(
-      sharedArrayBuffer,
-    ).toDart.buffer;
+    final sharedByteBuffer = JSUint8ArrayShared(sharedArrayBuffer)
+        .toDart
+        .buffer;
     // Not a `JSArrayBuffer`.
     Expect.throws(() => sharedByteBuffer.toJS);
   }

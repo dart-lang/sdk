@@ -48,9 +48,8 @@ Future<void> main(List<String> arguments) async {
   File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
     generatedFileHeader(2018, importCustom: true) + specTypesOutput,
   );
-  File(
-    path.join(outFolder, 'protocol_custom_generated.dart'),
-  ).writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
+  File(path.join(outFolder, 'protocol_custom_generated.dart'))
+      .writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
 }
 
 const argDownload = 'download';
@@ -73,16 +72,14 @@ final String languageServerProtocolPackagePath = path.join(
   'language_server_protocol',
 );
 
-final String
-licenseComment = LineSplitter.split(File(localLicensePath).readAsStringSync())
-    .skipWhile(
-      (line) =>
-          line !=
-          'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart',
-    )
-    .skip(2)
-    .map((line) => line.isEmpty ? '//' : '// $line')
-    .join('\n');
+final String licenseComment =
+    LineSplitter.split(File(localLicensePath).readAsStringSync())
+        .skipWhile(
+          (line) => line != 'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart',
+        )
+        .skip(2)
+        .map((line) => line.isEmpty ? '//' : '// $line')
+        .join('\n');
 
 final String localLicensePath = '$languageServerProtocolPackagePath/LICENSE';
 final String localSpecPath =
@@ -90,9 +87,13 @@ final String localSpecPath =
 final String lspPackageReadmePath =
     '$languageServerProtocolPackagePath/README.md';
 
-final String sdkRootPath = File(
-  Platform.script.toFilePath(),
-).parent.parent.parent.parent.parent.path;
+final String sdkRootPath = File(Platform.script.toFilePath())
+    .parent
+    .parent
+    .parent
+    .parent
+    .parent
+    .path;
 
 final Uri specLicenseUri = Uri.parse(
   'https://microsoft.github.io/language-server-protocol/License-code.txt',
@@ -189,11 +190,11 @@ List<LspEntity> getCustomClasses() {
       baseType: ArrayType(TypeReference('TextDocumentFilterScheme')),
       renameReferences: true,
     ),
-    interface('Message', [
+    interface('Message', sealed: true, [
       field('jsonrpc', type: 'string'),
       field('clientRequestTime', type: 'int', canBeUndefined: true),
     ]),
-    interface('IncomingMessage', [
+    interface('IncomingMessage', sealed: true, [
       field('method', type: 'Method'),
       field('params', type: 'LSPAny', canBeUndefined: true),
     ], baseType: 'Message'),
@@ -275,14 +276,19 @@ List<LspEntity> getCustomClasses() {
       field('label', type: 'string'),
     ]),
 
-    // Custom types for experimental SnippetTextEdits
+    // Custom types for experimental (legacy) SnippetTextEdits
     // https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit
-    // This class is named SnippetableTextEdit because LSP v3.18 introduced
-    // a class named SnippetTextEdit. If it supports what we need, we should
-    // migrate and remove this one.
-    interface('SnippetableTextEdit', [
-      field('insertTextFormat', type: 'InsertTextFormat'),
-    ], baseType: 'TextEdit'),
+    interface(
+      'LegacySnippetTextEdit',
+      [field('insertTextFormat', type: 'InsertTextFormat')],
+      baseType: 'TextEdit',
+      comment:
+          'A custom TextEdit that supports snippets according to the '
+          'specification at '
+          'https://github.com/rust-analyzer/rust-analyzer/blob/b35559a2460e7f0b2b79a7029db0c5d4e0acdb44/docs/dev/lsp-extensions.md#snippet-textedit'
+          '. LSP v3.18 introduced standard (but slightly different) support '
+          'for SnippetTextEdits which replaces this. This will soon be removed.',
+    ),
     // Return type for refactor.validate command.
     interface('ValidateRefactorResult', [
       field('valid', type: 'boolean'),
@@ -303,7 +309,8 @@ List<LspEntity> getCustomClasses() {
       name: 'TextDocumentEditEdits',
       baseType: ArrayType(
         UnionType([
-          TypeReference('SnippetableTextEdit'),
+          TypeReference('LegacySnippetTextEdit'),
+          TypeReference('SnippetTextEdit'),
           TypeReference('AnnotatedTextEdit'),
           TypeReference('TextEdit'),
         ]),

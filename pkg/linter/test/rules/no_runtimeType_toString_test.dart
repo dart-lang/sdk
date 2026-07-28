@@ -28,7 +28,7 @@ extension E on C {
   }
 
   test_extension_onClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {}
 extension E on C {
   String f() => '$[!runtimeType!]';
@@ -80,7 +80,7 @@ class C {
   }
 
   test_interpolation_implicitThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void f() {
     '$[!runtimeType!]';
@@ -90,7 +90,7 @@ class C {
   }
 
   test_interpolation_withBraces() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void f() {
     '${[!runtimeType!]}';
@@ -131,7 +131,7 @@ class C {
   }
 
   test_toString_explicitThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void f() {
     this.runtimeType.[!toString!]();
@@ -162,7 +162,7 @@ class C {
   }
 
   test_toString_super() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   void f() {
     super.runtimeType.[!toString!]();

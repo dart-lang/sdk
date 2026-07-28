@@ -9,17 +9,17 @@ import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstructorReferenceResolutionTest);
-    defineReflectiveTests(ConstructorReferenceResolutionTest_TypeArgs);
+    defineReflectiveTests(ConstructorTearOffResolutionTest);
+    defineReflectiveTests(ConstructorTearOffResolutionTest_TypeArgs);
     defineReflectiveTests(
-      ConstructorReferenceResolutionTest_WithoutConstructorTearoffs,
+      ConstructorTearOffResolutionTest_WithoutConstructorTearoffs,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ConstructorReferenceResolutionTest extends PubPackageResolutionTest {
+class ConstructorTearOffResolutionTest extends PubPackageResolutionTest {
   test_abstractClass_factory() async {
     var result = await resolveTestCodeWithDiagnostics('''
 abstract class A {
@@ -33,8 +33,18 @@ foo() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorTearOff('A.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: <testLibrary>::@class::A::@constructor::new
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -64,8 +74,18 @@ foo() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorTearOff('A.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: <testLibrary>::@class::A::@constructor::new
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -97,8 +117,18 @@ foo() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorTearOff('A.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: <testLibrary>::@class::A::@constructor::new
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -129,8 +159,20 @@ A<String> Function() bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorTearOff('A.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A<num>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: Never}
+  staticType: A<Never> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -140,11 +182,15 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: <testLibrary>::@class::A::@constructor::foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: Never}
       staticType: null
       tearOffTypeArgumentTypes
         Never
-    element: <testLibrary>::@class::A::@constructor::foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: Never}
   staticType: A<Never> Function()
 ''');
   }
@@ -160,8 +206,20 @@ A<int> Function() bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorTearOff('A.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A<dynamic>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -171,11 +229,15 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: <testLibrary>::@class::A::@constructor::foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: int}
       staticType: null
       tearOffTypeArgumentTypes
         int
-    element: <testLibrary>::@class::A::@constructor::foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: int}
   staticType: A<int> Function()
 ''');
   }
@@ -191,8 +253,20 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorTearOff('A.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A<dynamic>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: T}
+  staticType: A<T> Function<T>()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -202,9 +276,13 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: <testLibrary>::@class::A::@constructor::foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: T}
       staticType: null
-    element: <testLibrary>::@class::A::@constructor::foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: T}
   staticType: A<T> Function<T>()
 ''');
   }
@@ -220,8 +298,20 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorTearOff('A.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A<num>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: T}
+  staticType: A<T> Function<T extends num>()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -231,9 +321,13 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: <testLibrary>::@class::A::@constructor::foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: T}
       staticType: null
-    element: <testLibrary>::@class::A::@constructor::foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: T}
   staticType: A<T> Function<T extends num>()
 ''');
   }
@@ -247,8 +341,18 @@ class A {
 const a1 = A.new;
 ''');
 
-    var node = result.findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorTearOff('A.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: <testLibrary>::@class::A::@constructor::new
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -276,8 +380,18 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorTearOff('A.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <testLibrary>::@class::A::@constructor::foo
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -305,8 +419,18 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.new;');
+    var node = result.findNode.constructorTearOff('A.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: <testLibrary>::@class::A::@constructor::new
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -337,8 +461,23 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.TA.foo;');
+    var node = result.findNode.constructorTearOff('a.TA.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: TA
+    element: package:test/a.dart::@typeAlias::TA
+    type: A
+      alias: package:test/a.dart::@typeAlias::TA
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: package:test/a.dart::@class::A::@constructor::foo
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -373,8 +512,23 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.TA.new;');
+    var node = result.findNode.constructorTearOff('a.TA.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: TA
+    element: package:test/a.dart::@typeAlias::TA
+    type: A
+      alias: package:test/a.dart::@typeAlias::TA
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: package:test/a.dart::@class::A::@constructor::new
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -408,8 +562,22 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.A.foo;');
+    var node = result.findNode.constructorTearOff('a.A.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: A
+    element: package:test/a.dart::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: package:test/a.dart::@class::A::@constructor::foo
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -443,8 +611,22 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.A.new;');
+    var node = result.findNode.constructorTearOff('a.A.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: A
+    element: package:test/a.dart::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: package:test/a.dart::@class::A::@constructor::new
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -475,8 +657,23 @@ typedef TA<T> = A<T>;
 const a = TA.new;
 ''');
 
-    var node = result.findNode.constructorReference('TA.new;');
+    var node = result.findNode.constructorTearOff('TA.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    element: <testLibrary>::@typeAlias::TA
+    type: A<dynamic>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          dynamic
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: T}
+  staticType: A<T> Function<T>()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -486,9 +683,13 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: <testLibrary>::@class::A::@constructor::new
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: T}
       staticType: null
-    element: <testLibrary>::@class::A::@constructor::new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: T}
   staticType: A<T> Function<T>()
 ''');
   }
@@ -505,8 +706,23 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('TA.foo;');
+    var node = result.findNode.constructorTearOff('TA.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    element: <testLibrary>::@typeAlias::TA
+    type: A<String, dynamic>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          dynamic
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: String, U: U}
+  staticType: A<String, U> Function<U>()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -516,9 +732,13 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: <testLibrary>::@class::A::@constructor::foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: String, U: U}
       staticType: null
-    element: <testLibrary>::@class::A::@constructor::foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: String, U: U}
   staticType: A<String, U> Function<U>()
 ''');
   }
@@ -533,8 +753,21 @@ typedef TA = A<int>;
 const a = TA.new;
 ''');
 
-    var node = result.findNode.constructorReference('TA.new;');
+    var node = result.findNode.constructorTearOff('TA.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    element: <testLibrary>::@typeAlias::TA
+    type: A<int>
+      alias: <testLibrary>::@typeAlias::TA
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -544,11 +777,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -567,8 +800,21 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('TA.foo;');
+    var node = result.findNode.constructorTearOff('TA.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    element: <testLibrary>::@typeAlias::TA
+    type: A<int>
+      alias: <testLibrary>::@typeAlias::TA
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -578,11 +824,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
@@ -591,7 +837,7 @@ ConstructorReference
 }
 
 @reflectiveTest
-class ConstructorReferenceResolutionTest_TypeArgs
+class ConstructorTearOffResolutionTest_TypeArgs
     extends PubPackageResolutionTest {
   test_alias_generic_const() async {
     var result = await resolveTestCodeWithDiagnostics('''
@@ -603,8 +849,36 @@ typedef TA<T, U> = A<U, T>;
 const a = TA<int, String>.foo;
 ''');
 
-    var node = result.findNode.constructorReference('TA<int, String>.foo;');
+    var node = result.findNode.constructorTearOff('TA<int, String>.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::TA
+    type: A<String, int>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          int
+          String
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: String, U: int}
+  staticType: A<String, int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -626,11 +900,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::foo
         substitution: {T: String, U: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: String, U: int}
   staticType: A<String, int> Function()
@@ -647,8 +921,31 @@ typedef TA<T> = A<T, String>;
 const x = TA<int>.foo;
 ''');
 
-    var node = result.findNode.constructorReference('TA<int>.foo;');
+    var node = result.findNode.constructorTearOff('TA<int>.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::TA
+    type: A<int, String>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          int
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: int, U: String}
+  staticType: A<int, String> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -666,11 +963,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::foo
         substitution: {T: int, U: String}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: int, U: String}
   staticType: A<int, String> Function()
@@ -689,8 +986,36 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('TA<int, String>.foo;');
+    var node = result.findNode.constructorTearOff('TA<int, String>.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::TA
+    type: A<String, int>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          int
+          String
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: String, U: int}
+  staticType: A<String, int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -712,11 +1037,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::foo
         substitution: {T: String, U: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: String, U: int}
   staticType: A<String, int> Function()
@@ -733,8 +1058,24 @@ typedef TA<T, U> = A<U, T>;
 const a = TA.foo;
 ''');
 
-    var node = result.findNode.constructorReference('TA.foo;');
+    var node = result.findNode.constructorTearOff('TA.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    element: <testLibrary>::@typeAlias::TA
+    type: A<dynamic, dynamic>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          dynamic
+          dynamic
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: U, U: T}
+  staticType: A<U, T> Function<T, U>()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -744,9 +1085,13 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: <testLibrary>::@class::A::@constructor::foo
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::foo
+        substitution: {T: U, U: T}
       staticType: null
-    element: <testLibrary>::@class::A::@constructor::foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: U, U: T}
   staticType: A<U, T> Function<T, U>()
 ''');
   }
@@ -763,8 +1108,31 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('TA<int>.new;');
+    var node = result.findNode.constructorTearOff('TA<int>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::TA
+    type: A<int>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          int
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -782,11 +1150,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -820,8 +1188,31 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('TA<int>.new;');
+    var node = result.findNode.constructorTearOff('TA<int>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::TA
+    type: A<int>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          int
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -839,11 +1230,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -864,8 +1255,31 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('TA<String>.new;');
+    var node = result.findNode.constructorTearOff('TA<String>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: TA
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::TA
+    type: A<String>
+      alias: <testLibrary>::@typeAlias::TA
+        typeArguments
+          String
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: String}
+  staticType: A<String> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -883,11 +1297,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: String}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: String}
   staticType: A<String> Function()
@@ -903,8 +1317,28 @@ class A<T> {
 const a = A<int>.new;
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.new;');
+    var node = result.findNode.constructorTearOff('A<int>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -922,11 +1356,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -944,8 +1378,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.foo;');
+    var node = result.findNode.constructorTearOff('A<int>.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -963,11 +1417,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1029,8 +1483,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.foo<int>;');
+    var node = result.findNode.constructorTearOff('A<int>.foo<int>;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::foo
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1048,11 +1522,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1072,8 +1546,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.new<int>;');
+    var node = result.findNode.constructorTearOff('A<int>.new<int>;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1091,11 +1585,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1115,8 +1609,26 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.i;');
+    var node = result.findNode.constructorTearOff('A<int>.i;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: i
+  element: <null>
+  staticType: InvalidType
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1154,8 +1666,26 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.;');
+    var node = result.findNode.constructorTearOff('A<int>.;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: <empty> <synthetic>
+  element: <null>
+  staticType: InvalidType
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1191,8 +1721,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.new;');
+    var node = result.findNode.constructorTearOff('A<int>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1210,11 +1760,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1232,8 +1782,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.new');
+    var node = result.findNode.constructorTearOff('A<int>.new');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1251,11 +1821,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1273,8 +1843,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.new;');
+    var node = result.findNode.constructorTearOff('A<int>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1292,11 +1882,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1316,8 +1906,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<String>.new;');
+    var node = result.findNode.constructorTearOff('A<String>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<String>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::A::@constructor::new
+    substitution: {T: String}
+  staticType: A<String> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1335,11 +1945,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: String}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: String}
   staticType: A<String> Function()
@@ -1360,8 +1970,35 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.TA<int>.new;');
+    var node = result.findNode.constructorTearOff('a.TA<int>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: TA
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: package:test/a.dart::@typeAlias::TA
+    type: A<int>
+      alias: package:test/a.dart::@typeAlias::TA
+        typeArguments
+          int
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: package:test/a.dart::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1383,11 +2020,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1407,8 +2044,32 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.A<int>.foo;');
+    var node = result.findNode.constructorTearOff('a.A<int>.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: package:test/a.dart::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: SubstitutedConstructorElementImpl
+    baseElement: package:test/a.dart::@class::A::@constructor::foo
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1430,11 +2091,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: foo
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::foo
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1457,8 +2118,32 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.A<int>.new');
+    var node = result.findNode.constructorTearOff('a.A<int>.new');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: package:test/a.dart::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: package:test/a.dart::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1480,11 +2165,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1504,8 +2189,32 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('a.A<int>.new;');
+    var node = result.findNode.constructorTearOff('a.A<int>.new;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
+      element: <testLibraryFragment>::@prefix::a
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: package:test/a.dart::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: new
+  element: SubstitutedConstructorElementImpl
+    baseElement: package:test/a.dart::@class::A::@constructor::new
+    substitution: {T: int}
+  staticType: A<int> Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1527,11 +2236,11 @@ ConstructorReference
     period: .
     name: SimpleIdentifier
       token: new
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   staticType: A<int> Function()
@@ -1540,7 +2249,7 @@ ConstructorReference
 }
 
 @reflectiveTest
-class ConstructorReferenceResolutionTest_WithoutConstructorTearoffs
+class ConstructorTearOffResolutionTest_WithoutConstructorTearoffs
     extends PubPackageResolutionTest
     with WithoutConstructorTearoffsMixin {
   test_class_generic_nonConstructor() async {
@@ -1556,8 +2265,26 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A<int>.i;');
+    var node = result.findNode.constructorTearOff('A<int>.i;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::A
+    type: A<int>
+  selector: ConstructorSelector
+    period: .
+    name2: i
+  element: <null>
+  staticType: InvalidType
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -1595,8 +2322,18 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.constructorReference('A.foo;');
+    var node = result.findNode.constructorTearOff('A.foo;');
     assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: A
+    element: <testLibrary>::@class::A
+    type: A
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <testLibrary>::@class::A::@constructor::foo
+  staticType: A Function()
 ConstructorReference
   constructorName: ConstructorName
     type: NamedType

@@ -5,6 +5,7 @@
 // Type parameters can shadow a library prefix.
 
 import "package:expect/expect.dart";
+
 import "../library10.dart" as T;
 import "../library10.dart" as lib10;
 

@@ -29,7 +29,7 @@ void foo() {
   }
 
   test_emptyCatch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   try {
     throw Exception();

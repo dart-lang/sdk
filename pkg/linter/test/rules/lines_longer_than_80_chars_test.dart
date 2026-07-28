@@ -31,7 +31,7 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
   }
 
   test_blockComment_spaceAfter80() async {
-    await assertDiagnosticsFromMarkdown(
+    await assertDiagnosticsFromMarkup(
       r'''
 /*  5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100 */!]''',
     );
@@ -51,7 +51,7 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
   }
 
   test_docComment_spaceAfter80() async {
-    await assertDiagnosticsFromMarkdown(
+    await assertDiagnosticsFromMarkup(
       r'''
 /// 5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100!]''',
     );
@@ -71,7 +71,7 @@ class LinesLongerThan80CharsTest extends LintRuleTest {
   }
 
   test_endOfLineComment_spaceAfter80() async {
-    await assertDiagnosticsFromMarkdown(
+    await assertDiagnosticsFromMarkup(
       r'''
 //  5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100!]''',
     );
@@ -92,7 +92,7 @@ var p =
   }
 
   test_longerThan80Characters() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var p =
     '                                                                          '[!;!]
 ''');
@@ -125,7 +125,7 @@ var p =
   }
 
   test_multilineBlockComment_spaceAfter80() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /*
  *  5   10   15   20   25   30   35   40   50   55   60   65   70   75   80   85[!   90   95  100!]
  */''');

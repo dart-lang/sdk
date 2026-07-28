@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue54241.dart:6:18: Error: An extension type can't depend on itself through its representation type.
+// pkg/front_end/testcases/extension_types/issue54241.dart:7:18: Error: An extension type can't depend on itself through its representation type.
 // extension type E(Function<Y extends A>() it) {}
 //                  ^
 //

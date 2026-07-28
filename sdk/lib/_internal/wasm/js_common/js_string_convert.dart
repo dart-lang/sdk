@@ -10,6 +10,7 @@ import 'dart:_js_types';
 import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:js_interop';
+import 'dart:_js_interop_wasm';
 
 /// Implements `_Utf8Decoder.convertSingle` hook for JS array inputs. Does not
 /// do bounds checking.

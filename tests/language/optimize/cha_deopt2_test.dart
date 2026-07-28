@@ -7,6 +7,7 @@
 // Test lazy deoptimization at type checks with deferred loading.
 
 import "package:expect/expect.dart";
+
 import "cha_deopt2_lib.dart";
 import "cha_deopt2_deferred_lib.dart" deferred as d;
 

@@ -18,7 +18,7 @@ class UnnecessaryNullChecksTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_this;
 
   test_closureInMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m1(List<int> list) {
     list.forEach((e) {
@@ -31,7 +31,7 @@ class A {
   }
 
   test_constructorBody_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   num x = 0;
   A.named(num a) {
@@ -42,7 +42,7 @@ class A {
   }
 
   test_constructorBody_methodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A.named() {
     [!this!].m();
@@ -54,7 +54,7 @@ class A {
   }
 
   test_constructorBody_primary_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A.named(num a) {
   num x = 0;
   this {
@@ -87,7 +87,7 @@ class A {
   }
 
   test_constructorInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   num x = 0;
   A.c1(num x)
@@ -97,7 +97,7 @@ class A {
   }
 
   test_constructorInitializer_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A(num x) {
   num x;
   this : [!this!].x = x;
@@ -122,7 +122,7 @@ extension E on int? {
   }
 
   test_extensionType_inConstructorInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(int i) {
   E.e(int i) : [!this!].i = i.hashCode;
 }
@@ -130,7 +130,7 @@ extension type E(int i) {
   }
 
   test_extensionType_inMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E(Object o) {
   String m()=> [!this!].toString();
 }
@@ -162,7 +162,7 @@ class A {
   }
 
   test_localFunctionPresent_outOfScope() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m1() {
     if (true) {
@@ -177,7 +177,7 @@ class A {
   }
 
   test_method_ofGenericClass_noShadow_fromSelf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A<T> {
   T foo() => throw 0;
 
@@ -189,7 +189,7 @@ class A<T> {
   }
 
   test_method_ofGenericClass_noShadow_fromSuper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A<T> {
   T foo() => throw 0;
 }
@@ -297,7 +297,7 @@ class C {
   }
 
   test_subclass_noShadowing() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int x = 0;
 }

@@ -18,16 +18,16 @@ void main() {
   group('AssetServer', () {
     late AssetServer server;
     late Directory tempDir;
-    late Directory assetDir;
+    late Directory dartAssetDir;
 
     setUp(() async {
       tempDir = Directory.systemTemp.createTempSync('test_server_');
-      assetDir = Directory('${tempDir.path}/assets')..createSync();
-      File('${assetDir.path}/test.txt').writeAsStringSync('asset content');
+      dartAssetDir = Directory('${tempDir.path}/assets')..createSync();
+      File('${dartAssetDir.path}/test.txt').writeAsStringSync('asset content');
 
       server = await AssetServer.listen(
         printOnFailure: printOnFailure,
-        assetPath: assetDir.uri,
+        dartAssetPath: dartAssetDir.uri,
         flutterAssetPath: null,
       );
     });
@@ -37,8 +37,8 @@ void main() {
       tempDir.deleteSync(recursive: true);
     });
 
-    test('serves assets', () async {
-      final response = await http.get(server.baseUrl.resolve('asset/test.txt'));
+    test('serves dart assets', () async {
+      final response = await http.get(server.baseUrl.resolve('dart/test.txt'));
       expect(response.statusCode, 200);
       expect(response.body, 'asset content');
     });

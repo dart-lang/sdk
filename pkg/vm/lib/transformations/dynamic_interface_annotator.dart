@@ -8,17 +8,17 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'pragma.dart'
+import 'package:vm/modular/transformations/pragma.dart'
     show
-        kDynModuleCanBeOverriddenPragmaName,
-        kDynModuleCallablePragmaName,
-        kDynModuleExtendablePragmaName,
-        kDynModuleCanBeUsedAsTypePragmaName,
-        kDynModuleImplicitlyCallablePragmaName,
-        kDynModuleImplicitlyExtendablePragmaName,
-        kDynModuleDynamicallyCallablePragmaName,
-        kDynModuleImplicitlyDynamicallyCallablePragmaName,
-        kDynModuleCanBeOverriddenImplicitlyPragmaName;
+        dynModuleCanBeOverriddenPragmaName,
+        dynModuleCallablePragmaName,
+        dynModuleExtendablePragmaName,
+        dynModuleCanBeUsedAsTypePragmaName,
+        dynModuleImplicitlyCallablePragmaName,
+        dynModuleImplicitlyExtendablePragmaName,
+        dynModuleDynamicallyCallablePragmaName,
+        dynModuleImplicitlyDynamicallyCallablePragmaName,
+        dynModuleCanBeOverriddenImplicitlyPragmaName;
 
 void annotateComponent(
   String dynamicInterfaceSpecification,
@@ -43,7 +43,7 @@ void annotateComponent(
   logger?.setActiveSection('extendable');
   final extendableAnnotator = annotateNodes(
     spec.extendable,
-    kDynModuleExtendablePragmaName,
+    dynModuleExtendablePragmaName,
     baseUri,
     coreTypes,
     annotateClasses: true,
@@ -55,14 +55,14 @@ void annotateComponent(
   );
 
   _ImplicitExtendableAnnotator(
-    pragmaConstant(coreTypes, kDynModuleImplicitlyExtendablePragmaName),
+    pragmaConstant(coreTypes, dynModuleImplicitlyExtendablePragmaName),
     extendableAnnotator.annotatedClasses,
   ).annotate();
 
   logger?.setActiveSection('can-be-overridden');
   final canBeOverriddenAnnotator = annotateNodes(
     spec.canBeOverridden,
-    kDynModuleCanBeOverriddenPragmaName,
+    dynModuleCanBeOverriddenPragmaName,
     baseUri,
     coreTypes,
     annotateClasses: false,
@@ -89,7 +89,7 @@ void annotateComponent(
   );
 
   _ImplicitOverridesAnnotator(
-    pragmaConstant(coreTypes, kDynModuleCanBeOverriddenImplicitlyPragmaName),
+    pragmaConstant(coreTypes, dynModuleCanBeOverriddenImplicitlyPragmaName),
     hierarchy,
     canBeOverriddenAnnotator.annotatedMembers,
   ).annotate();
@@ -97,7 +97,7 @@ void annotateComponent(
   logger?.setActiveSection('callable');
   final callableAnnotator = annotateNodes(
     spec.callable,
-    kDynModuleCallablePragmaName,
+    dynModuleCallablePragmaName,
     baseUri,
     coreTypes,
     annotateClasses: true,
@@ -109,7 +109,7 @@ void annotateComponent(
   );
 
   final implicitUsesAnnotator = _ImplicitUsesAnnotator(
-    pragmaConstant(coreTypes, kDynModuleImplicitlyCallablePragmaName),
+    pragmaConstant(coreTypes, dynModuleImplicitlyCallablePragmaName),
     callableAnnotator.annotatedClasses,
     callableAnnotator.annotatedMembers,
   );
@@ -121,7 +121,7 @@ void annotateComponent(
   logger?.setActiveSection('can-be-used-as-type');
   annotateNodes(
     spec.canBeUsedAsType,
-    kDynModuleCanBeUsedAsTypePragmaName,
+    dynModuleCanBeUsedAsTypePragmaName,
     baseUri,
     coreTypes,
     annotateClasses: true,
@@ -134,7 +134,7 @@ void annotateComponent(
   logger?.setActiveSection('dynamically-callable');
   final dynamicallyCallableAnnotator = annotateNodes(
     spec.dynamicallyCallable,
-    kDynModuleDynamicallyCallablePragmaName,
+    dynModuleDynamicallyCallablePragmaName,
     baseUri,
     coreTypes,
     annotateClasses: false,
@@ -146,10 +146,7 @@ void annotateComponent(
   );
 
   final dynamicallyCallableImplicitUsesAnnotator = _ImplicitUsesAnnotator(
-    pragmaConstant(
-      coreTypes,
-      kDynModuleImplicitlyDynamicallyCallablePragmaName,
-    ),
+    pragmaConstant(coreTypes, dynModuleImplicitlyDynamicallyCallablePragmaName),
     dynamicallyCallableAnnotator.annotatedClasses,
     dynamicallyCallableAnnotator.annotatedMembers,
   );

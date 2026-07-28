@@ -9,4 +9,3 @@ extension type MetadataIndex(Map<String, dynamic> map) {
 test(MetadataIndex index) {
   final MetadataIndex(:key) = index;
 }
-

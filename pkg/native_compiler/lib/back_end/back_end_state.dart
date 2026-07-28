@@ -5,6 +5,7 @@
 import 'package:cfg/ir/instructions.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/passes/unboxing.dart';
@@ -31,6 +32,9 @@ class BackEndState {
 
   /// Layout of the stack frame.
   late final StackFrame stackFrame;
+
+  /// Instruction id -> Safepoint.
+  late final List<Safepoint?> safepoints;
 
   /// Locations of inputs/outputs/temps, result of register allocation.
   late final Map<OperandId, Location> operandLocations;

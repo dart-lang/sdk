@@ -81,15 +81,11 @@ class C {
   }
 
   test_withModifier_augmentAndExternal_after() async {
-    // TODO(brianwilkerson): The `conflictingModifiers` diagnostic should not
-    //  be produced here.
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   augment external factory();
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
-//        ^^^^^^^^
-// [diag.conflictingModifiers] Members can't be declared to be both 'external' and 'augment'.
 }
 ''');
   }

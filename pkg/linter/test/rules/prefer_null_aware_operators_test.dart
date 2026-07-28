@@ -30,7 +30,7 @@ abstract class A {
   }
 
   test_identifierEqualEqualNull_null_elseMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!a == null ? null : a.b()!];
 }
@@ -42,7 +42,7 @@ abstract class A {
   }
 
   test_identifierEqualEqualNull_null_elsePrefixedIdentifier() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!a == null ? null : a.b!];
 }
@@ -54,7 +54,7 @@ abstract class A {
   }
 
   test_identifierEqualEqualNull_null_elsePropertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!a == null ? null : a.b.c!];
 }
@@ -84,7 +84,7 @@ void f(int? a, int b) {
   }
 
   test_identifierNotEqualNull_prefixedIdentifier_elseNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!a != null ? a.b : null!];
 }
@@ -96,7 +96,7 @@ abstract class A {
   }
 
   test_identifierNotEqualNull_prefixedIdentifier_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!a != null ? a.b : null!];
 }
@@ -108,7 +108,7 @@ abstract class A {
   }
 
   test_nullEqualEqualIdentifier_null_elseMethodInvocation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!null == a ? null : a.b()!];
 }
@@ -120,7 +120,7 @@ abstract class A {
   }
 
   test_nullEqualEqualIdentifier_null_elsePrefixedIdentifier() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!null == a ? null : a.b!];
 }
@@ -132,7 +132,7 @@ abstract class A {
   }
 
   test_nullEqualEqualPrefixedIdentifier_null_elsePropertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A a) {
   [!null == a.b ? null : a.b!.c!];
 }
@@ -145,7 +145,7 @@ abstract class A {
   }
 
   test_nullNotEqualIdentifier_prefixedIdentifier_elseNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A? a) {
   [!null != a ? a.b : null!];
 }
@@ -157,7 +157,7 @@ abstract class A {
   }
 
   test_nullNotEqualPrefixedIdentifier_propertyAccess_elseNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A a) {
   [!null != a.b ? a.b!.c : null!];
 }
@@ -170,7 +170,7 @@ abstract class A {
   }
 
   test_prefixedIdentifierEqualEqualNull_null_elseMethodInvocation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A a) {
   [!a.b == null ? null : a.b!.c()!];
 }
@@ -183,7 +183,7 @@ abstract class A {
   }
 
   test_prefixedIdentifierEqualEqualNull_null_elsePropertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A a) {
   [!a.b == null ? null : a.b!.c!];
 }
@@ -208,7 +208,7 @@ abstract class A {
   }
 
   test_prefixedIdentifierNotEqualNull_propertyAccess_elseNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A a) {
   [!a.b != null ? a.b!.c : null!];
 }

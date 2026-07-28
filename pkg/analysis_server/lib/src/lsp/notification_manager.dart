@@ -34,6 +34,8 @@ class LspNotificationManager extends AbstractNotificationManager {
             supportedTags: clientCapabilities?.diagnosticTags,
             clientSupportsCodeDescription:
                 clientCapabilities?.diagnosticCodeDescription ?? false,
+            clientSupportsDiagnosticData:
+                clientCapabilities?.includeAdditionalDiagnosticData ?? false,
           ),
         )
         .toList();

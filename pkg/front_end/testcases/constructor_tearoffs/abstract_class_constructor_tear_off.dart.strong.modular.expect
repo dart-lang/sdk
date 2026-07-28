@@ -2,19 +2,19 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:14:17: Error: Constructors on abstract classes can't be torn off.
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:17: Error: Constructors on abstract classes can't be torn off.
 //   AbstractClass.new; // error
 //                 ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Member not found: 'new'.
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:19:9: Error: Member not found: 'new'.
 //   Mixin.new; // error
 //         ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:17:33: Error: Constructors on abstract classes can't be torn off.
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:21:33: Error: Constructors on abstract classes can't be torn off.
 //   AbstractNamedMixinApplication.new; // error
 //                                 ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Member not found: 'new'.
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:22:13: Error: Member not found: 'new'.
 //   Extension.new; // error
 //             ^^^
 //
@@ -47,17 +47,17 @@ extension Extension on core::int {
 }
 static method test() → dynamic {
   #C1;
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:14:17: Error: Constructors on abstract classes can't be torn off.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:17: Error: Constructors on abstract classes can't be torn off.
   AbstractClass.new; // error
                 ^^^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Member not found: 'new'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:19:9: Error: Member not found: 'new'.
   Mixin.new; // error
         ^^^";
   #C2;
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:17:33: Error: Constructors on abstract classes can't be torn off.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:21:33: Error: Constructors on abstract classes can't be torn off.
   AbstractNamedMixinApplication.new; // error
                                 ^^^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Member not found: 'new'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:22:13: Error: Member not found: 'new'.
   Extension.new; // error
             ^^^";
 }

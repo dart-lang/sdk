@@ -8,6 +8,7 @@
 sealed class NotConstructable {}
 
 mixin M {}
+
 sealed class NotConstructableWithMixin = Object with M;
 
 main() {

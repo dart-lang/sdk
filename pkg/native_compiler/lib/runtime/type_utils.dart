@@ -136,6 +136,59 @@ int computeIndexOfTypeParameter(ast.TypeParameter tp) {
   return index;
 }
 
+enum TypeArgumentsReuse {
+  /// Indicates that instantiator type arguments from corresponding receiver instance
+  /// can be reused when instantiating type arguments.
+  instantiator,
+
+  /// Indicates that function type arguments from the enclosing function
+  /// can be reused when instantiating type arguments.
+  function,
+
+  /// Type arguments cannot be reused and should be instantiated.
+  none,
+}
+
+bool _isPrefixOf(List<ast.DartType> prefix, List<ast.DartType> types) {
+  if (prefix.length > types.length) {
+    return false;
+  }
+  for (var i = 0; i < prefix.length; ++i) {
+    if (prefix[i] != types[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+TypeArgumentsReuse computeTypeArgumentsReuse(List<ast.DartType> types) {
+  if (types.isEmpty) {
+    return .none;
+  }
+  final type = types.last;
+  if (type is! ast.TypeParameterType || type.nullability == .nullable) {
+    return .none;
+  }
+  final decl = type.parameter.declaration;
+  switch (decl) {
+    case ast.Class():
+      final instantiatorTypeArgs = flattenInstantiatorTypeArguments(
+        decl,
+        decl.typeParameters
+            .map(ast.TypeParameterType.withDefaultNullability)
+            .toList(),
+      );
+      return _isPrefixOf(types, instantiatorTypeArgs) ? .instantiator : .none;
+    case ast.Procedure():
+      final functionTypeArgs = decl.typeParameters
+          .map(ast.TypeParameterType.withDefaultNullability)
+          .toList();
+      return _isPrefixOf(types, functionTypeArgs) ? .function : .none;
+    default:
+      return .none;
+  }
+}
+
 /// Return enclosing member of the given [node].
 ast.Member getEnclosingMember(ast.TreeNode node) {
   do {

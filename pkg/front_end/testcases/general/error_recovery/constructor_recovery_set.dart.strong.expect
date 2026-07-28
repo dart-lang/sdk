@@ -55,6 +55,5 @@ class Foo extends core::Object {
     invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_set.dart:7:10: Error: A setter should have exactly one formal parameter.
   set Foo() {}
          ^";
-    {}
   }
 }

@@ -32,23 +32,32 @@ final x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer: MethodInvocation
+  initializer2: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: g
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
           element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: z
+                declaredFragment: <testLibraryFragment> z@100
+                  element: hasImplicitType isPublic
+                    type: Object?
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: z
@@ -58,7 +67,7 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@100
@@ -73,7 +82,7 @@ VariableDeclaration
           declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: InvalidType Function(Object?)
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}
           staticType: InvalidType Function(Object?)
@@ -99,23 +108,32 @@ final String? x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer: MethodInvocation
+  initializer2: MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
       staticType: T? Function<T>(T Function(), int Function(T))
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: g
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
           element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: z
+                declaredFragment: <testLibraryFragment> z@108
+                  element: hasImplicitType isPublic
+                    type: String
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: z
@@ -125,7 +143,7 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: PrefixedIdentifier
+            expression2: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@108
@@ -140,7 +158,7 @@ VariableDeclaration
           declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: int Function(String)
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}
           staticType: int Function(String)

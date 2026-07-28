@@ -5,6 +5,7 @@
 // Test for issue: https://github.com/dart-lang/sdk/issues/39994
 
 import "dart:async";
+
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 

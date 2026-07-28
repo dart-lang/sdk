@@ -1,0 +1,19 @@
+List<int> intList = <int>[0, 1, 2];
+
+Set<(int, int)> intIntSet = <(int, int)>{(0, 1), (2, 3)};
+
+Set<int>? nullableIntSet1 = <int>{0, 1, 2};
+
+Set<int>? nullableIntSet2 = null;
+
+Set<int> intSet = <int>{0, 1, 2};
+
+Set<num> numSet = <num>{0, 1, 2};
+
+T id<T>(T t) => t;
+
+main() {}
+
+num? nullableNum1 = 0;
+
+num? nullableNum2 = null;

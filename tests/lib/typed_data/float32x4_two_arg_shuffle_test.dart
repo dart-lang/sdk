@@ -7,6 +7,7 @@
 library float32x4_two_arg_shuffle_test;
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 testWithZWInXY() {

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:44:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const var4 = C();
 //              ^
@@ -43,7 +43,7 @@ static const field core::String printString = "print";
 static const field self::Simple var1 = const self::Simple::•(self::printString);
 static const field self::Simple2 var2 = const self::Simple2::•(self::printString);
 static const field self::B var3 = const self::B::•();
-static const field invalid-type var4 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field invalid-type var4 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:44:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const var4 = C();
              ^";
@@ -53,6 +53,6 @@ static method main() → void
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor_error.dart:12:14 -> InstanceConstant(const Simple{Simple.name: "print"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor_error.dart:21:14 -> InstanceConstant(const Simple2{Simple2.name: "print"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor_error.dart:30:14 -> InstanceConstant(const B{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor_error.dart:22:14 -> InstanceConstant(const Simple2{Simple2.name: "print"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_functions_const_ctor_error.dart:32:14 -> InstanceConstant(const B{})
 Extra constant evaluation: evaluated: 5, effectively constant: 3

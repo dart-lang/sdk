@@ -18,13 +18,13 @@ class PreferSingleQuotesTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_single_quotes;
 
   test_doubleQuotes() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!"no quote"!];
 ''');
   }
 
   test_doubleQuotes_import() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import [!"dart:core"!];
 ''');
   }
@@ -44,7 +44,7 @@ void f(String p) {
   }
 
   test_doubleQuotes_interpolation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(String p) {
   [!"no quote $p"!];
 }
@@ -58,7 +58,7 @@ var x = "foo ${1 == 'x'} bar";
   }
 
   test_doubleQuotes_raw() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!r"no quote"!];
 ''');
   }
@@ -70,7 +70,7 @@ var x = r"has quote '";
   }
 
   test_doubleQuotes_triple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!r"""no quote"""!];
 ''');
   }

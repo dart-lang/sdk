@@ -2,134 +2,134 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:61:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:62:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
 //  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 // Try changing the operand or remove the type arguments.
 // var topLevel3 = c2<int>; // error
 //                   ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:62:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:63:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
 //  - 'GetterCall' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 // Try changing the operand or remove the type arguments.
 // var topLevel4 = c3<int>; // error
 //                   ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:63:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:64:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
 // Try changing the operand or remove the type arguments.
 // var topLevel5 = i2<int>; // error
 //                   ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:64:19: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:65:19: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
 // Try changing the operand or remove the type arguments.
 // var topLevel6 = f1<int>; // error
 //                   ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:65:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:66:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
 // Try changing the operand or remove the type arguments.
 // var topLevel7 = n<int>; // error
 //                  ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:66:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:67:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 // Try changing the operand or remove the type arguments.
 // var topLevel8 = d<int>; // error
 //                  ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:67:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:68:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 // Try changing the operand or remove the type arguments.
 // var topLevel9 = a<int>; // error
 //                  ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:68:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:69:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
 // Try changing the operand or remove the type arguments.
 // var topLevel10 = b<int>; // error
 //                   ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:69:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:70:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
 // Try changing the operand or remove the type arguments.
 // var topLevel11 = c<int>; // error
 //                   ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:70:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:71:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
 //  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 // Try changing the operand or remove the type arguments.
 // var topLevel12 = f2<int>; // error
 //                    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:71:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:72:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
 //  - 'Function' is from 'dart:core'.
 // Try changing the operand or remove the type arguments.
 // var topLevel13 = f3<int>; // error
 //                    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:29:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:30:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
 //  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 // Try changing the operand or remove the type arguments.
 //   c1<int>; // error
 //     ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:30:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:31:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
 //  - 'GetterCall' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 // Try changing the operand or remove the type arguments.
 //   c2<int>; // error
 //     ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:31:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:32:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
 // Try changing the operand or remove the type arguments.
 //   i<int>; // error
 //    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:32:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:33:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
 // Try changing the operand or remove the type arguments.
 //   t1<int>; // error
 //     ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:33:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:34:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T?'.
 // Try changing the operand or remove the type arguments.
 //   t2<int>; // error
 //     ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:34:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'S?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:35:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'S?'.
 // Try changing the operand or remove the type arguments.
 //   s<int>; // error
 //    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:35:5: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:36:5: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
 // Try changing the operand or remove the type arguments.
 //   f1<int>; // error
 //     ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:36:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:37:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
 // Try changing the operand or remove the type arguments.
 //   n<int>; // error
 //    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:37:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:38:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 // Try changing the operand or remove the type arguments.
 //   d<int>; // error
 //    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:38:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:39:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 // Try changing the operand or remove the type arguments.
 //   a<int>; // error
 //    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:39:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:40:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
 // Try changing the operand or remove the type arguments.
 //   b<int>; // error
 //    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:40:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:41:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
 // Try changing the operand or remove the type arguments.
 //   c<int>; // error
 //    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:41:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:42:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
 //  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 // Try changing the operand or remove the type arguments.
 //   f2<int>; // error
 //     ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:42:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
+// pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:43:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
 //  - 'Function' is from 'dart:core'.
 // Try changing the operand or remove the type arguments.
 //   f3<int>; // error
@@ -186,50 +186,50 @@ static field FutureOr<self::Class>f2 = new self::Class::•();
 static field core::Function f3 = () → Null {};
 static field () → dynamic topLevel1 = self::c1.{self::Class::call}{<T extends core::Object? = dynamic>() → dynamic}<core::int>;
 static field () → dynamic topLevel2 = self::Extension|get#call(self::i1)<core::int>;
-static field invalid-type topLevel3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:61:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
+static field invalid-type topLevel3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:62:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 Try changing the operand or remove the type arguments.
 var topLevel3 = c2<int>; // error
                   ^";
-static field invalid-type topLevel4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:62:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
+static field invalid-type topLevel4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:63:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
  - 'GetterCall' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 Try changing the operand or remove the type arguments.
 var topLevel4 = c3<int>; // error
                   ^";
-static field invalid-type topLevel5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:63:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
+static field invalid-type topLevel5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:64:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
 Try changing the operand or remove the type arguments.
 var topLevel5 = i2<int>; // error
                   ^";
-static field invalid-type topLevel6 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:64:19: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
+static field invalid-type topLevel6 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:65:19: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
 Try changing the operand or remove the type arguments.
 var topLevel6 = f1<int>; // error
                   ^";
-static field invalid-type topLevel7 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:65:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+static field invalid-type topLevel7 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:66:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
 Try changing the operand or remove the type arguments.
 var topLevel7 = n<int>; // error
                  ^";
-static field invalid-type topLevel8 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:66:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+static field invalid-type topLevel8 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:67:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 Try changing the operand or remove the type arguments.
 var topLevel8 = d<int>; // error
                  ^";
-static field invalid-type topLevel9 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:67:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
+static field invalid-type topLevel9 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:68:18: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 Try changing the operand or remove the type arguments.
 var topLevel9 = a<int>; // error
                  ^";
-static field invalid-type topLevel10 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:68:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
+static field invalid-type topLevel10 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:69:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
 Try changing the operand or remove the type arguments.
 var topLevel10 = b<int>; // error
                   ^";
-static field invalid-type topLevel11 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:69:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
+static field invalid-type topLevel11 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:70:19: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
 Try changing the operand or remove the type arguments.
 var topLevel11 = c<int>; // error
                   ^";
-static field invalid-type topLevel12 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:70:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
+static field invalid-type topLevel12 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:71:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 Try changing the operand or remove the type arguments.
 var topLevel12 = f2<int>; // error
                    ^";
-static field invalid-type topLevel13 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:71:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
+static field invalid-type topLevel13 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:72:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
  - 'Function' is from 'dart:core'.
 Try changing the operand or remove the type arguments.
 var topLevel13 = f3<int>; // error
@@ -241,62 +241,62 @@ static method method<T extends self::Class, S extends core::int>(self::Class c, 
   self::Extension|get#call(s)<core::int>;
 }
 static method test<T extends self::Class?, S extends core::int>(self::Class? c1, self::GetterCall c2, core::int? i, self::test::T% t1, self::test::T? t2, self::test::S? s, <T extends core::Object? = dynamic>() →? void f1, Never n, dynamic d, core::String a, core::double b, core::bool c, FutureOr<self::Class>f2, core::Function f3) → dynamic {
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:29:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:30:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 Try changing the operand or remove the type arguments.
   c1<int>; // error
     ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:30:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:31:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'GetterCall'.
  - 'GetterCall' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 Try changing the operand or remove the type arguments.
   c2<int>; // error
     ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:31:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:32:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int?'.
 Try changing the operand or remove the type arguments.
   i<int>; // error
    ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:32:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:33:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
 Try changing the operand or remove the type arguments.
   t1<int>; // error
     ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:33:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T?'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:34:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T?'.
 Try changing the operand or remove the type arguments.
   t2<int>; // error
     ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:34:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'S?'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:35:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'S?'.
 Try changing the operand or remove the type arguments.
   s<int>; // error
    ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:35:5: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:36:5: Error: The static type of the explicit instantiation operand must be a non-null generic function type but is 'void Function<T>()?'.
 Try changing the operand or remove the type arguments.
   f1<int>; // error
     ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:36:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:37:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
 Try changing the operand or remove the type arguments.
   n<int>; // error
    ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:37:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:38:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 Try changing the operand or remove the type arguments.
   d<int>; // error
    ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:38:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:39:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 Try changing the operand or remove the type arguments.
   a<int>; // error
    ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:39:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:40:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'double'.
 Try changing the operand or remove the type arguments.
   b<int>; // error
    ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:40:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:41:4: Error: The static type of the explicit instantiation operand must be a generic function type but is 'bool'.
 Try changing the operand or remove the type arguments.
   c<int>; // error
    ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:41:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:42:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'FutureOr<Class>'.
  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart'.
 Try changing the operand or remove the type arguments.
   f2<int>; // error
     ^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:42:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/callable_instantiation.dart:43:5: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
  - 'Function' is from 'dart:core'.
 Try changing the operand or remove the type arguments.
   f3<int>; // error

@@ -19,11 +19,9 @@ namespace dart {
 enum class IdSpace : uint8_t {
   kInvalid = 0,   // So default-constructed ObjectIds are invalid.
   kSnapshot = 1,  // Can be VM or Isolate heap, they share ids.
-  kVmText = 2,
-  kIsolateText = 3,
-  kVmData = 4,
-  kIsolateData = 5,
-  kArtificial = 6,  // Artificial objects (e.g. the global root).
+  kIsolateText = 2,
+  kIsolateData = 3,
+  kArtificial = 4,  // Artificial objects (e.g. the global root).
   // Change ObjectId::kIdSpaceBits to use last entry if more are added.
 };
 

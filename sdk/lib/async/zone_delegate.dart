@@ -24,154 +24,123 @@ part of 'dart:async';
 ///   zone the action has been initiated in.
 /// 2. delegate calls are more efficient, since the implementation knows how
 ///   to skip zones that would just delegate to their parents.
-abstract final class ZoneDelegate {
+final class ZoneDelegate {
+  // TODO: Make this an extension type on `Zone` if ever possible,
+  // to avoid the cyclic dependencies.
+
+  ZoneDelegate._();
+
+  /// The zone this delegate delegates to.
+  ///
+  /// Is mutable to allow a zone to refer to its delegate, and a delegate
+  /// to refer back to its zone. Is overwritten when the zone has been created.
+  /// The root zone, which is `const`, has its delegate stored outside
+  /// the zone.
+  ///
+  /// Uses root zone as dummy value to avoid being nullable.
+  Zone _zone = _rootZone;
+
   // Invoke the [HandleUncaughtErrorHandler] of the zone with a current zone.
-  void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace);
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace) {
+    _zone._handleUncaughtErrorZoned(zone, error, stackTrace);
+  }
 
   // Invokes the [RunHandler] of the zone with a current zone.
-  R run<R>(Zone zone, R f());
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  R run<R>(Zone zone, R Function() action) => _zone._runZoned<R>(zone, action);
 
   // Invokes the [RunUnaryHandler] of the zone with a current zone.
-  R runUnary<R, T>(Zone zone, R f(T arg), T arg);
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  R runUnary<R, T>(Zone zone, R Function(T) action, T argument) =>
+      _zone._runUnaryZoned<R, T>(zone, action, argument);
 
   // Invokes the [RunBinaryHandler] of the zone with a current zone.
-  R runBinary<R, T1, T2>(Zone zone, R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2);
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  R runBinary<R, T1, T2>(
+    Zone zone,
+    R Function(T1, T2) action,
+    T1 argument1,
+    T2 argument2,
+  ) => _zone._runBinaryZoned<R, T1, T2>(zone, action, argument1, argument2);
 
   // Invokes the [RegisterCallbackHandler] of the zone with a current zone.
-  ZoneCallback<R> registerCallback<R>(Zone zone, R f());
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  ZoneCallback<R> registerCallback<R>(Zone zone, R Function() callback) =>
+      _zone._registerCallbackZoned<R>(zone, callback);
 
   // Invokes the [RegisterUnaryHandler] of the zone with a current zone.
-  ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(Zone zone, R f(T arg));
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(
+    Zone zone,
+    R Function(T) callback,
+  ) => _zone._registerUnaryCallbackZoned<R, T>(zone, callback);
 
   // Invokes the [RegisterBinaryHandler] of the zone with a current zone.
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
   ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
     Zone zone,
-    R f(T1 arg1, T2 arg2),
-  );
+    R Function(T1, T2) callback,
+  ) => _zone._registerBinaryCallbackZoned<R, T1, T2>(zone, callback);
 
   // Invokes the [ErrorCallbackHandler] of the zone with a current zone.
-  AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace);
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace) =>
+      _zone._errorCallbackZoned(zone, error, stackTrace);
 
   // Invokes the [ScheduleMicrotaskHandler] of the zone with a current zone.
-  void scheduleMicrotask(Zone zone, void f());
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  void scheduleMicrotask(Zone zone, void Function() callback) {
+    _zone._scheduleMicrotaskZoned(zone, callback);
+  }
 
   // Invokes the [CreateTimerHandler] of the zone with a current zone.
-  Timer createTimer(Zone zone, Duration duration, void f());
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  Timer createTimer(Zone zone, Duration duration, void Function() callback) =>
+      _zone._createTimerZoned(zone, duration, callback);
 
   // Invokes the [CreatePeriodicTimerHandler] of the zone with a current zone.
-  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer));
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  Timer createPeriodicTimer(
+    Zone zone,
+    Duration period,
+    void Function(Timer) callback,
+  ) => _zone._createPeriodicTimerZoned(zone, period, callback);
 
   // Invokes the [PrintHandler] of the zone with a current zone.
-  void print(Zone zone, String line);
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  void print(Zone zone, String line) {
+    _zone._printZoned(zone, line);
+  }
 
   // Invokes the [ForkHandler] of the zone with a current zone.
-  Zone fork(Zone zone, ZoneSpecification? specification, Map? zoneValues);
-}
-
-base class _ZoneDelegate implements ZoneDelegate {
-  final _Zone _delegationTarget;
-
-  _ZoneDelegate(this._delegationTarget);
-
-  void handleUncaughtError(Zone zone, Object error, StackTrace stackTrace) {
-    _delegationTarget._processUncaughtError(zone, error, stackTrace);
-  }
-
-  R run<R>(Zone zone, R f()) {
-    var implementation = _delegationTarget._run;
-    _Zone implZone = implementation.zone;
-    var handler = implementation.function as RunHandler;
-    return handler(implZone, implZone._parentDelegate, zone, f);
-  }
-
-  R runUnary<R, T>(Zone zone, R f(T arg), T arg) {
-    var implementation = _delegationTarget._runUnary;
-    _Zone implZone = implementation.zone;
-    var handler = implementation.function as RunUnaryHandler;
-    return handler(implZone, implZone._parentDelegate, zone, f, arg);
-  }
-
-  R runBinary<R, T1, T2>(Zone zone, R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2) {
-    var implementation = _delegationTarget._runBinary;
-    _Zone implZone = implementation.zone;
-    var handler = implementation.function as RunBinaryHandler;
-    return handler(implZone, implZone._parentDelegate, zone, f, arg1, arg2);
-  }
-
-  ZoneCallback<R> registerCallback<R>(Zone zone, R f()) {
-    var implementation = _delegationTarget._registerCallback;
-    _Zone implZone = implementation.zone;
-    var handler = implementation.function as RegisterCallbackHandler;
-    return handler(implZone, implZone._parentDelegate, zone, f);
-  }
-
-  ZoneUnaryCallback<R, T> registerUnaryCallback<R, T>(Zone zone, R f(T arg)) {
-    var implementation = _delegationTarget._registerUnaryCallback;
-    _Zone implZone = implementation.zone;
-    var handler = implementation.function as RegisterUnaryCallbackHandler;
-    return handler(implZone, implZone._parentDelegate, zone, f);
-  }
-
-  ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
-    Zone zone,
-    R f(T1 arg1, T2 arg2),
-  ) {
-    var implementation = _delegationTarget._registerBinaryCallback;
-    _Zone implZone = implementation.zone;
-    var handler = implementation.function as RegisterBinaryCallbackHandler;
-    return handler(implZone, implZone._parentDelegate, zone, f);
-  }
-
-  AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace) {
-    var implementation = _delegationTarget._errorCallback;
-    _Zone implZone = implementation.zone;
-    if (identical(implZone, _rootZone)) return null;
-    ErrorCallbackHandler handler = implementation.function;
-    return handler(implZone, implZone._parentDelegate, zone, error, stackTrace);
-  }
-
-  void scheduleMicrotask(Zone zone, f()) {
-    var implementation = _delegationTarget._scheduleMicrotask;
-    _Zone implZone = implementation.zone;
-    ScheduleMicrotaskHandler handler = implementation.function;
-    handler(implZone, implZone._parentDelegate, zone, f);
-  }
-
-  Timer createTimer(Zone zone, Duration duration, void f()) {
-    var implementation = _delegationTarget._createTimer;
-    _Zone implZone = implementation.zone;
-    CreateTimerHandler handler = implementation.function;
-    return handler(implZone, implZone._parentDelegate, zone, duration, f);
-  }
-
-  Timer createPeriodicTimer(Zone zone, Duration period, void f(Timer timer)) {
-    var implementation = _delegationTarget._createPeriodicTimer;
-    _Zone implZone = implementation.zone;
-    CreatePeriodicTimerHandler handler = implementation.function;
-    return handler(implZone, implZone._parentDelegate, zone, period, f);
-  }
-
-  void print(Zone zone, String line) {
-    var implementation = _delegationTarget._print;
-    _Zone implZone = implementation.zone;
-    PrintHandler handler = implementation.function;
-    handler(implZone, implZone._parentDelegate, zone, line);
-  }
-
-  Zone fork(
-    Zone zone,
-    ZoneSpecification? specification,
-    Map<Object?, Object?>? zoneValues,
-  ) {
-    var implementation = _delegationTarget._fork;
-    _Zone implZone = implementation.zone;
-    ForkHandler handler = implementation.function;
-    return handler(
-      implZone,
-      implZone._parentDelegate,
-      zone,
-      specification,
-      zoneValues,
-    );
-  }
+  @pragma('dart2js:prefer-inline')
+  @pragma('dart2wasm:prefer-inline')
+  @pragma('vm:prefer-inline')
+  Zone fork(Zone zone, ZoneSpecification? specification, Map? zoneValues) =>
+      _zone._forkZoned(zone, specification, zoneValues);
 }

@@ -65,8 +65,9 @@ class Server extends ServerBase {
   /// the future will be completed with an error.
   @override
   Future<Map<String, Object?>?> send(
-          String method, Map<String, Object?>? params) =>
-      sendCommandWith(method, params, _process!.stdin.add);
+    String method,
+    Map<String, Object?>? params,
+  ) => sendCommandWith(method, params, _process!.stdin.add);
 
   /// Start the server.
   ///
@@ -104,13 +105,25 @@ class Server extends ServerBase {
     // (you need to run test.py with --use-sdk).
     if (serverPath == null) {
       // Look for snapshots/analysis_server.dart.snapshot.
-      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-          'snapshots', 'analysis_server.dart.snapshot'));
+      serverPath = normalize(
+        join(
+          dirname(Platform.resolvedExecutable),
+          'snapshots',
+          'analysis_server.dart.snapshot',
+        ),
+      );
 
       if (!FileSystemEntity.isFileSync(serverPath)) {
         // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
-        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+        serverPath = normalize(
+          join(
+            dirname(Platform.resolvedExecutable),
+            'dart-sdk',
+            'bin',
+            'snapshots',
+            'analysis_server.dart.snapshot',
+          ),
+        );
       }
     }
 
@@ -139,14 +152,17 @@ class Server extends ServerBase {
     //
     arguments.add(serverPath);
 
-    arguments.addAll(getServerArguments(
+    arguments.addAll(
+      getServerArguments(
         clientId: clientId,
         clientVersion: clientVersion,
         suppressAnalytics: suppressAnalytics,
         diagnosticPort: diagnosticPort,
         instrumentationLogFile: instrumentationLogFile,
         sdkPath: sdkPath,
-        useAnalysisHighlight2: useAnalysisHighlight2));
+        useAnalysisHighlight2: useAnalysisHighlight2,
+      ),
+    );
 
     listener?.startingServer(dartBinary, arguments);
     final process = await Process.start(dartBinary, arguments);
@@ -176,14 +192,18 @@ class Server extends ServerBase {
     _process = null;
     await future
         // fall through to wait for exit
-        .timeout(timeLimit, onTimeout: () {
-      return {};
-    }).whenComplete(() async {
-      await _stderrSubscription?.cancel();
-      _stderrSubscription = null;
-      await _stdoutSubscription?.cancel();
-      _stdoutSubscription = null;
-    });
+        .timeout(
+          timeLimit,
+          onTimeout: () {
+            return {};
+          },
+        )
+        .whenComplete(() async {
+          await _stderrSubscription?.cancel();
+          _stderrSubscription = null;
+          await _stdoutSubscription?.cancel();
+          _stdoutSubscription = null;
+        });
     return process.exitCode.timeout(
       timeLimit,
       onTimeout: () {

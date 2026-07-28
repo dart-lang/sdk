@@ -30,7 +30,7 @@ T b<T>() => throw '';
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: MethodInvocation
+  leftOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::a
@@ -43,8 +43,8 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand: FunctionExpressionInvocation
-    function: SimpleIdentifier
+  rightOperand2: FunctionExpressionInvocation
+    function2: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
@@ -71,12 +71,12 @@ void f(bool a, bool b) {
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: SimpleIdentifier
+  leftOperand2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: &&
-  rightOperand: SimpleIdentifier
+  rightOperand2: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -103,7 +103,7 @@ T b<T>() => throw '';
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: MethodInvocation
+  leftOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::a
@@ -116,8 +116,8 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand: FunctionExpressionInvocation
-    function: SimpleIdentifier
+  rightOperand2: FunctionExpressionInvocation
+    function2: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
@@ -144,12 +144,12 @@ void f(bool a, bool b) {
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: SimpleIdentifier
+  leftOperand2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: bool
   operator: ||
-  rightOperand: SimpleIdentifier
+  rightOperand2: SimpleIdentifier
     token: b
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b

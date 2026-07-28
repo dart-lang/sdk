@@ -66,9 +66,8 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (node case TypedLiteral(
-      :var typeArguments,
-    ) when typeArguments == null || typeArguments.isSynthetic) {
+    if (node case TypedLiteral(:var typeArguments)
+        when typeArguments == null || typeArguments.isSynthetic) {
       await _typedLiteral(builder, node);
       return;
     }

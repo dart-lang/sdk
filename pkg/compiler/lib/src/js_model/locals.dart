@@ -268,7 +268,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     final variableMap = _variableMap ??= {};
     return variableMap.putIfAbsent(node, () {
       JLocal local = JLocal(
-        node.name,
+        node.cosmeticName,
         currentMember,
         isRegularParameter: node.parent is ir.FunctionNode,
       );

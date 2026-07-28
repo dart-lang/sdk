@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C<X> {}
+
 typedef G<X> = X Function(X);
 typedef A<X extends G<C<X>>> = C<X>;
 

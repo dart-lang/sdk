@@ -7,6 +7,7 @@
 library hash_set_type_check_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:collection';
 
 // TODO: all this test does now is verify that lookup takes a non-T

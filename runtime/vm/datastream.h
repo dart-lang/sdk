@@ -340,7 +340,9 @@ struct AbstractWriteStream : public ValueObject {
   virtual ~AbstractWriteStream() {}
 
   virtual intptr_t Position() const = 0;
-  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0) = 0;
+  virtual intptr_t Align(intptr_t alignment,
+                         intptr_t offset = 0,
+                         uint8_t fill_byte = 0) = 0;
   virtual void WriteBytes(const void* addr, intptr_t len) = 0;
   virtual void WriteByte(uint8_t value) = 0;
 
@@ -435,14 +437,16 @@ class BaseWriteStream : public AbstractWriteStream {
   virtual intptr_t Position() const { return current_ - buffer_; }
   intptr_t initial_size() const { return initial_size_; }
 
-  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0) {
+  virtual intptr_t Align(intptr_t alignment,
+                         intptr_t offset = 0,
+                         uint8_t fill_byte = 0) {
     const intptr_t position_before = Position();
     const intptr_t position_after =
         Utils::RoundUp(position_before, alignment, offset);
     const intptr_t length = position_after - position_before;
     if (length != 0) {
       EnsureSpace(length);
-      memset(current_, 0, length);
+      memset(current_, fill_byte, length);
       SetPosition(position_after);
     }
     return length;

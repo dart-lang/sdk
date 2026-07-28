@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {}
+
 extension type E(Object? it) {}
+
 typedef TA = A;
 typedef TE = E;
 

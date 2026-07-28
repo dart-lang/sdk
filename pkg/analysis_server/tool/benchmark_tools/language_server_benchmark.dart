@@ -401,14 +401,23 @@ abstract class DartLanguageServerBenchmark {
         Map<String, dynamic> message =
             json.decode(messageString) as Map<String, dynamic>;
 
-        // LSP: {"jsonrpc":"2.0","method":"$/analyzerStatus","params":{"isAnalyzing":false}}
+        // For standard LSP progress notifications we need to respond to
+        // the server calling 'window/workDoneProgress/create' before it will
+        // send the progress notification.
+        if (_lsp && message['method'] == r'window/workDoneProgress/create') {
+          sendNoFlush(LspMessages.response(message['id'], null));
+        }
+
+        // LSP: {"jsonrpc":"2.0","method":"$/progress","params":{"token":"ANALYZING","value":{"kind":"begin"...
         // Analyzer: {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
-        if ((_lsp && message['method'] == r'$/analyzerStatus') ||
+        if ((_lsp &&
+                message['method'] == r'$/progress' &&
+                message['params']['token'] == 'ANALYZING') ||
             (!_lsp && message['event'] == 'server.status')) {
           dynamic params = message['params'];
           if (params is Map) {
             dynamic isAnalyzing = _lsp
-                ? params['isAnalyzing']
+                ? (params['value']?['kind'] == 'begin')
                 : params['analysis']?['isAnalyzing'];
             if (isAnalyzing is bool) {
               latestIsAnalyzing = isAnalyzing;

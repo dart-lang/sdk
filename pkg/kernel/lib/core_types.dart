@@ -349,13 +349,17 @@ class CoreTypes {
     '_InitializedCell',
   );
 
-  late final Constructor initializedCellConstructor =
-      index.getMember('dart:_late_helper', '_InitializedCell', '')
-          as Constructor;
+  late final Constructor initializedCellConstructor = index.getMember(
+    'dart:_late_helper',
+    '_InitializedCell',
+    '',
+  ) as Constructor;
 
-  late final Constructor initializedCellNamedConstructor =
-      index.getMember('dart:_late_helper', '_InitializedCell', 'named')
-          as Constructor;
+  late final Constructor initializedCellNamedConstructor = index.getMember(
+    'dart:_late_helper',
+    '_InitializedCell',
+    'named',
+  ) as Constructor;
 
   late final Procedure cellReadLocal =
       index.getMember('dart:_late_helper', '_Cell', 'readLocal') as Procedure;
@@ -363,32 +367,44 @@ class CoreTypes {
   late final Procedure cellReadField =
       index.getMember('dart:_late_helper', '_Cell', 'readField') as Procedure;
 
-  late final Procedure initializedCellRead =
-      index.getMember('dart:_late_helper', '_InitializedCell', 'read')
-          as Procedure;
+  late final Procedure initializedCellRead = index.getMember(
+    'dart:_late_helper',
+    '_InitializedCell',
+    'read',
+  ) as Procedure;
 
-  late final Procedure initializedCellReadFinal =
-      index.getMember('dart:_late_helper', '_InitializedCell', 'readFinal')
-          as Procedure;
+  late final Procedure initializedCellReadFinal = index.getMember(
+    'dart:_late_helper',
+    '_InitializedCell',
+    'readFinal',
+  ) as Procedure;
 
   late final Procedure cellValueSetter =
       index.getMember('dart:_late_helper', '_Cell', 'set:value') as Procedure;
 
-  late final Procedure cellFinalLocalValueSetter =
-      index.getMember('dart:_late_helper', '_Cell', 'set:finalLocalValue')
-          as Procedure;
+  late final Procedure cellFinalLocalValueSetter = index.getMember(
+    'dart:_late_helper',
+    '_Cell',
+    'set:finalLocalValue',
+  ) as Procedure;
 
-  late final Procedure cellFinalFieldValueSetter =
-      index.getMember('dart:_late_helper', '_Cell', 'set:finalFieldValue')
-          as Procedure;
+  late final Procedure cellFinalFieldValueSetter = index.getMember(
+    'dart:_late_helper',
+    '_Cell',
+    'set:finalFieldValue',
+  ) as Procedure;
 
-  late final Procedure initializedCellValueSetter =
-      index.getMember('dart:_late_helper', '_InitializedCell', 'set:value')
-          as Procedure;
+  late final Procedure initializedCellValueSetter = index.getMember(
+    'dart:_late_helper',
+    '_InitializedCell',
+    'set:value',
+  ) as Procedure;
 
-  late final Procedure initializedCellFinalValueSetter =
-      index.getMember('dart:_late_helper', '_InitializedCell', 'set:finalValue')
-          as Procedure;
+  late final Procedure initializedCellFinalValueSetter = index.getMember(
+    'dart:_late_helper',
+    '_InitializedCell',
+    'set:finalValue',
+  ) as Procedure;
 
   late final Procedure lateReadCheck = index.getTopLevelProcedure(
     'dart:_late_helper',

@@ -28,7 +28,7 @@ base class RunningIsolate {
   late final _logger = Logger('Isolate ($name)');
   final String name;
   final int id;
-  // ignore: unused_field, will be used for resume permission logic.
+  IsolateState get state => _state;
   IsolateState _state;
 
   /// Invoked when the isolate has shutdown.
@@ -96,6 +96,10 @@ abstract base class IsolateManager {
   @mustCallSuper
   Future<void> shutdown() async {
     _logger.info('Shutting down.');
+    for (final isolate in isolates.values) {
+      isolate.shutdown();
+    }
+    isolates.clear();
   }
 
   /// Forwards the RPC request for [method] to be handled in the context of an
@@ -113,9 +117,13 @@ abstract base class IsolateManager {
     required RunningIsolate isolate,
     bool isSystemIsolate = false,
   }) {
-    _logger.info('Starting isolate: $isolate');
+    if (_logger.isLoggable(Level.FINE)) {
+      _logger.fine('Starting isolate: $isolate');
+    }
     if (_rootIsolateId == null && !isSystemIsolate) {
-      _logger.info('$isolate is the root isolate.');
+      if (_logger.isLoggable(Level.FINE)) {
+        _logger.fine('$isolate is the root isolate.');
+      }
       _rootIsolateId = isolate.id;
     }
     isolate.running();
@@ -132,7 +140,9 @@ abstract base class IsolateManager {
       );
       return;
     }
-    _logger.info('Isolate exited: $isolate');
+    if (_logger.isLoggable(Level.FINE)) {
+      _logger.fine('Isolate exited: $isolate');
+    }
     isolate.shutdown();
   }
 

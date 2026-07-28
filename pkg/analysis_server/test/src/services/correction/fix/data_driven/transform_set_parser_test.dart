@@ -476,7 +476,7 @@ transforms:
       argumentValue:
         expression: "'newValue'"
 ''',
-      [error(diag.missingKey, 145, 98)],
+      [error(diag.missingKey, 145, 97)],
     );
   }
 
@@ -773,7 +773,7 @@ transforms:
    - kind: 'replacedBy'
      newLibrary: 'package:p3/material.dart'
 ''',
-      [error(diag.invalidChangeForKind, 117, 133)],
+      [error(diag.invalidChangeForKind, 117, 132)],
     );
   }
 
@@ -786,7 +786,7 @@ transforms:
   date: 2020-09-10
   changes: []
 ''',
-      [error(diag.missingOneOfMultipleKeys, 25, 51)],
+      [error(diag.missingOneOfMultipleKeys, 25, 50)],
     );
     var transforms = _transforms('g');
     expect(transforms, hasLength(0));

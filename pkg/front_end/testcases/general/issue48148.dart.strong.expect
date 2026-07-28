@@ -76,8 +76,8 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///issue48148.dart:
-- HBaseLeaf. (from org-dartlang-testcase:///issue48148.dart:45:9)
+- HBaseLeaf. (from org-dartlang-testcase:///issue48148.dart:37:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- HBaseChild. (from org-dartlang-testcase:///issue48148.dart:37:9)
-- HBaseError. (from org-dartlang-testcase:///issue48148.dart:53:9)
-- HBaseComposite. (from org-dartlang-testcase:///issue48148.dart:28:9)
+- HBaseChild. (from org-dartlang-testcase:///issue48148.dart:31:9)
+- HBaseError. (from org-dartlang-testcase:///issue48148.dart:43:9)
+- HBaseComposite. (from org-dartlang-testcase:///issue48148.dart:24:9)

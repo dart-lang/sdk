@@ -44,4 +44,6 @@ const stringEqual = "hello" == "hello";
 const string2Equal = "hello" == "world";
 
 const int intFortyTwo = 42;
-const String intStringConcat = "hello" "${intFortyTwo * intFortyTwo}";
+const String intStringConcat =
+    "hello"
+    "${intFortyTwo * intFortyTwo}";

@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/correction/dart/add_class_modifier.
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_empty_argument_list.dart';
-import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_call.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
@@ -93,6 +92,7 @@ import 'package:analysis_server/src/services/correction/dart/create_class.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_for_final_fields.dart';
 import 'package:analysis_server/src/services/correction/dart/create_constructor_super.dart';
+import 'package:analysis_server/src/services/correction/dart/create_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/create_extension_member.dart';
 import 'package:analysis_server/src/services/correction/dart/create_field.dart';
 import 'package:analysis_server/src/services/correction/dart/create_file.dart';
@@ -245,6 +245,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_not_nu
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_part_of_uri.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_syncvalue.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
@@ -337,9 +338,11 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.emptyConstructorBodies: [RemoveEmptyConstructorBody.new],
   diag.emptyContainerBodies: [RemoveEmptyContainerBody.new],
   diag.emptyStatements: [RemoveEmptyStatement.new, ReplaceWithBrackets.new],
-  diag.eolAtEndOfFile: [AddEolAtEndOfFile.new],
+  diag.eolAtEndOfFileMissing: [AddEolAtEndOfFile.new],
+  diag.eolAtEndOfFileTooMany: [AddEolAtEndOfFile.new],
   diag.exhaustiveCases: [AddMissingEnumLikeCaseClauses.new],
   diag.flutterStyleTodos: [ConvertToFlutterStyleTodo.new],
+  diag.futureSyncValue: [ReplaceWithSyncValue.new],
   diag.hashAndEquals: [CreateMethod.equalityOrHashCode],
   diag.implicitCallTearoffs: [AddExplicitCall.new],
   diag.implicitReopen: [AddReopen.new],
@@ -515,6 +518,7 @@ final _builtInLintMultiGenerators = {
   diag.commentReferences: [ImportLibrary.forType, ImportLibrary.forExtension],
   diag.deprecatedMemberUseFromSamePackageWithoutMessage: [DataDriven.new],
   diag.deprecatedMemberUseFromSamePackageWithMessage: [DataDriven.new],
+  diag.migrateDesignWidgets: [DataDriven.new],
 };
 
 final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
@@ -556,10 +560,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.deprecatedFactoryMethod: [AddReturnType.new],
   diag.dotShorthandUndefinedGetter: [
-    AddEnumConstant.new,
     ChangeTo.getterOrSetter,
-    CreateGetter.new,
+    CreateEnumConstant.new,
     CreateField.new,
+    CreateGetter.new,
   ],
   diag.dotShorthandUndefinedInvocation: [
     ChangeTo.method,
@@ -814,7 +818,9 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.undefinedClass: [ChangeTo.classOrMixin],
   diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
   diag.undefinedEnumConstant: [
-    AddEnumConstant.new,
+    CreateEnumConstant.new,
+    CreateField.new,
+    CreateGetter.new,
     ChangeTo.getterOrSetter,
     CreateMethodOrFunction.new,
   ],
@@ -848,6 +854,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.undefinedIdentifier: [
     ChangeTo.getterOrSetter,
+    CreateEnumConstant.new,
     CreateField.new,
     CreateGetter.new,
     CreateLocalVariable.new,

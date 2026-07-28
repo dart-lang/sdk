@@ -4,5 +4,11 @@
 
 main() {
   bool b = false;
-  ['a' 'b', if (b) 'c' 'd'];
+  [
+    'a'
+        'b',
+    if (b)
+      'c'
+          'd',
+  ];
 }

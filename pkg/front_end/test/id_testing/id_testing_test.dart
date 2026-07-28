@@ -133,7 +133,7 @@ class IdTestingDataExtractor extends CfeDataExtractor<String> {
   String? computeNodeValue(Id id, TreeNode node) {
     if (node is FunctionDeclaration) {
       return '${computeMemberName(getEnclosingMember(node))}.'
-          '${node.variable.name}';
+          '${node.variable.cosmeticName}';
     } else if (node is FunctionExpression) {
       return '${computeMemberName(getEnclosingMember(node))}.'
           '<anonymous>';

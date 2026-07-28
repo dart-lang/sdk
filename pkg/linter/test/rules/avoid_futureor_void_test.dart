@@ -18,7 +18,7 @@ class AvoidFutureOrVoidTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_futureor_void;
 
   test_asExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 var x = 1 as [!FutureOr<void>!];
@@ -26,7 +26,7 @@ var x = 1 as [!FutureOr<void>!];
   }
 
   test_castPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 f() {
@@ -38,7 +38,7 @@ f() {
   }
 
   test_class_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 class A<X extends [!FutureOr<void>!]> {}
@@ -46,7 +46,7 @@ class A<X extends [!FutureOr<void>!]> {}
   }
 
   test_enum_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 enum E<X extends [!FutureOr<void>!]> {
@@ -56,7 +56,7 @@ enum E<X extends [!FutureOr<void>!]> {
   }
 
   test_extension_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 extension E<X extends [!FutureOr<void>!]> on X {}
@@ -64,7 +64,7 @@ extension E<X extends [!FutureOr<void>!]> on X {}
   }
 
   test_extensionOnClause() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 extension E on [!FutureOr<void>!] {}
@@ -72,7 +72,7 @@ extension E on [!FutureOr<void>!] {}
   }
 
   test_extensionType_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 extension type E<X extends [!FutureOr<void>!]>(X x) {}
@@ -80,7 +80,7 @@ extension type E<X extends [!FutureOr<void>!]>(X x) {}
   }
 
   test_extensionType_representation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 extension type E([!FutureOr<void>!] _) {}
@@ -88,7 +88,7 @@ extension type E([!FutureOr<void>!] _) {}
   }
 
   test_function_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 void f<X extends [!FutureOr<void>!]>(List<X> x) {}
@@ -96,7 +96,7 @@ void f<X extends [!FutureOr<void>!]>(List<X> x) {}
   }
 
   test_functionTypedFormalParameter_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 void f(g<X extends [!FutureOr<void>!]>(X x)) {}
@@ -104,7 +104,7 @@ void f(g<X extends [!FutureOr<void>!]>(X x)) {}
   }
 
   test_functionTypedFormalParameter_parameter1() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 void f(g([!FutureOr<void>!] x)) {}
@@ -112,7 +112,7 @@ void f(g([!FutureOr<void>!] x)) {}
   }
 
   test_functionTypedFormalParameter_parameter2() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 void f(g([[!FutureOr<void>!] x])) {}
@@ -120,7 +120,7 @@ void f(g([[!FutureOr<void>!] x])) {}
   }
 
   test_functionTypedFormalParameter_parameter3() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 void f(g({required [!FutureOr<void>!] name})) {}
@@ -136,7 +136,7 @@ void f(FutureOr<void> g()) {}
   }
 
   test_isExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 // ignore: unnecessary_type_check
@@ -145,7 +145,7 @@ var x = 1 is [!FutureOr<void>!];
   }
 
   test_mixin_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 mixin A<X extends [!FutureOr<void>!]> {}
@@ -153,7 +153,7 @@ mixin A<X extends [!FutureOr<void>!]> {}
   }
 
   test_objectPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 f(Object? x) {
@@ -163,7 +163,7 @@ f(Object? x) {
   }
 
   test_oldTypeAlias_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 typedef void F<X extends [!FutureOr<void>!]>(X arg);
@@ -203,7 +203,7 @@ typedef F = void Function(FutureOr<void>);
   }
 
   test_typeAlias_bound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 typedef F<X extends [!FutureOr<void>!]> = int;

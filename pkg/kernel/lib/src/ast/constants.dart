@@ -1088,11 +1088,9 @@ class TypedefTearOffConstant extends Constant {
     FunctionType type = tearOffConstant.getType(context) as FunctionType;
     FreshStructuralParameters freshStructuralParameters =
         getFreshStructuralParameters(parameters);
-    type =
-        freshStructuralParameters.substitute(
-              FunctionTypeInstantiator.instantiate(type, types),
-            )
-            as FunctionType;
+    type = freshStructuralParameters.substitute(
+      FunctionTypeInstantiator.instantiate(type, types),
+    ) as FunctionType;
     return new FunctionType(
       type.positionalParameters,
       type.returnType,

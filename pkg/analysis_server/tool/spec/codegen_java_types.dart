@@ -549,8 +549,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         });
       } else {
         publicMethod('fromJson', () {
-          writeln(
-            '''public static Outline fromJson(Outline parent, JsonObject outlineObject) {
+          writeln('''public static Outline fromJson(Outline parent, JsonObject outlineObject) {
   JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
   Element element = Element.fromJson(elementObject);
   int offset = outlineObject.get("offset").getAsInt();
@@ -572,8 +571,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
   outline.setChildren(childrenList);
   return outline;
-}''',
-          );
+}''');
         });
         publicMethod('getParent', () {
           writeln('''public Outline getParent() {

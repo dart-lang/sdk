@@ -25,7 +25,7 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
     var latestVersion = ExperimentStatus.currentVersion;
     var result = await resolveTestCodeWithDiagnostics('''
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
-// [diag.invalidLanguageVersionOverrideGreater][column 1][length 15] The language version override can't specify a version greater than the latest known language version: 3.13.
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 15] The language version override can't specify a version greater than the latest known language version: ${latestVersion.major}.${latestVersion.minor}.
 class A {}
 ''');
     _assertUnitLanguageVersion(result, package: latestVersion, override: null);

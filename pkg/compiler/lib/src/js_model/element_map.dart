@@ -599,7 +599,7 @@ void forEachOrderedParameterByFunctionNode(
   ir.FunctionNode node,
   ParameterStructure parameterStructure,
   void Function(
-    ir.Variable parameter, {
+    ir.FunctionParameter parameter, {
     required bool isOptional,
     required bool isElided,
   })
@@ -611,7 +611,7 @@ void forEachOrderedParameterByFunctionNode(
     position < node.positionalParameters.length;
     position++
   ) {
-    ir.Variable variable = node.positionalParameters[position];
+    ir.PositionalParameter variable = node.positionalParameters[position];
     f(
       variable,
       isOptional: position >= parameterStructure.requiredPositionalParameters,
@@ -623,17 +623,19 @@ void forEachOrderedParameterByFunctionNode(
     return;
   }
 
-  List<ir.Variable> namedParameters = node.namedParameters.toList();
+  List<ir.NamedParameter> namedParameters = node.namedParameters.toList();
   if (useNativeOrdering) {
     namedParameters.sort(nativeOrdering);
   } else {
     namedParameters.sort(namedOrdering);
   }
-  for (ir.Variable variable in namedParameters) {
+  for (ir.NamedParameter parameter in namedParameters) {
     f(
-      variable,
+      parameter,
       isOptional: true,
-      isElided: !parameterStructure.namedParameters.contains(variable.name),
+      isElided: !parameterStructure.namedParameters.contains(
+        parameter.parameterName,
+      ),
     );
   }
 }

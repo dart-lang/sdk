@@ -13,9 +13,9 @@ class C extends M {}
 class D implements A, B {}
 
 method(M m) => switch (m) {
-      A() as B => 0,
-      B() => 1,
-    };
+  A() as B => 0,
+  B() => 1,
+};
 
 main() {
   method(B());

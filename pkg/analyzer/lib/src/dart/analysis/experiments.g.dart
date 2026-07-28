@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.13.0';
+const _currentVersion = '3.14.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -60,6 +60,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.static_extensions: ExperimentalFeatures.static_extensions,
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
+  EnableString.this_promotion: ExperimentalFeatures.this_promotion,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
   EnableString.unquoted_imports: ExperimentalFeatures.unquoted_imports,
@@ -135,6 +136,7 @@ Feature fromSharedExperimentalFlags(
     ExperimentalFeatures.super_parameters,
   shared.ExperimentalFlag.testExperiment =>
     ExperimentalFeatures.test_experiment,
+  shared.ExperimentalFlag.thisPromotion => ExperimentalFeatures.this_promotion,
   shared.ExperimentalFlag.tripleShift => ExperimentalFeatures.triple_shift,
   shared.ExperimentalFlag.unnamedLibraries =>
     ExperimentalFeatures.unnamed_libraries,
@@ -264,6 +266,9 @@ class EnableString {
 
   /// String to enable the experiment "test-experiment"
   static const String test_experiment = 'test-experiment';
+
+  /// String to enable the experiment "this-promotion"
+  static const String this_promotion = 'this-promotion';
 
   /// String to enable the experiment "triple-shift"
   static const String triple_shift = 'triple-shift';
@@ -627,8 +632,8 @@ class ExperimentalFeatures {
     isExpired: IsExpired.record_use,
     documentation: 'Output arguments used by static functions.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
-    channels: ["main", "dev"],
+    releaseVersion: Version.parse('3.13.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final records = ExperimentalFeature(
@@ -721,8 +726,19 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final triple_shift = ExperimentalFeature(
+  static final this_promotion = ExperimentalFeature(
     index: 39,
+    enableString: EnableString.this_promotion,
+    isEnabledByDefault: IsEnabledByDefault.this_promotion,
+    isExpired: IsExpired.this_promotion,
+    documentation: 'Type promotion for `this`.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final triple_shift = ExperimentalFeature(
+    index: 40,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -733,7 +749,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 40,
+    index: 41,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -744,7 +760,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 41,
+    index: 42,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -755,7 +771,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 42,
+    index: 43,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -766,7 +782,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 43,
+    index: 44,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -872,7 +888,7 @@ class IsEnabledByDefault {
   static const bool private_named_parameters = true;
 
   /// Default state of the experiment "record-use"
-  static const bool record_use = false;
+  static const bool record_use = true;
 
   /// Default state of the experiment "records"
   static const bool records = true;
@@ -897,6 +913,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "test-experiment"
   static const bool test_experiment = false;
+
+  /// Default state of the experiment "this-promotion"
+  static const bool this_promotion = false;
 
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = true;
@@ -1034,6 +1053,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "test-experiment"
   static const bool test_experiment = false;
+
+  /// Expiration status of the experiment "this-promotion"
+  static const bool this_promotion = false;
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = true;
@@ -1187,6 +1209,9 @@ mixin _CurrentState {
 
   /// Current state for the flag "test-experiment"
   bool get test_experiment => isEnabled(ExperimentalFeatures.test_experiment);
+
+  /// Current state for the flag "this-promotion"
+  bool get this_promotion => isEnabled(ExperimentalFeatures.this_promotion);
 
   /// Current state for the flag "triple-shift"
   bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);

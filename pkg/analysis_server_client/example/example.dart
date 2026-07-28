@@ -29,10 +29,14 @@ void main(List<String> args) async {
   }
 
   // Request analysis
-  await server.send(serverRequestSetSubscriptions,
-      ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
-  await server.send(analysisRequestSetAnalysisRoots,
-      AnalysisSetAnalysisRootsParams([target], const []).toJson());
+  await server.send(
+    serverRequestSetSubscriptions,
+    ServerSetSubscriptionsParams([ServerService.STATUS]).toJson(),
+  );
+  await server.send(
+    analysisRequestSetAnalysisRoots,
+    AnalysisSetAnalysisRootsParams([target], const []).toJson(),
+  );
 
   // Continue to watch for analysis until the user presses Ctrl-C
   late StreamSubscription<ProcessSignal> subscription;

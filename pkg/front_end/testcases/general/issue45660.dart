@@ -5,8 +5,8 @@
 T Function<T extends num>(T) extendsNumReturnArg = <S extends num>(S s) => s;
 
 functionInvocations() {
-  extendsNumReturnArg/*<Null>*/(null);
-  extendsNumReturnArg/*<String>*/("");
+  extendsNumReturnArg /*<Null>*/ (null);
+  extendsNumReturnArg /*<String>*/ ("");
 }
 
 main() {}

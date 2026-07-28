@@ -18,7 +18,7 @@ class DanglingLibraryDocCommentsTest extends LintRuleTest {
   String get lintRule => LintNames.dangling_library_doc_comments;
 
   test_docComment_aboveDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/// Doc comment.!]
 
 class C {}
@@ -41,7 +41,7 @@ class C {}
   }
 
   test_docComment_aboveDeclarationWithDocComment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/// Library comment.!]
 
 /// Class comment.
@@ -58,7 +58,7 @@ class C {}
   }
 
   test_docComment_aboveDeclarationWithOtherComment2() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/// Doc comment.!]
 
 // Comment.
@@ -67,7 +67,7 @@ class C {}
   }
 
   test_docComment_aboveDeclarationWithOtherComment3() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/// Doc comment.!]
 // Comment.
 
@@ -85,13 +85,13 @@ class C {}
   }
 
   test_docComment_atEndOfFile() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/// Doc comment with [int].!]
 ''');
   }
 
   test_docComment_atEndOfFile_precededByComment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // Copyright something.
 
 [!/// Doc comment with [int].!]
@@ -106,7 +106,7 @@ class C {}
   }
 
   test_docComment_onFirstDirective() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/// Doc comment.!]
 export 'dart:math';
 ''');

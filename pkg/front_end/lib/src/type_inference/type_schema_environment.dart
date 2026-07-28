@@ -29,7 +29,7 @@ typedef MergedTypeConstraint =
       InternalVariable,
       TypeDeclarationType,
       TypeDeclaration,
-      TreeNode
+      InternalNode
     >;
 
 typedef UnknownTypeConstraintOrigin =
@@ -37,7 +37,7 @@ typedef UnknownTypeConstraintOrigin =
       InternalVariable,
       TypeDeclarationType,
       TypeDeclaration,
-      TreeNode
+      InternalNode
     >;
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
@@ -76,7 +76,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     List<DartType>? previouslyInferredTypes, {
     required bool inferenceUsingBoundsIsEnabled,
     required InferenceDataForTesting? dataForTesting,
-    required TreeNode? treeNodeForTesting,
+    required InternalNode? internalNodeForTesting,
     required OperationsCfe typeOperations,
   }) {
     List<DartType> inferredTypes = typeOperations
@@ -87,7 +87,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           preliminary: true,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: dataForTesting,
-          treeNodeForTesting: treeNodeForTesting,
+          astNodeForTesting: internalNodeForTesting,
         )
         .cast();
     for (int i = 0; i < inferredTypes.length; i++) {
@@ -203,7 +203,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     required OperationsCfe typeOperations,
     required bool inferenceUsingBoundsIsEnabled,
     required TypeInferenceResultForTesting? inferenceResultForTesting,
-    required TreeNode? treeNodeForTesting,
+    required InternalNode? internalNodeForTesting,
   }) {
     assert(typeParametersToInfer.isNotEmpty);
 
@@ -228,7 +228,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       gatherer.tryConstrainUpper(
         declaredReturnType!,
         returnContextType!,
-        treeNodeForTesting: treeNodeForTesting,
+        internalNodeForTesting: internalNodeForTesting,
       );
     }
     return gatherer;
@@ -249,7 +249,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     List<DartType>? previouslyInferredTypes, {
     required bool inferenceUsingBoundsIsEnabled,
     required InferenceDataForTesting? dataForTesting,
-    required TreeNode? treeNodeForTesting,
+    required InternalNode? internalNodeForTesting,
     required OperationsCfe typeOperations,
   }) {
     List<DartType> inferredTypes = typeOperations
@@ -260,7 +260,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           preliminary: false,
           inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
           dataForTesting: dataForTesting,
-          treeNodeForTesting: treeNodeForTesting,
+          astNodeForTesting: internalNodeForTesting,
         )
         .cast();
 

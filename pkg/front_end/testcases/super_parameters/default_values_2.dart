@@ -7,4 +7,3 @@ import 'default_values_2_lib.dart';
 class C5 extends S5 {
   C5([int super.x]); // Error.
 }
-

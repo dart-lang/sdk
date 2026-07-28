@@ -128,7 +128,10 @@ class EntryPointShimValueParameter extends EntryPointShimParameter {
     : super._('v_' + name);
 
   factory EntryPointShimValueParameter.fromDeclaration(Variable v) {
-    return EntryPointShimValueParameter._(v.name ?? gensym, type: v.type);
+    return EntryPointShimValueParameter._(
+      v.cosmeticName ?? gensym,
+      type: v.type,
+    );
   }
 }
 

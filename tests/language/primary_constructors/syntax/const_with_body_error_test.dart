@@ -23,7 +23,8 @@ mixin class const M() {
 
 enum E(int x) {
   e(1);
-  // [error column 3]
+
+  // [error line 25, column 3]
   // [cfe] A const constructor can't have a body.
 
   this {}

@@ -9,17 +9,17 @@ main() {
   final aList = <int>[
     1,
     ...[2],
-    ...?nullableList
+    ...?nullableList,
   ];
   final aMap = <int, int>{
     1: 1,
     ...{2: 2},
-    ...?nullableMap
+    ...?nullableMap,
   };
   final aSet = <int>{
     1,
     ...[2],
-    ...?nullableList
+    ...?nullableList,
   };
   final aSetOrMap = {...foo()};
 

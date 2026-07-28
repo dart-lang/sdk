@@ -32,7 +32,7 @@ class A {
   }
 
   test_empty_inBody_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   new() [!{}!]
 }
@@ -40,7 +40,7 @@ class A {
   }
 
   test_empty_inBody_normal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A() [!{}!]
 }
@@ -48,7 +48,7 @@ class A {
   }
 
   test_empty_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A() {
   this : assert(1 < 2) [!{}!]
 }

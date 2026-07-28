@@ -48,7 +48,7 @@ SwitchHeadDefault get default_ =>
 ConstExpression get nullLiteral =>
     new NullLiteral._(location: computeLocation());
 
-Expression get this_ => new This._(location: computeLocation());
+This get this_ => new This._(location: computeLocation());
 
 Statement assert_(ProtoExpression condition, [ProtoExpression? message]) {
   var location = computeLocation();
@@ -593,6 +593,16 @@ Statement switch_(
   bool? expectRequiresExhaustivenessValidation,
   String? expectScrutineeType,
 }) {
+  for (var i = 0; i < cases.length - 1; i++) {
+    var case_ = cases[i];
+    if (case_.body.statements.isEmpty) {
+      throw StateError(
+        'Only the last case in a switch statement may have an empty body. '
+        'Either add an explicit `break_()`, or use `switchStatementMember` to '
+        'group cases that share a body.\n${case_.body.location}',
+      );
+    }
+  }
   var location = computeLocation();
   return new SwitchStatement(
     expression.asExpression(location: location),
@@ -750,7 +760,7 @@ class AwaitExpression extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    var result = h.typeAnalyzer.analyzeAwaitExpression(operand, schema);
+    var result = h.typeAnalyzer.analyzeAwaitExpression(this, operand, schema);
     h.irBuilder.apply(
       'awaitExpr',
       [Kind.expression],
@@ -1566,10 +1576,9 @@ abstract class Expression extends Node
 }
 
 /// Representation of a single case clause in a switch expression.  Use
-/// [PossiblyGuardedPattern.thenExpr] or [SwitchHead.thenExpr] to create
-/// instances of this class.
+/// [PossiblyGuardedPattern.thenExpr] to create instances of this class.
 class ExpressionCase extends Node {
-  final GuardedPattern? guardedPattern;
+  final GuardedPattern guardedPattern;
   final Expression expression;
 
   ExpressionCase._(
@@ -1579,24 +1588,18 @@ class ExpressionCase extends Node {
   }) : super._();
 
   @override
-  String toString() => [
-    guardedPattern == null ? 'default' : 'case $guardedPattern',
-    ': $expression',
-  ].join('');
+  String toString() => '$guardedPattern => $expression';
 
   void _preVisit(PreVisitor visitor) {
-    final guardedPattern = this.guardedPattern;
-    if (guardedPattern != null) {
-      var variableBinder = _VariableBinder(visitor);
-      variableBinder.casePatternStart();
-      guardedPattern.pattern.preVisit(
-        visitor,
-        variableBinder,
-        isInAssignment: false,
-      );
-      guardedPattern.variables = variableBinder.casePatternFinish();
-      variableBinder.finish();
-    }
+    var variableBinder = _VariableBinder(visitor);
+    variableBinder.casePatternStart();
+    guardedPattern.pattern.preVisit(
+      visitor,
+      variableBinder,
+      isInAssignment: false,
+    );
+    guardedPattern.variables = variableBinder.casePatternFinish();
+    variableBinder.finish();
     expression.preVisit(visitor);
   }
 }
@@ -1877,6 +1880,8 @@ class Harness {
 
   bool? _inferenceUpdate4Enabled;
 
+  bool? _thisPromotionEnabled;
+
   bool? _soundFlowAnalysisEnabled;
 
   bool? _patternsEnabled;
@@ -1916,6 +1921,8 @@ class Harness {
   bool get patternsEnabled => _patternsEnabled ?? true;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
+
+  bool get thisPromotionEnabled => _thisPromotionEnabled ?? true;
 
   set thisType(String type) {
     assert(!_started);
@@ -2003,6 +2010,7 @@ class Harness {
             _respectImplicitlyTypedVarInitializers,
         fieldPromotionEnabled: _fieldPromotionEnabled,
         inferenceUpdate4Enabled: inferenceUpdate4Enabled,
+        thisPromotionEnabled: thisPromotionEnabled,
         soundFlowAnalysisEnabled: soundFlowAnalysisEnabled,
       );
 
@@ -2034,6 +2042,11 @@ class Harness {
   void disableSoundFlowAnalysis() {
     assert(!_started);
     _soundFlowAnalysisEnabled = false;
+  }
+
+  void disableThisPromotion() {
+    assert(!_started);
+    _thisPromotionEnabled = false;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
@@ -3716,6 +3729,15 @@ class MiniAstOperations
   @override
   Type listTypeInternal(Type elementType) {
     return PrimaryType(TypeRegistry.list, args: [elementType]);
+  }
+
+  @override
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  ) {
+    // TODO(cstefantsova): implement lookupMemberTypeInternal
+    throw UnimplementedError();
   }
 
   @override
@@ -5451,15 +5473,6 @@ abstract class SwitchHead extends Node implements ProtoSwitchHead {
       location: location,
     );
   }
-
-  ExpressionCase thenExpr(ProtoExpression body) {
-    var location = computeLocation();
-    return ExpressionCase._(
-      null,
-      body.asExpression(location: location),
-      location: location,
-    );
-  }
 }
 
 class SwitchHeadCase extends SwitchHead {
@@ -5621,7 +5634,7 @@ class SwitchStatementMember extends Node {
   }
 }
 
-class This extends Expression {
+class This extends Expression implements Promotable {
   This._({required super.location});
 
   @override
@@ -5635,6 +5648,20 @@ class This extends Expression {
     var result = h.typeAnalyzer.analyzeThis(this);
     h.irBuilder.atom('this', Kind.expression, location: location);
     return result;
+  }
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    h.irBuilder.atom('this', Kind.expression, location: location);
+    return h.flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    h.irBuilder.atom('this', Kind.expression, location: location);
+    var promotedTypeOfThis =
+        h.flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    return promotedTypeOfThis == null ? const [] : [promotedTypeOfThis];
   }
 }
 
@@ -6037,16 +6064,17 @@ class VariableDeclaration extends Statement {
     h.irBuilder.atom(variable.name, Kind.variable, location: location);
     Type staticType;
     if (initializer == null) {
+      // There's no shared logic for analyzing uninitialized variable
+      // declarations, so analyze the declaration directly.
       // Use the shared logic for analyzing uninitialized variable
       // declarations.
-      staticType = h.typeAnalyzer
-          .analyzeUninitializedVariableDeclaration(
-            this,
-            variable,
-            declaredType?.wrapSharedTypeView(),
-            isFinal: isFinal,
-          )
-          .unwrapTypeView();
+      staticType = declaredType ?? Type('dynamic');
+      variable.type = staticType;
+      h.flow.declare(
+        variable,
+        staticType.wrapSharedTypeView(),
+        initialized: false,
+      );
       h.irBuilder.atom(staticType.type, Kind.type, location: location);
       irName = 'declare';
       argKinds = [Kind.variable, Kind.type];
@@ -6467,6 +6495,7 @@ class YieldStatement extends Statement {
   @override
   StatementTypeAnalysisResult visit(Harness h) {
     var result = h.typeAnalyzer.analyzeYieldStatement(
+      this,
       operand,
       isYieldStar: isYieldStar,
     );
@@ -7167,12 +7196,12 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
-    var thisType = this.thisType;
+    var promotedTypeOfThis = flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    var thisType = promotedTypeOfThis ?? this.thisType;
     var flowAnalysisInfo = flow.thisOrSuper(
       SharedTypeView(thisType),
       isSuper: false,
     );
-    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(thisType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7195,9 +7224,6 @@ class _MiniAstTypeAnalyzer
       SharedTypeView(memberType),
     );
     var promotedType = wrappedPromotedType?.unwrapTypeView();
-    if (flowAnalysisInfo != null) {
-      flow.storeExpressionInfo(node, flowAnalysisInfo);
-    }
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(promotedType ?? memberType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7296,7 +7322,6 @@ class _MiniAstTypeAnalyzer
   ) {
     var (promotedType, flowAnalysisInfo) = flow.variableRead(variable);
     callback?.call(promotedType?.unwrapTypeView());
-    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: promotedType ?? SharedTypeView(variable.type),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7354,6 +7379,7 @@ class _MiniAstTypeAnalyzer
     Expression expression,
     SharedTypeSchemaView schema, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);
@@ -7489,10 +7515,10 @@ class _MiniAstTypeAnalyzer
   getSwitchExpressionMemberInfo(covariant SwitchExpression node, int index) {
     var case_ = node.cases[index];
     return SwitchExpressionMemberInfo(
-      head: CaseHeadOrDefaultInfo(
-        pattern: case_.guardedPattern?.pattern,
-        variables: case_.guardedPattern?.variables ?? {},
-        guard: case_.guardedPattern?.guard,
+      head: CaseHeadInfo(
+        pattern: case_.guardedPattern.pattern,
+        variables: case_.guardedPattern.variables,
+        guard: case_.guardedPattern.guard,
       ),
       expression: case_.expression,
     );
@@ -7506,13 +7532,13 @@ class _MiniAstTypeAnalyzer
       heads: [
         for (var element in case_.elements)
           if (element is SwitchHeadCase)
-            CaseHeadOrDefaultInfo(
+            CaseHeadInfo(
               pattern: element.guardedPattern.pattern,
               variables: element.guardedPattern.variables,
               guard: element.guardedPattern.guard,
             )
           else
-            CaseHeadOrDefaultInfo(pattern: null, variables: {}, guard: null),
+            CaseDefaultInfo(),
       ],
       body: case_.body.statements,
       variables: case_._candidateVariables,
@@ -7563,10 +7589,7 @@ class _MiniAstTypeAnalyzer
   }) {
     Iterable<Var> variables = [];
     if (node is SwitchExpression) {
-      var guardedPattern = node.cases[caseIndex].guardedPattern;
-      if (guardedPattern != null) {
-        variables = guardedPattern.variables.values;
-      }
+      variables = node.cases[caseIndex].guardedPattern.variables.values;
     } else if (node is SwitchStatement) {
       var head = node.cases[caseIndex].elements[subIndex];
       if (head is SwitchHeadCase) {
@@ -7891,9 +7914,6 @@ class _MiniAstTypeAnalyzer
       member,
       SharedTypeView(memberType),
     );
-    if (propertyGetNode != null && flowAnalysisInfo != null) {
-      flow.storeExpressionInfo(propertyGetNode, flowAnalysisInfo);
-    }
     return ExpressionTypeAnalysisResult(
       type: wrappedPromotedType ?? SharedTypeView(memberType),
       flowAnalysisInfo: flowAnalysisInfo,

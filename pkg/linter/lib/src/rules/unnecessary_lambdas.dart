@@ -96,16 +96,13 @@ class _IdentifierVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final bool constructorTearOffsEnabled;
-  final AnalysisRule rule;
-  final TypeSystem typeSystem;
+class _Visitor(final AnalysisRule rule, RuleContext context)
+    extends SimpleAstVisitor<void> {
+  final bool constructorTearOffsEnabled = context.isFeatureEnabled(
+    Feature.constructor_tearoffs,
+  );
 
-  new(this.rule, RuleContext context)
-    : constructorTearOffsEnabled = context.isFeatureEnabled(
-        Feature.constructor_tearoffs,
-      ),
-      typeSystem = context.typeSystem;
+  final TypeSystem typeSystem = context.typeSystem;
 
   bool parametersMatch(DartType invocationType, FunctionType nodeType) {
     if (invocationType is! FunctionType) {

@@ -32,17 +32,23 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
         ? coveringNode
         : coveringNode?.parent;
 
-    var clazz = constructorDeclaration?.parent?.parent;
-    if (clazz is! ClassDeclaration) {
-      return;
+    var declaration = constructorDeclaration?.parent?.parent;
+    NodeList<ClassMember> members;
+    int topOfBodyOffset;
+    switch (declaration) {
+      case ClassDeclaration(body: BlockClassBody body):
+        members = body.members;
+        topOfBodyOffset = body.leftBracket.end;
+      case EnumDeclaration(body: BlockEnumBody body):
+        members = body.members;
+        topOfBodyOffset =
+            body.semicolon?.end ??
+            body.constants.lastOrNull?.end ??
+            body.leftBracket.end;
+      default:
+        return;
     }
 
-    var body = clazz.body;
-    if (body is! BlockClassBody) {
-      return;
-    }
-
-    var members = body.members;
     var constructors = members.whereType<ConstructorDeclaration>().toList();
 
     var firstConstructor = constructors.firstOrNull;
@@ -70,11 +76,11 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
       builder.addDeletion(moveRange);
 
       var firstIndex = members.indexOf(firstConstructor);
-      var tokenBeforeFirst = firstIndex != 0
-          ? members[firstIndex - 1].endToken
-          : body.leftBracket;
+      var insertionOffset = firstIndex != 0
+          ? members[firstIndex - 1].endToken.end
+          : topOfBodyOffset;
       builder.addSimpleInsertion(
-        tokenBeforeFirst.end,
+        insertionOffset,
         utils.getRangeText(moveRange),
       );
     });

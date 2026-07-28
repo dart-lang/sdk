@@ -33,7 +33,7 @@ $content
     createFile(testFilePath, code.code);
     await initializeServer();
     await open(testFileUri, code.code);
-    await currentAnalysis;
+    await workspaceAnalysisComplete();
     return await getEditableArguments(testFileUri, code.position.position);
   }
 
@@ -809,7 +809,7 @@ class MyWidget extends StatelessWidget {
     createFile(textFilePath, content);
     await initializeServer();
     await openFile(textFileUri, content);
-    await currentAnalysis;
+    await workspaceAnalysisComplete();
     var result = await getEditableArguments(
       textFileUri,
       Position(line: 0, character: 0),

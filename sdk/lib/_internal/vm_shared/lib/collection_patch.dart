@@ -156,6 +156,33 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
+  void removeWhere(bool Function(K, V) test) {
+    var modificationCount = _modificationCount;
+    final buckets = _buckets;
+    final length = buckets.length;
+    for (int i = 0; i < length; i++) {
+      var entry = buckets[i];
+      _HashMapEntry? previousEntry;
+      while (entry != null) {
+        var remove = test(unsafeCast<K>(entry.key), unsafeCast<V>(entry.value));
+        if (modificationCount != _modificationCount) {
+          throw ConcurrentModificationError(this);
+        }
+        var next = entry.next;
+        if (remove) {
+          _removeEntry(entry, previousEntry, i);
+          _elementCount--;
+          modificationCount =
+              (modificationCount + 1) & _MODIFICATION_COUNT_MASK;
+          _modificationCount = modificationCount;
+        } else {
+          previousEntry = entry;
+        }
+        entry = next;
+      }
+    }
+  }
+
   V? remove(Object? key) {
     final hashCode = key.hashCode;
     final buckets = _buckets;

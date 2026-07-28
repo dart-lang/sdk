@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' as Math;
+
 import 'package:expect/expect.dart';
+
 import 'regress21998_lib1.dart' as lib1;
 
 main() {

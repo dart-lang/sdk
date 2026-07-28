@@ -311,7 +311,7 @@ E<double>
   f: double 10.0
   index: int 0
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@enum::E::@constructor::named
       substitution: {T: double}
     positionalArguments
@@ -324,7 +324,7 @@ E<int>
   f: int 20
   index: int 1
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@enum::E::@constructor::named
       substitution: {T: int}
     positionalArguments
@@ -353,7 +353,7 @@ E<int>
   f: int 10
   index: int 0
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@enum::E::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -366,7 +366,7 @@ E<int>
   f: int 20
   index: int 1
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@enum::E::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -379,7 +379,7 @@ E<String>
   f: String abc
   index: int 2
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@enum::E::@constructor::new
       substitution: {T: String}
     positionalArguments
@@ -1116,7 +1116,7 @@ const b = a;
 A<int>
   t: int 0
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -1139,7 +1139,7 @@ const x = C<E>();
     assertDartObjectText(result, r'''
 C<int>
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: E}
   variable: <testLibrary>::@topLevelVariable::x
@@ -1164,7 +1164,7 @@ C<int>
   f: int 42
     typeNotExtensionTypeErased: E
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: E}
     positionalArguments
@@ -3388,7 +3388,7 @@ A<int>
       $1: int 42
       $2: int 42
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -6695,7 +6695,7 @@ const x = A(f: 0);
 A<int>
   f: int 0
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     namedArguments
@@ -6734,7 +6734,7 @@ const x = A<int>(0);
 A<int>
   f: int 0
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -7494,7 +7494,7 @@ A<int>
     typeArguments
       T
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
@@ -7516,7 +7516,7 @@ A<int>
     toTypeValue: int
     toTypeValueNotExtensionTypeErased: int
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
@@ -7538,7 +7538,7 @@ A<dynamic>
     toTypeValue: dynamic
     toTypeValueNotExtensionTypeErased: dynamic
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: dynamic}
   variable: <testLibrary>::@topLevelVariable::a
@@ -7564,7 +7564,7 @@ A<int, String>
     toTypeValue: String
     toTypeValueNotExtensionTypeErased: String
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int, U: String}
   variable: <testLibrary>::@topLevelVariable::a
@@ -7716,7 +7716,7 @@ A<int>
     toTypeValue: int
     toTypeValueNotExtensionTypeErased: int
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
@@ -7915,7 +7915,7 @@ B<int>
         a: int 1
   b: int 2
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -7986,7 +7986,7 @@ B<int>
         0: int 1
   b: int 2
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -8057,7 +8057,7 @@ B<int>
         a: int 1
   b: int 2
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -8128,7 +8128,7 @@ B<int>
         0: int 1
   b: int 2
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
     positionalArguments
@@ -8181,7 +8181,7 @@ B<int>
       toTypeValue: int
       toTypeValueNotExtensionTypeErased: int
     constructorInvocation
-      constructor: ConstructorMember
+      constructor: SubstitutedConstructorElementImpl
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
@@ -8189,7 +8189,7 @@ B<int>
           toTypeValue: int
           toTypeValueNotExtensionTypeErased: int
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
@@ -8221,7 +8221,7 @@ B<int>
           toTypeValue: int
           toTypeValueNotExtensionTypeErased: int
   constructorInvocation
-    constructor: ConstructorMember
+    constructor: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::B::@constructor::new
       substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a

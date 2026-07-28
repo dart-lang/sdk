@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/kernel.dart';
+
 import 'type_parser.dart';
+
 import 'package:test/test.dart';
 
 final List<TestCase> testCases = <TestCase>[

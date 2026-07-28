@@ -9,6 +9,7 @@ import 'dart:html';
 import 'dart:math';
 
 import 'canvas_rendering_util.dart';
+
 import 'package:expect/async_helper.dart';
 
 Future testWithThreeParams() async {

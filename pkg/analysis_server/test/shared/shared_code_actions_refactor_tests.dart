@@ -199,8 +199,7 @@ void newMethod() {
       throwsA(
         isResponseError(
           ErrorCodes.RequestCancelled,
-          message:
-              'Another workspace/executeCommand request for a refactor was started',
+          message: 'Another workspace/executeCommand request for a refactor was started',
         ),
       ),
     );

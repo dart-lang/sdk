@@ -2807,6 +2807,20 @@ void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   *range = result;
 }
 
+void UnaryIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  switch (op_kind()) {
+    case Token::kPOPCNT:
+    case Token::kCTZ:
+      // Bit counts of a 64-bit value are between 0 and 64.
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(64));
+      break;
+    default:
+      Definition::InferRange(analysis, range);
+      break;
+  }
+}
+
 void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:

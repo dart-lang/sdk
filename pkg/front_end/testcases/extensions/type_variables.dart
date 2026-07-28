@@ -17,8 +17,7 @@ extension A2<T> on A1<T> {
   }
 }
 
-extension A3<T extends A1<T>> on A1<T> {
-}
+extension A3<T extends A1<T>> on A1<T> {}
 
 extension A4<T> on A1<T> {
   method<T>() {}

@@ -18,14 +18,14 @@ class SlashForDocCommentsTest extends LintRuleTest {
   String get lintRule => LintNames.slash_for_doc_comments;
 
   test_class() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** C */!]
 class C {}
 ''');
   }
 
   test_constructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!/** C */!]
   C();
@@ -34,7 +34,7 @@ class C {
   }
 
   test_enum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** E */!]
 enum E {
   A,
@@ -44,7 +44,7 @@ enum E {
   }
 
   test_enumConstant() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   [!/** A */!]
   A,
@@ -54,14 +54,14 @@ enum E {
   }
 
   test_extension() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** A */!]
 extension on int {}
 ''');
   }
 
   test_field() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!/** x */!]
   var x;
@@ -70,14 +70,14 @@ class C {
   }
 
   test_library() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** l */!]
 library l;
 ''');
   }
 
   test_localFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!/** g */!]
   // ignore: unused_element
@@ -87,7 +87,7 @@ void f() {
   }
 
   test_method() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!/** f */!]
   void f() {}
@@ -96,14 +96,14 @@ class C {
   }
 
   test_mixin() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** M */!]
 mixin M {}
 ''');
   }
 
   test_mixinApplication() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** C */!]
 class C = Object with M;
 
@@ -132,7 +132,7 @@ mixin M {}
   }
 
   test_primaryConstructorBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C() {
   [!/** C */!]
   this;
@@ -148,35 +148,35 @@ class C {}
   }
 
   test_topLevelFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** f */!]
 void f() {}
 ''');
   }
 
   test_topLevelVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** x */!]
 var x = 1;
 ''');
   }
 
   test_typedef_genericFunctionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** T */!]
 typedef T = bool Function();
 ''');
   }
 
   test_typedef_legacy() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** F */!]
 typedef bool F();
 ''');
   }
 
   test_typedef_nonFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!/** T */!]
 typedef T = Object;
 ''');

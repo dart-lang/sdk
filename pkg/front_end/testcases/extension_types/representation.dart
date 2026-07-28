@@ -4,6 +4,6 @@
 
 extension type Missing() {} // Error
 
-extension type Multiple(bool instanceField1, int instanceField2) {}  // Error
+extension type Multiple(bool instanceField1, int instanceField2) {} // Error
 
 extension type Duplicate(bool instanceField, int instanceField) {} // Error

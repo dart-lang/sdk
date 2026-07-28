@@ -17,9 +17,8 @@ import '../test/utils/io_utils.dart'
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateAstHelper(repoDir);
-  new File.fromUri(
-    computeAstHelperUri(repoDir),
-  ).writeAsStringSync(generated, flush: true);
+  new File.fromUri(computeAstHelperUri(repoDir))
+      .writeAsStringSync(generated, flush: true);
 }
 
 Uri computeAstHelperUri(Uri repoDir) {
@@ -179,9 +178,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
   out.write(r"}");
 
-  return new DartFormatter(
-    languageVersion: getPackageVersionFor("front_end"),
-  ).format("$out");
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
+      .format("$out");
 }
 
 class ParserCreatorListener extends Listener {

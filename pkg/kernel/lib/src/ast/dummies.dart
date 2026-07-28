@@ -28,6 +28,14 @@ final List<Variable> emptyListOfVariable = List.filled(
   growable: false,
 );
 
+/// Almost const <DeclaredVariable>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<DeclaredVariable> emptyListOfDeclaredVariable = List.filled(
+  0,
+  dummyVariable,
+  growable: false,
+);
+
 /// Almost const <PositionalParameter>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<PositionalParameter> emptyListOfPositionalParameter = List.filled(

@@ -6210,7 +6210,7 @@ var t = dynamic<int>;
     var node = result.findNode.functionReference('dynamic<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: dynamic
     element: <null>
     staticType: null
@@ -6571,7 +6571,7 @@ void g() {
     var node = result.findNode.functionReference('Never<core.int>)');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: core
       element: <testLibraryFragment>::@prefix::core
@@ -6950,7 +6950,7 @@ var t = Never<int>;
     var node = result.findNode.functionReference('Never<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: Never
     element: <null>
     staticType: null
@@ -7574,7 +7574,7 @@ class C<T> {
     var node = result.findNode.functionReference('T<int>)');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: T
     element: <null>
     staticType: null
@@ -7936,7 +7936,7 @@ class C<T> {
     var node = result.findNode.functionReference('T<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: T
     element: <null>
     staticType: null

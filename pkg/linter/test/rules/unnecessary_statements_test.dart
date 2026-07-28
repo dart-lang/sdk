@@ -27,7 +27,7 @@ void f(Object o) {
   }
 
   test_binaryExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!1 + 1!];
 }
@@ -35,7 +35,7 @@ void f() {
   }
 
   test_binaryExpression_andAnd() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   true && [!1 == 2!];
 }
@@ -43,7 +43,7 @@ void f() {
   }
 
   test_binaryExpression_or() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   false || [!1 == 2!];
 }
@@ -59,7 +59,7 @@ void f() {
   }
 
   test_construcorTearoff_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!ArgumentError.new!];
 }
@@ -67,7 +67,7 @@ void f() {
   }
 
   test_constructorTearoff_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!DateTime.now!];
 }
@@ -91,7 +91,7 @@ void f() {
   }
 
   test_forLoopUpdaters_subsequent() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (; 1 == 2; print(7), [![]!]) {}
 }
@@ -107,7 +107,7 @@ void f() {
   }
 
   test_functionTearoff() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!g!];
 }
@@ -116,7 +116,7 @@ void g() {}
   }
 
   test_ifNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   null ?? [!7!];
 }
@@ -142,7 +142,7 @@ void f() {
   }
 
   test_inDoWhile() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   do {
     [![]!];
@@ -152,7 +152,7 @@ void f() {
   }
 
   test_inForLoop() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var i in []) {
     [!~1!];
@@ -162,7 +162,7 @@ void f() {
   }
 
   test_inForLoopInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for ([!7!]; 1 == 2;) {}
 }
@@ -170,7 +170,7 @@ void f() {
   }
 
   test_inForLoopUpdaters() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (; 1 == 2; [![]!]) {}
 }
@@ -178,7 +178,7 @@ void f() {
   }
 
   test_inIfBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 == 2) {
     [![]!];
@@ -196,7 +196,7 @@ void f() {
   }
 
   test_instanceField() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!C().g!];
 }
@@ -208,7 +208,7 @@ class C {
   }
 
   test_instanceField2() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   [!c.g!];
 }
@@ -235,7 +235,7 @@ void f(List<int> list) {
   }
 
   test_inSwitchStatement_case() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   switch (7) {
     case 6:
@@ -257,7 +257,7 @@ void f() {
   }
 
   test_inSwitchStatement_default() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   switch (7) {
     default:
@@ -268,7 +268,7 @@ void f() {
   }
 
   test_intLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!1!];
 }
@@ -276,7 +276,7 @@ void f() {
   }
 
   test_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![]!];
 }
@@ -284,7 +284,7 @@ void f() {
   }
 
   test_localVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var g = 1;
   [!g!];
@@ -293,7 +293,7 @@ void f() {
   }
 
   test_mapLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!<dynamic, dynamic>{}!];
 }
@@ -318,7 +318,7 @@ void f(List<int> list) {
   }
 
   test_methodTearoff() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!List.empty().where!];
 }
@@ -326,7 +326,7 @@ void f() {
   }
 
   test_methodTearoff_cascaded() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   List.empty()[!..where!];
 }
@@ -334,7 +334,7 @@ void f() {
   }
 
   test_methodTearoff_cascaded_followOn() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
  List.empty()
     ..forEach((_) {})
@@ -344,7 +344,7 @@ void f() {
   }
 
   test_methodTearoff_cascaded_returned_InLocalFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   // ignore: unused_element
   g() => List.empty()[!..where!];
@@ -353,13 +353,13 @@ void f() {
   }
 
   test_methodTearoff_cascaded_returned_InTopLevelFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<int> f() => List.empty()[!..where!];
 ''');
   }
 
   test_methodTearoff_returned_inFunctionLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!() => List.empty().where!];
 }
@@ -411,7 +411,7 @@ int f() {
   }
 
   test_returnStatement_cascadedTearoff() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<int> f() {
   return List.empty()[!..where!];
 }
@@ -419,7 +419,7 @@ List<int> f() {
   }
 
   test_stringLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!"blah"!];
 }
@@ -452,7 +452,7 @@ int get g => 1;
   }
 
   test_topLevelVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!g!];
 }
@@ -461,7 +461,7 @@ int g = 1;
   }
 
   test_unaryOperation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!~1!];
 }

@@ -26,10 +26,16 @@ class A {}''',
   }
 
   test_hasMultipleNewlines() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {}[!
 !]
 ''');
+  }
+
+  test_hasMultipleNewlines_message() async {
+    await assertDiagnostics('class A {}\n\n', [
+      lint(10, 1, messageContainsAll: ['Too many newlines']),
+    ]);
   }
 
   test_hasNoEol() async {

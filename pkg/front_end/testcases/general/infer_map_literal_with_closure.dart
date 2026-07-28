@@ -6,7 +6,7 @@ class Class {
   var map = {
     'foo': (String a) {
       int c = a.length;
-    }
+    },
   };
 }
 

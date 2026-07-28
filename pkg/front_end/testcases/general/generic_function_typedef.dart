@@ -19,8 +19,8 @@ typedef F6 = void Function<T extends num, S extends T>();
 typedef G1<X> = void Function<T extends X>();
 typedef G2<X extends num> = void Function<T extends X>();
 typedef G3<X, Y> = void Function<T extends X, S extends Y>();
-typedef G4<X extends num, Y extends num> = void
-    Function<T extends X, S extends Y>();
+typedef G4<X extends num, Y extends num> =
+    void Function<T extends X, S extends Y>();
 typedef G5<X extends num> = void Function<T extends S, S extends X>();
 typedef G6<X extends num> = void Function<T extends X, S extends T>();
 

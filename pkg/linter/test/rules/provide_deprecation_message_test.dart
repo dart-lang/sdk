@@ -25,7 +25,7 @@ class C {}
   }
 
   test_withoutMessage() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!@deprecated!]
 class C {}
 ''');

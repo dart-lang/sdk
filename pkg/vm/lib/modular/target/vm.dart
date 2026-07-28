@@ -46,6 +46,7 @@ class VmTarget extends Target {
   Class? _twoByteString;
   Class? _smi;
   Class? _double; // _Double, not double.
+  Class? _symbol;
   Class? _closure;
   Class? _syncStarIterable;
 
@@ -525,6 +526,11 @@ class VmTarget extends Target {
       'dart:_compact_hash',
       '_ConstSet',
     );
+  }
+
+  @override
+  Class concreteConstSymbolLiteralClass(CoreTypes coreTypes) {
+    return _symbol ??= coreTypes.index.getClass('dart:_internal', 'Symbol');
   }
 
   @override

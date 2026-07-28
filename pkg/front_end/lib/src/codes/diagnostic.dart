@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/conversions.dart'
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     as conversions
     show relativizeUri;
+
 import 'type_labeler.dart';
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic.dart';

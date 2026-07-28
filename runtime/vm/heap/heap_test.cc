@@ -1664,6 +1664,7 @@ VM_UNIT_TEST_CASE(MutatorMarkerRace_DetectInTLAB) {
 
 #if defined(DART_COMPRESSED_POINTERS)
 TEST_CASE_WITH_EXPECTATION(CompressedHeapGuardLow, "Crash") {
+  SetFlagScope<bool> sfs(&FLAG_pointer_cage, true);
   Cage cage;
   void* base = cage.GetRegion();
   uword start = reinterpret_cast<uword>(base);
@@ -1672,6 +1673,7 @@ TEST_CASE_WITH_EXPECTATION(CompressedHeapGuardLow, "Crash") {
 }
 
 TEST_CASE_WITH_EXPECTATION(CompressedHeapGuardHigh, "Crash") {
+  SetFlagScope<bool> sfs(&FLAG_pointer_cage, true);
   Cage cage;
   void* base = cage.GetRegion();
   uword end = reinterpret_cast<uword>(base) + 4 * GB;

@@ -306,9 +306,8 @@ void f() {
 
   Future<List<DocumentSymbol>> _compute(String content) {
     newFile(testPath, content);
-    return CiderDocumentSymbolsComputer(
-      fileResolver,
-    ).compute2(convertPath(testPath));
+    return CiderDocumentSymbolsComputer(fileResolver)
+        .compute2(convertPath(testPath));
   }
 
   void _expect(

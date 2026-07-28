@@ -2,9 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:32:16: Error: Undefined name '_'.
-//         assert(_ >= 0) // Error: no `_` in scope.
-//                ^
+// pkg/front_end/testcases/wildcard_variables/initializing_formals.dart:32:14: Error: Undefined name '_'.
+//       assert(_ >= 0) // Error: no `_` in scope.
+//              ^
 //
 import self as self;
 import "dart:core" as core;

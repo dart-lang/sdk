@@ -75,9 +75,8 @@ String generateVisitor(
 
   String result = sb.toString();
   if (format) {
-    result = new DartFormatter(
-      languageVersion: getPackageVersionFor("kernel"),
-    ).format(result);
+    result = new DartFormatter(languageVersion: getPackageVersionFor("kernel"))
+        .format(result);
   }
   return result;
 }

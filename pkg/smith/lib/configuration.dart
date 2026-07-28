@@ -46,7 +46,9 @@ class Configuration {
   /// After expansion, the resulting strings (and [optionsJson]) are passed to
   /// [parse()] to convert each one to a full configuration.
   static List<Configuration> expandTemplate(
-      String template, Map<String, dynamic> optionsJson) {
+    String template,
+    Map<String, dynamic> optionsJson,
+  ) {
     if (template.isEmpty) throw FormatException("Template must not be empty.");
 
     var sections = <List<String>>[];
@@ -85,8 +87,9 @@ class Configuration {
           result.add(Configuration.parse(prefix, optionsJson));
         } on FormatException catch (ex) {
           throw FormatException(
-              'Could not parse expanded configuration "$prefix" from template '
-              '"$template":\n${ex.message}');
+            'Could not parse expanded configuration "$prefix" from template '
+            '"$template":\n${ex.message}',
+          );
         }
         return;
       }
@@ -135,7 +138,10 @@ class Configuration {
     }
 
     T? enumOption<T extends Enum>(
-        String option, List<String> allowed, T Function(String) parse) {
+      String option,
+      List<String> allowed,
+      T Function(String) parse,
+    ) {
       // Look up the value from the words in the name.
       T? fromName;
       for (var value in allowed) {
@@ -146,8 +152,9 @@ class Configuration {
         if (words.contains(value)) {
           if (fromName != null) {
             throw FormatException(
-                'Found multiple values for $option ("$fromName" and "$value"), '
-                'in configuration name.');
+              'Found multiple values for $option ("$fromName" and "$value"), '
+              'in configuration name.',
+            );
           }
           fromName = parse(value);
         }
@@ -163,11 +170,13 @@ class Configuration {
       if (fromName != null && fromOption != null) {
         if (fromName == fromOption) {
           throw FormatException(
-              'Redundant $option in configuration name "$fromName" and options.');
+            'Redundant $option in configuration name "$fromName" and options.',
+          );
         } else {
           throw FormatException(
-              'Found $option "$fromOption" in options and "$fromName" in '
-              'configuration name.');
+            'Found $option "$fromOption" in options and "$fromName" in '
+            'configuration name.',
+          );
         }
       }
 
@@ -180,8 +189,10 @@ class Configuration {
       var value = optionsCopy.remove(option);
       if (value == null) throw FormatException('Option "$option" was null.');
       if (value is! bool) {
-        throw FormatException('Option "$option" had value "$value", which is '
-            'not a bool.');
+        throw FormatException(
+          'Option "$option" had value "$value", which is '
+          'not a bool.',
+        );
       }
       return value;
     }
@@ -192,8 +203,10 @@ class Configuration {
       var value = optionsCopy.remove(option);
       if (value == null) throw FormatException('Option "$option" was null.');
       if (value is! int) {
-        throw FormatException('Option "$option" had value "$value", which is '
-            'not an int.');
+        throw FormatException(
+          'Option "$option" had value "$value", which is '
+          'not an int.',
+        );
       }
       return value;
     }
@@ -204,8 +217,10 @@ class Configuration {
       var value = optionsCopy.remove(option);
       if (value == null) throw FormatException('Option "$option" was null.');
       if (value is! String) {
-        throw FormatException('Option "$option" had value "$value", which is '
-            'not a string.');
+        throw FormatException(
+          'Option "$option" had value "$value", which is '
+          'not a string.',
+        );
       }
       return value;
     }
@@ -216,8 +231,10 @@ class Configuration {
       var value = optionsCopy.remove(option);
       if (value == null) throw FormatException('Option "$option" was null.');
       if (value is! List) {
-        throw FormatException('Option "$option" had value "$value", which is '
-            'not a List.');
+        throw FormatException(
+          'Option "$option" had value "$value", which is '
+          'not a List.',
+        );
       }
       return List<String>.from(value);
     }
@@ -225,13 +242,17 @@ class Configuration {
     var detectHost = boolOption('detect-host');
     if (detectHost != null && detectHost) {
       throw FormatException(
-          'The `detect-host` option is explicitly forbidden in the '
-          'test_matrix.json file.');
+        'The `detect-host` option is explicitly forbidden in the '
+        'test_matrix.json file.',
+      );
     }
 
     // Extract options from the name and map.
-    var architecture =
-        enumOption("architecture", Architecture.names, Architecture.find);
+    var architecture = enumOption(
+      "architecture",
+      Architecture.names,
+      Architecture.find,
+    );
     var compiler = enumOption("compiler", Compiler.names, Compiler.find);
     var mode = enumOption("mode", Mode.names, Mode.find);
     var runtime = enumOption("runtime", Runtime.names, Runtime.find);
@@ -239,7 +260,10 @@ class Configuration {
     var nnbdMode = enumOption("nnbd", NnbdMode.names, NnbdMode.find);
     var sanitizer = enumOption("sanitizer", Sanitizer.names, Sanitizer.find);
     var genSnapshotFormat = enumOption(
-        "gen-snapshot-format", GenSnapshotFormat.names, GenSnapshotFormat.find);
+      "gen-snapshot-format",
+      GenSnapshotFormat.names,
+      GenSnapshotFormat.find,
+    );
 
     // Fill in any missing values using defaults when possible.
     architecture ??= Architecture.host;
@@ -250,8 +274,7 @@ class Configuration {
 
     // Infer runtime from executable if we don't know runtime and compiler.
     if (runtime == null && compiler == null && words.contains("custom")) {
-      final executableName = Uri.file(Platform.executable)
-          .pathSegments
+      final executableName = Uri.file(Platform.executable).pathSegments
           .lastWhere((e) => e.isNotEmpty);
       final executableNoExtension = executableName.split('.').first;
       if (executableNoExtension == 'dartaotruntime') {
@@ -265,8 +288,9 @@ class Configuration {
     if (compiler == null) {
       if (runtime == null) {
         throw FormatException(
-            'Must specify at least one of compiler or runtime in options or '
-            'configuration name.');
+          'Must specify at least one of compiler or runtime in options or '
+          'configuration name.',
+        );
       } else {
         compiler = runtime.defaultCompiler;
       }
@@ -282,29 +306,35 @@ class Configuration {
     mode ??= compiler.defaultMode;
 
     var configuration = Configuration(
-        name, architecture, compiler, mode, runtime, system,
-        nnbdMode: nnbdMode,
-        sanitizer: sanitizer,
-        builderTag: stringOption("builder-tag"),
-        genKernelOptions: stringListOption("gen-kernel-options"),
-        vmOptions: stringListOption("vm-options"),
-        dart2jsOptions: stringListOption("dart2js-options"),
-        dart2wasmOptions: stringListOption("dart2wasm-options"),
-        ddcOptions: stringListOption("ddc-options"),
-        experiments: stringListOption("enable-experiment"),
-        timeout: intOption("timeout"),
-        enableAsserts: boolOption("enable-asserts"),
-        isChecked: boolOption("checked"),
-        isCsp: boolOption("csp"),
-        enableHostAsserts: boolOption("host-asserts"),
-        isMinified: boolOption("minified"),
-        genSnapshotFormat: genSnapshotFormat,
-        useAnalyzerCfe: boolOption("use-cfe"),
-        useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
-        useHotReload: boolOption("hot-reload"),
-        useHotReloadRollback: boolOption("hot-reload-rollback"),
-        useSdk: boolOption("use-sdk"),
-        useQemu: boolOption("use-qemu"));
+      name,
+      architecture,
+      compiler,
+      mode,
+      runtime,
+      system,
+      nnbdMode: nnbdMode,
+      sanitizer: sanitizer,
+      builderTag: stringOption("builder-tag"),
+      genKernelOptions: stringListOption("gen-kernel-options"),
+      vmOptions: stringListOption("vm-options"),
+      dart2jsOptions: stringListOption("dart2js-options"),
+      dart2wasmOptions: stringListOption("dart2wasm-options"),
+      ddcOptions: stringListOption("ddc-options"),
+      experiments: stringListOption("enable-experiment"),
+      timeout: intOption("timeout"),
+      enableAsserts: boolOption("enable-asserts"),
+      isChecked: boolOption("checked"),
+      isCsp: boolOption("csp"),
+      enableHostAsserts: boolOption("host-asserts"),
+      isMinified: boolOption("minified"),
+      genSnapshotFormat: genSnapshotFormat,
+      useAnalyzerCfe: boolOption("use-cfe"),
+      useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
+      useHotReload: boolOption("hot-reload"),
+      useHotReloadRollback: boolOption("hot-reload-rollback"),
+      useSdk: boolOption("use-sdk"),
+      useQemu: boolOption("use-qemu"),
+    );
 
     // Should have consumed the whole map.
     if (optionsCopy.isNotEmpty) {
@@ -381,57 +411,64 @@ class Configuration {
 
   final bool useQemu;
 
-  new(this.name, this.architecture, this.compiler, this.mode,
-      this.runtime, this.system,
-      {NnbdMode? nnbdMode,
-      Sanitizer? sanitizer,
-      String? builderTag,
-      List<String>? genKernelOptions,
-      List<String>? vmOptions,
-      List<String>? dart2jsOptions,
-      List<String>? dart2wasmOptions,
-      List<String>? ddcOptions,
-      List<String>? experiments,
-      int? timeout,
-      bool? enableAsserts,
-      bool? isChecked,
-      bool? isCsp,
-      bool? enableHostAsserts,
-      bool? isMinified,
-      GenSnapshotFormat? genSnapshotFormat,
-      bool? useAnalyzerCfe,
-      bool? useAnalyzerFastaParser,
-      bool? useHotReload,
-      bool? useHotReloadRollback,
-      bool? useSdk,
-      bool? useQemu})
-      : nnbdMode = nnbdMode ?? NnbdMode.strong,
-        sanitizer = sanitizer ?? Sanitizer.none,
-        builderTag = builderTag ?? "",
-        genKernelOptions = genKernelOptions ?? <String>[],
-        vmOptions = vmOptions ?? <String>[],
-        dart2jsOptions = dart2jsOptions ?? <String>[],
-        dart2wasmOptions = dart2wasmOptions ?? <String>[],
-        ddcOptions = ddcOptions ?? <String>[],
-        experiments = experiments ?? <String>[],
-        timeout = timeout ?? -1,
-        enableAsserts = enableAsserts ?? false,
-        isChecked = isChecked ?? false,
-        isCsp = isCsp ?? false,
-        enableHostAsserts = enableHostAsserts ?? false,
-        isMinified = isMinified ?? false,
-        // Use a null output for non-precompiler targets.
-        genSnapshotFormat =
-            compiler == Compiler.dartkp ? genSnapshotFormat : null,
-        useAnalyzerCfe = useAnalyzerCfe ?? false,
-        useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
-        useHotReload = useHotReload ?? false,
-        useHotReloadRollback = useHotReloadRollback ?? false,
-        useSdk = useSdk ?? false,
-        useQemu = useQemu ?? false {
+  new(
+    this.name,
+    this.architecture,
+    this.compiler,
+    this.mode,
+    this.runtime,
+    this.system, {
+    NnbdMode? nnbdMode,
+    Sanitizer? sanitizer,
+    String? builderTag,
+    List<String>? genKernelOptions,
+    List<String>? vmOptions,
+    List<String>? dart2jsOptions,
+    List<String>? dart2wasmOptions,
+    List<String>? ddcOptions,
+    List<String>? experiments,
+    int? timeout,
+    bool? enableAsserts,
+    bool? isChecked,
+    bool? isCsp,
+    bool? enableHostAsserts,
+    bool? isMinified,
+    GenSnapshotFormat? genSnapshotFormat,
+    bool? useAnalyzerCfe,
+    bool? useAnalyzerFastaParser,
+    bool? useHotReload,
+    bool? useHotReloadRollback,
+    bool? useSdk,
+    bool? useQemu,
+  }) : nnbdMode = nnbdMode ?? NnbdMode.strong,
+       sanitizer = sanitizer ?? Sanitizer.none,
+       builderTag = builderTag ?? "",
+       genKernelOptions = genKernelOptions ?? <String>[],
+       vmOptions = vmOptions ?? <String>[],
+       dart2jsOptions = dart2jsOptions ?? <String>[],
+       dart2wasmOptions = dart2wasmOptions ?? <String>[],
+       ddcOptions = ddcOptions ?? <String>[],
+       experiments = experiments ?? <String>[],
+       timeout = timeout ?? -1,
+       enableAsserts = enableAsserts ?? false,
+       isChecked = isChecked ?? false,
+       isCsp = isCsp ?? false,
+       enableHostAsserts = enableHostAsserts ?? false,
+       isMinified = isMinified ?? false,
+       // Use a null output for non-precompiler targets.
+       genSnapshotFormat = compiler == Compiler.dartkp
+           ? genSnapshotFormat
+           : null,
+       useAnalyzerCfe = useAnalyzerCfe ?? false,
+       useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
+       useHotReload = useHotReload ?? false,
+       useHotReloadRollback = useHotReloadRollback ?? false,
+       useSdk = useSdk ?? false,
+       useQemu = useQemu ?? false {
     if (name.contains(" ")) {
       throw ArgumentError(
-          "Name of test configuration cannot contain spaces: $name");
+        "Name of test configuration cannot contain spaces: $name",
+      );
     }
   }
 
@@ -475,37 +512,36 @@ class Configuration {
   ///
   /// NOTE: This calls [_cloneHelper] instead of the default constructor to
   /// ensure it gets updated whenever new fields are added to the class.
-  factory detectHost(Configuration source) =>
-      Configuration._cloneHelper(
-        '${source.name}-detect-host-${_detectHostNumber++}',
-        Architecture.host,
-        source.compiler,
-        source.mode,
-        source.runtime,
-        System.host,
-        nnbdMode: source.nnbdMode,
-        sanitizer: source.sanitizer,
-        builderTag: source.builderTag,
-        genKernelOptions: source.genKernelOptions,
-        vmOptions: source.vmOptions,
-        dart2jsOptions: source.dart2jsOptions,
-        dart2wasmOptions: source.dart2wasmOptions,
-        ddcOptions: source.ddcOptions,
-        experiments: source.experiments,
-        timeout: source.timeout,
-        enableAsserts: source.enableAsserts,
-        isChecked: source.isChecked,
-        isCsp: source.isCsp,
-        enableHostAsserts: source.enableHostAsserts,
-        isMinified: source.isMinified,
-        genSnapshotFormat: source.genSnapshotFormat,
-        useAnalyzerCfe: source.useAnalyzerCfe,
-        useAnalyzerFastaParser: source.useAnalyzerFastaParser,
-        useHotReload: source.useHotReload,
-        useHotReloadRollback: source.useHotReloadRollback,
-        useSdk: source.useSdk,
-        useQemu: source.useQemu,
-      );
+  factory detectHost(Configuration source) => Configuration._cloneHelper(
+    '${source.name}-detect-host-${_detectHostNumber++}',
+    Architecture.host,
+    source.compiler,
+    source.mode,
+    source.runtime,
+    System.host,
+    nnbdMode: source.nnbdMode,
+    sanitizer: source.sanitizer,
+    builderTag: source.builderTag,
+    genKernelOptions: source.genKernelOptions,
+    vmOptions: source.vmOptions,
+    dart2jsOptions: source.dart2jsOptions,
+    dart2wasmOptions: source.dart2wasmOptions,
+    ddcOptions: source.ddcOptions,
+    experiments: source.experiments,
+    timeout: source.timeout,
+    enableAsserts: source.enableAsserts,
+    isChecked: source.isChecked,
+    isCsp: source.isCsp,
+    enableHostAsserts: source.enableHostAsserts,
+    isMinified: source.isMinified,
+    genSnapshotFormat: source.genSnapshotFormat,
+    useAnalyzerCfe: source.useAnalyzerCfe,
+    useAnalyzerFastaParser: source.useAnalyzerFastaParser,
+    useHotReload: source.useHotReload,
+    useHotReloadRollback: source.useHotReloadRollback,
+    useSdk: source.useSdk,
+    useQemu: source.useQemu,
+  );
 
   /// Counter to provide a unique number in the name of each call to
   /// [detectHost].
@@ -592,7 +628,7 @@ class Configuration {
         useHotReload,
         useHotReloadRollback,
         useSdk,
-        useQemu
+        useQemu,
       ]);
 
   @override
@@ -678,11 +714,17 @@ class Configuration {
     fields.add("sanitizer: $sanitizer ${other.sanitizer}");
     stringField("builder-tag", builderTag, other.builderTag);
     stringListField(
-        "gen-kernel-options", genKernelOptions, other.genKernelOptions);
+      "gen-kernel-options",
+      genKernelOptions,
+      other.genKernelOptions,
+    );
     stringListField("vm-options", vmOptions, other.vmOptions);
     stringListField("dart2js-options", dart2jsOptions, other.dart2jsOptions);
     stringListField(
-        "dart2wasm-options", dart2wasmOptions, other.dart2wasmOptions);
+      "dart2wasm-options",
+      dart2wasmOptions,
+      other.dart2wasmOptions,
+    );
     stringListField("ddc-options", ddcOptions, other.ddcOptions);
     stringListField("experiments", experiments, other.experiments);
     fields.add("timeout: $timeout ${other.timeout}");
@@ -698,14 +740,21 @@ class Configuration {
         genSnapshotFormat != null ||
         other.genSnapshotFormat != null) {
       fields.add(
-          "gen-snapshot-format: $genSnapshotFormat ${other.genSnapshotFormat}");
+        "gen-snapshot-format: $genSnapshotFormat ${other.genSnapshotFormat}",
+      );
     }
     boolField("use-cfe", useAnalyzerCfe, other.useAnalyzerCfe);
-    boolField("analyzer-use-fasta-parser", useAnalyzerFastaParser,
-        other.useAnalyzerFastaParser);
+    boolField(
+      "analyzer-use-fasta-parser",
+      useAnalyzerFastaParser,
+      other.useAnalyzerFastaParser,
+    );
     boolField("hot-reload", useHotReload, other.useHotReload);
-    boolField("hot-reload-rollback", useHotReloadRollback,
-        other.useHotReloadRollback);
+    boolField(
+      "hot-reload-rollback",
+      useHotReloadRollback,
+      other.useHotReloadRollback,
+    );
     boolField("use-sdk", useSdk, other.useSdk);
     boolField("use-qemu", useQemu, other.useQemu);
 
@@ -726,6 +775,7 @@ enum Architecture {
   arm_x64._('arm_x64'),
   arm64._('arm64'),
   arm64c._('arm64c'),
+  arm64e._('arm64e'),
   simarm._('simarm', isSimulator: true),
   // ignore: constant_identifier_names
   simarm_x64._('simarm_x64', isSimulator: true),
@@ -744,8 +794,10 @@ enum Architecture {
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Architecture>.fromIterable(values,
-      key: (a) => (a as Architecture).name);
+  static final _all = Map<String, Architecture>.fromIterable(
+    values,
+    key: (a) => (a as Architecture).name,
+  );
 
   static Architecture find(String name) {
     var architecture = _all[name];
@@ -811,15 +863,15 @@ enum Architecture {
 }
 
 /// Specifies the output format used by gen_snapshot to create AOT snapshots.
-enum GenSnapshotFormat {
+enum GenSnapshotFormat(this.name, this.fileOption, {this._snapshotType}) {
   assembly('assembly', 'assembly'),
   elf('elf', 'elf'),
-  machODylib('macho-dylib', 'macho');
+  machODylib('macho-dylib', 'macho'),
+  coff('coff', 'coff', snapshotType: 'app-aot-pecoff-obj');
 
   final String name;
   final String fileOption;
-
-  new(this.name, this.fileOption);
+  final String? _snapshotType;
 
   static final _all = Map<String, GenSnapshotFormat>.fromIterable(
     values,
@@ -834,7 +886,7 @@ enum GenSnapshotFormat {
     throw ArgumentError('Unknown gen_snapshot format "$name".');
   }
 
-  String get snapshotType => 'app-aot-$name';
+  String get snapshotType => _snapshotType ?? 'app-aot-$name';
 
   @override
   String toString() => name;
@@ -845,53 +897,63 @@ enum Compiler {
   // runs test.py -c dart2js -r drt,none the dart2js_none and
   // dart2js_drt will be duplicating work. If later we don't need 'none'
   // with dart2js, we should remove it from here.
-  dart2js._('dart2js',
-      supportedRuntimes: [
-        Runtime.d8,
-        Runtime.jsshell,
-        Runtime.none,
-        Runtime.firefox,
-        Runtime.chrome,
-        Runtime.safari,
-        Runtime.edge,
-        Runtime.chromeOnAndroid,
-      ],
-      defaultMode: Mode.release),
+  dart2js._(
+    'dart2js',
+    supportedRuntimes: [
+      Runtime.d8,
+      Runtime.jsshell,
+      Runtime.none,
+      Runtime.firefox,
+      Runtime.chrome,
+      Runtime.safari,
+      Runtime.edge,
+      Runtime.chromeOnAndroid,
+    ],
+    defaultMode: Mode.release,
+  ),
   dart2analyzer._('dart2analyzer', defaultMode: Mode.release),
-  dart2wasm._('dart2wasm',
-      supportedRuntimes: [
-        Runtime.none,
-        Runtime.jsc,
-        Runtime.jsshell,
-        Runtime.d8,
-        Runtime.chrome,
-        Runtime.firefox,
-        Runtime.safari,
-      ],
-      defaultMode: Mode.release),
-  ddc._('ddc',
-      supportedRuntimes: [
-        Runtime.none,
-        Runtime.d8,
-        Runtime.chrome,
-        Runtime.edge,
-        Runtime.firefox,
-        Runtime.safari,
-      ],
-      defaultMode: Mode.release),
+  dart2wasm._(
+    'dart2wasm',
+    supportedRuntimes: [
+      Runtime.none,
+      Runtime.jsc,
+      Runtime.jsshell,
+      Runtime.d8,
+      Runtime.chrome,
+      Runtime.firefox,
+      Runtime.safari,
+    ],
+    defaultMode: Mode.release,
+  ),
+  ddc._(
+    'ddc',
+    supportedRuntimes: [
+      Runtime.none,
+      Runtime.d8,
+      Runtime.chrome,
+      Runtime.edge,
+      Runtime.firefox,
+      Runtime.safari,
+    ],
+    defaultMode: Mode.release,
+  ),
   appJitk._('app_jitk', supportedRuntimes: [Runtime.vm]),
   dartk._('dartk', supportedRuntimes: [Runtime.vm]),
   dartkp._('dartkp', supportedRuntimes: [Runtime.dartPrecompiled]),
   specParser._('spec_parser'),
   fasta._('fasta', defaultMode: Mode.release),
-  dart2bytecode._('dart2bytecode',
-      supportedRuntimes: [Runtime.vm, Runtime.dartPrecompiled]),
+  dart2bytecode._(
+    'dart2bytecode',
+    supportedRuntimes: [Runtime.vm, Runtime.dartPrecompiled],
+  ),
   modAot._('modaot', supportedRuntimes: [Runtime.vm]);
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Compiler>.fromIterable(values,
-      key: (c) => (c as Compiler).name);
+  static final _all = Map<String, Compiler>.fromIterable(
+    values,
+    key: (c) => (c as Compiler).name,
+  );
 
   static Compiler find(String name) {
     var compiler = _all[name];
@@ -903,9 +965,11 @@ enum Compiler {
   final String name;
   final List<Runtime> supportedRuntimes;
   final Mode defaultMode;
-  new _(this.name,
-      {this.supportedRuntimes = const [Runtime.none],
-      this.defaultMode = Mode.debug});
+  new _(
+    this.name, {
+    this.supportedRuntimes = const [Runtime.none],
+    this.defaultMode = Mode.debug,
+  });
 
   /// The preferred runtime to use with this compiler if no other runtime is
   /// specified.
@@ -937,8 +1001,10 @@ enum Mode {
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all =
-      Map<String, Mode>.fromIterable(values, key: (m) => (m as Mode).name);
+  static final _all = Map<String, Mode>.fromIterable(
+    values,
+    key: (m) => (m as Mode).name,
+  );
 
   static Mode find(String name) {
     var mode = _all[name];
@@ -967,8 +1033,10 @@ enum Sanitizer {
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Sanitizer>.fromIterable(values,
-      key: (s) => (s as Sanitizer).name);
+  static final _all = Map<String, Sanitizer>.fromIterable(
+    values,
+    key: (s) => (s as Sanitizer).name,
+  );
 
   static Sanitizer find(String name) {
     var mode = _all[name];
@@ -1000,8 +1068,10 @@ enum Runtime {
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Runtime>.fromIterable(values,
-      key: (r) => (r as Runtime).name);
+  static final _all = Map<String, Runtime>.fromIterable(
+    values,
+    key: (r) => (r as Runtime).name,
+  );
 
   static Runtime find(String name) {
     var runtime = _all[name];
@@ -1015,8 +1085,7 @@ enum Runtime {
 
   /// Whether this runtime is a command-line JavaScript environment.
   final bool isJSCommandLine;
-  new _(this.name,
-      {this.isBrowser = false, this.isJSCommandLine = false});
+  new _(this.name, {this.isBrowser = false, this.isJSCommandLine = false});
 
   bool get isSafari => name.startsWith("safari");
 
@@ -1062,18 +1131,17 @@ enum System {
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all =
-      Map<String, System>.fromIterable(values, key: (s) => (s as System).name);
+  static final _all = Map<String, System>.fromIterable(
+    values,
+    key: (s) => (s as System).name,
+  );
 
   /// Gets the system of the current machine.
   static System get host => find(Platform.operatingSystem);
 
   // Alternate allowed names, e.g., the names used by dart:io, that shouldn't
   // be reported in the [names] getter.
-  static final _alternateNames = <String, System>{
-    "macos": mac,
-    "windows": win,
-  };
+  static final _alternateNames = <String, System>{"macos": mac, "windows": win};
 
   static System find(String name) {
     var system = _all[name];
@@ -1112,8 +1180,10 @@ enum NnbdMode {
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, NnbdMode>.fromIterable(values,
-      key: (m) => (m as NnbdMode).name);
+  static final _all = Map<String, NnbdMode>.fromIterable(
+    values,
+    key: (m) => (m as NnbdMode).name,
+  );
 
   static NnbdMode find(String name) {
     var mode = _all[name];

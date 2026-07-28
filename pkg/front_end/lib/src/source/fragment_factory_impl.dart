@@ -2248,7 +2248,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       fileOffset: nameOffset,
       fileUri: _compilationUnit.fileUri,
       defaultValueToken: initializerToken,
-      hasImmediatelyDeclaredInitializer: initializerToken != null,
+      hasImmediatelyDeclaredDefaultValue: initializerToken != null,
       wildcardIndex: wildcardIndex,
       publicName: publicName,
     );

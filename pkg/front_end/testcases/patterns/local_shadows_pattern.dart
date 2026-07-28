@@ -5,10 +5,10 @@
 test1(dynamic x) {
   switch (x) {
     case int x:
-    {
-      String x = "foo"; // Ok.
-      return x;
-    }
+      {
+        String x = "foo"; // Ok.
+        return x;
+      }
     default:
       return "bar";
   }
@@ -37,7 +37,11 @@ test3(dynamic x) {
 test4(dynamic x) {
   Function f = () => 0;
   // The then-clause isn't a block.
-  if (x case int x) String x = () { f = () => 1; return "foo"; }();
+  if (x case int x)
+    String x = () {
+      f = () => 1;
+      return "foo";
+    }();
   return f();
 }
 

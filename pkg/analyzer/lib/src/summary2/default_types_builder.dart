@@ -30,102 +30,16 @@ class DefaultTypesBuilder {
   }) : _getTypeParameterNode = getTypeParameterNode;
 
   void build(List<AstNode> nodes) {
-    for (var node in nodes) {
-      if (node is ClassDeclarationImpl) {
-        var element = node.declaredFragment!.element;
-        var typeParameters = node.namePart.typeParameters;
-        _breakSelfCycles(typeParameters);
-        _breakRawTypeCycles(element, typeParameters);
-        _computeBounds(element, typeParameters);
-      } else if (node is ClassTypeAliasImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
-      } else if (node is EnumDeclarationImpl) {
-        var element = node.declaredFragment!.element;
-        var typeParameters = node.namePart.typeParameters;
-        _breakSelfCycles(typeParameters);
-        _breakRawTypeCycles(element, typeParameters);
-        _computeBounds(element, typeParameters);
-      } else if (node is ExtensionDeclarationImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
-      } else if (node is ExtensionTypeDeclarationImpl) {
-        var element = node.declaredFragment!.element;
-        var typeParameters = node.namePart.typeParameters;
-        _breakSelfCycles(typeParameters);
-        _breakRawTypeCycles(element, typeParameters);
-        _computeBounds(element, typeParameters);
-      } else if (node is FunctionTypeAliasImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
-      } else if (node is GenericTypeAliasImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
-      } else if (node is MixinDeclarationImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
-      } else if (node is MethodDeclarationImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
-      } else if (node is FunctionDeclarationImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.functionExpression.typeParameters);
-        _breakRawTypeCycles(element, node.functionExpression.typeParameters);
-        _computeBounds(element, node.functionExpression.typeParameters);
-      } else if (node is FunctionExpressionImpl) {
-        var element = node.declaredFragment!.element;
-        _breakSelfCycles(node.typeParameters);
-        _breakRawTypeCycles(element, node.typeParameters);
-        _computeBounds(element, node.typeParameters);
-      }
-    }
-    for (var node in nodes) {
-      if (node is ClassDeclarationImpl) {
-        _build(node.namePart.typeParameters);
-      } else if (node is ClassTypeAliasImpl) {
-        _build(node.typeParameters);
-      } else if (node is EnumDeclarationImpl) {
-        _build(node.namePart.typeParameters);
-      } else if (node is ExtensionDeclarationImpl) {
-        _build(node.typeParameters);
-      } else if (node is ExtensionTypeDeclarationImpl) {
-        _build(node.namePart.typeParameters);
-      } else if (node is FunctionTypeAliasImpl) {
-        _build(node.typeParameters);
-      } else if (node is GenericTypeAliasImpl) {
-        _build(node.typeParameters);
-      } else if (node is MixinDeclarationImpl) {
-        _build(node.typeParameters);
-      } else if (node is FunctionDeclarationImpl) {
-        _build(node.functionExpression.typeParameters);
-      } else if (node is FunctionExpressionImpl) {
-        _build(node.typeParameters);
-      } else if (node is MethodDeclarationImpl) {
-        _build(node.typeParameters);
-      }
-    }
+    _computeDefaultTypes(nodes);
+    _buildDefaultTypes(nodes);
   }
 
   void _breakRawTypeCycles(
     Element declarationElement,
-    TypeParameterList? parameterList,
+    TypeParameterList typeParameterList,
   ) {
-    if (parameterList == null) return;
-
     var allCycles = <List<_CycleElement>>[];
-    for (var parameter in parameterList.typeParameters) {
+    for (var parameter in typeParameterList.typeParameters) {
       var boundNode = parameter.bound;
       if (boundNode == null) continue;
 
@@ -152,9 +66,8 @@ class DefaultTypesBuilder {
     }
   }
 
-  void _breakSelfCycles(TypeParameterList? parameterList) {
-    if (parameterList == null) return;
-    var typeParameters = parameterList.typeParameters;
+  void _breakSelfCycles(TypeParameterList typeParameterList) {
+    var typeParameters = typeParameterList.typeParameters;
 
     Map<String, TypeParameter>? typeParametersByName;
     for (var parameter in typeParameters) {
@@ -193,32 +106,30 @@ class DefaultTypesBuilder {
     }
   }
 
-  /// Build actual default type [DartType]s from computed [TypeBuilder]s.
-  void _build(TypeParameterListImpl? parameterList) {
-    if (parameterList == null) return;
-
-    for (var parameter in parameterList.typeParameters) {
-      var fragment = parameter.declaredFragment!;
-      var defaultType = fragment.element.defaultType;
-      if (defaultType is TypeBuilder) {
-        var builtType = defaultType.build();
-        fragment.element.defaultType = builtType;
+  void _buildDefaultTypes(List<AstNode> nodes) {
+    for (var node in nodes) {
+      var fragmentTypeParameters = _fragmentTypeParameters(node);
+      var typeParameters = fragmentTypeParameters?.typeParameters;
+      if (typeParameters != null) {
+        for (var typeParameter in typeParameters.typeParameters) {
+          var fragment = typeParameter.declaredFragment!;
+          var defaultType = fragment.element.defaultType;
+          if (defaultType is TypeBuilder) {
+            var builtType = defaultType.build();
+            fragment.element.defaultType = builtType;
+          }
+        }
       }
     }
   }
 
   /// Compute bounds to be provided as type arguments in place of missing type
   /// arguments on raw types with the given type parameters.
-  void _computeBounds(
-    Element declarationElement,
-    TypeParameterListImpl? parameterList,
-  ) {
-    if (parameterList == null) return;
-
+  void _computeDefaultType(TypeParameterListImpl typeParameterList) {
     var dynamicType = DynamicTypeImpl.instance;
     var bottomType = NeverTypeImpl.instance;
 
-    var nodes = parameterList.typeParameters;
+    var nodes = typeParameterList.typeParameters;
     var length = nodes.length;
     var elements = <TypeParameterElementImpl>[];
     var bounds = <TypeImpl>[];
@@ -272,6 +183,22 @@ class DefaultTypesBuilder {
     for (var i = 0; i < length; i++) {
       var fragment = nodes[i].declaredFragment!;
       fragment.element.defaultType = bounds[i];
+    }
+  }
+
+  void _computeDefaultTypes(List<AstNode> nodes) {
+    for (var node in nodes) {
+      var fragmentTypeParameters = _fragmentTypeParameters(node);
+      var fragment = fragmentTypeParameters?.fragment;
+      var typeParameters = fragmentTypeParameters?.typeParameters;
+      if (fragment != null && typeParameters != null) {
+        if (fragment.previousFragment == null) {
+          var element = fragment.element;
+          _breakSelfCycles(typeParameters);
+          _breakRawTypeCycles(element, typeParameters);
+          _computeDefaultType(typeParameters);
+        }
+      }
     }
   }
 
@@ -364,6 +291,68 @@ class DefaultTypesBuilder {
     }
     return paths;
   }
+
+  _FragmentTypeParameters? _fragmentTypeParameters(AstNode node) {
+    switch (node) {
+      case ClassDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.namePart.typeParameters,
+        );
+      case ClassTypeAliasImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case EnumDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.namePart.typeParameters,
+        );
+      case ExtensionDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case ExtensionTypeDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.namePart.typeParameters,
+        );
+      case FunctionTypeAliasImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case GenericTypeAliasImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case MixinDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case MethodDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      case FunctionDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.functionExpression.typeParameters,
+        );
+      case FunctionExpressionImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
+      default:
+        return null;
+    }
+  }
 }
 
 class _CycleElement {
@@ -371,6 +360,13 @@ class _CycleElement {
   final DartType type;
 
   _CycleElement(this.parameter, this.type);
+}
+
+class _FragmentTypeParameters {
+  final FragmentImpl fragment;
+  final TypeParameterListImpl? typeParameters;
+
+  _FragmentTypeParameters(this.fragment, this.typeParameters);
 }
 
 /// Graph of mutual dependencies of type parameters from the same declaration.

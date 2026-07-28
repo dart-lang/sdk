@@ -577,6 +577,12 @@ abstract class RenameRefactoring implements Refactoring {
     AstNode node,
     Element? element,
   ) {
+    if (node case SimpleIdentifier(
+      parent: Annotation(),
+      element: TypeParameterizedElement typeParameterizedElement,
+    ) when element is ConstructorElement) {
+      element = typeParameterizedElement;
+    }
     if (node is ClassNamePart) {
       node = node.parent!;
     }

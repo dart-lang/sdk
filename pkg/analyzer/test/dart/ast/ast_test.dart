@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1039,7 +1041,7 @@ final x = f();
 ''');
 
     var argumentList = parseResult.findNode.argumentList('()');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     expect(nodeList.beginToken, isNull);
   }
 
@@ -1049,7 +1051,7 @@ final x = f(0, 1);
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     var first = nodeList[0];
     expect(nodeList.beginToken, same(first.beginToken));
   }
@@ -1060,7 +1062,7 @@ final x = f();
 ''');
 
     var argumentList = parseResult.findNode.argumentList('()');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     expect(nodeList.endToken, isNull);
   }
 
@@ -1070,7 +1072,7 @@ final x = f(0, 1);
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     var last = nodeList[nodeList.length - 1];
     expect(nodeList.endToken, same(last.endToken));
   }
@@ -1082,7 +1084,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
 
     var first = nodeList[0];
     var second = nodeList[1];
@@ -1104,7 +1106,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
 
     try {
       nodeList[-1] = nodeList.first;
@@ -1121,7 +1123,7 @@ final y = 42;
 ''');
 
     var argumentList = parseResult.findNode.argumentList('(0');
-    var nodeList = argumentList.arguments;
+    var nodeList = argumentList.arguments2;
     try {
       nodeList[1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
@@ -1388,7 +1390,10 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 final x = List<String>.foo();
 ''');
-    var constructor = parseResult.findNode.singleConstructorName;
+    var constructor = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
     var name = constructor.name!;
     expect(name.isQualified, isTrue);
   }
@@ -1465,6 +1470,17 @@ void f() {
     expect(identifier.isQualified, isFalse);
   }
 
+  void test_writeOrReadElement_inConstructorName_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+final x = List<String>.foo();
+''');
+    var constructor = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
+    expect(constructor.name!.writeOrReadElement, isNull);
+  }
+
   SimpleIdentifier _createIdentifier(
     _WrapperKind wrapper,
     _AssignmentKind assignment,
@@ -1521,10 +1537,10 @@ void f() {
   /// @return the root of the AST structure containing the identifier
   AstNode _topMostNode(SimpleIdentifier identifier) {
     AstNode child = identifier;
-    var parent = identifier.parent;
+    var parent = identifier.parent2;
     while (parent != null) {
       child = parent;
-      parent = parent.parent;
+      parent = parent.parent2;
     }
     return child;
   }
@@ -1824,13 +1840,13 @@ StringInterpolation
       contents: '
     InterpolationExpression
       leftBracket: $
-      expression: ThisExpression
+      expression2: ThisExpression
         thisKeyword: this
     InterpolationString
       contents: <empty> <synthetic>
     InterpolationExpression
       leftBracket: $
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: foo
     InterpolationString
       contents: '

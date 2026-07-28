@@ -127,9 +127,8 @@ class CanonicalName implements Comparable<CanonicalName?> {
   }
 
   CanonicalName getChildFromProcedure(Procedure procedure) {
-    return getChild(
-      getProcedureQualifier(procedure),
-    ).getChildFromQualifiedName(procedure.name);
+    return getChild(getProcedureQualifier(procedure))
+        .getChildFromQualifiedName(procedure.name);
   }
 
   CanonicalName getChildFromField(Field field) {
@@ -145,9 +144,8 @@ class CanonicalName implements Comparable<CanonicalName?> {
   }
 
   CanonicalName getChildFromConstructor(Constructor constructor) {
-    return getChild(
-      constructorsName,
-    ).getChildFromQualifiedName(constructor.name);
+    return getChild(constructorsName)
+        .getChildFromQualifiedName(constructor.name);
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {

@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
+
 import '../test_helpers.dart';
 
 void main() {
@@ -194,7 +195,7 @@ void main() {
     final member = coreTypes.futureValueFactory;
     final enclosingFunction = functionRegistry.getFunction(member);
     final localFunction = ast.FunctionDeclaration(
-      ast.LocalVariable(name: 'foo', type: const ast.DynamicType()),
+      ast.LocalFunctionVariable(name: 'foo', type: const ast.DynamicType()),
       ast.FunctionNode(
         ast.Block([]),
         returnType: coreTypes.boolNonNullableRawType,

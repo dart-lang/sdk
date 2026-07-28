@@ -8,6 +8,7 @@
 library extends_subtyping_live_test;
 
 import 'package:js/js.dart';
+
 import 'extends_test_util.dart';
 
 @JS()

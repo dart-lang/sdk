@@ -5,6 +5,7 @@
 // Test that a coin toss with Random.nextBool() is fair.
 
 import "package:expect/expect.dart";
+
 import 'dart:math';
 
 main() {

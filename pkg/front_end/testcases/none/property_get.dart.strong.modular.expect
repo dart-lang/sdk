@@ -2,31 +2,31 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/none/property_get.dart:55:32: Error: Not a constant expression.
+// pkg/front_end/testcases/none/property_get.dart:56:32: Error: Not a constant expression.
 //   const dynamic instance_get = nullableClass1.field;
 //                                ^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/none/property_get.dart:63:36: Error: Not a constant expression.
+// pkg/front_end/testcases/none/property_get.dart:64:36: Error: Not a constant expression.
 //   const dynamic instance_tearOff = nonNullableClass1.method;
 //                                    ^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/none/property_get.dart:82:27: Error: Not a constant expression.
+// pkg/front_end/testcases/none/property_get.dart:83:27: Error: Not a constant expression.
 //   const dynamic dyn_get = dyn.field;
 //                           ^^^
 //
-// pkg/front_end/testcases/none/property_get.dart:106:36: Error: Not a constant expression.
+// pkg/front_end/testcases/none/property_get.dart:107:36: Error: Not a constant expression.
 //   const dynamic function_tearOff = nonNullableFunction.call;
 //                                    ^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/none/property_get.dart:67:18: Error: Can't tear off method 'call' from a potentially null value.
+// pkg/front_end/testcases/none/property_get.dart:68:18: Error: Can't tear off method 'call' from a potentially null value.
 //   Function? f2 = nullableClass2;
 //                  ^
 //
-// pkg/front_end/testcases/none/property_get.dart:110:27: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/none/property_get.dart:111:27: Error: Too few positional arguments: 1 required, 0 given.
 //   nonNullableClass1.method().field;
 //                           ^
 //
-// pkg/front_end/testcases/none/property_get.dart:113:21: Error: The getter 'unresolved' isn't defined for the type 'Class1'.
+// pkg/front_end/testcases/none/property_get.dart:114:21: Error: The getter 'unresolved' isn't defined for the type 'Class1'.
 //  - 'Class1' is from 'pkg/front_end/testcases/none/property_get.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //   nonNullableClass1.unresolved;
@@ -67,10 +67,10 @@ static method test<T1 extends core::Function, T2 extends () → core::int>(self:
   let final self::Class1? #t1 = nullableClass1 in #t1 == null ?{core::int?} null : #t1{self::Class1}.{self::Class1::field}{core::int};
   nonNullableClass2.{self::Class2::field}{core::String};
   let final self::Class2<core::String>? #t2 = nullableClass2 in #t2 == null ?{core::String?} null : #t2{self::Class2<core::String>}.{self::Class2::field}{core::String};
-  const dynamic instance_get = invalid-expression "pkg/front_end/testcases/none/property_get.dart:55:32: Error: Not a constant expression.
+  const dynamic instance_get = invalid-expression "pkg/front_end/testcases/none/property_get.dart:56:32: Error: Not a constant expression.
   const dynamic instance_get = nullableClass1.field;
                                ^^^^^^^^^^^^^^";
-  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:55:32: Error: Not a constant expression.
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:56:32: Error: Not a constant expression.
   const dynamic instance_get = nullableClass1.field;
                                ^^^^^^^^^^^^^^");
   core::print("InstanceTearOff");
@@ -78,14 +78,14 @@ static method test<T1 extends core::Function, T2 extends () → core::int>(self:
   let final self::Class1? #t3 = nullableClass1 in #t3 == null ?{(core::double) →? core::int} null : #t3{self::Class1}.{self::Class1::method}{(core::double) → core::int};
   nonNullableClass2.{self::Class2::call}{() → core::int};
   let final self::Class2<core::String>? #t4 = nullableClass2 in #t4 == null ?{() →? core::int} null : #t4{self::Class2<core::String>}.{self::Class2::call}{() → core::int};
-  const dynamic instance_tearOff = invalid-expression "pkg/front_end/testcases/none/property_get.dart:63:36: Error: Not a constant expression.
+  const dynamic instance_tearOff = invalid-expression "pkg/front_end/testcases/none/property_get.dart:64:36: Error: Not a constant expression.
   const dynamic instance_tearOff = nonNullableClass1.method;
                                    ^^^^^^^^^^^^^^^^^";
-  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:63:36: Error: Not a constant expression.
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:64:36: Error: Not a constant expression.
   const dynamic instance_tearOff = nonNullableClass1.method;
                                    ^^^^^^^^^^^^^^^^^");
   core::Function f1 = let final self::Class2<core::String> #t5 = nonNullableClass2 in #t5 == null ?{() → core::int} null : #t5.{self::Class2::call}{() → core::int};
-  core::Function? f2 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:67:18: Error: Can't tear off method 'call' from a potentially null value.
+  core::Function? f2 = invalid-expression "pkg/front_end/testcases/none/property_get.dart:68:18: Error: Can't tear off method 'call' from a potentially null value.
   Function? f2 = nullableClass2;
                  ^" in nullableClass2 as{TypeError} core::Function?;
   core::print("StaticGet");
@@ -99,10 +99,10 @@ static method test<T1 extends core::Function, T2 extends () → core::int>(self:
   core::print("DynamicGet");
   dyn{dynamic}.field;
   let final dynamic #t6 = dyn in #t6 == null ?{dynamic} null : #t6{dynamic}.field;
-  const dynamic dyn_get = invalid-expression "pkg/front_end/testcases/none/property_get.dart:82:27: Error: Not a constant expression.
+  const dynamic dyn_get = invalid-expression "pkg/front_end/testcases/none/property_get.dart:83:27: Error: Not a constant expression.
   const dynamic dyn_get = dyn.field;
                           ^^^";
-  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:82:27: Error: Not a constant expression.
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:83:27: Error: Not a constant expression.
   const dynamic dyn_get = dyn.field;
                           ^^^");
   core::print("InstanceGet (Object)");
@@ -123,18 +123,18 @@ static method test<T1 extends core::Function, T2 extends () → core::int>(self:
   let final self::test::T1? #t9 = nullableTypeVariable1 in #t9 == null ?{self::test::T1?} null : #t9{self::test::T1}.call;
   nonNullableTypeVariable2.call;
   let final self::test::T2? #t10 = nullableTypeVariable2 in #t10 == null ?{self::test::T2?} null : #t10{self::test::T2}.call;
-  const dynamic function_tearOff = invalid-expression "pkg/front_end/testcases/none/property_get.dart:106:36: Error: Not a constant expression.
+  const dynamic function_tearOff = invalid-expression "pkg/front_end/testcases/none/property_get.dart:107:36: Error: Not a constant expression.
   const dynamic function_tearOff = nonNullableFunction.call;
                                    ^^^^^^^^^^^^^^^^^^^";
-  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:106:36: Error: Not a constant expression.
+  core::print(invalid-expression "pkg/front_end/testcases/none/property_get.dart:107:36: Error: Not a constant expression.
   const dynamic function_tearOff = nonNullableFunction.call;
                                    ^^^^^^^^^^^^^^^^^^^");
   core::print("DynamicGet (Invalid)");
-  invalid-expression "pkg/front_end/testcases/none/property_get.dart:110:27: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/none/property_get.dart:111:27: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass1.method().field;
                           ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}{<invalid>}.field;
   core::print("DynamicGet (Unresolved)");
-  invalid-expression "pkg/front_end/testcases/none/property_get.dart:113:21: Error: The getter 'unresolved' isn't defined for the type 'Class1'.
+  invalid-expression "pkg/front_end/testcases/none/property_get.dart:114:21: Error: The getter 'unresolved' isn't defined for the type 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/none/property_get.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
   nonNullableClass1.unresolved;

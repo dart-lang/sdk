@@ -660,8 +660,7 @@ const E myConst = .one;
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x', newValue: 'invalid'),
       errorCode: ServerErrorCodes.editArgumentInvalidValue,
-      message:
-          "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
+      message: "The value for the parameter 'x' should be one of 'E.one', 'E.two' but was 'invalid'",
     );
   }
 
@@ -941,7 +940,7 @@ const myConst = E.one;
     if (open) {
       await openFile(testFileUri, code.code);
     }
-    await currentAnalysis;
+    await workspaceAnalysisComplete();
     var verifier = await executeForEdits(
       () => editArgument(testFileUri, code.position.position, edit),
     );
@@ -977,7 +976,7 @@ class MyWidget extends StatelessWidget {
     code = TestCode.parse(content);
     createFile(testFilePath, code.code);
     await initializeServer();
-    await currentAnalysis;
+    await workspaceAnalysisComplete();
 
     await expectLater(
       editArgument(testFileUri, code.position.position, edit),

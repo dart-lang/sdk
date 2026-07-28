@@ -14,9 +14,9 @@ static method test(positional-parameter list) → dynamic/* scope=[
   s := "";
   for /* scope=[
     #ctx3: not-captured VariableContext([
-      synthetic-variable #t1;
+      synthetic-variable final #t1;
     ]),
-  ] */ (synthetic-variable #t1 in list) {
+  ] */ (synthetic-variable final #t1 in list) {
     s = #t1;
     if(s.{core::String::isNotEmpty}{core::bool}) {
       return s;

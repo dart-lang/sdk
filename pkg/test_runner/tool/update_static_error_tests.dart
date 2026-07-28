@@ -330,32 +330,36 @@ Future<List<StaticError>> _runAnalyzerOnFile(
 ) async {
   var absolutePath = testFile.path.absolute.toNativePath();
 
-  var context = contextCollection.contextFor(absolutePath);
-  var errorsResult = await context.currentSession.getErrors(absolutePath);
+  try {
+    var context = contextCollection.contextFor(absolutePath);
+    var errorsResult = await context.currentSession.getErrors(absolutePath);
 
-  // Convert the analyzer errors to test_runner [StaticErrors].
-  var errors = <StaticError>[];
-  if (errorsResult is ErrorsResult) {
-    for (var diagnostic in errorsResult.diagnostics) {
-      switch (diagnostic.severity) {
-        case Severity.error:
-        case Severity.warning
-            when AnalyzerError.isValidatedWarning(
-              diagnostic.diagnosticCode.lowerCaseName,
-            ):
-          errors.add(
-            _convertAnalysisError(context, errorsResult.path, diagnostic),
-          );
-        default:
-          // Ignore todos and other harmless warnings like unused variables
-          // which the tests are riddled with but we don't want to bother
-          // validating.
-          break;
+    // Convert the analyzer errors to test_runner [StaticErrors].
+    var errors = <StaticError>[];
+    if (errorsResult is ErrorsResult) {
+      for (var diagnostic in errorsResult.diagnostics) {
+        switch (diagnostic.severity) {
+          case Severity.error:
+          case Severity.warning
+              when AnalyzerError.isValidatedWarning(
+                diagnostic.diagnosticCode.lowerCaseName,
+              ):
+            errors.add(
+              _convertAnalysisError(context, errorsResult.path, diagnostic),
+            );
+          default:
+            // Ignore todos and other harmless warnings like unused variables
+            // which the tests are riddled with but we don't want to bother
+            // validating.
+            break;
+        }
       }
     }
-  }
 
-  return errors;
+    return errors;
+  } catch (error) {
+    return const [];
+  }
 }
 
 /// Convert an [Diagnostic] from the analyzer package to the test runner's

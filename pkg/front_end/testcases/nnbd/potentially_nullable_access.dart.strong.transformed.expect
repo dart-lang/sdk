@@ -201,11 +201,11 @@ library;
 // var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
 //                                                     ^
 //
-// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:73:19: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:73:6: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
 // Try calling using ?.call instead.
-//     nullableClass.extensionFunctionTypeGetter();
-//                   ^
+//     .extensionFunctionTypeGetter();
+//      ^
 //
 // pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:76:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
 //   var localBinary = nullableInt + 0;
@@ -406,11 +406,11 @@ library;
 //   var localExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
 //                                                    ^
 //
-// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:112:21: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
+// pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:112:8: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
 // Try calling using ?.call instead.
-//       nullableClass.extensionFunctionTypeGetter();
-//                     ^
+//       .extensionFunctionTypeGetter();
+//        ^
 //
 import self as self;
 import "dart:core" as core;
@@ -612,11 +612,11 @@ static field dynamic topLevelExtensionFunctionGetter = invalid-expression "pkg/f
 Try calling using ?.call instead.
 var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
                                                     ^" in self::Extension|get#extensionFunctionGetter(self::nullableClass)();
-static field void topLevelExtensionFunctionTypeGetter = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:73:19: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
+static field void topLevelExtensionFunctionTypeGetter = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:73:6: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
 Try calling using ?.call instead.
-    nullableClass.extensionFunctionTypeGetter();
-                  ^" in self::Extension|get#extensionFunctionTypeGetter(self::nullableClass)(){() → void};
+    .extensionFunctionTypeGetter();
+     ^" in self::Extension|get#extensionFunctionTypeGetter(self::nullableClass)(){() → void};
 static extension-member method Extension|+(lowered final self::Class #this, core::int value) → core::int
   return 0;
 static extension-member method Extension|unary-(lowered final self::Class #this) → core::int
@@ -819,11 +819,11 @@ Try accessing using ?. instead.
 Try calling using ?.call instead.
   var localExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
                                                    ^" in self::Extension|get#extensionFunctionGetter(self::nullableClass)();
-  void localExtensionFunctionTypeGetter = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:112:21: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
+  void localExtensionFunctionTypeGetter = invalid-expression "pkg/front_end/testcases/nnbd/potentially_nullable_access.dart:112:8: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/potentially_nullable_access.dart'.
 Try calling using ?.call instead.
-      nullableClass.extensionFunctionTypeGetter();
-                    ^" in self::Extension|get#extensionFunctionTypeGetter(self::nullableClass)(){() → void};
+      .extensionFunctionTypeGetter();
+       ^" in self::Extension|get#extensionFunctionTypeGetter(self::nullableClass)(){() → void};
 }
 static method main() → dynamic {}
 

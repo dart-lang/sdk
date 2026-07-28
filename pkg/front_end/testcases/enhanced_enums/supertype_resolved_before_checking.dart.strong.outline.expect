@@ -38,6 +38,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///supertype_resolved_before_checking.dart:18:27 -> InstanceConstant(const E<num, num>{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///supertype_resolved_before_checking.dart:17:3 -> InstanceConstant(const E<num, num>{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///supertype_resolved_before_checking.dart:16:6 -> ListConstant(const <E<num, num>>[const E<num, num>{_Enum.index: 0, _Enum._name: "element"}])
 Extra constant evaluation: evaluated: 11, effectively constant: 2

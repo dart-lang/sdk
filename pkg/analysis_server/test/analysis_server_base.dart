@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -62,7 +63,9 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   MemoryByteStore _byteStore = _sharedByteStore;
 
-  final TestPluginManager pluginManager = TestPluginManager();
+  late final TestPluginManager pluginManager = TestPluginManager(
+    resourceProvider,
+  );
   late final MockServerChannel serverChannel;
   MessageSchedulerTestView? testView;
   late final LegacyAnalysisServer server;
@@ -121,23 +124,21 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   void setPriorityFiles(List<File> files) {
     handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams(
-        files.map((e) => e.path).toList(),
-      ).toRequest(
-        '${nextRequestId++}',
-        clientUriConverter: server.uriConverter,
-      ),
+      AnalysisSetPriorityFilesParams(files.map((e) => e.path).toList())
+          .toRequest(
+            '${nextRequestId++}',
+            clientUriConverter: server.uriConverter,
+          ),
     );
   }
 
   Future<void> setPriorityFiles2(List<File> files) async {
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams(
-        files.map((e) => e.path).toList(),
-      ).toRequest(
-        '${nextRequestId++}',
-        clientUriConverter: server.uriConverter,
-      ),
+      AnalysisSetPriorityFilesParams(files.map((e) => e.path).toList())
+          .toRequest(
+            '${nextRequestId++}',
+            clientUriConverter: server.uriConverter,
+          ),
     );
   }
 
@@ -223,9 +224,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   final String testPackageName = 'test';
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, an empty list if there are no experiments that should be enabled.
-  List<String> get experiments => experimentsForTests;
+  /// Return a list of the experimental features that are to be enabled for
+  /// tests in this class.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
@@ -286,7 +287,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     writeTestPackagePubspecYamlFile('name: $testPackageName');
 
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
   }
 

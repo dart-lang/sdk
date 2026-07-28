@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue53207.dart:21:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+// pkg/front_end/testcases/extension_types/issue53207.dart:37:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 //   await e1; // Error.
 //         ^
 //
-// pkg/front_end/testcases/extension_types/issue53207.dart:22:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+// pkg/front_end/testcases/extension_types/issue53207.dart:38:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 //   await e2; // Error.
 //         ^
 //
-// pkg/front_end/testcases/extension_types/issue53207.dart:23:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+// pkg/front_end/testcases/extension_types/issue53207.dart:39:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 //   await e3; // Error.
 //         ^
 //
-// pkg/front_end/testcases/extension_types/issue53207.dart:24:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+// pkg/front_end/testcases/extension_types/issue53207.dart:40:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 //   await e4; // Error.
 //         ^
 //
-// pkg/front_end/testcases/extension_types/issue53207.dart:25:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+// pkg/front_end/testcases/extension_types/issue53207.dart:41:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 //   await e5object; // Error.
 //         ^
 //
-// pkg/front_end/testcases/extension_types/issue53207.dart:26:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+// pkg/front_end/testcases/extension_types/issue53207.dart:42:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
 //   await e5future; // Error.
 //         ^
 //
@@ -132,22 +132,22 @@ static extension-type-member method F4|constructor#<X extends asy::Future<core::
 static extension-type-member synthetic method F4|constructor#_#new#tearOff<X extends asy::Future<core::num>>(self::F4|constructor#_#new#tearOff::X foo) → self::F4<self::F4|constructor#_#new#tearOff::X> /* erasure=self::F4|constructor#_#new#tearOff::X */
   return self::F4|constructor#<self::F4|constructor#_#new#tearOff::X>(foo);
 static method test(self::E1% /* erasure=asy::Future<core::int>, declared=! */ e1, self::E2<asy::Future<core::String>>% /* erasure=asy::Future<core::String>, declared=! */ e2, self::E3% /* erasure=FutureOr<core::bool>, declared=! */ e3, self::E4<asy::Future<core::double>>% /* erasure=asy::Future<core::double>, declared=! */ e4, self::E5<core::Object>% /* erasure=core::Object, declared=! */ e5object, self::E5<asy::Future<core::num>>% /* erasure=asy::Future<core::num>, declared=! */ e5future, self::F1 /* erasure=asy::Future<core::int> */ f1, self::F2<asy::Future<core::num>> /* erasure=asy::Future<core::num> */ f2, self::F3<asy::Future<core::String>> /* erasure=asy::Future<core::String> */ f3, self::F4<asy::Future<core::int>> /* erasure=asy::Future<core::int> */ f4) → dynamic async /* emittedValueType= dynamic */ {
-  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:21:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:37:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e1; // Error.
         ^" in e1 /* runtimeCheckType= asy::Future<self::E1% /* erasure=asy::Future<core::int>, declared=! */> */ ;
-  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:22:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:38:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e2; // Error.
         ^" in e2 /* runtimeCheckType= asy::Future<self::E2<asy::Future<core::String>>% /* erasure=asy::Future<core::String>, declared=! */> */ ;
-  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:23:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:39:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e3; // Error.
         ^" in e3 /* runtimeCheckType= asy::Future<self::E3% /* erasure=FutureOr<core::bool>, declared=! */> */ ;
-  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:24:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:40:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e4; // Error.
         ^" in e4 /* runtimeCheckType= asy::Future<self::E4<asy::Future<core::double>>% /* erasure=asy::Future<core::double>, declared=! */> */ ;
-  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:25:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:41:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e5object; // Error.
         ^" in e5object /* runtimeCheckType= asy::Future<self::E5<core::Object>% /* erasure=core::Object, declared=! */> */ ;
-  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:26:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
+  await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:42:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e5future; // Error.
         ^" in e5future /* runtimeCheckType= asy::Future<self::E5<asy::Future<core::num>>% /* erasure=asy::Future<core::num>, declared=! */> */ ;
   await f1;

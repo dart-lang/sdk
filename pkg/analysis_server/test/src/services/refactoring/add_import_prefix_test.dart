@@ -234,7 +234,7 @@ import 'package:test/main.dart' as custom_prefix;
 
     addTestSource(originalSource);
 
-    await initializeServer(experimentalInteractiveForms: true);
+    await initializeServer();
     var action = await expectCodeActionWithTitle(refactoringTitle);
     var completedCommand = await completeInteractiveForm(action.command!, {
       'name': 'custom_prefix',
@@ -252,7 +252,7 @@ import 'package:test/main.dart' as custom_prefix;
 
     addTestSource(originalSource);
 
-    await initializeServer(experimentalInteractiveForms: true);
+    await initializeServer();
     var action = await expectCodeActionWithTitle(refactoringTitle);
     var command = action.asCommand;
     var interactiveCommand = await resolveCommand(
@@ -268,7 +268,23 @@ import 'package:test/main.dart' as custom_prefix;
     expect(field.description, 'Import Prefix');
     expect(field.defaultValue, 'main');
     expect(field.error, isNull);
-    expect(field.type, isA<FormFieldTypeString>());
+    expect(
+      field.type,
+      isA<FormFieldTypeString>().having(
+        (type) => type.validators,
+        'validators',
+        allOf(
+          isNotEmpty,
+          everyElement(
+            isA<RegexValidator>().having(
+              (e) => e.message,
+              'message',
+              startsWith('Import prefix'),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _assertNoRefactoring({required String originalSource}) async {

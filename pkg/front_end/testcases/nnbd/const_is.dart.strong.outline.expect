@@ -63,14 +63,14 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:143:22 -> BoolConstant(true)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:144:22 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:145:22 -> BoolConstant(true)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:146:22 -> BoolConstant(true)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:147:24 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:149:21 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:150:21 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:151:21 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:152:21 -> BoolConstant(false)
-Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:153:21 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:172:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:173:22 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:174:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:175:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:176:24 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:178:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:179:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:180:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:181:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:182:21 -> BoolConstant(true)
 Extra constant evaluation: evaluated: 10, effectively constant: 10

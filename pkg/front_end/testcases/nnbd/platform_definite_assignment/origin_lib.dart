@@ -6,13 +6,9 @@ class Class<T extends num> {
   final int a;
   final T b;
 
-  const Class.constConstructor(int a, T b)
-      : this.a = a,
-        this.b = b;
+  const Class.constConstructor(int a, T b) : this.a = a, this.b = b;
 
-  Class.constructor(int a, T b)
-      : this.a = a,
-        this.b = b {
+  Class.constructor(int a, T b) : this.a = a, this.b = b {
     int k;
     k;
   }

@@ -19,7 +19,6 @@ class C2 extends self::Sealed {
 }
 static method main() → void {
   self::Sealed s = new self::C1::•();
-  #L1:
   {
     final synthesized self::Sealed #0#0 = s;
     {
@@ -31,18 +30,18 @@ static method main() → void {
   core::print( block {
     core::String #t1;
     final synthesized self::Sealed #1#0 = s;
-    #L2:
+    #L1:
     {
       {
         if(#1#0 is self::C1) {
           #t1 = "C1";
-          break #L2;
+          break #L1;
         }
       }
       {
         if(#1#0 is self::C2) {
           #t1 = "C2";
-          break #L2;
+          break #L1;
         }
       }
     }

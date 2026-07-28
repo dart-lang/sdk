@@ -142,9 +142,9 @@ void messages() {
 bool _checkFoundErrors = false;
 
 void check(String generated, Uri generatedFile, String run) {
-  String actual = new File.fromUri(
-    generatedFile,
-  ).readAsStringSync().replaceAll('\r\n', '\n');
+  String actual = new File.fromUri(generatedFile)
+      .readAsStringSync()
+      .replaceAll('\r\n', '\n');
   if (generated != actual) {
     print("""
 ------------------------

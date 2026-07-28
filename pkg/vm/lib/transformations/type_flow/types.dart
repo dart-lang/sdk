@@ -1083,9 +1083,9 @@ class Closure {
       for (final p in params)
         PositionalParameter(
           cosmeticName: p.cosmeticName,
-          defaultValue: (p.initializer != null)
+          defaultValue: (p.defaultValue != null)
               ? ConstantExpression(
-                  (p.initializer as ConstantExpression).constant,
+                  (p.defaultValue as ConstantExpression).constant,
                 )
               : null,
           type: freshTypeParameters.substitute(p.type),
@@ -1096,9 +1096,9 @@ class Closure {
           for (final p in params)
             NamedParameter(
               parameterName: p.parameterName,
-              defaultValue: (p.initializer != null)
+              defaultValue: (p.defaultValue != null)
                   ? ConstantExpression(
-                      (p.initializer as ConstantExpression).constant,
+                      (p.defaultValue as ConstantExpression).constant,
                     )
                   : null,
               type: freshTypeParameters.substitute(p.type),

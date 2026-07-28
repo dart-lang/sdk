@@ -11,7 +11,7 @@ library;
 //   bar baz;
 //   ^^^
 // pkg/front_end/testcases/regress/extension_type_field_has_method_type.dart:6:3: Context: This isn't a type.
-//   bar(){}
+//   bar() {}
 //   ^^^
 //
 import self as self;

@@ -825,6 +825,7 @@ delegation
 delete
 deleted
 deletes
+deliberate
 deliberately
 delimited
 delimiter
@@ -1590,6 +1591,7 @@ indicated
 indicates
 indicating
 indication
+indications
 indices
 indirect
 indirectly
@@ -1964,6 +1966,7 @@ medium
 meet
 member
 member's
+membered
 members
 memory
 mention
@@ -2257,6 +2260,7 @@ padding
 page
 pain
 pair
+paired
 pairs
 pairwise
 paragraph
@@ -2759,6 +2763,7 @@ roll
 rolled
 root
 roots
+roster
 round
 routed
 rule
@@ -2811,6 +2816,7 @@ searched
 searches
 searching
 second
+secondary
 section
 security
 see
@@ -2964,6 +2970,7 @@ source
 sources
 space
 spaces
+spacing
 span
 spanning
 special

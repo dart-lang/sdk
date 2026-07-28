@@ -44,7 +44,7 @@ class C {
   }
 
   test_class_instanceField_reachable_overrides_local() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   B();
 }
@@ -84,7 +84,7 @@ class C {
   }
 
   test_class_instanceField_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C();
 }
@@ -108,7 +108,7 @@ class C {
   }
 
   test_class_instanceGetter_reachable_overrides() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   B();
 }
@@ -124,7 +124,7 @@ class B extends A {
   }
 
   test_class_instanceGetter_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C();
 }
@@ -180,7 +180,7 @@ class B extends A {
   }
 
   test_class_instanceMethod_reachable_overrides_local() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   B();
 }
@@ -196,7 +196,7 @@ class B extends A {
   }
 
   test_class_instanceMethod_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C();
 }
@@ -220,7 +220,7 @@ class C {
   }
 
   test_class_instanceSetter_reachable_overrides() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   B();
 }
@@ -236,7 +236,7 @@ class B extends A {
   }
 
   test_class_instanceSetter_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C();
 }
@@ -391,7 +391,7 @@ void f([Object? p = const C()]) {}
   }
 
   test_class_referencedInObjectPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!C!] {}
 
 void main() {
@@ -405,7 +405,7 @@ void f([Object? c]) {
   }
 
   test_class_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 class [!C!] {}
@@ -413,7 +413,7 @@ class [!C!] {}
   }
 
   test_class_unreachable_foundInAsExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!A!] {}
 
 void main() {
@@ -427,7 +427,7 @@ void f([Object? o]) {
   }
 
   test_class_unreachable_foundInAsPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!A!] {}
 
 void main() {
@@ -441,7 +441,7 @@ void f([(Object, )? l]) {
   }
 
   test_class_unreachable_foundInIsExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!A!] {}
 
 void main() {
@@ -455,7 +455,7 @@ void f([Object? o]) {
   }
 
   test_class_unreachable_hasNamedConstructors() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 class [!C!] {
@@ -483,7 +483,7 @@ class A {}
   }
 
   test_class_unreachable_referencedInParameter_externalMethodDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   D().f;
 }
@@ -497,7 +497,7 @@ class D {
   }
 
   test_class_unreachable_referencedInTypeAnnotation_fieldDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   D().c;
 }
@@ -511,7 +511,7 @@ class D {
   }
 
   test_class_unreachable_referencedInTypeAnnotation_parameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   f();
 }
@@ -523,7 +523,7 @@ class [!C!] {}
   }
 
   test_class_unreachable_referencedInTypeAnnotation_topLevelVariable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   print(c);
 }
@@ -535,7 +535,7 @@ class [!C!] {}
   }
 
   test_class_unreachable_referencedInTypeAnnotation_variableDeclaration() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C? c;
 }
@@ -545,7 +545,7 @@ class [!C!] {}
   }
 
   test_class_unreachable_typeArgumentBound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   f();
 }
@@ -626,7 +626,7 @@ void main() {}
 
   test_constructor_named_new() async {
     // https://github.com/dart-lang/sdk/issues/63425
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C;
 }
@@ -721,7 +721,7 @@ class C {
   }
 
   test_constructor_named_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C;
 }
@@ -884,7 +884,7 @@ class C {
   }
 
   test_constructor_unnamed_referencedInConstantPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!C!] {
   const C();
 }
@@ -900,7 +900,7 @@ void f([C? c]) {
   }
 
   test_constructor_unnamed_referencedInConstantPattern_generic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!C!]<T> {
   const C();
 }
@@ -916,7 +916,7 @@ void f([C? c]) {
   }
 
   test_constructor_unnamed_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C;
 }
@@ -928,7 +928,7 @@ class C {
   }
 
   test_constructor_unnamed_unreachable_otherHasRedirection() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C.two();
 }
@@ -952,7 +952,7 @@ enum E { one, two }
   }
 
   test_enum_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 enum [!E!] { one, two }
@@ -960,7 +960,7 @@ enum [!E!] { one, two }
   }
 
   test_extension_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 extension [!IntExtension!] on int {}
@@ -968,7 +968,7 @@ extension [!IntExtension!] on int {}
   }
 
   test_extensionType_constructor_named_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   E(7);
 }
@@ -992,7 +992,7 @@ extension type E(int i) {
   }
 
   test_extensionType_instanceMethod_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   E(1);
 }
@@ -1004,7 +1004,7 @@ extension type E(int i) {
   }
 
   test_extensionType_member_redeclare_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   var c = C();
   c.m();
@@ -1079,7 +1079,7 @@ extension type E(int i) {}
   }
 
   test_extensionType_staticMethod_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   E(1);
 }
@@ -1091,7 +1091,7 @@ extension type E(int i) {
   }
 
   test_extensionType_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 extension type [!E!](int i) {}
@@ -1099,7 +1099,7 @@ extension type [!E!](int i) {}
   }
 
   test_instanceFieldOnExtension_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   E.f;
 }
@@ -1150,7 +1150,7 @@ class A with M {}
   }
 
   test_mixin_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 mixin [!M!] {}
@@ -1246,7 +1246,7 @@ final class A {
   }
 
   test_setUpClass_top_level_unreachable() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void main() {}
 
 [!setUpClass!]() {}
@@ -1254,7 +1254,7 @@ void main() {}
   }
 
   test_staticField_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C;
 }
@@ -1303,7 +1303,7 @@ extension E on int {
   }
 
   test_staticFieldOnExtension_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   E(1).m();
 }
@@ -1340,7 +1340,7 @@ class C {
   }
 
   test_staticGetter_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C;
 }
@@ -1352,7 +1352,7 @@ class C {
   }
 
   test_staticMethod_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C;
 }
@@ -1425,7 +1425,7 @@ class C {
   }
 
   test_staticSetter_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {
   C;
 }
@@ -1449,7 +1449,7 @@ final class A {
   }
 
   test_tearDownClass_top_level_unreachable() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void main() {}
 
 [!tearDownClass!]() {}
@@ -1481,7 +1481,7 @@ void _f() {}
   }
 
   test_topLevelFunction_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 void [!f!]() {}
@@ -1489,7 +1489,7 @@ void [!f!]() {}
   }
 
   test_topLevelFunction_unreachable_unrelatedPragma() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 @pragma('other')
@@ -1537,7 +1537,7 @@ int get g => 7;
   }
 
   test_topLevelGetter_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 int get [!g!] => 7;
@@ -1555,7 +1555,7 @@ set s(int value) {}
   }
 
   test_topLevelSetter_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 set [!s!](int value) {}
@@ -1577,7 +1577,7 @@ int x = 1;
   }
 
   test_topLevelVariable_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 int [!x!] = 1;
@@ -1714,7 +1714,7 @@ typedef Cb = void Function();
   }
 
   test_typedef_unreachable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 typedef [!T!] = String;
@@ -1722,7 +1722,7 @@ typedef [!T!] = String;
   }
 
   test_widgetPreview_classInstanceMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -1738,7 +1738,7 @@ class [!B!] {
   }
 
   test_widgetPreview_classStaticMethod() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -1768,7 +1768,7 @@ class B {
   }
 
   test_widgetPreview_factoryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widget_previews.dart';
 
 void main() {}
@@ -1839,7 +1839,7 @@ void f6() {}
   }
 
   test_widgetPreview_topLevelFunction_customPreviewClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void main() {}
 
 class /*[0*/Preview/*0]*/ {

@@ -192,9 +192,8 @@ void _compileRevision(String gitCommit) {
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  new File(
-    "$changingWorkingDir/out/ReleaseX64/vm_platform.dill",
-  ).copySync("$snapshotsPath/platform.dill.$gitCommit");
+  new File("$changingWorkingDir/out/ReleaseX64/vm_platform.dill")
+      .copySync("$snapshotsPath/platform.dill.$gitCommit");
   print(
     "Done building the platform for $gitCommit "
     "after ${stopwatch.elapsed.inSeconds} seconds.",
@@ -304,15 +303,17 @@ benchmarker.GCInfo _runVerboseGc(
   String gitCommit,
   List<String> extraVmArguments,
 ) {
-  ProcessResult processResult =
-      Process.runSync("${sdkPath}bin/dartaotruntime", [
-        "--deterministic",
-        "--verbose-gc",
-        ...extraVmArguments,
-        "$snapshotsPath/compile.aot.$gitCommit",
-        "--platform=$snapshotsPath/platform.dill.$gitCommit",
-        target!,
-      ]);
+  ProcessResult processResult = Process.runSync(
+    "${sdkPath}bin/dartaotruntime",
+    [
+      "--deterministic",
+      "--verbose-gc",
+      ...extraVmArguments,
+      "$snapshotsPath/compile.aot.$gitCommit",
+      "--platform=$snapshotsPath/platform.dill.$gitCommit",
+      target!,
+    ],
+  );
 
   if (processResult.exitCode != 0) {
     throw "Run failed for $gitCommit with exit code "

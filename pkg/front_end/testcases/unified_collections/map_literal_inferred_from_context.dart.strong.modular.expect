@@ -1,0 +1,122 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::Map<core::int, core::String>? nullableIntMap1 = <core::int, core::String>{0: "0", 1: "1", 2: "2"};
+static field core::Map<core::int, core::String>? nullableIntMap2 = null;
+static field core::List<core::int> intList = <core::int>[0, 1, 2];
+static field core::Map<core::int, core::String> intMap = <core::int, core::String>{0: "0", 1: "1", 2: "2"};
+static field core::Map<core::num, core::String> numMap = <core::num, core::String>{0: "0", 1: "1", 2: "2"};
+static field core::List<(core::int, core::int)> intIntList = <(core::int, core::int)>[(0, 1), (2, 3)];
+static field core::num? nullableNum1 = 0;
+static field core::num? nullableNum2 = null;
+static field core::String? nullableString1 = "0";
+static field core::String? nullableString2 = null;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  return t;
+static method main() → dynamic {
+  core::bool b1 = true;
+  core::bool b2 = false;
+  core::Map<core::num, core::String> map = block {
+    final core::Map<core::num, core::String> #t1 = <core::num, core::String>{};
+    #t1.{core::Map::[]=}{Invariant}(0, "0"){(core::num, core::String) → void};
+    #t1.{core::Map::[]=}{Invariant}(self::id<core::num>(0), "0"){(core::num, core::String) → void};
+    #t1.{core::Map::[]=}{Invariant}(1, self::id<core::String>("0")){(core::num, core::String) → void};
+    for (core::int i = 0; i.{core::num::<}(self::intList.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t1.{core::Map::[]=}{Invariant}(self::intList.{core::List::[]}(i){(core::int) → core::int}, "${self::intList.{core::List::[]}(i){(core::int) → core::int}}"){(core::num, core::String) → void};
+    hoisted core::int i;
+    hoisted core::int j;
+    {
+      final synthesized(core::int, core::int) #0#0 = (0, 1);
+      i = #0#0.$1{core::int};
+      j = #0#0.$2{core::int};
+    }
+    final core::int #t2 = i;
+    final core::int #t3 = j;
+    for (core::int i = #t2, core::int j = #t3; i.{core::num::<}(self::intList.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+      #t1.{core::Map::[]=}{Invariant}(self::intList.{core::List::[]}(i){(core::int) → core::int}, "${j}"){(core::num, core::String) → void};
+    for (core::MapEntry<core::int, core::String> e in self::intMap.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::String>>})
+      #t1.{core::Map::[]=}{Invariant}(e.{core::MapEntry::key}{core::int}, e.{core::MapEntry::value}{core::String}){(core::num, core::String) → void};
+    for (core::MapEntry<core::num, core::String> e in self::numMap.{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::String>>})
+      #t1.{core::Map::[]=}{Invariant}(e.{core::MapEntry::key}{core::num}, e.{core::MapEntry::value}{core::String}){(core::num, core::String) → void};
+    for (final(core::int, core::int) #t4 in self::intIntList) {
+      hoisted core::int a;
+      hoisted core::int b;
+      {
+        final synthesized(core::int, core::int) #1#0 = #t4;
+        a = #1#0.$1{core::int};
+        b = #1#0.$2{core::int};
+      }
+      #t1.{core::Map::[]=}{Invariant}(a, "${b}"){(core::num, core::String) → void};
+    }
+    final core::num? #t5 = self::nullableNum1;
+    if(!(#t5 == null))
+      #t1.{core::Map::[]=}{Invariant}(#t5{core::num}, "0"){(core::num, core::String) → void};
+    final core::num? #t6 = self::nullableNum2;
+    if(!(#t6 == null))
+      #t1.{core::Map::[]=}{Invariant}(#t6{core::num}, "0"){(core::num, core::String) → void};
+    final core::num #t7 = 2;
+    final core::String? #t8 = self::nullableString1;
+    if(!(#t8 == null))
+      #t1.{core::Map::[]=}{Invariant}(#t7, #t8{core::String}){(core::num, core::String) → void};
+    final core::num #t9 = 3;
+    final core::String? #t10 = self::nullableString2;
+    if(!(#t10 == null))
+      #t1.{core::Map::[]=}{Invariant}(#t9, #t10{core::String}){(core::num, core::String) → void};
+    final core::num? #t11 = self::nullableNum1;
+    if(!(#t11 == null)) {
+      final core::String? #t12 = self::nullableString2;
+      if(!(#t12 == null))
+        #t1.{core::Map::[]=}{Invariant}(#t11{core::num}, #t12{core::String}){(core::num, core::String) → void};
+    }
+    final core::num? #t13 = self::nullableNum2;
+    if(!(#t13 == null)) {
+      final core::String? #t14 = self::nullableString1;
+      if(!(#t14 == null))
+        #t1.{core::Map::[]=}{Invariant}(#t13{core::num}, #t14{core::String}){(core::num, core::String) → void};
+    }
+    if(b1)
+      #t1.{core::Map::[]=}{Invariant}(4, "4"){(core::num, core::String) → void};
+    if(b2)
+      #t1.{core::Map::[]=}{Invariant}(5, "5"){(core::num, core::String) → void};
+    else
+      #t1.{core::Map::[]=}{Invariant}(6, "6"){(core::num, core::String) → void};
+    {
+      final synthesized core::List<core::int> #2#0 = self::intList;
+      final const synthesized core::int #2#2 = #C1;
+      {
+        hoisted core::int a;
+        if(#2#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
+          a = #2#0.{core::List::[]}(0){(core::int) → core::int};
+          #t1.{core::Map::[]=}{Invariant}(a, "${a}"){(core::num, core::String) → void};
+        }
+      }
+    }
+    {
+      final synthesized core::List<core::int> #3#0 = self::intList;
+      final const synthesized core::int #3#2 = #C2;
+      {
+        hoisted core::int b;
+        if(#3#0.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool}) {
+          b = #3#0.{core::List::[]}(1){(core::int) → core::int};
+          #t1.{core::Map::[]=}{Invariant}(b, "${b}"){(core::num, core::String) → void};
+        }
+        else
+          #t1.{core::Map::[]=}{Invariant}(7, "7"){(core::num, core::String) → void};
+      }
+    }
+    #t1.{core::Map::addAll}{Invariant}(self::intMap){(core::Map<core::num, core::String>) → void};
+    #t1.{core::Map::addAll}{Invariant}(self::numMap){(core::Map<core::num, core::String>) → void};
+    final core::Map<core::num, core::String>? #t15 = self::nullableIntMap1;
+    if(!(#t15 == null))
+      #t1.{core::Map::addAll}{Invariant}(#t15{core::Map<core::num, core::String>}){(core::Map<core::num, core::String>) → void};
+    final core::Map<core::num, core::String>? #t16 = self::nullableIntMap2;
+    if(!(#t16 == null))
+      #t1.{core::Map::addAll}{Invariant}(#t16{core::Map<core::num, core::String>}){(core::Map<core::num, core::String>) → void};
+  } =>#t1;
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

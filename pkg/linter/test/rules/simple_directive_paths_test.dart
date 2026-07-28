@@ -36,7 +36,7 @@ export 'package:test/a.dart';
 
   Future<void> test_export_package_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export [!'package:test/./a.dart'!];
 ''');
   }
@@ -50,7 +50,7 @@ export 'a.dart';
 
   Future<void> test_export_relative_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export [!'./a.dart'!];
 ''');
   }
@@ -94,14 +94,14 @@ export '/./a.dart';
   Future<void> test_import_conditional() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export 'a.dart' if (dart.library.io) [!'./b.dart'!];
 ''');
   }
 
   Future<void> test_import_escape() async {
     newFile('$testPackageLibPath/A.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export [!'%41.dart'!];
 ''');
   }
@@ -119,7 +119,7 @@ export 'a.dart#frag';
   Future<void> test_import_in_part_relative_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/src/lib.dart', "part 'part.dart';");
-    await assertDiagnosticsInFileNameFromMarkdown('src/part.dart', r'''
+    await assertDiagnosticsInFileNameFromMarkup('src/part.dart', r'''
 part of 'lib.dart';
 export [!'./../a.dart'!];
 ''');
@@ -127,7 +127,7 @@ export [!'./../a.dart'!];
 
   Future<void> test_import_inTest_package_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    await assertDiagnosticsInTestDirFromMarkdown(r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 import [!'package:test/./a.dart'!];
 A? a;
 ''');
@@ -135,7 +135,7 @@ A? a;
 
   Future<void> test_import_inTest_relative_nonMinimal() async {
     newFile('$testPackageRootPath/test/a.dart', 'class A {}');
-    await assertDiagnosticsInTestDirFromMarkdown(r'''
+    await assertDiagnosticsInTestDirFromMarkup(r'''
 import [!'./a.dart'!];
 A? a;
 ''');
@@ -151,7 +151,7 @@ A? a;
 
   Future<void> test_import_package_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import [!'package:test/./a.dart'!];
 A? a;
 ''');
@@ -159,7 +159,7 @@ A? a;
 
   Future<void> test_import_package_nonMinimal_backtracking() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import [!'package:test/src/../a.dart'!];
 A? a;
 ''');
@@ -167,7 +167,7 @@ A? a;
 
   Future<void> test_import_query() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export [!'a.dart?key=val'!];
 ''');
   }
@@ -182,7 +182,7 @@ A? a;
 
   Future<void> test_import_relative_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import [!'./a.dart'!];
 A? a;
 ''');
@@ -190,7 +190,7 @@ A? a;
 
   Future<void> test_import_relative_nonMinimal_backtracking() async {
     newFile('$testPackageLibPath/a.dart', 'class A {}');
-    await assertDiagnosticsInFileNameFromMarkdown('src/b.dart', r'''
+    await assertDiagnosticsInFileNameFromMarkup('src/b.dart', r'''
 import [!'../src/../a.dart'!];
 A? a;
 ''');
@@ -198,27 +198,27 @@ A? a;
 
   Future<void> test_part() async {
     newFile('$testPackageLibPath/a.dart', 'part of "test.dart";');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part [!'./a.dart'!];
 ''');
   }
 
   Future<void> test_partOf() async {
     newFile('$testPackageLibPath/lib.dart', 'part "test.dart";');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of [!'./lib.dart'!];
 ''');
   }
 
   Future<void> test_raw_string() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 export [!r'./a.dart'!];
 ''');
   }
 
   Future<void> test_triple_quotes() async {
     newFile('$testPackageLibPath/a.dart', '');
-    await assertDiagnosticsFromMarkdown("export [!'''./a.dart'''!];");
+    await assertDiagnosticsFromMarkup("export [!'''./a.dart'''!];");
   }
 }

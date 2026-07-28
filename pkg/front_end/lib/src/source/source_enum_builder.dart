@@ -40,6 +40,7 @@ import '../fragment/method/encoding.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
@@ -255,7 +256,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             nameOffset: null,
             fileOffset: fileOffset,
             fileUri: fileUri,
-            hasImmediatelyDeclaredInitializer: false,
+            hasImmediatelyDeclaredDefaultValue: false,
           );
 
       FormalParameterBuilder indexFormalParameterBuilder =
@@ -267,7 +268,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             nameOffset: null,
             fileOffset: fileOffset,
             fileUri: fileUri,
-            hasImmediatelyDeclaredInitializer: false,
+            hasImmediatelyDeclaredDefaultValue: false,
           );
 
       ConstructorDeclaration constructorDeclaration =
@@ -674,9 +675,9 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('${runtimeType}.buildInitializer');

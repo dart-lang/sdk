@@ -8,6 +8,7 @@
 //   other @JSName -> use @JSName as an expression.
 
 import 'native_testing.dart';
+
 import 'dart:_js_helper' show convertDartClosureToJS;
 
 typedef int Callback(String s);

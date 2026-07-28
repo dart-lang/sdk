@@ -5162,17 +5162,16 @@ DEFINE_EMIT(Int32x4Select,
              QRegister mask,
              QRegister trueValue,
              QRegister falseValue,
-             Temp<QRegister> temp)) {
-  // Copy mask.
-  __ vmovq(temp, mask);
-  // Invert it.
-  __ vmvnq(temp, temp);
-  // mask = mask & trueValue.
-  __ vandq(mask, mask, trueValue);
-  // temp = temp & falseValue.
-  __ vandq(temp, temp, falseValue);
-  // out = mask | temp.
-  __ vorrq(out, mask, temp);
+             Temp<QRegister> temp1,
+             Temp<QRegister> temp2)) {
+  // temp2 = ~mask.
+  __ vmvnq(temp2, mask);
+  // temp1 = mask & trueValue.
+  __ vandq(temp1, mask, trueValue);
+  // temp2 = (~mask) & falseValue.
+  __ vandq(temp2, temp2, falseValue);
+  // out = temp1 | temp2.
+  __ vorrq(out, temp1, temp2);
 }
 
 DEFINE_EMIT(Int32x4WithFlag,

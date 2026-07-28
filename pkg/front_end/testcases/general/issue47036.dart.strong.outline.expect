@@ -40,7 +40,7 @@ static method main() → void
 
 
 Extra constant evaluation status:
-Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47036.dart:13:33 -> InstanceConstant(const _$_SSidebar{})
-Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47036.dart:22:37 -> InstanceConstant(const _$_SSidebar{})
-Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47036.dart:26:44 -> InstanceConstant(const _$_SSidebar{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47036.dart:12:55 -> InstanceConstant(const _$_SSidebar{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47036.dart:20:37 -> InstanceConstant(const _$_SSidebar{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue47036.dart:24:44 -> InstanceConstant(const _$_SSidebar{})
 Extra constant evaluation: evaluated: 11, effectively constant: 3

@@ -257,7 +257,9 @@ class RegExpNode : public ZoneObject {
   }
 
 #define DECLARE_CAST(type)                                                     \
-  virtual type##Node* As##type##Node() { return nullptr; }
+  virtual type##Node* As##type##Node() {                                       \
+    return nullptr;                                                            \
+  }
   FOR_EACH_NODE_TYPE(DECLARE_CAST)
 #undef DECLARE_CAST
 

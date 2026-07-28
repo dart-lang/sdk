@@ -1167,9 +1167,8 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
     var result = await getResolvedUnit(targetFile);
     expect(result.diagnostics, isEmpty);
 
-    return DartCallHierarchyComputer(
-      result,
-    ).findIncomingCalls(target, searchEngine);
+    return DartCallHierarchyComputer(result)
+        .findIncomingCalls(target, searchEngine);
   }
 
   @override

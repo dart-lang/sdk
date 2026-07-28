@@ -15,8 +15,8 @@ extension on I {
 }
 
 method(A a) => switch (a) {
-      I(:var member) => member,
-    };
+  I(:var member) => member,
+};
 
 main() {
   expect(42, method(new A()));

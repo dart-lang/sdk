@@ -18,7 +18,7 @@ class JoinReturnWithAssignmentTest extends LintRuleTest {
   String get lintRule => LintNames.join_return_with_assignment;
 
   test_class_field_propertyAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int f = 0;
 }
@@ -31,7 +31,7 @@ int f(A a) {
   }
 
   test_class_field_propertyAccess_nested() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int f = 0;
 }
@@ -78,7 +78,7 @@ int f(A a1, A a2) {
   }
 
   test_class_field_withoutPrefix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int? _a;
   int? foo() {
@@ -90,7 +90,7 @@ class A {
   }
 
   test_class_field_withoutPrefix_ifThenElse() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int? _a;
   int? foo(bool b) {
@@ -107,7 +107,7 @@ class A {
   }
 
   test_localVariable_assignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int f(int a) {
   [!a = 0;!]
   return a;
@@ -116,7 +116,7 @@ int f(int a) {
   }
 
   test_localVariable_assignment_compound() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int f(int a) {
   [!a += 0;!]
   return a;
@@ -159,7 +159,7 @@ int f(int a) {
   }
 
   test_localVariable_postfix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int f(int a) {
   [!a++;!]
   return a;
@@ -168,7 +168,7 @@ int f(int a) {
   }
 
   test_localVariable_prefix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int f(int a) {
   [!++a;!]
   return a;

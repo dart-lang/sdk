@@ -195,9 +195,9 @@ class EnumElementDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError("${runtimeType}.buildInitializer");
@@ -327,10 +327,6 @@ class EnumElementDeclaration
     );
     MemberBuilder? constructorBuilder = result?.getable;
 
-    List<Expression> enumSyntheticArguments = <Expression>[
-      extern.createIntLiteral(coreTypes, elementIndex, fileOffset: fileOffset),
-      extern.createStringLiteral(constant, fileOffset: fileOffset),
-    ];
     TypeArguments? typeArguments;
     List<TypeBuilder>? typeArgumentBuilders =
         _fragment.constructorReferenceBuilder?.typeArguments;
@@ -349,15 +345,21 @@ class EnumElementDeclaration
         "Initializer has already been computed for $this: "
         "${_field!.initializer}.",
       );
-      _field!.initializer = LookupResult.createDuplicateExpression(
-        result,
-        context: libraryBuilder.loader.target.context,
-        name: fullConstructorNameForErrors,
-        fileUri: fileUri,
-        fileOffset: nameOffset,
-        length: noLength,
+      _field!.initializer = extern.createInvalidExpressionFromErrorText(
+        LookupResult.createDuplicateErrorText(
+          result,
+          context: libraryBuilder.loader.target.context,
+          name: fullConstructorNameForErrors,
+          fileUri: fileUri,
+          fileOffset: nameOffset,
+          length: noLength,
+        ),
       )..parent = _field;
     } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
+      List<InternalExpression> enumSyntheticArguments = [
+        intern.createIntLiteral(fileOffset: fileOffset, value: elementIndex),
+        intern.createStringLiteral(fileOffset, constant),
+      ];
       var (Expression initializer, DartType? fieldType) = libraryBuilder.loader
           .createResolver()
           .buildEnumConstant(
@@ -387,6 +389,14 @@ class EnumElementDeclaration
         inferredFieldType = fieldType;
       }
     } else {
+      List<Expression> enumSyntheticArguments = <Expression>[
+        extern.createIntLiteral(
+          coreTypes,
+          elementIndex,
+          fileOffset: fileOffset,
+        ),
+        extern.createStringLiteral(constant, fileOffset: fileOffset),
+      ];
       Arguments arguments = extern.createArguments(
         enumSyntheticArguments,
         fileOffset: fileOffset,

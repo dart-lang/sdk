@@ -140,7 +140,9 @@ bool isSorted(List list) {
 }
 
 Variable? findNamedParameter(FunctionNode function, String name) {
-  return function.namedParameters.firstWhereOrNull((p) => p.name == name);
+  return function.namedParameters.firstWhereOrNull(
+    (p) => p.parameterName == name,
+  );
 }
 
 class Histogram<K> {
@@ -461,7 +463,7 @@ T? filterArtificialNode<T extends TreeNode>(T? node) =>
 String localFunctionName(LocalFunction function) {
   switch (function) {
     case FunctionDeclaration():
-      return function.variable.name!;
+      return function.variable.cosmeticName!;
     case FunctionExpression():
       final location = function.location;
       return '<anonymous closure' +

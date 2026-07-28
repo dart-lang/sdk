@@ -45,7 +45,8 @@ static constexpr cpu_type_t CPU_TYPE_ARM64 = CPU_TYPE_ARM | CPU_ARCH_ABI64;
 
 // ARM-family CPU subtypes.
 static constexpr cpu_type_t CPU_SUBTYPE_ARM_ALL = 0;
-static constexpr cpu_type_t CPU_SUBTYPE_ARM64_ALL = CPU_SUBTYPE_ARM_ALL;
+static constexpr cpu_type_t CPU_SUBTYPE_ARM64_ALL = 0;
+static constexpr cpu_type_t CPU_SUBTYPE_ARM64E_V0 = 2 | 0x80000000;
 
 typedef int vm_prot_t;
 

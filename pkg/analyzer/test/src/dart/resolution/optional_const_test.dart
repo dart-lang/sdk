@@ -30,11 +30,11 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
@@ -53,7 +53,7 @@ InstanceCreationExpression
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
@@ -79,11 +79,11 @@ InstanceCreationExpression
     period: .
     name: SimpleIdentifier
       token: named
-      element: ConstructorMember
+      element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::B::@constructor::named
         substitution: {T: num}
       staticType: null
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::named
       substitution: {T: num}
   argumentList: ArgumentList
@@ -106,7 +106,7 @@ InstanceCreationExpression
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
@@ -215,8 +215,33 @@ import 'a.dart' as p;
 const x = p.C<int>();
 ''');
 
-    var node = result.findNode.instanceCreation('p.C<int>()');
+    var node = result.findNode.constructorInvocation('p.C<int>()');
     assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::C
+      type: C<int>
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::C::@constructor::new
+      substitution: {T: int}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
 InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -235,7 +260,7 @@ InstanceCreationExpression
         rightBracket: >
       element: package:test/a.dart::@class::C
       type: C<int>
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::C::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
@@ -279,9 +304,14 @@ var v = a;
 
     var vg =
         result.findNode.simple('a;').element as PropertyAccessorElementImpl;
-    var v = vg.variable.firstFragment;
+    var variable = vg.variable;
 
-    var creation = v.constantInitializer as InstanceCreationExpression;
+    // The element model stores and exposes the canonical V2 initializer.
+    var invocation = variable.constantInitializer2 as ConstructorInvocation;
+
+    // The legacy API projects that initializer into the V1 AST view.
+    var creation = variable.constantInitializer as InstanceCreationExpression;
+    assert(creation.toSource() == invocation.toSource());
     return creation;
   }
 }

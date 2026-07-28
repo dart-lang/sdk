@@ -72,8 +72,18 @@ class RelatedTypeParameters2 {
   RelatedTypeParameters2._(this.typeParameters, this.typeParameterTypes);
 }
 
+/// Aborts recursive type operations that exceed the depth limit.
+final class TypeOperationDepthLimitExceeded implements Exception {
+  const TypeOperationDepthLimitExceeded();
+}
+
 /// The [TypeSystem] implementation.
 class TypeSystemImpl implements TypeSystem {
+  // Recursive type operations are expected to terminate for well-formed type
+  // graphs, but cyclic bounds can make the specified algorithms recurse
+  // forever.
+  static const int _maxTypeOperationDepth = 100;
+
   /// The provider of types for the system.
   final TypeProviderImpl typeProvider;
 
@@ -91,6 +101,8 @@ class TypeSystemImpl implements TypeSystem {
 
   /// The implementation of the subtyping relation.
   late final SubtypeHelper _subtypeHelper;
+
+  int _typeOperationDepth = 0;
 
   TypeSystemImpl({required TypeProvider typeProvider})
     : typeProvider = typeProvider as TypeProviderImpl {
@@ -349,6 +361,25 @@ class TypeSystemImpl implements TypeSystem {
       objectQuestion,
       NeverTypeImpl.instance,
     ).substituteType(type);
+  }
+
+  /// Enters a recursive type operation.
+  ///
+  /// Returns `true` if this operation is the outermost active type operation.
+  /// The depth is incremented before the limit check, so callers must always
+  /// call [exitTypeOperation] in a `finally` block, even when this method
+  /// throws [TypeOperationDepthLimitExceeded].
+  bool enterTypeOperation() {
+    _typeOperationDepth++;
+    if (_typeOperationDepth > _maxTypeOperationDepth) {
+      throw const TypeOperationDepthLimitExceeded();
+    }
+    return _typeOperationDepth == 1;
+  }
+
+  void exitTypeOperation() {
+    assert(_typeOperationDepth > 0);
+    _typeOperationDepth--;
   }
 
   /// Defines the "remainder" of `T` when `S` has been removed from

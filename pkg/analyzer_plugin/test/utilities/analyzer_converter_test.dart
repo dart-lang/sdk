@@ -7,7 +7,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/source/line_info.dart' as analyzer;
-import 'package:analyzer/src/dart/analysis/analysis_options.dart' as analyzer;
+import 'package:analyzer/src/analysis_options/analysis_options.dart'
+    as analyzer;
 import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessageImpl;

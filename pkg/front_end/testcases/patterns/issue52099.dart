@@ -18,10 +18,9 @@ abstract class ClassRef {
 
 foo(Object object) {
   final SourceLocation? sourceLocation = switch (object) {
-      FieldRef(:final location) ||
-      FuncRef(:final location) ||
-      ClassRef(:final location) =>
-        location,
-      _ => null,
+    FieldRef(:final location) ||
+    FuncRef(:final location) ||
+    ClassRef(:final location) => location,
+    _ => null,
   };
 }

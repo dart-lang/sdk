@@ -25,7 +25,7 @@ class AlwaysPutRequiredNamedParametersFirstTest extends LintRuleTest {
   String get lintRule => LintNames.always_put_required_named_parameters_first;
 
   test_constructor_requiredAfterOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C.f({
     int? a,
@@ -36,7 +36,7 @@ class C {
   }
 
   test_constructor_requiredAfterOptional_fieldFormal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C({this.a, required this.[!b!]});
   int? a;
@@ -57,7 +57,7 @@ class C {
   }
 
   test_constructor_requiredAnnotationAfterOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 class C {
@@ -82,14 +82,69 @@ class C {
 ''');
   }
 
+  test_constructor_superFormalParameters_normalParameterOptional() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required super.a, int? c, required int [!d!]});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderMatchingSuper() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required super.a, super.b, required int c});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderMatchingSuper_normalParameterFirst() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required int c, required super.a, super.b});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderMatchingSuper_normalParameterInterleaved() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({required super.a, required int c, super.b});
+}
+''');
+  }
+
+  test_constructor_superFormalParameters_orderNotMatchingSuper() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  A({required int a, int? b});
+}
+class B extends A {
+  B({super.b, required super.[!a!]});
+}
+''');
+  }
+
   test_primaryConstructor_requiredAfterOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({int? a, required int? [!b!]});
 ''');
   }
 
   test_primaryConstructor_requiredAfterOptional_declaring() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C({final int? a, required var int? [!b!]});
 ''');
   }
@@ -101,7 +156,7 @@ class C({required int? a, required int? b});
   }
 
   test_topLevelFunction_requiredAfterOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({
   int? a,
   required int? [!b!],
@@ -110,7 +165,7 @@ void f({
   }
 
   test_topLevelFunction_requiredAfterOptional_default() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f({int a = 0, required int? [!b!]}) {}
 ''');
   }
@@ -125,7 +180,7 @@ void f({
   }
 
   test_topLevelFunction_requiredAnnotationAfterOptional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 void f({

@@ -56,7 +56,7 @@ class A {
 class B extends A { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class B {
@@ -99,7 +99,7 @@ class B(@override var int x) extends A {}
   }
 
   test_class_declaringParameter_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int get x => 4;
 }
@@ -122,7 +122,7 @@ class B extends A {
   }
 
   test_class_field_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int get x => 4;
 }
@@ -162,7 +162,7 @@ class B extends A {
   }
 
   test_class_getterWithoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int get x => 4;
 }
@@ -174,7 +174,7 @@ class B extends A {
   }
 
   test_class_implementsClass_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class C {
   void m();
 }
@@ -199,7 +199,7 @@ class B extends A {
   }
 
   test_class_methodWithoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void f() {}
 }
@@ -211,7 +211,7 @@ class B extends A {
   }
 
   test_class_withMixin_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 mixin M {
   void m() {}
 }
@@ -235,7 +235,7 @@ class I {
   }
 
   test_enum_declaringParameter_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E(final int [!x!]) implements I {
   e(0)
 }
@@ -261,7 +261,7 @@ enum A implements O {
   }
 
   test_enum_fieldWithoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class O {
   int get x => 0;
 }
@@ -288,7 +288,7 @@ enum A implements O {
   }
 
   test_enum_methodWithoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum A {
   a,b,c;
   String [!toString!]() => '';
@@ -359,7 +359,7 @@ extension type E(A a) implements A {
   }
 
   test_mixin_superConstraint_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void m() {}
 }
@@ -371,7 +371,7 @@ mixin M on A {
   }
 
   test_operator_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @override
   bool operator ==(Object other) => false;
@@ -384,7 +384,7 @@ class B extends A {
   }
 
   test_setter_withoutAnnotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   set x(int value) {}
 }

@@ -34,7 +34,7 @@ void f(int? i) {
   }
 
   test_extensionOverride_getter_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   int get foo => 1;
 }
@@ -56,7 +56,7 @@ void f(int? i) {
   }
 
   test_extensionOverride_indexAssignment_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   void operator []=(int i, String v) {}
 }
@@ -78,7 +78,7 @@ void f(int? i) {
   }
 
   test_extensionOverride_indexOperator_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   String operator [](int i) => '';
 }
@@ -100,7 +100,7 @@ void f(int? i) {
   }
 
   test_extensionOverride_methodCall_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   int m() => 1;
 }
@@ -122,7 +122,7 @@ void f(int? i) {
   }
 
   test_extensionOverride_setter_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   void set foo(int v) {}
 }
@@ -158,7 +158,7 @@ void f(int i) {
   }
 
   test_getter_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   int get foo => 1;
 }
@@ -194,7 +194,7 @@ void f(int? i) {
   }
 
   test_indexAssignment_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   void operator []=(int i, String v) {}
 }
@@ -216,7 +216,7 @@ void f(int? i) {
   }
 
   test_indexOperator_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   String operator [](int i) => '';
 }
@@ -252,7 +252,7 @@ void f(int? i) {
   }
 
   test_methodCall_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   int m() => 1;
 }
@@ -288,7 +288,7 @@ void f(int i) {
   }
 
   test_setter_nullAware() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension E on int? {
   void set foo(int v) {}
 }

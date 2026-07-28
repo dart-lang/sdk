@@ -581,7 +581,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kInstantiatedInterfaceCall,
     kDynamicCall,
     kExternalCall,
-    kFfiCall,
+    kNativeFunction,
     kDeferredLibraryPrefix,
     kAllocateClosure,
   };
@@ -753,8 +753,8 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         pool.SetRawValueAt(i, 0);
         continue;
       }
-      case ConstantPoolTag::kFfiCall: {
-        // FfiCall constant has 1 raw value entry.
+      case ConstantPoolTag::kNativeFunction: {
+        // NativeFunction constant has 1 raw value entry.
         pool.SetTypeAt(i, ObjectPool::EntryType::kNativeFunction,
                        ObjectPool::Patchability::kNotPatchable,
                        ObjectPool::SnapshotBehavior::kNotSnapshotable);
@@ -2464,6 +2464,17 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   loader->SetOffset(cls,
                     members_offset + bytecode_component_->GetMembersOffset());
 
+  if (has_pragma) {
+    // Check for the same pragmas that the KernelLoader does before finalizing
+    // the types in the class.
+    // vm:deeply-immutable is already handled as a declaration flag.
+    if (Library::FindPragma(thread_, /*only_core=*/false, cls,
+                            Symbols::vm_isolate_unsendable(),
+                            /*multiple=*/false)) {
+      cls.set_is_isolate_unsendable_due_to_pragma(true);
+    }
+  }
+
   if (!cls.is_type_finalized()) {
     ClassFinalizer::FinalizeTypesInClass(cls);
   }
@@ -3084,7 +3095,7 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
 
   LocalVarDescriptorsBuilder vars;
 
-  if (function.IsLocalFunction()) {
+  if (function.IsLocalFunction() && function.token_pos().IsReal()) {
     const auto& parent = Function::Handle(zone, function.parent_function());
     ASSERT(parent.is_declared_in_bytecode() && parent.HasBytecode());
     const auto& parent_bytecode = Bytecode::Handle(zone, parent.GetBytecode());

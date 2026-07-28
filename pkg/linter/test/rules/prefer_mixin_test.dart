@@ -65,7 +65,7 @@ class Z with M { }
 class PreferMixinTestLanguage219 extends BasePreferMixinTest
     with LanguageVersion219Mixin {
   test_mixedInClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {}
 
 class B extends Object with [!A!] {}
@@ -73,7 +73,7 @@ class B extends Object with [!A!] {}
   }
 
   test_mixedInClass_typAlias() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {}
 
 typedef AA = A;

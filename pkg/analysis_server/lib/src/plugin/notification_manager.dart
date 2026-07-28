@@ -477,9 +477,8 @@ class NotificationManager extends AbstractNotificationManager {
   @override
   void sendPluginError(String message) {
     _channel.sendNotification(
-      server.ServerPluginErrorParams(
-        message,
-      ).toNotification(clientUriConverter: uriConverter),
+      server.ServerPluginErrorParams(message)
+          .toNotification(clientUriConverter: uriConverter),
     );
   }
 

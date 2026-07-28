@@ -227,8 +227,13 @@ void main() {
 
     final vmServiceUri = await completer.future;
     final vmService = await vmServiceConnectUri(vmServiceUri.toString());
-    final vm = await vmService.getVM();
-    expect(vm.systemIsolates!.where((e) => e.name == 'main'), isNotEmpty);
+    try {
+      final vm = await vmService.getVM();
+      expect(vm.systemIsolates!.where((e) => e.name == 'main'), isNotEmpty);
+    } finally {
+      await vmService.dispose();
+      process.kill(.sigkill);
+    }
   });
 
   // Regression tests for https://github.com/dart-lang/sdk/issues/56842

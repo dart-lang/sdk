@@ -442,9 +442,12 @@ dependencies:
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, json, '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, json, '');
 
     var content = '''
 name: foo
@@ -498,9 +501,12 @@ dependencies:
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, initialJson, '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, initialJson, '');
 
     var content = '''
 name: foo
@@ -524,9 +530,12 @@ dependencies:
 
     // Modify the underlying file which should trigger an update of the
     // cached data.
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, updatedJson, '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, updatedJson, '');
     modifyFile2(pubspecFile, '$content# trailing comment');
     await pumpEventQueue(times: 500);
 
@@ -562,9 +571,12 @@ dependencies:
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {workingDirectory, environment}) =>
-            MockProcess(1, 0, initialJson, '');
+    processRunner.startHandler = (
+      executable,
+      args, {
+      workingDirectory,
+      environment,
+    }) => MockProcess(1, 0, initialJson, '');
 
     var content = '''
 name: foo

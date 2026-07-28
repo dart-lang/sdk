@@ -17,6 +17,6 @@ static method main() → void
 
 
 Extra constant evaluation status:
-Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154a.dart:9:15 -> StaticTearOffConstant(id)
-Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154a.dart:10:15 -> StaticTearOffConstant(other)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154a.dart:8:16 -> StaticTearOffConstant(id)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154a.dart:8:21 -> StaticTearOffConstant(other)
 Extra constant evaluation: evaluated: 5, effectively constant: 2

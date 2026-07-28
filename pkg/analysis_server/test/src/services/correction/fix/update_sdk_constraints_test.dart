@@ -31,9 +31,11 @@ environment:
   sdk: $from
 ''');
     await resolveTestCode(content);
+    // These tests use `^` in SDK version constraints, but `TestCode.parse()`
+    // considers that to be a position marker. So add `/**/` to escape that.
     await assertHasFix('''
 environment:
-  sdk: $to
+  sdk: ${to.replaceAll('^', '^/**/')}
 ''', target: testPubspecPath);
   }
 
@@ -52,15 +54,6 @@ class C {
       from: from,
       to: to,
     );
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    // These tests use ^ a lot but the base methods use TestCode.parse() that
-    // considers them position markers by default.
-    allowTestCodeShorthand = false;
   }
 
   Future<void> test_any() async {

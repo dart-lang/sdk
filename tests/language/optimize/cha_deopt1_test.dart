@@ -6,6 +6,7 @@
 // Test lazy deoptimization at field guards with deferred loading.
 
 import "package:expect/expect.dart";
+
 import "cha_deopt1_lib.dart";
 import "cha_deopt1_deferred_lib.dart" deferred as d;
 

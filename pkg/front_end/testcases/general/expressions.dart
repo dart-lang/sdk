@@ -18,8 +18,14 @@ main() {
   print(" '${i}' ");
   print(" '${i}' '${i}'");
   print(" '$i' '${i}'");
-  print("foo" "bar");
-  print(" '${i}' '${i}'" " '$i' '${i}'");
+  print(
+    "foo"
+    "bar",
+  );
+  print(
+    " '${i}' '${i}'"
+    " '$i' '${i}'",
+  );
   try {
     throw "fisk";
   } on String catch (e, s) {

@@ -474,7 +474,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
+  function2: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -484,7 +484,7 @@ FunctionExpressionInvocation
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::a
@@ -514,7 +514,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
+  function2: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -549,7 +549,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
+  function2: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: getter
@@ -581,7 +581,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
+  function2: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -613,7 +613,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
+  function2: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -631,10 +631,10 @@ FunctionExpressionInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
           substitution: {T: int}
         staticType: int
@@ -662,7 +662,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandPropertyAccess
+  function2: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: getter

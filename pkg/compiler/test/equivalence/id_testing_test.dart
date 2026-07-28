@@ -137,7 +137,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionDeclaration) {
       return '${computeMemberName(getEnclosingMember(node))}.'
-          '${node.variable.name}';
+          '${node.variable.cosmeticName}';
     } else if (node is ir.FunctionExpression) {
       return '${computeMemberName(getEnclosingMember(node))}.'
           '<anonymous>';

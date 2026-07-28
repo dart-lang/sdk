@@ -42,7 +42,7 @@ part of lib;
 library lib;
 part '$testFileName';
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.4
 // (pre enhanced-parts)
 

@@ -1689,29 +1689,21 @@ void runAgnosticSharedTestsShard2(
         );
       });
 
-      test(
-        'awaited method call',
-        () async {
-          await driver.checkInFrame(
-            breakpointId: 'asyncTestBP2',
-            expression: 'd.asyncMethod(1).runtimeType.toString()',
-            expectedResult: '_Future<int>',
-          );
-        },
-        skip: "'await' is not yet supported in expression evaluation.",
-      );
+      test('awaited method call', () async {
+        await driver.checkInFrame(
+          breakpointId: 'asyncTestBP2',
+          expression: 'd.asyncMethod(1).runtimeType.toString()',
+          expectedResult: '_Future<int>',
+        );
+      }, skip: "'await' is not yet supported in expression evaluation.");
 
-      test(
-        'awaited method call',
-        () async {
-          await driver.checkInFrame(
-            breakpointId: 'asyncTestBP2',
-            expression: 'await d.asyncMethod(1)',
-            expectedResult: '58',
-          );
-        },
-        skip: "'await' is not yet supported in expression evaluation.",
-      );
+      test('awaited method call', () async {
+        await driver.checkInFrame(
+          breakpointId: 'asyncTestBP2',
+          expression: 'await d.asyncMethod(1)',
+          expectedResult: '58',
+        );
+      }, skip: "'await' is not yet supported in expression evaluation.");
     });
 
     group('closures', () {

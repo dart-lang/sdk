@@ -32,7 +32,7 @@ class C {
   }
 
   test_instanceSetter_voidReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!void!] set f(int p) {}
 }
@@ -48,7 +48,7 @@ class C {
   }
 
   test_staticSetter_voidReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!void!] set f(String p) {}
 }
@@ -56,7 +56,7 @@ class C {
   }
 
   test_voidReturnType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!void!] set f(int p) {}
 ''');
   }

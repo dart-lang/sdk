@@ -133,9 +133,11 @@ abstract class _HashFieldBase {
   //
   // Index of this field is used by the code generator:
   // `FieldInfo.hashBaseIndex`.
+  @pragma('wasm:entry-point')
   WasmArray<WasmI32> _index = _uninitializedHashBaseIndex;
 
   // Cached in-place mask for the hash pattern component.
+  @pragma('wasm:entry-point')
   int _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
@@ -144,12 +146,15 @@ abstract class _HashFieldBase {
   //
   // Index of this field is used by the code generator:
   // `FieldInfo.hashBaseData`.
+  @pragma('wasm:entry-point')
   WasmArray<Object?> _data = _uninitializedHashBaseData;
 
   // Length of `_data` that is used (i.e., keys + values for a map).
+  @pragma('wasm:entry-point')
   int _usedData = 0;
 
   // Number of deleted keys.
+  @pragma('wasm:entry-point')
   int _deletedKeys = 0;
 
   _HashFieldBase();
@@ -537,7 +542,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (_equals(key, _data[d])) {
+          if (_equals(_data[d], key)) {
             return d + 1;
           }
         }
@@ -611,7 +616,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (_equals(key, _data[d])) {
+          if (_equals(_data[d], key)) {
             _index[i] = WasmI32.fromInt(_HashBase._DELETED_PAIR);
             _HashBase._setDeletedAt(_data, d);
             V value = _data[d + 1] as V;
@@ -641,7 +646,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
         final int entry = hashPattern ^ pair;
         if (entry < maxEntries) {
           final int d = entry << 1;
-          if (_equals(key, _data[d])) {
+          if (_equals(_data[d], key)) {
             return _data[d + 1];
           }
         }
@@ -987,7 +992,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
         }
       } else {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && _equals(key, _data[d])) {
+        if (d < maxEntries && _equals(_data[d], key)) {
           return false;
         }
       }
@@ -1019,7 +1024,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && _equals(key, _data[d])) {
+        if (d < maxEntries && _equals(_data[d], key)) {
           return _data[d]; // Note: Must return the existing key.
         }
       }
@@ -1048,7 +1053,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
-        if (d < maxEntries && _equals(key, _data[d])) {
+        if (d < maxEntries && _equals(_data[d], key)) {
           _index[i] = WasmI32.fromInt(_HashBase._DELETED_PAIR);
           _HashBase._setDeletedAt(_data, d);
           ++_deletedKeys;
@@ -1166,13 +1171,13 @@ mixin _SetCreateIndexMixin<E>
           final int d = hashPattern ^ pair;
           if (d < maxEntries) {
             // We should not already find an entry in the index.
-            if (canContainDuplicates && _equals(key, _data[d])) {
+            if (canContainDuplicates && _equals(_data[d], key)) {
               // Exists already, skip this entry.
               _HashBase._setDeletedAt(_data, j);
               _deletedKeys++;
               break next;
             } else {
-              assert(!_equals(key, _data[d]));
+              assert(!_equals(_data[d], key));
             }
           }
 

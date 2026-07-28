@@ -14,7 +14,6 @@ import 'compiler_configuration.dart';
 import 'deflake_info.dart';
 import 'feature.dart';
 import 'path.dart';
-import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'testing_servers.dart';
 
@@ -73,11 +72,8 @@ class TestConfiguration {
     required this.reproducingArguments,
     this.fastTestsOnly = false,
     this.printPassingStdout = false,
-  }) : packages =
-           packages ??
-           Repository.uri
-               .resolve('.dart_tool/package_config.json')
-               .toFilePath();
+    this.noSandbox = false,
+  }) : packages = packages ?? '.dart_tool/package_config.json';
 
   final Map<String, RegExp?> selectors;
   final Progress progress;
@@ -106,6 +102,7 @@ class TestConfiguration {
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
+  final bool noSandbox;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;
@@ -494,6 +491,16 @@ class TestConfiguration {
 
     if (compiler == Compiler.dartkp && genSnapshotFormat == null) {
       print("Error: gen_snapshot output format must be specified in AOT mode.");
+      isValid = false;
+    }
+
+    if (genSnapshotFormat == GenSnapshotFormat.coff &&
+        (system != System.win ||
+            !(architecture == Architecture.x64 ||
+                architecture == Architecture.x64c))) {
+      print(
+        "Error: COFF gen_snapshot output is only supported on Windows x64.",
+      );
       isValid = false;
     }
 

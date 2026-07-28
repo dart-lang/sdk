@@ -36,7 +36,7 @@ class ConstructorInfo {
     : allParameters = [
         ...constructor.function.positionalParameters,
         ...(constructor.function.namedParameters.toList()
-          ..sort((a, b) => a.name!.compareTo(b.name!))),
+          ..sort((a, b) => a.parameterName.compareTo(b.parameterName))),
       ] {
     // The initializer gets all arguments and produces
     //   - arguments to be passed to the body function
@@ -171,7 +171,7 @@ class _UsageCollector extends RecursiveVisitor {
       final arg = namedArg.value;
       if (arg is VariableGet) {
         for (final targetNamedParameter in target.function.namedParameters) {
-          if (targetNamedParameter.name == namedArg.name) {
+          if (targetNamedParameter.parameterName == namedArg.name) {
             final field = targetInfo.parameterToField[targetNamedParameter];
             if (field != null) {
               variablesStoredInFields[arg.variable] = field;

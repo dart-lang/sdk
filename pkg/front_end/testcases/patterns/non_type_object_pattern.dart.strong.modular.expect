@@ -134,9 +134,9 @@ library;
 //     case prefix.Unresolved(:var field):
 //                 ^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:70:11: Error: 'Unresolved' isn't a type.
-//    prefix.Unresolved(:var field) => "matched",
-//           ^^^^^^^^^^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:70:12: Error: 'Unresolved' isn't a type.
+//     prefix.Unresolved(:var field) => "matched",
+//            ^^^^^^^^^^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:76:14: Error: 'NonType' isn't a type.
 //   var prefix.NonType(:int field) = o;

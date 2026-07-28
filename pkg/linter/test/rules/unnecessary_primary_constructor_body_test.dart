@@ -18,7 +18,7 @@ class UnnecessaryPrimaryConstructorBodyTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_primary_constructor_body;
 
   test_emptyBody_block() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C() {
   [!this!] {}
 }
@@ -26,7 +26,7 @@ class C() {
   }
 
   test_emptyBody_semicolon() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C() {
   [!this!];
 }

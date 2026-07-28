@@ -5,9 +5,10 @@
 class C {
   int? f;
 }
+
 test(dynamic x) {
   switch (x) {
-    case C(: var f as int):
+    case C(:var f as int):
       break;
   }
 }

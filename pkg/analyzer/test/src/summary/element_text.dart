@@ -52,6 +52,7 @@ class ElementTextConfiguration {
   bool withCodeRanges = false;
   bool withConstantInitializers = true;
   bool withConstructors = true;
+  bool withDefaultType = false;
   bool withDisplayName = false;
   bool withExportScope = false;
   bool withFunctionTypeParameters = false;
@@ -207,7 +208,7 @@ abstract class _AbstractElementWriter {
 
   void _writeNode(AstNode node) {
     _sink.writeIndent();
-    node.accept(_createAstPrinter());
+    _createAstPrinter().writeNode(node);
   }
 
   void _writeReference(ElementImpl e) {
@@ -1039,6 +1040,13 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementReference('element', f.element);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
+      if (f is InterfaceFragmentImpl && f.withClauseMixinStartIndex != 0) {
+        _sink.writeIndentedLine(() {
+          _sink.write(
+            'withClauseMixinStartIndex: ${f.withClauseMixinStartIndex}',
+          );
+        });
+      }
 
       _writeFragmentList(
         'typeParameters',
@@ -1716,10 +1724,12 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeType('bound', bound);
       }
 
-      // var defaultType = e.defaultType;
-      // if (defaultType != null) {
-      //   _writeType('defaultType', defaultType);
-      // }
+      if (configuration.withDefaultType) {
+        var defaultType = (e as TypeParameterElementImpl).defaultType;
+        if (defaultType != null) {
+          _writeType('defaultType', defaultType);
+        }
+      }
 
       _writeMetadata(e.metadata);
     });
@@ -1755,7 +1765,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeVariableElementConstantInitializer(VariableElementImpl e) {
-    if (e.constantInitializer2 case var initializer?) {
+    if (e.constantInitializerData case var initializer?) {
       _sink.writelnWithIndent('constantInitializer');
       _sink.withIndent(() {
         _writeFragmentReference('fragment', initializer.fragment);

@@ -18,7 +18,7 @@ class PreferConditionalAssignmentTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_conditional_assignment;
 
   test_field_ifEqNull() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? x;
 
@@ -32,7 +32,7 @@ class C {
   }
 
   test_field_ifEqNull_conditionWrappedInParens() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? x;
   void f(String s) {
@@ -45,7 +45,7 @@ class C {
   }
 
   test_field_ifEqNull_eachWrappedInParens() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? x;
   void f(String s) {
@@ -58,7 +58,7 @@ class C {
   }
 
   test_field_ifEqNull_statementBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? x;
   String? f(String s) {
@@ -100,7 +100,7 @@ class C {
   }
 
   test_field_onSameTarget() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   String? x;
   void f(C a) {

@@ -94,7 +94,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixedIdentifier
+                expression2: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A
@@ -174,7 +174,7 @@ CompilationUnit
             name: values
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
                 staticType: int
               semicolon: ;
@@ -212,7 +212,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixedIdentifier
+                expression2: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A
@@ -272,6 +272,18 @@ GenericFunctionType
   functionKeyword: Function
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: double
+          element: dart:core::@class::double
+          type: double
+        declaredFragment: <testLibraryFragment> null@null
+          element: isPrivate
+            type: double
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: double
@@ -308,21 +320,22 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement: ConstructorMember
+  constructorElement: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: int}
   declaredFragment: <testLibraryFragment> v@14
@@ -344,15 +357,15 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement: ConstructorMember
+  constructorElement: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@enum::E::@constructor::new
     substitution: {T: int}
   declaredFragment: <testLibraryFragment> v@14
@@ -382,21 +395,22 @@ EnumConstantDeclaration
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
             substitution: {T: double}
           staticType: double
       rightParenthesis: )
-  constructorElement: ConstructorMember
+  constructorElement: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: double}
   declaredFragment: <testLibraryFragment> v@14
@@ -465,13 +479,14 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
@@ -497,7 +512,7 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
@@ -541,13 +556,14 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
         element: <null>
         staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <null>
@@ -575,7 +591,7 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 42
           correspondingParameter: <null>
@@ -644,7 +660,7 @@ FieldDeclaration
       VariableDeclaration
         name: foo
         equals: =
-        initializer: IntegerLiteral
+        initializer2: IntegerLiteral
           literal: 42
           staticType: int
         declaredFragment: <testLibraryFragment> foo@22
@@ -672,9 +688,9 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: ThrowExpression
+    expression2: ThrowExpression
       throwKeyword: throw
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
       staticType: Never
@@ -756,6 +772,28 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@32
+          element: isPublic
+            type: T
+      RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E1 U
+          type: U
+        name: u
+        declaredFragment: <testLibraryFragment> u@37
+          element: isPublic
+            type: U
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -777,7 +815,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -808,7 +846,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: SimpleStringLiteral
+    expression2: SimpleStringLiteral
       literal: 'E'
     semicolon: ;
   declaredFragment: <testLibraryFragment> toString@23
@@ -899,7 +937,7 @@ EnumDeclaration
     constants
       EnumConstantDeclaration
         name: v
-        constructorElement: ConstructorMember
+        constructorElement: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@enum::A::@constructor::new
           substitution: {T: int}
         declaredFragment: <testLibraryFragment> v@23
@@ -944,6 +982,29 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+                staticType: int
+            declaredFragment: <testLibraryFragment> a@18
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@enum::A::@field::a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -974,11 +1035,11 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               NamedArgument
                 name: a
                 colon: :
-                argumentExpression: IntegerLiteral
+                argumentExpression2: IntegerLiteral
                   literal: 1
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1002,6 +1063,25 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            declaredFragment: <testLibraryFragment> a@27
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@enum::A::@field::a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1029,11 +1109,11 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               NamedArgument
                 name: a
                 colon: :
-                argumentExpression: IntegerLiteral
+                argumentExpression2: IntegerLiteral
                   literal: 0
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1058,6 +1138,47 @@ EnumDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                    element: dart:core::@class::String
+                    type: String
+                  name: x
+                  declaredFragment: <testLibraryFragment> x@26
+                    element: isPublic
+                      type: String
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                  element: dart:core::@class::String
+                  type: String
+                name: x
+                declaredFragment: <testLibraryFragment> x@26
+                  element: isPublic
+                    type: String
+              rightParenthesis: )
+          declaredFragment: <testLibraryFragment> a@17
+            element: isFinal isPublic
+              type: int Function(String)
+              field: <testLibrary>::@enum::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1095,7 +1216,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: foo
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1122,6 +1243,21 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@17
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@enum::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -1145,7 +1281,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1174,6 +1310,22 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        FieldFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          thisKeyword: this
+          period: .
+          name: a
+          declaredFragment: <testLibraryFragment> a@16
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@enum::A::@field::a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: FieldFormalParameter
         type: NamedType
           name: int
@@ -1198,7 +1350,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1241,6 +1393,27 @@ PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        metadata
+          Annotation
+            atSign: @
+            name: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@enum::A::@getter::foo
+              staticType: null
+            element: <testLibrary>::@enum::A::@getter::foo
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: x
+        declaredFragment: <testLibraryFragment> x@31
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       metadata
         Annotation
@@ -1280,6 +1453,19 @@ enum A(int x) {
 PrimaryConstructorDeclaration
   typeName: A
   formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: <testLibrary>::@enum::A::@getter::int
+          type: InvalidType
+        name: x
+        declaredFragment: <testLibraryFragment> x@11
+          element: isPublic
+            type: InvalidType
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -1321,6 +1507,19 @@ EnumDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: t
+          declaredFragment: <testLibraryFragment> t@18
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -1342,21 +1541,22 @@ EnumDeclaration
         arguments: EnumConstantArguments
           constructorSelector: ConstructorSelector
             period: .
-            name: SimpleIdentifier
+            name2: named
+            name(v1): SimpleIdentifier
               token: named
               element: <null>
               staticType: null
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
-                correspondingParameter: ParameterMember
+                correspondingParameter: SubstitutedFormalParameterElementImpl
                   baseElement: <testLibrary>::@enum::A::@constructor::named::@formalParameter::t
                   substitution: {T: int}
                 staticType: int
             rightParenthesis: )
-        constructorElement: ConstructorMember
+        constructorElement: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@enum::A::@constructor::named
           substitution: {T: int}
         declaredFragment: <testLibraryFragment> v@23
@@ -1386,6 +1586,19 @@ EnumDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            element: #E0 T
+            type: T
+          name: t
+          declaredFragment: <testLibraryFragment> t@12
+            element: isPublic
+              type: T
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -1407,15 +1620,15 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
-                correspondingParameter: ParameterMember
+                correspondingParameter: SubstitutedFormalParameterElementImpl
                   baseElement: <testLibrary>::@enum::A::@constructor::new::@formalParameter::t
                   substitution: {T: int}
                 staticType: int
             rightParenthesis: )
-        constructorElement: ConstructorMember
+        constructorElement: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@enum::A::@constructor::new
           substitution: {T: int}
         declaredFragment: <testLibraryFragment> v@17
@@ -1440,6 +1653,19 @@ EnumDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@17
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1461,13 +1687,14 @@ EnumDeclaration
         arguments: EnumConstantArguments
           constructorSelector: ConstructorSelector
             period: .
-            name: SimpleIdentifier
+            name2: named
+            name(v1): SimpleIdentifier
               token: named
               element: <null>
               staticType: null
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::named::@formalParameter::a
@@ -1493,6 +1720,19 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@11
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1514,7 +1754,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1557,6 +1797,36 @@ PrimaryConstructorDeclaration
           defaultType: dynamic
     rightBracket: >
   formalParameters: FormalParameterList
+    leftParenthesis: (
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: [
+      formalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: foo
+                element: <testLibrary>::@enum::A::@getter::foo
+                staticType: null
+              element: <testLibrary>::@enum::A::@getter::foo
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: x
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value2: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@enum::A::@getter::foo
+              staticType: int
+          declaredFragment: <testLibraryFragment> x@40
+            element: isPublic
+              type: int
+      rightDelimiter: ]
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
     parameter: RegularFormalParameter
@@ -1625,6 +1895,28 @@ PrimaryConstructorDeclaration
     rightBracket: >
   formalParameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E1 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@37
+          element: isPublic
+            type: T
+      RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        name: u
+        declaredFragment: <testLibraryFragment> u@42
+          element: isPublic
+            type: U
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -1675,6 +1967,28 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: x
+          declaredFragment: <testLibraryFragment> x@12
+            element: isPublic
+              type: bool
+        RegularFormalParameter
+          type: NamedType
+            name: bool
+            element: dart:core::@class::bool
+            type: bool
+          name: y
+          declaredFragment: <testLibraryFragment> y@20
+            element: isPublic
+              type: bool
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: bool
@@ -1705,7 +2019,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               BooleanLiteral
                 literal: true
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
@@ -1726,7 +2040,7 @@ EnumDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: SimpleIdentifier
+            condition2: SimpleIdentifier
               token: x
               element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
               staticType: bool
@@ -1736,7 +2050,7 @@ EnumDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: y
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
                   staticType: bool
@@ -1749,9 +2063,9 @@ EnumDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: PrefixExpression
+            condition2: PrefixExpression
               operator: !
-              operand: SimpleIdentifier
+              operand2: SimpleIdentifier
                 token: x
                 element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
                 staticType: bool
@@ -1763,9 +2077,9 @@ EnumDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: PrefixExpression
+                expression2: PrefixExpression
                   operator: !
-                  operand: SimpleIdentifier
+                  operand2: SimpleIdentifier
                     token: y
                     element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
                     staticType: bool
@@ -1857,7 +2171,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
         element: <null>
         staticType: InvalidType
@@ -1867,7 +2181,7 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: y
             element: <null>
             staticType: InvalidType
@@ -1893,7 +2207,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool
@@ -1920,7 +2234,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: a
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -1948,7 +2262,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool
@@ -1975,7 +2289,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2002,7 +2316,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2036,7 +2350,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2066,7 +2380,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer: SimpleIdentifier
+        initializer2: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2090,6 +2404,19 @@ MethodDeclaration
   propertyKeyword: set
   name: foo
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: a
+        declaredFragment: <testLibraryFragment> a@29
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -2123,7 +2450,7 @@ void f() {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: PrefixedIdentifier
+  target2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@enum::E

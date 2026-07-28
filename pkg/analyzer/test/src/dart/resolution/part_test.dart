@@ -98,7 +98,7 @@ PartDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString
@@ -400,7 +400,7 @@ PartDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString

@@ -2,37 +2,37 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue56406.dart:6:21: Error: The super constructor has no corresponding positional parameter.
-// class B1 { B1(super.foo); }
-//                     ^
+// pkg/front_end/testcases/general/issue56406.dart:10:12: Error: The super constructor has no corresponding positional parameter.
+//   B1(super.foo);
+//            ^
 //
-// pkg/front_end/testcases/general/issue56406.dart:7:22: Error: The super constructor has no corresponding named parameter.
-// class B2 { B2({super.foo}); }
-//                      ^
+// pkg/front_end/testcases/general/issue56406.dart:14:13: Error: The super constructor has no corresponding named parameter.
+//   B2({super.foo});
+//             ^
 //
-// pkg/front_end/testcases/general/issue56406.dart:8:21: Error: The super constructor has no corresponding positional parameter.
-// class B3 { B3(super.foo, {super.bar}); }
-//                     ^
+// pkg/front_end/testcases/general/issue56406.dart:18:12: Error: The super constructor has no corresponding positional parameter.
+//   B3(super.foo, {super.bar});
+//            ^
 //
-// pkg/front_end/testcases/general/issue56406.dart:8:33: Error: The super constructor has no corresponding named parameter.
-// class B3 { B3(super.foo, {super.bar}); }
-//                                 ^
+// pkg/front_end/testcases/general/issue56406.dart:18:24: Error: The super constructor has no corresponding named parameter.
+//   B3(super.foo, {super.bar});
+//                        ^
 //
-// pkg/front_end/testcases/general/issue56406.dart:9:21: Error: The super constructor has no corresponding positional parameter.
-// class B4 { B4(super.foo, super.bar); }
-//                     ^
+// pkg/front_end/testcases/general/issue56406.dart:22:12: Error: The super constructor has no corresponding positional parameter.
+//   B4(super.foo, super.bar);
+//            ^
 //
-// pkg/front_end/testcases/general/issue56406.dart:9:32: Error: The super constructor has no corresponding positional parameter.
-// class B4 { B4(super.foo, super.bar); }
-//                                ^
+// pkg/front_end/testcases/general/issue56406.dart:22:23: Error: The super constructor has no corresponding positional parameter.
+//   B4(super.foo, super.bar);
+//                       ^
 //
-// pkg/front_end/testcases/general/issue56406.dart:10:22: Error: The super constructor has no corresponding named parameter.
-// class B5 { B5({super.foo, super.bar}); }
-//                      ^
+// pkg/front_end/testcases/general/issue56406.dart:26:13: Error: The super constructor has no corresponding named parameter.
+//   B5({super.foo, super.bar});
+//             ^
 //
-// pkg/front_end/testcases/general/issue56406.dart:10:33: Error: The super constructor has no corresponding named parameter.
-// class B5 { B5({super.foo, super.bar}); }
-//                                 ^
+// pkg/front_end/testcases/general/issue56406.dart:26:24: Error: The super constructor has no corresponding named parameter.
+//   B5({super.foo, super.bar});
+//                        ^
 //
 import self as self;
 import "dart:core" as core;
@@ -44,37 +44,37 @@ class A extends core::Object {
 }
 class B1 extends core::Object {
   constructor •(super-initializing-formal dynamic foo) → self::B1
-    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:6:21: Error: The super constructor has no corresponding positional parameter.
-class B1 { B1(super.foo); }
-                    ^"
+    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:10:12: Error: The super constructor has no corresponding positional parameter.
+  B1(super.foo);
+           ^"
     ;
 }
 class B2 extends core::Object {
   constructor •({super-initializing-formal dynamic foo = #C1}) → self::B2
-    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:7:22: Error: The super constructor has no corresponding named parameter.
-class B2 { B2({super.foo}); }
-                     ^"
+    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:14:13: Error: The super constructor has no corresponding named parameter.
+  B2({super.foo});
+            ^"
     ;
 }
 class B3 extends core::Object {
   constructor •(super-initializing-formal dynamic foo, {super-initializing-formal dynamic bar = #C1}) → self::B3
-    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:8:21: Error: The super constructor has no corresponding positional parameter.
-class B3 { B3(super.foo, {super.bar}); }
-                    ^"
+    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:18:12: Error: The super constructor has no corresponding positional parameter.
+  B3(super.foo, {super.bar});
+           ^"
     ;
 }
 class B4 extends core::Object {
   constructor •(super-initializing-formal dynamic foo, super-initializing-formal dynamic bar) → self::B4
-    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:9:21: Error: The super constructor has no corresponding positional parameter.
-class B4 { B4(super.foo, super.bar); }
-                    ^"
+    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:22:12: Error: The super constructor has no corresponding positional parameter.
+  B4(super.foo, super.bar);
+           ^"
     ;
 }
 class B5 extends core::Object {
   constructor •({super-initializing-formal dynamic foo = #C1, super-initializing-formal dynamic bar = #C1}) → self::B5
-    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:10:22: Error: The super constructor has no corresponding named parameter.
-class B5 { B5({super.foo, super.bar}); }
-                     ^"
+    : invalid-initializer "pkg/front_end/testcases/general/issue56406.dart:26:13: Error: The super constructor has no corresponding named parameter.
+  B5({super.foo, super.bar});
+            ^"
     ;
 }
 

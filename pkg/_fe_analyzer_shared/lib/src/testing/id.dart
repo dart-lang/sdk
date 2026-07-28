@@ -398,6 +398,12 @@ mixin DataRegistry<T> {
     }
   }
 
+  /// Called to resolve duplicates if more that one value is registered for the
+  /// same id.
+  ///
+  /// If the values can be resolved into a single value, this should be
+  /// returned. Otherwise `null` should be returned, which will lead to an error
+  /// being reported.
   ActualData<T>? mergeData(ActualData<T> value1, ActualData<T> value2) => null;
 
   /// Called to report duplicate errors.

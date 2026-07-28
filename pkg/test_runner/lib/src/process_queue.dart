@@ -658,6 +658,26 @@ class CommandExecutorImpl implements CommandExecutor {
     return steps;
   }
 
+  static final _compilerRT = {
+    'ASANX64': 'libclang_rt.asan-x86_64-android.so',
+    'HWASANX64': 'libclang_rt.hwasan-x86_64-android.so',
+    'TSANX64': 'libclang_rt.tsan-x86_64-android.so',
+    'LSANX64': 'libclang_rt.lsan-x86_64-android.so',
+    'UBSANX64': 'libclang_rt.ubsan_standalone-x86_64-android.so',
+
+    'ASANARM64': 'libclang_rt.asan-aarch64-android.so',
+    'HWASANARM64': 'libclang_rt.hwasan-aarch64-android.so',
+    'TSANARM64': 'libclang_rt.tsan-aarch64-android.so',
+    'LSANARM64': 'libclang_rt.lsan-aarch64-android.so',
+    'UBSANARM64': 'libclang_rt.ubsan_standalone-aarch64-android.so',
+
+    'ASANRISCV64': 'libclang_rt.asan-riscv64-android.so',
+    'HWASANRISCV64': 'libclang_rt.hwasan-riscv64-android.so',
+    'TSANRISCV64': 'libclang_rt.tsan-riscv64-android.so',
+    'LSANRISCV64': 'libclang_rt.lsan-riscv64-android.so',
+    'UBSANRISCV64': 'libclang_rt.ubsan_standalone-riscv64-android.so',
+  };
+
   Future<CommandOutput> _runAdbPrecompilationCommand(
     AdbDevice device,
     AdbPrecompilationCommand command,
@@ -687,6 +707,16 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
+    _compilerRT.forEach((k, v) {
+      if (buildPath.contains(k)) {
+        steps.add(
+          () => device.pushCachedData(
+            './third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/$v',
+            '$deviceDir/$v',
+          ),
+        );
+      }
+    });
     steps.add(
       () => device.pushCachedData(
         '$buildPath/exe.stripped/dartaotruntime',
@@ -730,7 +760,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(
       () => device.runAdbShellCommand([
-        'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+        'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir:$deviceDir;'
             'export TEST_COMPILATION_DIR=$deviceTestDir;'
             '$deviceDir/dartaotruntime',
         '--android-log-to-stderr',
@@ -806,6 +836,16 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
+    _compilerRT.forEach((k, v) {
+      if (buildPath.contains(k)) {
+        steps.add(
+          () => device.pushCachedData(
+            './third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/19/lib/linux/$v',
+            '$deviceDir/$v',
+          ),
+        );
+      }
+    });
     steps.add(
       () => device.pushCachedData('$buildPath/dartvm', '$deviceDir/dartvm'),
     );
@@ -827,7 +867,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(
       () => device.runAdbShellCommand([
-        'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+        'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir:$deviceDir;'
             '$deviceDir/dartvm',
         '--android-log-to-stderr',
         ...arguments,

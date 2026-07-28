@@ -363,13 +363,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           if (request.experimental) continue;
 
           li(() {
-            link(
-              'request_${request.longMethod}',
-              () {
-                write(request.longMethod);
-              },
-              request.deprecated ? {'class': 'deprecated'} : null,
-            );
+            link('request_${request.longMethod}', () {
+              write(request.longMethod);
+            }, request.deprecated ? {'class': 'deprecated'} : null);
           });
           writeln();
         }
@@ -462,8 +458,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
               translateHtml(node, squashParagraphs: squashParagraphs);
               element('link', {
                 'rel': 'stylesheet',
-                'href':
-                    'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Roboto:ital,wght@0,300;0,400;0,700;1,400&display=swap',
+                'href': 'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Roboto:ital,wght@0,300;0,400;0,700;1,400&display=swap',
                 'type': 'text/css',
               });
               element('style', {}, () {

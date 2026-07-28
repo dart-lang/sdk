@@ -6,11 +6,12 @@ import 'dart:collection';
 
 class A with ListMixin<int> {
   int count = 0;
-  int operator[](int index) {
+  int operator [](int index) {
     count++;
     return 0;
   }
-  void operator[]=(int index, int value) {}
+
+  void operator []=(int index, int value) {}
   int get length => 2;
   void set length(int value) {}
 }

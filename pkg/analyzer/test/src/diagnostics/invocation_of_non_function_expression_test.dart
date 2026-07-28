@@ -26,12 +26,12 @@ void f() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: IntegerLiteral
+  function2: IntegerLiteral
     literal: 3
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 5
         correspondingParameter: <null>

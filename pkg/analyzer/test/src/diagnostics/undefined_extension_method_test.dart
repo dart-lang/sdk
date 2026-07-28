@@ -40,11 +40,11 @@ f() {
     var node = result.findNode.methodInvocation('m();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )

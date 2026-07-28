@@ -46,7 +46,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class [!A!] {}
@@ -63,7 +63,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class [!A!] {}
@@ -72,7 +72,7 @@ class [!A!] {}
   }
 
   test_basicClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class [!C!] {
   static void f() {}
 }
@@ -166,7 +166,7 @@ class C {
   }
 
   test_finalClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final class [!C!] {
   static void f() {}
 }

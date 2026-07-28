@@ -26,7 +26,7 @@ void main() {
     o2,
     c1,
     c2,
-    [1]
+    [1],
   ], "msg");
   Expect.allDistinct(List.generate(100, (_) => Object()));
 

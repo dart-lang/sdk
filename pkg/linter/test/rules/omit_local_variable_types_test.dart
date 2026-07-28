@@ -26,7 +26,7 @@ class C {
   }
 
   test_forEach() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for ([!int!] i in [1, 2, 3]) { }
 }
@@ -42,7 +42,7 @@ f() {
   }
 
   test_forIn_iterableSubclass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class StringIterator<E> implements Iterable<E> {}
 
 void f(StringIterator<String> items) {
@@ -69,7 +69,7 @@ void f(StringIterator<String> items) {
   }
 
   test_forLoop_declarationHasRedundantType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   late C next;
 }
@@ -90,7 +90,7 @@ f() {
   }
 
   test_local_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!String!] a = 'a', b = 'b';
 }
@@ -114,7 +114,7 @@ f() {
   }
 
   test_multipleLocalVariables_rightSideIsIterable_typedWithRawIterable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!Iterable!] a = new Iterable.empty(), b = new Iterable.empty();
 }
@@ -156,10 +156,9 @@ f() {
 ''');
   }
 
-  /// https://github.com/dart-lang/linter/issues/3016
-  @failingTest
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3016')
   test_paramIsType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 T bar<T>(T d) => d;
 
 String f() {
@@ -227,7 +226,7 @@ String f() {
 
   /// https://github.com/dart-lang/linter/issues/3016
   test_typeParamProvided() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 T bar<T>(dynamic d) => d;
 
 String f() {

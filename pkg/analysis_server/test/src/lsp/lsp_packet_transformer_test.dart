@@ -12,9 +12,9 @@ void main() {
     test('transforms data received as individual bytes', () async {
       var payload = '{ json payload }';
       var lspPacket = makeLspPacket(payload);
-      var output = await Stream.fromIterable([
-        lspPacket,
-      ]).transform(LspPacketTransformer()).toList();
+      var output = await Stream.fromIterable([lspPacket])
+          .transform(LspPacketTransformer())
+          .toList();
       expect(output, equals([payload]));
     });
 
@@ -25,9 +25,9 @@ void main() {
       // where all the bytes for a single LSP packet don't arrive in one
       // item to the stream.
       var dataPackets = lspPacket.map((b) => [b]);
-      var output = await Stream.fromIterable(
-        dataPackets,
-      ).transform(LspPacketTransformer()).toList();
+      var output = await Stream.fromIterable(dataPackets)
+          .transform(LspPacketTransformer())
+          .toList();
       expect(output, equals([payload]));
     });
 
@@ -35,9 +35,9 @@ void main() {
       // This file is saved as UTF8.
       var payload = '{ json payload 🎉 }';
       var lspPacket = makeLspPacket(payload);
-      var output = await Stream.fromIterable([
-        lspPacket,
-      ]).transform(LspPacketTransformer()).toList();
+      var output = await Stream.fromIterable([lspPacket])
+          .transform(LspPacketTransformer())
+          .toList();
       expect(output, equals([payload]));
     });
 
@@ -47,9 +47,9 @@ void main() {
         payload,
         'application/vscode-jsonrpc; charset=utf-8',
       );
-      var output = await Stream.fromIterable([
-        lspPacket,
-      ]).transform(LspPacketTransformer()).toList();
+      var output = await Stream.fromIterable([lspPacket])
+          .transform(LspPacketTransformer())
+          .toList();
       expect(output, equals([payload]));
     });
 
@@ -59,18 +59,18 @@ void main() {
         payload,
         'application/vscode-jsonrpc; charset=utf8',
       );
-      var output = await Stream.fromIterable([
-        lspPacket,
-      ]).transform(LspPacketTransformer()).toList();
+      var output = await Stream.fromIterable([lspPacket])
+          .transform(LspPacketTransformer())
+          .toList();
       expect(output, equals([payload]));
     });
 
     test('accepts no encoding', () async {
       var payload = '{ json payload 🎉 }';
       var lspPacket = makeLspPacket(payload, 'application/vscode-jsonrpc;');
-      var output = await Stream.fromIterable([
-        lspPacket,
-      ]).transform(LspPacketTransformer()).toList();
+      var output = await Stream.fromIterable([lspPacket])
+          .transform(LspPacketTransformer())
+          .toList();
       expect(output, equals([payload]));
     });
 
@@ -80,13 +80,28 @@ void main() {
         payload,
         'application/vscode-jsonrpc; charset=ascii',
       );
-      var outputStream = Stream.fromIterable([
-        lspPacket,
-      ]).transform(LspPacketTransformer());
+      var outputStream = Stream.fromIterable([lspPacket])
+          .transform(LspPacketTransformer());
 
       await expectLater(
         outputStream.toList(),
         throwsA(const TypeMatcher<InvalidEncodingError>()),
+      );
+    });
+  });
+
+  group('lsp_packet_encoder', () {
+    test('encodes JSON payloads as LSP packets', () async {
+      var payload = '{ json payload }';
+      var output = await Stream.value(payload)
+          .transform(LspPacketEncoder())
+          .toList();
+
+      expect(
+        output,
+        equals([
+          makeLspPacket(payload, 'application/vscode-jsonrpc; charset=utf-8'),
+        ]),
       );
     });
   });

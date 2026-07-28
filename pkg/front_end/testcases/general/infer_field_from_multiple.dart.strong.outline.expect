@@ -101,7 +101,7 @@ library;
 //   var field18 = '';
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:94:7: Error: Can't infer a type for 'field2' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:95:7: Error: Can't infer a type for 'field2' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field2; // error
 //       ^^^^^^
@@ -112,7 +112,7 @@ library;
 //   var field2 = '';
 //       ^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:96:7: Error: Can't infer a type for 'field4' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:97:7: Error: Can't infer a type for 'field4' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field4 = 0; // error
 //       ^^^^^^
@@ -123,7 +123,7 @@ library;
 //   var field4 = '';
 //       ^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:98:7: Error: Can't infer a type for 'field6' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:99:7: Error: Can't infer a type for 'field6' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field6; // error
 //       ^^^^^^
@@ -134,7 +134,7 @@ library;
 //   String? field6;
 //           ^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:100:7: Error: Can't infer a type for 'field8' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:101:7: Error: Can't infer a type for 'field8' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field8 = 0; // error
 //       ^^^^^^
@@ -145,7 +145,7 @@ library;
 //   String? field8;
 //           ^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:107:7: Error: Can't infer a type for 'field15' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:108:7: Error: Can't infer a type for 'field15' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field15;
 //       ^^^^^^^
@@ -156,7 +156,7 @@ library;
 //   int? field15;
 //        ^^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:108:7: Error: Can't infer a type for 'field16' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:109:7: Error: Can't infer a type for 'field16' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field16;
 //       ^^^^^^^
@@ -167,7 +167,7 @@ library;
 //   var field16 = 0;
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:109:7: Error: Can't infer a type for 'field17' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:110:7: Error: Can't infer a type for 'field17' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field17; // error
 //       ^^^^^^^
@@ -178,7 +178,7 @@ library;
 //   String? field17;
 //           ^^^^^^^
 //
-// pkg/front_end/testcases/general/infer_field_from_multiple.dart:110:7: Error: Can't infer a type for 'field18' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:111:7: Error: Can't infer a type for 'field18' as the overridden members don't have a combined signature.
 // Try adding an explicit type.
 //   var field18; // error
 //       ^^^^^^^

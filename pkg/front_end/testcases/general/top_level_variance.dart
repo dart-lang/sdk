@@ -34,17 +34,18 @@ typedef FinvCyclicCoBound<X extends Function(X)> = X Function(X);
 class B<X> {}
 
 void testTopLevel(
-    Fcov source1,
-    Fcon source2,
-    Finv source3,
-    FcovBound source4,
-    FconBound source5,
-    FinvBound source6,
-    FcovCyclicBound source7,
-    FconCyclicBound source8,
-    FcovCyclicCoBound source10,
-    FconCyclicCoBound source11,
-    FinvCyclicCoBound source12) {
+  Fcov source1,
+  Fcon source2,
+  Finv source3,
+  FcovBound source4,
+  FconBound source5,
+  FinvBound source6,
+  FcovCyclicBound source7,
+  FconCyclicBound source8,
+  FcovCyclicCoBound source10,
+  FconCyclicCoBound source11,
+  FinvCyclicCoBound source12,
+) {
   // I2b initial value for a covariant type parameter w/o bound: dynamic.
   var fsource1 = toF(source1);
   F<Fcov<dynamic>> target1 = fsource1;
@@ -108,17 +109,18 @@ void testTopLevel(
 }
 
 void testNested(
-    B<Fcov> source1,
-    B<Fcon> source2,
-    B<Finv> source3,
-    B<FcovBound> source4,
-    B<FconBound> source5,
-    B<FinvBound> source6,
-    B<FcovCyclicBound> source7,
-    B<FconCyclicBound> source8,
-    B<FcovCyclicCoBound> source10,
-    B<FconCyclicCoBound> source11,
-    B<FinvCyclicCoBound> source12) {
+  B<Fcov> source1,
+  B<Fcon> source2,
+  B<Finv> source3,
+  B<FcovBound> source4,
+  B<FconBound> source5,
+  B<FinvBound> source6,
+  B<FcovCyclicBound> source7,
+  B<FconCyclicBound> source8,
+  B<FcovCyclicCoBound> source10,
+  B<FconCyclicCoBound> source11,
+  B<FinvCyclicCoBound> source12,
+) {
   // Everything gets the same treatment when the cases from
   // `testTopLevel` are duplicated at the nested level.
 

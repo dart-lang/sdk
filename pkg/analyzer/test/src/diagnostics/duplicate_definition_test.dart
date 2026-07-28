@@ -1705,7 +1705,6 @@ augment extension E {
   augment abstract int foo;
 //                     ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
-// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
 ''');
   }
@@ -1858,7 +1857,6 @@ augment extension E {
   augment abstract int foo;
 //                     ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
-// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
 }
 ''');
   }
@@ -2255,7 +2253,6 @@ augment extension type E {
   augment abstract int foo;
 //                     ^^^
 // [diag.augmentationWithoutSetterDeclaration][context 1] This augmentation induces a setter, but no setter declaration named 'foo' exists to augment.
-// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
 ''');
   }
@@ -2378,7 +2375,6 @@ augment extension type E {
   augment abstract int foo;
 //                     ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
-// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
 }
 ''');
   }

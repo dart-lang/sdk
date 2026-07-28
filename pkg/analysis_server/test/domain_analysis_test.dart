@@ -647,11 +647,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -919,9 +919,8 @@ AnalysisErrors
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({testFile.path: AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -950,9 +949,8 @@ AnalysisErrors
 
     // Remove the overlay, now the file will be read.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: RemoveContentOverlay(),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({testFile.path: RemoveContentOverlay()})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     // The file has errors.
@@ -1099,11 +1097,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1149,9 +1147,8 @@ AnalysisErrors
     // Set the overlay, with a different content.
     // We get another notification with errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: AddContentOverlay('error2'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: AddContentOverlay('error2')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1177,9 +1174,8 @@ AnalysisErrors
 
     // Remove the overlay, the file has different content, so notification.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1406,9 +1402,8 @@ AnalysisErrors
 
     // Set overlay with different content, with errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: AddContentOverlay('error2'),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: AddContentOverlay('error2')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1428,9 +1423,8 @@ AnalysisErrors
     // After removing the overlay, errors are gone.
     // TODO(scheglov): why not flush?
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        aPath: RemoveContentOverlay(),
-      }).toRequest('1', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({aPath: RemoveContentOverlay()})
+          .toRequest('1', clientUriConverter: server.uriConverter),
     );
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
@@ -1453,10 +1447,8 @@ AnalysisErrors
     d.writeAsStringSync('');
 
     await handleSuccessfulRequest(
-      AnalysisSetPriorityFilesParams([
-        a.path,
-        c.path,
-      ]).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams([a.path, c.path])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -1488,9 +1480,8 @@ AnalysisErrors
 
   Future<void> test_setPriorityFiles_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisSetPriorityFilesParams([
-        'a.dart',
-      ]).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisSetPriorityFilesParams(['a.dart'])
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     expect(
@@ -1795,11 +1786,11 @@ AnalysisErrors
   file: /home/test/pubspec.yaml
   errors: empty
 AnalysisErrors
-  file: /home/test/analysis_options.yaml
-  errors: empty
-AnalysisErrors
   file: /home/test/AndroidManifest.xml
   errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
 AnalysisErrors
   file: /home/test/lib/a.dart
   errors: empty
@@ -1956,9 +1947,8 @@ AnalysisErrors
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({testFile.path: AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
 
     // A new errors notification was received, no errors.
@@ -2014,9 +2004,8 @@ AnalysisErrors
 
   Future<void> test_updateContent_notAbsolute() async {
     var response = await handleRequest(
-      AnalysisUpdateContentParams({
-        'a.dart': AddContentOverlay(''),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({'a.dart': AddContentOverlay('')})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
     expect(response, isResponseFailure('0'));
   }
@@ -2126,7 +2115,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // nestedFolder1 has no plugins enabled.
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
 
     // Write the single package config at the root that can resolve both
@@ -2168,7 +2157,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: [plugin2.name],
       ),
     );
@@ -2212,7 +2201,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       join(workspaceRootPath, 'package1', 'nestedFolder1'),
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: [plugin1.name],
       ),
     );
@@ -2444,7 +2433,7 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newAnalysisOptionsYamlFile(
       packagePath,
       analysisOptionsContent(
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: plugins.map((plugin) => plugin.name).toList(),
       ),
     );

@@ -4,12 +4,12 @@ library;
 //
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:33:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   const new () {}
+//   const new() {}
 //   ^^^^^
 //
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:38:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
-//   const new () : x = 0 {}
+//   const new() : x = 0 {}
 //   ^^^^^
 //
 // pkg/front_end/testcases/primary_constructors/constructor_head.dart:69:3: Error: A const constructor can't have a body.

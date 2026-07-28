@@ -46,9 +46,8 @@ import 'dart:async'
 
 void f() {}
 ''');
-    var request = EditOrganizeDirectivesParams(
-      testFile.path,
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditOrganizeDirectivesParams(testFile.path)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -70,9 +69,8 @@ void f() {}
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
-    var request = EditOrganizeDirectivesParams(
-      'test.dart',
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditOrganizeDirectivesParams('test.dart')
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     assertResponseFailure(
       response,
@@ -165,9 +163,8 @@ void f() {
   }
 
   Future<void> _requestOrganize() async {
-    var request = EditOrganizeDirectivesParams(
-      testFile.path,
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = EditOrganizeDirectivesParams(testFile.path)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
     var result = EditOrganizeDirectivesResult.fromResponse(
       response,

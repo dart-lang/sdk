@@ -82,7 +82,7 @@ final class ContextDesc implements Context {
 
   @override
   String toString() =>
-      'Context[captured: $captured, variables: ${variables.map((v) => v.name).join(', ')}]';
+      'Context[captured: $captured, variables: ${variables.map((v) => v.cosmeticName).join(', ')}]';
 }
 
 class ScopeDesc implements Scope {
@@ -235,9 +235,8 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
     }
 
     for (final f in scopes._functions.values) {
-      f.capturedContexts = {
-        for (final v in f.accessedCapturedVars) v.context!,
-      }.toList();
+      f.capturedContexts = {for (final v in f.accessedCapturedVars) v.context!}
+          .toList();
     }
   }
 

@@ -37,6 +37,16 @@ class C {
 ''');
   }
 
+  test_primaryConstructor_declaringParameter() async {
+    await resolveTestCodeWithDiagnostics('''
+class C(final this.x) {
+//            ^^^^
+// [diag.initializingDeclaringParameter] Declaring parameters can't be initializing.
+  int x;
+}
+''');
+  }
+
   test_primaryConstructor_parameter() async {
     await resolveTestCodeWithDiagnostics('''
 class C(final int x);

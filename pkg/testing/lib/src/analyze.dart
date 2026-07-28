@@ -244,9 +244,8 @@ Future<void> analyzeUris(
     arguments.add("--");
     arguments.addAll(gitGrepPathspecs!);
     filesToAnalyze.addAll(
-      splitLines(
-        await git("grep", arguments),
-      ).map((String line) => line.trimRight()),
+      splitLines(await git("grep", arguments))
+          .map((String line) => line.trimRight()),
     );
   }
 
@@ -319,9 +318,8 @@ String _findSdkPath() {
   var executableUri = Uri.file(Platform.executable);
   if (File.fromUri(executableUri.resolve('../version')).existsSync()) {
     return executableUri.resolve('..').toFilePath();
-  } else if (File.fromUri(
-    executableUri.resolve('dart-sdk/version'),
-  ).existsSync()) {
+  } else if (File.fromUri(executableUri.resolve('dart-sdk/version'))
+      .existsSync()) {
     return executableUri.resolve('dart-sdk').toFilePath();
   } else {
     throw StateError('Cannot find dart-sdk for $executableUri');

@@ -72,21 +72,18 @@ class RefactoringProcessor {
           return;
         }
 
-        var server = context.server;
         var interactiveFormsEnabled =
-            // Temporary flag to ensure this is opt-in during development.
-            server.lspClientConfiguration.global.experimentalInteractiveForms &&
             // Client has shown it has support by providing at least one
             // input kind that it supports.
             // It is up to the individual refactors to handle the specific
             // kinds of input that are supported, this check is just to know if
             // we will use Interactive Forms instead of the original
             // Dart-specified self-described refactors.
-            (context
-                    .clientCapabilities
-                    ?.supportedInteractiveFormInputTypes
-                    .isNotEmpty ??
-                false);
+            context
+                .clientCapabilities
+                ?.supportedInteractiveFormInputTypes
+                .isNotEmpty ??
+            false;
 
         var parameters = producer is ParameterizedRefactoringProducer
             ? producer.parameters

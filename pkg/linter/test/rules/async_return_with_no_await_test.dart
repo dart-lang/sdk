@@ -19,13 +19,13 @@ class AsyncReturnWithNoAwait extends LintRuleTest {
   String get lintRule => LintNames.async_return_with_no_await;
 
   Future<void> test_arrowFunction() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Future<int> foo() async [!=>!] Future.value(42);
 ''');
   }
 
   Future<void> test_closure_declaring() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var foo = () async {
   [!return!] Future.value(42);
 };
@@ -33,7 +33,7 @@ var foo = () async {
   }
 
   Future<void> test_closure_initializer() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 var foo = () async {
   [!return!] Future.value(42);
 }();
@@ -49,7 +49,7 @@ Future<int> foo(dynamic v) async {
   }
 
   Future<void> test_dynamic_returnType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 foo() async {
   [!return!] Future.value(42);
 }
@@ -57,7 +57,7 @@ foo() async {
   }
 
   Future<void> test_function() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Future<int> foo() async {
   [!return!] Future.value(42);
 }
@@ -65,7 +65,7 @@ Future<int> foo() async {
   }
 
   Future<void> test_futureOr() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 import 'dart:async';
 
 Future<int> foo(FutureOr<int> v) async {
@@ -75,7 +75,7 @@ Future<int> foo(FutureOr<int> v) async {
   }
 
   Future<void> test_futureOr_returnType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 import 'dart:async';
 
 FutureOr<int> foo() async {
@@ -85,7 +85,7 @@ FutureOr<int> foo() async {
   }
 
   Future<void> test_futureSubtype() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Future<int> foo() async {
   [!return!] MyFuture();
 }
@@ -98,7 +98,7 @@ class MyFuture implements Future<int> {
   }
 
   Future<void> test_getter() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Future<int> get foo async {
   [!return!] Future.value(42);
 }
@@ -117,7 +117,7 @@ foo() async {
   }
 
   Future<void> test_method() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   Future<int> foo() async {
     [!return!] Future.value(42);
@@ -143,7 +143,7 @@ Future<int> foo() async {
   }
 
   Future<void> test_typeParameter() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Future<int> foo<T extends Future<int>>(T v) async {
   [!return!] v;
 }
@@ -166,7 +166,7 @@ Future<int> foo() async {
   }
 
   Future<void> test_withinTryCatch() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 Future<int> foo() async {
   try {} catch (_) {
     [!return!] Future.value(42);

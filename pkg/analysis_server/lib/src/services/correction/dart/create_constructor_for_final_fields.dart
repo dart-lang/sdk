@@ -85,9 +85,8 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         return;
     }
 
-    var requiredNamedParametersFirst = getCodeStyleOptions(
-      unitResult.file,
-    ).requiredNamedParametersFirst;
+    var requiredNamedParametersFirst = getCodeStyleOptions(unitResult.file)
+        .requiredNamedParametersFirst;
 
     if (superType.isExactlyStatelessWidgetType ||
         superType.isExactlyStatefulWidgetType) {

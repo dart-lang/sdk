@@ -285,14 +285,15 @@ plugins:
   }
 
   Future<void> _setRoots(List<protocol.ContextRoot> contextRoots) async {
-    await channel.sendRequest(
+    var future1 = channel.sendRequest(
       protocol.AnalysisSetContextRootsParams(contextRoots),
     );
-    await channel.sendRequest(
+    var future2 = channel.sendRequest(
       protocol.AnalysisSetAnalysisRootsParams([
         for (var contextRoot in contextRoots) contextRoot.root,
       ], []),
     );
+    await Future.wait([future1, future2]);
   }
 }
 

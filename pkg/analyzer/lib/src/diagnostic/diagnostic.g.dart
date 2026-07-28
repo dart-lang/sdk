@@ -422,6 +422,23 @@ analysisOptionDeprecatedWithReplacement = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
+/// A warning code indicating that legacy plugins are deprecated.
+///
+/// No parameters.
+const DiagnosticWithoutArguments analysisOptionsDeprecatedPlugins =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'analysis_options_deprecated_plugins',
+      problemMessage:
+          "Support for legacy plugins is deprecated, and will be removed in an "
+          "upcoming version of Dart.",
+      correctionMessage:
+          "See https://dart.dev/tools/analyzer-plugins for documentation "
+          "regarding the new analyzer plugin system.",
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'analysis_options_deprecated_plugins',
+      expectedTypes: [],
+    );
+
 /// No parameters.
 const DiagnosticWithoutArguments annotationOnPointerField =
     DiagnosticWithoutArgumentsImpl(
@@ -7638,6 +7655,31 @@ incompatibleLintIncluded = DiagnosticWithArguments(
   ],
 );
 
+/// An error code indicating that a plugin has been specified with different
+/// sources in different analysis options files.
+///
+/// Parameters:
+/// String pluginName: the name of the plugin
+/// String otherOptionsPath: the path to the other analysis options file
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String pluginName,
+    required String otherOptionsPath,
+  })
+>
+incompatiblePluginSource = DiagnosticWithArguments(
+  name: 'incompatible_plugin_source',
+  problemMessage:
+      "The plugin '{0}' is specified with a different source in '{1}'.",
+  correctionMessage:
+      "Ensure that all specifications of the same plugin use an identical "
+      "source.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'incompatible_plugin_source',
+  withArguments: _withArgumentsIncompatiblePluginSource,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the instance member with inconsistent
 ///              inheritance.
@@ -7877,7 +7919,6 @@ inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
       "The type argument(s) of the generic function type '{0}' can't be "
       "inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
-  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_generic_invocation',
   withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
@@ -7898,7 +7939,6 @@ inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
   problemMessage:
       "The type argument(s) of the constructor '{0}' can't be inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
-  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_instance_creation',
   withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
@@ -7995,6 +8035,19 @@ initializerForStaticField = DiagnosticWithArguments(
   withArguments: _withArgumentsInitializerForStaticField,
   expectedTypes: [ExpectedType.string],
 );
+
+/// No parameters.
+const DiagnosticWithoutArguments initializingDeclaringParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'initializing_declaring_parameter',
+      problemMessage: "Declaring parameters can't be initializing.",
+      correctionMessage:
+          "Try removing the `this.` prefix or making the parameter "
+          "non-declaring.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'initializing_declaring_parameter',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String formalName: the name of the initializing formal that is not an
@@ -11113,6 +11166,17 @@ mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
   withArguments: _withArgumentsMixinApplicationNotImplementedInterface,
   expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.type],
 );
+
+/// No parameters.
+const DiagnosticWithoutArguments mixinAugmentationHasOnClause =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'mixin_augmentation_has_on_clause',
+      problemMessage: "Mixin augmentations can't have 'on' clauses.",
+      correctionMessage: "Try removing the 'on' clause.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'mixin_augmentation_has_on_clause',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the name of the mixin class that is invalid
@@ -15795,6 +15859,19 @@ const DiagnosticWithoutArguments superInitializerInObject =
     );
 
 /// No parameters.
+const DiagnosticWithoutArguments superInitializingDeclaringParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'super_initializing_declaring_parameter',
+      problemMessage: "Declaring parameters can't be super parameters.",
+      correctionMessage:
+          "Try removing the `super.` prefix or making the parameter "
+          "non-declaring.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'super_initializing_declaring_parameter',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments superInRedirectingConstructor =
     DiagnosticWithoutArgumentsImpl(
       name: 'super_in_redirecting_constructor',
@@ -20225,6 +20302,16 @@ LocatableDiagnostic _withArgumentsIncompatibleLintIncluded({
     incompatibleRules,
     numIncludingFiles,
     pluralSuffix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsIncompatiblePluginSource({
+  required String pluginName,
+  required String otherOptionsPath,
+}) {
+  return LocatableDiagnosticImpl(diag.incompatiblePluginSource, [
+    pluginName,
+    otherOptionsPath,
   ]);
 }
 

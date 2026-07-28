@@ -2,39 +2,39 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:8:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<dynamic Function(X)>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:11:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<dynamic Function(X)>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extension_types/issue53803.dart'.
 // extension type E1<X>(Class<Never> foo) implements Class<Function(X)> {} // Error.
 //                                                   ^
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:10:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<dynamic Function(dynamic Function(dynamic Function(X)))>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:13:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<dynamic Function(dynamic Function(dynamic Function(X)))>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extension_types/issue53803.dart'.
 // extension type E3<X>(Class<Never> foo) implements Class<Function(Function(Function(X)))> {} // Error.
 //                                                   ^
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:11:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<X Function(X)>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:14:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<X Function(X)>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extension_types/issue53803.dart'.
 // extension type E4<X>(Class<Never> foo) implements Class<X Function(X)> {} // Error.
 //                                                   ^
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:13:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<X Function(dynamic Function(dynamic Function(X)))>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:16:51: Error: 'X' can't be used contravariantly or invariantly in 'Class<X Function(dynamic Function(dynamic Function(X)))>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extension_types/issue53803.dart'.
 // extension type E6<X>(Class<Never> foo) implements Class<X Function(Function(Function(X)))> {} // Error.
 //                                                   ^
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:15:46: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<dynamic Function(X)>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:18:46: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<dynamic Function(X)>'.
 // extension type E7<X>(Object? foo) implements ExtensionType<Function(X)> {} // Error.
 //                                              ^
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:17:46: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<dynamic Function(dynamic Function(dynamic Function(X)))>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:20:46: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<dynamic Function(dynamic Function(dynamic Function(X)))>'.
 // extension type E9<X>(Object? foo) implements ExtensionType<Function(Function(Function(X)))> {} // Error.
 //                                              ^
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:18:47: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<X Function(X)>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:21:47: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<X Function(X)>'.
 // extension type E10<X>(Object? foo) implements ExtensionType<X Function(X)> {} // Error.
 //                                               ^
 //
-// pkg/front_end/testcases/extension_types/issue53803.dart:20:47: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<X Function(dynamic Function(dynamic Function(X)))>'.
+// pkg/front_end/testcases/extension_types/issue53803.dart:23:47: Error: 'X' can't be used contravariantly or invariantly in 'ExtensionType<X Function(dynamic Function(dynamic Function(X)))>'.
 // extension type E12<X>(Object? foo) implements ExtensionType<X Function(Function(Function(X)))> {} // Error.
 //                                               ^
 //

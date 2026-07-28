@@ -6,6 +6,7 @@
 // the client is closed. https://github.com/dart-lang/sdk/issues/31492
 
 import "dart:io";
+
 import "package:expect/expect.dart";
 
 void main() {

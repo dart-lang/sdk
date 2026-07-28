@@ -19,7 +19,7 @@ class TightenTypeOfInitializingFormalsTest extends LintRuleTest {
   String get lintRule => LintNames.tighten_type_of_initializing_formals;
 
   test_superInit() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? a;
   A(this.a);
@@ -36,7 +36,7 @@ class C extends A {
   }
 
   test_thisInit_asserts() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? p;
   A(/*[0*/this.p/*0]*/) : assert(p != null);
@@ -46,7 +46,7 @@ class A {
   }
 
   test_thisInit_asserts_newSyntax() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? p;
   new([!this.p!]) : assert(p != null);
@@ -55,7 +55,7 @@ class A {
   }
 
   test_thisInit_asserts_positionalParams() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(
     /*[0*/this.p1/*0]*/,
@@ -78,7 +78,7 @@ class A {
   }
 
   test_thisInit_asserts_primaryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A([!this.p!]) {
   String? p;
   this : assert(p != null);

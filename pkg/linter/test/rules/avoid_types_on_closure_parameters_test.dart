@@ -26,7 +26,7 @@ void f(List<int> list) {
   }
 
   test_argument_typedParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   list.map(([!int!] e) => e.isEven);
 }
@@ -34,7 +34,7 @@ void f(List<int> list) {
   }
 
   test_assignedToFunctionTypedTarget() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   c.onFoo = ([!int!] p) {};
 }
@@ -103,7 +103,7 @@ class C {
   }
 
   test_closureIsArgument_parameterIsTyped_functionType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int Function(int)> list) {
   list.map(([!int p(int x)!]) => p(0));
 }
@@ -111,7 +111,7 @@ void f(List<int Function(int)> list) {
   }
 
   test_closureIsArgument_parameterIsTyped_namedRequired() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   c.map(({required [!int!] p}) => p);
 }
@@ -122,7 +122,7 @@ class C {
   }
 
   test_closureIsArgument_parameterIsTyped_optionalNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   c.map(([[!int?!] p]) => p);
 }
@@ -133,7 +133,7 @@ class C {
   }
 
   test_closureIsArgument_parameterIsTyped_optionalWithDefault() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   c.map(([[!int!] p = 0]) => p);
 }

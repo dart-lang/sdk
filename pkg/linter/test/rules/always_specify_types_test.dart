@@ -41,7 +41,7 @@ void f() {
   }
 
   test_closureParameter_named_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   ({/*[0*/final/*0]*/ p1, required /*[1*/final/*1]*/ p2}) {};
@@ -58,7 +58,7 @@ f() {
   }
 
   test_closureParameter_named_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   ({/*[0*/p1/*0]*/, /*[1*/required p2/*1]*/}) {};
 }
@@ -66,7 +66,7 @@ f() {
   }
 
   test_closureParameter_named_passed_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m(void Function({int? p1, required int p2}) f) {}
 f() {
@@ -85,7 +85,7 @@ f() {
   }
 
   test_closureParameter_named_passed_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 m(void Function({int? p1, required int p2}) f) {}
 f() {
   m(({/*[0*/p1/*0]*/, /*[1*/required p2/*1]*/}) {});
@@ -94,7 +94,7 @@ f() {
   }
 
   test_closureParameter_named_passed_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m(void Function({int? p1, required int p2}) f) {}
 f() {
@@ -104,7 +104,7 @@ f() {
   }
 
   test_closureParameter_named_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   ({/*[0*/var/*0]*/ p1, required /*[1*/var/*1]*/ p2}) {};
@@ -113,7 +113,7 @@ f() {
   }
 
   test_closureParameter_positional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   (/*[0*/final/*0]*/ p1, [/*[1*/final/*1]*/ p2]) {};
@@ -130,7 +130,7 @@ f() {
   }
 
   test_closureParameter_positional_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   (/*[0*/p1/*0]*/, [/*[1*/p2/*1]*/]) {};
 }
@@ -138,7 +138,7 @@ f() {
   }
 
   test_closureParameter_positional_passed_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m(void Function(int, [int?]) f) {}
 f() {
@@ -157,7 +157,7 @@ f() {
   }
 
   test_closureParameter_positional_passed_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 m(void Function(int, [int?]) f) {}
 f() {
   m((/*[0*/p1/*0]*/, [/*[1*/p2/*1]*/]) {});
@@ -166,7 +166,7 @@ f() {
   }
 
   test_closureParameter_positional_passed_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m(void Function(int, [int?]) f) {}
 f() {
@@ -176,7 +176,7 @@ f() {
   }
 
   test_closureParameter_positional_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   (/*[0*/var/*0]*/ p1, [/*[1*/var/*1]*/ p2]) {};
@@ -185,7 +185,7 @@ f() {
   }
 
   test_constructorParameter_named_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   C({/*[0*/final/*0]*/ p1, required /*[1*/final/*1]*/ p2});
@@ -212,7 +212,7 @@ class C {
   }
 
   test_constructorParameter_named_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C({/*[0*/p1/*0]*/, /*[1*/required p2/*1]*/}) {}
 }
@@ -231,7 +231,7 @@ class C extends S {
   }
 
   test_constructorParameter_named_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   C({/*[0*/var/*0]*/ p1, required /*[1*/var/*1]*/ p2});
@@ -240,7 +240,7 @@ class C {
   }
 
   test_constructorParameter_positional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   C(/*[0*/final/*0]*/ p1, [/*[1*/final/*1]*/ p2]);
@@ -267,7 +267,7 @@ class C {
   }
 
   test_constructorParameter_positional_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C(/*[0*/p1/*0]*/, [/*[1*/p2/*1]*/]);
 }
@@ -286,7 +286,7 @@ class C extends S {
   }
 
   test_constructorParameter_positional_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   C(/*[0*/var/*0]*/ p1, [/*[1*/var/*1]*/ p2]);
@@ -303,7 +303,7 @@ void f() {
   }
 
   test_constructorTearoff_typeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   List<[!List!]>.filled;
 }
@@ -311,14 +311,14 @@ void f() {
   }
 
   test_declaredVariable_genericTypeAlias() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef StringMap<V> = Map<String, V>;
 [!StringMap?!] x;
 ''');
   }
 
   test_declaredVariable_genericTypeAlias_inferredTypeArguments() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef StringMap<V> = Map<String, V>;
 [!StringMap!] x = StringMap<String>();
 ''');
@@ -338,13 +338,13 @@ void f() {
   }
 
   test_extensionType_primaryConstructor_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E([!i!]) {}
 ''');
   }
 
   test_extensionType_typeArgs_annotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E<T>(int i) { }
 
 void f() {
@@ -364,7 +364,7 @@ void f() {
   }
 
   test_extensionType_typeArgs_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 extension type E<T>(int i) { }
 
 f() {
@@ -384,7 +384,7 @@ f() {
   }
 
   test_field_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!var!] x;
 }
@@ -392,7 +392,7 @@ class C {
   }
 
   test_forLoopVariableDeclaration_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for ([!var!] i = 0; i < 10; ++i) {
     print(i);
@@ -436,27 +436,27 @@ void f(int x) {}
   }
 
   test_function_parameterType_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 void f([!final!] x) {}
 ''');
   }
 
   test_function_parameterType_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f([!p!]) {}
 ''');
   }
 
   test_function_parameterType_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 void f([!var!] p) {}
 ''');
   }
 
   test_functionExpression_parameterType_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String> p) {
   p.forEach(([!s!]) => print(s));
 }
@@ -472,7 +472,7 @@ void f(List<String> p) {
   }
 
   test_functionExpression_parameterType_untyped() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<String> p) {
   p.forEach(([!s!]) => print(s));
 }
@@ -510,14 +510,14 @@ f() {
   }
 
   test_instanceCreation_genericTypeAlias_implicitTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef StringMap<V> = Map<String, V>;
 StringMap<String> x = [!StringMap!]();
 ''');
   }
 
   test_instanceField_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!final!] f = 0;
 }
@@ -525,7 +525,7 @@ class C {
   }
 
   test_instanceField_final_overridden() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class I {
   int get f;
 }
@@ -536,7 +536,7 @@ class C implements I {
   }
 
   test_instanceField_var_initialized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!var!] f = 0;
 }
@@ -544,7 +544,7 @@ class C {
   }
 
   test_instanceField_var_overridden() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 abstract class I {
   abstract int f;
 }
@@ -555,7 +555,7 @@ class C implements I {
   }
 
   test_instanceField_var_uninitialized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   [!var!] x;
 }
@@ -563,7 +563,7 @@ class C {
   }
 
   test_instanceMethodParameter_named_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   m({/*[0*/final/*0]*/ p1, required /*[1*/final/*1]*/ p2}) {}
@@ -580,7 +580,7 @@ class C {
   }
 
   test_instanceMethodParameter_named_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   m({/*[0*/p1/*0]*/, /*[1*/required p2/*1]*/}) {}
 }
@@ -588,7 +588,7 @@ class C {
   }
 
   test_instanceMethodParameter_named_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   m({/*[0*/var/*0]*/ p1, required /*[1*/var/*1]*/ p2}) {}
@@ -597,7 +597,7 @@ class C {
   }
 
   test_instanceMethodParameter_positional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   m(/*[0*/final/*0]*/ p1, [/*[1*/final/*1]*/ p2]) {}
@@ -614,7 +614,7 @@ class C {
   }
 
   test_instanceMethodParameter_positional_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   m(/*[0*/p1/*0]*/, [/*[1*/p2/*1]*/]) {}
 }
@@ -622,7 +622,7 @@ class C {
   }
 
   test_instanceMethodParameter_positional_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   m(/*[0*/var/*0]*/ p1, [/*[1*/var/*1]*/ p2]) {}
@@ -662,7 +662,7 @@ void f() {
   }
 
   test_interfaceType_typeArgs_annotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> { }
 
 void f() {
@@ -682,7 +682,7 @@ void f() {
   }
 
   test_interfaceType_typeArgs_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> { }
 
 f() {
@@ -710,7 +710,7 @@ void f(Object p) {
   }
 
   test_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   return /*[0*/[/*0]*/1];
 }
@@ -718,7 +718,7 @@ f() {
   }
 
   test_listLiteral_inferredTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<String> x = /*[0*/[/*0]*/];
 ''');
   }
@@ -732,7 +732,7 @@ f() {
   }
 
   test_listPattern_destructured() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   var [[!a!]] = <int>[1];
 }
@@ -748,7 +748,7 @@ f() {
   }
 
   test_localFunctionParameter_named_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   m({/*[0*/final/*0]*/ p1, required /*[1*/final/*1]*/ p2}) {}
@@ -767,7 +767,7 @@ f() {
   }
 
   test_localFunctionParameter_named_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   m({/*[0*/p1/*0]*/, /*[1*/required p2/*1]*/}) {}
   m(p1: 0, p2: 0);
@@ -776,7 +776,7 @@ f() {
   }
 
   test_localFunctionParameter_named_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   m({/*[0*/var/*0]*/ p1, required /*[1*/var/*1]*/ p2}) {}
@@ -786,7 +786,7 @@ f() {
   }
 
   test_localFunctionParameter_positional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   m(/*[0*/final/*0]*/ p1, [/*[1*/final/*1]*/ p2]) {}
@@ -805,7 +805,7 @@ f() {
   }
 
   test_localFunctionParameter_positional_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   m(/*[0*/p1/*0]*/, [/*[1*/p2/*1]*/]) {}
   m(0, 0);
@@ -814,7 +814,7 @@ f() {
   }
 
   test_localFunctionParameter_positional_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 f() {
   m(/*[0*/var/*0]*/ p1, [/*[1*/var/*1]*/ p2]) {}
@@ -824,7 +824,7 @@ f() {
   }
 
   test_localVariable_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 m() {
   [!const!] f = 0;
 }
@@ -832,7 +832,7 @@ m() {
   }
 
   test_localVariable_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 m() {
   [!final!] f = 0;
 }
@@ -850,7 +850,7 @@ m() {
   }
 
   test_localVariable_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 m() {
   [!var!] f = 0;
 }
@@ -858,7 +858,7 @@ m() {
   }
 
   test_localVariableDeclaration_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!var!] x = '';
 }
@@ -866,7 +866,7 @@ void f() {
   }
 
   test_localVariableDeclaration_var_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!var!] x = '', y = 1.2;
 }
@@ -874,7 +874,7 @@ void f() {
   }
 
   test_mapLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   return [!{!]1: ''};
 }
@@ -882,7 +882,7 @@ f() {
   }
 
   test_mapLiteral_empty() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   return [!{!]};
 }
@@ -898,7 +898,7 @@ f() {
   }
 
   test_mapLiteral_inferredTypeArguments() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Map<String, String> x = [!{!]};
 ''');
   }
@@ -912,7 +912,7 @@ f() {
   }
 
   test_mapPattern_destructured() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   var {'a': [!a!]} = <String, int>{'a': 1};
 }
@@ -928,7 +928,7 @@ f() {
   }
 
   test_objectPattern_switch_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -958,7 +958,7 @@ f() {
   }
 
   test_objectPattern_switch_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int a;
   A(this.a);
@@ -973,19 +973,19 @@ f() {
   }
 
   test_primaryConstructor_declaringParameter_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!final!] x);
 ''');
   }
 
   test_primaryConstructor_declaringParameter_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!var!] x);
 ''');
   }
 
   test_primaryConstructor_named_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C.named([!x!]);
 ''');
   }
@@ -997,7 +997,7 @@ class C(int x, final int y);
   }
 
   test_primaryConstructor_parameter_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!x!]);
 ''');
   }
@@ -1020,7 +1020,7 @@ class C(this.x) {
   }
 
   test_recordPattern_switch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch ((1, 2)) {
     case (/*[0*/final/*0]*/ a, /*[1*/var/*1]*/ b):
@@ -1040,7 +1040,7 @@ f() {
   }
 
   test_setLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   return [!{!]1};
 }
@@ -1048,7 +1048,7 @@ f() {
   }
 
   test_setLiteral_inferredTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Set<String> set = [!{!]};
 ''');
   }
@@ -1062,7 +1062,7 @@ f() {
   }
 
   test_staticField_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!const!] f = 0;
 }
@@ -1070,7 +1070,7 @@ class C {
   }
 
   test_staticField_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!final!] f = 0;
 }
@@ -1078,7 +1078,7 @@ class C {
   }
 
   test_staticField_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static [!var!] f = 0;
 }
@@ -1086,7 +1086,7 @@ class C {
   }
 
   test_staticMethodParameter_named_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   static m({/*[0*/final/*0]*/ p1, required /*[1*/final/*1]*/ p2}) {}
@@ -1103,7 +1103,7 @@ class C {
   }
 
   test_staticMethodParameter_named_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static m({/*[0*/p1/*0]*/, /*[1*/required p2/*1]*/}) {}
 }
@@ -1111,7 +1111,7 @@ class C {
   }
 
   test_staticMethodParameter_named_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   static m({/*[0*/var/*0]*/ p1, required /*[1*/var/*1]*/ p2}) {}
@@ -1120,7 +1120,7 @@ class C {
   }
 
   test_staticMethodParameter_positional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   static m(/*[0*/final/*0]*/ p1, [/*[1*/final/*1]*/ p2]) {}
@@ -1137,7 +1137,7 @@ class C {
   }
 
   test_staticMethodParameter_positional_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static m(/*[0*/p1/*0]*/, [/*[1*/p2/*1]*/]) {}
 }
@@ -1145,7 +1145,7 @@ class C {
   }
 
   test_staticMethodParameter_positional_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 class C {
   static m(/*[0*/var/*0]*/ p1, [/*[1*/var/*1]*/ p2]) {}
@@ -1154,13 +1154,13 @@ class C {
   }
 
   test_topLevelField_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!const!] f = 0;
 ''');
   }
 
   test_topLevelField_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final!] f = 0;
 ''');
   }
@@ -1174,13 +1174,13 @@ const int f3 = 0;
   }
 
   test_topLevelField_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!var!] f = 0;
 ''');
   }
 
   test_topLevelParameter_named_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m({/*[0*/final/*0]*/ p1, required /*[1*/final/*1]*/ p2}) {}
 ''');
@@ -1193,20 +1193,20 @@ m({int? p1, required int p2}) {}
   }
 
   test_topLevelParameter_named_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 m({/*[0*/p1/*0]*/, /*[1*/required p2/*1]*/}) {}
 ''');
   }
 
   test_topLevelParameter_named_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m({/*[0*/var/*0]*/ p1, required /*[1*/var/*1]*/ p2}) {}
 ''');
   }
 
   test_topLevelParameter_positional_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m(/*[0*/final/*0]*/ p1, [/*[1*/final/*1]*/ p2]) {}
 ''');
@@ -1219,13 +1219,13 @@ m(int p1, int p2, [int? p3]) {}
   }
 
   test_topLevelParameter_positional_omitted() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 m(/*[0*/p1/*0]*/, [/*[1*/p2/*1]*/]) {}
 ''');
   }
 
   test_topLevelParameter_positional_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart = 3.10
 m(/*[0*/var/*0]*/ p1, [/*[1*/var/*1]*/ p2]) {}
 ''');
@@ -1238,49 +1238,49 @@ final int x = 3;
   }
 
   test_topLevelVariableDeclaration_implicitTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!List?!] x;
 ''');
   }
 
   test_topLevelVariableDeclaration_missingType_const() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!const!] x = 2;
 ''');
   }
 
   test_topLevelVariableDeclaration_missingType_final() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final!] x = 1;
 ''');
   }
 
   test_topLevelVariableDeclaration_missingType_final_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!final!] x = 1, y = '', z = 1.2;
 ''');
   }
 
   test_topLevelVariableDeclaration_missingType_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!var!] x = '', y = '';
 ''');
   }
 
   test_topLevelVariableDeclaration_typeArgument_implicitTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<[!List!]>? x;
 ''');
   }
 
   test_topLevelVariableDeclaration_var() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!var!] x;
 ''');
   }
 
   test_typedef_aliased_typeArgument_withImplicitTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef StringMap<V> = Map<String, V>;
 typedef MapList = List<[!StringMap!]>;
 ''');
@@ -1299,7 +1299,7 @@ typedef StringMap<V> = Map<String, V>;
   }
 
   test_typedef_withImplicitTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef RawList = [!List!];
 ''');
   }
@@ -1320,7 +1320,7 @@ void f() {
   }
 
   test_typedefType_typeArgs_annotation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> { }
 typedef F<T> = C<T>;
 
@@ -1342,7 +1342,7 @@ void f() {
   }
 
   test_typedefType_typeArgs_new() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C<T> { }
 typedef F<T> = C<T>;
 

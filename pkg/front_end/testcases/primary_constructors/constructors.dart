@@ -5,13 +5,13 @@
 class C1 {
   int i;
 
-  new (this.i);
+  new(this.i);
 }
 
 class C2 {
   final int i;
 
-  const new (this.i);
+  const new(this.i);
 }
 
 class C3 {
@@ -29,83 +29,81 @@ class C4 {
 class C5 {
   int i;
 
-  factory (int i) => new C5._(i);
+  factory(int i) => new C5._(i);
 
-  new _ (this.i);
+  new _(this.i);
 }
 
 class C6 {
   final int i;
 
-  factory (int i) => C6._(i);
+  factory(int i) => C6._(i);
 
-  const new _ (this.i);
+  const new _(this.i);
 }
-
 
 class C7 {
   int i;
 
-  factory ({required int i}) = C7._;
+  factory({required int i}) = C7._;
 
-  new _ ({required this.i});
+  new _({required this.i});
 }
 
 class C8 {
   final int i;
 
-  const factory (int i) = C8._;
+  const factory(int i) = C8._;
 
-  const new _ (this.i);
+  const new _(this.i);
 }
 
 class C9 {
   int i;
 
-  factory named (int i) => new C9._(i);
+  factory named(int i) => new C9._(i);
 
-  new _ (this.i);
+  new _(this.i);
 }
 
 class C10 {
   final int i;
 
-  factory named (int i) => C10._(i);
+  factory named(int i) => C10._(i);
 
-  const new _ (this.i);
+  const new _(this.i);
 }
-
 
 class C11 {
   int i;
 
-  factory named ({required int i}) = C11._;
+  factory named({required int i}) = C11._;
 
-  new _ ({required this.i});
+  new _({required this.i});
 }
 
 class C12 {
   final int i;
 
-  const factory named (int i) = C12._;
+  const factory named(int i) = C12._;
 
-  const new _ (this.i);
+  const new _(this.i);
 }
 
 class C13 {
   int i;
 
-  new (int i) : this._(i);
+  new(int i) : this._(i);
 
-  new _ (this.i);
+  new _(this.i);
 }
 
 class C14 {
   final int i;
 
-  const new (int i) : this._(i);
+  const new(int i) : this._(i);
 
-  const new _ (this.i);
+  const new _(this.i);
 }
 
 class C15 {
@@ -113,7 +111,7 @@ class C15 {
 
   new named({required int i}) : this._(i);
 
-  new _ (this.i);
+  new _(this.i);
 }
 
 class C16 {
@@ -121,9 +119,8 @@ class C16 {
 
   const new named({required int i}) : this._(i);
 
-  const new _ (this.i);
+  const new _(this.i);
 }
-
 
 main() {
   C1(0);

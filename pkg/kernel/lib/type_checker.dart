@@ -274,7 +274,7 @@ class TypeCheckingVisitor
         );
       }
     }
-    for (Variable namedParameter in node.namedParameters) {
+    for (NamedParameter namedParameter in node.namedParameters) {
       if (!namedParameter.isRequired) {
         handleOptionalParameter(
           namedParameter,
@@ -304,12 +304,12 @@ class TypeCheckingVisitor
   }
 
   void handleOptionalParameter(
-    Variable parameter, {
+    FunctionParameter parameter, {
     required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMethod,
   }) {
-    Expression? initializer = parameter.initializer;
+    Expression? initializer = parameter.defaultValue;
     if (initializer != null &&
-        !parameter.isErroneouslyInitialized &&
+        !parameter.hasErroneousDefaultValue &&
         !isPartOfAbstractExternalOrNoSuchMethodForwarderMethod) {
       // Default parameter values cannot be downcast.
       checkExpressionNoDowncast(initializer, parameter.type);
@@ -700,11 +700,9 @@ class TypeCheckingVisitor
     }
     FreshStructuralParameters freshTypeParameters =
         getFreshStructuralParameters(node.structuralParameters);
-    FunctionType result =
-        freshTypeParameters.substitute(
-              _instantiateAndCheck(functionType, node.typeArguments, node),
-            )
-            as FunctionType;
+    FunctionType result = freshTypeParameters.substitute(
+      _instantiateAndCheck(functionType, node.typeArguments, node),
+    ) as FunctionType;
     return new FunctionType(
       result.positionalParameters,
       result.returnType,
@@ -1449,10 +1447,8 @@ class TypeCheckingVisitor
           node.interfaceTarget.enclosingClass == coreTypes.mapClass &&
           node.interfaceTarget.kind == ProcedureKind.Operator &&
           node.interfaceTarget.name == indexSetName;
-      if (node.arguments.positional case [
-        InvalidExpression(),
-        NullLiteral(),
-      ] when isMapIndexSet) {
+      if (node.arguments.positional case [InvalidExpression(), NullLiteral()]
+          when isMapIndexSet) {
         return const InvalidType();
       } else {
         visitExpression(node.receiver);

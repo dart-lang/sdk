@@ -49,12 +49,11 @@ void f(bool value) {
   if (value && false) print(value);
 }
 ''');
-    var lint = await lintCodeByName(lintCode);
     await assertHasFix(r'''
 void f(bool value) {
   if (false) print(value);
 }
-''', filter: (error) => error.diagnosticCode == lint);
+''', filter: lintNameFilter(LintNames.no_literal_bool_comparisons));
   }
 
   Future<void> test_andAndTrue() async {
@@ -310,11 +309,9 @@ void f(bool value) {
   }
 
   Future<void> test_xorFalse() async {
-    allowTestCodeShorthand = false; // Test uses ^
-
     await resolveTestCode(r'''
 void f(bool value) {
-  if (value ^ false) print(value);
+  if (value ^/**/ false) print(value);
 }
 ''');
     await assertHasFix(r'''
@@ -325,11 +322,9 @@ void f(bool value) {
   }
 
   Future<void> test_xorTrue() async {
-    allowTestCodeShorthand = false; // Test uses ^
-
     await resolveTestCode(r'''
 void f(bool value) {
-  if (value ^ true) print(value);
+  if (value ^/**/ true) print(value);
 }
 ''');
     await assertHasFix(r'''

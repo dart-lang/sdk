@@ -10,7 +10,7 @@ class A {
   final int w;
   final _A a;
   A.foo(int x, [int y = _private, int z = _private, this.a = const _A(5)])
-      : w = p("x", x) + p("y", y) + p("z", z);
+    : w = p("x", x) + p("y", y) + p("z", z);
 }
 
 class _A {

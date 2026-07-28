@@ -30,11 +30,7 @@ class UnnecessaryRawStrings extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (node.isRaw && ![r'\', r'$'].any(node.literal.lexeme.contains)) {

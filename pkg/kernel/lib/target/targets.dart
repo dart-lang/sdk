@@ -581,6 +581,7 @@ abstract class Target {
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteConstSymbolLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteClosureClass(CoreTypes coreTypes) => null;
   Class getRecordImplementationClass(
     CoreTypes coreTypes,
@@ -932,6 +933,21 @@ class TargetWrapper extends Target {
   @override
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) {
     return _target.concreteConstMapLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteSetLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteSetLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteConstSetLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteConstSetLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteConstSymbolLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteConstSymbolLiteralClass(coreTypes);
   }
 
   @override

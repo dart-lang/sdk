@@ -38,17 +38,17 @@ class C {
 AssertInitializer
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 0
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
@@ -58,17 +58,17 @@ AssertInitializer
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int
@@ -95,17 +95,17 @@ void f() {
 AssertStatement
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 0
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: bool}
           staticType: int
@@ -115,17 +115,17 @@ AssertStatement
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
-          correspondingParameter: ParameterMember
+          correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::foo::@formalParameter::_
             substitution: {T: dynamic}
           staticType: int
@@ -352,7 +352,7 @@ void f() {
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: MethodInvocation
+  leftOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -365,7 +365,7 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand: MethodInvocation
+  rightOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -396,7 +396,7 @@ void f() {
     var node = result.findNode.singleBinaryExpression;
     assertResolvedNodeText(node, r'''
 BinaryExpression
-  leftOperand: MethodInvocation
+  leftOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -409,7 +409,7 @@ BinaryExpression
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand: MethodInvocation
+  rightOperand2: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -442,7 +442,7 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('C():');
+    var node = result.findNode.constructorInvocation('C():');
     assertType(node, 'C<int>');
   }
 
@@ -461,7 +461,7 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('const C():');
+    var node = result.findNode.constructorInvocation('const C():');
     assertType(node, 'C<int>');
   }
 
@@ -528,7 +528,7 @@ main() {
       }
     }
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         simpleIdentifier: (node) {
           var comment = node.token.precedingComments;

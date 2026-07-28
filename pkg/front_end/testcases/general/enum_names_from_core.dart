@@ -12,12 +12,6 @@ class _Enum {}
 
 class List {}
 
-enum E {
-  int,
-  Object,
-  String,
-  _Enum,
-  List,
-}
+enum E { int, Object, String, _Enum, List }
 
 main() {}

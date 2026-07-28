@@ -26,7 +26,7 @@ class C {
   }
 
   test_inBody_inEnum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum E {
   a(1), b(2);
 
@@ -44,7 +44,7 @@ class const C();
   }
 
   test_primary_inEnum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 enum [!const!] E(final int i) {
   a(1), b(2);
 }

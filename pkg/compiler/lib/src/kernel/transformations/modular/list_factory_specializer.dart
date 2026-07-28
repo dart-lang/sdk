@@ -97,7 +97,7 @@ class ListFactorySpecializer extends BaseSpecializer {
     // If the length is a constant, use the constant directly so that the
     // inferrer can see the constant length.
     int? lengthConstant = _getLengthArgument(args);
-    Variable? lengthVariable;
+    SyntheticVariable? lengthVariable;
 
     Expression getLength() {
       if (lengthConstant != null) return IntLiteral(lengthConstant);
@@ -239,13 +239,13 @@ class ListFactorySpecializer extends BaseSpecializer {
   /// use one JavaScript variable with the source name for 'both' variables.
   String? _listNameFromContext(Expression node) {
     TreeNode? parent = node.parent;
-    if (parent is Variable) return parent.name;
+    if (parent is Variable) return parent.cosmeticName;
     return '_list';
   }
 
   String _indexNameFromContext(FunctionExpression generator) {
     final function = generator.function;
-    String? candidate = function.positionalParameters.first.name;
+    String? candidate = function.positionalParameters.first.cosmeticName;
     if (candidate == null || candidate == '' || candidate == '_') return '_i';
     return candidate;
   }
@@ -260,7 +260,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
   final Variable listVariable;
   final FunctionNode function;
   late final Variable argument;
-  late final Variable parameter;
+  late final SyntheticVariable parameter;
   int functionNestingLevel = 0;
 
   ListGenerateLoopBodyInliner(
@@ -307,7 +307,7 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
     // variable. The argument is usually named after the closure parameter.
     final closureParameter = function.positionalParameters.single;
     parameter = SyntheticVariable(
-      cosmeticName: argument.name,
+      cosmeticName: argument.cosmeticName,
       initializer: VariableGet(argument)..fileOffset = argument.fileOffset,
       type: closureParameter.type,
     )..fileOffset = closureParameter.fileOffset;

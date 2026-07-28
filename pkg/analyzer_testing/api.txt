@@ -15,8 +15,7 @@ package:analyzer_testing/analysis_rule/analysis_rule.dart:
   PackageBuilder (class extends Object):
     addFile (method: void Function(String, String))
 package:analyzer_testing/experiments/experiments.dart:
-  experimentsForTests (static getter: List<String>)
-  experimentsForTests= (static setter: List<String>)
+  experimentalFeaturesForTests (static getter: List<Feature>)
 package:analyzer_testing/mock_packages/mock_packages.dart:
   BlazeMockPackages (class extends Object):
     instance (static getter: BlazeMockPackages)
@@ -83,7 +82,7 @@ package:analyzer_testing/utilities/extensions/string.dart:
     toPascalCase (method: String Function())
     toSnakeCase (method: String Function())
 package:analyzer_testing/utilities/utilities.dart:
-  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, bool propagateLinterExceptions, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
+  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<Feature> experimentalFeatures, List<String> includes, List<String> legacyPlugins, bool propagateLinterExceptions, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
   pubspecYamlContent (function: String Function({List<String> dependencies, String? name, String? sdkVersion}))
 dart:async:
   Future (referenced)
@@ -98,6 +97,8 @@ dart:core:
   int (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
   DiagnosticCode (referenced)
+package:analyzer/dart/analysis/features.dart:
+  Feature (referenced)
 package:analyzer/diagnostic/diagnostic.dart:
   Diagnostic (referenced)
 package:analyzer/file_system/file_system.dart:

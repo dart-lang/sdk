@@ -203,9 +203,8 @@ Future<void> runSuite(SuiteConfiguration configuration) async {
 }
 
 void writeLinesToFile(Uri uri, List<String> lines) {
-  new File.fromUri(
-    uri,
-  ).writeAsStringSync(lines.map((line) => "$line\n").join());
+  new File.fromUri(uri)
+      .writeAsStringSync(lines.map((line) => "$line\n").join());
 }
 
 Future<void> main([List<String> arguments = const <String>[]]) async {

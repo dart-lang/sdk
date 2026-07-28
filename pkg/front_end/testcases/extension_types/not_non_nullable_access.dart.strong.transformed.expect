@@ -12,10 +12,10 @@ library;
 //   et.foo; // Error
 //      ^^^
 //
-// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:39:6: Error: Property 'getter' cannot be accessed on 'ET1?' because it is potentially null.
+// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:39:10: Error: Property 'getter' cannot be accessed on 'ET1?' because it is potentially null.
 // Try accessing using ?. instead.
-//   et.getter; // Error
-//      ^^^^^^
+//       et.getter; // Error
+//          ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:38:6: Error: Property 'setter' cannot be accessed on 'ET1?' because it is potentially null.
 // Try accessing using ?. instead.
@@ -48,10 +48,10 @@ library;
 //   et.foo; // Error
 //      ^^^
 //
-// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:60:6: Error: Property 'getter' cannot be accessed on 'ET2<S>?' because it is potentially null.
+// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:60:10: Error: Property 'getter' cannot be accessed on 'ET2<S>?' because it is potentially null.
 // Try accessing using ?. instead.
-//   et.getter; // Error
-//      ^^^^^^
+//       et.getter; // Error
+//          ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:59:6: Error: Property 'setter' cannot be accessed on 'ET2<S>?' because it is potentially null.
 // Try accessing using ?. instead.
@@ -84,10 +84,10 @@ library;
 //   et.foo; // Error
 //      ^^^
 //
-// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:81:6: Error: Property 'getter' cannot be accessed on 'U?' because it is potentially null.
+// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:81:10: Error: Property 'getter' cannot be accessed on 'U?' because it is potentially null.
 // Try accessing using ?. instead.
-//   et.getter; // Error
-//      ^^^^^^
+//       et.getter; // Error
+//          ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:80:6: Error: Property 'setter' cannot be accessed on 'U?' because it is potentially null.
 // Try accessing using ?. instead.
@@ -120,10 +120,10 @@ library;
 //   et.foo; // Error
 //      ^^^
 //
-// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:102:6: Error: Property 'getter' cannot be accessed on 'V?' because it is potentially null.
+// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:102:10: Error: Property 'getter' cannot be accessed on 'V?' because it is potentially null.
 // Try accessing using ?. instead.
-//   et.getter; // Error
-//      ^^^^^^
+//       et.getter; // Error
+//          ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:101:6: Error: Property 'setter' cannot be accessed on 'V?' because it is potentially null.
 // Try accessing using ?. instead.
@@ -156,10 +156,10 @@ library;
 //   et.foo; // Error
 //      ^^^
 //
-// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:113:6: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
+// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:113:10: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
 // Try accessing using ?. instead.
-//   et.getter; // Error
-//      ^^^^^^
+//       et.getter; // Error
+//          ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:112:6: Error: Property 'setter' cannot be accessed on 'V' because it is potentially null.
 // Try accessing using ?. instead.
@@ -192,10 +192,10 @@ library;
 //   et.foo; // Error
 //      ^^^
 //
-// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:124:6: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
+// pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:124:10: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
 // Try accessing using ?. instead.
-//   et.getter; // Error
-//      ^^^^^^
+//       et.getter; // Error
+//          ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:123:6: Error: Property 'setter' cannot be accessed on 'V' because it is potentially null.
 // Try accessing using ?. instead.
@@ -306,10 +306,10 @@ Try accessing using ?. instead.
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:38:6: Error: Property 'setter' cannot be accessed on 'ET1?' because it is potentially null.
 Try accessing using ?. instead.
   et.setter = // Error
-     ^^^^^^" in self::ET1|set#setter(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:39:6: Error: Property 'getter' cannot be accessed on 'ET1?' because it is potentially null.
+     ^^^^^^" in self::ET1|set#setter(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:39:10: Error: Property 'getter' cannot be accessed on 'ET1?' because it is potentially null.
 Try accessing using ?. instead.
-  et.getter; // Error
-     ^^^^^^" in self::ET1|get#getter(et));
+      et.getter; // Error
+         ^^^^^^" in self::ET1|get#getter(et));
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:40:6: Error: Operator '+' cannot be called on 'ET1?' because it is potentially null.
   et + et; // Error
      ^" in self::ET1|+(et, et);
@@ -344,10 +344,10 @@ Try accessing using ?. instead.
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:59:6: Error: Property 'setter' cannot be accessed on 'ET2<S>?' because it is potentially null.
 Try accessing using ?. instead.
   et.setter = // Error
-     ^^^^^^" in self::ET2|set#setter<self::method4::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:60:6: Error: Property 'getter' cannot be accessed on 'ET2<S>?' because it is potentially null.
+     ^^^^^^" in self::ET2|set#setter<self::method4::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:60:10: Error: Property 'getter' cannot be accessed on 'ET2<S>?' because it is potentially null.
 Try accessing using ?. instead.
-  et.getter; // Error
-     ^^^^^^" in self::ET2|get#getter<self::method4::S%>(et));
+      et.getter; // Error
+         ^^^^^^" in self::ET2|get#getter<self::method4::S%>(et));
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:61:6: Error: Operator '+' cannot be called on 'ET2<S>?' because it is potentially null.
   et + et; // Error
      ^" in self::ET2|+<self::method4::S%>(et, et);
@@ -382,10 +382,10 @@ Try accessing using ?. instead.
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:80:6: Error: Property 'setter' cannot be accessed on 'U?' because it is potentially null.
 Try accessing using ?. instead.
   et.setter = // Error
-     ^^^^^^" in self::ET2|set#setter<self::method6::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:81:6: Error: Property 'getter' cannot be accessed on 'U?' because it is potentially null.
+     ^^^^^^" in self::ET2|set#setter<self::method6::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:81:10: Error: Property 'getter' cannot be accessed on 'U?' because it is potentially null.
 Try accessing using ?. instead.
-  et.getter; // Error
-     ^^^^^^" in self::ET2|get#getter<self::method6::S%>(et));
+      et.getter; // Error
+         ^^^^^^" in self::ET2|get#getter<self::method6::S%>(et));
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:82:6: Error: Operator '+' cannot be called on 'U?' because it is potentially null.
   et + et; // Error
      ^" in self::ET2|+<self::method6::S%>(et, et);
@@ -420,10 +420,10 @@ Try accessing using ?. instead.
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:101:6: Error: Property 'setter' cannot be accessed on 'V?' because it is potentially null.
 Try accessing using ?. instead.
   et.setter = // Error
-     ^^^^^^" in self::ET2|set#setter<self::method8::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:102:6: Error: Property 'getter' cannot be accessed on 'V?' because it is potentially null.
+     ^^^^^^" in self::ET2|set#setter<self::method8::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:102:10: Error: Property 'getter' cannot be accessed on 'V?' because it is potentially null.
 Try accessing using ?. instead.
-  et.getter; // Error
-     ^^^^^^" in self::ET2|get#getter<self::method8::S%>(et));
+      et.getter; // Error
+         ^^^^^^" in self::ET2|get#getter<self::method8::S%>(et));
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:103:6: Error: Operator '+' cannot be called on 'V?' because it is potentially null.
   et + et; // Error
      ^" in self::ET2|+<self::method8::S%>(et, et);
@@ -449,10 +449,10 @@ Try accessing using ?. instead.
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:112:6: Error: Property 'setter' cannot be accessed on 'V' because it is potentially null.
 Try accessing using ?. instead.
   et.setter = // Error
-     ^^^^^^" in self::ET2|set#setter<self::method9::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:113:6: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
+     ^^^^^^" in self::ET2|set#setter<self::method9::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:113:10: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
 Try accessing using ?. instead.
-  et.getter; // Error
-     ^^^^^^" in self::ET2|get#getter<self::method9::S%>(et));
+      et.getter; // Error
+         ^^^^^^" in self::ET2|get#getter<self::method9::S%>(et));
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:114:6: Error: Operator '+' cannot be called on 'V' because it is potentially null.
   et + et; // Error
      ^" in self::ET2|+<self::method9::S%>(et, et);
@@ -478,10 +478,10 @@ Try accessing using ?. instead.
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:123:6: Error: Property 'setter' cannot be accessed on 'V' because it is potentially null.
 Try accessing using ?. instead.
   et.setter = // Error
-     ^^^^^^" in self::ET2|set#setter<self::method10::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:124:6: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
+     ^^^^^^" in self::ET2|set#setter<self::method10::S%>(et, invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:124:10: Error: Property 'getter' cannot be accessed on 'V' because it is potentially null.
 Try accessing using ?. instead.
-  et.getter; // Error
-     ^^^^^^" in self::ET2|get#getter<self::method10::S%>(et));
+      et.getter; // Error
+         ^^^^^^" in self::ET2|get#getter<self::method10::S%>(et));
   invalid-expression "pkg/front_end/testcases/extension_types/not_non_nullable_access.dart:125:6: Error: Operator '+' cannot be called on 'V' because it is potentially null.
   et + et; // Error
      ^" in self::ET2|+<self::method10::S%>(et, et);

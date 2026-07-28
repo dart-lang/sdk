@@ -240,9 +240,8 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
 
   @pragma('wasm:prefer-inline')
   factory ModifiableFixedLengthList._fromUntypedIterable(Iterable elements) {
-    return GrowableList<E>._fromUntypedIterable(
-      elements,
-    )._toModifiableFixedLengthList();
+    return GrowableList<E>._fromUntypedIterable(elements)
+        ._toModifiableFixedLengthList();
   }
 
   // Specialization of List.of constructor for growable == false.
@@ -282,9 +281,8 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
   }
 
   factory ModifiableFixedLengthList._fromIterable(Iterable<E> elements) {
-    return GrowableList<E>._fromIterable(
-      elements,
-    )._toModifiableFixedLengthList();
+    return GrowableList<E>._fromIterable(elements)
+        ._toModifiableFixedLengthList();
   }
 }
 

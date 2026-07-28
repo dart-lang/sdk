@@ -43,12 +43,12 @@ class AssignmentExpressionResolver {
     var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
 
     var leftResolution = _resolver.resolveForWrite(
-      node: node.leftHandSide,
+      node: node.leftHandSide2,
       hasRead: hasRead,
     );
 
-    var left = node.leftHandSide;
-    var right = node.rightHandSide;
+    var left = node.leftHandSide2;
+    var right = node.rightHandSide2;
 
     var readElement = leftResolution.readElement2;
     var writeElement = leftResolution.writeElement2;
@@ -92,14 +92,16 @@ class AssignmentExpressionResolver {
     var flow = _resolver.flowAnalysis.flow;
     if (flow != null && isIfNull) {
       flow.ifNullExpression_rightBegin(
-        flow.getExpressionInfo(left),
+        _resolver.flowAnalysis.getExpressionInfo(left),
         SharedTypeView(node.readType!),
       );
     }
 
     _resolver.analyzeExpression(right, SharedTypeSchemaView(rhsContext));
     right = _resolver.popRewrite()!;
-    var whyNotPromoted = flow?.whyNotPromoted(flow.getExpressionInfo(right));
+    var whyNotPromoted = flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(right),
+    );
 
     _resolveTypes(
       node,
@@ -109,13 +111,13 @@ class AssignmentExpressionResolver {
 
     if (flow != null) {
       if (writeElement2 is PromotableElementImpl) {
-        flow.storeExpressionInfo(
+        _resolver.flowAnalysis.storeExpressionInfo(
           node,
           flow.write(
             node,
             writeElement2,
             SharedTypeView(node.typeOrThrow),
-            hasRead ? null : flow.getExpressionInfo(right),
+            hasRead ? null : _resolver.flowAnalysis.getExpressionInfo(right),
           ),
         );
       }
@@ -229,7 +231,7 @@ class AssignmentExpressionResolver {
   }
 
   void _resolveOperator(AssignmentExpressionImpl node) {
-    var left = node.leftHandSide;
+    var left = node.leftHandSide2;
     var operator = node.operator;
     var operatorType = operator.type;
 
@@ -286,7 +288,7 @@ class AssignmentExpressionResolver {
   }) {
     TypeImpl assignedType;
 
-    var rightHandSide = node.rightHandSide;
+    var rightHandSide = node.rightHandSide2;
     var operator = node.operator.type;
     if (operator == TokenType.EQ) {
       assignedType = rightHandSide.typeOrThrow;
@@ -358,14 +360,14 @@ class AssignmentExpressionResolver {
     // TODO(scheglov): Remove from ErrorVerifier?
     _checkForInvalidAssignment(
       node.writeType!,
-      node.rightHandSide,
+      node.rightHandSide2,
       assignedType,
       whyNotPromoted: operator == TokenType.EQ ? whyNotPromoted : null,
     );
     if (operator != TokenType.EQ &&
         operator != TokenType.QUESTION_QUESTION_EQ) {
       _resolver.checkForArgumentTypeNotAssignableForArgument(
-        node.rightHandSide,
+        node.rightHandSide2,
         whyNotPromoted: whyNotPromoted,
       );
     }

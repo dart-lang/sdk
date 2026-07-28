@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
+import 'package:dartdev/src/core.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -28,18 +29,47 @@ void expectUsage(String msg) {
 }
 
 void command() {
-  // For each command description, assert that the values are not empty, don't
-  // have trailing white space and end with a period.
-  test('description formatting', () {
-    DartdevRunner(['--suppress-analytics']).commands.forEach((
-      String commandKey,
-      Command<int> command,
-    ) {
+  // For each command and subcommand, assert that the name is in kebab-case,
+  // the description is not empty, doesn't have trailing white space, and
+  // ends with a period.
+  test('description and name formatting', () {
+    void validateCommand(String commandKey, Command<int> command) {
+      if (command is! DartdevCommand) {
+        return;
+      }
       expect(commandKey, isNotEmpty);
-      expect(command.description, isNotEmpty);
-      expect(command.description.split('\n').first, endsWith('.'));
-      expect(command.description.trim(), equals(command.description));
-    });
+      if (!command.aliases.contains(commandKey)) {
+        expect(
+          commandKey,
+          matches(RegExp(r'^[a-z0-9]+(-[a-z0-9]+)*$')),
+          reason: 'Command "$commandKey" name is not kebab-case.',
+        );
+      }
+      expect(
+        commandKey,
+        contains(RegExp(r'[a-z]')),
+        reason: 'Command "$commandKey" name must contain at least one letter.',
+      );
+      expect(
+        command.description,
+        isNotEmpty,
+        reason: 'Command "$commandKey" description is empty.',
+      );
+      expect(
+        command.description.split('\n').first,
+        endsWith('.'),
+        reason: 'Command "$commandKey" description must end with a period.',
+      );
+      expect(
+        command.description.trim(),
+        equals(command.description),
+        reason: 'Command "$commandKey" description must not have leading/trailing whitespace.',
+      );
+
+      command.subcommands.forEach(validateCommand);
+    }
+
+    DartdevRunner(['--suppress-analytics']).commands.forEach(validateCommand);
   });
 
   // Assert that all found usageLineLengths are the same and null
@@ -51,14 +81,16 @@ void command() {
       if (command.name != 'help' &&
           command.name != 'format' &&
           command.name != 'pub' &&
-          command.name != 'test') {
+          command.name != 'test' &&
+          command.name != 'mcp-server') {
         expect(
           command.argParser.usageLineLength,
           stdout.hasTerminal ? stdout.terminalColumns : null,
         );
       } else if (command.name == 'pub') {
-        // TODO(sigurdm): Avoid special casing here.
-        // https://github.com/dart-lang/pub/issues/2700
+        // 'pub' comes from package:pub which defaults usageLineLength to 80
+        // when stdout.hasTerminal is false
+        //(see https://github.com/dart-lang/pub/issues/2700).
         expect(
           command.argParser.usageLineLength,
           stdout.hasTerminal ? stdout.terminalColumns : 80,

@@ -6,7 +6,6 @@ class Annotation {
   const Annotation();
 }
 
-
 @Annotation()
 external int topLevelField;
 

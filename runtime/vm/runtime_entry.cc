@@ -876,7 +876,9 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 3) {
   const Closure& closure = Closure::Handle(
       zone, Closure::New(length_and_flags, SpaceForRuntimeAllocation()));
   closure.set_function(function);
-  closure.SetRawContext(context);
+  if (!context.IsNull()) {
+    closure.SetRawContext(context);
+  }
   arguments.SetReturn(closure);
   RuntimeAllocationEpilogue(thread);
 }
@@ -1209,7 +1211,9 @@ DEFINE_RUNTIME_ENTRY(ResolveExternalCall, 2) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
-#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 struct FfiCallArguments {
   uword stack_area;
@@ -1217,6 +1221,35 @@ struct FfiCallArguments {
   uword cpu_registers[kNumberOfCpuRegisters];
   uword fpu_registers[kNumberOfFpuRegisters];
   uword target;
+
+  const char* ToCString(Zone* zone) const {
+    ZoneTextBuffer buffer(zone);
+    buffer.Printf("  Target: %#" Px "\n", target);
+    buffer.AddString("  CPU registers:\n");
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      const char* name = RegisterNames::RegisterName(static_cast<Register>(i));
+      buffer.Printf("   %5s: %#" Px "\n", name, cpu_registers[i]);
+    }
+    buffer.AddString("  FPU registers:\n");
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      const char* name =
+          RegisterNames::FpuRegisterName(static_cast<FpuRegister>(i));
+      buffer.Printf("   %5s: %#" Px "\n", name, fpu_registers[i]);
+    }
+    buffer.Printf("  Stack area (size %" Pu "):", stack_area_end - stack_area);
+    auto* current = reinterpret_cast<const uint8_t*>(stack_area);
+    auto* const end = reinterpret_cast<const uint8_t*>(stack_area_end);
+    for (; current < end; ++current) {
+      if (((end - current) % kWordSize) == 0) {
+        buffer.Printf("\n    %#" Px ": ", reinterpret_cast<uword>(current));
+      } else if (((end - current) % kWordSize) == (kWordSize / 2)) {
+        buffer.AddString("  ");
+      }
+      buffer.Printf("%02x", *current);
+    }
+    buffer.AddString("\n");
+    return buffer.buffer();
+  }
 };
 
 #if defined(HOST_ARCH_ARM64)
@@ -1264,19 +1297,131 @@ static int64_t TruncateFfiInt(int64_t value,
   }
 }
 
+static void* GetDataAddress(const Instance& inst, intptr_t offset_in_bytes) {
+  if (inst.IsTypedDataBase()) {
+    return TypedDataBase::Cast(inst).DataAddr(offset_in_bytes);
+  } else if (inst.IsPointer()) {
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uint8_t*>(Pointer::Cast(inst).NativeAddress()) +
+        offset_in_bytes);
+  } else {
+    UNIMPLEMENTED();
+  }
+}
+
+static void PassFfiCallCompoundArgumentPortion(
+    Thread* thread,
+    FfiCallArguments* args,
+    const compiler::ffi::NativeLocation& loc,
+    const Instance& compound_contents,
+    intptr_t offset_in_bytes) {
+  auto const size = loc.payload_type().SizeInBytes();
+  if (loc.IsMultiple()) {
+    // Copy from the TypedData to from a list of native locations.
+    const auto& multiple = loc.AsMultiple();
+    for (intptr_t i = 0, n = multiple.locations().length(); i < n; ++i) {
+      const auto& portion = *multiple.locations().At(i);
+      PassFfiCallCompoundArgumentPortion(thread, args, portion,
+                                         compound_contents, offset_in_bytes);
+      offset_in_bytes += portion.payload_type().SizeInBytes();
+    }
+  } else if (loc.IsStack()) {
+    const intptr_t offset = loc.AsStack().offset_in_bytes();
+    ASSERT((offset >= 0) &&
+           (args->stack_area + offset + size <= args->stack_area_end));
+    auto* const dst = reinterpret_cast<uint8_t*>(args->stack_area) + offset;
+    NoSafepointScope scope;
+    auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
+    memcpy(dst, src, size);  // NOLINT
+  } else {
+    if (!loc.payload_type().IsPrimitive()) {
+      UNIMPLEMENTED();
+    }
+    ASSERT(size <= kWordSize);
+    uword value;
+    {
+      NoSafepointScope scope;
+      auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
+      memcpy(&value, src, size);  // NOLINT
+    }
+    if (loc.IsRegisters()) {
+      ASSERT(loc.AsRegisters().num_regs() == 1);
+      const auto dst_reg = loc.AsRegisters().reg_at(0);
+      ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfCpuRegisters));
+      args->cpu_registers[dst_reg] = value;
+    } else if (loc.IsFpuRegisters()) {
+      const FpuRegister dst_reg = loc.AsFpuRegisters().fpu_reg();
+      ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfFpuRegisters));
+      args->fpu_registers[dst_reg] = value;
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
+}
+
 static void PassFfiCallArguments(
     Thread* thread,
     const compiler::ffi::CallMarshaller& marshaller,
     ObjectPtr* argv,
-    FfiCallArguments* args) {
+    FfiCallArguments* args,
+    bool is_leaf) {
   Zone* zone = thread->zone();
   ApiLocalScope* scope = thread->api_top_scope();
+  auto* const stack_top = reinterpret_cast<uint8_t*>(args->stack_area);
+  auto* const stack_end = reinterpret_cast<uint8_t*>(args->stack_area_end);
+  // Fields needed for working with compound values.
+  auto* const object_store = thread->isolate_group()->object_store();
+  const auto& typed_data_field =
+      Field::Handle(zone, object_store->compound_typed_data_base_field());
+  const auto& offset_in_bytes_field =
+      Field::Handle(zone, object_store->compound_offset_in_bytes_field());
+  auto& compound_contents = Instance::Handle(zone);
   auto& arg = Object::Handle(zone);
   for (intptr_t i = 0; i < marshaller.num_args(); ++i) {
+    arg = argv[i];
+    const auto& loc = marshaller.Location(i);
     if (marshaller.IsCompoundCType(i)) {
-      UNIMPLEMENTED();
+      compound_contents ^= Instance::Cast(arg).GetField(typed_data_field);
+      intptr_t offset_in_bytes = Smi::Value(
+          Smi::RawCast(Instance::Cast(arg).GetField(offset_in_bytes_field)));
+      if (loc.IsPointerToMemory()) {
+        const auto& arg_loc = loc.AsPointerToMemory();
+        auto const size = arg_loc.payload_type().SizeInBytes();
+        auto* const dst = stack_top + marshaller.PassByPointerStackOffset(i);
+        ASSERT(stack_top <= dst && dst + size <= stack_end);
+        // First copy the contents of the struct to the stack area.
+        {
+          NoSafepointScope scope;
+          auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
+          memcpy(dst, src, size);  // NOLINT
+        }
+        // Then copy the pointer to that memory to the expected location.
+        const auto& ptr_loc = arg_loc.pointer_location();
+        uword ptr = reinterpret_cast<uword>(dst);
+        if (ptr_loc.IsRegisters()) {
+          ASSERT(ptr_loc.AsRegisters().num_regs() == 1);
+          // For structs passed by value as pointers to memory, the value
+          // is copied to the stack and the value of the pointer register
+          // is set to the appropriate portion of stack_area.
+          const auto ptr_reg = ptr_loc.AsRegisters().reg_at(0);
+          args->cpu_registers[ptr_reg] = ptr;
+        } else if (ptr_loc.IsStack()) {
+          auto* const ptr_slot =
+              stack_top + ptr_loc.AsStack().offset_in_bytes();
+          ASSERT((stack_top <= ptr_slot) && (ptr_slot <= stack_end));
+          *reinterpret_cast<uword*>(ptr_slot) = ptr;
+        } else {
+          UNIMPLEMENTED();
+        }
+      } else {
+        PassFfiCallCompoundArgumentPortion(thread, args, loc, compound_contents,
+                                           offset_in_bytes);
+      }
     } else {
-      arg = argv[i];
+      if (!loc.payload_type().IsPrimitive()) {
+        UNIMPLEMENTED();
+      }
+      ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
       uword value;
       if (marshaller.IsHandleCType(i)) {
         LocalHandle* handle = scope->local_handles()->AllocateHandle();
@@ -1284,38 +1429,32 @@ static void PassFfiCallArguments(
         value = reinterpret_cast<uword>(handle);
       } else if (marshaller.IsPointerPointer(i)) {
         value = Pointer::Cast(arg).NativeAddress();
-      } else if (marshaller.IsTypedDataPointer(i)) {
-        value = reinterpret_cast<uword>(TypedDataBase::Cast(arg).DataAddr(0));
-      } else if (marshaller.IsCompoundPointer(i)) {
-        ObjectStore* object_store = thread->isolate_group()->object_store();
-        auto& obj = Object::Handle(zone);
-        obj = object_store->compound_offset_in_bytes_field();
-        ASSERT(!obj.IsNull());
-        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
-        const uword offset_in_bytes =
-            static_cast<uword>(Integer::Cast(obj).Value());
-        obj = object_store->compound_typed_data_base_field();
-        ASSERT(!obj.IsNull());
-        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
-        if (obj.IsPointer()) {
-          value = Pointer::Cast(obj).NativeAddress() + offset_in_bytes;
-        } else {
-          ASSERT(obj.IsTypedDataBase());
-          value = reinterpret_cast<uword>(
-              TypedDataBase::Cast(obj).DataAddr(offset_in_bytes));
+      } else if (marshaller.IsTypedDataPointer(i) ||
+                 marshaller.IsCompoundPointer(i)) {
+        compound_contents ^= arg.ptr();
+        intptr_t offset_in_bytes = 0;
+        if (marshaller.IsCompoundPointer(i)) {
+          offset_in_bytes = Smi::Value(
+              Smi::RawCast(compound_contents.GetField(offset_in_bytes_field)));
+          compound_contents ^= compound_contents.GetField(typed_data_field);
         }
+        // Object holding the contents should not be moved by GC, and only
+        // Pointers are allowed for non-leaf calls.
+        ASSERT(is_leaf || compound_contents.IsPointer());
+        // The caller of PassFfiCallArgument should have set an appropriate
+        // NoSafepointScope if TypedData is a possibility here (the leaf case).
+        value = reinterpret_cast<uword>(
+            GetDataAddress(compound_contents, offset_in_bytes));
       } else if (marshaller.IsBool(i)) {
-        value = Bool::Cast(arg).value() ? static_cast<uword>(-1) : 0;
+        value = static_cast<uword>(Bool::Cast(arg).value());
       } else {
         ASSERT(!marshaller.IsVoid(i));
         const auto rep = marshaller.RepInDart(i);
         if (RepresentationUtils::IsUnboxedInteger(rep)) {
-          value = TruncateFfiInt(Integer::Cast(arg).Value(),
-                                 marshaller.Location(i)
-                                     .payload_type()
-                                     .AsPrimitive()
-                                     .representation(),
-                                 /*is_return=*/false);
+          value =
+              TruncateFfiInt(Integer::Cast(arg).Value(),
+                             loc.payload_type().AsPrimitive().representation(),
+                             /*is_return=*/false);
         } else if (rep == kUnboxedDouble) {
           value = bit_cast<uint64_t, double>(Double::Cast(arg).value());
         } else if (rep == kUnboxedFloat) {
@@ -1325,26 +1464,19 @@ static void PassFfiCallArguments(
           UNREACHABLE();
         }
       }
-      const auto& arg_target = marshaller.Location(i);
-      if (!arg_target.payload_type().IsPrimitive()) {
-        UNIMPLEMENTED();
-      }
-      if (arg_target.IsRegisters()) {
-        const auto& dst = arg_target.AsRegisters();
-        ASSERT(dst.num_regs() == 1);
-        const auto dst_reg = dst.reg_at(0);
+      if (loc.IsRegisters()) {
+        ASSERT(loc.AsRegisters().num_regs() == 1);
+        const auto dst_reg = loc.AsRegisters().reg_at(0);
         ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfCpuRegisters));
         args->cpu_registers[dst_reg] = value;
-      } else if (arg_target.IsFpuRegisters()) {
-        const FpuRegister dst_reg = arg_target.AsFpuRegisters().fpu_reg();
+      } else if (loc.IsFpuRegisters()) {
+        const FpuRegister dst_reg = loc.AsFpuRegisters().fpu_reg();
         ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfFpuRegisters));
         args->fpu_registers[dst_reg] = value;
-      } else if (arg_target.IsStack()) {
-        const auto& dst = arg_target.AsStack();
-        const intptr_t offset = dst.offset_in_bytes();
-        ASSERT((offset >= 0) &&
-               (args->stack_area + offset + kWordSize <= args->stack_area_end));
-        *reinterpret_cast<uword*>(args->stack_area + offset) = value;
+      } else if (loc.IsStack()) {
+        auto* const dst = stack_top + loc.AsStack().offset_in_bytes();
+        ASSERT((stack_top <= dst) && (dst + kWordSize <= stack_end));
+        *reinterpret_cast<uword*>(dst) = value;
       }
     }
   }
@@ -1357,31 +1489,116 @@ static void PassFfiCallArguments(
         CallingConventions::kFpuArgumentRegisters;
   }
 #endif  // defined(TARGET_ARCH_X64)
+
+  if (marshaller.ReturnsCompound()) {
+    const intptr_t arg_index = compiler::ffi::kResultIndex;
+    const auto& loc = marshaller.Location(arg_index);
+    if (loc.IsPointerToMemory()) {
+      // Pass a pointer to the space allocated in stack_area to native code.
+      const auto& pointer_loc = loc.AsPointerToMemory().pointer_location();
+      if (!pointer_loc.IsRegisters()) {
+        UNIMPLEMENTED();
+      }
+      ASSERT_EQUAL(pointer_loc.AsRegisters().num_regs(), 1);
+      const Register reg = pointer_loc.AsRegisters().reg_at(0);
+      ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+      const intptr_t offset = marshaller.PassByPointerStackOffset(arg_index);
+      ASSERT((offset >= 0) &&
+             (args->stack_area + offset + loc.payload_type().SizeInBytes() <=
+              args->stack_area_end));
+      args->cpu_registers[reg] = args->stack_area + offset;
+    }
+  }
 }
 
 static ObjectPtr ReceiveFfiCallResult(
     Thread* thread,
     const compiler::ffi::CallMarshaller& marshaller,
-    FfiCallArguments* args) {
-  if (marshaller.ReturnsCompound()) {
-    UNIMPLEMENTED();
-  }
+    const FfiCallArguments& args) {
   const intptr_t arg_index = compiler::ffi::kResultIndex;
-  if (marshaller.IsPointerPointer(arg_index)) {
-    uword value = args->cpu_registers[CallingConventions::kReturnReg];
+  if (marshaller.IsCompoundCType(arg_index)) {
+    auto* const zone = thread->zone();
+    const auto& loc = marshaller.Location(arg_index);
+    const auto& compound_contents = TypedData::Handle(
+        zone, TypedData::New(kTypedDataUint8ArrayCid,
+                             marshaller.CompoundReturnSizeInBytes()));
+    if (loc.IsPointerToMemory()) {
+      auto const size = loc.payload_type().SizeInBytes();
+      const intptr_t offset = marshaller.PassByPointerStackOffset(arg_index);
+      ASSERT((offset >= 0) &&
+             (args.stack_area + offset + size <= args.stack_area_end));
+      auto* const src = reinterpret_cast<const void*>(args.stack_area + offset);
+      NoSafepointScope scope;
+      memcpy(compound_contents.DataAddr(0), src, size);  // NOLINT
+    } else {
+      // Copy to the TypedData buffer from a list of native locations.
+      ASSERT(loc.IsMultiple());
+      const auto& multiple = loc.AsMultiple();
+      intptr_t offset_in_bytes = 0;
+
+      for (intptr_t i = 0, n = multiple.locations().length(); i < n; ++i) {
+        const auto& portion = *multiple.locations().At(i);
+        // Only structs small enough to fit in a CPU + FPU register combo
+        // or two FPU registers are sent as multiple locations.
+        if (!portion.payload_type().IsPrimitive()) {
+          UNIMPLEMENTED();
+        }
+        auto const size = portion.payload_type().SizeInBytes();
+        ASSERT(size <= kWordSize);
+        uword value;
+        if (portion.IsRegisters()) {
+          ASSERT(portion.AsRegisters().num_regs() == 1);
+          const auto src_reg = portion.AsRegisters().reg_at(0);
+          ASSERT((src_reg >= 0) && (src_reg < kNumberOfCpuRegisters));
+          value = args.cpu_registers[src_reg];
+        } else if (portion.IsFpuRegisters()) {
+          const FpuRegister src_reg = portion.AsFpuRegisters().fpu_reg();
+          ASSERT((src_reg >= 0) && (src_reg < kNumberOfFpuRegisters));
+          value = args.fpu_registers[src_reg];
+        } else {
+          UNIMPLEMENTED();
+        }
+        NoSafepointScope scope;
+        auto* dst = compound_contents.DataAddr(offset_in_bytes);
+        memcpy(dst, &value, size);  // NOLINT
+        offset_in_bytes += size;
+      }
+    }
+    // Now that the contents have been collected, time to install the
+    // appropriate wrapper.
+    auto* const object_store = thread->isolate_group()->object_store();
+    const auto& typed_data_field =
+        Field::Handle(zone, object_store->compound_typed_data_base_field());
+    const auto& offset_in_bytes_field =
+        Field::Handle(zone, object_store->compound_offset_in_bytes_field());
+
+    const auto& compound_type =
+        AbstractType::Handle(zone, marshaller.CType(arg_index));
+    const auto& compound_sub_class =
+        Class::Handle(zone, compound_type.type_class());
+    compound_sub_class.EnsureIsFinalized(thread);
+
+    const auto& wrapper =
+        Instance::Handle(zone, Instance::New(compound_sub_class));
+    wrapper.SetField(typed_data_field, compound_contents);
+    wrapper.SetField(offset_in_bytes_field, Smi::Handle(Smi::New(0)));
+
+    return wrapper.ptr();
+  } else if (marshaller.IsPointerPointer(arg_index)) {
+    uword value = args.cpu_registers[CallingConventions::kReturnReg];
     return Pointer::New(value);
   } else if (marshaller.IsTypedDataPointer(arg_index)) {
     UNREACHABLE();  // Only supported for FFI call arguments.
   } else if (marshaller.IsCompoundPointer(arg_index)) {
     UNREACHABLE();  // Only supported for FFI call arguments.
   } else if (marshaller.IsHandleCType(arg_index)) {
-    uword value = args->cpu_registers[CallingConventions::kReturnReg];
+    uword value = args.cpu_registers[CallingConventions::kReturnReg];
     return reinterpret_cast<LocalHandle*>(value)->ptr();
   } else if (marshaller.IsVoid(arg_index)) {
     return Object::null();
   } else if (marshaller.IsBool(arg_index)) {
     int64_t value =
-        TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+        TruncateFfiInt(args.cpu_registers[CallingConventions::kReturnReg],
                        marshaller.Location(arg_index)
                            .payload_type()
                            .AsPrimitive()
@@ -1392,7 +1609,7 @@ static ObjectPtr ReceiveFfiCallResult(
     const auto rep = marshaller.RepInDart(arg_index);
     if (RepresentationUtils::IsUnboxedInteger(rep)) {
       const int64_t value =
-          TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+          TruncateFfiInt(args.cpu_registers[CallingConventions::kReturnReg],
                          marshaller.Location(arg_index)
                              .payload_type()
                              .AsPrimitive()
@@ -1401,11 +1618,11 @@ static ObjectPtr ReceiveFfiCallResult(
       return Integer::New(value);
     } else if (rep == kUnboxedDouble) {
       double value = bit_cast<double, uint64_t>(
-          args->fpu_registers[CallingConventions::kReturnFpuReg]);
+          args.fpu_registers[CallingConventions::kReturnFpuReg]);
       return Double::New(value);
     } else if (rep == kUnboxedFloat) {
       float value = bit_cast<float, uint32_t>(static_cast<uint32_t>(
-          args->fpu_registers[CallingConventions::kReturnFpuReg]));
+          args.fpu_registers[CallingConventions::kReturnFpuReg]));
       return Double::New(static_cast<double>(value));
     } else {
       UNREACHABLE();
@@ -1413,9 +1630,8 @@ static ObjectPtr ReceiveFfiCallResult(
   }
 }
 
-static uword ResolveFfiNativeTarget(Thread* thread, const Function& function) {
+static uword ResolveFfiNativeTarget(Thread* thread, const Instance& native) {
   Zone* zone = thread->zone();
-  auto const& native = Instance::Handle(zone, function.GetNativeAnnotation());
   const auto& native_class = Class::Handle(zone, native.clazz());
   ASSERT(String::Handle(native_class.UserVisibleName())
              .Equals(Symbols::FfiNative()));
@@ -1451,10 +1667,41 @@ static uword ResolveFfiNativeTarget(Thread* thread, const Function& function) {
   const auto& result =
       Object::Handle(zone, DartEntry::InvokeFunction(ffi_resolver, args));
   ThrowIfError(result);
-  return static_cast<uword>(Integer::Cast(result).Value());
+  auto const address = static_cast<uword>(Integer::Cast(result).Value());
+  PRINT_IF_TRACING_INTERPRETER("resolved (%s, %s, %s) to %#" Px "\n",
+                               symbol.ToCString(), asset_id.ToCString(),
+                               native_type.ToCString(), address);
+  return address;
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_DYNAMIC_MODULES)
 
+// Resolve a native function from the interpreter.
+// Arg0: constant instance of dart:ffi::Native.
+// Arg1: function containing the ResolveNativeFunction instruction.
+// Arg2: object pool index to store resolved target
+//
+// This method does not return anything, but instead caches the resolved
+// entry point in the object pool entry.
+DEFINE_RUNTIME_ENTRY(ResolveNativeFunction, 3) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& instance = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& function = Function::CheckedZoneHandle(zone, arguments.ArgAt(1));
+  const intptr_t pool_index =
+      Smi::CheckedHandle(zone, arguments.ArgAt(2)).Value();
+
+  const auto& bytecode = Bytecode::Handle(zone, function.GetBytecode());
+  const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  // The interpreter should only call this once for a particular
+  // ResolveNativeFunction instruction, as the resolver is idempotent
+  // and so the result can be cached.
+  const uword target = ResolveFfiNativeTarget(thread, instance);
+  ASSERT(target != 0);
+  pool.SetRawValueAt(pool_index, target);
+#else
+  UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 // Perform FFI call from the interpreter.
 // Arg0: function.
@@ -1478,7 +1725,8 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
 
   const uword fp = frame->fp();
   const uword sp = arguments.GetCallerSP();
-  ASSERT((fp < sp) && (sp <= frame->sp()));
+  ASSERT_LESS_OR_EQUAL(fp, sp);
+  ASSERT_LESS_OR_EQUAL(sp, frame->sp());
   MSAN_UNPOISON(reinterpret_cast<uint8_t*>(fp), sp - fp);
 
   ObjectPtr* argv = reinterpret_cast<ObjectPtr*>(sp);
@@ -1488,7 +1736,11 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
     const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
     target = pool.RawValueAt(pool_index);
     if (target == 0) {
-      target = ResolveFfiNativeTarget(thread, function);
+      PRINT_IF_TRACING_INTERPRETER("resolving FFI native %s\n",
+                                   function.ToFullyQualifiedCString());
+      const auto& annotation =
+          Instance::Handle(zone, function.GetNativeAnnotation());
+      target = ResolveFfiNativeTarget(thread, annotation);
       ASSERT(target != 0);
       pool.SetRawValueAt(pool_index, target);
     }
@@ -1525,24 +1777,24 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
   args.stack_area_end = reinterpret_cast<uword>(stack_area + stack_area_size);
   args.target = target;
 
-  Api::Scope api_scope(thread);
-
   argv = argv - first_argument_parameter_offset - marshaller.num_args();
 
+  PRINT_IF_TRACING_INTERPRETER("calling native entry point %#" Px "\n", target);
   if (is_leaf) {
     NoSafepointScope no_safepoint;
-
-    PassFfiCallArguments(thread, marshaller, argv, &args);
+    PassFfiCallArguments(thread, marshaller, argv, &args, is_leaf);
     FfiCallTrampoline(&args);
   } else {
-    PassFfiCallArguments(thread, marshaller, argv, &args);
-
+    PassFfiCallArguments(thread, marshaller, argv, &args, is_leaf);
     TransitionVMToNative transition(thread);
     FfiCallTrampoline(&args);
   }
-
-  arguments.SetReturn(
-      Object::Handle(zone, ReceiveFfiCallResult(thread, marshaller, &args)));
+  PRINT_IF_TRACING_INTERPRETER("returned from native entry point %#" Px "\n",
+                               target);
+  const auto& result =
+      Object::Handle(zone, ReceiveFfiCallResult(thread, marshaller, args));
+  ThrowIfError(result);
+  arguments.SetReturn(result);
 #else
   UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -4867,14 +5119,20 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
       interpreter->Call(function, argdesc, argc, argv, Array::null(), thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
   if (IsErrorClassId(result->GetClassId())) [[unlikely]] {
-    // Must not leak handles in the caller's zone.
-    HANDLESCOPE(thread);
+    // Since there may not be an active zone (e.g., an isolate group bound
+    // callback), make one. This also ensures that any handles allocated due
+    // to things like debugging prints or throwing exceptions are not leaked
+    // into the caller's zone (when present).
+    StackZone stack_zone(thread);
     // Protect the result in a handle before transitioning, which may trigger
     // GC.
-    const Error& error = Error::Handle(Error::RawCast(result));
+    Zone* const zone = stack_zone.GetZone();
+    const Error& error = Error::Handle(zone, Error::RawCast(result));
     // Propagating an error may cause allocation. Check if we need to block for
     // a safepoint by switching to "in VM" execution state.
     TransitionGeneratedToVM transition(thread);
+    PRINT_IF_TRACING_INTERPRETER("throwing exception: %s\n",
+                                 error.ToErrorCString());
     Exceptions::PropagateError(error);
   }
   return static_cast<uword>(result);
@@ -5049,7 +5307,8 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata) {
 }
 
 Thread* HandleIsolateGroupBoundSyncFfiCallback(
-    FfiCallbackMetadata::Metadata metadata) {
+    FfiCallbackMetadata::Metadata metadata,
+    CallbackMetadata* out) {
   Thread* current_thread = Thread::Current();
 
   if (current_thread != nullptr) {
@@ -5060,19 +5319,32 @@ Thread* HandleIsolateGroupBoundSyncFfiCallback(
   Isolate* current_isolate =
       current_thread != nullptr ? current_thread->isolate() : nullptr;
 
+  bool should_enter_group = true;
   if (current_thread != nullptr) {
-    Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    if (current_isolate != nullptr) {
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    } else {
+      IsolateGroup* current_isolategroup = current_thread->isolate_group();
+      if (current_isolategroup != nullptr) {
+        if (current_isolategroup == metadata.target_isolate_group()) {
+          should_enter_group = false;
+        } else {
+          Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
+        }
+      }
+    }
   }
-  Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
-                                     /*bypass_safepoint=*/false);
+  if (should_enter_group) {
+    Thread::EnterIsolateGroupAsMutator(metadata.target_isolate_group(),
+                                       /*bypass_safepoint=*/false);
+  }
+
   auto new_thread = Thread::Current();
   new_thread->set_execution_state(Thread::kThreadInVM);
-  // We need to go back to current thread after we come back from
-  // the callback.
-  new_thread->set_unboxed_int64_runtime_arg(
-      reinterpret_cast<intptr_t>(current_thread));
-  new_thread->set_unboxed_int64_runtime_second_arg(
-      reinterpret_cast<intptr_t>(current_isolate));
+  // We need to return to original isolate or isolate group if we were in them.
+  out->caller_isolate = reinterpret_cast<uword>(current_isolate);
+  out->caller_isolate_group = reinterpret_cast<uword>(
+      current_thread != nullptr ? current_thread->isolate_group() : nullptr);
   current_thread = new_thread;
 
   current_thread->set_unboxed_int64_runtime_arg(metadata.context());
@@ -5182,7 +5454,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     thread = HandleAsyncFfiCallback(metadata);
     out->epilogue = reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate);
   } else if (metadata.is_isolate_group_bound()) {
-    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata);
+    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata, out);
     out->epilogue = reinterpret_cast<uword>(&DLRT_ExitIsolateGroupBoundIsolate);
   } else {
     thread = HandleIsolateBoundSyncFfiCallback(metadata, out);
@@ -5206,17 +5478,28 @@ extern "C" LargestReturn dart_msan_unpoison_retval() {
 }
 #endif
 
-extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread* thread) {
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(
+    Thread* thread,
+    Isolate* caller_isolate,
+    IsolateGroup* caller_isolate_group) {
   TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
   ASSERT(thread != nullptr);
   ASSERT(thread == Thread::Current());
-  Isolate* source_isolate =
-      reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
   // Need to accommodate ExitIsolateGroupAsHelper assumptions.
   thread->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolateGroupAsMutator(/*bypass_safepoint=*/false);
-  if (source_isolate != nullptr) {
-    Thread::EnterIsolate(source_isolate);
+  if (caller_isolate != nullptr || caller_isolate_group != nullptr) {
+    if (caller_isolate != nullptr) {
+      // if we were called from an isolate, return to that isolate
+      Thread::EnterIsolate(caller_isolate);
+    } else {
+      ASSERT(caller_isolate_group != nullptr);
+      // if we were called from an isolate group, return to that instead.
+      Thread::EnterIsolateGroupAsMutator(caller_isolate_group,
+                                         /*bypass_safepoint=*/false,
+                                         /*suspended_thread=*/thread);
+    }
+    Thread::Current()->set_execution_state(Thread::kThreadInNative);
     Thread::Current()->EnterSafepoint();
   }
 #if defined(USING_MEMORY_SANITIZER)
@@ -5226,7 +5509,10 @@ extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread* thread) {
 #endif
 }
 
-extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread* thread) {
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(
+    Thread* thread,
+    Isolate* caller_isolate,
+    IsolateGroup* caller_isolate_group) {
   TRACE_RUNTIME_CALL("ExitSyncCallbackTargetIsolate%s", "");
   ASSERT(thread != nullptr);
   ASSERT(thread == Thread::Current());
@@ -5239,10 +5525,13 @@ extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread* thread) {
 #endif
 }
 
-extern "C" void* DLRT_ExitSyncCallback(Thread* thread) {
+extern "C" void* DLRT_ExitSyncCallback(Thread* thread,
+                                       Isolate* caller_isolate,
+                                       IsolateGroup* caller_isolate_group) {
   ASSERT(thread != nullptr);
   ASSERT(thread == Thread::Current());
 
+  thread->set_execution_state(Thread::kThreadInNative);
   thread->EnterSafepointToNative();
 
 #if defined(USING_MEMORY_SANITIZER)
@@ -5275,9 +5564,11 @@ extern "C" void* DLRT_ExitTemporaryIsolate(Thread* thread) {
       TRACE_RUNTIME_CALL("ExitTemporaryIsolate re-entering source isolate %p",
                          source_isolate);
       Thread::EnterIsolate(source_isolate);
+      Thread::Current()->set_execution_state(Thread::kThreadInNative);
       Thread::Current()->EnterSafepoint();
     }
   } else {
+    thread->set_execution_state(Thread::kThreadInNative);
     thread->EnterSafepoint();
   }
   TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");

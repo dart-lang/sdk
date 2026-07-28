@@ -53,14 +53,14 @@ class CascadePropertyTarget extends PropertyTarget<Never> {
 /// Non-promotion reason describing the situation where a variable was not
 /// promoted due to an explicit write to the variable appearing somewhere in the
 /// source code.
-class DemoteViaExplicitWrite<Variable extends Object>
+class DemoteViaExplicitWrite<Variable extends Object, Node extends Object>
     extends NonPromotionReason {
   /// The local variable that was not promoted.
   final Variable variable;
 
   /// The node that wrote to the variable; this corresponds to a node that was
   /// passed to [FlowAnalysis.write].
-  final Object node;
+  final Node node;
 
   DemoteViaExplicitWrite(this.variable, this.node);
 
@@ -75,11 +75,45 @@ class DemoteViaExplicitWrite<Variable extends Object>
   R accept<R, Node extends Object, Variable extends Object>(
     NonPromotionReasonVisitor<R, Node, Variable> visitor,
   ) => visitor.visitDemoteViaExplicitWrite(
-    this as DemoteViaExplicitWrite<Variable>,
+    this as DemoteViaExplicitWrite<Variable, Node>,
   );
 
   @override
   String toString() => 'DemoteViaExplicitWrite($node)';
+}
+
+/// Non-promotion reason describing the situation where a promotion was lost
+/// because the current function was suspended (due to an `await` or `yield`
+/// statement) while inside a local function, allowing other code to execute and
+/// potentially modify the variable.
+class DemoteViaSuspension<Variable extends Object, Node extends Object>
+    extends NonPromotionReason {
+  /// The local variable that was not promoted.
+  final Variable variable;
+
+  /// The node representing the suspension (e.g. an `await` or `yield`).
+  ///
+  /// This is the node that was passed to [FlowAnalysis.suspension].
+  final Node node;
+
+  DemoteViaSuspension(this.variable, this.node);
+
+  @override
+  NonPromotionDocumentationLink get documentationLink =>
+      NonPromotionDocumentationLink.suspension;
+
+  @override
+  String get shortName => 'demoteViaSuspension';
+
+  @override
+  R accept<R, Node extends Object, Variable extends Object>(
+    NonPromotionReasonVisitor<R, Node, Variable> visitor,
+  ) => visitor.visitDemoteViaSuspension(
+    this as DemoteViaSuspension<Variable, Node>,
+  );
+
+  @override
+  String toString() => 'DemoteViaSuspension($node)';
 }
 
 /// Information gathered by flow analysis about an expression. This includes its
@@ -238,6 +272,12 @@ abstract class FlowAnalysis<
   bool get isReachable;
 
   FlowAnalysisOperations<Variable> get operations;
+
+  /// Retrieves the type that `this` is promoted to, if it is currently
+  /// promoted.
+  ///
+  /// If `this` isn't currently promoted, returns `null`.
+  SharedTypeView? get promotedTypeOfThis;
 
   /// Call this method before visiting an anonymous block body.
   ///
@@ -489,10 +529,9 @@ abstract class FlowAnalysis<
   /// Call this method just after visiting the operands of a binary `==` or `!=`
   /// expression, or an invocation of `identical`.
   ///
-  /// [leftOperandInfo] and [rightOperandInfo] should be the values returned by
-  /// [getExpressionInfo] for the left and right operands. [leftOperandType]
-  /// and [rightOperandType] should be the static types of the left and right
-  /// operands.
+  /// [leftOperandInfo] and [rightOperandInfo] should be the expression info for
+  /// the left and right operands. [leftOperandType] and [rightOperandType]
+  /// should be the static types of the left and right operands.
   ///
   /// Returns the expression info for the `==` or `!=` expression.
   ExpressionInfo? equalityOperation_end(
@@ -517,14 +556,6 @@ abstract class FlowAnalysis<
     bool notEqual = false,
     required SharedTypeView matchedValueType,
   });
-
-  /// The [ExpressionInfo] associated with [target], if known.
-  ///
-  /// **For testing only!**
-  ///
-  /// Returns `null` if (a) no info is associated with [target], or (b) another
-  /// expression with info has been visited more recently than [target].
-  ExpressionInfo? expressionInfoForTesting(Expression target);
 
   /// Performs assertion checks at the conclusion of flow analysis.
   ///
@@ -1100,28 +1131,45 @@ abstract class FlowAnalysis<
   @visibleForTesting
   SsaNode? ssaNodeForTesting(Variable variable);
 
-  /// Call this method just after visiting a `case` or `default` body.
+  /// Call this method after visiting an `await` expression or `yield`
+  /// statement.
   ///
-  /// See [switchStatement_expressionEnd] for details.
+  /// Both of these constructs have the effect of suspending the execution of
+  /// the current function and allowing other code to execute, so flow analysis
+  /// may need to demote some variables.
+  ///
+  /// [Node] should be the AST node of the `await` expression or `yield`
+  /// statement. This will be reported back via [DemoteViaSuspension.node] if
+  /// any promotions are lost due to this suspension.
+  void suspension(Node node);
+
+  /// Call this method just after visiting a `case` or `default` body in a
+  /// switch statement, or one of the expressions in a branch of a switch
+  /// expression.
+  ///
+  /// See [switch_scrutineeEnd] for details.
   ///
   /// This method returns a boolean indicating whether the end of the case body
   /// is "locally reachable" (i.e. reachable from its start).
-  bool switchStatement_afterCase();
+  bool switch_afterCase();
 
-  /// Call this method just before visiting a `case` or `default` clause.
+  /// Call this method just before visiting a `case` or `default` clause in a
+  /// switch statement, or one of the patterns in a branch of a switch
+  /// expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.
-  void switchStatement_beginAlternative();
+  /// See [switch_scrutineeEnd] for details.
+  void switch_beginAlternative();
 
   /// Call this method just before visiting a sequence of one or more `case` or
-  /// `default` clauses that share a body.
+  /// `default` clauses in a switch statement that share a body, or before
+  /// visiting a branch of a switch expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.
-  void switchStatement_beginAlternatives();
+  /// See [switch_scrutineeEnd] for details.
+  void switch_beginAlternatives();
 
   /// Call this method just after visiting the body of a switch statement.
   ///
-  /// See [switchStatement_expressionEnd] for details.
+  /// See [switch_scrutineeEnd] for details.
   ///
   /// [isExhaustive] indicates whether the switch statement had a "default"
   /// case, or is based on an enumeration and all the enumeration constants
@@ -1130,11 +1178,13 @@ abstract class FlowAnalysis<
   /// Returns a boolean indicating whether flow analysis was able to prove the
   /// switch statement to be exhaustive (e.g. due to the presence of a `default`
   /// clause, or a pattern that is guaranteed to match the scrutinee type).
-  bool switchStatement_end(bool isExhaustive);
+  bool switch_end(bool isExhaustive);
 
-  /// Call this method just after visiting a `case` or `default` clause.
+  /// Call this method just after visiting a `case` or `default` clause in a
+  /// switch statement, or one of the patterns (with optional guard) in a branch
+  /// of a switch expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.`
+  /// See [switch_scrutineeEnd] for details.`
   ///
   /// [guardInfo] should be the expression info for the guard expression. If
   /// there is no guard expression, it should be the value returned by a call to
@@ -1144,15 +1194,16 @@ abstract class FlowAnalysis<
   /// all variables defined by the clause's pattern; the key should be the
   /// variable name and the value should be the variable itself. If the clause
   /// is a `default` clause, [variables] should be an empty map.
-  void switchStatement_endAlternative(
+  void switch_endAlternative(
     ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   );
 
   /// Call this method just after visiting a sequence of one or more `case` or
-  /// `default` clauses that share a body.
+  /// `default` clauses in a switch statement that share a body, or one of the
+  /// patterns (with optional guard) in a branch of a switch expression.
   ///
-  /// See [switchStatement_expressionEnd] for details.
+  /// See [switch_scrutineeEnd] for details.
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the switch statement.
@@ -1161,7 +1212,7 @@ abstract class FlowAnalysis<
   ///
   /// Returns a data structure describing the relationship among variables
   /// defined by patterns in the various alternatives.
-  PatternVariableInfo<Variable> switchStatement_endAlternatives(
+  PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
   });
@@ -1173,24 +1224,38 @@ abstract class FlowAnalysis<
   /// is a switch expression).
   ///
   /// The order of visiting a switch statement should be:
-  /// - Visit the switch expression.
-  /// - Call [switchStatement_expressionEnd].
+  /// - Visit the switch scrutinee.
+  /// - Call [switch_scrutineeEnd].
   /// - For each case body:
-  ///   - Call [switchStatement_beginAlternatives].
+  ///   - Call [switch_beginAlternatives].
   ///   - For each `case` or `default` clause associated with this case body:
-  ///     - Call [switchStatement_beginAlternative].
+  ///     - Call [switch_beginAlternative].
   ///     - If a pattern is present, visit it.
   ///     - If a guard is present, visit it.
-  ///     - Call [switchStatement_endAlternative].
-  ///   - Call [switchStatement_endAlternatives].
+  ///     - Call [switch_endAlternative].
+  ///   - Call [switch_endAlternatives].
   ///   - Visit the case body.
-  ///   - Call [switchStatement_afterCase].
-  /// - Call [switchStatement_end].
+  ///   - Call [switch_afterCase].
+  /// - Call [switch_end].
+  ///
+  /// The order of visiting a switch expression should be:
+  /// - Visit the switch scrutinee.
+  /// - Call [switch_scrutineeEnd].
+  /// - For each branch:
+  ///   - Call [switch_beginAlternatives].
+  ///   - Call [switch_beginAlternative].
+  ///   - Visit the branch's pattern.
+  ///   - If a guard is present, visit it.
+  ///   - Call [switch_endAlternative].
+  ///   - Call [switch_endAlternatives].
+  ///   - Visit the branch's body.
+  ///   - Call [switch_afterCase].
+  /// - Call [switch_end].
   ///
   /// [scrutineeInfo] should be the expression info for the expression appearing
   /// in parentheses after the `switch` keyword, and [scrutineeType] should be
   /// its static type.
-  void switchStatement_expressionEnd(
+  void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
@@ -1471,6 +1536,15 @@ class FlowAnalysisDebug<
 
   @override
   FlowAnalysisOperations<Variable> get operations => _wrapped.operations;
+
+  @override
+  SharedTypeView? get promotedTypeOfThis {
+    return _wrap(
+      'promotedTypeOfThis',
+      () => _wrapped.promotedTypeOfThis,
+      isQuery: true,
+    );
+  }
 
   @override
   void anonymousBlockBody_begin() {
@@ -1773,15 +1847,6 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? expressionInfoForTesting(Expression target) {
-    return _wrap(
-      'expressionInfoForTesting($target)',
-      () => _wrapped.expressionInfoForTesting(target),
-      isQuery: true,
-    );
-  }
-
-  @override
   void finish() {
     if (_exceptionOccurred) {
       _wrap('finish() (skipped)', () {}, isPure: true);
@@ -1837,15 +1902,6 @@ class FlowAnalysisDebug<
   @override
   void functionExpression_end() {
     _wrap('functionExpression_end()', () => _wrapped.functionExpression_end());
-  }
-
-  @override
-  ExpressionInfo? getExpressionInfo(Expression? expression) {
-    return _wrap(
-      'getExpressionInfo($expression)',
-      () => _wrapped.getExpressionInfo(expression),
-      isQuery: true,
-    );
   }
 
   @override
@@ -2420,87 +2476,80 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _wrap(
-      'storeExpressionInfo($expression, $expressionInfo)',
-      () => _wrapped.storeExpressionInfo(expression, expressionInfo),
-    );
+  void suspension(Node node) {
+    _wrap('suspension($node)', () => _wrapped.suspension(node));
   }
 
   @override
-  bool switchStatement_afterCase() {
+  bool switch_afterCase() {
     return _wrap(
-      'switchStatement_afterCase()',
-      () => _wrapped.switchStatement_afterCase(),
+      'switch_afterCase()',
+      () => _wrapped.switch_afterCase(),
       isPure: false,
       isQuery: true,
     );
   }
 
   @override
-  void switchStatement_beginAlternative() {
+  void switch_beginAlternative() {
     _wrap(
-      'switchStatement_beginAlternative()',
-      () => _wrapped.switchStatement_beginAlternative(),
+      'switch_beginAlternative()',
+      () => _wrapped.switch_beginAlternative(),
     );
   }
 
   @override
-  void switchStatement_beginAlternatives() {
+  void switch_beginAlternatives() {
     _wrap(
-      'switchStatement_beginAlternatives()',
-      () => _wrapped.switchStatement_beginAlternatives(),
+      'switch_beginAlternatives()',
+      () => _wrapped.switch_beginAlternatives(),
     );
   }
 
   @override
-  bool switchStatement_end(bool isExhaustive) {
+  bool switch_end(bool isExhaustive) {
     return _wrap(
-      'switchStatement_end($isExhaustive)',
-      () => _wrapped.switchStatement_end(isExhaustive),
+      'switch_end($isExhaustive)',
+      () => _wrapped.switch_end(isExhaustive),
       isQuery: true,
       isPure: false,
     );
   }
 
   @override
-  void switchStatement_endAlternative(
+  void switch_endAlternative(
     ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   ) {
     _wrap(
-      'switchStatement_endAlternative($guardInfo, $variables)',
-      () => _wrapped.switchStatement_endAlternative(guardInfo, variables),
+      'switch_endAlternative($guardInfo, $variables)',
+      () => _wrapped.switch_endAlternative(guardInfo, variables),
     );
   }
 
   @override
-  PatternVariableInfo<Variable> switchStatement_endAlternatives(
+  PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
   }) {
     return _wrap(
-      'switchStatement_endAlternatives($node, hasLabels: $hasLabels)',
-      () =>
-          _wrapped.switchStatement_endAlternatives(node, hasLabels: hasLabels),
+      'switch_endAlternatives($node, hasLabels: $hasLabels)',
+      () => _wrapped.switch_endAlternatives(node, hasLabels: hasLabels),
       isQuery: true,
       isPure: false,
     );
   }
 
   @override
-  void switchStatement_expressionEnd(
+  void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   ) {
     _wrap(
-      'switchStatement_expressionEnd($switchStatement, $scrutineeInfo, '
+      'switch_scrutineeEnd($switchStatement, $scrutineeInfo, '
       '$scrutineeType)',
-      () => _wrapped.switchStatement_expressionEnd(
+      () => _wrapped.switch_scrutineeEnd(
         switchStatement,
         scrutineeInfo,
         scrutineeType,
@@ -2746,12 +2795,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
   Expression extends Object,
   Variable extends Object
 > {
-  /// Gets the [ExpressionInfo] associated with the [expression].
-  ///
-  /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
-  /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression);
-
   /// Call this method after visiting an expression using `?.`.
   void nullAwareAccess_end();
 
@@ -2788,13 +2831,6 @@ abstract interface class FlowAnalysisNullShortingInterface<
     SharedTypeView targetType, {
     Variable? guardVariable,
   });
-
-  /// Associates [expression] with the given [expressionInfo] object, for later
-  /// retrieval by [FlowAnalysis.getExpressionInfo].
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  );
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -2842,8 +2878,9 @@ class FlowModel {
   FlowModel conservativeJoin(
     FlowModelHelper helper,
     Iterable<int> writtenVariables,
-    Iterable<int> capturedVariables,
-  ) {
+    Iterable<int> capturedVariables, {
+    NonPromotionReason? Function(int variableKey)? getNonPromotionReason,
+  }) {
     FlowModel result = this;
 
     for (int variableKey in writtenVariables) {
@@ -2854,7 +2891,9 @@ class FlowModel {
       // guaranteed to be already assigned and won't be assigned again.
       if (helper.isFinal(variableKey)) continue;
 
-      PromotionModel newInfo = info.discardPromotionsAndMarkNotUnassigned();
+      PromotionModel newInfo = info.discardPromotionsAndMarkNotUnassigned(
+        nonPromotionReason: getNonPromotionReason?.call(variableKey),
+      );
       if (!identical(info, newInfo)) {
         result = result.updatePromotionInfo(helper, variableKey, newInfo);
       }
@@ -3482,14 +3521,14 @@ enum NonPromotionDocumentationLink {
   /// The expression in question is a reference to a private final field, but it
   /// couldn't be promoted because there is another class in the same library
   /// containing a concrete getter with the same name.
-  conflictingGetter('http://dart.dev/go/non-promo-conflicting-getter'),
+  conflictingGetter('https://dart.dev/go/non-promo-conflicting-getter'),
 
   /// The expression in question is a reference to a private final field, but it
   /// couldn't be promoted because there is another class in the same library
   /// containing a field with the same name that's not promotable (either
   /// because it's not final or because it's external).
   conflictingNonPromotableField(
-    'http://dart.dev/go/non-promo-conflicting-non-promotable-field',
+    'https://dart.dev/go/non-promo-conflicting-non-promotable-field',
   ),
 
   /// The expression in question is a reference to a private final field, but it
@@ -3498,28 +3537,28 @@ enum NonPromotionDocumentationLink {
   /// have an implementation of that getter (and hence it forwards to
   /// `noSuchMethod`).
   conflictingNoSuchMethodForwarder(
-    'http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder',
+    'https://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder',
   ),
 
   /// The expression in question is a reference to a private field, but it
   /// couldn't be promoted because it's external.
-  externalField('http://dart.dev/go/non-promo-external-field'),
+  externalField('https://dart.dev/go/non-promo-external-field'),
 
   /// The expression in question is a reference to a private field, but it
   /// couldn't be promoted because the Dart language version for this library is
   /// prior to field promotion support.
   fieldPromotionUnavailable(
-    'http://dart.dev/go/non-promo-field-promotion-unavailable',
+    'https://dart.dev/go/non-promo-field-promotion-unavailable',
   ),
 
   /// The expression in question is a property get, but it couldn't be promoted
   /// because it doesn't refer to a field (it might refer to a getter or it
   /// might be a tear-off of a method).
-  nonField('http://dart.dev/go/non-promo-non-field'),
+  nonField('https://dart.dev/go/non-promo-non-field'),
 
   /// The expression in question is a reference to a private field, but it
   /// couldn't be promoted because it's not final.
-  nonFinalField('http://dart.dev/go/non-promo-non-final-field'),
+  nonFinalField('https://dart.dev/go/non-promo-non-final-field'),
 
   /// The expression in question is a property get. It couldn't be promoted
   /// because promotion of property gets is not supported.
@@ -3528,20 +3567,25 @@ enum NonPromotionDocumentationLink {
   /// earlier (so the documentation web site should continue to support it until
   /// most users have upgraded to 3.2 or later).
   @deprecated
-  property('http://dart.dev/go/non-promo-property'),
+  property('https://dart.dev/go/non-promo-property'),
 
   /// The expression in question is a reference to a field, but it couldn't be
   /// promoted because it's not private.
-  publicField('http://dart.dev/go/non-promo-public-field'),
+  publicField('https://dart.dev/go/non-promo-public-field'),
 
   /// The expression in question is `this`. It couldn't be promoted because
   /// promotion of `this` is not yet supported.
-  this_('http://dart.dev/go/non-promo-this'),
+  this_('https://dart.dev/go/non-promo-this'),
 
   /// The expression in question is a reference to a local variable. It couldn't
   /// be promoted because the variable was written to between the type test and
   /// the usage.
-  write('http://dart.dev/go/non-promo-write');
+  write('https://dart.dev/go/non-promo-write'),
+
+  /// The expression in question is a reference to a local variable. It couldn't
+  /// be promoted because the local variable was demoted due to an 'await' or
+  /// 'yield' expression/statement.
+  suspension('https://dart.dev/go/non-promo-suspension');
 
   /// The link URL, as a text string.
   final String url;
@@ -3609,7 +3653,9 @@ abstract class NonPromotionReasonVisitor<
 > {
   NonPromotionReasonVisitor._() : assert(false, 'Do not extend this class');
 
-  R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
+  R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable, Node> reason);
+
+  R visitDemoteViaSuspension(DemoteViaSuspension<Variable, Node> reason);
 
   R visitPropertyNotPromotedForInherentReason(
     PropertyNotPromotedForInherentReason reason,
@@ -3758,13 +3804,27 @@ class PromotionModel {
   ///
   /// Used by [FlowModel.conservativeJoin] to update the state of variables at
   /// the top of loops whose bodies write to them.
-  PromotionModel discardPromotionsAndMarkNotUnassigned() {
+  PromotionModel discardPromotionsAndMarkNotUnassigned({
+    NonPromotionReason? nonPromotionReason,
+  }) {
+    NonPromotionHistory? newNonPromotionHistory;
+    if (nonPromotionReason != null) {
+      newNonPromotionHistory = nonPromotionHistory;
+      for (int i = promotedTypes.length - 1; i >= 0; i--) {
+        newNonPromotionHistory = new NonPromotionHistory(
+          promotedTypes[i],
+          nonPromotionReason,
+          newNonPromotionHistory,
+        );
+      }
+    }
     return new PromotionModel(
       promotedTypes: const [],
       tested: tested,
       assigned: assigned,
       unassigned: false,
       ssaNode: writeCaptured ? null : new SsaNode(),
+      nonPromotionHistory: newNonPromotionHistory,
     );
   }
 
@@ -5178,9 +5238,6 @@ class _FlowAnalysisImpl<
   /// [_Reference] object referring to the scrutinee.  Otherwise `null`.
   _Reference? _scrutineeReference;
 
-  /// The mapping from expressions to their [ExpressionInfo]s.
-  final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
-
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   @override
@@ -5198,12 +5255,22 @@ class _FlowAnalysisImpl<
 
   final List<SsaNode> _thisSsaNodes = [new SsaNode()];
 
+  late final List<int> _thisPromotionKeys = [
+    promotionKeyStore.makeTemporaryKey(),
+  ];
+
   @override
   final List<_Reference> _cascadeTargetStack = [];
 
   /// The [_AnonymousBlockContext] for the immediately enclosing block-bodied
   /// anonymous method, if there is one. Otherwise `null`.
   _AnonymousBlockContext? _anonymousBlockContext;
+
+  /// Stack of [AssignedVariablesNodeInfo] for any local function, function
+  /// expression, or late variable initializer expression that encloses the
+  /// point in flow control that's currently being analyzed.
+  final List<AssignedVariablesNodeInfo> _enclosingFunctionExpressionInfoStack =
+      [];
 
   _FlowAnalysisImpl(
     this.operations,
@@ -5220,6 +5287,15 @@ class _FlowAnalysisImpl<
 
   @override
   bool get isReachable => _current.reachable.overallReachable;
+
+  @override
+  SharedTypeView? get promotedTypeOfThis {
+    if (!typeAnalyzerOptions.thisPromotionEnabled) return null;
+    return _current.promotionInfo
+        ?.get(this, _thisPromotionKeys.last)
+        ?.promotedTypes
+        .lastOrNull;
+  }
 
   @override
   FlowAnalysisTypeOperations get typeOperations => operations;
@@ -5619,16 +5695,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? expressionInfoForTesting(Expression target) {
-    return _expressionInfoMap[target];
-  }
-
-  @override
   void finish() {
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
     assert(_scrutineeReference == null);
+    assert(_enclosingFunctionExpressionInfoStack.isEmpty);
   }
 
   @override
@@ -5705,10 +5777,6 @@ class _FlowAnalysisImpl<
   void functionExpression_end() {
     _functionExpression_end();
   }
-
-  @override
-  ExpressionInfo? getExpressionInfo(Expression? expression) =>
-      _expressionInfoMap[expression];
 
   @override
   SharedTypeView getMatchedValueType() => _getMatchedValueType();
@@ -6372,8 +6440,12 @@ class _FlowAnalysisImpl<
     // even if the underlying variable whose property is being referenced has
     // changed, because the next time the property is accessed, it will be
     // accessed through a new SSA node, and thus a new promotion key).
+    //
+    // If the scrutinee is `this`, promote it too.
     if (scrutineeReference != null &&
         (scrutineeReference is _PropertyReference ||
+            (scrutineeReference.isThisOrSuper &&
+                typeAnalyzerOptions.thisPromotionEnabled) ||
             _current.promotionInfo
                     ?.get(this, matchedValueReference.promotionKey)!
                     .ssaNode ==
@@ -6518,16 +6590,38 @@ class _FlowAnalysisImpl<
       ?.ssaNode;
 
   @override
-  void storeExpressionInfo(
-    Expression expression,
-    ExpressionInfo? expressionInfo,
-  ) {
-    _expressionInfoMap[expression] = expressionInfo;
+  void suspension(Node node) {
+    // During an async suspension or yield, other code may execute. If the
+    // current point in flow control is inside a local function, this means that
+    // enclosing functions may resume executing.
+    //
+    // Therefore, any variables that are read within the current local function,
+    // and written to anywhere, but not declared in the current local function,
+    // might potentially get written to, blowing away any promotions that are
+    // currently in effect.
+    if (_enclosingFunctionExpressionInfoStack case [..., var info]) {
+      Set<int> variablesToDemote = info.read
+          .intersection(_assignedVariables.anywhere.written)
+          .difference(info.declared);
+      _current = _current.conservativeJoin(
+        this,
+        variablesToDemote,
+        const [],
+        getNonPromotionReason: (variableKey) {
+          Variable? variable = promotionKeyStore.variableForKey(variableKey);
+          // `variableKey` should be one of the keys in `variableToDemote`;
+          // those keys in turn should always correspond to actual variables
+          // declared by the user. So `variable` should never be `null`.
+          assert(variablesToDemote.contains(variableKey));
+          return new DemoteViaSuspension<Variable, Node>(variable!, node);
+        },
+      );
+    }
   }
 
   @override
-  bool switchStatement_afterCase() {
-    _SwitchStatementContext context = _stack.last as _SwitchStatementContext;
+  bool switch_afterCase() {
+    _SwitchContext context = _stack.last as _SwitchContext;
     bool isLocallyReachable = _current.reachable.locallyReachable;
     _current = _current.unsplit();
     if (isLocallyReachable) {
@@ -6537,23 +6631,22 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void switchStatement_beginAlternative() {
+  void switch_beginAlternative() {
     _SwitchAlternativesContext<Variable> context =
         _stack.last as _SwitchAlternativesContext<Variable>;
-    _current = context._switchStatementContext._unmatched;
-    _pushPattern(context._switchStatementContext._matchedValueInfo);
+    _current = context._switchContext._unmatched;
+    _pushPattern(context._switchContext._matchedValueInfo);
   }
 
   @override
-  void switchStatement_beginAlternatives() {
-    _SwitchStatementContext context = _stack.last as _SwitchStatementContext;
+  void switch_beginAlternatives() {
+    _SwitchContext context = _stack.last as _SwitchContext;
     _stack.add(new _SwitchAlternativesContext<Variable>(context));
   }
 
   @override
-  bool switchStatement_end(bool isExhaustive) {
-    _SwitchStatementContext context =
-        _stack.removeLast() as _SwitchStatementContext;
+  bool switch_end(bool isExhaustive) {
+    _SwitchContext context = _stack.removeLast() as _SwitchContext;
     bool isProvenExhaustive = !context._unmatched.reachable.locallyReachable;
     FlowModel? breakState = context._breakModel;
 
@@ -6577,7 +6670,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void switchStatement_endAlternative(
+  void switch_endAlternative(
     ExpressionInfo? guardInfo,
     Map<String, Variable> variables,
   ) {
@@ -6587,7 +6680,7 @@ class _FlowAnalysisImpl<
     // Future alternatives will be analyzed under the assumption that this
     // alternative didn't match.  This models the fact that a switch statement
     // behaves like a chain of if/else tests.
-    context._switchStatementContext._unmatched = unmatched;
+    context._switchContext._unmatched = unmatched;
 
     PatternVariableInfo<Variable> patternVariableInfo =
         context._patternVariableInfo;
@@ -6622,14 +6715,13 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  PatternVariableInfo<Variable> switchStatement_endAlternatives(
+  PatternVariableInfo<Variable> switch_endAlternatives(
     Statement? node, {
     required bool hasLabels,
   }) {
     _SwitchAlternativesContext<Variable> alternativesContext =
         _stack.removeLast() as _SwitchAlternativesContext<Variable>;
-    _SwitchStatementContext switchContext =
-        _stack.last as _SwitchStatementContext;
+    _SwitchContext switchContext = _stack.last as _SwitchContext;
     if (hasLabels) {
       AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
       _current = switchContext._previous.conservativeJoin(
@@ -6640,7 +6732,7 @@ class _FlowAnalysisImpl<
     } else {
       _current = alternativesContext._combinedModel ?? switchContext._unmatched;
     }
-    // Do a control flow split so that in switchStatement_afterCase, we'll be
+    // Do a control flow split so that in switch_afterCase, we'll be
     // able to tell whether the end of the case body was reachable from its
     // start.
     _current = _current.split();
@@ -6648,7 +6740,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void switchStatement_expressionEnd(
+  void switch_scrutineeEnd(
     Statement? switchStatement,
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
@@ -6659,7 +6751,7 @@ class _FlowAnalysisImpl<
       allowScrutineePromotion: true,
     );
     _current = _current.split();
-    _SwitchStatementContext context = new _SwitchStatementContext(
+    _SwitchContext context = new _SwitchContext(
       _current.reachable.parent!,
       _current,
       matchedValueInfo,
@@ -6681,11 +6773,13 @@ class _FlowAnalysisImpl<
               : null,
         );
     _thisSsaNodes.add(ssaNode);
+    _thisPromotionKeys.add(promotionKeyStore.makeTemporaryKey());
   }
 
   @override
   void thisBinding_end() {
     _thisSsaNodes.removeLast();
+    _thisPromotionKeys.removeLast();
   }
 
   @override
@@ -6892,9 +6986,12 @@ class _FlowAnalysisImpl<
   Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
     SharedTypeView staticType,
   ) {
+    if (typeAnalyzerOptions.thisPromotionEnabled) {
+      return () => {};
+    }
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
-      promotionKeyStore.thisPromotionKey,
+      _thisPromotionKeys.last,
     );
     if (currentThisInfo == null) {
       return () => {};
@@ -7142,19 +7239,6 @@ class _FlowAnalysisImpl<
     if (_scrutineeReference != null) {
       print('  scrutineeReference: $_scrutineeReference');
     }
-    int expressionInfoEntryIndex = 0;
-    for (MapEntry<Expression, ExpressionInfo?> expressionInfoEntry
-        in _expressionInfoMap.entries) {
-      print(
-        '  expressionWithInfo #$expressionInfoEntryIndex: '
-        '${expressionInfoEntry.key}',
-      );
-      print(
-        '  expressionInfo #$expressionInfoEntryIndex: '
-        '${expressionInfoEntry.value}',
-      );
-      expressionInfoEntryIndex++;
-    }
     if (_stack.isNotEmpty) {
       print('  stack:');
       for (_FlowContext stackEntry in _stack.reversed) {
@@ -7213,6 +7297,7 @@ class _FlowAnalysisImpl<
 
   void _functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _enclosingFunctionExpressionInfoStack.add(info);
     _current = _current.conservativeJoin(this, const [], info.written);
     _stack.add(
       new _FunctionExpressionContext(_current, _anonymousBlockContext),
@@ -7228,6 +7313,7 @@ class _FlowAnalysisImpl<
   void _functionExpression_end() {
     _FunctionExpressionContext context =
         _stack.removeLast() as _FunctionExpressionContext;
+    _enclosingFunctionExpressionInfoStack.removeLast();
     _current = context._previous;
     _anonymousBlockContext = context._previousAnonymousBlockContext;
   }
@@ -7304,16 +7390,19 @@ class _FlowAnalysisImpl<
         reference.promotionKey,
       );
       if (variable == null) {
-        List<SharedTypeView> promotedTypes = currentPromotionInfo.promotedTypes;
-        if (promotedTypes.isNotEmpty) {
-          return () {
-            Map<SharedTypeView, NonPromotionReason> result =
-                <SharedTypeView, NonPromotionReason>{};
-            for (SharedTypeView type in promotedTypes) {
-              result[type] = new ThisNotPromoted();
-            }
-            return result;
-          };
+        if (!typeAnalyzerOptions.thisPromotionEnabled) {
+          List<SharedTypeView> promotedTypes =
+              currentPromotionInfo.promotedTypes;
+          if (promotedTypes.isNotEmpty) {
+            return () {
+              Map<SharedTypeView, NonPromotionReason> result =
+                  <SharedTypeView, NonPromotionReason>{};
+              for (SharedTypeView type in promotedTypes) {
+                result[type] = new ThisNotPromoted();
+              }
+              return result;
+            };
+          }
         }
       } else {
         return () {
@@ -7786,7 +7875,7 @@ class _FlowAnalysisImpl<
   }) {
     SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
     return new TrivialVariableReference(
-      promotionKey: promotionKeyStore.thisPromotionKey,
+      promotionKey: _thisPromotionKeys.last,
       model: _current,
       type: staticType,
       isThisOrSuper: true,
@@ -7834,7 +7923,7 @@ class _FlowAnalysisImpl<
     );
     _current = _current.write(
       this,
-      new DemoteViaExplicitWrite<Variable>(variable, node),
+      new DemoteViaExplicitWrite<Variable, Node>(variable, node),
       variableKey,
       writtenType,
       newSsaNode,
@@ -7843,9 +7932,7 @@ class _FlowAnalysisImpl<
 
     // Update the type of the variable for looking up the write expression.
     TrivialVariableReference? reference;
-    if (typeAnalyzerOptions.inferenceUpdate4Enabled &&
-        node is Expression &&
-        !isPostfixIncDec) {
+    if (typeAnalyzerOptions.inferenceUpdate4Enabled && !isPostfixIncDec) {
       reference = _variableReference(variableKey, unpromotedType);
     }
     return reference;
@@ -8233,8 +8320,8 @@ class _SimpleStatementContext extends _BranchTargetContext {
 }
 
 class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {
-  /// The enclosing [_SwitchStatementContext].
-  final _SwitchStatementContext _switchStatementContext;
+  /// The enclosing [_SwitchContext].
+  final _SwitchContext _switchContext;
 
   /// Data structure accumulating information about the relationship among
   /// variables defined by patterns in the various alternatives.
@@ -8243,7 +8330,7 @@ class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {
 
   FlowModel? _combinedModel;
 
-  _SwitchAlternativesContext(this._switchStatementContext);
+  _SwitchAlternativesContext(this._switchContext);
 
   @override
   Map<String, Object?> get _debugFields =>
@@ -8253,21 +8340,18 @@ class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {
   String get _debugType => '_SwitchAlternativesContext';
 }
 
-/// [_FlowContext] representing a switch statement.
-class _SwitchStatementContext extends _SimpleStatementContext {
+/// [_FlowContext] representing a switch statement or switch expression.
+class _SwitchContext extends _SimpleStatementContext {
   /// [_Reference] for the value being matched.
   final _Reference _matchedValueInfo;
 
-  /// Flow state for the code path where no switch cases have matched yet.  If
-  /// we think of a switch statement as syntactic sugar for a chain of if-else
-  /// statements, this is the flow state on entry to the next `if`.
+  /// Flow state for the code path where no patterns have matched yet.  If we
+  /// think of a switch as syntactic sugar for a chain of if-else statements,
+  /// this is the flow state on entry to the next `if`.
   FlowModel _unmatched;
 
-  _SwitchStatementContext(
-    super.checkpoint,
-    super._previous,
-    this._matchedValueInfo,
-  ) : _unmatched = _previous;
+  _SwitchContext(super.checkpoint, super._previous, this._matchedValueInfo)
+    : _unmatched = _previous;
 
   @override
   Map<String, Object?> get _debugFields => super._debugFields
@@ -8275,7 +8359,7 @@ class _SwitchStatementContext extends _SimpleStatementContext {
     ..['unmatched'] = _unmatched;
 
   @override
-  String get _debugType => '_SwitchStatementContext';
+  String get _debugType => '_SwitchContext';
 }
 
 /// [_FlowContext] representing the top level of a pattern syntax tree.

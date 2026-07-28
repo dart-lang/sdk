@@ -7,22 +7,22 @@ library;
 //     case var v when (v = 1) > 0:
 //                      ^
 //
-// pkg/front_end/testcases/patterns/assignment_in_guard.dart:15:37: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// pkg/front_end/testcases/patterns/assignment_in_guard.dart:16:17: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 // Try assigning to a different variable.
-//   var z = switch (42) { int v when (v = 1) >= 0 => v, _ => -1 };
-//                                     ^
+//     int v when (v = 1) >= 0 => v,
+//                 ^
 //
-// pkg/front_end/testcases/patterns/assignment_in_guard.dart:20:27: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// pkg/front_end/testcases/patterns/assignment_in_guard.dart:23:27: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 // Try assigning to a different variable.
 //   if (42 case var v when (v = 1) > 0) {
 //                           ^
 //
-// pkg/front_end/testcases/patterns/assignment_in_guard.dart:26:40: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// pkg/front_end/testcases/patterns/assignment_in_guard.dart:29:40: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 // Try assigning to a different variable.
 //   List l = [1, if (42 case int v when (v = 1) > 0) v else 1, 3];
 //                                        ^
 //
-// pkg/front_end/testcases/patterns/assignment_in_guard.dart:33:17: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+// pkg/front_end/testcases/patterns/assignment_in_guard.dart:36:17: Error: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
 // Try assigning to a different variable.
 //         5 when (a = 4) < 1 => true,
 //                 ^

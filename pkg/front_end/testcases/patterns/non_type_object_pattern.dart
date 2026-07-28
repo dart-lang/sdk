@@ -16,11 +16,11 @@ testUnresolved(o) {
 
   switch (o) {
     case Unresolved(:var field):
-    break;
+      break;
   }
   o = switch (o) {
     Unresolved(:var field) => "matched",
-    _ => ""
+    _ => "",
   };
 }
 
@@ -32,11 +32,11 @@ testNonType(o) {
 
   switch (o) {
     case NonType(:var field):
-    break;
+      break;
   }
   o = switch (o) {
     NonType(:var field) => "matched",
-    _ => ""
+    _ => "",
   };
 }
 
@@ -48,11 +48,11 @@ testExtension(o) {
 
   switch (o) {
     case Extension(:var field):
-    break;
+      break;
   }
   o = switch (o) {
     Extension(:var field) => "matched",
-    _ => ""
+    _ => "",
   };
 }
 
@@ -64,11 +64,11 @@ testPrefixedUnresolved(o) {
 
   switch (o) {
     case prefix.Unresolved(:var field):
-    break;
+      break;
   }
   o = switch (o) {
-   prefix.Unresolved(:var field) => "matched",
-    _ => ""
+    prefix.Unresolved(:var field) => "matched",
+    _ => "",
   };
 }
 
@@ -80,11 +80,11 @@ testPrefixedNonType(o) {
 
   switch (o) {
     case prefix.NonType(:var field):
-    break;
+      break;
   }
   o = switch (o) {
     prefix.NonType(:var field) => "matched",
-    _ => ""
+    _ => "",
   };
 }
 
@@ -96,11 +96,11 @@ testPrefixedExtension(o) {
 
   switch (o) {
     case prefix.Extension(:var field):
-    break;
+      break;
   }
   o = switch (o) {
     prefix.Extension(:var field) => "matched",
-    _ => ""
+    _ => "",
   };
 }
 
@@ -112,11 +112,11 @@ testUnresolvedPrefix(o) {
 
   switch (o) {
     case unresolved.Type(:var field):
-    break;
+      break;
   }
   o = switch (o) {
     unresolved.Type(:var field) => "matched",
-    _ => ""
+    _ => "",
   };
 }
 
@@ -128,10 +128,10 @@ testMemberAccess(o) {
 
   switch (o) {
     case NonType.hashCode(:var field):
-    break;
+      break;
   }
   o = switch (o) {
     NonType.hashCode(:var field) => "matched",
-    _ => ""
+    _ => "",
   };
 }

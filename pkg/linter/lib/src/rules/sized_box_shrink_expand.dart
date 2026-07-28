@@ -34,11 +34,7 @@ class SizedBoxShrinkExpand extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final SizedBoxShrinkExpand rule;
-
-  new(this.rule);
-
+class _Visitor(final SizedBoxShrinkExpand rule) extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     // Only interested in the default constructor for the SizedBox widget

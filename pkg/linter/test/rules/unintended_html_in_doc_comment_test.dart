@@ -53,7 +53,7 @@ class C {}
   }
 
   test_codeSpan_backSlashEscaped() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// \\\`List/*[0*/<int>/*0]*/ /*[1*/<tag>/*1]*/`
 class C {}
 ''');
@@ -75,7 +75,7 @@ class C {}
 
   test_codeSpan_unterminated() async {
     // An unterminated long code span has no effect.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// A ```List[!<int>!] and quoted `<tag>` example
 class C {}
 ''');
@@ -169,14 +169,14 @@ class C {}
   }
 
   test_unintendedHtml() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Text List[!<int>!].
 class C {}
 ''');
   }
 
   test_unintendedHtml_javaDoc() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /** Text List[!<int>!]. */
 class C {}
 ''');
@@ -190,7 +190,7 @@ class C {}
   }
 
   test_unintendedHtml_javaDoc_multiline() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /**
  *  Text List[!<int>!].
  */
@@ -199,7 +199,7 @@ class C {}
   }
 
   test_unintendedHtml_multipleDocComments() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Text List.
 class A {}
 
@@ -209,7 +209,7 @@ class C {}
   }
 
   test_unintendedHtml_multipleLines() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Text List.
 /// Text List[!<int>!].
 class C {}
@@ -217,7 +217,7 @@ class C {}
   }
 
   test_unintendedHtml_nested() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Text List[!<List<int>!]>.
 class C {}
 ''');
@@ -231,14 +231,14 @@ class C {}
   }
 
   test_unintendedHtml_spaces() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Text [!<your name here>!].
 class C {}
 ''');
   }
 
   test_unintendedHtml_tags_slash() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// /*[0*/</bad>/*0]*/ /*[1*/<bad/>/*1]*/
 class C {}
 ''');
@@ -259,7 +259,7 @@ class C {}
   }
 
   test_unintendedHtml_tagsMultiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// /*[0*/<assignment>/*0]*/ -> /*[1*/<variable>/*1]*/ = /*[2*/<expression>/*2]*/
 class C {}
 ''');

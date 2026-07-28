@@ -410,10 +410,8 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
     // For unnamed constructors, we don't want to add an occurrence for the
     // class name here because visitConstructorDeclaration will have added one
     // for the constructor (not the type).
-    if (node.parent case ConstructorDeclaration(
-      :var name,
-      :var typeName,
-    ) when name == null && node == typeName) {
+    if (node.parent case ConstructorDeclaration(:var name, :var typeName)
+        when name == null && node == typeName) {
       return;
     }
 

@@ -32,19 +32,23 @@ class TestMatrix {
       var options = configurationJson["options"] ?? const <String, dynamic>{};
 
       for (var configuration in Configuration.expandTemplate(
-          template, options as Map<String, dynamic>)) {
+        template,
+        options as Map<String, dynamic>,
+      )) {
         for (var existing in configurations) {
           // Make sure the names don't collide.
           if (configuration.name == existing.name) {
             throw FormatException(
-                'Configuration "${configuration.name}" already exists.');
+              'Configuration "${configuration.name}" already exists.',
+            );
           }
 
           // Make sure we don't have two equivalent configurations.
           if (configuration.optionsEqual(existing)) {
             throw FormatException(
-                'Configuration "${configuration.name}" is identical to '
-                '"${existing.name}".');
+              'Configuration "${configuration.name}" is identical to '
+              '"${existing.name}".',
+            );
           }
         }
 
@@ -54,7 +58,7 @@ class TestMatrix {
 
     var builderConfigurations = [
       ...?(json["builder_configurations"] as List<Object?>?)
-          ?.cast<Map<Object?, Object?>>()
+          ?.cast<Map<Object?, Object?>>(),
     ];
     var builders = parseBuilders(builderConfigurations, configurations);
     var branchesValue = json["branches"] as List?;
@@ -66,8 +70,10 @@ class TestMatrix {
       for (var configuration in builder.testedConfigurations) {
         var other = testedOn[configuration];
         if (other != null) {
-          throw FormatException('Configuration "${configuration.name}" is '
-              'tested on both "${builder.name}" and "${other.name}"');
+          throw FormatException(
+            'Configuration "${configuration.name}" is '
+            'tested on both "${builder.name}" and "${other.name}"',
+          );
         } else {
           testedOn[configuration] = builder;
         }

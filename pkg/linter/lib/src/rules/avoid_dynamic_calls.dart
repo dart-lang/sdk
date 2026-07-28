@@ -41,7 +41,7 @@ class AvoidDynamicCalls extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   /// Member names which are allowed to be accessed on `dynamic`- or
   /// `Function`-typed expressions.
   static const _allowedMemberAccesses = {
@@ -50,10 +50,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     'runtimeType',
     'toString',
   };
-
-  final AnalysisRule rule;
-
-  new(this.rule);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {

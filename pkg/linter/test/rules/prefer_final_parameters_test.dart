@@ -30,7 +30,7 @@ void f(String p) {
   }
 
   test_closure() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 var f = ([!Object p!]) {
   print(p);
@@ -57,7 +57,7 @@ void f(final List<int> x) {
   }
 
   test_closure_untyped() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f(final List<int> x) {
   x.forEach(([!e!]) => print(e + 4));
@@ -82,7 +82,7 @@ class C {
   }
 
   test_constructor_usedInBody() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   int x = 0;
@@ -94,7 +94,7 @@ class C {
   }
 
   test_constructor_usedInInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   String x = '';
@@ -160,7 +160,7 @@ void f(int p) {
   }
 
   test_method() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   void m([!String p!]) {
@@ -200,7 +200,7 @@ class C {
   }
 
   test_operator() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   C operator +([!C other!]) {
@@ -241,7 +241,7 @@ void f(int a, int b) {
   }
 
   test_setter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 class C {
   int x = 0;
@@ -297,7 +297,7 @@ class B extends A {
   }
 
   test_topLevelFunction() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f([!int p!]) => print(p);
 ''');
@@ -321,7 +321,7 @@ void f(final String p, final String p2) {
   }
 
   test_topLevelFunction_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f({[!String? p!]}) {
   print(p);
@@ -353,7 +353,7 @@ void f({final String? _}) { }
   }
 
   test_topLevelFunction_namedRequired() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f({[!required String p!]}) {
   print(p);
@@ -385,7 +385,7 @@ void f({required String _}) { }
   }
 
   test_topLevelFunction_optional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // @dart=3.12
 void f([[!String? p!]]) {
   print(p);

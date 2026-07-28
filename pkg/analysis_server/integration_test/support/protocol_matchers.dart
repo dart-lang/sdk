@@ -350,19 +350,21 @@ final Matcher isCompletionSuggestion = LazyMatcher(
 ///       PARAMETER
 ///       PACKAGE_NAME
 ///     }
-final Matcher isCompletionSuggestionKind =
-    MatchesEnum('CompletionSuggestionKind', [
-      'ARGUMENT_LIST',
-      'IMPORT',
-      'IDENTIFIER',
-      'INVOCATION',
-      'KEYWORD',
-      'NAMED_ARGUMENT',
-      'OPTIONAL_ARGUMENT',
-      'OVERRIDE',
-      'PARAMETER',
-      'PACKAGE_NAME',
-    ]);
+final Matcher isCompletionSuggestionKind = MatchesEnum(
+  'CompletionSuggestionKind',
+  [
+    'ARGUMENT_LIST',
+    'IMPORT',
+    'IDENTIFIER',
+    'INVOCATION',
+    'KEYWORD',
+    'NAMED_ARGUMENT',
+    'OPTIONAL_ARGUMENT',
+    'OVERRIDE',
+    'PARAMETER',
+    'PACKAGE_NAME',
+  ],
+);
 
 /// ContextData
 ///

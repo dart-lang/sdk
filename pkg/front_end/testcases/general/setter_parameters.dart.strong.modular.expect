@@ -1,0 +1,253 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:5:16: Error: A setter should have exactly one formal parameter.
+// set noParameter() /* Error */ {}
+//                ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:7:32: Error: A setter should have exactly one formal parameter.
+// set optionalPositionalParameter([a]) /* Error */ {
+//                                ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:11:27: Error: A setter should have exactly one formal parameter.
+// set optionalNamedParameter({a}) /* Error */ {
+//                           ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:15:23: Error: A setter should have exactly one formal parameter.
+// set multipleParameters(a, b) /* Error */ {
+//                       ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:20:33: Error: A setter should have exactly one formal parameter.
+// set multiplePositionalParameters(a, [b]) /* Error */ {
+//                                 ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:25:28: Error: A setter should have exactly one formal parameter.
+// set multipleNamedParameters(a, {b}) /* Error */ {
+//                            ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:31:18: Error: A setter should have exactly one formal parameter.
+//   set noParameter() /* Error */ {}
+//                  ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:33:34: Error: A setter should have exactly one formal parameter.
+//   set optionalPositionalParameter([a]) /* Error */ {
+//                                  ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:37:29: Error: A setter should have exactly one formal parameter.
+//   set optionalNamedParameter({a}) /* Error */ {
+//                             ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:41:25: Error: A setter should have exactly one formal parameter.
+//   set multipleParameters(a, b) /* Error */ {
+//                         ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:46:35: Error: A setter should have exactly one formal parameter.
+//   set multiplePositionalParameters(a, [b]) /* Error */ {
+//                                   ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:51:30: Error: A setter should have exactly one formal parameter.
+//   set multipleNamedParameters(a, {b}) /* Error */ {
+//                              ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:58:18: Error: A setter should have exactly one formal parameter.
+//   set noParameter() /* Error */ {}
+//                  ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:60:34: Error: A setter should have exactly one formal parameter.
+//   set optionalPositionalParameter([a]) /* Error */ {
+//                                  ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:64:29: Error: A setter should have exactly one formal parameter.
+//   set optionalNamedParameter({a}) /* Error */ {
+//                             ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:68:25: Error: A setter should have exactly one formal parameter.
+//   set multipleParameters(a, b) /* Error */ {
+//                         ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:73:35: Error: A setter should have exactly one formal parameter.
+//   set multiplePositionalParameters(a, [b]) /* Error */ {
+//                                   ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:78:30: Error: A setter should have exactly one formal parameter.
+//   set multipleNamedParameters(a, {b}) /* Error */ {
+//                              ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:85:18: Error: A setter should have exactly one formal parameter.
+//   set noParameter() /* Error */ {}
+//                  ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:87:34: Error: A setter should have exactly one formal parameter.
+//   set optionalPositionalParameter([a]) /* Error */ {
+//                                  ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:91:29: Error: A setter should have exactly one formal parameter.
+//   set optionalNamedParameter({a}) /* Error */ {
+//                             ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:95:25: Error: A setter should have exactly one formal parameter.
+//   set multipleParameters(a, b) /* Error */ {
+//                         ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:100:35: Error: A setter should have exactly one formal parameter.
+//   set multiplePositionalParameters(a, [b]) /* Error */ {
+//                                   ^
+//
+// pkg/front_end/testcases/general/setter_parameters.dart:105:30: Error: A setter should have exactly one formal parameter.
+//   set multipleNamedParameters(a, {b}) /* Error */ {
+//                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  set noParameter(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:31:18: Error: A setter should have exactly one formal parameter.
+  set noParameter() /* Error */ {}
+                 ^";
+  }
+  set optionalPositionalParameter(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:33:34: Error: A setter should have exactly one formal parameter.
+  set optionalPositionalParameter([a]) /* Error */ {
+                                 ^";
+  }
+  set optionalNamedParameter(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:37:29: Error: A setter should have exactly one formal parameter.
+  set optionalNamedParameter({a}) /* Error */ {
+                            ^";
+  }
+  set multipleParameters(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:41:25: Error: A setter should have exactly one formal parameter.
+  set multipleParameters(a, b) /* Error */ {
+                        ^";
+  }
+  set multiplePositionalParameters(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:46:35: Error: A setter should have exactly one formal parameter.
+  set multiplePositionalParameters(a, [b]) /* Error */ {
+                                  ^";
+  }
+  set multipleNamedParameters(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:51:30: Error: A setter should have exactly one formal parameter.
+  set multipleNamedParameters(a, {b}) /* Error */ {
+                             ^";
+  }
+}
+extension E on core::int {
+  set noParameter = self::E|set#noParameter;
+  set optionalPositionalParameter = self::E|set#optionalPositionalParameter;
+  set optionalNamedParameter = self::E|set#optionalNamedParameter;
+  set multipleParameters = self::E|set#multipleParameters;
+  set multiplePositionalParameters = self::E|set#multiplePositionalParameters;
+  set multipleNamedParameters = self::E|set#multipleNamedParameters;
+}
+extension type ET(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  set noParameter = self::ET|set#noParameter;
+  set optionalPositionalParameter = self::ET|set#optionalPositionalParameter;
+  set optionalNamedParameter = self::ET|set#optionalNamedParameter;
+  set multipleParameters = self::ET|set#multipleParameters;
+  set multiplePositionalParameters = self::ET|set#multiplePositionalParameters;
+  set multipleNamedParameters = self::ET|set#multipleNamedParameters;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static set noParameter(dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:5:16: Error: A setter should have exactly one formal parameter.
+set noParameter() /* Error */ {}
+               ^";
+}
+static set optionalPositionalParameter(dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:7:32: Error: A setter should have exactly one formal parameter.
+set optionalPositionalParameter([a]) /* Error */ {
+                               ^";
+}
+static set optionalNamedParameter(dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:11:27: Error: A setter should have exactly one formal parameter.
+set optionalNamedParameter({a}) /* Error */ {
+                          ^";
+}
+static set multipleParameters(dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:15:23: Error: A setter should have exactly one formal parameter.
+set multipleParameters(a, b) /* Error */ {
+                      ^";
+}
+static set multiplePositionalParameters(dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:20:33: Error: A setter should have exactly one formal parameter.
+set multiplePositionalParameters(a, [b]) /* Error */ {
+                                ^";
+}
+static set multipleNamedParameters(dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:25:28: Error: A setter should have exactly one formal parameter.
+set multipleNamedParameters(a, {b}) /* Error */ {
+                           ^";
+}
+static extension-member method E|set#noParameter(lowered final core::int #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:58:18: Error: A setter should have exactly one formal parameter.
+  set noParameter() /* Error */ {}
+                 ^";
+}
+static extension-member method E|set#optionalPositionalParameter(lowered final core::int #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:60:34: Error: A setter should have exactly one formal parameter.
+  set optionalPositionalParameter([a]) /* Error */ {
+                                 ^";
+}
+static extension-member method E|set#optionalNamedParameter(lowered final core::int #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:64:29: Error: A setter should have exactly one formal parameter.
+  set optionalNamedParameter({a}) /* Error */ {
+                            ^";
+}
+static extension-member method E|set#multipleParameters(lowered final core::int #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:68:25: Error: A setter should have exactly one formal parameter.
+  set multipleParameters(a, b) /* Error */ {
+                        ^";
+}
+static extension-member method E|set#multiplePositionalParameters(lowered final core::int #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:73:35: Error: A setter should have exactly one formal parameter.
+  set multiplePositionalParameters(a, [b]) /* Error */ {
+                                  ^";
+}
+static extension-member method E|set#multipleNamedParameters(lowered final core::int #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:78:30: Error: A setter should have exactly one formal parameter.
+  set multipleNamedParameters(a, {b}) /* Error */ {
+                             ^";
+}
+static extension-type-member method ET|constructor#(initializing-formal core::int it) → self::ET% /* erasure=core::int, declared=! */ {
+  lowered final self::ET% /* erasure=core::int, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int it) → self::ET% /* erasure=core::int, declared=! */
+  return self::ET|constructor#(it);
+static extension-type-member method ET|set#noParameter(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:85:18: Error: A setter should have exactly one formal parameter.
+  set noParameter() /* Error */ {}
+                 ^";
+}
+static extension-type-member method ET|set#optionalPositionalParameter(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:87:34: Error: A setter should have exactly one formal parameter.
+  set optionalPositionalParameter([a]) /* Error */ {
+                                 ^";
+}
+static extension-type-member method ET|set#optionalNamedParameter(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:91:29: Error: A setter should have exactly one formal parameter.
+  set optionalNamedParameter({a}) /* Error */ {
+                            ^";
+}
+static extension-type-member method ET|set#multipleParameters(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:95:25: Error: A setter should have exactly one formal parameter.
+  set multipleParameters(a, b) /* Error */ {
+                        ^";
+}
+static extension-type-member method ET|set#multiplePositionalParameters(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:100:35: Error: A setter should have exactly one formal parameter.
+  set multiplePositionalParameters(a, [b]) /* Error */ {
+                                  ^";
+}
+static extension-type-member method ET|set#multipleNamedParameters(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void {
+  invalid-expression "pkg/front_end/testcases/general/setter_parameters.dart:105:30: Error: A setter should have exactly one formal parameter.
+  set multipleNamedParameters(a, {b}) /* Error */ {
+                             ^";
+}

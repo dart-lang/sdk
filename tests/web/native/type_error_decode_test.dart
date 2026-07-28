@@ -5,6 +5,7 @@
 library test.type_error_decode_test;
 
 import 'native_testing.dart';
+
 import 'dart:_js_helper' show NullError, JsNoSuchMethodError;
 
 class Foo {

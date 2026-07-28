@@ -614,8 +614,10 @@ class ProcessStarter {
     }
 
     fdio_spawn_action_t* actions;
-    const intptr_t actions_count =
-        BuildSpawnActions(namespc_->namespc()->fdio_ns(), &actions);
+    const intptr_t actions_count = BuildSpawnActions(
+        namespc_->namespc() != nullptr ? namespc_->namespc()->fdio_ns()
+                                       : nullptr,
+        &actions);
     if (actions_count < 0) {
       zx_handle_close(vmo);
       close(exit_pipe_fds[0]);

@@ -19,7 +19,7 @@ class SwitchExpressionOnTypeTest extends LintRuleTest {
   String get lintRule => LintNames.switch_on_type;
 
   Future<void> test_binaryExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!'' + '$t'!]) {
     'type: int' => null,
@@ -30,7 +30,7 @@ void f(Type t) {
   }
 
   Future<void> test_conditionalBoth() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!1 == 1 ? t : '$t'!]) {
     'type: int' => null,
@@ -41,7 +41,7 @@ void f(Type t) {
   }
 
   Future<void> test_conditionalElse() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!1 == 1 ? 'other' : '$t'!]) {
     'type: int' => null,
@@ -88,7 +88,7 @@ String toString() => '';
   }
 
   Future<void> test_insideClass_implicitThis() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     (switch ([!runtimeType!]) {
@@ -101,7 +101,7 @@ class A {
   }
 
   Future<void> test_insideClass_withThis() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     (switch ([!this.runtimeType!]) {
@@ -114,7 +114,7 @@ class A {
   }
 
   Future<void> test_nestedSwitch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t, Object o) {
   (switch ([!switch(o) {_ => t}!]) {
     const (int) => null,
@@ -136,7 +136,7 @@ void f(num i) {
   }
 
   Future<void> test_override() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(MyClass i) {
   (switch ([!i.runtimeType!]) {
     const (MyClass) => null,
@@ -152,7 +152,7 @@ class MyClass {
   }
 
   Future<void> test_runtimeType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(num i) {
   (switch ([!i.runtimeType!]) {
     const (int) => null,
@@ -164,7 +164,7 @@ void f(num i) {
   }
 
   Future<void> test_runtimeTypeToString() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(num n) {
   (switch ([!n.runtimeType.toString()!]) {
     'int' => null,
@@ -175,7 +175,7 @@ void f(num n) {
   }
 
   Future<void> test_runtimeTypeToString_insideClass() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     (switch ([!runtimeType.toString()!]) {
@@ -188,7 +188,7 @@ class A {
   }
 
   Future<void> test_runtimeTypeToString_insideClass_override() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     (switch ([!runtimeType.toString()!]) {
@@ -241,7 +241,7 @@ void function() {}
   }
 
   Future<void> test_stringAddition() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!'type: ' + t.toString()!]) {
     'type: int' => null,
@@ -252,7 +252,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!'type: $t'!]) {
     'type: int' => null,
@@ -263,7 +263,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerConditionalResult() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!'type: ${1 == 1 ? '$t' : 'other'}'!]) {
     'type: int' => null,
@@ -274,7 +274,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerInterpolation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!'type: ${'inner string $t'}'!]) {
     'type: int' => null,
@@ -285,7 +285,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerSwitchResult() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!'type: ${switch (1) {_ => '$t',}}'!]) {
     'type: int' => null,
@@ -296,7 +296,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerTest() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   (switch ([!'type: ${t == int ? 'int' : '$t'}'!]) {
     'type: int' => null,
@@ -333,7 +333,7 @@ class A {
   }
 
   Future<void> test_typeParameter() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f<T>() {
   (switch ([!T!]) {
     const (int) => null,
@@ -356,7 +356,7 @@ void f(Object? o) {
   }
 
   Future<void> test_variableType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(Type t) {
   (switch ([!t!]) {
     const (int) => null,
@@ -373,7 +373,7 @@ class SwitchStatementOnTypeTest extends LintRuleTest {
   String get lintRule => LintNames.switch_on_type;
 
   Future<void> test_binaryExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!'' + '$t'!]) {
     case 'type: int':
@@ -386,7 +386,7 @@ void f(Type t) {
   }
 
   Future<void> test_conditionalBoth() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!1 == 1 ? t : '$t'!]) {
     case 'type: int':
@@ -399,7 +399,7 @@ void f(Type t) {
   }
 
   Future<void> test_conditionalElse() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!1 == 1 ? 'other' : '$t'!]) {
     case 'type: int':
@@ -444,7 +444,7 @@ String toString() => '';
   }
 
   Future<void> test_insideClass_implicitThis() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     switch ([!runtimeType!]) {
@@ -459,7 +459,7 @@ class A {
   }
 
   Future<void> test_insideClass_withThis() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     switch ([!this.runtimeType!]) {
@@ -474,7 +474,7 @@ class A {
   }
 
   Future<void> test_nestedSwitch() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t, Object o) {
   switch ([!switch(o) {_ => t}!]) {
     case const (int):
@@ -500,7 +500,7 @@ void f(num i) {
   }
 
   Future<void> test_override() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(MyClass i) {
   switch ([!i.runtimeType!]) {
     case const (MyClass):
@@ -535,7 +535,7 @@ void f(num i) {
   }
 
   Future<void> test_runtimeType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(num i) {
   switch ([!i.runtimeType!]) {
     case const (int):
@@ -550,7 +550,7 @@ void f(num i) {
   }
 
   Future<void> test_runtimeTypeToString() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(num n) {
   switch ([!n.runtimeType.toString()!]) {
     case 'int':
@@ -563,7 +563,7 @@ void f(num n) {
   }
 
   Future<void> test_runtimeTypeToString_insideClass() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     switch ([!runtimeType.toString()!]) {
@@ -578,7 +578,7 @@ class A {
   }
 
   Future<void> test_runtimeTypeToString_insideClass_override() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   void m() {
     switch ([!runtimeType.toString()!]) {
@@ -637,7 +637,7 @@ void function() {}
   }
 
   Future<void> test_stringAddition() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!'type: ' + t.toString()!]) {
     case 'type: int':
@@ -650,7 +650,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!'type: $t'!]) {
     case 'type: int':
@@ -663,7 +663,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerConditionalResult() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!'type: ${1 == 1 ? '$t' : 'other'}'!]) {
     case 'type: int':
@@ -676,7 +676,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerInterpolation() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!'type: ${'inner string $t'}'!]) {
     case 'type: int':
@@ -689,7 +689,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerSwitchResult() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!'type: ${switch (1) {_ => '$t',}}'!]) {
     case 'type: int':
@@ -702,7 +702,7 @@ void f(Type t) {
   }
 
   Future<void> test_stringInterpolation_innerTest() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Type t) {
   switch ([!'type: ${t == int ? 'int' : '$t'}'!]) {
     case 'type: int':
@@ -745,7 +745,7 @@ class A {
   }
 
   Future<void> test_typeParameter() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f<T>() {
   switch ([!T!]) {
     case const (int):
@@ -772,7 +772,7 @@ void f(Object? o) {
   }
 
   Future<void> test_variableType() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 void f(Type t) {
   switch ([!t!]) {
     case const (int):

@@ -5,6 +5,7 @@
 // Tests that `await` can handle a future with a non-native stack trace.
 
 import "dart:async";
+
 import "package:expect/expect.dart";
 
 class Blah implements StackTrace {

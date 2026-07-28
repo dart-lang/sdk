@@ -153,47 +153,48 @@ dynamic expectAsync(Function f, {int count = 1}) {
     };
   }
   throw UnsupportedError(
-      "expectAsync only accepts up to five argument functions");
+    "expectAsync only accepts up to five argument functions",
+  );
 }
 
 // Matchers
 typedef Matcher = void Function(dynamic);
 
 Matcher same(dynamic o) => (v) {
-      Expect.identical(o, v);
-    };
+  Expect.identical(o, v);
+};
 
 Matcher equals(dynamic o) => (v) {
-      Expect.deepEquals(o, v);
-    };
+  Expect.deepEquals(o, v);
+};
 
 Matcher greaterThan(num n) => (dynamic v) {
-      Expect.type<num>(v);
-      num value = v;
-      if (value > n) return;
-      Expect.fail("$v is not greater than $n");
-    };
+  Expect.type<num>(v);
+  num value = v;
+  if (value > n) return;
+  Expect.fail("$v is not greater than $n");
+};
 
 Matcher greaterThanOrEqualTo(num n) => (dynamic v) {
-      Expect.type<num>(v);
-      num value = v;
-      if (value >= n) return;
-      Expect.fail("$v is not greater than $n");
-    };
+  Expect.type<num>(v);
+  num value = v;
+  if (value >= n) return;
+  Expect.fail("$v is not greater than $n");
+};
 
 Matcher lessThan(num n) => (dynamic v) {
-      Expect.type<num>(v);
-      num value = v;
-      if (value < n) return;
-      Expect.fail("$v is not less than $n");
-    };
+  Expect.type<num>(v);
+  num value = v;
+  if (value < n) return;
+  Expect.fail("$v is not less than $n");
+};
 
 Matcher lessThanOrEqualTo(num n) => (dynamic v) {
-      Expect.type<num>(v);
-      num value = v;
-      if (value <= n) return;
-      Expect.fail("$v is not less than $n");
-    };
+  Expect.type<num>(v);
+  num value = v;
+  if (value <= n) return;
+  Expect.fail("$v is not less than $n");
+};
 
 Matcher predicate(bool Function(dynamic value) fn, [String description = ""]) =>
     (dynamic v) {
@@ -201,12 +202,12 @@ Matcher predicate(bool Function(dynamic value) fn, [String description = ""]) =>
     };
 
 Matcher anyOf(List<String> expected) => (dynamic actual) {
-      for (var string in expected) {
-        if (actual == string) return;
-      }
+  for (var string in expected) {
+    if (actual == string) return;
+  }
 
-      Expect.fail("Expected $actual to be one of $expected.");
-    };
+  Expect.fail("Expected $actual to be one of $expected.");
+};
 
 void isTrue(dynamic v) {
   Expect.isTrue(v);
@@ -221,16 +222,21 @@ void isNull(dynamic o) {
 }
 
 void _checkThrow<T extends Object>(
-    dynamic v, void Function(dynamic error) onError) {
+  dynamic v,
+  void Function(dynamic error) onError,
+) {
   if (v is Future) {
     asyncStart();
-    v.then((_) {
-      Expect.fail("Did not throw");
-    }, onError: (e, s) {
-      if (e is! T) throw e;
-      onError(e);
-      asyncEnd();
-    });
+    v.then(
+      (_) {
+        Expect.fail("Did not throw");
+      },
+      onError: (e, s) {
+        if (e is! T) throw e;
+        onError(e);
+        asyncEnd();
+      },
+    );
     return;
   }
   Expect.throws<T>(v, (e) {
@@ -245,7 +251,8 @@ void returnsNormally(dynamic o) {
     o();
   } catch (error, trace) {
     Expect.fail(
-        "Expected function to return normally, but threw:\n$error\n\n$trace");
+      "Expected function to return normally, but threw:\n$error\n\n$trace",
+    );
   }
 }
 
@@ -254,20 +261,20 @@ void throws(dynamic v) {
 }
 
 Matcher throwsA(dynamic matcher) => (dynamic o) {
-      _checkThrow<Object>(o, (error) {
-        expect(error, matcher);
-      });
-    };
+  _checkThrow<Object>(o, (error) {
+    expect(error, matcher);
+  });
+};
 
 Matcher completion(dynamic matcher) => (dynamic o) {
-      Expect.type<Future>(o);
-      Future future = o;
-      asyncStart();
-      future.then((value) {
-        expect(value, matcher);
-        asyncEnd();
-      });
-    };
+  Expect.type<Future>(o);
+  Future future = o;
+  asyncStart();
+  future.then((value) {
+    expect(value, matcher);
+    asyncEnd();
+  });
+};
 
 void completes(dynamic o) {
   Expect.type<Future>(o);

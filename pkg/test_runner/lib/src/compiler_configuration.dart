@@ -827,7 +827,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // from pkg/dev_compiler/lib/src/compiler/js_names.dart to handle the
       // invalid library names from test files encountered so far.
       var libraryName = inputUri.path
-          .substring(repositoryUri.path.length)
           .replaceAll('/', '__')
           .replaceAll('-', '_')
           .replaceAll('.dart', '')
@@ -914,7 +913,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm64 =>
       _configuration.architecture == Architecture.arm64 ||
-      _configuration.architecture == Architecture.arm64c;
+      _configuration.architecture == Architecture.arm64c ||
+      _configuration.architecture == Architecture.arm64e;
 
   bool get _isX64 =>
       _configuration.architecture == Architecture.x64 ||
@@ -988,6 +988,15 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
             arguments,
             environmentOverrides,
           ),
+        );
+      }
+    }
+
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.coff) {
+      commands.add(computeCoffLinkCommand(tempDir, environmentOverrides));
+      if (!_configuration.keepGeneratedFiles) {
+        commands.add(
+          computeRemoveCoffObjectFileCommand(tempDir, environmentOverrides),
         );
       }
     }
@@ -1083,13 +1092,26 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     }
 
     var format = _configuration.genSnapshotFormat!;
-    var output = (format == GenSnapshotFormat.assembly)
-        ? tempAssemblyFile(tempDir)
-        : tempAOTFile(tempDir);
+    var output = tempAOTFile(tempDir);
+    if (format == GenSnapshotFormat.assembly) {
+      output = tempAssemblyFile(tempDir);
+    } else if (format == GenSnapshotFormat.coff) {
+      output = tempCoffObjectFile(tempDir);
+    }
     // Whether or not loading units are used. Mach-O doesn't currently support
     // this, and this isn't done for assembly output to avoid having to handle
     // the assembly of multiple assembly output files.
     var split = format == GenSnapshotFormat.elf;
+    var snapshotArguments = _replaceDartFiles(
+      arguments,
+      tempKernelFile(tempDir),
+    );
+    if (format == GenSnapshotFormat.coff) {
+      snapshotArguments = snapshotArguments
+          .where((argument) => !argument.startsWith('--save-debugging-info'))
+          .toList();
+    }
+
     var args = [
       "--snapshot-kind=${format.snapshotType}",
       "--${format.fileOption}=$output",
@@ -1101,7 +1123,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (arguments.contains('--print-flow-graph-optimized') &&
           (_configuration.isMinified || arguments.contains('--obfuscate')))
         '--save-obfuscation_map=$tempDir/renames.json',
-      ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
+      ...snapshotArguments,
     ];
 
     var command = CompilationCommand(
@@ -1124,8 +1146,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     List<String> arguments,
     Map<String, String> environmentOverrides,
   ) {
-    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    var compareIl = '$pkgVmDir/tool/compare_il$shellScriptExtension';
+    var compareIl = 'pkg/vm/tool/compare_il$shellScriptExtension';
 
     var args = [
       arguments.firstWhere((arg) => arg.endsWith('_il_test.dart')),
@@ -1225,6 +1246,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simarm64c:
           target = ['-arch', 'arm64'];
           break;
+        case Architecture.arm64e:
+          target = ['-arch', 'arm64e'];
+          break;
         case Architecture.riscv32:
         case Architecture.simriscv32:
           target = ['-arch', 'riscv32'];
@@ -1275,6 +1299,72 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       tempDir,
       bootstrapDependencies(),
       cc,
+      args,
+      environmentOverrides,
+      alwaysCompile: !_useSdk,
+    );
+  }
+
+  Command computeCoffLinkCommand(
+    String tempDir,
+    Map<String, String> environmentOverrides,
+  ) {
+    if (!Platform.isWindows) {
+      throw "COFF snapshots are only linked by the Windows test runner.";
+    }
+
+    List<String> target;
+    switch (_configuration.architecture) {
+      case Architecture.x64:
+      case Architecture.x64c:
+        target = ['--target=x86_64-windows'];
+        break;
+      default:
+        throw 'Unhandled architecture: ${_configuration.architecture}';
+    }
+
+    var args = [
+      ...target,
+      '-nostdlib',
+      '-Wl,/NOENTRY',
+      '-Wl,/DEBUG',
+      '-shared',
+      '-o',
+      tempAOTFile(tempDir),
+      tempCoffObjectFile(tempDir),
+    ];
+
+    return CompilationCommand(
+      'link_coff',
+      tempDir,
+      bootstrapDependencies(),
+      'buildtools\\win-x64\\clang\\bin\\clang.exe',
+      args,
+      environmentOverrides,
+      alwaysCompile: !_useSdk,
+    );
+  }
+
+  Command computeRemoveCoffObjectFileCommand(
+    String tempDir,
+    Map<String, String> environmentOverrides,
+  ) {
+    String exec;
+    List<String> args;
+
+    if (Platform.isWindows) {
+      exec = "cmd.exe";
+      args = ["/c", "del", tempCoffObjectFile(tempDir)];
+    } else {
+      exec = "rm";
+      args = [tempCoffObjectFile(tempDir)];
+    }
+
+    return CompilationCommand(
+      "remove_coff_object_file",
+      tempDir,
+      bootstrapDependencies(),
+      exec,
       args,
       environmentOverrides,
       alwaysCompile: !_useSdk,
@@ -1436,9 +1526,6 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
       executable = config.executable;
-      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
-        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
-      }
     }
     var command = CompilationCommand(
       'app_jit',
@@ -1626,6 +1713,8 @@ abstract mixin class VMKernelCompilerMixin {
       Path('$tempDir/out.dill').toNativePath();
   String tempAssemblyFile(String tempDir) =>
       Path('$tempDir/out.S').toNativePath();
+  String tempCoffObjectFile(String tempDir) =>
+      Path('$tempDir/out.obj').toNativePath();
   String tempAOTFile(String tempDir) {
     if (_configuration.genSnapshotFormat == GenSnapshotFormat.assembly) {
       switch (_configuration.system) {
@@ -1645,6 +1734,9 @@ abstract mixin class VMKernelCompilerMixin {
     if (_configuration.genSnapshotFormat == GenSnapshotFormat.elf) {
       return Path('$tempDir/libout.so').toNativePath();
     }
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.coff) {
+      return Path('$tempDir/out.dll').toNativePath();
+    }
     return Path('$tempDir/out.aotsnapshot').toNativePath();
   }
 
@@ -1653,8 +1745,7 @@ abstract mixin class VMKernelCompilerMixin {
     List<String> arguments,
     Map<String, String> environmentOverrides,
   ) {
-    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
+    var genKernel = 'pkg/vm/tool/gen_kernel$shellScriptExtension';
 
     var kernelBinariesFolder = _configuration.buildDirectory;
     if (_useSdk) {
@@ -1684,10 +1775,10 @@ abstract mixin class VMKernelCompilerMixin {
             name.startsWith('--enable-experiment=') ||
             name.startsWith('--keep-class-names-implementing='),
       ),
-      '-Ddart.vm.product=$isProductMode',
-      '-Ddart.vm.asan=$isAsan',
-      '-Ddart.vm.msan=$isMsan',
-      '-Ddart.vm.tsan=$isTsan',
+      if (isProductMode) '-Ddart.vm.product=true',
+      if (isAsan) '-Ddart.vm.asan=true',
+      if (isMsan) '-Ddart.vm.msan=true',
+      if (isTsan) '-Ddart.vm.tsan=true',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))

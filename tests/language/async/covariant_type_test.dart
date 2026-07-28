@@ -5,6 +5,7 @@
 // Test that TypeErrors happen for async methods without using returned Future.
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 
 class D<T> {

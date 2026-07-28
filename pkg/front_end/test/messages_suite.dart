@@ -94,6 +94,7 @@ class MessageTestSuite extends ChainContext {
 
   final bool fastOnly;
   final bool interactive;
+  final bool justAddEverything;
   final bool skipSpellCheck;
 
   final Map<String, List<String>?> reportedWordsAndAlternatives = {};
@@ -121,13 +122,18 @@ class MessageTestSuite extends ChainContext {
       reportedWordsDenylisted,
       [spell.Dictionaries.cfeMessages],
       interactive,
+      justAddEverything,
       '"$dartPath" "$suitePath" -DfastOnly=true -Dinteractive=true',
     );
     return new Future.value();
   }
 
-  new(this.fastOnly, this.interactive, this.skipSpellCheck)
-    : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-cfe:///")),
+  new(
+    this.fastOnly,
+    this.interactive,
+    this.justAddEverything,
+    this.skipSpellCheck,
+  ) : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-cfe:///")),
       compiler = new BatchCompiler(null);
 
   @override
@@ -871,9 +877,8 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
 
     await suite.compiler.batchCompile(
       new CompilerOptions()
-        ..sdkSummary = computePlatformBinariesLocation(
-          forceBuildDir: true,
-        ).resolve("vm_platform.dill")
+        ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
+            .resolve("vm_platform.dill")
         ..explicitExperimentalFlags = example.experimentalFlags ?? {}
         ..target = new VmTarget(new TargetFlags())
         ..fileSystem = new HybridFileSystem(suite.fileSystem)
@@ -998,9 +1003,15 @@ Future<MessageTestSuite> createContext(
 ) {
   final bool fastOnly = environment["fastOnly"] == "true";
   final bool interactive = environment["interactive"] == "true";
+  final bool justAddEverything = environment["justAddEverything"] == "true";
   final bool skipSpellCheck = environment["skipSpellCheck"] == "true";
   return new Future.value(
-    new MessageTestSuite(fastOnly, interactive, skipSpellCheck),
+    new MessageTestSuite(
+      fastOnly,
+      interactive,
+      justAddEverything,
+      skipSpellCheck,
+    ),
   );
 }
 

@@ -8,6 +8,7 @@
 // member for a List literal.
 
 import 'package:expect/expect.dart';
+
 import 'dart:mirrors';
 
 dynamic object = <int>[1, 2, 3];

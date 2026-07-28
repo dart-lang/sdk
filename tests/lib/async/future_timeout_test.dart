@@ -5,6 +5,7 @@
 library future_timeout_test;
 
 import 'dart:async';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 

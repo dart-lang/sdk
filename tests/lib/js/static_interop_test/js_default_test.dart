@@ -9,6 +9,7 @@
 library js_default_test;
 
 import 'dart:js_interop';
+
 import 'package:expect/expect.dart';
 
 import 'js_default_with_namespaces.dart' as namespace;

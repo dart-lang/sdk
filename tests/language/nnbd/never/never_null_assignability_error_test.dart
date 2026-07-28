@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
+
 import 'never_null_assignability_lib1.dart';
 
 // This test validates that in a null safe (opted in) library which calls out

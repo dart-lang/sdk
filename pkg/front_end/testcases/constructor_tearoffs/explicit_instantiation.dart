@@ -44,12 +44,14 @@ extension Ext on C {
     var f3TypeName = this.einst<int>.runtimeType.toString();
   }
 }
+
 class D extends C with M {
   void method() {
     var f4 = super.inst<int>; // works like (int $) => super.inst<int>($)
     var f4TypeName = super.inst<int>.runtimeType.toString();
   }
 }
+
 void main() {
   // Type literals.
   var t1 = List<int>; // Type object for `List<int>`.
@@ -58,13 +60,24 @@ void main() {
   // Instantiated function tear-offs.
   T local<T>(T value) => value;
 
-  const f1 = top<int>; // int Function(int), works like (int $) => top<int>($);
-  const f2 = C.stat<int>; // int Function(int), works like (int $) => C.stat<int>($);
-  var f3 = local<int>; // int Function(int), works like (int $) => local<int>($);
+  // int Function(int), works like (int $) => top<int>($);
+  const f1 = top<int>;
+
+  // int Function(int), works like (int $) => C.stat<int>($);
+  const f2 = C.stat<int>;
+
+  // int Function(int), works like (int $) => local<int>($);
+  var f3 = local<int>;
+
+  // int Function(int), works like (int $) => c.inst<int>($);
   var d = D();
-  var f4 = d.inst<int>; // int Function(int), works like (int $) => c.inst<int>($);
-  var f5 = d.minst<int>; // int Function(int), works like (int $) => c.minst<int>($);
-  var f6 = d.einst<int>; // int Function(int), works like (int $) => Ext(c).einst<int>($);
+  var f4 = d.inst<int>;
+
+  // int Function(int), works like (int $) => c.minst<int>($);
+  var f5 = d.minst<int>;
+
+  // int Function(int), works like (int $) => Ext(c).einst<int>($);
+  var f6 = d.einst<int>;
 
   var typeName = (List<int>).toString();
   var functionTypeName = local<int>.runtimeType.toString();

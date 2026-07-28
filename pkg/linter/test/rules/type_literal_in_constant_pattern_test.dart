@@ -38,7 +38,7 @@ void f(Type x) {
   }
 
   test_constType_matchDynamic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic x) {
   if (x case [!int!]) {}
 }
@@ -46,7 +46,7 @@ void f(dynamic x) {
   }
 
   test_constType_matchObject() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object x) {
   if (x case [!int!]) {}
 }
@@ -54,7 +54,7 @@ void f(Object x) {
   }
 
   test_constType_matchObjectNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Object? x) {
   if (x case [!int!]) {}
 }
@@ -91,7 +91,7 @@ class A {
   }
 
   test_constType_matchTypeParameter_boundObjectNullable() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<T extends Object?>(T x) {
   if (x case [!int!]) {}
 }

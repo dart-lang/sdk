@@ -1031,6 +1031,75 @@ dart_executable("dartaotruntime_product") {
   ]
 }
 
+if (is_linux) {
+  dart_executable("dartcliruntime") {
+    extra_configs = [
+      "..:dart_aotruntime_config",
+      "..:add_empty_macho_section_config",
+    ]
+    extra_defines = [ "DART_CLI_RUNTIME" ]
+    extra_deps = [
+      ":icudtl_cc",
+      "..:libdart_aotruntime",
+      "../platform:libdart_platform_aotruntime",
+    ]
+    extra_sources = [
+      "common_options.h",
+      "gzip.cc",
+      "gzip.h",
+      "loader.cc",
+      "loader.h",
+      "main.cc",
+      "main_impl.cc",
+      "main_options.cc",
+      "main_options.h",
+      "snapshot_empty.cc",
+    ]
+
+    if (dart_runtime_mode == "release") {
+      extra_deps += [
+        ":native_assets_api_product",
+        ":shared_object_loaders_product",
+      ]
+    } else {
+      extra_deps += [
+        ":native_assets_api",
+        ":shared_object_loaders",
+      ]
+    }
+  }
+
+  dart_executable("dartcliruntime_product") {
+    use_product_mode = true
+    extra_configs = [
+      "..:dart_aotruntime_config",
+      "..:add_empty_macho_section_config",
+    ]
+    extra_defines = [ "DART_CLI_RUNTIME" ]
+    extra_deps = [
+      "..:libdart_aotruntime_product",
+      "../platform:libdart_platform_aotruntime_product",
+    ]
+    extra_sources = [
+      "common_options.h",
+      "gzip.cc",
+      "gzip.h",
+      "loader.cc",
+      "loader.h",
+      "main.cc",
+      "main_impl.cc",
+      "main_options.cc",
+      "main_options.h",
+      "snapshot_empty.cc",
+    ]
+
+    extra_deps += [
+      ":native_assets_api_product",
+      ":shared_object_loaders_product",
+    ]
+  }
+}
+
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   dart_executable("dart") {
     use_product_mode = true

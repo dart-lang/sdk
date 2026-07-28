@@ -897,6 +897,11 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
   }
 
   @override
+  ExpressionImpl? get constantInitializer2 {
+    return baseElement.constantInitializer2;
+  }
+
+  @override
   bool get hasImplicitType => baseElement.hasImplicitType;
 
   @override

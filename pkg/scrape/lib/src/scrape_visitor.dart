@@ -17,8 +17,14 @@ import '../scrape.dart';
 /// should call this. We bind separately instead of passing these through the
 /// [ScrapeVisitor] constructor so that subclasses of [ScrapeVisitor] don't
 /// need to define a pass-through constructor.
-void bindVisitor(ScrapeVisitor visitor, Scrape scrape, String path,
-    String source, Token startToken, LineInfo info) {
+void bindVisitor(
+  ScrapeVisitor visitor,
+  Scrape scrape,
+  String path,
+  String source,
+  Token startToken,
+  LineInfo info,
+) {
   visitor._scrape = scrape;
   visitor._path = path;
   visitor._source = source;
@@ -57,7 +63,9 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
   bool get isInFlutterBuildMethod => _inFlutterBuildMethods > 0;
 
   bool _isBuildMethod(
-      TypeAnnotation? returnType, FormalParameterList? parameters) {
+    TypeAnnotation? returnType,
+    FormalParameterList? parameters,
+  ) {
     var parameterString = parameters.toString();
 
     if (returnType.toString() == 'void') return false;
@@ -149,8 +157,10 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var isBuild =
-        _isBuildMethod(node.returnType, node.functionExpression.parameters);
+    var isBuild = _isBuildMethod(
+      node.returnType,
+      node.functionExpression.parameters,
+    );
     if (isBuild) _inFlutterBuildMethods++;
 
     try {

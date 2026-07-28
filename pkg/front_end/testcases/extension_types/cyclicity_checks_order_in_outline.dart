@@ -6,7 +6,9 @@
 // outcome of cyclicity checks.
 
 extension type E1(F1 it) {} // Ok.
+
 typedef F1 = F1; // Error.
 
 typedef F2 = F2; // Error.
+
 extension type E2(F2 it) {} // Ok.

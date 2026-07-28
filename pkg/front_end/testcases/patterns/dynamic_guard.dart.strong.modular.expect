@@ -54,7 +54,6 @@ static method main() → dynamic {
       }
     }
   } =>#t4;
-  #L2:
   {
     final synthesized core::int #5#0 = b;
     {

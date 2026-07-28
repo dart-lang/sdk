@@ -5,6 +5,7 @@
 // Check that `JSObject` can be used to type JS objects.
 
 import 'dart:js_interop';
+
 import 'package:expect/expect.dart';
 
 @JS()

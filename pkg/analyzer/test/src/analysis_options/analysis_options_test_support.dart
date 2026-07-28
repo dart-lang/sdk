@@ -7,9 +7,9 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -36,12 +36,12 @@ abstract class AbstractAnalysisOptionsTest
   void assertAnalysisOptionsText(AnalysisOptionsImpl options, String expected) {
     var actual = _AnalysisOptionsTextWriter().write(options);
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   AnalysisOptionsParseResult parseAnalysisOptionsFile(
@@ -137,8 +137,10 @@ abstract class AbstractAnalysisOptionsTest
       var actual = actualCodeByFile[entry.key]!;
       if (actual != entry.value) {
         NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
-        print('-------- ${entry.key.path} --------');
-        printPrettyDiff(entry.value, actual);
+        if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+          print('-------- ${entry.key.path} --------');
+          printPrettyDiff(entry.value, actual);
+        }
         hasMismatch = true;
       }
       index++;
@@ -212,7 +214,7 @@ final class _AnalysisOptionsTextWriter {
         'unignorableDiagnosticCodeNames',
         options.unignorableDiagnosticCodeNames,
       );
-      _writeStringList('excludePatterns', options.excludePatterns);
+      _writeExcludePatterns(options.excludePatterns2);
 
       _writeBool('lint', options.lint, _defaultOptions.lint);
       _writeLintRules(options.lintRules);
@@ -342,6 +344,11 @@ final class _AnalysisOptionsTextWriter {
       defaultCodeStyleOptions.sortConstructorsFirst,
     );
     addBoolProperty(
+      'sortUnnamedConstructorsFirst',
+      codeStyleOptions.sortUnnamedConstructorsFirst,
+      defaultCodeStyleOptions.sortUnnamedConstructorsFirst,
+    );
+    addBoolProperty(
       'specifyReturnTypes',
       codeStyleOptions.specifyReturnTypes,
       defaultCodeStyleOptions.specifyReturnTypes,
@@ -376,6 +383,21 @@ final class _AnalysisOptionsTextWriter {
     _sink.writeElements('errorProcessors', processors, (processor) {
       var severity = processor.severity?.name.toLowerCase() ?? 'ignore';
       _sink.writelnWithIndent('${processor.code}: $severity');
+    });
+  }
+
+  void _writeExcludePatterns(
+    List<AnalysisOptionsExcludePattern> excludePatterns,
+  ) {
+    _sink.writeElements('excludePatterns', excludePatterns, (excludePattern) {
+      _sink.writelnWithIndent('AnalysisOptionsExcludePattern');
+      _sink.withIndent(() {
+        _sink.writelnWithIndent(
+          'declaringFile: '
+          '${_toPosixPath(excludePattern.declaringFile.path)}',
+        );
+        _sink.writelnWithIndent('pattern: ${excludePattern.pattern}');
+      });
     });
   }
 

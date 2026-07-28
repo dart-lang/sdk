@@ -475,9 +475,11 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     FormalParameterElement parameter,
   ) {
     for (var initializer in initializers) {
-      if (initializer case ConstructorFieldInitializer(
-        expression: SimpleIdentifier identifier,
-      ) when identifier.element == parameter) {
+      if (initializer
+          case ConstructorFieldInitializer(
+            expression: SimpleIdentifier identifier,
+          )
+          when identifier.element == parameter) {
         return initializer;
       }
     }

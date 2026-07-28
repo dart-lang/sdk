@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-import 'package:kernel/ast.dart' show Expression;
 
 import '../builder/builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/expression_generator.dart';
+import '../kernel/internal_ast.dart';
 import 'operator.dart';
 import 'problems.dart' show unhandled, unsupported;
 
@@ -27,7 +27,7 @@ abstract class Identifier {
   /// [QualifiedName], this is the offset of the suffix.
   int get nameOffset;
 
-  Expression? get initializer;
+  InternalExpression? get initializer;
 
   Operator? get operator;
 
@@ -43,7 +43,7 @@ class OmittedIdentifier(@override final Token token) implements Identifier {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression? get initializer => null;
+  InternalExpression? get initializer => null;
 
   @override
   String get name => '';
@@ -85,7 +85,7 @@ abstract class IdentifierImpl(@override final Token token)
   int get nameOffset => charOffset;
 
   @override
-  Expression? get initializer => null;
+  InternalExpression? get initializer => null;
 
   @override
   Operator? get operator => null;
@@ -138,7 +138,7 @@ class OperatorIdentifier(@override final Token token) implements Identifier {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression? get initializer => null;
+  InternalExpression? get initializer => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -152,7 +152,7 @@ class OperatorIdentifier(@override final Token token) implements Identifier {
 
 class InitializedIdentifier(
   Identifier identifier,
-  @override final Expression initializer,
+  @override final InternalExpression initializer,
 ) extends SimpleIdentifier {
   this : super(identifier.token);
 

@@ -15,7 +15,7 @@ import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'calls.dart';
 import 'config.dart';
@@ -2368,7 +2368,7 @@ class TypeFlowAnalysis
   @override
   SharedVariable getSharedVariable(Variable variable) =>
       _sharedCapturedVariables[variable] ??= _SharedVariableImpl(
-        variable.name ?? '__tmp',
+        variable.cosmeticName ?? '__tmp',
       );
 
   @override

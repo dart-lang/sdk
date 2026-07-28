@@ -70,9 +70,9 @@ static method tryCatchRethrow(positional-parameter a, positional-parameter b, po
     try {
       x = x.{core::num::+}(await a){(core::num) → core::int};
     }
-    on core::Object catch(catch-variable e)/* scope=[
+    on core::Object catch(catch-variable final e)/* scope=[
       #ctx10: not-captured VariableContext([
-        catch-variable e;
+        catch-variable final e;
       ]),
     ] */ {
       if(e is core::Error) {
@@ -90,16 +90,18 @@ static method tryCatchRethrow(positional-parameter a, positional-parameter b, po
 static method closure(positional-parameter a) → dynamic/* scope=[
   #ctx11: direct-captured VariableContext([
     positional-parameter a;
-    local-variable x;
   ]),
 ] */ /* scope=[
-  #ctx12: not-captured VariableContext([
-    local-variable final nested;
+  #ctx12: direct-captured VariableContext([
+    local-variable x;
+  ]),
+  #ctx13: not-captured VariableContext([
+    local-function-variable final nested;
   ]),
 ] */ {
   x := 3;
-  function nested() /* #ctx11 */ → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
-    #ctx13: not-captured VariableContext([
+  function nested() /* #ctx11 #ctx12 */ → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
+    #ctx14: not-captured VariableContext([
       local-variable y;
     ]),
   ] */ {
@@ -116,7 +118,7 @@ static method closure(positional-parameter a) → dynamic/* scope=[
   return nested;
 }
 static method testAssert(positional-parameter a) → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
-  #ctx14: not-captured VariableContext([
+  #ctx15: not-captured VariableContext([
     positional-parameter a;
   ]),
 ] */ {

@@ -16,7 +16,31 @@ final dartMigrateClasses = <LspEntity>[
           'The URIs of the directories (packages or workspaces) to migrate. '
           'Individual file URIs are not supported.',
     ),
+    field(
+      'apply',
+      type: 'boolean',
+      canBeUndefined: true,
+      comment: 'Whether to apply the migration changes.',
+    ),
+    field(
+      'steps',
+      type: 'MigrationStep',
+      array: true,
+      canBeUndefined: true,
+      comment: 'The specific migration steps to run.',
+    ),
   ]),
+  LspEnum(
+    name: 'MigrationStep',
+    typeOfValues: TypeReference.string,
+    constants: [
+      Constant(name: 'Prepare', type: TypeReference.string, value: 'prepare'),
+      Constant(name: 'Bump', type: TypeReference.string, value: 'bump'),
+      Constant(name: 'Cleanup', type: TypeReference.string, value: 'cleanup'),
+      Constant(name: 'All', type: TypeReference.string, value: 'all'),
+    ],
+    comment: 'The specific migration step to run.',
+  ),
   interface('DartMigrateResult', [
     field(
       'summary',

@@ -27,7 +27,7 @@ class C {
   }
 
   test_ifNullExpression_functionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function() f(C? c1, C c2) {
   return [!c1 ?? c2!];
 }
@@ -38,7 +38,7 @@ class C {
   }
 
   test_instanceCreation_argumentToFunctionTypeParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   g([!C()!]);
 }
@@ -50,7 +50,7 @@ void g(void Function() f) {}
   }
 
   test_instanceCreation_argumentToFunctionTypeParameter_instantiatedTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   g([!C()!]);
 }
@@ -62,7 +62,7 @@ class C {
   }
 
   test_instanceCreation_cascadeExpression_functionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function() f() {
   return [!C()..other()!];
 }
@@ -74,7 +74,7 @@ class C {
   }
 
   test_instanceCreation_functionContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Function f = [!C()!];
 class C {
   void call<T>(T arg) {}
@@ -83,7 +83,7 @@ class C {
   }
 
   test_instanceCreation_functionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function() f = [!C()!];
 class C {
   void call() {}
@@ -92,7 +92,7 @@ class C {
   }
 
   test_instanceCreation_functionTypeContext_instantiatedTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function(int) f = [!C()!];
 class C {
   void call<T>(T arg) {}
@@ -101,7 +101,7 @@ class C {
   }
 
   test_instanceCreation_genericFunctionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function<T>(T) f = [!C()!];
 class C {
   void call<T>(T arg) {}
@@ -119,7 +119,7 @@ class C {
   }
 
   test_simpleIdentifier_argumentToFunctionTypedParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   g([!c!]);
 }
@@ -131,7 +131,7 @@ class C {
   }
 
   test_simpleIdentifier_argumentToFunctionTypeParameter_instantiatedTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   g([!c!]);
 }
@@ -143,7 +143,7 @@ class C {
   }
 
   test_simpleIdentifier_functionContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   Function fn = [!c!];
 }
@@ -154,7 +154,7 @@ class C {
   }
 
   test_simpleIdentifier_functionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function() f(C c) => [!c!];
 class C {
   void call() {}
@@ -163,7 +163,7 @@ class C {
   }
 
   test_simpleIdentifier_functionTypeContext_instantiatedTypeArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function(int) f(C c) => [!c!];
 class C {
   void call<T>(T arg) {}
@@ -172,7 +172,7 @@ class C {
   }
 
   test_simpleIdentifier_functionTypeContext_listTypArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   <void Function()>[[!c!]];
 }
@@ -183,7 +183,7 @@ class C {
   }
 
   test_simpleIdentifier_genericFunctionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   void Function<T>(T) fn = [!c!];
 }
@@ -194,7 +194,7 @@ class C {
   }
 
   test_simpleIdentifier_listLiteral_listOfFunctionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<void Function()> f(C c) {
   return [[!c!]];
 }
@@ -205,7 +205,7 @@ class C {
   }
 
   test_tearoffInstantiation_argumentToFunctionTypeParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   g([!c<int>!]);
 }
@@ -217,7 +217,7 @@ class C {
   }
 
   test_tearoffInstantiation_functionContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   Function fn = [!c<int>!];
 }
@@ -228,7 +228,7 @@ class C {
   }
 
   test_tearoffInstantiation_functionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   void Function(int) fn = [!c<int>!];
 }
@@ -239,7 +239,7 @@ class C {
   }
 
   test_tearoffInstantiation_noContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   [!c<int>!];
 }
@@ -250,7 +250,7 @@ class C {
   }
 
   test_tearoffInstantiationOfInstanceCreation_argumentToFunctionTypeParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   g([!C()<int>!]);
 }
@@ -262,7 +262,7 @@ class C {
   }
 
   test_tearoffInstantiationOfInstanceCreation_functionContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Function f = [!C()<int>!]; // LINT
 class C {
   void call<T>(T arg) {}
@@ -271,7 +271,7 @@ class C {
   }
 
   test_tearoffInstantiationOfInstanceCreation_functionTypeContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void Function(int) f = [!C()<int>!];
 class C {
   void call<T>(T arg) {}
@@ -280,7 +280,7 @@ class C {
   }
 
   test_tearoffInstantiationofInstanceCreation_noContext() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!C()<int>!];
 }

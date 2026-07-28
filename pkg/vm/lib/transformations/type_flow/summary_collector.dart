@@ -817,21 +817,21 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       for (int i = 0; i < function.positionalParameters.length; ++i) {
         final decl = function.positionalParameters[i];
         _declareParameter(
-          decl.name!,
+          decl.cosmeticName!,
           _useTypeCheckForParameter(decl)
               ? null
               : useTypesFrom.positionalParameters[i].type,
-          decl.initializer,
+          decl.defaultValue,
         );
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
         final decl = function.namedParameters[i];
         _declareParameter(
-          decl.name!,
+          decl.parameterName,
           _useTypeCheckForParameter(decl)
               ? null
               : useTypesFrom.namedParameters[i].type,
-          decl.initializer,
+          decl.defaultValue,
         );
       }
 
@@ -1022,7 +1022,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
           if (function.namedParameters.isNotEmpty) {
             for (var param in function.namedParameters) {
-              names.add(param.name!);
+              names.add(param.parameterName);
             }
             // TODO(dartbug.com/32292): make sure parameters are sorted in
             // kernel AST and remove this sorting.
@@ -1097,7 +1097,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   Parameter _declareParameter(
     String name,
     DartType? type,
-    Expression? initializer, {
+    Expression? defaultValue, {
     bool isReceiver = false,
   }) {
     Type? staticType;
@@ -1108,23 +1108,23 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _summary.add(param);
     assert(param.index < _summary.parameterCount);
     if (param.index >= _summary.requiredParameterCount) {
-      if (initializer != null) {
-        if (initializer is ConstantExpression) {
+      if (defaultValue != null) {
+        if (defaultValue is ConstantExpression) {
           param.defaultValue = constantAllocationCollector.typeFor(
-            initializer.constant,
+            defaultValue.constant,
           );
-        } else if (initializer is BasicLiteral ||
-            initializer is SymbolLiteral ||
-            initializer is TypeLiteral) {
-          param.defaultValue = _visit(initializer) as Type;
+        } else if (defaultValue is BasicLiteral ||
+            defaultValue is TypeLiteral) {
+          param.defaultValue = _visit(defaultValue) as Type;
         } else {
-          throw 'Unexpected parameter $name default value ${initializer.runtimeType} $initializer';
+          throw 'Unexpected parameter $name default value '
+              '${defaultValue.runtimeType} $defaultValue';
         }
       } else {
         param.defaultValue = _nullType;
       }
     } else {
-      assert(initializer == null);
+      assert(defaultValue == null);
     }
     return param;
   }
@@ -1215,7 +1215,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   Join _makeJoin(int varIndex, TypeExpr value) {
     final Variable variable = _variablesInfo.varDeclarations[varIndex];
-    final name = '${variable.name}_${_variableVersions[varIndex]++}';
+    final name = '${variable.cosmeticName}_${_variableVersions[varIndex]++}';
     final Join join = new Join(name, variable.type);
     join.condition = _currentCondition;
     _summary.add(join);
@@ -1390,10 +1390,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         staticResultType = emptyType;
       } else if (target is Procedure) {
         final returnType = target.function.returnType;
-        // TODO(dartbug.com/54200): static type cannot be trusted when
-        // function type is returned.
-        if (returnType is TypeParameterType ||
-            (returnType != staticDartType && returnType is! FunctionType)) {
+        if (returnType is TypeParameterType || returnType != staticDartType) {
           staticResultType = _typesBuilder.fromStaticType(staticDartType, true);
         }
       }
@@ -2455,9 +2452,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
-  TypeExpr visitSymbolLiteral(SymbolLiteral node) {
-    return _staticType(node);
-  }
+  TypeExpr visitSymbolLiteral(SymbolLiteral node) => throw UnsupportedError(
+    "Expected SymbolLiteral to be lowered to SymbolConstant by CFE",
+  );
 
   @override
   TypeExpr visitThisExpression(ThisExpression node) {
@@ -3202,6 +3199,16 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   @override
   Type visitSymbolConstant(SymbolConstant constant) {
+    final Class? concreteClass = summaryCollector.target
+        .concreteConstSymbolLiteralClass(
+          summaryCollector._environment.coreTypes,
+        );
+    if (concreteClass != null) {
+      return summaryCollector._entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
+    }
     return summaryCollector._symbolType;
   }
 

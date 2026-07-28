@@ -38,11 +38,7 @@ class DeprecatedConsistency extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _checkConstructor(node.declaredFragment!.element, node.errorRange);

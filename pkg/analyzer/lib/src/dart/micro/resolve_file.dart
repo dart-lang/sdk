@@ -12,9 +12,9 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -275,7 +275,7 @@ class FileResolver {
         await performance.runAsync('collectReferences', (_) async {
           var resolved = await resolve(path: path);
           var collector = ReferencesCollector(element);
-          resolved.unit.accept(collector);
+          resolved.unit.accept2(collector);
           var matches = collector.references;
           if (matches.isNotEmpty) {
             var lineInfo = resolved.unit.lineInfo;
@@ -884,7 +884,7 @@ class FileResolver {
         element.import,
         libraryFragment,
       );
-      unitResult.unit.accept(visitor);
+      unitResult.unit.accept2(visitor);
       var lineInfo = unitResult.lineInfo;
       var infos = visitor.results
           .map(

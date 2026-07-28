@@ -145,8 +145,9 @@ test() {
   const resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
   resolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
   new resolved_prefix.UnresolvedClass<int> /**/ .unresolvedConstructor();
-  const resolved_prefix
-      . /**/ UnresolvedClass<int>. /**/ unresolvedConstructor();
+  const resolved_prefix. /**/ UnresolvedClass<
+    int
+  >. /**/ unresolvedConstructor();
 
   resolved_prefix.ResolvedClass<int>.unresolvedConstructor();
   new resolved_prefix.ResolvedClass<int>.unresolvedConstructor();

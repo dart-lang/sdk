@@ -49,14 +49,14 @@ Stream<List<int>> f2() async* {
     assertType(result.findNode.listLiteral('[]; // 1'), 'List<dynamic>');
 
     assertType(
-      result.findNode.instanceCreation('MyStream(); // 2'),
+      result.findNode.constructorInvocation('MyStream(); // 2'),
       'MyStream<dynamic>',
     );
 
     assertType(result.findNode.listLiteral('[]; // 3'), 'List<int>');
 
     assertType(
-      result.findNode.instanceCreation('MyStream(); // 4'),
+      result.findNode.constructorInvocation('MyStream(); // 4'),
       'MyStream<List<int>>',
     );
   }
@@ -76,14 +76,14 @@ Iterable<List<int>> f2() sync* {
     assertType(result.findNode.listLiteral('[]; // 1'), 'List<dynamic>');
 
     assertType(
-      result.findNode.instanceCreation('List.empty(); // 2'),
+      result.findNode.constructorInvocation('List.empty(); // 2'),
       'List<dynamic>',
     );
 
     assertType(result.findNode.listLiteral('[]; // 3'), 'List<int>');
 
     assertType(
-      result.findNode.instanceCreation('List.empty(); // 4'),
+      result.findNode.constructorInvocation('List.empty(); // 4'),
       'List<List<int>>',
     );
   }
@@ -143,14 +143,14 @@ main() {
     assertType(result.findNode.listLiteral('[]; // 1'), 'List<dynamic>');
 
     assertType(
-      result.findNode.instanceCreation('MyStream(); // 2'),
+      result.findNode.constructorInvocation('MyStream(); // 2'),
       'MyStream<dynamic>',
     );
 
     assertType(result.findNode.listLiteral('[]; // 3'), 'List<int>');
 
     assertType(
-      result.findNode.instanceCreation('MyStream(); // 4'),
+      result.findNode.constructorInvocation('MyStream(); // 4'),
       'MyStream<List<int>>',
     );
   }
@@ -174,14 +174,14 @@ main() {
     assertType(result.findNode.listLiteral('[]; // 1'), 'List<dynamic>');
 
     assertType(
-      result.findNode.instanceCreation('List.empty(); // 2'),
+      result.findNode.constructorInvocation('List.empty(); // 2'),
       'List<dynamic>',
     );
 
     assertType(result.findNode.listLiteral('[]; // 3'), 'List<int>');
 
     assertType(
-      result.findNode.instanceCreation('List.empty(); // 4'),
+      result.findNode.constructorInvocation('List.empty(); // 4'),
       'List<List<int>>',
     );
   }
@@ -205,14 +205,14 @@ class A {
     assertType(result.findNode.listLiteral('[]; // 1'), 'List<dynamic>');
 
     assertType(
-      result.findNode.instanceCreation('MyStream(); // 2'),
+      result.findNode.constructorInvocation('MyStream(); // 2'),
       'MyStream<dynamic>',
     );
 
     assertType(result.findNode.listLiteral('[]; // 3'), 'List<int>');
 
     assertType(
-      result.findNode.instanceCreation('MyStream(); // 4'),
+      result.findNode.constructorInvocation('MyStream(); // 4'),
       'MyStream<List<int>>',
     );
   }
@@ -234,14 +234,14 @@ class A {
     assertType(result.findNode.listLiteral('[]; // 1'), 'List<dynamic>');
 
     assertType(
-      result.findNode.instanceCreation('List.empty(); // 2'),
+      result.findNode.constructorInvocation('List.empty(); // 2'),
       'List<dynamic>',
     );
 
     assertType(result.findNode.listLiteral('[]; // 3'), 'List<int>');
 
     assertType(
-      result.findNode.instanceCreation('List.empty(); // 4'),
+      result.findNode.constructorInvocation('List.empty(); // 4'),
       'List<List<int>>',
     );
   }

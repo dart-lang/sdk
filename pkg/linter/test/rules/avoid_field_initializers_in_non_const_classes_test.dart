@@ -17,7 +17,6 @@ class AvoidFieldInitializersInConstClassesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_field_initializers_in_const_classes;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_nonConstConstructor() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -40,7 +39,6 @@ augment class A {
     await assertNoDiagnosticsInFile(b.path);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_augmentedConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -51,7 +49,7 @@ class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -60,7 +58,11 @@ augment class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There are unexpected diagnostics.',
+  )
+  // TODO(scheglov): implement augmentation
   test_augmentedClass_augmentedField() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -80,7 +82,6 @@ augment class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_constructorInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -88,7 +89,7 @@ part 'test.dart';
 class A { }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {
@@ -98,7 +99,6 @@ augment class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_constructorInitializer_multipleConstructors() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -118,7 +118,6 @@ augment class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedClass_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -128,7 +127,7 @@ class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {

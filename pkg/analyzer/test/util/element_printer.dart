@@ -74,8 +74,8 @@ class ElementPrinter {
       case TypeParameterElementImpl element:
         var idStr = idMap[element];
         _sink.writeln('$idStr ${element.name ?? '<null-name>'}');
-      case SubstitutedElementImpl member:
-        _writeMember(member);
+      case SubstitutedElementImpl element:
+        _writeSubstitutedElement(element);
       case TypeAliasElementImpl element:
         writelnReference(element.reference);
       case TopLevelVariableElementImpl element:
@@ -393,8 +393,8 @@ class ElementPrinter {
     return type.getDisplayString();
   }
 
-  void _writeMember(SubstitutedElementImpl element) {
-    _sink.writeln(_nameOfMemberClass(element));
+  void _writeSubstitutedElement(SubstitutedElementImpl element) {
+    _sink.writeln('${element.runtimeType}');
     _sink.withIndent(() {
       writeNamedElement2('baseElement', element.baseElement);
 
@@ -420,31 +420,6 @@ class ElementPrinter {
         }
       }
     });
-  }
-
-  static String _nameOfMemberClass(SubstitutedElementImpl member) {
-    // TODO(scheglov): remove during updating expectations
-    switch (member) {
-      case SubstitutedConstructorElementImpl():
-        return 'ConstructorMember';
-      case SubstitutedFieldElementImpl():
-        return 'FieldMember';
-      case SubstitutedFieldFormalParameterElementImpl():
-        return 'FieldFormalParameterMember';
-      case SubstitutedSuperFormalParameterElementImpl():
-        return 'SuperFormalParameterMember';
-      case SubstitutedFormalParameterElementImpl():
-        return 'ParameterMember';
-      case SubstitutedGetterElementImpl():
-        return 'GetterMember';
-      case SubstitutedMethodElementImpl():
-        return 'MethodMember';
-      case SubstitutedSetterElementImpl():
-        return 'SetterMember';
-      default:
-        throw UnimplementedError('(${member.runtimeType}) $member');
-    }
-    // return '${member.runtimeType}';
   }
 }
 

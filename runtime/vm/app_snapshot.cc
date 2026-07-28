@@ -10104,7 +10104,7 @@ void FullSnapshotWriter::WriteProgramSnapshot(
 
   if (Snapshot::IncludesCode(kind_)) {
     image_writer_->SetProfileWriter(profile_writer_);
-    image_writer_->Write(serializer.stream(), false);
+    image_writer_->Write(serializer.stream());
 #if defined(DART_PRECOMPILER)
     image_writer_->DumpStatistics();
 #endif
@@ -10139,7 +10139,7 @@ void FullSnapshotWriter::WriteUnitSnapshot(
 
   if (Snapshot::IncludesCode(kind_)) {
     image_writer_->SetProfileWriter(profile_writer_);
-    image_writer_->Write(serializer.stream(), false);
+    image_writer_->Write(serializer.stream());
 #if defined(DART_PRECOMPILER)
     image_writer_->DumpStatistics();
 #endif
@@ -10176,6 +10176,16 @@ void FullSnapshotWriter::WriteFullSnapshot(
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+static const uint8_t* Auth(const uint8_t* ptr) {
+#if defined(HOST_ARCH_ARM64E)
+  // TODO(63812): Should be
+  // ptrauth_auth_data(ptr, ptrauth_key_function_pointer, 0)
+  return ptrauth_strip(ptr, ptrauth_key_function_pointer);
+#else
+  return ptr;
+#endif
+}
+
 FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
                                        const uint8_t* instructions_buffer,
                                        Thread* thread)
@@ -10184,7 +10194,7 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
       buffer_(snapshot->Addr()),
       size_(snapshot->length()),
       data_image_(snapshot->DataImage()),
-      instructions_image_(instructions_buffer) {}
+      instructions_image_(Auth(instructions_buffer)) {}
 
 char* SnapshotHeaderReader::InitializeIsolateGroupFlagsFromSnapshot(
     const Snapshot* snapshot) {
@@ -10351,7 +10361,7 @@ void FullSnapshotReader::InitializeBSS() {
   ASSERT(Snapshot::IncludesCode(kind_));
   Image image(instructions_image_);
   if (auto const bss = image.bss()) {
-    BSS::Initialize(thread_, bss, /*vm=*/false);
+    BSS::Initialize(thread_, bss);
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }

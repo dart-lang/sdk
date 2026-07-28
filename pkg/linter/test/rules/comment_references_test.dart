@@ -18,7 +18,7 @@ class CommentReferencesTest extends LintRuleTest {
   String get lintRule => LintNames.comment_references;
 
   test_false() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// [[!false!]]
 class C {}
 ''');
@@ -132,7 +132,7 @@ class C {}
   }
 
   test_null() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// [[!null!]]
 class C {}
 ''');
@@ -161,7 +161,7 @@ class A {
   test_parameter_constructor_privateNamed_invalid() async {
     // See https://github.com/dart-lang/sdk/issues/62768#issuecomment-3963248264
     // for context on why a lint is expected here.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   final int _x;
 
@@ -262,14 +262,14 @@ class C {}
   }
 
   test_this() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// [[!this!]]
 class C {}
 ''');
   }
 
   test_true() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// [[!true!]]
 class C {}
 ''');
@@ -300,28 +300,28 @@ class C {}
   }
 
   test_unknownElement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Text [[!y!]].
 class C {}
 ''');
   }
 
   test_unknownElement_dottedName() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Parameter [[!y.z!]].
 class C {}
 ''');
   }
 
   test_unknownElement_followedByColon() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Parameter [[!y!]]: z.
 void f(int x) {}
 ''');
   }
 
   test_unknownElement_twiceDottedName() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Parameter [[!x.y.z!]].
 class C {}
 ''');

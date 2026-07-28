@@ -299,9 +299,8 @@ Object? safeGetProperty(Object protoChain, Object name) {
 }
 
 safeProperties(object) => Map.fromIterable(
-  getOwnPropertyNames(
-    object,
-  ).where((each) => safeGetProperty(object, each) != null),
+  getOwnPropertyNames(object)
+      .where((each) => safeGetProperty(object, each) != null),
   key: (name) => name,
   value: (name) => safeGetProperty(object, name),
 );

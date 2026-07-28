@@ -5,6 +5,7 @@
 library IndexedDB4Test;
 
 import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
+
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db';
@@ -32,9 +33,8 @@ Future<Database> writeItems(Database db) {
   Future<Object?> write(index) {
     var transaction = db.transaction(STORE_NAME, 'readwrite');
     return transaction.objectStore(STORE_NAME).put({
-          'content': 'Item $index',
-        }, index)
-        as Future<Object?>;
+      'content': 'Item $index',
+    }, index) as Future<Object?>;
   }
 
   var future = write(0);

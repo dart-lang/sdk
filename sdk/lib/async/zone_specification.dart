@@ -25,116 +25,52 @@ part of 'dart:async';
 /// Handlers can either stop propagating the request (by simply not calling the
 /// parent handler), or forward to the parent zone, potentially modifying the
 /// arguments on the way.
-abstract final class ZoneSpecification {
+final class ZoneSpecification {
+  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
+  final HandleUncaughtErrorHandler? handleUncaughtError;
+
+  /// A custom [Zone.run] implementation for a new zone.
+  final RunHandler? run;
+
+  /// A custom [Zone.runUnary] implementation for a new zone.
+  final RunUnaryHandler? runUnary;
+
+  /// A custom [Zone.runBinary] implementation for a new zone.
+  final RunBinaryHandler? runBinary;
+
+  /// A custom [Zone.registerCallback] implementation for a new zone.
+  final RegisterCallbackHandler? registerCallback;
+
+  /// A custom [Zone.registerUnaryCallback] implementation for a new zone.
+  final RegisterUnaryCallbackHandler? registerUnaryCallback;
+
+  /// A custom [Zone.registerBinaryCallback] implementation for a new zone.
+  final RegisterBinaryCallbackHandler? registerBinaryCallback;
+
+  /// A custom [Zone.errorCallback] implementation for a new zone.
+  final ErrorCallbackHandler? errorCallback;
+
+  /// A custom [Zone.scheduleMicrotask] implementation for a new zone.
+  final ScheduleMicrotaskHandler? scheduleMicrotask;
+
+  /// A custom [Zone.createTimer] implementation for a new zone.
+  final CreateTimerHandler? createTimer;
+
+  /// A custom [Zone.createPeriodicTimer] implementation for a new zone.
+  final CreatePeriodicTimerHandler? createPeriodicTimer;
+
+  /// A custom [Zone.print] implementation for a new zone.
+  final PrintHandler? print;
+
+  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
+  final ForkHandler? fork;
+
   /// Creates a specification with the provided handlers.
   ///
   /// If the [handleUncaughtError] is provided, the new zone will be a new
   /// "error zone" which will prevent errors from flowing into other
   /// error zones (see [Zone.errorZone], [Zone.inSameErrorZone]).
-  const factory ZoneSpecification({
-    HandleUncaughtErrorHandler? handleUncaughtError,
-    RunHandler? run,
-    RunUnaryHandler? runUnary,
-    RunBinaryHandler? runBinary,
-    RegisterCallbackHandler? registerCallback,
-    RegisterUnaryCallbackHandler? registerUnaryCallback,
-    RegisterBinaryCallbackHandler? registerBinaryCallback,
-    ErrorCallbackHandler? errorCallback,
-    ScheduleMicrotaskHandler? scheduleMicrotask,
-    CreateTimerHandler? createTimer,
-    CreatePeriodicTimerHandler? createPeriodicTimer,
-    PrintHandler? print,
-    ForkHandler? fork,
-  }) = _ZoneSpecification;
-
-  /// Creates a specification from [other] and provided handlers.
-  ///
-  /// The created zone specification has the handlers of [other]
-  /// and any individually provided handlers.
-  /// If a handler is provided both through [other] and individually,
-  /// the individually provided handler overrides the one from [other].
-  factory ZoneSpecification.from(
-    ZoneSpecification other, {
-    HandleUncaughtErrorHandler? handleUncaughtError,
-    RunHandler? run,
-    RunUnaryHandler? runUnary,
-    RunBinaryHandler? runBinary,
-    RegisterCallbackHandler? registerCallback,
-    RegisterUnaryCallbackHandler? registerUnaryCallback,
-    RegisterBinaryCallbackHandler? registerBinaryCallback,
-    ErrorCallbackHandler? errorCallback,
-    ScheduleMicrotaskHandler? scheduleMicrotask,
-    CreateTimerHandler? createTimer,
-    CreatePeriodicTimerHandler? createPeriodicTimer,
-    PrintHandler? print,
-    ForkHandler? fork,
-  }) {
-    return ZoneSpecification(
-      handleUncaughtError: handleUncaughtError ?? other.handleUncaughtError,
-      run: run ?? other.run,
-      runUnary: runUnary ?? other.runUnary,
-      runBinary: runBinary ?? other.runBinary,
-      registerCallback: registerCallback ?? other.registerCallback,
-      registerUnaryCallback:
-          registerUnaryCallback ?? other.registerUnaryCallback,
-      registerBinaryCallback:
-          registerBinaryCallback ?? other.registerBinaryCallback,
-      errorCallback: errorCallback ?? other.errorCallback,
-      scheduleMicrotask: scheduleMicrotask ?? other.scheduleMicrotask,
-      createTimer: createTimer ?? other.createTimer,
-      createPeriodicTimer: createPeriodicTimer ?? other.createPeriodicTimer,
-      print: print ?? other.print,
-      fork: fork ?? other.fork,
-    );
-  }
-
-  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
-  HandleUncaughtErrorHandler? get handleUncaughtError;
-
-  /// A custom [Zone.run] implementation for a new zone.
-  RunHandler? get run;
-
-  /// A custom [Zone.runUnary] implementation for a new zone.
-  RunUnaryHandler? get runUnary;
-
-  /// A custom [Zone.runBinary] implementation for a new zone.
-  RunBinaryHandler? get runBinary;
-
-  /// A custom [Zone.registerCallback] implementation for a new zone.
-  RegisterCallbackHandler? get registerCallback;
-
-  /// A custom [Zone.registerUnaryCallback] implementation for a new zone.
-  RegisterUnaryCallbackHandler? get registerUnaryCallback;
-
-  /// A custom [Zone.registerBinaryCallback] implementation for a new zone.
-  RegisterBinaryCallbackHandler? get registerBinaryCallback;
-
-  /// A custom [Zone.errorCallback] implementation for a new zone.
-  ErrorCallbackHandler? get errorCallback;
-
-  /// A custom [Zone.scheduleMicrotask] implementation for a new zone.
-  ScheduleMicrotaskHandler? get scheduleMicrotask;
-
-  /// A custom [Zone.createTimer] implementation for a new zone.
-  CreateTimerHandler? get createTimer;
-
-  /// A custom [Zone.createPeriodicTimer] implementation for a new zone.
-  CreatePeriodicTimerHandler? get createPeriodicTimer;
-
-  /// A custom [Zone.print] implementation for a new zone.
-  PrintHandler? get print;
-
-  /// A custom [Zone.handleUncaughtError] implementation for a new zone.
-  ForkHandler? get fork;
-}
-
-/// Internal [ZoneSpecification] class.
-///
-/// The implementation wants to rely on the fact that the getters cannot change
-/// dynamically. We thus require users to go through the redirecting
-/// [ZoneSpecification] constructor which instantiates this class.
-base class _ZoneSpecification implements ZoneSpecification {
-  const _ZoneSpecification({
+  const ZoneSpecification({
     this.handleUncaughtError,
     this.run,
     this.runUnary,
@@ -150,19 +86,44 @@ base class _ZoneSpecification implements ZoneSpecification {
     this.fork,
   });
 
-  final HandleUncaughtErrorHandler? handleUncaughtError;
-  final RunHandler? run;
-  final RunUnaryHandler? runUnary;
-  final RunBinaryHandler? runBinary;
-  final RegisterCallbackHandler? registerCallback;
-  final RegisterUnaryCallbackHandler? registerUnaryCallback;
-  final RegisterBinaryCallbackHandler? registerBinaryCallback;
-  final ErrorCallbackHandler? errorCallback;
-  final ScheduleMicrotaskHandler? scheduleMicrotask;
-  final CreateTimerHandler? createTimer;
-  final CreatePeriodicTimerHandler? createPeriodicTimer;
-  final PrintHandler? print;
-  final ForkHandler? fork;
+  /// Creates a specification from [other] and provided handlers.
+  ///
+  /// The created zone specification has the handlers of [other]
+  /// and any individually provided handlers.
+  /// If a handler is provided both through [other] and individually,
+  /// the individually provided handler overrides the one from [other].
+  ZoneSpecification.from(
+    ZoneSpecification other, {
+    HandleUncaughtErrorHandler? handleUncaughtError,
+    RunHandler? run,
+    RunUnaryHandler? runUnary,
+    RunBinaryHandler? runBinary,
+    RegisterCallbackHandler? registerCallback,
+    RegisterUnaryCallbackHandler? registerUnaryCallback,
+    RegisterBinaryCallbackHandler? registerBinaryCallback,
+    ErrorCallbackHandler? errorCallback,
+    ScheduleMicrotaskHandler? scheduleMicrotask,
+    CreateTimerHandler? createTimer,
+    CreatePeriodicTimerHandler? createPeriodicTimer,
+    PrintHandler? print,
+    ForkHandler? fork,
+  }) : this(
+         handleUncaughtError: handleUncaughtError ?? other.handleUncaughtError,
+         run: run ?? other.run,
+         runUnary: runUnary ?? other.runUnary,
+         runBinary: runBinary ?? other.runBinary,
+         registerCallback: registerCallback ?? other.registerCallback,
+         registerUnaryCallback:
+             registerUnaryCallback ?? other.registerUnaryCallback,
+         registerBinaryCallback:
+             registerBinaryCallback ?? other.registerBinaryCallback,
+         errorCallback: errorCallback ?? other.errorCallback,
+         scheduleMicrotask: scheduleMicrotask ?? other.scheduleMicrotask,
+         createTimer: createTimer ?? other.createTimer,
+         createPeriodicTimer: createPeriodicTimer ?? other.createPeriodicTimer,
+         print: print ?? other.print,
+         fork: fork ?? other.fork,
+       );
 }
 
 // Names and documentation for the functions of a ZoneSpecification.

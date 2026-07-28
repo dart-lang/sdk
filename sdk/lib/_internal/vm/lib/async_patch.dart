@@ -210,8 +210,8 @@ class _SuspendState {
     final currentZone = Zone._current;
     if (identical(currentZone, _rootZone) ||
         identical(
-          currentZone._registerUnaryCallback,
-          _rootZone._registerUnaryCallback,
+          currentZone._registerUnaryCallbackFunction,
+          _rootZone._registerUnaryCallbackFunction,
         )) {
       _thenCallback = thenCallback;
     } else {
@@ -221,8 +221,8 @@ class _SuspendState {
     }
     if (identical(currentZone, _rootZone) ||
         identical(
-          currentZone._registerBinaryCallback,
-          _rootZone._registerBinaryCallback,
+          currentZone._registerBinaryCallbackFunction,
+          _rootZone._registerBinaryCallbackFunction,
         )) {
       _errorCallback = errorCallback;
     } else {
@@ -590,9 +590,8 @@ class _SyncStarIterator<T> implements Iterator<T> {
       try {
         // Resume current sync* method in order to move to the next value.
         final bool hasMore = unsafeCast<bool>(
-          unsafeCast<_SuspendState>(
-            _state,
-          )._resume(null, pendingException, pendingStackTrace),
+          unsafeCast<_SuspendState>(_state)
+              ._resume(null, pendingException, pendingStackTrace),
         );
         pendingException = null;
         pendingStackTrace = null;
@@ -622,9 +621,9 @@ class _SyncStarIterator<T> implements Iterator<T> {
           // current _state for later resumption).
           final stack = (_stack ??= []);
           stack.add(_state!);
-          final nestedState = unsafeCast<_SyncStarIterable>(
-            iterable,
-          )._stateAtStart!._clone();
+          final nestedState = unsafeCast<_SyncStarIterable>(iterable)
+              ._stateAtStart!
+              ._clone();
           nestedState._functionData = this;
           _state = nestedState;
         } else {

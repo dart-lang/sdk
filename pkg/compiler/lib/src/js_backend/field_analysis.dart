@@ -107,7 +107,7 @@ class KFieldAnalysis {
                 if (position != -1) {
                   if (position >= constructor.function.requiredParameterCount) {
                     constantValue = _elementMap.getConstantValue(
-                      parameter.initializer,
+                      parameter.defaultValue,
                       requireConstant: false,
                       implicitNull: true,
                     );
@@ -125,13 +125,13 @@ class KFieldAnalysis {
                 );
                 if (position != -1) {
                   constantValue = _elementMap.getConstantValue(
-                    parameter.initializer,
+                    parameter.defaultValue,
                     requireConstant: false,
                     implicitNull: true,
                   );
                   if (constantValue != null && constantValue.isConstant) {
                     initializerValue = Initializer.named(
-                      parameter.name,
+                      parameter.parameterName,
                       constantValue,
                     );
                   }

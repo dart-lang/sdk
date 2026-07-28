@@ -11,6 +11,14 @@ description: Updates the native_rev dependency in the DEPS file with all correct
 
 Use this skill when you are requested to roll or update the `native_rev` variable (the hash of `third_party/pkg/native` repository) in the `DEPS` file.
 
+## 0. Initial Synchronization
+
+Before beginning the roll, **ask the user** if the SDK git repository should be switched to the `main` branch and synchronized.
+If they confirm, run:
+```bash
+git checkout main && git pull && gclient sync -D -f
+```
+
 ## 1. Commit Selection Rules
 
 > [!IMPORTANT]
@@ -64,7 +72,7 @@ Before completing the update, you must run the following tests:
 ### Native Assets Package Tests
 Build the target SDK and run the primary native asset tests:
 ```bash
-tools/build.py -mrelease create_sdk runtime ffi_test_functions runtime_precompiled && tools/test.py -n unittest-asserts-release-mac-arm64 pkg/dartdev/test/native_assets/
+RBE_exec_strategy=racing tools/build.py -mrelease create_sdk runtime ffi_test_functions runtime_precompiled && tools/test.py -n unittest-asserts-release-mac-arm64 pkg/dartdev/test/native_assets/
 ```
 
 ### Record Use Optimization Tests
@@ -72,7 +80,7 @@ Since `record_use` integrates closely with `native_rev` updates, these tests mus
 
 1. Build the required target backends and run all record use tests:
    ```bash
-   tools/build.py -mrelease create_sdk dart2wasm runtime ffi_test_functions runtime_precompiled && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/compiler/test/record_use/record_use_test.dart && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/dart2wasm/test/record_use_test.dart && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/vm/test/transformations/record_use_test.dart
+   RBE_exec_strategy=racing tools/build.py -mrelease create_sdk dart2wasm runtime ffi_test_functions runtime_precompiled && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/compiler/test/record_use/record_use_test.dart && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/dart2wasm/test/record_use_test.dart && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/vm/test/transformations/record_use_test.dart
    ```
 2. **Updating Expectations**:
    > [!IMPORTANT]
@@ -81,7 +89,7 @@ Since `record_use` integrates closely with `native_rev` updates, these tests mus
    If the user confirms that the expectations should be updated to match the new behavior:
    * Run the test command with `-DupdateExpectations=true`:
      ```bash
-     tools/build.py -mrelease create_sdk dart2wasm runtime ffi_test_functions runtime_precompiled && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/compiler/test/record_use/record_use_test.dart -DupdateExpectations=true && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/dart2wasm/test/record_use_test.dart -DupdateExpectations=true && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/vm/test/transformations/record_use_test.dart -DupdateExpectations=true
+     RBE_exec_strategy=racing tools/build.py -mrelease create_sdk dart2wasm runtime ffi_test_functions runtime_precompiled && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/compiler/test/record_use/record_use_test.dart -DupdateExpectations=true && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/dart2wasm/test/record_use_test.dart -DupdateExpectations=true && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/vm/test/transformations/record_use_test.dart -DupdateExpectations=true
      ```
    * **Note**: Always run the VM test one last when updating expectations. The expect files are stored in the VM directory.
 3. **Running Individual Tests**:
@@ -103,3 +111,13 @@ Follow these final validation steps before announcing completion:
    dart --enable-asserts pkg/front_end/test/coverage_suite.dart --tasks=5 --add-and-remove-comments
    ```
    * *Critical*: Revert the coverage comment changes in any files that you did not otherwise modify.
+
+## 5. Branching and Committing
+
+After all tests pass and formatting/analysis is clean:
+1. **Ask the user** if they want to create a roll branch and commit the changes.
+2. If confirmed, get the current date in `YYYYMMDD` format (e.g., `20260630`) and run:
+   ```bash
+   git new-branch roll-<YYYYMMDD>
+   git commit -a -m "[deps] Roll dart-lang/native"
+   ```

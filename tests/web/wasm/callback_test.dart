@@ -13,11 +13,15 @@ import 'package:expect/expect.dart';
 external void eval(String code);
 
 typedef SumTwoPositionalFun = String Function(String a, String b);
-typedef SumOnePositionalAndOneOptionalFun =
-    String Function(String a, [String? b]);
+typedef SumOnePositionalAndOneOptionalFun = String Function(
+  String a, [
+  String? b,
+]);
 typedef SumTwoOptionalFun = String Function([String? a, String? b]);
-typedef SumOnePositionalAndOneOptionalNonNullFun =
-    String Function(String a, [String b]);
+typedef SumOnePositionalAndOneOptionalNonNullFun = String Function(
+  String a, [
+  String b,
+]);
 typedef SumTwoOptionalNonNullFun = String Function([String a, String b]);
 
 @JS()
@@ -165,8 +169,10 @@ void staticInteropCallbackTest() {
 
 typedef NoArgsFun = String Function();
 typedef OneArgFun = String Function(String arg);
-typedef OnePositionalAndOneOptionalArgsFun =
-    String Function(String arg, [String arg2]);
+typedef OnePositionalAndOneOptionalArgsFun = String Function(
+  String arg, [
+  String arg2,
+]);
 typedef TwoOptionalArgsFun = String Function([String arg, String arg2]);
 
 class TornOffClass {
@@ -188,8 +194,10 @@ class TornOffClass {
 }
 
 typedef OneArgFunB = String Function(double arg);
-typedef OnePositionalAndOneOptionalArgsFunB =
-    String Function(double arg, [String arg2]);
+typedef OnePositionalAndOneOptionalArgsFunB = String Function(
+  double arg, [
+  String arg2,
+]);
 typedef TwoOptionalArgsFunB = String Function([double arg, String arg2]);
 
 class GenericTornOffClass<T, V> {
@@ -335,8 +343,10 @@ void unsafeInteropCallbackTest() {
 
   // All nullable optional arguments
   {
-    final interopCallback =
-        (([String? a, String? b]) => (a ?? 'foo') + (b ?? 'bar')).toJS;
+    final interopCallback = (([
+      String? a,
+      String? b,
+    ]) => (a ?? 'foo') + (b ?? 'bar')).toJS;
     globalContext['summer'] = interopCallback;
     Expect.equals(
       'foobar',
@@ -378,8 +388,10 @@ void unsafeInteropCallbackTest() {
 
   // All non-nullable optional arguments
   {
-    final interopCallback =
-        (([String a = 'foo', String b = 'bar']) => a + b).toJS;
+    final interopCallback = (([
+      String a = 'foo',
+      String b = 'bar',
+    ]) => a + b).toJS;
     globalContext['summer'] = interopCallback;
     Expect.equals(
       'foobar',

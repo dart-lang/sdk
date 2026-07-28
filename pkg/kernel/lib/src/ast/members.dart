@@ -277,6 +277,8 @@ class Field extends Member implements ScopeProvider {
   @override
   Scope? scope;
 
+  ThisVariable? thisVariable;
+
   new mutable(
     Name name, {
     this.type = const DynamicType(),
@@ -290,12 +292,14 @@ class Field extends Member implements ScopeProvider {
     Reference? fieldReference,
     Reference? getterReference,
     Reference? setterReference,
+    this.thisVariable,
   }) : this.getterReference = getterReference ?? new Reference(),
        this.setterReference = setterReference ?? new Reference(),
        super(name, fileUri, fieldReference) {
     this.getterReference.node = this;
     this.setterReference!.node = this;
     initializer?.parent = this;
+    thisVariable?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isStatic = isStatic;
@@ -307,6 +311,7 @@ class Field extends Member implements ScopeProvider {
     Name name, {
     this.type = const DynamicType(),
     this.initializer,
+    this.thisVariable,
     bool isCovariantByDeclaration = false,
     bool isFinal = false,
     bool isConst = false,
@@ -322,6 +327,7 @@ class Field extends Member implements ScopeProvider {
        super(name, fileUri, fieldReference) {
     this.getterReference.node = this;
     initializer?.parent = this;
+    thisVariable?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isConst = isConst;

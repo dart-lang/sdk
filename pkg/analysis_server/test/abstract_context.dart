@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -60,17 +60,15 @@ class AbstractContextTest
   String get analysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
 
-  List<String> get collectionIncludedPaths => [workspaceRootPath];
-
   @override
   String get dartSdkPath => sdkRoot.path;
 
   /// The line terminator being used for test files and to be expected in edits.
   String get eol => testEol;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, an empty list if there are no experiments that should be enabled.
-  List<String> get experiments => experimentsForTests;
+  /// Return a list of the experimental features that are to be enabled for
+  /// tests in this class.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
@@ -95,6 +93,8 @@ class AbstractContextTest
 
   String get workspaceRootPath => '/home';
 
+  List<String> get _collectionIncludedPaths => [workspaceRootPath];
+
   Future<void> analyzeTestPackageFiles() async {
     var analysisContext = contextFor(testFile);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
@@ -110,22 +110,18 @@ class AbstractContextTest
     _assertTextExpectation(buffer.toString(), expected);
   }
 
-  void changeFile(File file) {
-    var path = file.path;
-    driverFor(file).changeFile(path);
-  }
-
   /// Returns the existing analysis context that should be used to analyze the
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
-  AnalysisContext contextFor(File file) {
-    return _contextFor(file);
+  DriverBasedAnalysisContext contextFor(File file) {
+    _createAnalysisContexts();
+    return _analysisContextCollection!.contextFor(file.path);
   }
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
     List<String> includes = const [],
-    List<String> experiments = const [],
+    List<Feature> experimentalFeatures = const [],
     List<String> legacyPlugins = const [],
     List<String> cannotIgnore = const [],
     List<String> lints = const [],
@@ -138,7 +134,7 @@ class AbstractContextTest
     writeAnalysisOptionsFile(
       analysisOptionsContent(
         includes: includes,
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: legacyPlugins,
         propagateLinterExceptions: propagateLinterExceptions,
         rules: lints,
@@ -155,14 +151,7 @@ class AbstractContextTest
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver driverFor(File file) {
-    return _contextFor(file).driver;
-  }
-
-  Future<ParsedUnitResult> getParsedUnit(File file) async {
-    var path = file.path;
-    var session = await sessionFor(fileForContextSelection ?? file);
-    var result = session.getParsedUnit(path);
-    return result as ParsedUnitResult;
+    return contextFor(file).driver;
   }
 
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
@@ -170,10 +159,6 @@ class AbstractContextTest
     var session = await sessionFor(fileForContextSelection ?? file);
     var result = await session.getResolvedUnit(path);
     return result as ResolvedUnitResult;
-  }
-
-  void makeFilePriority(File file) {
-    driverFor(file).priorityFiles2 = [file];
   }
 
   @override
@@ -192,7 +177,7 @@ class AbstractContextTest
   String normalizeSource(String code) => normalizeNewlinesForPlatform(code);
 
   Future<AnalysisSession> sessionFor(File file) async {
-    var analysisContext = _contextFor(file);
+    var analysisContext = contextFor(file);
     await analysisContext.applyPendingFileChanges();
     return analysisContext.currentSession;
   }
@@ -206,16 +191,12 @@ class AbstractContextTest
       registerBuiltInFixGenerators();
     }
 
-    setupResourceProvider();
-
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     writeTestPackageConfig();
 
-    createAnalysisOptionsFile(experiments: experiments);
+    createAnalysisOptionsFile(experimentalFeatures: experimentalFeatures);
   }
-
-  void setupResourceProvider() {}
 
   @mustCallSuper
   Future<void> tearDown() async {
@@ -266,12 +247,7 @@ class AbstractContextTest
     expect(actual, expected);
   }
 
-  DriverBasedAnalysisContext _contextFor(File file) {
-    _createAnalysisContexts();
-    return _analysisContextCollection!.contextFor(file.path);
-  }
-
-  /// Create all analysis contexts in [collectionIncludedPaths].
+  /// Create all analysis contexts in [_collectionIncludedPaths].
   void _createAnalysisContexts() {
     if (_analysisContextCollection != null) {
       return;
@@ -281,7 +257,7 @@ class AbstractContextTest
       byteStore: byteStore,
       declaredVariables: _declaredVariables,
       enableIndex: true,
-      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       withFineDependencies: true,

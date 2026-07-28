@@ -30,7 +30,6 @@ class A implements Function, Function {}
 //                 ^^^^^^^^
 // [diag.finalClassImplementedOutsideOfLibrary] The class 'Function' can't be implemented outside of its library because it's a final class.
 //                           ^^^^^^^^
-// [diag.implementsRepeated] 'Function' can only be implemented once.
 // [diag.finalClassImplementedOutsideOfLibrary] The class 'Function' can't be implemented outside of its library because it's a final class.
 ''');
   }

@@ -10,6 +10,7 @@ library TypedArray;
 
 import 'package:expect/async_helper.dart';
 import "package:expect/expect.dart";
+
 import 'dart:isolate';
 import 'dart:typed_data';
 

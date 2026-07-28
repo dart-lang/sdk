@@ -240,19 +240,20 @@ void main() {
     Expect.equals(value, (foo.nested as Nested<JSString>).value.toDart);
     Expect.equals(
       '$value$value',
-      (foo.combineNested(Nested(value.toJS), Nested(jsValue))
-              as Nested<JSString>)
-          .value
-          .toDart,
+      (foo.combineNested(
+        Nested(value.toJS),
+        Nested(jsValue),
+      ) as Nested<JSString>).value.toDart,
     );
 
     foo.nestedU = Nested(jsValue);
     Expect.equals(value, (foo.nestedU as Nested<JSString>).value.toDart);
     Expect.equals(
       '$value$value',
-      (foo.combineNestedU(Nested(jsValue), Nested(jsValue)) as Nested<JSString>)
-          .value
-          .toDart,
+      (foo.combineNestedU(
+        Nested(jsValue),
+        Nested(jsValue),
+      ) as Nested<JSString>).value.toDart,
     );
     Expect.equals(
       '$value$value',

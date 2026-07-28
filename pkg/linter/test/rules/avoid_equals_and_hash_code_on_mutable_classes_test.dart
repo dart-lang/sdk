@@ -60,6 +60,7 @@ class A {
     reason: '`augmented.metadata` is unimplemented',
     issue: 'https://github.com/dart-lang/linter/issues/4932',
   )
+  // TODO(scheglov): implement augmentation
   test_immutableClass_augmented() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -86,7 +87,7 @@ augment class A { }
   }
 
   test_mutableClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   final String key;
   const A(this.key);
@@ -124,7 +125,7 @@ part 'test.dart';
 class A {}
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part of 'a.dart';
 
 augment class A {

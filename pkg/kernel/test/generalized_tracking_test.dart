@@ -175,7 +175,7 @@ void main() {
   const String creationLocationPrefix = r'$creationLocation';
   Expect.isTrue(
     constructor.function.namedParameters.any(
-      (p) => p.name!.startsWith(creationLocationPrefix),
+      (p) => p.parameterName.startsWith(creationLocationPrefix),
     ),
   );
 
@@ -200,7 +200,7 @@ void main() {
 
   Expect.isTrue(
     factoryMethod.function.namedParameters.any(
-      (p) => p.name!.startsWith(creationLocationPrefix),
+      (p) => p.parameterName.startsWith(creationLocationPrefix),
     ),
   );
 

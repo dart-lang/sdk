@@ -6,6 +6,7 @@
 // of closure parameters.
 
 import 'package:expect/expect.dart';
+
 import '../static_type_helper.dart';
 
 // If the closure has an optional positional parameter with an explicit type:

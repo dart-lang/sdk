@@ -5,6 +5,7 @@
 library math_lib_prefix_test;
 
 import "package:expect/expect.dart";
+
 import 'dart:math' as foo;
 
 main() {

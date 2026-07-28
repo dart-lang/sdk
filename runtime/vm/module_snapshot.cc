@@ -79,6 +79,7 @@ class ModuleSnapshot : public AllStatic {
     kExceptionHandlers,
     kPcDescriptors,
     kCatchEntryMoves,
+    kCompressedStackMaps,
     kCodeSourceMap,
     kInstances,
   };
@@ -1260,7 +1261,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->pc_descriptors_ =
           static_cast<PcDescriptorsPtr>(d->ReadRef());
       code->untag()->catch_entry_ = static_cast<TypedDataPtr>(d->ReadRef());
-      code->untag()->compressed_stackmaps_ = CompressedStackMaps::null();
+      code->untag()->compressed_stackmaps_ =
+          static_cast<CompressedStackMapsPtr>(d->ReadRef());
       code->untag()->inlined_id_to_function_ = Array::null();
       code->untag()->code_source_map_ =
           static_cast<CodeSourceMapPtr>(d->ReadRef());
@@ -1373,7 +1375,8 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
 
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
  public:
-  ObjectPoolDeserializationCluster() : DeserializationCluster("ObjectPool") {}
+  explicit ObjectPoolDeserializationCluster(Zone* zone)
+      : DeserializationCluster("ObjectPool"), class_(Class::Handle(zone)) {}
   ~ObjectPoolDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -1415,13 +1418,11 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             break;
           }
           case ModuleSnapshot::kNewObjectTags: {
-            ClassPtr cls = static_cast<ClassPtr>(d.ReadRef());
+            class_ = static_cast<ClassPtr>(d.ReadRef());
             pool->untag()->entry_bits()[j] = immediate_entry_bits;
             UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
             entry.raw_value_ = compiler::target::MakeTagWordForNewSpaceObject(
-                cls->untag()->id_,
-                Object::RoundedAllocationSize(Class::host_instance_size(cls) *
-                                              kCompressedWordSize));
+                class_.id(), compiler::target::Class::GetInstanceSize(class_));
             break;
           }
           case ModuleSnapshot::kStaticFieldOffset: {
@@ -1480,6 +1481,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
       }
     }
   }
+
+ private:
+  Class& class_;
 };
 
 class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
@@ -1584,6 +1588,41 @@ class CatchEntryMovesDeserializationCluster : public DeserializationCluster {
       data->untag()->length_ = Smi::New(length);
       data->untag()->RecomputeDataField();
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->untag()->data());
+      d.ReadBytes(cdata, length);
+    }
+  }
+};
+
+class CompressedStackMapsDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  CompressedStackMapsDeserializationCluster()
+      : DeserializationCluster("CompressedStackMaps") {}
+  ~CompressedStackMapsDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(CompressedStackMaps::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      const intptr_t length = d.ReadUnsigned();
+      CompressedStackMapsPtr map =
+          static_cast<CompressedStackMapsPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(map, kCompressedStackMapsCid,
+                                     CompressedStackMaps::InstanceSize(length));
+      map->untag()->payload()->set_flags_and_size(
+          UntaggedCompressedStackMaps::SizeField::encode(length));
+      uint8_t* cdata =
+          reinterpret_cast<uint8_t*>(map->untag()->payload()->data());
       d.ReadBytes(cdata, length);
     }
   }
@@ -1729,13 +1768,15 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case ModuleSnapshot::kSubtypeTestCaches:
       return new (Z) SubtypeTestCacheDeserializationCluster();
     case ModuleSnapshot::kObjectPools:
-      return new (Z) ObjectPoolDeserializationCluster();
+      return new (Z) ObjectPoolDeserializationCluster(Z);
     case ModuleSnapshot::kExceptionHandlers:
       return new (Z) ExceptionHandlersDeserializationCluster();
     case ModuleSnapshot::kPcDescriptors:
       return new (Z) PcDescriptorsDeserializationCluster();
     case ModuleSnapshot::kCatchEntryMoves:
       return new (Z) CatchEntryMovesDeserializationCluster();
+    case ModuleSnapshot::kCompressedStackMaps:
+      return new (Z) CompressedStackMapsDeserializationCluster();
     case ModuleSnapshot::kCodeSourceMap:
       return new (Z) CodeSourceMapDeserializationCluster();
     case ModuleSnapshot::kInstances: {

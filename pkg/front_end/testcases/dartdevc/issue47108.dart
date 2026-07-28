@@ -13,5 +13,7 @@ main() {
   print(identical(instantiatedTearOff, instantiatedTearOff2)); // Prints true
 
   // These instantiations are not in a const context so they don't appear in the const pool.
-  print(identical(constructorTearOff<String>, constructorTearOff<String>)); // Prints false
+  print(
+    identical(constructorTearOff<String>, constructorTearOff<String>),
+  ); // Prints false
 }

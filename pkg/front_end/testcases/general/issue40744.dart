@@ -10,6 +10,7 @@ void helper(Map<String, dynamic> input) {
 
 void main() {
   final nullValueMap = Map.fromEntries(
-      generatorConfigDefaultJson.entries.map((e) => MapEntry(e.key, null)));
+    generatorConfigDefaultJson.entries.map((e) => MapEntry(e.key, null)),
+  );
   helper(nullValueMap);
 }

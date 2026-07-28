@@ -8,6 +8,7 @@ import 'dart:html';
 import 'dart:math';
 
 import 'canvas_rendering_util.dart';
+
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {

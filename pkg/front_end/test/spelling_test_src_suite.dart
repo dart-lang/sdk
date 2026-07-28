@@ -7,7 +7,6 @@ import 'package:testing/testing.dart' show Chain;
 import 'utils/suite_utils.dart';
 import 'spell_checking_utils.dart' as spell;
 import 'spelling_test_base.dart';
-import 'testing_utils.dart' show checkEnvironment;
 
 void main([List<String> arguments = const []]) => internalMain(
   createContext,
@@ -20,19 +19,13 @@ Future<SpellContext> createContext(
   Chain suite,
   Map<String, String> environment,
 ) {
-  const Set<String> knownEnvironmentKeys = {"interactive", "onlyInGit"};
-  checkEnvironment(environment, knownEnvironmentKeys);
-
-  bool interactive = environment["interactive"] == "true";
-  bool onlyInGit = environment["onlyInGit"] != "false";
   return new Future.value(
-    new SpellContextSource(interactive: interactive, onlyInGit: onlyInGit),
+    new SpellContextSource(SpellOptions.create(environment)),
   );
 }
 
 class SpellContextSource extends SpellContext {
-  new({required bool interactive, required bool onlyInGit})
-    : super(interactive: interactive, onlyInGit: onlyInGit);
+  new(super.spellOptions);
 
   @override
   List<spell.Dictionaries> get dictionaries => const <spell.Dictionaries>[

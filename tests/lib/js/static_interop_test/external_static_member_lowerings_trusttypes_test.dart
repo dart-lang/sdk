@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_interop';
+
 import 'package:expect/expect.dart';
 import 'package:js/js.dart' show trustTypes;
 

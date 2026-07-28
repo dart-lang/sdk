@@ -24,8 +24,7 @@ void main() {
 
 /// Tests file inputs in `command/resolve` using the MoveToFile refactor.
 @reflectiveTest
-class CommandResolveFileInputTest extends RefactoringTest
-    with InteractiveFormsExperimentMixin {
+class CommandResolveFileInputTest extends RefactoringTest {
   /// Simple file content with a single class named 'A'.
   final simpleClassContent = '''
 class ^A {}
@@ -268,8 +267,7 @@ class ^A {}
 
 /// Tests string inputs in `command/resolve` using the AddImportPrefix refactor.
 @reflectiveTest
-class CommandResolveStringInputTest extends RefactoringTest
-    with InteractiveFormsExperimentMixin {
+class CommandResolveStringInputTest extends RefactoringTest {
   final source = '''
 ^import 'package:test/main.dart';
 ''';
@@ -459,22 +457,5 @@ class CommandResolveTest extends AbstractLspAnalysisServerTest {
     var resolvedCommand = await resolveCommand(command);
 
     expect(resolvedCommand, command);
-  }
-}
-
-/// A temporary mixin that sets the flag to enable the Interactive Forms
-/// experiment setting.
-mixin InteractiveFormsExperimentMixin on RefactoringTest {
-  @override
-  Future<void> initializeServer({
-    bool experimentalOptInFlag = true,
-    // We default this to true for these tests, though it's false in the
-    // the super implementation.
-    bool experimentalInteractiveForms = true,
-  }) {
-    return super.initializeServer(
-      experimentalOptInFlag: experimentalOptInFlag,
-      experimentalInteractiveForms: experimentalInteractiveForms,
-    );
   }
 }

@@ -195,6 +195,16 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: in
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: value
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         name: in
       parameter: RegularFormalParameter
@@ -227,6 +237,16 @@ FunctionDeclaration
   name: A
   functionExpression: FunctionExpression
     parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: in
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: value
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: in
@@ -268,7 +288,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer: ListLiteral
+        initializer2: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;
@@ -301,7 +321,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer: ListLiteral
+        initializer2: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;
@@ -417,6 +437,13 @@ GenericTypeAlias
     functionKeyword: Function
     parameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: X
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: X
@@ -452,6 +479,13 @@ GenericTypeAlias
       name: X
     functionKeyword: Function
     parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: X
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

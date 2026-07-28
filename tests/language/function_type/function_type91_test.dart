@@ -13,6 +13,7 @@
 
 import 'dart:core';
 import 'dart:core' as core;
+
 import 'package:expect/expect.dart';
 import 'package:expect/variations.dart' as v;
 
@@ -34,8 +35,9 @@ typedef F7<T> =
     Function Function(int y, [List<Function> x]) Function<B extends core.int>(
       int x,
     );
-typedef F8<T> =
-    Function Function(int, [List<T>]) Function<B extends core.int>(int x);
+typedef F8<T> = Function Function(int, [List<T>]) Function<B extends core.int>(
+  int x,
+);
 typedef F9<T> =
     List<Function> Function({Function x}) Function<B extends core.int>(int x);
 typedef F10<T> =
@@ -46,8 +48,9 @@ typedef F11<T> =
 typedef F12<T> =
     core.List<core.int> Function([core.List<core.int>])
     Function<B extends core.int>(int x);
-typedef F13<T> =
-    List<T> Function(int x, [int]) Function<B extends core.int>(int x);
+typedef F13<T> = List<T> Function(int x, [int]) Function<B extends core.int>(
+  int x,
+);
 typedef F14<T> =
     List<T> Function(int y, {List<Function> x}) Function<B extends core.int>(
       int x,
@@ -55,12 +58,14 @@ typedef F14<T> =
 typedef F15<T> = Function([int x]) Function<B extends core.int>(int x);
 typedef F16<T> = Function(List<Function>) Function<B extends core.int>(int x);
 typedef F17<T> = Function(int x, [List<T>]) Function<B extends core.int>(int x);
-typedef F18<T> =
-    void Function(int, {Function x}) Function<B extends core.int>(int x);
+typedef F18<T> = void Function(int, {Function x}) Function<B extends core.int>(
+  int x,
+);
 typedef F19<T> = void Function([List<T> x]) Function<B extends core.int>(int x);
 typedef F20<T> = Function Function<A>(A x) Function<B extends core.int>(int x);
-typedef F21<T> =
-    List<T> Function<A>(List<A> x) Function<B extends core.int>(int x);
+typedef F21<T> = List<T> Function<A>(List<A> x) Function<B extends core.int>(
+  int x,
+);
 typedef F22<T> = void Function<A>(int x) Function<B extends core.int>(int x);
 
 Function f0(int x0, [core.List<core.int> x = const []]) => throw 'uncalled';

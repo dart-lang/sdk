@@ -10,8 +10,10 @@ main() {
 
   local<T>(T? value) {
     late T? lateGenericLocal;
-    throws(() => lateGenericLocal,
-        'Read value from uninitialized lateGenericLocal');
+    throws(
+      () => lateGenericLocal,
+      'Read value from uninitialized lateGenericLocal',
+    );
     expect(value, lateGenericLocal = value);
     expect(value, lateGenericLocal);
   }

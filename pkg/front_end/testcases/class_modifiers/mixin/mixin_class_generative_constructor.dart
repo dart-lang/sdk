@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Don't move the "Error" comments.
+// dart format off
+
 mixin class ErrorMixinClass {
   final int foo;
   ErrorMixinClass(this.foo); /* Error */

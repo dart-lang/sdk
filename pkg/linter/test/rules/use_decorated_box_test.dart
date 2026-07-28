@@ -48,7 +48,7 @@ Widget f() {
   }
 
   test_containerWithDecorationAndChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
   return [!Container!](
@@ -118,7 +118,7 @@ Widget f() {
   }
 
   test_containerWithKeyAndDecorationAndChild() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
   return [!Container!](

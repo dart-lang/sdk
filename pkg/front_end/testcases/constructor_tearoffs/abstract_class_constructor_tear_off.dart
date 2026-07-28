@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class ConcreteClass {}
+
 abstract class AbstractClass {}
+
 mixin Mixin {}
+
 class NamedMixinApplication = Object with Mixin;
 abstract class AbstractNamedMixinApplication = Object with Mixin;
+
 extension Extension on int {}
 
 test() {

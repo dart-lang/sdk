@@ -12,7 +12,10 @@ import 'package:kernel/kernel.dart' show Component, writeComponentToText;
 import 'package:vm/metadata/closure_id.dart' show ClosureIdMetadataRepository;
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
-    show InferredTypeMetadataRepository, InferredArgTypeMetadataRepository;
+    show
+        InferredTypeMetadataRepository,
+        InferredArgTypeMetadataRepository,
+        InferredReturnTypeMetadataRepository;
 import 'package:vm/metadata/loading_units.dart'
     show LoadingUnitsMetadataRepository;
 import 'package:vm/metadata/procedure_attributes.dart'
@@ -48,22 +51,23 @@ void main(List<String> arguments) async {
   final input = argResults.rest[0];
   final output = argResults.rest[1];
 
-  final component = new Component();
+  final component = Component();
 
   // Register VM-specific metadata.
-  component.addMetadataRepository(new DirectCallMetadataRepository());
-  component.addMetadataRepository(new InferredTypeMetadataRepository());
-  component.addMetadataRepository(new InferredArgTypeMetadataRepository());
-  component.addMetadataRepository(new ProcedureAttributesMetadataRepository());
-  component.addMetadataRepository(new TableSelectorMetadataRepository());
-  component.addMetadataRepository(new UnboxingInfoMetadataRepository());
-  component.addMetadataRepository(new UnreachableNodeMetadataRepository());
-  component.addMetadataRepository(new CallSiteAttributesMetadataRepository());
-  component.addMetadataRepository(new LoadingUnitsMetadataRepository());
-  component.addMetadataRepository(new ClosureIdMetadataRepository());
+  component.addMetadataRepository(DirectCallMetadataRepository());
+  component.addMetadataRepository(InferredTypeMetadataRepository());
+  component.addMetadataRepository(InferredArgTypeMetadataRepository());
+  component.addMetadataRepository(InferredReturnTypeMetadataRepository());
+  component.addMetadataRepository(ProcedureAttributesMetadataRepository());
+  component.addMetadataRepository(TableSelectorMetadataRepository());
+  component.addMetadataRepository(UnboxingInfoMetadataRepository());
+  component.addMetadataRepository(UnreachableNodeMetadataRepository());
+  component.addMetadataRepository(CallSiteAttributesMetadataRepository());
+  component.addMetadataRepository(LoadingUnitsMetadataRepository());
+  component.addMetadataRepository(ClosureIdMetadataRepository());
 
-  final Uint8List bytes = new File(input).readAsBytesSync();
-  new BinaryBuilderWithMetadata(bytes).readComponent(component);
+  final Uint8List bytes = File(input).readAsBytesSync();
+  BinaryBuilderWithMetadata(bytes).readComponent(component);
 
   writeComponentToText(
     component,

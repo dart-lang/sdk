@@ -18,19 +18,19 @@ class UseFunctionTypeSyntaxForParametersTest extends LintRuleTest {
   String get lintRule => LintNames.use_function_type_syntax_for_parameters;
 
   test_classicSyntax() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f1([!bool f(int e)!]) {}
 ''');
   }
 
   test_classicSyntax_declaring() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C([!final bool x(int e)!]);
 ''');
   }
 
   test_classicSyntax_fieldFormal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   C([!bool this.x(int e)!]);
 

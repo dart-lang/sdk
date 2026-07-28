@@ -22,22 +22,22 @@ library;
 //   new(); // Error
 //   ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:32:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:34:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const E1.other(); // Error
 //         ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:37:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:42:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const new other1(); // Error
 //             ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:38:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:43:13: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const new other2(); // Error
 //             ^
 //
-// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:53:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
+// pkg/front_end/testcases/primary_constructors/primary_and_generative.dart:64:9: Error: Classes with primary constructors can't have non-redirecting generative constructors.
 // Try making the constructor redirect to the primary constructor, or remove the primary constructor.
 //   const new(); // Error
 //         ^
@@ -291,15 +291,15 @@ org-dartlang-testcase:///primary_and_generative.dart:
 - E1. (from org-dartlang-testcase:///primary_and_generative.dart:30:8)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- E1.other (from org-dartlang-testcase:///primary_and_generative.dart:32:9)
-- E2. (from org-dartlang-testcase:///primary_and_generative.dart:35:8)
-- E2.other1 (from org-dartlang-testcase:///primary_and_generative.dart:37:13)
-- E2.other2 (from org-dartlang-testcase:///primary_and_generative.dart:38:13)
-- E3. (from org-dartlang-testcase:///primary_and_generative.dart:41:8)
-- E3.other (from org-dartlang-testcase:///primary_and_generative.dart:43:13)
-- E4. (from org-dartlang-testcase:///primary_and_generative.dart:46:8)
-- E4.other (from org-dartlang-testcase:///primary_and_generative.dart:48:13)
-- E5. (from org-dartlang-testcase:///primary_and_generative.dart:53:9)
-- E5.primary (from org-dartlang-testcase:///primary_and_generative.dart:51:9)
-- E6. (from org-dartlang-testcase:///primary_and_generative.dart:58:9)
-- E6.primary (from org-dartlang-testcase:///primary_and_generative.dart:56:9)
+- E1.other (from org-dartlang-testcase:///primary_and_generative.dart:34:9)
+- E2. (from org-dartlang-testcase:///primary_and_generative.dart:37:8)
+- E2.other1 (from org-dartlang-testcase:///primary_and_generative.dart:42:13)
+- E2.other2 (from org-dartlang-testcase:///primary_and_generative.dart:43:13)
+- E3. (from org-dartlang-testcase:///primary_and_generative.dart:46:8)
+- E3.other (from org-dartlang-testcase:///primary_and_generative.dart:50:13)
+- E4. (from org-dartlang-testcase:///primary_and_generative.dart:53:8)
+- E4.other (from org-dartlang-testcase:///primary_and_generative.dart:57:13)
+- E5. (from org-dartlang-testcase:///primary_and_generative.dart:64:9)
+- E5.primary (from org-dartlang-testcase:///primary_and_generative.dart:60:9)
+- E6. (from org-dartlang-testcase:///primary_and_generative.dart:71:9)
+- E6.primary (from org-dartlang-testcase:///primary_and_generative.dart:67:9)

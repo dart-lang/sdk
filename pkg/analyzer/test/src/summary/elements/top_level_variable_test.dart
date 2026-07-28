@@ -3398,6 +3398,156 @@ library
 ''');
   }
 
+  test_variable_augmentation_chain_inferredType_abstractVar_varInitializer() async {
+    var library = await buildLibrary(r'''
+abstract var foo;
+augment var foo = 0;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType isAbstract isOriginDeclaration isStatic foo (nameOffset:13) (firstTokenOffset:13) (offset:13)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+          nextFragment: #F4
+        #F4 hasImplicitType hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:30) (firstTokenOffset:30) (offset:30)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F5
+          inducedSetter: #F6
+          previousFragment: #F1
+      getters
+        #F2 isAbstract isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F4
+          previousFragment: #F2
+      setters
+        #F3 isAbstract isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F8
+          nextFragment: #F6
+        #F6 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F4
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F7
+          previousFragment: #F3
+  topLevelVariables
+    hasImplicitType hasInitializer isAbstract isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: dynamic
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F7
+          type: dynamic
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_variable_augmentation_chain_inferredType_varInitializer_varInitializer() async {
+    var library = await buildLibrary(r'''
+var foo = 0;
+augment var foo = 1.2;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F2
+          inducedSetter: #F3
+          nextFragment: #F4
+        #F4 hasImplicitType hasInitializer isAugmentation isOriginDeclaration isStatic foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F5
+          inducedSetter: #F6
+          previousFragment: #F1
+      getters
+        #F2 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F4
+          previousFragment: #F2
+      setters
+        #F3 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F1
+          formalParameters
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              nextFragment: #F8
+          nextFragment: #F6
+        #F6 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+          element: <testLibrary>::@setter::foo
+          inducingVariable: #F4
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              previousFragment: #F7
+          previousFragment: #F3
+  topLevelVariables
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F7
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_variable_augmentation_chain_initializer() async {
     var library = await buildLibrary(r'''
 int foo;
@@ -4633,7 +4783,7 @@ library
           initializer: expression_0
             RecordLiteral
               leftParenthesis: ( @10
-              fields
+              fields2
                 IntegerLiteral
                   literal: 1 @11
                   staticType: int
@@ -5625,13 +5775,13 @@ library
         #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            InstanceCreationExpression
-              constructorName: ConstructorName
-                type: NamedType
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: A @46
                   element: <testLibrary>::@class::A
                   type: A<int>
-                element: ConstructorMember
+                element: SubstitutedConstructorElementImpl
                   baseElement: <testLibrary>::@class::A::@constructor::new
                   substitution: {T: int}
               argumentList: ArgumentList

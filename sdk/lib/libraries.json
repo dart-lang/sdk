@@ -362,16 +362,6 @@
           "_internal/wasm/common/math_patch.dart",
           "_internal/wasm/standalone/math_externs_patch.dart"
         ]
-      },
-      "js_interop": {
-        "uri": "_internal/wasm/standalone/js_interop.dart",
-        "support_conditional_import": false
-      },
-      "_js_interop_wasm": {
-        "uri": "_js_interop_wasm/js_interop_wasm.dart",
-        "patches": [
-          "_internal/wasm/standalone/js_interop_wasm_patch.dart"
-        ]
       }
     }
   },

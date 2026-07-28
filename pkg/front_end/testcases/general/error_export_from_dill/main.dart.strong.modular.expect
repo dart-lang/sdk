@@ -7,39 +7,39 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:8:28: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:10:28: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
 // import 'main_lib3.dart' as imported;
 //                            ^^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:15:7: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:17:7: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
 //   new imported.Duplicate();
 //       ^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:17:12: Error: 'NonExisting' isn't a type.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:19:12: Error: 'NonExisting' isn't a type.
 //   imported.NonExisting e;
 //            ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:18:16: Error: Couldn't find constructor 'NonExisting'.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:20:16: Error: Couldn't find constructor 'NonExisting'.
 //   new imported.NonExisting();
 //                ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:19:13: Error: 'NonExisting' isn't a type.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:21:13: Error: 'NonExisting' isn't a type.
 //   <imported.NonExisting>[];
 //             ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:27:7: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:29:7: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
 //   new exported.Duplicate();
 //       ^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:29:12: Error: 'NonExisting' isn't a type.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:31:12: Error: 'NonExisting' isn't a type.
 //   exported.NonExisting e;
 //            ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:30:16: Error: Couldn't find constructor 'NonExisting'.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:32:16: Error: Couldn't find constructor 'NonExisting'.
 //   new exported.NonExisting();
 //                ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/error_export_from_dill/main.dart:31:13: Error: 'NonExisting' isn't a type.
+// pkg/front_end/testcases/general/error_export_from_dill/main.dart:33:13: Error: 'NonExisting' isn't a type.
 //   <exported.NonExisting>[];
 //             ^^^^^^^^^^^
 //
@@ -55,12 +55,12 @@ static method testImported() → dynamic {
   Never n;
   <Never>[];
   invalid-type d;
-  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:15:7: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:17:7: Error: 'Duplicate' is imported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
   new imported.Duplicate();
       ^^^^^^^^";
   <invalid-type>[];
   invalid-type e;
-  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:18:16: Error: Couldn't find constructor 'NonExisting'.
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:20:16: Error: Couldn't find constructor 'NonExisting'.
   new imported.NonExisting();
                ^^^^^^^^^^^";
   <invalid-type>[];
@@ -70,12 +70,12 @@ static method testExported() → dynamic {
   Never n;
   <Never>[];
   invalid-type d;
-  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:27:7: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:29:7: Error: 'Duplicate' is exported from both 'pkg/front_end/testcases/general/error_export_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/error_export_from_dill/main_lib3.dart'.
   new exported.Duplicate();
       ^^^^^^^^";
   <invalid-type>[];
   invalid-type e;
-  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:30:16: Error: Couldn't find constructor 'NonExisting'.
+  invalid-expression "pkg/front_end/testcases/general/error_export_from_dill/main.dart:32:16: Error: Couldn't find constructor 'NonExisting'.
   new exported.NonExisting();
                ^^^^^^^^^^^";
   <invalid-type>[];

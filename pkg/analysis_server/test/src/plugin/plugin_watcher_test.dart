@@ -27,7 +27,7 @@ class PluginWatcherTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    manager = TestPluginManager();
+    manager = TestPluginManager(resourceProvider);
     watcher = PluginWatcher(resourceProvider, manager, pluginsAreEnabled: true);
   }
 

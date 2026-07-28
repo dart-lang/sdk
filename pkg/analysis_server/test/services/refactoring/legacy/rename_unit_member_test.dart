@@ -280,8 +280,7 @@ void f() {
     assertRefactoringStatus(
       status,
       RefactoringProblemSeverity.FATAL,
-      expectedMessage:
-          "The class 'A' is defined outside of the project, so cannot be renamed.",
+      expectedMessage: "The class 'A' is defined outside of the project, so cannot be renamed.",
     );
   }
 
@@ -445,6 +444,29 @@ class Other {
 void f() {
   NewName t1 = new NewName();
   NewName t2 = new NewName.named();
+}
+''');
+  }
+
+  Future<void> test_createChange_ClassElement_annotationReferences() async {
+    await indexTestUnit('''
+import '' as self;
+@self.Foo()
+@Foo()
+class Fo^o {
+  const new();
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+import '' as self;
+@self.NewName()
+@NewName()
+class NewName {
+  const new();
 }
 ''');
   }

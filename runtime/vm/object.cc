@@ -596,6 +596,7 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   Roots::null_record_type().initRO(RecordType::null());
   Roots::null_type_arguments().initRO(TypeArguments::null());
   Roots::null_closure().initRO(Closure::null());
+  Roots::null_bytecode().initRO(Bytecode::null());
   Roots::empty_type_arguments().initRO(TypeArguments::null());
   Roots::null_abstract_type().initRO(AbstractType::null());
   Roots::null_compressed_stackmaps().initRO(CompressedStackMaps::null());
@@ -21230,17 +21231,20 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
 
 ObjectPtr Instance::GetField(const Field& field) const {
   if (field.is_unboxed()) {
+    // TODO(63699): Align unboxed fields.
     switch (field.guarded_cid()) {
       case kDoubleCid:
-        return Double::New(*reinterpret_cast<double_t*>(FieldAddr(field)));
+        return Double::New(
+            LoadUnaligned(reinterpret_cast<double_t*>(FieldAddr(field))));
       case kFloat32x4Cid:
-        return Float32x4::New(
-            *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
+        return Float32x4::New(LoadUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
       case kFloat64x2Cid:
-        return Float64x2::New(
-            *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
+        return Float64x2::New(LoadUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
       default:
-        return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
+        return Integer::New(
+            LoadUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field))));
     }
   } else {
     return FieldAddr(field)->Decompress(untag()->heap_base());
@@ -21249,22 +21253,25 @@ ObjectPtr Instance::GetField(const Field& field) const {
 
 void Instance::SetField(const Field& field, const Object& value) const {
   if (field.is_unboxed()) {
+    // TODO(63699): Align unboxed fields.
     switch (field.guarded_cid()) {
       case kDoubleCid:
-        StoreNonPointer(reinterpret_cast<double_t*>(FieldAddr(field)),
-                        Double::Cast(value).value());
+        StoreNonPointerUnaligned(reinterpret_cast<double_t*>(FieldAddr(field)),
+                                 Double::Cast(value).value());
         break;
       case kFloat32x4Cid:
-        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
-                        Float32x4::Cast(value).value());
+        StoreNonPointerUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+            Float32x4::Cast(value).value());
         break;
       case kFloat64x2Cid:
-        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
-                        Float64x2::Cast(value).value());
+        StoreNonPointerUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+            Float64x2::Cast(value).value());
         break;
       default:
-        StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
-                        Integer::Cast(value).Value());
+        StoreNonPointerUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                                 Integer::Cast(value).Value());
         break;
     }
   } else {
@@ -26356,13 +26363,15 @@ const char* Pointer::ToCString() const {
 }
 
 DynamicLibraryPtr DynamicLibrary::New(void* handle,
-                                      bool canBeClosed,
+                                      Dart_NativeAssetsDlsymCallback dlsym,
+                                      Dart_NativeAssetsDlcloseCallback dlclose,
                                       Heap::Space space) {
   const auto& result =
       DynamicLibrary::Handle(Object::Allocate<DynamicLibrary>(space));
   ASSERT_EQUAL(result.IsClosed(), false);
   result.SetHandle(handle);
-  result.SetCanBeClosed(canBeClosed);
+  result.SetDlsym(dlsym);
+  result.SetDlclose(dlclose);
   return result.ptr();
 }
 
@@ -26741,7 +26750,6 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
     BaseTextBuffer* buffer,
     uword call_addr,
     uword instructions,
-    bool vm,
     LoadingUnit* unit = nullptr) {
   const Image image(reinterpret_cast<const uint8_t*>(instructions));
   if (!image.contains(call_addr)) return false;
@@ -26755,7 +26763,7 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
   // Only print the relocated address of the call when we know the saved
   // debugging information (if any) will have the same relocated address.
   // Also only print 'virt' fields for isolate addresses.
-  if (!vm && image.compiled_to_shared_object()) {
+  if (image.compiled_to_shared_object()) {
     const uword relocated_section_start =
         image.instructions_relocated_address();
     buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
@@ -26769,7 +26777,6 @@ static bool TryPrintNonSymbolicStackFrameBodyRelative(
 static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
-                                           uword vm_instructions,
                                            const Array& loading_units,
                                            LoadingUnit* unit) {
   if (!loading_units.IsNull()) {
@@ -26781,15 +26788,13 @@ static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
       auto const instructions =
           reinterpret_cast<uword>(unit->instructions_image());
       if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
-                                                    instructions,
-                                                    /*vm=*/false, unit)) {
+                                                    instructions, unit)) {
         return;
       }
     }
   } else {
     if (TryPrintNonSymbolicStackFrameBodyRelative(buffer, call_addr,
-                                                  isolate_instructions,
-                                                  /*vm=*/false)) {
+                                                  isolate_instructions)) {
       return;
     }
   }
@@ -27066,8 +27071,7 @@ const char* StackTrace::ToCString() const {
         // prints call addresses instead of return addresses.
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       /*vm_instructions=*/0, loading_units,
-                                       unit);
+                                       loading_units, unit);
         frame_index++;
         continue;
       }
@@ -27079,8 +27083,7 @@ const char* StackTrace::ToCString() const {
         // non-symbolic stack traces.
         PrintSymbolicStackFrameIndex(&buffer, frame_index);
         PrintNonSymbolicStackFrameBody(&buffer, call_addr, isolate_instructions,
-                                       /*vm_instructions=*/0, loading_units,
-                                       unit);
+                                       loading_units, unit);
         frame_index++;
         continue;
       }

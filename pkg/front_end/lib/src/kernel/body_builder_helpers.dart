@@ -21,7 +21,7 @@ class Operator(final Token token, final int charOffset) {
 }
 
 class JumpTarget {
-  final List<Statement> users = <Statement>[];
+  final List<InternalGotoStatement> users = [];
 
   final JumpTargetKind kind;
 
@@ -41,47 +41,45 @@ class JumpTarget {
 
   bool get hasUsers => users.isNotEmpty;
 
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     assert(isBreakTarget);
     users.add(statement);
   }
 
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     assert(isContinueTarget);
     users.add(statement);
   }
 
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     assert(isGotoTarget);
     users.add(statement);
   }
 
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+  void resolveBreaks(InternalBreakableStatement targetStatement) {
     assert(isBreakTarget);
-    for (Statement user in users) {
+    for (InternalStatement user in users) {
       InternalBreakStatement breakStatement = user as InternalBreakStatement;
-      breakStatement.target = target;
       breakStatement.targetStatement = targetStatement;
     }
     users.clear();
   }
 
-  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
+  void resolveContinues(InternalContinuableStatement targetStatement) {
     assert(isContinueTarget);
-    List<InternalContinueStatement> statements = <InternalContinueStatement>[];
-    for (Statement user in users) {
-      InternalContinueStatement breakStatement =
+    List<InternalContinueStatement> statements = [];
+    for (InternalGotoStatement user in users) {
+      InternalContinueStatement continueStatement =
           user as InternalContinueStatement;
-      breakStatement.target = target;
-      statements.add(breakStatement);
+      statements.add(continueStatement);
+      continueStatement.targetStatement = targetStatement;
     }
     users.clear();
-    return statements;
   }
 
   void resolveGotos(InternalSwitchCase target) {
     assert(isGotoTarget);
-    for (Statement user in users) {
+    for (InternalGotoStatement user in users) {
       InternalContinueSwitchStatement continueSwitchStatement =
           user as InternalContinueSwitchStatement;
       continueSwitchStatement.target = target;
@@ -124,7 +122,8 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<Statement> get users => unsupported("users", charOffset, fileUri);
+  List<InternalGotoStatement> get users =>
+      unsupported("users", charOffset, fileUri);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -140,31 +139,31 @@ class LabelTarget implements JumpTarget {
   bool get isGotoTarget => false;
 
   @override
-  void addBreak(Statement statement) {
+  void addBreak(InternalBreakStatement statement) {
     breakTarget.addBreak(statement);
   }
 
   @override
-  void addContinue(Statement statement) {
+  void addContinue(InternalContinueStatement statement) {
     continueTarget.addContinue(statement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void addGoto(Statement statement) {
+  void addGoto(InternalContinueSwitchStatement statement) {
     unsupported("addGoto", charOffset, fileUri);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
-    breakTarget.resolveBreaks(target, targetStatement);
+  void resolveBreaks(InternalBreakableStatement targetStatement) {
+    breakTarget.resolveBreaks(targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<InternalContinueStatement>? resolveContinues(LabeledStatement target) {
-    return continueTarget.resolveContinues(target);
+  void resolveContinues(InternalContinuableStatement targetStatement) {
+    continueTarget.resolveContinues(targetStatement);
   }
 
   @override
@@ -263,7 +262,7 @@ class FormalParameters(
     required TypeBuilder? returnTypeBuilder,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required AsyncModifier asyncModifier,
-    required Statement body,
+    required InternalStatement body,
     required int fileOffset,
     required int fileEndOffset,
   }) {
@@ -385,7 +384,7 @@ class Label(final String name, final int charOffset) {
 }
 
 class Condition(
-  final Expression expression, [
+  final InternalExpression expression, [
   final InternalPatternGuard? patternGuard,
 ]) {
   @override
@@ -397,15 +396,15 @@ class Condition(
 final ExpressionOrPatternGuardCase dummyExpressionOrPatternGuardCase =
     new ExpressionOrPatternGuardCase.expression(
       TreeNode.noOffset,
-      dummyExpression,
+      dummyInternalExpression,
     );
 
 class ExpressionOrPatternGuardCase._(
   final int caseOffset,
-  final Expression? expression,
+  final InternalExpression? expression,
   final InternalPatternGuard? patternGuard,
 ) {
-  new expression(int caseOffset, Expression expression)
+  new expression(int caseOffset, InternalExpression expression)
     : this._(caseOffset, expression, null);
 
   new patternGuard(int caseOffset, InternalPatternGuard patternGuard)
@@ -447,23 +446,26 @@ class PendingAnnotations(
 
 /// A single target holding annotations to be inferred.
 class SingleTargetAnnotations(
-  final Annotatable target, [
-  final List<int>? indicesOfAnnotationsToBeInferred,
-]);
+  final Annotatable target,
+  final List<InternalExpression> annotations,
+);
 
 /// A multiple targets holding annotations to be inferred.
 ///
 /// The annotations are on the first target and needs to be cloned to the
 /// subsequent targets after inference.
-class MultiTargetAnnotations(final List<Annotatable> targets);
+class MultiTargetAnnotations(
+  final List<Annotatable> targets,
+  final List<InternalExpression> annotations,
+);
 
 class BuildInitializersResult(
-  final List<Initializer> initializers,
+  final List<InternalInitializer> initializers,
   final PendingAnnotations? annotations,
 );
 
-class BuildParameterInitializerResult(
-  final Expression initializer,
+class BuildParameterDefaultValueResult(
+  final InternalExpression defaultValue,
   final PendingAnnotations? annotations,
 );
 
@@ -472,36 +474,36 @@ class BuildRedirectingFactoryMethodResult(
 );
 
 class BuildFieldsResult(
-  final Map<Identifier, Expression?> fieldInitializers,
+  final Map<Identifier, InternalExpression?> fieldInitializers,
   final PendingAnnotations? annotations,
 );
 
 class BuildPrimaryConstructorResult(
-  final List<Initializer> initializers,
+  final List<InternalInitializer> initializers,
   final PendingAnnotations? annotations,
 );
 
 class BuildFunctionBodyResult({
   required final AsyncModifier asyncModifier,
-  required final Statement? body,
-  required final List<Initializer> initializers,
+  required final InternalStatement? body,
+  required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });
 
 class BuildPrimaryConstructorBodyResult({
   required final AsyncModifier asyncModifier,
-  required final Statement? body,
-  required final List<Initializer> initializers,
+  required final InternalStatement? body,
+  required final List<InternalInitializer> initializers,
   required final PendingAnnotations? annotations,
 });
 
 class BuildMetadataListResult(
-  final List<Expression> expressions,
+  final List<InternalExpression> expressions,
   final PendingAnnotations? annotations,
 );
 
 class BuildFieldInitializerResult(
-  final Expression initializer,
+  final InternalExpression initializer,
   final PendingAnnotations? annotations,
 );
 
@@ -512,6 +514,6 @@ class BuildEnumConstantResult(
 
 // Coverage-ignore(suite): Not run.
 class BuildSingleExpressionResult(
-  final Expression expression,
+  final InternalExpression expression,
   final PendingAnnotations? annotations,
 );

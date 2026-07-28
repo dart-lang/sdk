@@ -18,7 +18,7 @@ class UnnecessaryBraceInStringInterpsTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_brace_in_string_interps;
 
   test_braces_bangAfter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   print('hello [!${int}!]!');
 }
@@ -43,7 +43,7 @@ void f() {
   }
 
   test_braces_simpleIdentifier() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   print('hello [!${int}!]');
 }
@@ -91,7 +91,7 @@ void f() {
   }
 
   test_simpleIdentifier() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void hi(String name) {
   print('hi: [!${name}!]');
 }
@@ -118,7 +118,7 @@ class A {
 
   /// https://github.com/dart-lang/linter/issues/3691
   test_thisExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void hi() {
     print('hi: [!${this}!]');

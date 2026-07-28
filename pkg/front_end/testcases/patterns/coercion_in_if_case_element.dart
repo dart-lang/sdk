@@ -12,10 +12,14 @@ testSet(dynamic x, dynamic list) {
 
 main() {
   testList([0], [0]);
-  expectThrows<TypeError>(() {testList(null, [0]);});
+  expectThrows<TypeError>(() {
+    testList(null, [0]);
+  });
 
   testSet([0], [0]);
-  expectThrows<TypeError>(() {testSet(null, [0]);});
+  expectThrows<TypeError>(() {
+    testSet(null, [0]);
+  });
 }
 
 expectThrows<Exception>(void Function() f) {
@@ -26,7 +30,8 @@ expectThrows<Exception>(void Function() f) {
   } on Exception catch (_) {
     // Ok.
   } on dynamic catch (e) {
-    message = "Expected the function to throw an exception of type '${Exception}', but got '${e.runtimeType}'.";
+    message =
+        "Expected the function to throw an exception of type '${Exception}', but got '${e.runtimeType}'.";
   }
   if (message != null) {
     throw message;

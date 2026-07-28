@@ -40,9 +40,8 @@ Future<void> ddc_summary_sources_change_standalone_standalone_require_both(
   Uri packagesFileUri = dir.uri.resolve("packages.json");
   _writePackageFilePkg1To3(packagesFileUri);
 
-  Uri ddcOutlineUri = computePlatformBinariesLocation(
-    forceBuildDir: true,
-  ).resolve("ddc_outline.dill");
+  Uri ddcOutlineUri = computePlatformBinariesLocation(forceBuildDir: true)
+      .resolve("ddc_outline.dill");
 
   final Map<Uri, List<int>> inputDigests = {
     ddcOutlineUri: [0],
@@ -124,9 +123,8 @@ Future<void> ddc_summary_sources_change_standalone_require_one_require_both(
   Uri packagesFileUri = dir.uri.resolve("packages.json");
   _writePackageFilePkg1To3(packagesFileUri);
 
-  Uri ddcOutlineUri = computePlatformBinariesLocation(
-    forceBuildDir: true,
-  ).resolve("ddc_outline.dill");
+  Uri ddcOutlineUri = computePlatformBinariesLocation(forceBuildDir: true)
+      .resolve("ddc_outline.dill");
 
   final Map<Uri, List<int>> inputDigests = {
     ddcOutlineUri: [0],

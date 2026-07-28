@@ -5,6 +5,7 @@
 // Test that it is not a compile time error for a `final` variable to not have
 // an initializer if that variable is declared as `late`.
 import 'package:expect/expect.dart';
+
 import 'dart:core';
 
 main() {

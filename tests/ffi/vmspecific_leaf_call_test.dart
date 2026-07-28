@@ -18,15 +18,17 @@ import 'dylib_utils.dart';
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 testLeafCall() {
-  // Regular calls should transition generated -> native.
-  final isThreadInGenerated = ffiTestFunctions
-      .lookupFunction<Int8 Function(), int Function()>("IsThreadInGenerated");
-  Expect.equals(0, isThreadInGenerated());
-  // Leaf calls should remain in generated state.
-  final isThreadInGeneratedLeaf = ffiTestFunctions
-      .lookupFunction<Int8 Function(), int Function()>("IsThreadInGenerated",
+  // Regular calls should transition to native mode.
+  final isThreadInNative = ffiTestFunctions
+      .lookupFunction<Int8 Function(), int Function()>("IsThreadInNative");
+  Expect.equals(1, isThreadInNative());
+  // Leaf calls should remain in generated state for compiled code, or
+  // in the VM (due to FFI calls being implemented as a runtime call)
+  // for interpreted code.
+  final isThreadInNativeLeaf = ffiTestFunctions
+      .lookupFunction<Int8 Function(), int Function()>("IsThreadInNative",
           isLeaf: true);
-  Expect.equals(1, isThreadInGeneratedLeaf());
+  Expect.equals(0, isThreadInNativeLeaf());
 }
 
 testLeafCallApi() {

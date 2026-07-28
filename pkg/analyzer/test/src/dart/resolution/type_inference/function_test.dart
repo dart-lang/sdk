@@ -34,16 +34,16 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
@@ -75,14 +75,14 @@ MethodInvocation
     staticType: void Function<T>({required T x, required T y})
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NamedArgument
         name: x
         colon: :
-        argumentExpression: IntegerLiteral
+        argumentExpression2: IntegerLiteral
           literal: 1
           staticType: int
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
     rightParenthesis: )
@@ -113,10 +113,10 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
@@ -148,16 +148,16 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
@@ -193,23 +193,23 @@ MethodInvocation
     staticType: void Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
       NamedArgument
         name: z
         colon: :
-        argumentExpression: IntegerLiteral
+        argumentExpression2: IntegerLiteral
           literal: 3
           staticType: int
         correspondingParameter: <null>

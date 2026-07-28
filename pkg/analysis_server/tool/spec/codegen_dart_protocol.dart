@@ -659,9 +659,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           writeln('if (json.containsKey($fieldNameString)) {');
           indent(() {
             var fieldType = field.type;
-            var fromJson = fromJsonCode(
-              fieldType,
-            ).asSnippet(jsonPath, fieldAccessor);
+            var fromJson = fromJsonCode(fieldType)
+                .asSnippet(jsonPath, fieldAccessor);
             writeln('${field.name} = $fromJson;');
           });
           write('}');

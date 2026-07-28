@@ -72,8 +72,9 @@ extension DartIOExtension on VmService {
 
   /// The `httpEnableTimelineLogging` RPC is used to set and inspect the value of
   /// `HttpClient.enableTimelineLogging`, which determines if HTTP client requests
-  /// should be logged to the timeline. If `enabled` is provided, the state of
-  /// `HttpClient.enableTimelineLogging` will be updated to the value of `enabled`.
+  /// and WebSocket activity should be logged to the timeline.
+  /// If `enabled` is provided, the state of `HttpClient.enableTimelineLogging`
+  /// will be updated to the value of `enabled`.
   ///
   /// If the value of `HttpClient.enableTimelineLogging` is changed, a
   /// `HttpTimelineLoggingStateChange` event will be sent on the `Extension` stream.

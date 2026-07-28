@@ -31,16 +31,12 @@ class CommentReferences extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   static final _commentStartPattern = RegExp(r'^///+\s*$');
-
-  final AnalysisRule rule;
 
   /// Recognized Markdown link references (see
   /// https://spec.commonmark.org/0.31.2/#link-reference-definitions).
   final linkReferences = <String>[];
-
-  new(this.rule);
 
   @override
   void visitComment(Comment node) {

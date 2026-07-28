@@ -17,6 +17,6 @@ static method main() → void
 
 
 Extra constant evaluation status:
-Evaluated: Instantiation @ org-dartlang-testcase:///issue47154b.dart:8:18 -> InstantiationConstant(id<int>)
-Evaluated: Instantiation @ org-dartlang-testcase:///issue47154b.dart:8:23 -> InstantiationConstant(other<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///issue47154b.dart:8:16 -> InstantiationConstant(id<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///issue47154b.dart:8:21 -> InstantiationConstant(other<int>)
 Extra constant evaluation: evaluated: 4, effectively constant: 2

@@ -160,7 +160,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     // Make it priority, so the resolved unit stays in memory.
     // So, when we get a local element, and search for it, we use this unit.
     // This is important when local elements equality is identity.
-    makeFilePriority(testFile);
+    driverFor(testFile).priorityFiles2 = [testFile];
 
     await resolveTestCode(code, ignore: ignore);
   }

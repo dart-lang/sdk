@@ -306,11 +306,10 @@ main() {
       expectNullable: true,
     );
     // (A, string) | [empty|late] => [(A, string)|late]
-    expectRecordMask(
-      recordAStringMask.union(domain.lateSentinelType, domain),
-      [aMask, stringMask],
-      expectHasLateSentinel: true,
-    );
+    expectRecordMask(recordAStringMask.union(domain.lateSentinelType, domain), [
+      aMask,
+      stringMask,
+    ], expectHasLateSentinel: true);
     // [(A, string)|late] | [empty] => [(A, string)|late]
     expectRecordMask(
       recordAStringMask

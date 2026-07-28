@@ -63,6 +63,15 @@ void printNodeOn(Node? node, StringSink sink) {
 }
 
 // Coverage-ignore(suite): Not run.
+void printInternalNodeOn(InternalNode? node, StringSink sink) {
+  if (node == null) {
+    sink.write("null");
+  } else {
+    sink.write(node.toText(defaultAstTextStrategy));
+  }
+}
+
+// Coverage-ignore(suite): Not run.
 void printQualifiedNameOn(Member? member, StringSink sink) {
   if (member == null) {
     sink.write("null");
@@ -317,7 +326,7 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
       fileOffset: -1,
       nameOffset: null,
       fileUri: dummyUri,
-      hasImmediatelyDeclaredInitializer: false,
+      hasImmediatelyDeclaredDefaultValue: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(
@@ -382,7 +391,7 @@ class _DummyExtensionScope implements ExtensionScope {
   void forEachExtension(void Function(ExtensionBuilder) f) {}
 }
 
-final Argument dummyArgument = new PositionalArgument(dummyExpression);
+final Argument dummyArgument = new PositionalArgument(dummyInternalExpression);
 
 bool isOutlineAnnotatedWithPragma(
   Annotatable node,

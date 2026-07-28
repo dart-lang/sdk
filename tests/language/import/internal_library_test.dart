@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// The formatter puts a blank line above the static error marker.
+// dart format off
+
 // Test that a private library cannot be accessed from outside the platform.
 
 library internal_library_test;

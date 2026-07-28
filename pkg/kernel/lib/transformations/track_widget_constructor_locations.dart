@@ -24,7 +24,7 @@ const String _locationFieldName = r'_location';
 
 bool _hasNamedParameter(FunctionNode function, String name) {
   return function.namedParameters.any(
-    (Variable parameter) => parameter.name == name,
+    (NamedParameter parameter) => parameter.parameterName == name,
   );
 }
 
@@ -35,8 +35,8 @@ bool _hasNamedArgument(Arguments arguments, String argumentName) {
 }
 
 Variable? _getNamedParameter(FunctionNode function, String parameterName) {
-  for (Variable parameter in function.namedParameters) {
-    if (parameter.name == parameterName) {
+  for (NamedParameter parameter in function.namedParameters) {
+    if (parameter.parameterName == parameterName) {
       return parameter;
     }
   }
@@ -170,9 +170,10 @@ class _WidgetCallSiteTransformer extends Transformer {
   @override
   Procedure visitProcedure(Procedure node) {
     if (_isWidgetFactory(node)) {
-      final Variable locationParameter = node.function.namedParameters
+      final NamedParameter locationParameter = node.function.namedParameters
           .firstWhere(
-            (parameter) => parameter.name == _creationLocationParameterName,
+            (parameter) =>
+                parameter.parameterName == _creationLocationParameterName,
           );
       _currentExtensionFactoryLocationParameter = VariableGet(
         locationParameter,
@@ -219,9 +220,8 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
     if (_isWidgetFactory(target)) {
-      final Variable parameter = target.function.namedParameters.firstWhere(
-        (p) => p.name == _creationLocationParameterName,
-      );
+      final NamedParameter parameter = target.function.namedParameters
+          .firstWhere((p) => p.parameterName == _creationLocationParameterName);
       final DartType type = parameter.type;
       if (type is InterfaceType) {
         _addLocationArgument(

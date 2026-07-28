@@ -716,10 +716,12 @@ class _MixinsInference {
         library.featureSet,
         typeSystemOperations: typeSystemOperations,
       );
-      element.mixins = [
-        for (var fragment in declaration.fragments)
-          ...inference.perform(fragment.withClause),
-      ];
+      var mixins = <InterfaceTypeImpl>[];
+      for (var fragment in declaration.fragments) {
+        fragment.fragment.withClauseMixinStartIndex = mixins.length;
+        mixins.addAll(inference.perform(fragment.withClause));
+      }
+      element.mixins = mixins;
     } finally {
       element.mixinInferenceCallback = null;
     }

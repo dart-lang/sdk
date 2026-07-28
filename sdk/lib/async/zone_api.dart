@@ -82,12 +82,11 @@ R runZoned<R>(
       }
     }
     return runZonedGuarded(
-          body,
-          onError,
-          zoneSpecification: zoneSpecification,
-          zoneValues: zoneValues,
-        )
-        as R;
+      body,
+      onError,
+      zoneSpecification: zoneSpecification,
+      zoneValues: zoneValues,
+    ) as R;
   }
   return _runZoned<R>(body, zoneValues, zoneSpecification);
 }
@@ -121,25 +120,21 @@ R? runZonedGuarded<R>(
   Map<Object?, Object?>? zoneValues,
   ZoneSpecification? zoneSpecification,
 }) {
-  _Zone parentZone = Zone._current;
-  HandleUncaughtErrorHandler errorHandler =
-      (
-        Zone self,
-        ZoneDelegate parent,
-        Zone zone,
-        Object error,
-        StackTrace stackTrace,
-      ) {
-        try {
-          parentZone.runBinary(onError, error, stackTrace);
-        } catch (e, s) {
-          if (identical(e, error)) {
-            parent.handleUncaughtError(zone, error, stackTrace);
-          } else {
-            parent.handleUncaughtError(zone, e, s);
-          }
-        }
-      };
+  Zone parentZone = Zone._current;
+  void errorHandler(
+    Zone self,
+    ZoneDelegate parent,
+    Zone zone,
+    Object error,
+    StackTrace stackTrace,
+  ) {
+    try {
+      parentZone.runBinary(onError, error, stackTrace);
+    } catch (e, s) {
+      parent.handleUncaughtError(zone, e, identical(e, error) ? stackTrace : s);
+    }
+  }
+
   if (zoneSpecification == null) {
     zoneSpecification = ZoneSpecification(handleUncaughtError: errorHandler);
   } else {
@@ -161,6 +156,8 @@ R _runZoned<R>(
   R body(),
   Map<Object?, Object?>? zoneValues,
   ZoneSpecification? specification,
-) => Zone.current
-    .fork(specification: specification, zoneValues: zoneValues)
-    .run<R>(body);
+) {
+  var zone = Zone._current;
+  var newZone = zone._forkZoned(zone, specification, zoneValues);
+  return newZone._runZoned<R>(newZone, body);
+}

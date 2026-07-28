@@ -7,7 +7,6 @@ class Class<T> {
 }
 
 extension Extension<T> on Class<T> {
-
   static get property => Class.field;
 
   static set property(value) {

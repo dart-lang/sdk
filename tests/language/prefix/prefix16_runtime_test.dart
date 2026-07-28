@@ -10,6 +10,7 @@
 // lib12.Library13 is not resolved.
 
 import "package:expect/expect.dart";
+
 import "../library12.dart" as lib12;
 
 typedef myFunc(param);

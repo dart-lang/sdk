@@ -144,12 +144,10 @@ void main() {
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                   ^^^
   // [analyzer] COMPILE_TIME_ERROR.EXPRESSION_IN_MAP
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'String'.
   // [cfe] Expected ':' after this.
 
   <int, String>{0: "", ?stringQuestion()};
   //                   ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXPRESSION_IN_MAP
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'String'.
   // [cfe] Expected ':' after this.
 }

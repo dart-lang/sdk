@@ -28,10 +28,10 @@ mixin class MixinClassRedirect {
   int foo = 0;
 
   MixinClassRedirect.named(int f) {
-  // [error column 3, length 18]
-  // [cfe] Can't use 'MixinClassRedirect' as a mixin because it has constructors.
-  // [error column 3, length 24]
-  // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
+    // [error column 3, length 18]
+    // [cfe] Can't use 'MixinClassRedirect' as a mixin because it has constructors.
+    // [error column 3, length 24]
+    // [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_NON_TRIVIAL_GENERATIVE_CONSTRUCTOR
     this.foo = f;
   }
 

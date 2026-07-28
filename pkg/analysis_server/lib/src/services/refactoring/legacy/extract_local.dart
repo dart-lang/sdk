@@ -111,6 +111,99 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
   }
 
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    // Prepare the list of occurrences that will be replaced.
+    var occurrences = extractAll ? this.occurrences : [selectionRange];
+    occurrences.sort((a, b) => a.offset - b.offset);
+
+    // If the whole expression of a statement is selected, like '1 + 2',
+    // then convert it into a variable declaration statement.
+    var singleExpression = this.singleExpression;
+    if (singleExpression != null &&
+        singleExpression.parent is ExpressionStatement &&
+        occurrences.length == 1) {
+      var keywordAndType = _declarationKeywordAndType;
+      var declarationCode = '$keywordAndType $name = ';
+      await builder.addDartFileEdit(libraryFragment.source.fullName, (builder) {
+        builder.addSimpleInsertion(singleExpression.offset, declarationCode);
+      });
+      return;
+    }
+
+    // Add the declaration of the variable.
+    var keywordAndType = _declarationKeywordAndType;
+    var declarationPrefix = '$keywordAndType ';
+    String declarationInitializer;
+    if (stringLiteralPart != null) {
+      // TODO(dantup): This does not correctly handle escaping (for example
+      //  unescaped single quotes in a double quoted string).
+      declarationInitializer = " = '$stringLiteralPart';";
+    } else {
+      var initializerCode = utils.getRangeText(selectionRange);
+      declarationInitializer = ' = $initializerCode;';
+    }
+    await builder.addDartFileEdit(libraryFragment.source.fullName, (builder) {
+      // Prepare the location for the declaration.
+      var target = _findDeclarationTarget(occurrences);
+      var eol = utils.endOfLine;
+
+      // Insert the variable declaration.
+      if (target is Statement) {
+        var prefix = utils.getNodePrefix(target);
+        builder.addInsertion(target.offset, (builder) {
+          builder.write(declarationPrefix);
+          builder.addSimpleLinkedEdit(
+            'variableName',
+            name,
+            kind: LinkedEditSuggestionKind.VARIABLE,
+            suggestions: names,
+          );
+          builder.write(declarationInitializer + eol + prefix);
+        });
+      } else if (target is ExpressionFunctionBody) {
+        var prefix = utils.getNodePrefix(target.parent!);
+        var indent = utils.oneIndent;
+        var expr = target.expression;
+        builder.addReplacement(range.startStart(target, expr), (builder) {
+          builder.write('{$eol$prefix$indent');
+          builder.write(declarationPrefix);
+          builder.addSimpleLinkedEdit(
+            'variableName',
+            name,
+            kind: LinkedEditSuggestionKind.VARIABLE,
+            suggestions: names,
+          );
+          builder.write(declarationInitializer);
+          builder.write('$eol$prefix${indent}return ');
+        });
+        builder.addSimpleReplacement(
+          range.startOffsetEndOffset(expr.end, target.end),
+          ';$eol$prefix}',
+        );
+      }
+
+      // Prepare the replacement for each occurrence of the extracted
+      // expression.
+      var occurrencePrefix = '';
+      var occurrenceSuffix = '';
+      if (stringLiteralPart != null) {
+        // TODO(dantup): Don't include braces if unnecessary.
+        occurrencePrefix = '\${';
+        occurrenceSuffix = '}';
+      }
+
+      // Replace occurrences of the extracted expression with a reference to the
+      // variable.
+      for (var range in occurrences) {
+        builder.addReplacement(range, (builder) {
+          builder.write(occurrencePrefix);
+          builder.addSimpleLinkedEdit('variableName', name);
+          builder.write(occurrenceSuffix);
+        });
+      }
+    });
+  }
+
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     var result = RefactoringStatus();
@@ -151,113 +244,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange({ChangeBuilder? builder}) {
-    var change = SourceChange(refactoringName);
-    // prepare occurrences
-    late List<SourceRange> occurrences;
-    if (extractAll) {
-      occurrences = this.occurrences;
-    } else {
-      occurrences = [selectionRange];
-    }
-    occurrences.sort((a, b) => a.offset - b.offset);
-    // If the whole expression of a statement is selected, like '1 + 2',
-    // then convert it into a variable declaration statement.
-    var singleExpression = this.singleExpression;
-    if (singleExpression != null &&
-        singleExpression.parent is ExpressionStatement &&
-        occurrences.length == 1) {
-      var keywordAndType = _declarationKeywordAndType;
-      var declarationCode = '$keywordAndType $name = ';
-      var edit = SourceEdit(singleExpression.offset, 0, declarationCode);
-      doSourceChange_addFragmentEdit(change, libraryFragment, edit);
-      return Future.value(change);
-    }
-    // prepare positions
-    var positions = <Position>[];
-    var occurrencesShift = 0;
-    void addPosition(int offset) {
-      positions.add(Position(file, offset));
-    }
-
-    // add variable declaration
-    {
-      var keywordAndType = _declarationKeywordAndType;
-      var declarationCode = '$keywordAndType ';
-      var nameOffsetInDeclarationCode = declarationCode.length;
-      if (stringLiteralPart != null) {
-        // TODO(dantup): This does not correctly handle escaping (for example
-        //  unescaped single quotes in a double quoted string).
-        declarationCode += "$name = '$stringLiteralPart';";
-      } else {
-        var initializerCode = utils.getRangeText(selectionRange);
-        declarationCode += '$name = $initializerCode;';
-      }
-      // prepare location for declaration
-      var target = _findDeclarationTarget(occurrences);
-      var eol = utils.endOfLine;
-      // insert variable declaration
-      if (target is Statement) {
-        var prefix = utils.getNodePrefix(target);
-        var edit = SourceEdit(target.offset, 0, declarationCode + eol + prefix);
-        doSourceChange_addFragmentEdit(change, libraryFragment, edit);
-        addPosition(edit.offset + nameOffsetInDeclarationCode);
-        occurrencesShift = edit.replacement.length;
-      } else if (target is ExpressionFunctionBody) {
-        var prefix = utils.getNodePrefix(target.parent!);
-        var indent = utils.oneIndent;
-        var expr = target.expression;
-        {
-          var code = '{$eol$prefix$indent';
-          addPosition(
-            target.offset + code.length + nameOffsetInDeclarationCode,
-          );
-          code += declarationCode + eol;
-          code += '$prefix${indent}return ';
-          var edit = SourceEdit(
-            target.offset,
-            expr.offset - target.offset,
-            code,
-          );
-          occurrencesShift = target.offset + code.length - expr.offset;
-          doSourceChange_addFragmentEdit(change, libraryFragment, edit);
-        }
-        doSourceChange_addFragmentEdit(
-          change,
-          libraryFragment,
-          SourceEdit(expr.end, target.end - expr.end, ';$eol$prefix}'),
-        );
-      }
-    }
-    // prepare replacement
-    var occurrenceReplacement = name;
-    if (stringLiteralPart != null) {
-      // TODO(dantup): Don't include braces if unnecessary.
-      occurrenceReplacement = '\${$name}';
-      occurrencesShift += 2;
-    }
-    // replace occurrences with variable reference
-    for (var range in occurrences) {
-      var edit = newSourceEdit_range(range, occurrenceReplacement);
-      addPosition(range.offset + occurrencesShift);
-      occurrencesShift += name.length - range.length;
-      doSourceChange_addFragmentEdit(change, libraryFragment, edit);
-    }
-    // add the linked group
-    change.addLinkedEditGroup(
-      LinkedEditGroup(
-        positions,
-        name.length,
-        names
-            .map(
-              (name) =>
-                  LinkedEditSuggestion(name, LinkedEditSuggestionKind.VARIABLE),
-            )
-            .toList(),
-      ),
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolveResult.session,
+      defaultEol: utils.endOfLine,
     );
-    // done
-    return Future.value(change);
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return sourceChange;
   }
 
   @override

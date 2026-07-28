@@ -2,45 +2,45 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:36:21: Error: Constant expression expected.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:36:19: Error: Constant expression expected.
 // Try inserting 'const'.
-//         field5 = <T>[],
-//                     ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:36:19: Error: Type variables can't be used as constants.
-//         field5 = <T>[],
+//       field5 = <T>[],
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:37:21: Error: Constant expression expected.
-// Try inserting 'const'.
-//         field6 = <T>{},
-//                     ^
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:36:17: Error: Type variables can't be used as constants.
+//       field5 = <T>[],
+//                 ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:37:19: Error: Type variables can't be used as constants.
-//         field6 = <T>{},
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:37:19: Error: Constant expression expected.
+// Try inserting 'const'.
+//       field6 = <T>{},
 //                   ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:24: Error: Constant expression expected.
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:37:17: Error: Type variables can't be used as constants.
+//       field6 = <T>{},
+//                 ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:22: Error: Constant expression expected.
 // Try inserting 'const'.
-//         field7 = <T, T>{},
-//                        ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:19: Error: Type variables can't be used as constants.
-//         field7 = <T, T>{},
-//                   ^
-//
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:22: Error: Type variables can't be used as constants.
-//         field7 = <T, T>{},
+//       field7 = <T, T>{},
 //                      ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:46:29: Error: Constant expression expected.
-// Try inserting 'const'.
-//         field15 = <Class<T>>[],
-//                             ^
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:17: Error: Type variables can't be used as constants.
+//       field7 = <T, T>{},
+//                 ^
 //
-// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:46:26: Error: Type variables can't be used as constants.
-//         field15 = <Class<T>>[],
-//                          ^
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:38:20: Error: Type variables can't be used as constants.
+//       field7 = <T, T>{},
+//                    ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:46:27: Error: Constant expression expected.
+// Try inserting 'const'.
+//       field15 = <Class<T>>[],
+//                           ^
+//
+// pkg/front_end/testcases/general/constants/potentially_constant_type.dart:46:24: Error: Type variables can't be used as constants.
+//       field15 = <Class<T>>[],
+//                        ^
 //
 // pkg/front_end/testcases/general/constants/potentially_constant_type.dart:53:20: Error: Type variables can't be used as constants.
 //     const local1 = T;

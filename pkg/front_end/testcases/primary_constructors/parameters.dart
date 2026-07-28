@@ -7,5 +7,5 @@ class C1(var int a, final int b, int c) {
   int e;
   int f;
 
-  this :  this.d = a, this.e = b, this.f = c;
+  this : this.d = a, this.e = b, this.f = c;
 }

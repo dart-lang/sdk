@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Class1 {
-}
+class Class1 {}
 
 extension Extension1 on Class1 {
   static staticMethod() {
@@ -14,6 +13,7 @@ extension Extension1 on Class1 {
     print('Extension1.staticProperty()');
     return 0;
   }
+
   static set staticProperty(int value) {
     print('Extension1.staticProperty($value)');
     value++;

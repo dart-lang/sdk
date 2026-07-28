@@ -1204,17 +1204,18 @@ class Summary {
     for (int i = 0; i < positional.length; i++) {
       if (positional[i] == memberParam) {
         final Parameter param = _statements[firstParamIndex + i] as Parameter;
-        assert(param.name == memberParam.name);
+        assert(param.name == memberParam.cosmeticName);
         return param.argumentType;
       }
     }
     for (int i = positionalParameterCount; i < parameterCount; i++) {
       final Parameter param = _statements[i] as Parameter;
-      if (param.name == memberParam.name) {
+      if (param.name == memberParam.cosmeticName) {
         return param.argumentType;
       }
     }
-    throw "Could not find argument type of parameter ${memberParam.name}";
+    throw "Could not find argument type of parameter "
+        "${memberParam.cosmeticName}";
   }
 
   List<Variable> get uncheckedParameters {
@@ -1244,12 +1245,12 @@ class Summary {
     }
     FunctionNode function = member.function!;
     statements.length = implicit;
-    for (Variable param in function.positionalParameters) {
-      statements.add(paramsByName[param.name]!);
+    for (PositionalParameter param in function.positionalParameters) {
+      statements.add(paramsByName[param.cosmeticName]!);
     }
     positionalParameterCount = statements.length;
-    for (Variable param in function.namedParameters) {
-      statements.add(paramsByName[param.name]!);
+    for (NamedParameter param in function.namedParameters) {
+      statements.add(paramsByName[param.parameterName]!);
     }
     parameterCount = statements.length;
     requiredParameterCount = implicit + function.requiredParameterCount;

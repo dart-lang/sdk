@@ -32,11 +32,7 @@ class CombinatorsOrdering extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitHideCombinator(HideCombinator node) {
     if (!node.hiddenNames.map((e) => e.name).isSorted()) {

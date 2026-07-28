@@ -282,7 +282,7 @@ class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): Not yet implemented.
+  @FailingTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_asExpression() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
@@ -367,7 +367,7 @@ class A {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): Not yet implemented.
+  @FailingTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_cascadeExpression_target() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
@@ -398,7 +398,7 @@ String get v => '';
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): Not yet implemented.
+  @FailingTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_dotShorthandPropertyAccess() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
@@ -527,7 +527,7 @@ String get v => '';
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): Not yet implemented.
+  @FailingTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_nullAssert() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
@@ -607,7 +607,7 @@ List<String> get v => [];
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): Not yet implemented.
+  @FailingTest() // TODO(scheglov): Not yet implemented.
   test_topLevelVariable_switchExpression_caseBody() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';

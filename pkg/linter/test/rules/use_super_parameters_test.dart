@@ -18,7 +18,7 @@ class UseSuperParametersTest extends LintRuleTest {
   String get lintRule => LintNames.use_super_parameters;
 
   test_functionTypedFormalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int f(int i));
 }
@@ -29,7 +29,7 @@ class B extends A {
   }
 
   test_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   const A({int? x, int? y});
 }
@@ -40,7 +40,7 @@ class B extends A {
   }
 
   Future<void> test_named_oneWithNameChange() async {
-    await assertDiagnosticsFromMarkdown('''
+    await assertDiagnosticsFromMarkup('''
 class A {
   A({int? x, int? y});
 }
@@ -51,7 +51,7 @@ class B extends A {
   }
 
   void test_named_primaryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   const A({int? x, int? y});
 }
@@ -127,7 +127,7 @@ class B extends A {
   }
 
   test_newSyntax() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x);
 }
@@ -385,7 +385,7 @@ class B extends A {
   }
 
   test_nonForwardingNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, {int? foo});
 }
@@ -396,7 +396,7 @@ class B extends A {
   }
 
   test_optionalPositional_inSuper() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, [int? y]);
 }
@@ -407,7 +407,7 @@ class B extends A {
   }
 
   test_optionalPositional_singleSuperParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x);
 }
@@ -418,7 +418,7 @@ class B extends A {
   }
 
   test_primaryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A(int x);
 class [!B!](int x) extends A {
   this : super(x);
@@ -443,7 +443,7 @@ class Square extends Rect {
   }
 
   test_requiredPositional_allConvertible() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   final int foo;
   final int bar;
@@ -456,7 +456,7 @@ class C extends B {
   }
 
   test_requiredPositional_fieldFormal_withNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, {int? y});
 }
@@ -468,7 +468,7 @@ class B extends A {
   }
 
   test_requiredPositional_forwardedOutOfOrder_withNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, int y, {int? z});
 }
@@ -479,7 +479,7 @@ class B extends A {
   }
 
   test_requiredPositional_mixedSuperParameters() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, {int? y});
 }
@@ -490,7 +490,7 @@ class B extends A {
   }
 
   test_requiredPositional_nonConvertible_withNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, {int? y});
 }
@@ -501,7 +501,7 @@ class B extends A {
   }
 
   test_requiredPositional_primaryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B(final int foo, final int bar);
 class [!C!](int foo, int bar) extends B {
   this : super(foo, bar);
@@ -510,7 +510,7 @@ class [!C!](int foo, int bar) extends B {
   }
 
   test_requiredPositional_someConvertible() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class B {
   final int foo;
   final int bar;
@@ -523,7 +523,7 @@ class C extends B {
   }
 
   test_requiredPositional_usedInBody_withNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, {int? y});
 }
@@ -536,7 +536,7 @@ class B extends A {
   }
 
   test_requiredPositional_withNamed() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   A(int x, {int? y});
 }

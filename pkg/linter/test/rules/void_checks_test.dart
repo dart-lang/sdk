@@ -29,7 +29,7 @@ void f() {
   }
 
   test_constructorArgument_genericParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic p) {
   A<void>.c([!p!]);
 }
@@ -106,7 +106,7 @@ void m(FutureOr<void> arg) {}
   }
 
   test_functionArgument_voidParameter_dynamicArgument() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic p) {
   m([!p!]);
 }
@@ -115,7 +115,7 @@ void m(void arg) {}
   }
 
   test_functionArgument_voidParameter_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic p) {
   m(p: [!p!]);
 }
@@ -124,7 +124,7 @@ void m({required void p}) {}
   }
 
   test_functionArgument_voidParameter_optional() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic p) {
   m([!p!]);
 }
@@ -236,7 +236,7 @@ class A {
   }
 
   test_futureOrVoidField_assignInt() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 void f(A a) {
   [!a.x = 1!];
@@ -271,7 +271,7 @@ FutureOr<void> f() {
   }
 
   test_futureOrVoidFunction_blockBody_returnStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 FutureOr<void> f() {
   [!return 1;!]
@@ -280,7 +280,7 @@ FutureOr<void> f() {
   }
 
   test_listPattern_local() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   void p;
   [[!p!]] = <int>[7];
@@ -290,7 +290,7 @@ void f() {
   }
 
   test_listPattern_param() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(void p) {
   [[!p!]] = <int>[7];
 }
@@ -330,7 +330,7 @@ void f(void Function() p) {
   }
 
   test_recordPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(void p) {
   ([!p!], ) = (7, );
 }
@@ -375,7 +375,7 @@ void f(Future<int> p) {
   }
 
   test_setterArgument_genericParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(A<void> a, dynamic p) {
   [!a.f = p!];
 }
@@ -386,7 +386,7 @@ class A<T> {
   }
 
   test_voidFunction_blockBody_returnStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(dynamic p) {
   [!return p;!]
 }

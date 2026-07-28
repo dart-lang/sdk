@@ -7,6 +7,7 @@ library shuffle_test;
 
 import "dart:typed_data";
 import "dart:math" show Random;
+
 import "package:expect/expect.dart";
 
 main() {

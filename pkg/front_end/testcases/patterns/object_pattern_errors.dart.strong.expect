@@ -11,7 +11,7 @@ library;
 //              ^
 //
 // pkg/front_end/testcases/patterns/object_pattern_errors.dart:16:16: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
-//   if (x case A(: 5)) {} // Error
+//   if (x case A(:5)) {} // Error
 //                ^
 //
 // pkg/front_end/testcases/patterns/object_pattern_errors.dart:17:16: Error: A pattern field in an object pattern must be named.

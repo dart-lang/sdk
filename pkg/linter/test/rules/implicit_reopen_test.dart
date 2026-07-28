@@ -23,7 +23,7 @@ class ImplicitReopenInducedModifierTest extends LintRuleTest {
   String get lintRule => LintNames.implicit_reopen;
 
   test_inducedFinal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final class F {}
 sealed class S extends F {}
 base class [!C!] extends S {}
@@ -31,7 +31,7 @@ base class [!C!] extends S {}
   }
 
   test_inducedFinal_base_interface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 base class C {}
 interface class D {}
 sealed class E extends D implements C {}
@@ -40,7 +40,7 @@ base class [!B!] extends E {}
   }
 
   test_inducedFinal_baseMixin_interface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class D {}
 base mixin G {}
 sealed class H extends D with G {}
@@ -64,7 +64,7 @@ class C extends A {}
   }
 
   test_inducedFinal_mixin_finalClass() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final class S {}
 mixin M {}
 sealed class A extends S with M {}
@@ -73,7 +73,7 @@ base class [!B!] extends A {}
   }
 
   test_inducedInterface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class I {}
 sealed class S extends I {}
 class [!C!] extends S {}
@@ -81,7 +81,7 @@ class [!C!] extends S {}
   }
 
   test_inducedInterface_base() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class I {}
 sealed class S extends I {}
 base class [!C!] extends S {}
@@ -89,7 +89,7 @@ base class [!C!] extends S {}
   }
 
   test_inducedInterface_base_mixin_interface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class S {}
 mixin M {}
 sealed class A extends S with M {}
@@ -98,7 +98,7 @@ base class [!C!] extends A {}
   }
 
   test_inducedInterface_mixin_interface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class S {}
 mixin M {}
 sealed class A extends S with M {}
@@ -107,7 +107,7 @@ class [!C!] extends A {}
   }
 
   test_inducedInterface_twoLevels() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class I {}
 sealed class S extends I {}
 sealed class S2 extends S {}
@@ -153,7 +153,7 @@ class C extends F {}
   }
 
   test_class_classInterface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class I {}
 
 class [!C!] extends I {}
@@ -190,7 +190,7 @@ class C extends I {}
   }
 
   test_classBase_classFinal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final class F {}
 
 base class [!B!] extends F {}
@@ -198,7 +198,7 @@ base class [!B!] extends F {}
   }
 
   test_classBase_classInterface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class I {}
 
 base class [!B!] extends I {}
@@ -228,7 +228,7 @@ mixin class M extends I {}
   }
 
   test_classTypeAlias_class_classInterface() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 interface class I {}
 mixin M {}
 class [!C!] = I with M;
@@ -236,7 +236,7 @@ class [!C!] = I with M;
   }
 
   test_classTypeAlias_classBase_classFinal() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 final class C {}
 mixin M {}
 base class [!D!] = C with M;

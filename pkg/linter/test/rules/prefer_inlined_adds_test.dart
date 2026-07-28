@@ -25,19 +25,19 @@ var y = ['a']..addAll(x ?? const []);
   }
 
   test_listLiteral_cascadeAdd() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = ['a']..[!add!]('b');
 ''');
   }
 
   test_listLiteral_cascadeAdd_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = ['a']..[!add!]('b')..add('c');
 ''');
   }
 
   test_listLiteral_cascadeAddAll_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = ['a']..[!addAll!](['b', 'c']);
 ''');
   }

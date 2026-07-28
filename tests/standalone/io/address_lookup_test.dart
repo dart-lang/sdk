@@ -15,9 +15,8 @@ void main() async {
   final result = <InternetAddress>[];
   try {
     result.addAll(
-      await InternetAddress.lookup(
-        "some.bad.host.name.7654321",
-      ).timeout(const Duration(milliseconds: 1), onTimeout: () => []),
+      await InternetAddress.lookup("some.bad.host.name.7654321")
+          .timeout(const Duration(milliseconds: 1), onTimeout: () => []),
     );
   } catch (e) {
     print('managed to fail with $e lookup before timeout');

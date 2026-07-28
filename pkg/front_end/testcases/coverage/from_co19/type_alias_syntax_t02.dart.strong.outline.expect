@@ -22,5 +22,5 @@ static synthetic method _#CAlias4#new#tearOff<unrelated T extends core::Object? 
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///type_alias_syntax_t02.dart:14:2 -> IntConstant(1)
-Evaluated: StaticGet @ org-dartlang-testcase:///type_alias_syntax_t02.dart:15:2 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///type_alias_syntax_t02.dart:16:2 -> IntConstant(1)
 Extra constant evaluation: evaluated: 4, effectively constant: 2

@@ -6,6 +6,7 @@
 // VMOptions=--no_inline_alloc
 
 import "dart:typed_data";
+
 import "package:expect/expect.dart";
 
 const bool supportsInt64 = bool.fromEnvironment("dart.isVM");

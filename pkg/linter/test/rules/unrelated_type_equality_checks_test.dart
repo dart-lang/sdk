@@ -67,7 +67,7 @@ extension type B(String value) {}
   }
 
   test_extensionTypes_unrelatedRepresentationType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void m(A a, B b) {
   if (a [!==!] b) {}
 }
@@ -87,7 +87,7 @@ void f(Int32 p) {
   }
 
   test_fixnum_int32_rightSide() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:fixnum/fixnum.dart';
 
 void f(Int32 p) {
@@ -107,7 +107,7 @@ void f(Int64 p) {
   }
 
   test_fixnum_int64_rightSide() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:fixnum/fixnum.dart';
 
 void f(Int64 p) {
@@ -153,7 +153,7 @@ class C with M {}
   }
 
   test_mixins() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(M1 m1, M2 m2) {
   if (m1 [!==!] m2) {}
 }
@@ -199,7 +199,7 @@ enum E { one, two; }
   }
 
   test_oneEnum_andUnrelatedEnum() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(E x, F y) {
   if (x [!==!] y) {}
 }
@@ -227,7 +227,7 @@ void f<A, B extends A>(A a, B b) {
   }
 
   test_protobufEnum_differentEnums() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:protobuf/src/protobuf/protobuf_enum.dart';
 
 void f(E1 one, E2 two) {
@@ -252,7 +252,7 @@ class E extends ProtobufEnum {}
   }
 
   test_recordAndInterfaceType_unrelated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool f((int, int) a, String b) => a [!==!] b;
 ''');
   }
@@ -264,7 +264,7 @@ bool f((int, int) a, (num, num) b) => a == b;
   }
 
   test_records_unrelated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool f((int, int) a, (String, String) b) => a [!==!] b;
 ''');
   }
@@ -276,7 +276,7 @@ bool f(({int one, int two}) a, ({num two, num one}) b) => a == b;
   }
 
   test_recordsWithNamed_unrelated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool f(({int one, int two}) a, ({String one, String two}) b) => a [!==!] b;
 ''');
   }
@@ -288,13 +288,13 @@ bool f((int, {int two}) a, (num one, {num two}) b) => a == b;
   }
 
   test_recordsWithNamedAndPositional_unrelated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool f((int, {int two}) a, (String one, {String two}) b) => a [!==!] b;
 ''');
   }
 
   test_string_andInt() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if ('foo' [!==!] 1) {}
 }
@@ -387,7 +387,7 @@ String f(String char) {
   }
 
   test_twoListsOfTypeVariables_unrelatedBounds() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<A extends int, B extends bool>(List<A> a, List<B> b) {
   if (a [!==!] b) {}
 }
@@ -419,7 +419,7 @@ void f<A, B>(Map<int, A> a, Map<int, B> b) {
   }
 
   test_twoSubtypesOfSharedDistantSupertype() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(D2 x, E2 y) {
   if (x [!==!] y) {}
 }
@@ -451,7 +451,7 @@ void f<A extends int, B extends int>(A a, B b) {
   }
 
   test_twoTypeVariables_unrelatedBounds() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f<A extends int, B extends bool>(A a, B b) {
   if (a [!==!] b) {}
 }

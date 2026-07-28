@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveBreakBulkTest extends BulkFixProcessorTest {
   @override
-  List<String> get experiments => [];
+  List<Feature> get experimentalFeatures => [];
 
   @override
   String get lintCode => LintNames.unnecessary_breaks;
@@ -84,7 +85,7 @@ void f() {
 @reflectiveTest
 class RemoveBreakTest extends FixProcessorLintTest {
   @override
-  List<String> get experiments => [];
+  List<Feature> get experimentalFeatures => [];
 
   @override
   FixKind get kind => DartFixKind.removeBreak;

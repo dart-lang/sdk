@@ -19,7 +19,7 @@ class PreferIfElementsToConditionalExpressionsTest extends LintRuleTest {
       LintNames.prefer_if_elements_to_conditional_expressions;
 
   test_conditionalInForElement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<String> f(List<bool> blist) {
   return ['a', for (var b in blist) [!b ? 'c' : 'd'!], 'e'];
 }
@@ -35,7 +35,7 @@ List<String> f(bool b, bool c) {
   }
 
   test_conditionalInIfElement_then() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<String> f(bool b, bool c) {
   return ['a', if (b) [!c ? 'd' : 'e'!], 'f'];
 }
@@ -43,7 +43,7 @@ List<String> f(bool b, bool c) {
   }
 
   test_conditionalInList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<String> f(bool b) {
   return ['a', [!b ? 'c' : 'd'!], 'e'];
 }
@@ -51,7 +51,7 @@ List<String> f(bool b) {
   }
 
   test_conditionalInList_parenthesized() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 List<String> f(bool b) {
   return ['a', [!(b ? 'c' : 'd')!], 'e'];
 }
@@ -67,7 +67,7 @@ Map<String, int> f(bool b) {
   }
 
   test_conditionalInSet() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Set<String> f(bool b) {
   return {'a', [!b ? 'c' : 'd'!], 'e'};
 }
@@ -75,7 +75,7 @@ Set<String> f(bool b) {
   }
 
   test_conditionalInSet_parenthesizedTwice() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Set<String> f(bool b) {
   return {'a', [!((b ? 'c' : 'd'))!], 'e'};
 }

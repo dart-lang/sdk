@@ -33,7 +33,7 @@ void f(C c) {
   }
 
   test_assignmentThenMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   list = [];
   [!list.clear();!]
@@ -42,7 +42,7 @@ void f(List<int> list) {
   }
 
   test_consecutiveMethodCalls_thenDifferentTarget() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   late D parent;
   late D d;
@@ -194,7 +194,7 @@ class C {
   }
 
   test_multipleConsecutiveMethodCalls() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   list.clear();
   [!list.clear();!]
@@ -203,7 +203,7 @@ void f(List<int> list) {
   }
 
   test_multipleConsecutiveMethodCalls_cascaded() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   list.clear();
   [!list.clear();
@@ -228,7 +228,7 @@ class Foo {
   }
 
   test_nullAwareAccessThenConsecutiveAccess() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C c) {
   c?.m(); // ignore: invalid_null_aware_operator
   c.m();
@@ -253,7 +253,7 @@ class C {
   }
 
   test_nullAwareAssignment() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(C? c) {
   c ??= C();
   c.foo = 1;
@@ -334,7 +334,7 @@ class C {
   }
 
   test_switchCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x, List<int> list) {
   switch (x) {
     case 1:
@@ -347,7 +347,7 @@ void f(int x, List<int> list) {
   }
 
   test_switchDefault() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(int x, List<int> list) {
   switch (x) {
     default:
@@ -360,7 +360,7 @@ void f(int x, List<int> list) {
   }
 
   test_twoConsecutiveMethodCalls() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   list.clear();
   [!list.clear();!]

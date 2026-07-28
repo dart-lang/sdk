@@ -17,7 +17,6 @@ import 'package:hooks_runner/hooks_runner.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart' as package_config;
 import 'package:pub/pub.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'core.dart';
 
@@ -108,7 +107,7 @@ class DartNativeAssetsBuilder {
     final assets = await compileNativeAssetsJit();
     if (assets == null) return null;
 
-    final dartToolUri = Directory.current.uri.resolve('.dart_tool/');
+    final dartToolUri = packageConfigUri.resolve('.');
     final outputUri = dartToolUri.resolve('native_assets/');
     await Directory.fromUri(outputUri).create(recursive: true);
 
@@ -356,19 +355,5 @@ class DartNativeAssetsBuilder {
       return candidate;
     }
     return null;
-  }
-
-  /// Tries to find the package name that [uri] is in.
-  ///
-  /// Returns `null` if package cannnot be determined.
-  static Future<String?> findRootPackageName(Uri uri) async {
-    final pubspecUri = await findPubspec(uri);
-    if (pubspecUri == null) {
-      return null;
-    }
-    final pubspecFile = File.fromUri(pubspecUri);
-    final contents = await pubspecFile.readAsString();
-    final pubspec = loadYaml(contents);
-    return pubspec['name'];
   }
 }

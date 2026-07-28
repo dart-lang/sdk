@@ -31,13 +31,9 @@ class ThrowInFinally extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void>
+class _Visitor(@override final AnalysisRule rule)
+    extends SimpleAstVisitor<void>
     with ControlFlowInFinallyBlockReporter {
-  @override
-  final AnalysisRule rule;
-
-  new(this.rule);
-
   @override
   void visitThrowExpression(ThrowExpression node) {
     reportIfFinallyAncestorExists(node, kind: 'throw');

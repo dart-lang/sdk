@@ -16,7 +16,7 @@ class Covariance {
   static const int Covariant = 2;
 
   /// Returns the covariance mask for [parameter].
-  static int covarianceFromParameter(Variable parameter) =>
+  static int covarianceFromParameter(FunctionParameter parameter) =>
       (parameter.isCovariantByDeclaration ? Covariant : 0) |
       (parameter.isCovariantByClass ? GenericCovariantImpl : 0);
 
@@ -26,7 +26,10 @@ class Covariance {
       (field.isCovariantByClass ? GenericCovariantImpl : 0);
 
   /// Applies the [covariance] mask to [parameter].
-  static void covarianceToParameter(int covariance, Variable parameter) {
+  static void covarianceToParameter(
+    int covariance,
+    FunctionParameter parameter,
+  ) {
     if ((covariance & Covariant) != 0) {
       parameter.isCovariantByDeclaration = true;
     }
@@ -135,11 +138,11 @@ class Covariance {
     Map<String, int>? namedParameters;
     if (function.namedParameters.isNotEmpty) {
       for (int index = 0; index < function.namedParameters.length; index++) {
-        Variable parameter = function.namedParameters[index];
+        NamedParameter parameter = function.namedParameters[index];
         int covariance = covarianceFromParameter(parameter);
         if (covariance != 0) {
           namedParameters ??= {};
-          namedParameters[parameter.name!] = covariance;
+          namedParameters[parameter.parameterName] = covariance;
         }
       }
     }
@@ -306,8 +309,11 @@ class Covariance {
         }
       }
       if (_namedParameters != null) {
-        for (Variable parameter in function.namedParameters) {
-          covarianceToParameter(getNamedVariance(parameter.name!), parameter);
+        for (NamedParameter parameter in function.namedParameters) {
+          covarianceToParameter(
+            getNamedVariance(parameter.parameterName),
+            parameter,
+          );
         }
       }
       List<bool>? typeParameters = _typeParameters;

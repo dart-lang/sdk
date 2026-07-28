@@ -565,9 +565,9 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
       await client.removeOverlay(filePath);
       context.changeFile(filePath);
       await context.applyPendingFileChanges();
-      resolvedUnitResult =
-          await context.currentSession.getResolvedUnit(filePath)
-              as ResolvedUnitResult;
+      resolvedUnitResult = await context.currentSession.getResolvedUnit(
+        filePath,
+      ) as ResolvedUnitResult;
     }
   }
 

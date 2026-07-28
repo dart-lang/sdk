@@ -68,7 +68,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actual = buffer.toString();
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -125,22 +127,21 @@ mixin ResolutionTest implements ResourceProviderMixin {
       configuration: ElementPrinterConfiguration(),
     );
 
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration(),
-        withResolution: false,
-      ),
-    );
+    ResolvedAstPrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: ResolvedNodeTextConfiguration(),
+      withResolution: false,
+    ).writeNode(node);
 
     var actual = buffer.toString();
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   void assertResolvedLibraryResultText(
@@ -166,18 +167,21 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var actual = buffer.toString();
     if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   void assertResolvedNodeText(AstNode node, String expected) {
     var actual = _resolvedNodeText(node);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
   }
@@ -239,8 +243,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is BinaryExpression) {
       return node.element;
-    } else if (node is ConstructorReference) {
-      return node.constructorName.element;
+    } else if (node is ConstructorTearOff) {
+      return node.element;
     } else if (node is Declaration) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
@@ -250,13 +254,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is FunctionExpressionInvocation) {
       return node.element;
     } else if (node is FunctionReference) {
-      var function = node.function.unParenthesized;
+      var function = node.function2.unParenthesized;
       if (function is Identifier) {
         return function.element;
       } else if (function is PropertyAccess) {
         return function.propertyName.element;
-      } else if (function is ConstructorReference) {
-        return function.constructorName.element;
+      } else if (function is ConstructorTearOff) {
+        return function.element;
       } else {
         fail('Unsupported node: (${function.runtimeType}) $function');
       }
@@ -334,8 +338,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
       var actual = actualCodeByFile[file.file]!;
       if (actual != file.code) {
         NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
-        print('-------- ${file.file.path} --------');
-        printPrettyDiff(file.code, actual);
+        if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+          print('-------- ${file.file.path} --------');
+          printPrettyDiff(file.code, actual);
+        }
         hasMismatch = true;
       }
     }
@@ -390,15 +396,25 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withRedirectedConstructors
         ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: nodeTextConfiguration,
-      ),
+    var printer = ResolvedAstPrinter(
+      sink: sink,
+      elementPrinter: elementPrinter,
+      configuration: nodeTextConfiguration,
     );
+    printer.writeNode(node);
 
-    var unit = node.thisOrAncestorOfType<CompilationUnitImpl>();
+    // Keep the V1 compatibility view visible when the requested V2 root has a
+    // distinct projection. Printing it as another root preserves its text.
+    if (node case ExpressionImpl expression) {
+      var v1 = V1Projection.toV1Expression(expression);
+      if (!identical(v1, expression)) {
+        printer.writeNode(v1);
+      }
+    }
+
+    var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        ? node.thisOrAncestorOfType<CompilationUnitImpl>()
+        : node.thisOrAncestorOfType2<CompilationUnitImpl>();
     if (unit != null) {
       sink.writeElements('invalidNodes', unit.invalidNodes, (node) {
         var range = '[${node.offset}, ${node.end})';
@@ -423,7 +439,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     );
     if (actual != code) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(code, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(code, actual);
+      }
       fail('See the difference above.');
     }
 
@@ -437,7 +455,7 @@ final class TestResolvedUnitResult {
 
   late final FindElement2 findElement = FindElement2(unit);
 
-  late final FindNode findNode = FindNode(content, unit);
+  late final FindNode2 findNode = FindNode2(content, unit);
 
   TestResolvedUnitResult(this.analysisResult);
 
@@ -483,8 +501,8 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
     return FindElement2(unit);
   }
 
-  FindNode get findNode {
-    return FindNode(content, unit);
+  FindNode2 get findNode {
+    return FindNode2(content, unit);
   }
 
   InheritanceManager3 get inheritanceManager {

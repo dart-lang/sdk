@@ -29,10 +29,10 @@ class Histogram {
   int get totalCount => _counts.values.fold(0, (a, b) => a + b);
 
   new({SortOrder? order, bool? showBar, bool? showAll, int? minCount})
-      : _order = order ?? SortOrder.descending,
-        _showBar = showBar ?? true,
-        _showAll = showAll ?? false,
-        _minCount = minCount ?? 0;
+    : _order = order ?? SortOrder.descending,
+      _showBar = showBar ?? true,
+      _showAll = showAll ?? false,
+      _minCount = minCount ?? 0;
 
   void add(Object item) {
     _counts.putIfAbsent(item, () => 0);
@@ -63,7 +63,9 @@ class Histogram {
     }
 
     var longest = keys.fold<int>(
-        0, (length, key) => math.max(length, key.toString().length));
+      0,
+      (length, key) => math.max(length, key.toString().length),
+    );
     var barScale = 80 - 22 - longest;
 
     var shown = 0;
@@ -92,7 +94,9 @@ class Histogram {
     // If we're counting numeric keys, show other statistics too.
     if (_order == SortOrder.numeric && keys.isNotEmpty) {
       var sum = keys.fold<int>(
-          0, (result, key) => result + (key as int) * _counts[key]!);
+        0,
+        (result, key) => result + (key as int) * _counts[key]!,
+      );
       var average = sum / total;
 
       // Find the median key where half the total count is below it.

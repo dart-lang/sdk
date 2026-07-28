@@ -27,7 +27,7 @@ int f() {
   }
 
   test_function_returnStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int f() [!{
   return 1;
 }!]
@@ -43,7 +43,7 @@ class A {
   }
 
   test_getter_returnStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   get f [!{
     return 7 - 6;
@@ -66,7 +66,7 @@ class A {
   }
 
   test_method_returnStatement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   int m() [!{
     return 1;

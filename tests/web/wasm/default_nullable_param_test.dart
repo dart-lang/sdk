@@ -5,6 +5,7 @@
 // dart2wasmOptions=--enable-deferred-loading
 
 import 'default_nullable_param_helper.dart' deferred as helper;
+
 import 'package:async_helper/async_helper.dart';
 
 helper.Base getBase(int i, String s) => i < 10 ? helper.A() : helper.B(s);

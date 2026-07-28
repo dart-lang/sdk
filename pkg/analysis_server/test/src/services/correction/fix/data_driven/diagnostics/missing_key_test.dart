@@ -31,7 +31,7 @@ transforms:
       name: 'a'
       style: required_positional
 ''',
-      [error(diag.missingKey, 124, 85)],
+      [error(diag.missingKey, 124, 84)],
     );
   }
 
@@ -53,7 +53,7 @@ transforms:
         kind: 'argument'
         index: 0
 ''',
-      [error(diag.missingKey, 124, 133)],
+      [error(diag.missingKey, 124, 132)],
     );
   }
 
@@ -75,7 +75,7 @@ transforms:
         kind: 'argument'
         index: 0
 ''',
-      [error(diag.missingKey, 124, 132)],
+      [error(diag.missingKey, 124, 131)],
     );
   }
 
@@ -97,7 +97,7 @@ transforms:
         kind: 'argument'
         index: 0
 ''',
-      [error(diag.missingKey, 124, 115)],
+      [error(diag.missingKey, 124, 114)],
     );
   }
 
@@ -116,7 +116,7 @@ transforms:
       index: 0
       name: 'a'
 ''',
-      [error(diag.missingKey, 124, 56)],
+      [error(diag.missingKey, 124, 55)],
     );
   }
 
@@ -136,7 +136,7 @@ transforms:
       argumentValue:
         expression: ''
 ''',
-      [error(diag.missingKey, 124, 85)],
+      [error(diag.missingKey, 124, 84)],
     );
   }
 
@@ -156,7 +156,7 @@ transforms:
       argumentValue:
         expression: ''
 ''',
-      [error(diag.missingKey, 124, 84)],
+      [error(diag.missingKey, 124, 83)],
     );
   }
 
@@ -173,7 +173,7 @@ transforms:
   changes:
     - index: 0
 ''',
-      [error(diag.missingKey, 124, 9)],
+      [error(diag.missingKey, 124, 8)],
     );
   }
 
@@ -205,7 +205,7 @@ transforms:
   changes:
     - kind: 'rename'
 ''',
-      [error(diag.missingKey, 124, 15)],
+      [error(diag.missingKey, 124, 14)],
     );
   }
 
@@ -220,7 +220,7 @@ transforms:
     function: 'f'
   changes: []
 ''',
-      [error(diag.missingKey, 25, 77)],
+      [error(diag.missingKey, 25, 76)],
     );
   }
 
@@ -233,7 +233,7 @@ transforms:
   date: 2020-09-14
   changes: []
 ''',
-      [error(diag.missingOneOfMultipleKeys, 25, 43)],
+      [error(diag.missingOneOfMultipleKeys, 25, 42)],
     );
   }
 
@@ -248,7 +248,7 @@ transforms:
     function: 'f'
   changes: []
 ''',
-      [error(diag.missingKey, 25, 84)],
+      [error(diag.missingKey, 25, 83)],
     );
   }
 
@@ -257,7 +257,7 @@ transforms:
       '''
 version: 1
 ''',
-      [error(diag.missingKey, 0, 11)],
+      [error(diag.missingKey, 0, 10)],
     );
   }
 
@@ -266,7 +266,7 @@ version: 1
       '''
 transforms: []
 ''',
-      [error(diag.missingKey, 0, 15)],
+      [error(diag.missingKey, 0, 14)],
     );
   }
 }

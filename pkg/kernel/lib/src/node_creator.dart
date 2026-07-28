@@ -65,7 +65,7 @@ class NodeCreator {
   List<Procedure> _neededProcedures = [];
   List<Field> _neededFields = [];
   List<LibraryDependency> _neededLibraryDependencies = [];
-  List<Variable> _neededVariables = [];
+  List<DeclaredVariable> _neededVariables = [];
   List<LabeledStatement> _neededLabeledStatements = [];
   List<FunctionDeclaration> _neededFunctionDeclarations = [];
   List<SwitchCase> _neededSwitchCases = [];
@@ -124,7 +124,7 @@ class NodeCreator {
     }
     _neededLabeledStatements.clear();
     statement = Block([
-      for (Variable neededVariable in _neededVariables)
+      for (DeclaredVariable neededVariable in _neededVariables)
         VariableStatement(VariableDeclaration(neededVariable)),
       ..._neededFunctionDeclarations,
       statement,
@@ -179,9 +179,7 @@ class NodeCreator {
     while (_pendingVariables.isNotEmpty) {
       Variable variable = _createVariableFromKind(_pendingVariables.keys.first);
       switch (variable) {
-        case LocalVariable():
-        case LateVariable():
-        case SyntheticVariable():
+        case DeclaredVariable():
           _addStatement(
             statements,
             VariableStatement(VariableDeclaration(variable)),
@@ -700,17 +698,17 @@ class NodeCreator {
     return field;
   }
 
-  /// Returns a [Variable] node that fits the requirements.
+  /// Returns a [DeclaredVariable] node that fits the requirements.
   ///
-  /// If no such [Variable] exists in [_neededVariables],
-  /// a new [Variable] is created and added to
+  /// If no such [DeclaredVariable] exists in [_neededVariables],
+  /// a new [DeclaredVariable] is created and added to
   /// [_neededVariables].
   // TODO(johnniwinther): Add requirements when/where needed.
-  Variable _needVariable() {
-    for (Variable variable in _neededVariables) {
+  DeclaredVariable _needVariable() {
+    for (DeclaredVariable variable in _neededVariables) {
       return variable;
     }
-    Variable variable = LocalVariable(name: 'foo', type: null);
+    DeclaredVariable variable = LocalVariable(name: 'foo', type: null);
     _neededVariables.add(variable);
     return variable;
   }
@@ -759,7 +757,7 @@ class NodeCreator {
       return functionDeclaration;
     }
     FunctionDeclaration functionDeclaration = FunctionDeclaration(
-      LocalVariable(name: 'foo'),
+      LocalFunctionVariable(name: 'foo'),
       FunctionNode(Block([])),
     );
     _neededFunctionDeclarations.add(functionDeclaration);
@@ -1403,11 +1401,13 @@ class NodeCreator {
         return _createOneOf(_pendingPatterns, kind, index, [
           () => VariablePattern(
             null,
-            _createVariableFromKind(VariableKind.LocalVariable),
+            _createVariableFromKind(VariableKind.LocalVariable)
+                as DeclaredVariable,
           )..fileOffset = _needFileOffset(),
           () => VariablePattern(
             _createDartType(),
-            _createVariableFromKind(VariableKind.LocalVariable),
+            _createVariableFromKind(VariableKind.LocalVariable)
+                as DeclaredVariable,
           )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.WildcardPattern:
@@ -1486,13 +1486,15 @@ class NodeCreator {
       case StatementKind.ForInStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () => ForInStatement(
-            _createVariableFromKind(VariableKind.LocalVariable),
+            _createVariableFromKind(VariableKind.LocalVariable)
+                as DeclaredVariable,
             _createExpression(),
             _createStatement(),
             isAsync: false,
           )..fileOffset = _needFileOffset(),
           () => ForInStatement(
-            _createVariableFromKind(VariableKind.LocalVariable),
+            _createVariableFromKind(VariableKind.LocalVariable)
+                as DeclaredVariable,
             _createExpression(),
             _createStatement(),
             isAsync: true,
@@ -1506,7 +1508,8 @@ class NodeCreator {
           () => ForStatement(
             [
               VariableDeclaration(
-                _createVariableFromKind(VariableKind.LocalVariable),
+                _createVariableFromKind(VariableKind.LocalVariable)
+                    as DeclaredVariable,
               ),
             ],
             _createExpression(),
@@ -1516,10 +1519,12 @@ class NodeCreator {
           () => ForStatement(
             [
               VariableDeclaration(
-                _createVariableFromKind(VariableKind.LocalVariable),
+                _createVariableFromKind(VariableKind.LocalVariable)
+                    as DeclaredVariable,
               ),
               VariableDeclaration(
-                _createVariableFromKind(VariableKind.LocalVariable),
+                _createVariableFromKind(VariableKind.LocalVariable)
+                    as DeclaredVariable,
               ),
             ],
             _createExpression(),
@@ -1528,8 +1533,10 @@ class NodeCreator {
           )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.FunctionDeclaration:
-        return FunctionDeclaration(SyntheticVariable(), _createFunctionNode())
-          ..fileOffset = _needFileOffset();
+        return FunctionDeclaration(
+          LocalFunctionVariable(name: 'foo'),
+          _createFunctionNode(),
+        )..fileOffset = _needFileOffset();
       case StatementKind.IfStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () =>
@@ -1661,6 +1668,10 @@ class NodeCreator {
         return CatchVariable(name: 'e');
       case VariableKind.LateVariable:
         return LateVariable(name: 'foo');
+      case VariableKind.LocalFunctionVariable:
+        return LocalFunctionVariable(name: 'foo');
+      case VariableKind.ConstVariable:
+        return ConstVariable(name: 'foo');
       case VariableKind.LocalVariable:
         return _createOneOf(_pendingVariables, kind, index, [
           () => LocalVariable(name: 'foo')..fileOffset = _needFileOffset(),
@@ -2239,10 +2250,12 @@ class NodeCreator {
       case NodeKind.VariableDeclaration:
         return _createOneOf(_pendingNodes, kind, index, [
           () => new VariableDeclaration(
-            _createVariableFromKind(VariableKind.LocalVariable),
+            _createVariableFromKind(VariableKind.LocalVariable)
+                as DeclaredVariable,
           ),
           () => new VariableDeclaration(
-            _createVariableFromKind(VariableKind.LateVariable),
+            _createVariableFromKind(VariableKind.LateVariable)
+                as DeclaredVariable,
           ),
         ]);
       case NodeKind.TypeVariable:

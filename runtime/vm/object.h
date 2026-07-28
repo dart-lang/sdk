@@ -334,7 +334,19 @@ namespace RTN = dart;
 namespace RTN = dart::compiler::target;
 #endif  //  defined(DART_PRECOMPILED_RUNTIME)
 
-class Object {
+// Explicitly choose the discriminator, since we can't ask what the default is.
+#define HANDLE_DISCRIMINATOR 0x1234
+
+#if defined(HOST_ARCH_ARM64E)
+#define KNOWN_VTABLE_DISCRIMINATOR                                             \
+  [[clang::ptrauth_vtable_pointer(default_key, address_discrimination,         \
+                                  custom_discrimination,                       \
+                                  HANDLE_DISCRIMINATOR)]]
+#else
+#define KNOWN_VTABLE_DISCRIMINATOR
+#endif
+
+class KNOWN_VTABLE_DISCRIMINATOR Object {
  public:
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
@@ -380,7 +392,9 @@ class Object {
   virtual intptr_t HandleTag() const { return kObjectCid; }
 
 #define DEFINE_LEAF_CHECK(clazz)                                               \
-  bool Is##clazz() const { return HandleTag() == k##clazz##Cid; }
+  bool Is##clazz() const {                                                     \
+    return HandleTag() == k##clazz##Cid;                                       \
+  }
   LEAF_HANDLE_LIST(DEFINE_LEAF_CHECK)
 #undef DEFINE_LEAF_CHECK
   bool IsTypedDataBase() const {
@@ -523,6 +537,7 @@ class Object {
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(Closure, null_closure)                                                     \
+  V(Bytecode, null_bytecode)                                                   \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
@@ -577,7 +592,9 @@ class Object {
   V(TypedData, empty_coverage_array)
 
 #define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
-  static const Type& name() { return Roots::name(); }
+  static const Type& name() {                                                  \
+    return Roots::name();                                                      \
+  }
   SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
 #undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
@@ -707,13 +724,34 @@ class Object {
   // representation of C++ objects, but works okay in practice with
   // -fno-strict-vtable-pointers.
   cpp_vtable vtable() const {
-    cpp_vtable result;
-    memcpy(&result, reinterpret_cast<const void*>(this),  // NOLINT
-           sizeof(result));
-    return result;
+    void* data;
+    memcpy(&data, reinterpret_cast<const void*>(this),  // NOLINT
+           sizeof(cpp_vtable));
+#if defined(HOST_ARCH_ARM64E)
+    // Adjust the vtable pointer so it doesn't depend on the address of the
+    // prototype handle.
+    data = ptrauth_auth_and_resign(
+        data, ptrauth_key_cxx_vtable_pointer,
+        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR),
+        ptrauth_key_cxx_vtable_pointer, 0x4321);
+#endif
+    return reinterpret_cast<cpp_vtable>(data);
   }
-  void set_vtable(cpp_vtable value) {
-    memcpy(reinterpret_cast<void*>(this), &value,  // NOLINT
+  void set_vtable(cpp_vtable data_in) {
+    void* data = reinterpret_cast<void*>(data_in);
+#if defined(HOST_ARCH_ARM64E)
+    // Resign the vtable pointer for the new handle's address.
+    data = ptrauth_auth_and_resign(
+        data, ptrauth_key_cxx_vtable_pointer, 0x4321,
+        ptrauth_key_cxx_vtable_pointer,
+        ptrauth_blend_discriminator(this, HANDLE_DISCRIMINATOR));
+#endif
+    memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
+           sizeof(cpp_vtable));
+  }
+  void set_vtable_invalid() {
+    void* data = nullptr;
+    memcpy(reinterpret_cast<void*>(this), &data,  // NOLINT
            sizeof(cpp_vtable));
   }
 
@@ -838,6 +876,12 @@ class Object {
     // Can't use Contains, as it uses tags_, which is set through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
     *const_cast<FieldType*>(addr) = value;
+  }
+  template <typename FieldType, typename ValueType>
+  void StoreNonPointerUnaligned(const FieldType* addr, ValueType value) const {
+    // Can't use Contains, as it uses tags_, which is set through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(ptr()));
+    StoreUnaligned(const_cast<FieldType*>(addr), value);
   }
 
   template <typename FieldType, typename ValueType, std::memory_order order>
@@ -1066,7 +1110,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& Handle(ObjectPtr ptr) {
@@ -1082,7 +1126,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateZoneHandle(zone));
     obj->ptr_ = ptr;
-    obj->set_vtable(0);
+    obj->set_vtable_invalid();
     return *obj;
   }
   static PassiveObject& ZoneHandle(ObjectPtr ptr) {
@@ -2269,7 +2313,9 @@ class SingleTargetCache : public Object {
   }
 
 #define DEFINE_NON_POINTER_FIELD_ACCESSORS(type, name)                         \
-  type name() const { return untag()->name##_; }                               \
+  type name() const {                                                          \
+    return untag()->name##_;                                                   \
+  }                                                                            \
   void set_##name(type value) const {                                          \
     StoreNonPointer(&untag()->name##_, value);                                 \
   }                                                                            \
@@ -3515,9 +3561,13 @@ class Function : public Object {
     UNREACHABLE();                                                             \
     return 0;                                                                  \
   }                                                                            \
-  return_type name() const { return 0; }                                       \
+  return_type name() const {                                                   \
+    return 0;                                                                  \
+  }                                                                            \
                                                                                \
-  void set_##name(type value) const { UNREACHABLE(); }
+  void set_##name(type value) const {                                          \
+    UNREACHABLE();                                                             \
+  }
 #else
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
   static intptr_t name##_offset() {                                            \
@@ -4130,7 +4180,9 @@ class Function : public Object {
   void Set##Name(bool value) const {                                           \
     set_state_bits(Name##Bit::update(value, state_bits()));                    \
   }                                                                            \
-  bool Name() const { return Name##Bit::decode(state_bits()); }
+  bool Name() const {                                                          \
+    return Name##Bit::decode(state_bits());                                    \
+  }
   STATE_BITS_LIST(DEFINE_FLAG_ACCESSORS)
 #undef DEFINE_FLAG_ACCESSORS
 
@@ -4202,7 +4254,9 @@ class Function : public Object {
   void set_##accessor_name(bool value) const {                                 \
     untag()->kind_tag_.UpdateUnsynchronized<name##Bit>(value);                 \
   }                                                                            \
-  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  bool accessor_name() const {                                                 \
+    return untag()->kind_tag_.Read<name##Bit>();                               \
+  }
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
@@ -4214,7 +4268,9 @@ class Function : public Object {
   void set_##accessor_name(bool value) const {                                 \
     untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
   }                                                                            \
-  bool accessor_name() const { return untag()->kind_tag_.Read<name##Bit>(); }
+  bool accessor_name() const {                                                 \
+    return untag()->kind_tag_.Read<name##Bit>();                               \
+  }
   FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
@@ -5789,7 +5845,9 @@ class Instructions : public Object {
 #define DEFINE_INSTRUCTIONS_FLAG_HANDLING(Name)                                \
   using Name##Bit = BitField<decltype(UntaggedInstructions::size_and_flags_),  \
                              bool, k##Name##Index>;                            \
-  bool Name() const { return Name##Bit::decode(untag()->size_and_flags_); }    \
+  bool Name() const {                                                          \
+    return Name##Bit::decode(untag()->size_and_flags_);                        \
+  }                                                                            \
   static bool Name(const InstructionsPtr instr) {                              \
     return Name##Bit::decode(instr->untag()->size_and_flags_);                 \
   }
@@ -12208,7 +12266,8 @@ class Pointer : public Instance {
 class DynamicLibrary : public Instance {
  public:
   static DynamicLibraryPtr New(void* handle,
-                               bool canBeClosed,
+                               Dart_NativeAssetsDlsymCallback dlsym,
+                               Dart_NativeAssetsDlcloseCallback dlclose,
                                Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
@@ -12230,23 +12289,39 @@ class DynamicLibrary : public Instance {
     StoreNonPointer(&untag()->handle_, value);
   }
 
-  bool CanBeClosed() const {
+  Dart_NativeAssetsDlsymCallback Dlsym() const {
     ASSERT(!IsNull());
-    return untag()->canBeClosed_;
+    return LoadNonPointer<Dart_NativeAssetsDlsymCallback,
+                          std::memory_order_relaxed>(&untag()->dlsym_);
   }
 
-  void SetCanBeClosed(bool value) const {
+  void SetDlsym(Dart_NativeAssetsDlsymCallback value) const {
     ASSERT(!IsNull());
-    StoreNonPointer(&untag()->canBeClosed_, value);
+    StoreNonPointer<Dart_NativeAssetsDlsymCallback,
+                    Dart_NativeAssetsDlsymCallback, std::memory_order_relaxed>(
+        &untag()->dlsym_, value);
+  }
+
+  Dart_NativeAssetsDlcloseCallback Dlclose() const {
+    ASSERT(!IsNull());
+    return LoadNonPointer<Dart_NativeAssetsDlcloseCallback,
+                          std::memory_order_relaxed>(&untag()->dlclose_);
+  }
+
+  void SetDlclose(Dart_NativeAssetsDlcloseCallback value) const {
+    ASSERT(!IsNull());
+    StoreNonPointer<Dart_NativeAssetsDlcloseCallback,
+                    Dart_NativeAssetsDlcloseCallback,
+                    std::memory_order_relaxed>(&untag()->dlclose_, value);
   }
 
   bool IsClosed() const {
     ASSERT(!IsNull());
-    return untag()->isClosed_;
+    return untag()->is_closed_;
   }
 
   void SetClosed(bool value) const {
-    StoreNonPointer(&untag()->isClosed_, value);
+    StoreNonPointer(&untag()->is_closed_, value);
   }
 
  private:
@@ -12762,13 +12837,28 @@ class Closure : public Instance {
     SetElementAt(function_type_arguments_index(), args);
   }
 
+  static intptr_t ContextIndexOf(ClosurePtr ptr) {
+    const intptr_t length_and_flags =
+        Smi::Value(ptr.untag()->length_and_flags());
+    return UntaggedClosure::ContextIndex(
+        UntaggedClosure::HasDelayedTypeArgumentsBit::decode(length_and_flags),
+        UntaggedClosure::HasInstantiatorTypeArgumentsBit::decode(
+            length_and_flags),
+        UntaggedClosure::HasFunctionTypeArgumentsBit::decode(length_and_flags));
+  }
   static ObjectPtr RawContextOf(ClosurePtr ptr) {
-    return ptr->untag()->element(LengthOf(ptr) - 1);
+    const intptr_t context_index = ContextIndexOf(ptr);
+    if (context_index < LengthOf(ptr)) {
+      return ptr->untag()->element(context_index);
+    }
+    return Object::null();
   }
   ObjectPtr RawContext() const { return RawContextOf(ptr()); }
 
   void SetRawContext(const Object& context) const {
-    SetElementAt(length() - 1, context);
+    const intptr_t context_index = ContextIndexOf(ptr());
+    ASSERT(context_index < length());
+    SetElementAt(context_index, context);
   }
 
   ContextPtr GetContext() const {

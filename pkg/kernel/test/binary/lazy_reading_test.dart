@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart';
+
 import 'utils.dart';
 
 void main() {

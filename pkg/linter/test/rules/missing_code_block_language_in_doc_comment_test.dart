@@ -56,7 +56,7 @@ class A {}
   }
 
   test_missingLanguage() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 ///[! ```!]
 /// test
 /// ```
@@ -65,7 +65,7 @@ class A {}
   }
 
   test_missingLanguage_leadingWhitespace() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 ///[!   ```!]
 /// test
 /// ```
@@ -74,7 +74,7 @@ class A {}
   }
 
   test_missingLanguage_noEndingFence() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 ///[! ```!]
 /// test
 /// more test

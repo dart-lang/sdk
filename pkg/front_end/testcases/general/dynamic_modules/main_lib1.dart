@@ -36,6 +36,7 @@ abstract class C4 {
 }
 
 mixin M1 {}
+
 mixin M2 {}
 
 void method1() {}

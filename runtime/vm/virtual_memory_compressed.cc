@@ -19,7 +19,7 @@ namespace dart {
 
 DEFINE_FLAG(bool,
             pointer_cage,
-            true,
+            false,
             "Pad compressed heaps with guard regions large enough to prevent "
             "any indexed load from reaching outside the compressed heap.");
 
@@ -170,6 +170,7 @@ Cage::~Cage() {
   size_ = 0;
   pages_ = nullptr;
   minimum_free_page_id_ = 0;
+  delete reservation_;
 }
 
 void* Cage::GetRegion() {

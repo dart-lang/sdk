@@ -17,7 +17,11 @@ class PreferTypingUninitializedVariablesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_typing_uninitialized_variables;
 
-  @FailingTest(reason: 'There is a diagnostic in b.dart.')
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There is a diagnostic in b.dart.',
+  )
+  // TODO(scheglov): implement augmentation
   test_field_augmented() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
@@ -27,7 +31,7 @@ augment class A {
 }
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 class A {
@@ -38,7 +42,7 @@ class A {
   }
 
   test_field_final_noInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   final [!x!];
   C(this.x);
@@ -55,7 +59,7 @@ class C {
   }
 
   test_field_var_noInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   var [!x!];
 }
@@ -63,7 +67,7 @@ class C {
   }
 
   test_field_var_noInitializer_notFirst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   var a = 5,
       [!b!];
@@ -72,7 +76,7 @@ class C {
   }
 
   test_field_var_noInitializer_static() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   static var [!x!];
 }
@@ -88,7 +92,7 @@ void f() {
   }
 
   test_forLoopVariable_var_noInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (var [!i!], j = 0; j < 5; i = j, j++) {}
 }
@@ -105,7 +109,7 @@ void f() {
   }
 
   test_localVariable_var_noInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   // ignore: unused_local_variable
   var [!x!];
@@ -113,7 +117,11 @@ void f() {
 ''');
   }
 
-  @FailingTest(reason: 'There is a diagnostic in b.dart.')
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/56174',
+    reason: 'There is a diagnostic in b.dart.',
+  )
+  // TODO(scheglov): implement augmentation
   test_topLevelVariable_augmented() async {
     var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
@@ -121,7 +129,7 @@ part of 'test.dart';
 augment var x;
 ''');
 
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 part 'b.dart';
 
 var [!x!];
@@ -136,7 +144,7 @@ var x = 4;
   }
 
   test_topLevelVariable_var_noInitializer() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var [!x!];
 ''');
   }

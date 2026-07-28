@@ -268,6 +268,7 @@ mixin MTT {
 mixin MTTnumR {
   T id<T extends num, R>(x) => x;
 }
+
 class G1 = GTTnum with MTTnum;
 class G2 = GTTnum with MTTint;
 //    ^

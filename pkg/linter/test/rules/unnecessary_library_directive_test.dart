@@ -50,7 +50,7 @@ part 'part.dart';
   }
 
   test_unnecessary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 [!library lib;!]
 ''');
   }

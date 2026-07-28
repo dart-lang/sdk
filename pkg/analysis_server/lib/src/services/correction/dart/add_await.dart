@@ -79,17 +79,14 @@ class AddAwait extends ResolvedCorrectionProducer {
         // If this is ever broken we must fix here and at:
         // - DartFixKind.ADD_ASYNC
         // - DartFixKind.WRAP_IN_UNAWAITED
-        if (node.parent case AstNode(
-          :var offset,
-          :var parent,
-        ) when parent is! CascadeExpression) {
+        if (node.parent case AstNode(:var offset, :var parent)
+            when parent is! CascadeExpression) {
           await _addAwait(builder, offset: offset);
         }
       case .forIn:
-        if (node.parent case ForEachPartsWithDeclaration(
-          :var iterable,
-          :var parent,
-        ) when iterable == node) {
+        if (node.parent
+            case ForEachPartsWithDeclaration(:var iterable, :var parent)
+            when iterable == node) {
           var type = iterable.staticType;
           var isStream =
               type != null &&

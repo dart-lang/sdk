@@ -50,9 +50,8 @@ Future<void> testRedirectingFactoryPatchFile() {
     'dart2js_platform.dill',
   );
   var component = new ir.Component();
-  new BinaryBuilder(
-    new File.fromUri(componentUri).readAsBytesSync(),
-  ).readComponent(component);
+  new BinaryBuilder(new File.fromUri(componentUri).readAsBytesSync())
+      .readComponent(component);
   checkIsRedirectingFactory(component, 'collection', 'HashMap', 'identity');
   return new Future.value();
 }

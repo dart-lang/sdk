@@ -26,14 +26,13 @@ class B extends A {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_extends_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 final class A {}
 class B {}
-//    ^
-// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
 augment class B extends A {}
+//            ^
+// [diag.subtypeOfFinalIsNotBaseFinalOrSealed] The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'final'.
 ''');
   }
 

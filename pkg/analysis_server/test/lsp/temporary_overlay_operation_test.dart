@@ -32,7 +32,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_noIntermediateAnalysisResults() async {
     newFile(mainFilePath, '');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Modify the overlays to have invalid code, which will then be reverted.
     // At no point should diagnostics or closing labels be transmitted for the
@@ -48,7 +48,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_pausesRequestQueue() async {
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     await openFile(mainFileUri, '// ORIGINAL');
 
     await _TestTemporaryOverlayOperation(server, () async {
@@ -62,7 +62,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
     }).doWork();
 
     // Ensure we processed the update afterwards.
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expectFsStateContent(mainFilePath, '// CHANGED');
     expectOverlayContent(mainFilePath, '// CHANGED');
   }
@@ -70,7 +70,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_pausesWatcherEvents() async {
     var mainFile = newFile(mainFilePath, '// ORIGINAL');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     await _TestTemporaryOverlayOperation(server, () async {
       // Modify the file to trigger watcher events
@@ -89,7 +89,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_restoresOverlays() async {
     newFile(mainFilePath, '// DISK');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     await openFile(mainFileUri, '// ORIGINAL OVERLAY');
 
     late _TestTemporaryOverlayOperation operation;
@@ -101,14 +101,14 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
     });
     await operation.doWork();
 
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expectOverlayContent(mainFilePath, '// ORIGINAL OVERLAY');
   }
 
   Future<void> test_temporarilyRemovesAddedFiles() async {
     newFile(mainFilePath, '');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     expect(server.driverMap.values.single.addedFiles, isNotEmpty);
 

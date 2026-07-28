@@ -5,6 +5,7 @@
 // Equals operator == by value should be implicitly created
 
 import 'package:expect/expect.dart';
+
 import 'value_class_support_lib.dart';
 
 // A value class will automatically create an == operator if there is none yet

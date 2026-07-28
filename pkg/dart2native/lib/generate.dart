@@ -48,23 +48,23 @@ extension type KernelGenerator._(_Generator _generator) {
     required Directory tempDir,
     bool progressUpdatesOnStderr = false,
   }) : _generator = _Generator(
-          genSnapshot: genSnapshot,
-          targetDartAotRuntime: targetDartAotRuntime,
-          sourceFile: sourceFile,
-          defines: defines,
-          tempDir: tempDir,
-          debugFile: debugFile,
-          enableAsserts: enableAsserts,
-          enableExperiment: enableExperiment,
-          kind: kind,
-          outputFile: outputFile,
-          packages: packages,
-          targetOS: targetOS,
-          verbose: verbose,
-          verbosity: verbosity,
-          depFile: depFile,
-          progressUpdatesOnStderr: progressUpdatesOnStderr,
-        );
+         genSnapshot: genSnapshot,
+         targetDartAotRuntime: targetDartAotRuntime,
+         sourceFile: sourceFile,
+         defines: defines,
+         tempDir: tempDir,
+         debugFile: debugFile,
+         enableAsserts: enableAsserts,
+         enableExperiment: enableExperiment,
+         kind: kind,
+         outputFile: outputFile,
+         packages: packages,
+         targetOS: targetOS,
+         verbose: verbose,
+         verbosity: verbosity,
+         depFile: depFile,
+         progressUpdatesOnStderr: progressUpdatesOnStderr,
+       );
 
   /// Generate a kernel file,
   ///
@@ -74,12 +74,11 @@ extension type KernelGenerator._(_Generator _generator) {
     String? recordedUsagesFile,
     List<String>? extraOptions,
     bool progressUpdatesOnStderr = false,
-  }) =>
-      _generator.generateKernel(
-        recordedUsagesFile: recordedUsagesFile,
-        extraOptions: extraOptions,
-        progressUpdatesOnStderr: progressUpdatesOnStderr,
-      );
+  }) => _generator.generateKernel(
+    recordedUsagesFile: recordedUsagesFile,
+    extraOptions: extraOptions,
+    progressUpdatesOnStderr: progressUpdatesOnStderr,
+  );
 }
 
 /// Second step of generating a snapshot is generating the snapshot itself.
@@ -94,11 +93,10 @@ extension type SnapshotGenerator._(_Generator _generator) {
   Future<void> generate({
     String? nativeAssets,
     List<String> extraOptions = const [],
-  }) =>
-      _generator.generateSnapshotWithAssets(
-        nativeAssets: nativeAssets,
-        extraOptions: extraOptions,
-      );
+  }) => _generator.generateSnapshotWithAssets(
+    nativeAssets: nativeAssets,
+    extraOptions: extraOptions,
+  );
 }
 
 /// Generates a self-contained executable or AOT snapshot.
@@ -182,10 +180,10 @@ class _Generator {
     required this._verbosity,
     required Directory tempDir,
     this._progressUpdatesOnStderr = false,
-  })  : _tempDir = tempDir,
-        _programKernelFile = path.join(tempDir.path, 'program.dill'),
-        _sourcePath = _normalize(sourceFile)!,
-        _packages = _normalize(packages) {
+  }) : _tempDir = tempDir,
+       _programKernelFile = path.join(tempDir.path, 'program.dill'),
+       _sourcePath = _normalize(sourceFile)!,
+       _packages = _normalize(packages) {
     if (_kind == Kind.exe) {
       if (_targetOS == null) {
         throw ArgumentError('targetOS must be specified for executables.');
@@ -300,7 +298,11 @@ class _Generator {
         _log('Generating executable.');
       }
       await writeAppendedExecutable(
-          _targetDartAotRuntime, snapshotFile, outputPath, _targetOS!);
+        _targetDartAotRuntime,
+        snapshotFile,
+        outputPath,
+        _targetOS!,
+      );
 
       if (Platform.isLinux || Platform.isMacOS) {
         if (_verbose) {
@@ -315,15 +317,16 @@ class _Generator {
     }
   }
 
-
   Future<String> _concatenateAssetsToKernel(String? nativeAssets) async {
     if (nativeAssets == null) {
       return _programKernelFile;
     } else {
       // TODO(dacoharkes): This method will need to be split in two parts. Then
       // the link hooks can be run in between those two parts.
-      final nativeAssetsDillFile =
-          path.join(_tempDir.path, 'native_assets.dill');
+      final nativeAssetsDillFile = path.join(
+        _tempDir.path,
+        'native_assets.dill',
+      );
       final kernelResult = await generateKernelHelper(
         kernelFile: nativeAssetsDillFile,
         packages: _packages,
@@ -344,8 +347,9 @@ class _Generator {
       }
       final kernelFile = path.join(_tempDir.path, 'kernel.dill');
       final programKernelBytes = await File(_programKernelFile).readAsBytes();
-      final nativeAssetKernelBytes =
-          await File(nativeAssetsDillFile).readAsBytes();
+      final nativeAssetKernelBytes = await File(
+        nativeAssetsDillFile,
+      ).readAsBytes();
       await File(kernelFile).writeAsBytes(
         [
           ...programKernelBytes,

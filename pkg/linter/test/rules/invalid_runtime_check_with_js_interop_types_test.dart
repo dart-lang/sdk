@@ -125,7 +125,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   test_catchClause_js_type() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
         import 'dart:js_interop';
 
         void test() {
@@ -137,7 +137,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   test_catchClause_js_type_nested() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
         import 'dart:js_interop';
 
         void test<T extends JSNumber>() {
@@ -152,7 +152,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   test_catchClause_static_interop_type() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
         import 'dart:js_interop';
 
         @JS()
@@ -168,7 +168,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   test_catchClause_static_interop_type_nested() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
         import 'dart:js_interop';
 
         @JS()
@@ -187,7 +187,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   test_catchClause_user_interop_type() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
         import 'dart:js_interop';
 
         extension type JSError(JSObject _) implements JSObject {}
@@ -201,7 +201,7 @@ export 'dart:_js_annotations' show JS, staticInterop;
   }
 
   test_catchClause_user_interop_type_nested() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
         import 'dart:js_interop';
 
         extension type JSError(JSObject _) implements JSObject {}

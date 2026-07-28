@@ -6,6 +6,7 @@
 // classes with differently typed backing arrays.
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 const bool isJS = identical(1, 1.0);

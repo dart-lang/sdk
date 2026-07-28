@@ -6,6 +6,7 @@
 library ImportCorePrefixTest.dart;
 
 import "package:expect/expect.dart";
+
 import "dart:core" as mycore;
 
 class Object {}

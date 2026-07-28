@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+
 import 'dart:async';
 import 'dart:convert';
+
 import 'unicode_tests.dart';
+
 import "package:expect/async_helper.dart";
 
 void runTest(List<int> bytes, expected) {

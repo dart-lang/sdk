@@ -44,9 +44,9 @@ sealed class FieldEncoding {
   /// field value.
   ///
   /// This is only used for instance fields.
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   });
 
@@ -207,16 +207,18 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
       _field!.initializer = initializer..parent = _field;
     }
     _field!.scope = scopeProviderInfo?.scope;
+    _field!.thisVariable = scopeProviderInfo?.thisVariable;
+    _field!.thisVariable?.parent = _field;
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
-    return <Initializer>[
-      extern.createFieldInitializer(
+    return [
+      intern.createFieldInitializer(
         _field!,
         value,
         fileOffset: fileOffset,
@@ -529,24 +531,24 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
-    List<Initializer> initializers = <Initializer>[];
+    List<InternalInitializer> initializers = [];
     if (_lateIsSetField != null) {
       initializers.add(
-        extern.createFieldInitializer(
+        intern.createFieldInitializer(
           _lateIsSetField!,
-          extern.createBoolLiteral(true, fileOffset: fileOffset),
+          intern.createBoolLiteral(true, fileOffset: fileOffset),
           fileOffset: fileOffset,
           isSynthetic: isSynthetic,
         ),
       );
     }
     initializers.add(
-      extern.createFieldInitializer(
+      intern.createFieldInitializer(
         _field!,
         value,
         fileOffset: fileOffset,
@@ -580,8 +582,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         _type!.withDeclaredNullability(Nullability.nullable),
       );
       return extern.createLet(
-        variable,
-        extern.createVariableGet(variable, promotedType: _type),
+        variable: variable,
+        body: extern.createVariableGet(variable, promotedType: _type),
       );
     } else {
       return _createFieldGet(_field!);
@@ -664,7 +666,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   );
 
   @override
@@ -928,7 +930,7 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   ) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBody(
@@ -1029,7 +1031,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   ) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBodyFinal(
@@ -1091,7 +1093,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   Statement _createSetterBody(
     CoreTypes coreTypes,
     String name,
-    Variable parameter,
+    PositionalParameter parameter,
   ) => throw new UnsupportedError(
     '$runtimeType._createSetterBody is not supported.',
   );
@@ -1233,9 +1235,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');
@@ -1554,12 +1556,12 @@ class RepresentationFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
-    return <Initializer>[
+    return [
       new ExtensionTypeRepresentationFieldInitializer(
         _getter,
         value,
@@ -1672,7 +1674,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   Initializer buildImplicitInitializer() {
-    return new ExtensionTypeRepresentationFieldInitializer(
+    return new ExternalExtensionTypeRepresentationFieldInitializer(
       _getter,
       extern.createNullLiteral(fileOffset: _fragment.nameOffset),
       fileOffset: _fragment.nameOffset,
@@ -1800,9 +1802,9 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');

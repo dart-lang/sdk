@@ -25,9 +25,7 @@ Future<RunProcessResult> runProcess({
   bool throwOnUnexpectedExitCode = false,
 }) async {
   if (Platform.isWindows && !includeParentEnvironment) {
-    const winEnvKeys = [
-      'SYSTEMROOT',
-    ];
+    const winEnvKeys = ['SYSTEMROOT'];
     environment = {
       for (final winEnvKey in winEnvKeys)
         winEnvKey: Platform.environment[winEnvKey]!,
@@ -60,26 +58,30 @@ Future<RunProcessResult> runProcess({
   final stdoutSub = process.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
-      .listen(captureOutput
-          ? (s) {
-              logger?.fine(s);
-              stdoutBuffer.writeln(s);
-            }
-          : logger?.fine);
+      .listen(
+        captureOutput
+            ? (s) {
+                logger?.fine(s);
+                stdoutBuffer.writeln(s);
+              }
+            : logger?.fine,
+      );
   final stderrSub = process.stderr
       .transform(utf8.decoder)
       .transform(const LineSplitter())
-      .listen(captureOutput
-          ? (s) {
-              logger?.config(s);
-              stderrBuffer.writeln(s);
-            }
-          : logger?.config);
+      .listen(
+        captureOutput
+            ? (s) {
+                logger?.config(s);
+                stderrBuffer.writeln(s);
+              }
+            : logger?.config,
+      );
 
   final (exitCode, _, _) = await (
     process.exitCode,
     stdoutSub.asFuture<void>(),
-    stderrSub.asFuture<void>()
+    stderrSub.asFuture<void>(),
   ).wait;
   final result = RunProcessResult(
     pid: process.pid,
@@ -121,7 +123,8 @@ class RunProcessResult {
   });
 
   @override
-  String toString() => '''command: $command
+  String toString() =>
+      '''command: $command
 exitCode: $exitCode
 stdout: $stdout
 stderr: $stderr''';

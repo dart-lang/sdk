@@ -17,8 +17,7 @@ Future<void> main() async {
 
 const sizes = [1, 32, 1024, 1024 * 32];
 
-const header =
-    '''// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+const header = '''// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 

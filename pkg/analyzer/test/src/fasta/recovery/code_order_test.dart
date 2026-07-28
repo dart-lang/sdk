@@ -796,6 +796,15 @@ CompilationUnit
               token: A
             parameters: FormalParameterList
               leftParenthesis: (
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: x
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               leftDelimiter: [
               parameter: RegularFormalParameter
                 name: x
@@ -825,7 +834,16 @@ CompilationUnit
                   token: A
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
+                    ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  arguments(v1)
                     InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -1058,12 +1076,12 @@ CompilationUnit
                   leftBracket: {
                   rightBracket: }
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: catch
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       SimpleIdentifier
                         token: e
                     rightParenthesis: )

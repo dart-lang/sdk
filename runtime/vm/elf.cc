@@ -7,8 +7,8 @@
 #include "platform/elf.h"
 #include "platform/unwinding_records.h"
 #include "vm/cpu.h"
+#include "vm/debug_info_stream.h"
 #include "vm/dwarf.h"
-#include "vm/dwarf_so_writer.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
 #include "vm/stack_frame.h"
@@ -177,7 +177,9 @@ class ElfSection : public ZoneObject {
   const Type* As##Type() const {                                               \
     return const_cast<Type*>(const_cast<ElfSection*>(this)->As##Type());       \
   }                                                                            \
-  virtual bool Is##Type() const { return false; }
+  virtual bool Is##Type() const {                                              \
+    return false;                                                              \
+  }
 
   FOR_EACH_SECTION_TYPE(DEFINE_BASE_TYPE_CHECKS)
 #undef DEFINE_BASE_TYPE_CHECKS
@@ -268,6 +270,7 @@ class Segment : public ZoneObject {
       case elf::ProgramHeaderType::PT_DYNAMIC:
         return compiler::target::kWordSize;
       case elf::ProgramHeaderType::PT_NOTE:
+      case elf::ProgramHeaderType::PT_GNU_PROPERTY:
         return kNoteAlignment;
       case elf::ProgramHeaderType::PT_GNU_STACK:
         return 1;
@@ -1157,37 +1160,25 @@ void ElfWriter::CreateBSS() {
   ASSERT(text_section->IsTextSection());
 
   auto* const bss_container = new (zone_) BssSection(type_);
-  for (const auto& portion : text_section->AsBitsContainer()->portions()) {
-    size_t size;
-    const char* symbol_name;
-    intptr_t label;
-    // First determine whether this is the VM's text portion or the isolate's.
-    if (strcmp(portion.symbol_name, kSnapshotTextAsmSymbol) == 0) {
-      size = BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
-      symbol_name = kSnapshotBssAsmSymbol;
-      label = kIsolateBssLabel;
-    } else {
-      // Not VM or isolate text.
-      UNREACHABLE();
-    }
-
-    uint8_t* bytes = nullptr;
-    if (type_ == Type::Snapshot) {
-      // Ideally the BSS segment would take no space in the object, but
-      // Android's "strip" utility truncates the memory-size of our segments to
-      // their file-size.
-      //
-      // Therefore we must insert zero-filled data for the BSS.
-      bytes = zone_->Alloc<uint8_t>(size);
-      memset(bytes, 0, size);
-    }
-    // For the BSS section, we add the section symbols as local symbols in the
-    // static symbol table, as these addresses are only used for relocation.
-    // (This matches the behavior in the assembly output.)
-    auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray();
-    symbols->Add({symbol_name, SymbolData::Type::Section, 0, size, label});
-    bss_container->AddPortion(bytes, size, /*relocations=*/nullptr, symbols);
+  const size_t size =
+      BSS::kIsolateGroupEntryCount * compiler::target::kWordSize;
+  uint8_t* bytes = nullptr;
+  if (type_ == Type::Snapshot) {
+    // Ideally the BSS segment would take no space in the object, but
+    // Android's "strip" utility truncates the memory-size of our segments to
+    // their file-size.
+    //
+    // Therefore we must insert zero-filled data for the BSS.
+    bytes = zone_->Alloc<uint8_t>(size);
+    memset(bytes, 0, size);
   }
+  // For the BSS section, we add the section symbols as local symbols in the
+  // static symbol table, as these addresses are only used for relocation.
+  // (This matches the behavior in the assembly output.)
+  auto* symbols = new (zone_) SharedObjectWriter::SymbolDataArray();
+  symbols->Add({kSnapshotBssAsmSymbol, SymbolData::Type::Section, 0, size,
+                kIsolateBssLabel});
+  bss_container->AddPortion(bytes, size, /*relocations=*/nullptr, symbols);
 
   section_table_->Add(bss_container, kBssName);
 }
@@ -1279,8 +1270,8 @@ void ElfWriter::FinalizeEhFrame() {
     fdes.Add({portion.label, portion.size});
   }
 
-  ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-  DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+  ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+  DebugInfoStream dwarf_stream(zone_, &stream);
   Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
 
   auto* const eh_frame = new (zone_)
@@ -1319,8 +1310,7 @@ void ElfWriter::FinalizeDwarfSections() {
   // Currently we only output DWARF information involving code.
   ASSERT(section_table_->HasSectionNamed(kTextName));
 
-  auto add_debug = [&](const char* name,
-                       const DwarfSharedObjectStream& stream) {
+  auto add_debug = [&](const char* name, const DebugInfoStream& stream) {
     auto const container =
         new (zone_) BitsContainer(elf::SectionHeaderType::SHT_PROGBITS);
     container->AddPortion(stream.buffer(), stream.bytes_written(),
@@ -1328,22 +1318,22 @@ void ElfWriter::FinalizeDwarfSections() {
     section_table_->Add(container, name);
   };
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteAbbreviations(&dwarf_stream);
     add_debug(".debug_abbrev", dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteDebugInfo(&dwarf_stream);
     add_debug(".debug_info", dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     add_debug(".debug_line", dwarf_stream);
   }
@@ -1549,10 +1539,16 @@ ProgramTable* SectionTable::CreateProgramTable(ElfSymbolTable* symtab) {
       new (zone_) Segment(zone_, dynamic, elf::ProgramHeaderType::PT_DYNAMIC));
 
   // Add a PT_GNU_STACK segment to prevent the loading of our snapshot from
-  // switch the stack to be executable.
+  // switching the stack to be executable.
   auto* const gnu_stack = new (zone_) GnuStackSection();
   program_table->Add(new (zone_) Segment(zone_, gnu_stack,
                                          elf::ProgramHeaderType::PT_GNU_STACK));
+
+  auto* const gnu_property = Find(ElfWriter::kPropertyNoteName);
+  if (gnu_property != nullptr) {
+    program_table->Add(new (zone_) Segment(
+        zone_, gnu_property, elf::ProgramHeaderType::PT_GNU_PROPERTY));
+  }
 
   return program_table;
 }
@@ -1560,6 +1556,7 @@ ProgramTable* SectionTable::CreateProgramTable(ElfSymbolTable* symtab) {
 void ElfWriter::Finalize() {
   // Generate the build ID now that we have all user-provided sections.
   GenerateBuildId();
+  GenerateProperty();
 
   // We add a BSS section in all cases, even to the separate debugging
   // information, to ensure that relocated addresses are consistent between ELF
@@ -1719,6 +1716,8 @@ static constexpr intptr_t kBuildIdSegmentNamesLength =
 // Includes the note name, but not the description.
 static constexpr intptr_t kBuildIdHeaderSize =
     sizeof(elf::Note) + sizeof(elf::ELF_NOTE_GNU);
+static constexpr intptr_t kPropertyHeaderSize =
+    sizeof(elf::Note) + sizeof(elf::ELF_NOTE_GNU);
 
 void ElfWriter::GenerateBuildId() {
   // Not idempotent.
@@ -1769,6 +1768,44 @@ void ElfWriter::GenerateBuildId() {
                         /*relocations=*/nullptr, /*symbols=*/nullptr,
                         kSnapshotBuildIdAsmSymbol, kBuildIdLabel);
   section_table_->Add(container, kBuildIdNoteName);
+}
+
+void ElfWriter::GenerateProperty() {
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  const size_t description_length = 0x10;
+  ZoneWriteStream stream(zone(), kPropertyHeaderSize + description_length);
+  stream.WriteFixed<decltype(elf::Note::name_size)>(sizeof(elf::ELF_NOTE_GNU));
+  stream.WriteFixed<decltype(elf::Note::description_size)>(description_length);
+  stream.WriteFixed<decltype(elf::Note::type)>(
+      elf::NoteType::NT_GNU_PROPERTY_TYPE_0);
+  ASSERT_EQUAL(stream.Position(), sizeof(elf::Note));
+  stream.WriteBytes(elf::ELF_NOTE_GNU, sizeof(elf::ELF_NOTE_GNU));
+  ASSERT_EQUAL(stream.bytes_written(), kPropertyHeaderSize);
+#if defined(TARGET_ARCH_X64)
+  stream.WriteFixed<int32_t>(GNU_PROPERTY_X86_FEATURE_1_AND);
+  stream.WriteFixed<int32_t>(4);  // size?
+  if (FLAG_support_cfi) {
+    stream.WriteFixed<int32_t>(GNU_PROPERTY_X86_FEATURE_1_IBT);
+  } else {
+    stream.WriteFixed<int32_t>(0);
+  }
+  stream.WriteFixed<int32_t>(0);  // padding
+#elif defined(TARGET_ARCH_ARM64)
+  stream.WriteFixed<int32_t>(GNU_PROPERTY_AARCH64_FEATURE_1_AND);
+  stream.WriteFixed<int32_t>(4);  // size?
+  if (FLAG_support_cfi) {
+    stream.WriteFixed<int32_t>(GNU_PROPERTY_AARCH64_FEATURE_1_BTI);
+  } else {
+    stream.WriteFixed<int32_t>(0);
+  }
+  stream.WriteFixed<int32_t>(0);  // padding
+#endif
+  auto* const container = new (zone_) NoteSection();
+  container->AddPortion(stream.buffer(), stream.bytes_written());
+  section_table_->Add(container, kPropertyNoteName);
+#else
+  USE(kPropertyHeaderSize);
+#endif
 }
 
 void ElfWriter::ComputeOffsets() {

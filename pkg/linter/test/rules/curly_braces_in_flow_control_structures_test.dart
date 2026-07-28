@@ -27,7 +27,7 @@ void f() {
   }
 
   test_doWhile_singeStatement_sameLineAsDo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   do [!print('');!]
   while (true);
@@ -36,7 +36,7 @@ void f() {
   }
 
   test_doWhile_singleStatement_lineAfterDo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   do
     [!print('');!]
@@ -46,7 +46,7 @@ void f() {
   }
 
   test_doWhile_singleStatement_sameLineAsDoAndWhile() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   do [!print('');!] while (true);
 }
@@ -62,7 +62,7 @@ void f(List<int> l) {
   }
 
   test_forEachLoop_singleStatement_lineAfter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> l) {
   for (var i in l)
     [!return;!]
@@ -71,7 +71,7 @@ void f(List<int> l) {
   }
 
   test_forEachLoop_singleStatement_sameLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> l) {
   for (var i in l) [!return;!]
 }
@@ -87,7 +87,7 @@ void f() {
   }
 
   test_forLoop_singleStatement_lineAfter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (;;)
     [!return;!]
@@ -96,7 +96,7 @@ void f() {
   }
 
   test_forLoop_singleStatement_sameLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   for (;;) [!return;!]
 }
@@ -121,7 +121,7 @@ void f() {
   }
 
   test_ifStatement_singleStatement_lineAfter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 == 2)
     [!return;!]
@@ -130,7 +130,7 @@ void f() {
   }
 
   test_ifStatement_singleStatement_multiLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 == 2) [!print(
     'First argument'
@@ -148,7 +148,7 @@ void f() {
   }
 
   test_ifStatement_singleStatement_sameLine_multiLineCondition() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 ==
       2) [!return;!]
@@ -166,7 +166,7 @@ void f() {
   }
 
   test_ifStatementElse_singleStatement_lineAfter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 == 2) {}
   else
@@ -176,7 +176,7 @@ void f() {
   }
 
   test_ifStatementElse_singleStatement_sameLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 == 2) {}
   else [!return;!]
@@ -194,7 +194,7 @@ void f() {
   }
 
   test_ifStatementElseIf_singleStatement_lineAfter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 == 2) {}
   else if (1 == 2)
@@ -204,7 +204,7 @@ void f() {
   }
 
   test_ifStatementElseIf_singleStatement_sameLine_lineAfterIfCondition() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   if (1 == 2) {
   } else if (1 == 3) [!return;!]
@@ -221,7 +221,7 @@ void f() {
   }
 
   test_whileLoop_singleStatement_nextLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   while (true)
     [!return;!]
@@ -230,7 +230,7 @@ void f() {
   }
 
   test_whileLoop_singleStatement_sameLine() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   while (true) [!return;!]
 }

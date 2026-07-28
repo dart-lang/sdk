@@ -34,11 +34,7 @@ class AvoidCatchingErrors extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final MultiAnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final MultiAnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     var exceptionType = node.exceptionType?.type;

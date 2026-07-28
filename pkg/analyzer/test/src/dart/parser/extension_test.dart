@@ -56,7 +56,7 @@ ExtensionDeclaration
 ''');
   }
 
-  test_augment_hasOnClause() {
+  test_augment_onClause() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment extension E on int {}
 //                  ^^
@@ -104,7 +104,7 @@ ExtensionDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -166,6 +166,14 @@ ExtensionDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: _
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -245,7 +253,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -277,7 +285,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -306,7 +314,7 @@ ExtensionDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -336,7 +344,7 @@ ExtensionDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -454,6 +462,14 @@ ExtensionDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -461,7 +477,7 @@ ExtensionDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -740,6 +756,14 @@ ExtensionDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -773,6 +797,14 @@ ExtensionDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

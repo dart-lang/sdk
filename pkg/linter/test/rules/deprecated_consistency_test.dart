@@ -18,7 +18,7 @@ class DeprecatedConsistencyTest extends LintRuleTest {
   String get lintRule => LintNames.deprecated_consistency;
 
   test_classDeprecated_factoryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class A {
   @deprecated
@@ -43,7 +43,7 @@ class A {
   }
 
   test_classDeprecated_generativeConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class A {
   [!A!]();
@@ -62,7 +62,7 @@ class A {
   }
 
   test_classDeprecated_newSyntax() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class A {
   [!new!]();
@@ -71,7 +71,7 @@ class A {
   }
 
   test_classDeprecated_primaryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class [!A!]();
 ''');
@@ -88,14 +88,14 @@ class A() {
   }
 
   test_classDeprecated_primaryConstructor_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 class [!A.named!]();
 ''');
   }
 
   test_constructorFieldFormalDeprecated_field() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   String? [!a!];
   A({@deprecated this.a});
@@ -127,7 +127,7 @@ class B extends A {
   }
 
   test_extensionTypeDeprecated_primaryConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 @deprecated
 extension type [!E!](int i) {}
 ''');
@@ -144,7 +144,7 @@ extension type E(int i) {
   }
 
   test_fieldDeprecated_fieldFormalParameter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   @deprecated
   String? a;
@@ -189,7 +189,7 @@ class A({@deprecated this.a = 1}) {
   }
 
   test_primaryConstructor_thisParameter_fieldDeprecated() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A([!this.a!]) {
   @deprecated
   int a;

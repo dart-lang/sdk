@@ -111,7 +111,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
   }
 
   void addYield(YieldStatement node) {
-    var expressionType = node.expression.typeOrThrow;
+    var expressionType = node.expression2.typeOrThrow;
 
     if (node.star == null) {
       _returnTypes.add(expressionType);

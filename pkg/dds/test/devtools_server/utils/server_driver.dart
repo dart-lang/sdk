@@ -234,13 +234,16 @@ class DevToolsServerTestController {
   }
 
   Future<Process> launchChrome(String url) async {
-    final tempDir = Directory.systemTemp.createTempSync('devtools_chrome_profile');
+    final tempDir =
+        Directory.systemTemp.createTempSync('devtools_chrome_profile');
     _tempDirs.add(tempDir);
 
-    final chromeProcess = await bl.Chrome.start([url], args: [
+    final chromeProcess = await bl.Chrome.start([
+      url
+    ], args: [
       '--user-data-dir=${tempDir.path}', // Ensures process isolation
-      '--no-first-run',                  // Prevents welcome dialogs
-      '--no-default-browser-check',      // Prevents default browser prompts
+      '--no-first-run', // Prevents welcome dialogs
+      '--no-default-browser-check', // Prevents default browser prompts
       if (useChromeHeadless && headlessModeIsSupported) ...[
         '--headless',
         '--disable-gpu',

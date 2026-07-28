@@ -29,8 +29,22 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
     var constructor = coveringNode
         ?.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructor == null) return;
-    var classBody = constructor.thisOrAncestorOfType<BlockClassBody>();
-    if (classBody == null) return;
+    var body =
+        constructor.thisOrAncestorOfType<BlockClassBody>() ??
+        constructor.thisOrAncestorOfType<BlockEnumBody>();
+    if (body == null) return;
+
+    int insertionOffset;
+    if (body is BlockClassBody) {
+      insertionOffset = body.leftBracket.end;
+    } else if (body is BlockEnumBody) {
+      insertionOffset =
+          body.semicolon?.end ??
+          body.constants.lastOrNull?.end ??
+          body.leftBracket.end;
+    } else {
+      return;
+    }
 
     await builder.addDartFileEdit(file, (builder) {
       var deletionRange = range.endEnd(
@@ -40,7 +54,7 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
 
       builder.addDeletion(deletionRange);
       builder.addSimpleInsertion(
-        classBody.leftBracket.end,
+        insertionOffset,
         utils.getRangeText(deletionRange),
       );
     });

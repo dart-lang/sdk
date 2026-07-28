@@ -81,7 +81,12 @@ Partitioning partitionAppplication(
     loadingMap,
     assertsEnabled,
   );
-  final algorithm = _Algorithm(component, depsCollector, constraints);
+  final algorithm = _Algorithm(
+    component,
+    loadingMap.rootImport,
+    depsCollector,
+    constraints,
+  );
   return algorithm.run(roots, selectorRoots);
 }
 
@@ -91,6 +96,12 @@ class Partitioning {
   final Map<Reference, Part> referenceToPart;
   final Map<Constant, Part> constantToPart;
   final Map<LibraryDependency, Set<Part>> deferredImportToParts;
+  // Maps each deferred import to a dedicated [Part] which is only used for that
+  // import.
+  //
+  // NOTE: Only non-leaves in the dominator tree are guaranteed to have one.
+  final Map<LibraryDependency, Part> deferredImportPart;
+  final Dominators dominators;
 
   Partitioning(
     this.root,
@@ -98,6 +109,8 @@ class Partitioning {
     this.referenceToPart,
     this.constantToPart,
     this.deferredImportToParts,
+    this.deferredImportPart,
+    this.dominators,
   );
 
   String toText(Uri baseUri, {bool includeRoot = false}) {
@@ -191,6 +204,7 @@ class Partitioning {
 
 class _Algorithm {
   final Component component;
+  final LibraryDependency rootImport;
   final DependenciesCollector depsCollector;
   final ConstraintData? userConstraints;
 
@@ -211,18 +225,17 @@ class _Algorithm {
   final Map<Reference, ImportSet> referenceToImportSet = {};
   final Map<Constant, ImportSet> constantToImportSet = {};
 
-  _Algorithm(this.component, this.depsCollector, this.userConstraints);
+  _Algorithm(
+    this.component,
+    this.rootImport,
+    this.depsCollector,
+    this.userConstraints,
+  );
 
   Partitioning run(Set<Reference> roots, Set<int> selectorRoots) {
     collectDependencies(roots);
 
     // Sentinel used to represent the artificial import of all roots.
-    final rootLibrary = Library(Uri.parse(r'root'), fileUri: Uri());
-    final rootImport = LibraryDependency.import(
-      Library(Uri(), fileUri: Uri()),
-      name: r'$root',
-    )..parent = rootLibrary;
-
     deferSelectors(rootImport, roots, selectorRoots);
 
     final dominators = deferSelectors(rootImport, roots, selectorRoots);
@@ -592,6 +605,7 @@ class _Algorithm {
     final destinationUsages = prefixDominatorUsages.usages[destination.prefix]!;
     if (destinationUsages.selectorIds.contains(selectorId) ||
         destinationUsages.selectorNames.contains(selectorName)) {
+      assert(destination.prefix != rootImport);
       deferredUses.add(destination.prefix);
       return;
     }
@@ -676,6 +690,16 @@ class _Algorithm {
       }
     }
 
+    final deferredImportPart = <LibraryDependency, Part>{};
+    dominators.root.visitDFS((node) {
+      if (node.children.isEmpty) return;
+
+      final prefix = node.prefix;
+      final importSet = importSets.initialSets[prefix]!;
+      final part = importSet.part ??= Part(false, importSet.toSet());
+      deferredImportPart[prefix] = part;
+    });
+
     // Now we can prune the load lists: If a parent is guaranteed to have loaded
     // a part, then there's no need to include that part in a child's load list.
     final alreadyLoaded = <LibraryDependency, Set<Part>>{};
@@ -696,6 +720,8 @@ class _Algorithm {
       referenceToPart,
       constantToPart,
       deferredInputLoadingList,
+      deferredImportPart,
+      dominators,
     );
   }
 

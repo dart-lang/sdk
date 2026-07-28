@@ -89,16 +89,16 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: fromIterable
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: dart:async::@class::Stream::@constructor::fromIterable
       substitution: {T: int}
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: iter
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::elements
           substitution: {T: int}
         element: iter@26
@@ -131,7 +131,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::a
       substitution: {T: Never}
     staticType: null
@@ -220,7 +220,7 @@ void main() {
     var node = result.findNode.methodInvocation('method();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -228,7 +228,7 @@ MethodInvocation
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -266,7 +266,7 @@ void main() {
     var node = result.findNode.methodInvocation('method();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
     constructorName: SimpleIdentifier
@@ -275,7 +275,7 @@ MethodInvocation
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -313,7 +313,7 @@ void main() {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -321,7 +321,7 @@ PropertyAccess
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -355,7 +355,7 @@ void main() {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
     constructorName: SimpleIdentifier
@@ -364,7 +364,7 @@ PropertyAccess
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -403,7 +403,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
@@ -437,7 +437,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
@@ -505,7 +505,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
@@ -540,7 +540,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -575,7 +575,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -610,7 +610,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -677,7 +677,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -709,16 +709,16 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: id
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::id
       substitution: {T: dynamic}
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::id::@formalParameter::value
           substitution: {T: dynamic}
         staticType: int
@@ -769,7 +769,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -795,16 +795,16 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: filled
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: dart:core::@class::List::@constructor::filled
       substitution: {E: String}
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:core::@class::List::@constructor::filled::@formalParameter::length
           substitution: {E: String}
         staticType: int
@@ -841,7 +841,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -873,7 +873,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::a
       substitution: {T: T}
     staticType: null
@@ -907,7 +907,7 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::Foo::@constructor::a
       substitution: {T: Never}
     staticType: null
@@ -981,7 +981,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandConstructorInvocation
+  function2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1015,7 +1015,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandConstructorInvocation
+  function2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1028,7 +1028,7 @@ FunctionExpressionInvocation
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
@@ -1056,7 +1056,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandConstructorInvocation
+  function2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1090,7 +1090,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandConstructorInvocation
+  function2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1111,10 +1111,10 @@ FunctionExpressionInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
           substitution: {T: int}
         staticType: int
@@ -1142,7 +1142,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandConstructorInvocation
+  function2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: named
@@ -1178,7 +1178,7 @@ void main() {
     var node = result.findNode.singleFunctionExpressionInvocation;
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
-  function: DotShorthandConstructorInvocation
+  function2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1186,7 +1186,7 @@ FunctionExpressionInvocation
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         DotShorthandConstructorInvocation
           period: .
           constructorName: SimpleIdentifier
@@ -1246,13 +1246,13 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       DotShorthandInvocation
         period: .
         memberName: SimpleIdentifier
@@ -1263,7 +1263,7 @@ DotShorthandConstructorInvocation
           leftParenthesis: (
           rightParenthesis: )
         isDotShorthand: true
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticInvokeType: C<dynamic> Function()
@@ -1294,13 +1294,13 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: ConstructorMember
+    element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       DotShorthandPropertyAccess
         period: .
         propertyName: SimpleIdentifier
@@ -1308,7 +1308,7 @@ DotShorthandConstructorInvocation
           element: <testLibrary>::@class::C::@getter::member
           staticType: C<dynamic>
         isDotShorthand: true
-        correspondingParameter: FieldFormalParameterMember
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
@@ -1341,7 +1341,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x

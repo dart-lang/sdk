@@ -105,9 +105,8 @@ bool containsFreeTypeParameters(
   DartType type, {
   Set<StructuralParameter>? boundVariables,
 }) {
-  return new _FreeTypeVariableVisitor(
-    boundVariables: boundVariables,
-  ).visit(type);
+  return new _FreeTypeVariableVisitor(boundVariables: boundVariables)
+      .visit(type);
 }
 
 /// Generates a fresh copy of the given type parameters, with their bounds

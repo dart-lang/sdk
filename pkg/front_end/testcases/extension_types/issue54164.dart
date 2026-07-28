@@ -3,5 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'issue54164_lib.dart' as a;
+
 class B<A extends a.A> {}
+
 main() => B();

@@ -62,7 +62,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 ''');
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore: unused_import
 [!import 'dart:html';!]
 ''');
@@ -99,7 +99,7 @@ flutter:
     // Even in a package with a `web/` directory, do not use web libraries.
     // Note(srawlins): This seems weird to me, but this is the expectation
     // from the previous version of this test.
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 // ignore: unused_import
 [!import 'dart:html';!]
 ''');

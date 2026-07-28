@@ -56,9 +56,8 @@ Future<void> main(List<String> args) async {
   libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/parser"));
   libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/scanner"));
   for (Uri uri in libUris) {
-    List<FileSystemEntity> entities = new Directory.fromUri(
-      uri,
-    ).listSync(recursive: true);
+    List<FileSystemEntity> entities = new Directory.fromUri(uri)
+        .listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
       if (entity is File && entity.path.endsWith(".dart")) {
         options.inputs.add(entity.uri);
@@ -215,7 +214,7 @@ class InvocationVisitor extends RecursiveVisitor {
     Arguments arguments,
     InvocationExpression invocation,
   ) {
-    List<Variable> positionalParameters;
+    List<PositionalParameter> positionalParameters;
     if (node is Procedure) {
       positionalParameters = node.function.positionalParameters;
     } else if (node is Constructor) {
@@ -259,7 +258,7 @@ class InvocationVisitor extends RecursiveVisitor {
           arguments.positional[i],
           positionalParameters[i],
           node,
-          "/* ${positionalParameters[i].name} = */",
+          "/* ${positionalParameters[i].cosmeticName} = */",
         );
       }
     }
@@ -288,7 +287,7 @@ Map<Uri, Token> cache = {};
 
 void check(
   Expression argumentExpression,
-  Variable parameter,
+  PositionalParameter parameter,
   NamedNode targetNode,
   String expectedComment,
 ) {
@@ -446,6 +445,7 @@ class TestSourceLoader extends SourceLoader {
     SourceCompilationUnit sourceCompilationUnit, {
     bool suppressLexicalErrors = false,
     bool allowLazyStrings = true,
+    bool onlyScanDirectives = false,
   }) async {
     Token result = await super.tokenize(
       sourceCompilationUnit,

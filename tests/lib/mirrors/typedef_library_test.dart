@@ -5,6 +5,7 @@
 library foo;
 
 import 'dart:mirrors';
+
 import 'typedef_library.dart';
 
 import 'package:expect/expect.dart';

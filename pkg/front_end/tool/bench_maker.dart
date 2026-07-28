@@ -595,8 +595,7 @@ class BenchMaker
   }
 
   static void writeTypeChecks(String filename, List<Object> typeChecks) {
-    new File(
-      filename,
-    ).writeAsString(new BenchMaker().serializeTypeChecks(typeChecks));
+    new File(filename)
+        .writeAsString(new BenchMaker().serializeTypeChecks(typeChecks));
   }
 }

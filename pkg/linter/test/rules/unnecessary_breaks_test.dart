@@ -19,7 +19,7 @@ class UnnecessaryBreaksTest extends LintRuleTest {
   String get lintRule => LintNames.unnecessary_breaks;
 
   test_default() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch (1) {
     case 1:
@@ -100,7 +100,7 @@ f() {
   }
 
   test_switchPatternCase() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   switch (1) {
     case 1:

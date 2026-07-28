@@ -15,14 +15,17 @@ extension Extension1<T extends num> on Class<T> {
     latestType = '$T';
     return field1;
   }
+
   void set field(T value) {
     latestType = '$T';
     field1 = value;
   }
+
   T method() {
     latestType = '$T';
     return field1;
   }
+
   T genericMethod<S extends num>(S t) {
     latestType = '$T:$S';
     return (field1 + t) as T;
@@ -34,6 +37,7 @@ extension Extension2<T extends num> on Class<T> {
   void set field(T value) {
     field2 = value;
   }
+
   T method() => field2;
   T genericMethod<S extends num>(S t) => (field2 + t) as T;
 }

@@ -93,6 +93,7 @@ class MicroAssembler : public AssemblerBase {
   void lui(Register rd, intptr_t imm);
   void lui_fixed(Register rd, intptr_t imm);
   void auipc(Register rd, intptr_t imm);
+  void lpad(intptr_t label = 0) { auipc(ZR, label); }
 
   void jal(Register rd, Label* label, JumpDistance d = kFarJump);
   void jal(Label* label, JumpDistance d = kFarJump) { jal(RA, label, d); }

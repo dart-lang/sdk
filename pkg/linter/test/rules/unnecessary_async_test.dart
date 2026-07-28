@@ -41,7 +41,7 @@ void useFunction(void Function() x) {}
   }
 
   test_closure_imposedReturnTypeVoid_noAwait() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   useFunction(() [!async!] {});
 }
@@ -61,7 +61,7 @@ void f() {
   }
 
   test_closure_noImposedReturnType_noAwait() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   var v = () [!async!] {};
 }
@@ -79,7 +79,7 @@ void foo() {
   }
 
   test_localFunction_void_noAwait() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void foo() {
   void f() [!async!] {}
 }
@@ -87,7 +87,7 @@ void foo() {
   }
 
   test_localFunction_void_noAwait_outerHasAwait() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<void> foo() async {
   void f() [!async!] {}
   await 0;
@@ -96,7 +96,7 @@ Future<void> foo() async {
   }
 
   test_method_future_returnFuture() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   Future<int> f() [!async!] {
     return Future.value(0);
@@ -116,7 +116,7 @@ class A {
   }
 
   test_method_futureOr_returnFuture() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 class A {
@@ -128,7 +128,7 @@ class A {
   }
 
   test_method_futureOr_returnValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 class A {
@@ -150,7 +150,7 @@ class A {
   }
 
   test_method_void_noAwait() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class A {
   void f() [!async!] {}
 }
@@ -166,7 +166,7 @@ Future<int?> f(int? x) async {
   }
 
   test_topLevelFunction_blockBody_dynamic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 dynamic f() [!async!] {
   return 0;
 }
@@ -174,7 +174,7 @@ dynamic f() [!async!] {
   }
 
   test_topLevelFunction_blockBody_future_int_hasReturn_futureCustom() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int> f() [!async!] {
   return MyFuture.value(0);
 }
@@ -189,7 +189,7 @@ class MyFuture<T> implements Future<T> {
   }
 
   test_topLevelFunction_blockBody_future_int_returnFuture() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int> f() [!async!] {
   return Future.value(0);
 }
@@ -213,7 +213,7 @@ Future<int?> f() async {
   }
 
   test_topLevelFunction_blockBody_future_void_hasReturn_future() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<void> f() [!async!] {
   return foo();
 }
@@ -259,7 +259,7 @@ Future<void> f() async {
   }
 
   test_topLevelFunction_blockBody_futureNullable_int_hasReturn_future() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int>? f() [!async!] {
   return Future.value(0);
 }
@@ -326,7 +326,7 @@ Future<void>? f() async {
   }
 
   test_topLevelFunction_blockBody_futureOr_returnFuture() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 FutureOr<int> f() [!async!] {
@@ -336,7 +336,7 @@ FutureOr<int> f() [!async!] {
   }
 
   test_topLevelFunction_blockBody_futureOr_returnValue() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'dart:async';
 
 FutureOr<int> f() [!async!] {
@@ -346,7 +346,7 @@ FutureOr<int> f() [!async!] {
   }
 
   test_topLevelFunction_blockBody_object() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Object f() [!async!] {
   return 0;
 }
@@ -354,7 +354,7 @@ Object f() [!async!] {
   }
 
   test_topLevelFunction_blockBody_objectQuestion() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Object? f() [!async!] {
   return 0;
 }
@@ -388,7 +388,7 @@ void f(Stream<int> values) async {
   }
 
   test_topLevelFunction_blockBody_void_hasAwait_nestedFunctionExpression() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() [!async!] {
   () async {
     await 0;
@@ -398,13 +398,13 @@ void f() [!async!] {
   }
 
   test_topLevelFunction_blockBody_void_noAwait() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() [!async!] {}
 ''');
   }
 
   test_topLevelFunction_exprBody_future_int_returnFuture() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 Future<int> f() [!async!] => Future.value(0);
 ''');
   }

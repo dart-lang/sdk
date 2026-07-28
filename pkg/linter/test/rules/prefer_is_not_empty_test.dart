@@ -26,7 +26,7 @@ void f(Iterable<int> p) {
   }
 
   test_iterable_isEmpty_not() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(Iterable<int> p) {
   [!!p.isEmpty!];
 }
@@ -40,19 +40,19 @@ var x = [].isEmpty;
   }
 
   test_list_isEmpty_doubleParens_not() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!!(([4].isEmpty))!];
 ''');
   }
 
   test_list_isEmpty_not() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!![1].isEmpty!];
 ''');
   }
 
   test_list_isEmpty_parens_not() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!!([3].isEmpty)!];
 ''');
   }
@@ -64,7 +64,7 @@ var x = {}.isEmpty;
   }
 
   test_map_isEmpty_not() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var x = [!!{2: 'a'}.isEmpty!];
 ''');
   }

@@ -70,12 +70,13 @@ void main([args = const <String>[]]) => IsolateTestHarness(
         .addCustomTest((VmService service, IsolateRef isolateRef) async {
           final result = await service.getStack(isolateRef.id!);
 
-          expect(result.frames, hasLength(5));
+          expect(result.frames, hasLength(6));
           expect(result.asyncCausalFrames, hasLength(26));
 
           expectFrames(result.frames!, [
             [equals('Regular'), endsWith(' func10')],
             [equals('Regular'), anything], // Internal mech. ..
+            [equals('Regular'), anything],
             [equals('Regular'), anything],
             [equals('Regular'), anything],
             [equals('Regular'), endsWith(' _RawReceivePort._handleMessage')],

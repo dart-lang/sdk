@@ -4,6 +4,9 @@
 
 // Packages=same_package_twice.packages
 
+// The formatter puts a blank line above the static error marker.
+// dart format off
+
 library same_package_twice_test;
 
 import 'package:foo/foo.dart' as foo;

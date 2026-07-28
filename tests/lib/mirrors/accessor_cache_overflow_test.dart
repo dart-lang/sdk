@@ -9,6 +9,7 @@
 library test.hot_get_field;
 
 import 'dart:mirrors';
+
 import 'package:expect/expect.dart';
 
 const int optimizationThreshold = 20;

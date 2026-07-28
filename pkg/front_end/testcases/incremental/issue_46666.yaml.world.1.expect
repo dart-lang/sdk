@@ -173,7 +173,7 @@ constants  {
   #C29 = dart.ffi::_FfiStructLayout {fieldTypes:#C28, packing:#C2}
   #C30 = dart.core::pragma {name:#C4, options:#C29}
   #C31 = 1000000
-  #C32 = dart.core::Duration {_duration:#C31}
+  #C32 = dart.core::Duration {inMicroseconds:#C31}
 }
 
 

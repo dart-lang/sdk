@@ -118,7 +118,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
     Map<String, Variable> definitions = {};
     for (List<Variable> scope in scopes) {
       for (Variable decl in scope) {
-        String? name = decl.name;
+        String? name = decl.cosmeticName;
         if (name != null &&
             !decl.isSynthesized &&
             !hoistedUnwritten.contains(decl) &&
@@ -273,10 +273,10 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
     // The constructor is special in that the parameters from the contained
     // function node is in scope in the initializers.
     // Here we add all parameters, i.e. we don't filter initializing formals.
-    for (Variable param in node.function.positionalParameters) {
+    for (PositionalParameter param in node.function.positionalParameters) {
       scopes.last.add(param);
     }
-    for (Variable param in node.function.namedParameters) {
+    for (NamedParameter param in node.function.namedParameters) {
       scopes.last.add(param);
     }
     for (Initializer initializer in node.initializers) {
@@ -860,7 +860,7 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       if (firstBlock.parent is ForStatement &&
           receiver is VariableGet &&
           receiver.variable.isSynthesized &&
-          receiver.variable.name == ":sync-for-iterator") {
+          receiver.variable.cosmeticName == ":sync-for-iterator") {
         // Matches the case. Return the last block.
         return filtered.last;
       }
@@ -989,10 +989,10 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       Variable variable1 = filtered[0].node as Variable;
       Variable variable2 = filtered[1].node as Variable;
       if (variable1.isSynthesized &&
-          variable1.name?.startsWith("#") == true &&
+          variable1.cosmeticName?.startsWith("#") == true &&
           variable2.isSynthesized &&
           variable2.isLowered &&
-          variable2.name?.startsWith("#") == true) {
+          variable2.cosmeticName?.startsWith("#") == true) {
         // Assume so. We'll pick the last one where we have previous variables
         //that already matched in scope.
         return filtered.last;
@@ -1036,9 +1036,9 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
       // isLateLoweredLocalName/isLateLoweredLocalSetter/etc is in the CFE so we
       // can't call it from here.
       if (variable1.isLowered &&
-          variable1.name?.startsWith("#") == true &&
+          variable1.cosmeticName?.startsWith("#") == true &&
           variable2.isLowered &&
-          variable2.name?.startsWith("#") == true) {
+          variable2.cosmeticName?.startsWith("#") == true) {
         // Assume it's a late lowering thing with an exuberant amount of nodes
         // with the same offset. Just pick the first one.
         return filtered[0];

@@ -44,11 +44,8 @@ class TypeAnnotatePublicApis extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-  final _VisitorHelper v;
-
-  new(this.rule) : v = _VisitorHelper(rule);
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
+  final _VisitorHelper v = _VisitorHelper(rule);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {

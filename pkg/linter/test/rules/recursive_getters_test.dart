@@ -61,7 +61,7 @@ class C {
   }
 
   test_instanceGetter_blockBody_recursiveWithImplicitThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int get f {
     return [!f!];
@@ -71,7 +71,7 @@ class C {
   }
 
   test_instanceGetter_expressionBody_innerRecursiveCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int get f => p([!f!]);
 }
@@ -89,7 +89,7 @@ class C {
   }
 
   test_instanceGetter_expressionBody_recursiveWithExplicitThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int get f => this.[!f!];
 }
@@ -97,7 +97,7 @@ class C {
   }
 
   test_instanceGetter_expressionBody_recursiveWithImplicitThis() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int get f => [!f!];
 }
@@ -146,7 +146,7 @@ class Nested {
   }
 
   test_referenceInListLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   List<int> get f => [1, 2, ...[!f!]];
 }
@@ -154,7 +154,7 @@ class C {
   }
 
   test_referenceInMapLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   Map<int, int> get f => {}..addAll([!f!]);
 }
@@ -162,7 +162,7 @@ class C {
   }
 
   test_referenceInMethodCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int get f {
     print([!f!]);
@@ -173,7 +173,7 @@ class C {
   }
 
   test_simpleGetter() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int get f => [!f!];
 }
@@ -181,7 +181,7 @@ class C {
   }
 
   test_simpleGetter_thisPrefix() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 class C {
   int get f => this.[!f!];
 }
@@ -207,7 +207,7 @@ int get f {
   }
 
   test_topLevelGetter_blockBody_recursiveCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int get f {
   return [!f!];
 }
@@ -222,13 +222,13 @@ int get f => _f;
   }
 
   test_topLevelGetter_expressionBody_recursiveCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int get f => [!f!];
 ''');
   }
 
   test_topLevelGetter_innerRecursiveCall() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 int? _f = 1;
 int get f => _f == null ? 0 : [!f!];
 ''');

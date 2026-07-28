@@ -551,9 +551,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void computeSupertypes() {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
     List<SourceClassBuilder> sourceClasses =
-        filteredMembersIterator<SourceClassBuilder>(
-          includeDuplicates: true,
-        ).toList();
+        filteredMembersIterator<SourceClassBuilder>(includeDuplicates: true)
+            .toList();
     for (SourceClassBuilder sourceClassBuilder in sourceClasses) {
       _computeSupertypeBuilderForClass(sourceClassBuilder);
     }
@@ -1220,23 +1219,26 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         );
       }
       for (int j = 0; j < positionalCount; ++j) {
-        Variable forwarderParameter =
+        PositionalParameter forwarderParameter =
             forwarder.function.positionalParameters[j];
-        Variable originParameter = origin.function.positionalParameters[j];
-        if (originParameter.initializer != null) {
-          forwarderParameter.initializer = cloner.clone(
-            originParameter.initializer!,
+        PositionalParameter originParameter =
+            origin.function.positionalParameters[j];
+        if (originParameter.defaultValue != null) {
+          forwarderParameter.defaultValue = cloner.clone(
+            originParameter.defaultValue!,
           );
-          forwarderParameter.initializer!.parent = forwarderParameter;
+          forwarderParameter.defaultValue!.parent = forwarderParameter;
         }
       }
 
-      Map<String, Variable> originNamedMap = <String, Variable>{};
-      for (Variable originNamed in origin.function.namedParameters) {
-        originNamedMap[originNamed.name!] = originNamed;
+      Map<String, NamedParameter> originNamedMap = {};
+      for (NamedParameter originNamed in origin.function.namedParameters) {
+        originNamedMap[originNamed.parameterName] = originNamed;
       }
-      for (Variable forwarderNamed in forwarder.function.namedParameters) {
-        Variable? originNamed = originNamedMap[forwarderNamed.name];
+      for (NamedParameter forwarderNamed
+          in forwarder.function.namedParameters) {
+        NamedParameter? originNamed =
+            originNamedMap[forwarderNamed.parameterName];
         if (originNamed == null) {
           return unhandled(
             "null",
@@ -1245,9 +1247,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             origin.fileUri,
           );
         }
-        if (originNamed.initializer == null) continue;
-        forwarderNamed.initializer = cloner.clone(originNamed.initializer!);
-        forwarderNamed.initializer!.parent = forwarderNamed;
+        if (originNamed.defaultValue == null) continue;
+        forwarderNamed.defaultValue = cloner.clone(originNamed.defaultValue!);
+        forwarderNamed.defaultValue!.parent = forwarderNamed;
       }
 
       ++count;

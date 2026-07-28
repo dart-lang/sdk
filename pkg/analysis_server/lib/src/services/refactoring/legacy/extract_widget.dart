@@ -85,6 +85,29 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     return resolveResult.unit.featureSet;
   }
 
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    await builder.addDartFileEdit(resolveResult.path, (builder) {
+      var expression = _expression;
+      var statements = _statements;
+      if (expression != null) {
+        builder.addReplacement(range.node(expression), (builder) {
+          _writeWidgetInstantiation(builder);
+        });
+      } else if (statements != null) {
+        builder.addReplacement(_statementsRange!, (builder) {
+          builder.write('return ');
+          _writeWidgetInstantiation(builder);
+          builder.write(';');
+        });
+      } else {
+        _removeMethodDeclaration(builder);
+        _replaceInvocationsWithInstantiations(builder);
+      }
+
+      _writeWidgetDeclaration(builder);
+    });
+  }
+
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
@@ -138,30 +161,13 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) async {
     builder ??= ChangeBuilder(
-      session: sessionHelper.session,
+      session: resolveResult.session,
       defaultEol: utils.endOfLine,
     );
-    await builder.addDartFileEdit(resolveResult.path, (builder) {
-      var expression = _expression;
-      var statements = _statements;
-      if (expression != null) {
-        builder.addReplacement(range.node(expression), (builder) {
-          _writeWidgetInstantiation(builder);
-        });
-      } else if (statements != null) {
-        builder.addReplacement(_statementsRange!, (builder) {
-          builder.write('return ');
-          _writeWidgetInstantiation(builder);
-          builder.write(';');
-        });
-      } else {
-        _removeMethodDeclaration(builder);
-        _replaceInvocationsWithInstantiations(builder);
-      }
-
-      _writeWidgetDeclaration(builder);
-    });
-    return builder.sourceChange;
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return sourceChange;
   }
 
   @override

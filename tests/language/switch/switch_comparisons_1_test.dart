@@ -12,6 +12,7 @@
 // `switch_comparisons_2_test.dart`.
 
 import 'dart:convert';
+
 import 'package:expect/expect.dart';
 
 void main() {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:convert";
 import "dart:io";
 
@@ -201,6 +202,8 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
 
   bool _started = false;
 
+  Completer? get completerForError => null;
+
   Future<void> start(
     List<String> scriptAndArgs, {
     void Function(String line)? stdoutReceiver,
@@ -228,8 +231,12 @@ abstract class LaunchingVMServiceHelper extends VMServiceHelper {
               // Manually kill the process or it will leak,
               // see http://dartbug.com/42918
               killProcess();
-              // This seems to rethrow.
-              throw e;
+              if (completerForError != null) {
+                completerForError!.completeError(e, st);
+              } else {
+                // This seems to rethrow.
+                throw e;
+              }
             });
           }
           if (stdoutReceiver != null) {

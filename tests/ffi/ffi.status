@@ -80,6 +80,9 @@ many_listener_callbacks_test/*: Skip # Test harness doesn't support multitest wi
 native_assets/*: Skip # Source not available in the emulator
 run_isolate_group_run_test: Skip # gen_snapshot requires experimental-shared-data flag
 static_checks/*: SkipByDesign # Expecting compile time failures in multi tests doesn't work on the Fuchsia test runner.
+threading_pinning_test: Skip # gen_snapshot requires experimental-shared-data flag
+threading_reentrant_test: Skip # gen_snapshot requires experimental-shared-data flag
+threading_runeventloop_test: Skip # gen_snapshot requires experimental-shared-data flag
 threading_test: Skip # gen_snapshot requires experimental-shared-data flag
 unaligned_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 vmspecific_enable_ffi_test: SkipByDesign # Needs access to Dart executable.

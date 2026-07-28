@@ -21,7 +21,7 @@ class AvoidUnnecessaryContainersTest extends LintRuleTest {
   String get lintRule => LintNames.avoid_unnecessary_containers;
 
   test_childOnly() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
 Widget f() {
   return [!Container!](child: Row());

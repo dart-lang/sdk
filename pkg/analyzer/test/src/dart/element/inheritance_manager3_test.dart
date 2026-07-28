@@ -1668,7 +1668,7 @@ conflicts
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_interface_candidatesConflict_interfaceInAugmentation() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -2424,7 +2424,7 @@ extension type C(B it) implements A<int> {}
     var element = library.getExtensionType('C')!;
     assertInterfaceText(element, r'''
 map
-  foo: MethodMember
+  foo: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::foo
     substitution: {T: int}
   it: <testLibrary>::@extensionType::C::@getter::it
@@ -2432,11 +2432,11 @@ declared
   it: <testLibrary>::@extensionType::C::@getter::it
 redeclared
   foo
-    MethodMember
+    SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::A::@method::foo
       substitution: {T: int}
 inheritedMap
-  foo: MethodMember
+  foo: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@class::A::@method::foo
     substitution: {T: int}
 ''');
@@ -2772,7 +2772,7 @@ extension type B(int it) implements A<int> {}
     var element = library.getExtensionType('B')!;
     assertInterfaceText(element, r'''
 map
-  foo: MethodMember
+  foo: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@extensionType::A::@method::foo
     substitution: {T: int}
   it: <testLibrary>::@extensionType::B::@getter::it
@@ -2780,18 +2780,18 @@ declared
   it: <testLibrary>::@extensionType::B::@getter::it
 redeclared
   foo
-    MethodMember
+    SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@extensionType::A::@method::foo
       substitution: {T: int}
   it
-    GetterMember
+    SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extensionType::A::@getter::it
       substitution: {T: int}
 inheritedMap
-  foo: MethodMember
+  foo: SubstitutedMethodElementImpl
     baseElement: <testLibrary>::@extensionType::A::@method::foo
     substitution: {T: int}
-  it: GetterMember
+  it: SubstitutedGetterElementImpl
     baseElement: <testLibrary>::@extensionType::A::@getter::it
     substitution: {T: int}
 ''');
@@ -3222,10 +3222,11 @@ class _InheritanceManager3Base2 extends ElementsBaseTest {
     var actual = _interfaceText(element);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      printPrettyDiff(expected, actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(expected, actual);
+      }
       fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   // TODO(scheglov): this is duplicate

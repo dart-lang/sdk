@@ -6,4 +6,3 @@ class S5 {
   num a;
   S5([num x = 3.14]) : a = x - 1;
 }
-

@@ -1580,6 +1580,15 @@ const MessageCode initializedVariableInForEach = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode initializingDeclaringParameter = const MessageCode(
+  "InitializingDeclaringParameter",
+  sharedCode: SharedCode.initializingDeclaringParameter,
+  problemMessage: """Declaring parameters can't be initializing.""",
+  correctionMessage:
+      """Try removing the `this.` prefix or making the parameter non-declaring.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode interfaceEnum = const MessageCode(
   "InterfaceEnum",
   sharedCode: SharedCode.interfaceEnum,
@@ -2141,6 +2150,14 @@ const MessageCode mixinApplicationClassAugmentation = const MessageCode(
   "MixinApplicationClassAugmentation",
   sharedCode: SharedCode.mixinApplicationClassAugmentation,
   problemMessage: """A mixin application class can't be augmented.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinAugmentationHasOnClause = const MessageCode(
+  "MixinAugmentationHasOnClause",
+  sharedCode: SharedCode.mixinAugmentationHasOnClause,
+  problemMessage: """Mixin augmentations can't have 'on' clauses.""",
+  correctionMessage: """Try removing the 'on' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2732,6 +2749,15 @@ const MessageCode staticOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode superInitializingDeclaringParameter = const MessageCode(
+  "SuperInitializingDeclaringParameter",
+  sharedCode: SharedCode.superInitializingDeclaringParameter,
+  problemMessage: """Declaring parameters can't be super parameters.""",
+  correctionMessage:
+      """Try removing the `super.` prefix or making the parameter non-declaring.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode superNullAware = const MessageCode(
   "SuperNullAware",
   sharedCode: SharedCode.invalidOperatorQuestionmarkPeriodForSuper,
@@ -3197,6 +3223,7 @@ enum SharedCode {
   implementsBeforeWith,
   importDirectiveAfterPartDirective,
   initializedVariableInForEach,
+  initializingDeclaringParameter,
   interfaceEnum,
   interfaceMixin,
   interfaceMixinClass,
@@ -3240,6 +3267,7 @@ enum SharedCode {
   missingPrimaryConstructorParameters,
   missingStatement,
   mixinApplicationClassAugmentation,
+  mixinAugmentationHasOnClause,
   mixinDeclaresConstructor,
   mixinPrimaryConstructor,
   mixinWithClause,
@@ -3276,6 +3304,7 @@ enum SharedCode {
   stackOverflow,
   staticConstructor,
   staticOperator,
+  superInitializingDeclaringParameter,
   switchHasCaseAfterDefaultCase,
   switchHasMultipleDefaultCases,
   topLevelOperator,

@@ -21,7 +21,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/notification_manager.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
@@ -130,6 +129,13 @@ class LspAnalysisServer extends AnalysisServer {
   final Completer<InitializedStateMessageHandler> _lspInitializedCompleter =
       Completer<InitializedStateMessageHandler>();
 
+  /// A completer that tracks in-progress workspace folders update.
+  ///
+  /// Starts completed and will be replaced each time workspace folders are
+  /// being updated (which can trigger async work such as fetching client
+  /// configuration or dynamic registrations).
+  Completer<void> workspaceFolderUpdateCompleter = Completer()..complete();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   new(
@@ -147,6 +153,7 @@ class LspAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     super.enableBlazeWatcher,
     super.dartFixPromptManager,
+    super.pluginManager,
     super.messageSchedulerListener,
     super.performanceLogger,
     super.environment,
@@ -187,9 +194,17 @@ class LspAnalysisServer extends AnalysisServer {
       (_) => _onPluginsChanged(),
     );
 
-    // TODO(srawlins): Listen to
-    // `notificationManager.pluginAnalysisStatusChanges` and perform "on idle"
-    // tasks.
+    notificationManager.pluginAnalysisStatusChanges.listen((isAnalyzing) {
+      if (!pluginManager.initializedCompleter.isCompleted) {
+        // Without `this.`, some portion of the analyzer believes we are
+        // accessing the super parameter, instead of the field in the super
+        // class.  See https://github.com/dart-lang/sdk/issues/59996.
+        // ignore: unnecessary_this
+        this.pluginManager.initializedCompleter.complete();
+      }
+      // TODO(srawlins): Perform "on idle" tasks (Legacy server has
+      // `_performOnIdleActions`).
+    });
   }
 
   /// The hosted location of the client application.
@@ -226,6 +241,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
   LspInitializationOptions? get initializationOptions => _initializationOptions;
+
+  /// Whether the server has transitioned into the shutting down state.
+  bool get isShuttingDown => messageHandler is ShuttingDownStateMessageHandler;
 
   /// A [Future] that completes with the [InitializedStateMessageHandler] for
   /// the server once it transitions to the initialized state.
@@ -265,17 +283,6 @@ class LspAnalysisServer extends AnalysisServer {
     };
   }
 
-  @override
-  @visibleForTesting
-  set pluginManager(PluginManager value) {
-    super.pluginManager = value;
-    _pluginChangeSubscription?.cancel();
-
-    _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
-      (_) => _onPluginsChanged(),
-    );
-  }
-
   /// Whether or not the client has advertised support for
   /// 'window/showMessageRequest'.
   ///
@@ -284,6 +291,14 @@ class LspAnalysisServer extends AnalysisServer {
   @protected
   bool get supportsShowMessageRequest =>
       editorClientCapabilities?.supportsShowMessageRequest ?? false;
+
+  /// A [Future] that completes when any in-progress workspace folder update
+  /// completes.
+  ///
+  /// If no workspace folder update is in progress, will return an already complete
+  /// [Future].
+  Future<void> get workspaceFolderUpdate =>
+      workspaceFolderUpdateCompleter.future;
 
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
@@ -1048,9 +1063,28 @@ class LspAnalysisServer extends AnalysisServer {
       ..addAll(addedNormalized)
       ..removeAll(removedNormalized);
 
-    await fetchClientConfigurationAndPerformDynamicRegistration();
+    // Capture if there is an existing update in progress, we so can wait for
+    // it after replacing the completer. This is required because of the async
+    // work below (`fetchClientConfigurationAndPerformDynamicRegistration`) that
+    // could otherwise allow another request to change the analysis roots before
+    // we've finished setting them up correctly.
+    var existingUpdateFuture = !workspaceFolderUpdateCompleter.isCompleted
+        ? workspaceFolderUpdateCompleter.future
+        : null;
+    var completer = workspaceFolderUpdateCompleter = Completer();
+    if (existingUpdateFuture != null) {
+      // Wait for any other in-progress rebuild to prevent them overlapping.
+      await existingUpdateFuture;
+    }
+    try {
+      // This async request is why we need to prevent this code running
+      // concurrently because they could overlap with each other.
+      await fetchClientConfigurationAndPerformDynamicRegistration();
 
-    await _refreshAnalysisRoots();
+      await _refreshAnalysisRoots();
+    } finally {
+      completer.complete();
+    }
   }
 
   void _afterOverlayChanged(
@@ -1133,9 +1167,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// Returns whether [filePath] is in a project that can resolve
   /// 'package:flutter' libraries.
   bool _isInFlutterProject(String filePath) =>
-      getAnalysisDriver(
-        filePath,
-      )?.currentSession.uriConverter.uriToPath(Uri.parse(widgetsUri)) !=
+      getAnalysisDriver(filePath)?.currentSession.uriConverter
+          .uriToPath(Uri.parse(widgetsUri)) !=
       null;
 
   void _notifyPluginsOverlayChanged(
@@ -1197,6 +1230,14 @@ class LspAnalysisServer extends AnalysisServer {
     pluginManager.setAnalysisSetAnalysisRootsParams(
       plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
     );
+
+    // If there are no analysis roots, no drivers will be created and the plugin
+    // watcher will not complete the plugin managers initialization so we need
+    // to do it.
+    if (includedPaths.isEmpty &&
+        !pluginManager.initializedCompleter.isCompleted) {
+      pluginManager.initializedCompleter.complete();
+    }
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
@@ -1291,6 +1332,15 @@ class LspServerContextManagerCallbacks
 
   @override
   void flushResults(List<String> files) {
+    if (analysisServer.isShuttingDown) {
+      // When the server is shutting down, analysis contexts will be destroyed.
+      // Destroying analysis contexts usually flushes all diagnostics, however
+      // we don't want this during a shutdown because for one-shot clients like
+      // 'dart analyze', it will look like the diagnostics went away. Instead,
+      // clients should handle cleaning up diagnostics for a shut-down server.
+      return;
+    }
+
     for (var file in files) {
       analysisServer.publishDiagnostics(file, []);
     }

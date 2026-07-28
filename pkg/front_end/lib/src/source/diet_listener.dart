@@ -1217,7 +1217,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {}
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {}
 
   @override
   void endPrimaryConstructorBody(

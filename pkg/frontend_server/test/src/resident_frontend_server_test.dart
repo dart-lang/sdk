@@ -170,9 +170,8 @@ void main() async {
 
     test('basic', () async {
       final File cachedDillFile = new File(
-        computeCachedDillAndCompilerOptionsPaths(
-          executable.path,
-        ).cachedDillPath,
+        computeCachedDillAndCompilerOptionsPaths(executable.path)
+            .cachedDillPath,
       );
       expect(cachedDillFile.existsSync(), false);
 

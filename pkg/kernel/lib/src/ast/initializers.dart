@@ -163,7 +163,9 @@ class FieldInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    printer.writeName(field.name);
+    printer.write(' = ');
+    printer.writeExpression(value);
   }
 }
 
@@ -327,6 +329,12 @@ class LocalInitializer extends Initializer {
 
   new(this.variable) {
     variable.parent = this;
+  }
+
+  Expression get value => variable.initializer!;
+
+  void set value(Expression value) {
+    variable.initializer = value;
   }
 
   @override

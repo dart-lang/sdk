@@ -13,6 +13,7 @@ void Function()? fisk() => foo;
 Function()? foobar(Function()? x) => null;
 
 class A<T> {}
+
 class B extends A<Function()?> {
   Function()? method(Function()? x) => null;
 }

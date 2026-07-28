@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that private dart:_ libraries cannot be imported.
 
+// The formatter puts a blank line above the static error marker.
+// dart format off
+
 import "dart:_internal";
 //     ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.IMPORT_INTERNAL_LIBRARY

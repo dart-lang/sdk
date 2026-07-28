@@ -284,9 +284,9 @@ class CheckNameResponse {
         }
       }
     } else {
-      var location = (await canRename._fileResolver.resolve(
-        path: sourcePath,
-      )).lineInfo.getLocation(element.firstFragment.nameOffset!);
+      var location = (await canRename._fileResolver.resolve(path: sourcePath))
+          .lineInfo
+          .getLocation(element.firstFragment.nameOffset!);
       infos.add(ReplaceInfo(newName, location, element.name!.length));
     }
     return infos;
@@ -403,6 +403,7 @@ class CheckNameResponse {
     }
     var edit = await buildEditForInsertedConstructor(
       node,
+      isNamed: newName.isNotEmpty,
       resolvedUnit: resolvedUnit,
       session: fileResolver.contextObjects!.analysisSession,
       (builder) => builder.writeConstructorDeclaration(
@@ -442,7 +443,7 @@ class CiderRenameComputer {
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
     var node = resolvedUnit.unit.nodeCovering(offset: offset);
-    var element = getElementOfNode2(node);
+    var element = getElementOfNodeV1(node);
 
     if (node == null || element == null) {
       return null;

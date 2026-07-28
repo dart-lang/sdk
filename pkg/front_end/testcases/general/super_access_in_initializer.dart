@@ -11,10 +11,7 @@ class Super {
 class Class extends Super {
   bool field;
 
-  Class(bool value)
-      : assert(property),
-        this.field = property,
-        super(property);
+  Class(bool value) : assert(property), this.field = property, super(property);
 
   Class.redirect() : this(property);
 }

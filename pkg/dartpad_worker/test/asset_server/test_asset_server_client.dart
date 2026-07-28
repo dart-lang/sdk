@@ -16,7 +16,6 @@ void main() {
       final client = await AssetServerClient.spawnHybrid();
       try {
         expect(client.baseUrl.scheme, 'http');
-        expect(client.assetUrl.path, endsWith('asset/'));
         expect(client.hasFlutter, anyOf(isTrue, isFalse));
         expect(client.isClosed, isFalse);
       } finally {

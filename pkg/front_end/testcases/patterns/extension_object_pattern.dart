@@ -7,9 +7,9 @@ extension Extension on int {
 }
 
 method1(int i) => switch (i) {
-      int(:num getter) => 0, // Ok
-    };
+  int(:num getter) => 0, // Ok
+};
 
 method2(int i) => switch (i) /* Error */ {
-      int(:int getter) => 0,
-    };
+  int(:int getter) => 0,
+};

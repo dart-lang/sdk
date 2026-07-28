@@ -134,9 +134,8 @@ class ExecutionDomainTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_createAndDeleteMultipleContexts() async {
-    var request = ExecutionCreateContextParams(
-      '/a/b.dart',
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ExecutionCreateContextParams('/a/b.dart')
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('0'));
     var result = ExecutionCreateContextResult.fromResponse(
@@ -145,9 +144,8 @@ class ExecutionDomainTest extends PubPackageAnalysisServerTest {
     );
     var id0 = result.id;
 
-    request = ExecutionCreateContextParams(
-      '/c/d.dart',
-    ).toRequest('1', clientUriConverter: server.uriConverter);
+    request = ExecutionCreateContextParams('/c/d.dart')
+        .toRequest('1', clientUriConverter: server.uriConverter);
     response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('1'));
     result = ExecutionCreateContextResult.fromResponse(
@@ -158,23 +156,20 @@ class ExecutionDomainTest extends PubPackageAnalysisServerTest {
 
     expect(id0 == id1, isFalse);
 
-    request = ExecutionDeleteContextParams(
-      id0,
-    ).toRequest('2', clientUriConverter: server.uriConverter);
+    request = ExecutionDeleteContextParams(id0)
+        .toRequest('2', clientUriConverter: server.uriConverter);
     response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('2'));
 
-    request = ExecutionDeleteContextParams(
-      id1,
-    ).toRequest('3', clientUriConverter: server.uriConverter);
+    request = ExecutionDeleteContextParams(id1)
+        .toRequest('3', clientUriConverter: server.uriConverter);
     response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('3'));
   }
 
   Future<void> test_deleteNonExistentContext() async {
-    var request = ExecutionDeleteContextParams(
-      '13',
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ExecutionDeleteContextParams('13')
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
     // TODO(brianwilkerson): It isn't currently specified to be an error if a
     // client attempts to delete a context that doesn't exist. Should it be?
@@ -247,9 +242,8 @@ void contextFunction() {
   }
 
   Future<void> _createExecutionContext(File file) async {
-    var request = ExecutionCreateContextParams(
-      file.path,
-    ).toRequest('0', clientUriConverter: server.uriConverter);
+    var request = ExecutionCreateContextParams(file.path)
+        .toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('0'));
     var result = ExecutionCreateContextResult.fromResponse(
@@ -260,9 +254,8 @@ void contextFunction() {
   }
 
   Future<void> _disposeExecutionContext() async {
-    var request = ExecutionDeleteContextParams(
-      contextId,
-    ).toRequest('1', clientUriConverter: server.uriConverter);
+    var request = ExecutionDeleteContextParams(contextId)
+        .toRequest('1', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
     expect(response, isResponseSuccess('1'));
   }

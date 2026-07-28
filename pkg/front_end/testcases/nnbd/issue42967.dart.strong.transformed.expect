@@ -11,20 +11,20 @@ library;
 //   final dynamic fieldFinalDynamicOfA; // Error.
 //                 ^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/issue42967.dart:26:7: Error: Field 'fieldNonNullableOfB' should be initialized because its type 'num' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42967.dart:25:7: Error: Field 'fieldNonNullableOfB' should be initialized because its type 'num' doesn't allow null.
 //   num fieldNonNullableOfB; // Error.
 //       ^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/issue42967.dart:29:17: Error: Final field 'fieldFinalDynamicOfB' is not initialized.
+// pkg/front_end/testcases/nnbd/issue42967.dart:28:17: Error: Final field 'fieldFinalDynamicOfB' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
 //   final dynamic fieldFinalDynamicOfB; // Error.
 //                 ^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/issue42967.dart:45:7: Error: Field 'fieldNonNullableOfM' should be initialized because its type 'num' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42967.dart:44:7: Error: Field 'fieldNonNullableOfM' should be initialized because its type 'num' doesn't allow null.
 //   num fieldNonNullableOfM; // Error.
 //       ^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/issue42967.dart:50:17: Error: Final field 'fieldFinalDynamicOfM' is not initialized.
+// pkg/front_end/testcases/nnbd/issue42967.dart:49:17: Error: Final field 'fieldFinalDynamicOfM' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
 //   final dynamic fieldFinalDynamicOfM; // Error.
 //                 ^^^^^^^^^^^^^^^^^^^^

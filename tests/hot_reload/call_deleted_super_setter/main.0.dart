@@ -15,7 +15,8 @@ class C {
 }
 
 class D extends C {
-  curry() => () => super.deleted = 'hello';
+  curry() =>
+      () => super.deleted = 'hello';
 }
 
 helper() {

@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async" show FutureOr;
+
 import "package:expect/expect.dart";
 import "package:expect/static_type_helper.dart";
+
 // All extensions are exported by `dart:core`.
 
 void main() {

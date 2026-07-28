@@ -212,6 +212,7 @@ uword SymbolsPredefinedAddress();
 #endif
 
 const Code& StubCodeAllocateArray();
+const Code& StubCodeSubtype1TestCache();
 const Code& StubCodeSubtype2TestCache();
 const Code& StubCodeSubtype3TestCache();
 const Code& StubCodeSubtype4TestCache();

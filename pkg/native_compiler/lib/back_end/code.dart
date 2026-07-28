@@ -18,6 +18,7 @@ class Code(
   final PcDescriptors? pcDescriptors,
   final CatchEntryMoves? catchEntryMoves,
   final CodeSourceMap? codeSourceMap,
+  final CompressedStackMaps? compressedStackMaps,
 ]) {
   /// Offset of instructions in the resulting image.
   int? instructionsImageOffset;

@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,10 +21,6 @@ void main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
-  @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()..enabledExperiments = experimentsForTests;
-
   /// Checks whether the correct types of documentation are returned in a Hover
   /// based on [preference].
   Future<void> assertDocumentation(
@@ -43,7 +37,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     await provideConfig(initialize, {'documentation': ?preference});
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var hover = await getHover(mainFileUri, code.position.position);
     var hoverContents = _getStringContents(hover!);
 
@@ -67,7 +61,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
@@ -84,14 +78,18 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   }) async {
     var code = TestCode.parse(content);
 
-    var initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
     await initialize();
     if (withOpenFile) {
       await openFile(mainFileUri, code.code);
     } else {
       newFile(mainFilePath, code.code);
+      if (waitForAnalysis) {
+        await pumpEventQueue(times: 5000); // Allow server to see watch event.
+      }
     }
-    await initialAnalysis;
+    if (waitForAnalysis) {
+      await workspaceAnalysisComplete();
+    }
     var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNull);
   }
@@ -102,7 +100,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
@@ -123,14 +121,18 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     var code = TestCode.parse(content);
 
-    var initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
     await initialize();
     if (withOpenFile) {
       await openFile(fileUri, code.code);
     } else {
       newFile(mainFilePath, code.code);
+      if (waitForAnalysis) {
+        await pumpEventQueue(times: 5000); // Allow server to see watch event.
+      }
     }
-    await initialAnalysis;
+    if (waitForAnalysis) {
+      await workspaceAnalysisComplete();
+    }
     var hover = await getHover(fileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));

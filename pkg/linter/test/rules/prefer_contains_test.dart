@@ -35,7 +35,7 @@ condition() {
   }
 
   test_list_indexOf_greaterThan_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   [!list.indexOf(1) > -1!];
 }
@@ -43,7 +43,7 @@ void f(List<int> list) {
   }
 
   test_list_indexOf_notEqual_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   [!list.indexOf(1) != -1!];
 }
@@ -59,7 +59,7 @@ void f(List<int> list) {
   }
 
   test_listLiteral_indexOf_equalEqual_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) == -1!];
 }
@@ -67,7 +67,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_equalEqual_negativeTwo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) == -2!];
 }
@@ -83,7 +83,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_greater_negativeTwo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) > -2!];
 }
@@ -91,7 +91,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_greaterOr_negativeTwo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) >= -2!];
 }
@@ -99,7 +99,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_greaterOrEqual_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) >= -1!];
 }
@@ -107,7 +107,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_greaterOrEqual_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) >= 0!];
 }
@@ -115,7 +115,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_greaterThan_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) > -1!];
 }
@@ -139,7 +139,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessOrEqual_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) <= -1!];
 }
@@ -147,7 +147,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessOrEqual_negativeTwo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) <= -2!];
 }
@@ -163,7 +163,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessThan_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) < -1!];
 }
@@ -171,7 +171,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessThan_negativeOneConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const int MINUS_ONE = -1;
 void f() {
   [![].indexOf(1) < MINUS_ONE!];
@@ -180,7 +180,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessThan_negativeTwo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) < -2!];
 }
@@ -188,7 +188,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_lessThan_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) < 0!];
 }
@@ -196,7 +196,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_notEqual_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) != -1!];
 }
@@ -204,7 +204,7 @@ void f() {
   }
 
   test_listLiteral_indexOf_notEqual_negativeTwo() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [![].indexOf(1) != -2!];
 }
@@ -220,7 +220,7 @@ void f() {
   }
 
   test_listTypedef_indexOf_equalEqual_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 typedef F = List<int>;
 void f(F list) {
   [!list.indexOf(1) == -1!];
@@ -229,7 +229,7 @@ void f(F list) {
   }
 
   test_negativeOne_equalEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-1 == [].indexOf(1)!];
 }
@@ -237,7 +237,7 @@ void f() {
   }
 
   test_negativeOne_greaterOrEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-1 >= [].indexOf(1)!];
 }
@@ -245,7 +245,7 @@ void f() {
   }
 
   test_negativeOne_greaterThan_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-1 > [].indexOf(1)!];
 }
@@ -253,7 +253,7 @@ void f() {
   }
 
   test_negativeOne_lessOrEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-1 <= [].indexOf(1)!];
 }
@@ -261,7 +261,7 @@ void f() {
   }
 
   test_negativeOne_lessThan_list_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f(List<int> list) {
   [!-1 < list.indexOf(1)!];
 }
@@ -269,7 +269,7 @@ void f(List<int> list) {
   }
 
   test_negativeOne_lessThan_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-1 < [].indexOf(1)!];
 }
@@ -277,7 +277,7 @@ void f() {
   }
 
   test_negativeOne_notEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-1 != [].indexOf(1)!];
 }
@@ -285,7 +285,7 @@ void f() {
   }
 
   test_negativeOneConst_lessThan_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 const int MINUS_ONE = -1;
 void f() {
   [!MINUS_ONE < [].indexOf(1)!];
@@ -294,7 +294,7 @@ void f() {
   }
 
   test_negativeTwo_equalEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-2 == [].indexOf(1)!];
 }
@@ -302,7 +302,7 @@ void f() {
   }
 
   test_negativeTwo_greaterOrEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-2 >= [].indexOf(1)!];
 }
@@ -310,7 +310,7 @@ void f() {
   }
 
   test_negativeTwo_greaterThan_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-2 > [].indexOf(1)!];
 }
@@ -318,7 +318,7 @@ void f() {
   }
 
   test_negativeTwo_lessOrEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-2 <= [].indexOf(1)!];
 }
@@ -326,7 +326,7 @@ void f() {
   }
 
   test_negativeTwo_lessThan_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-2 < [].indexOf(1)!];
 }
@@ -334,7 +334,7 @@ void f() {
   }
 
   test_negativeTwo_notEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!-2 != [].indexOf(1)!];
 }
@@ -342,7 +342,7 @@ void f() {
   }
 
   test_promotedToList_indexOf_lessThan_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool f<T>(T list) =>
   list is List<int> && [!list.indexOf(1) < 0!];
 ''');
@@ -357,13 +357,13 @@ bool b = '11'.indexOf('2', 1) == -1;
 
   /// https://github.com/dart-lang/linter/issues/3546
   test_secondArgZero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool b = [!'11'.indexOf('2', 0) == -1!];
 ''');
   }
 
   test_stringLiteral_indexOf_equalEqual_negativeOne() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!'aaa'.indexOf('a') == -1!];
 }
@@ -379,7 +379,7 @@ void f() {
   }
 
   test_typeVariableExtendingList_indexOf_lessThan_zero() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 bool f<T extends List<int>>(T list) =>
   [!list.indexOf(1) < 0!];
 ''');
@@ -411,7 +411,7 @@ void f() {
   }
 
   test_zero_greaterThan_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!0 > [].indexOf(1)!];
 }
@@ -419,7 +419,7 @@ void f() {
   }
 
   test_zero_lessOrEqual_listLiteral_indexOf() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   [!0 <= [].indexOf(1)!];
 }

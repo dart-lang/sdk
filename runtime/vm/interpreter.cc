@@ -24,6 +24,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
+#include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame_kbc.h"
 #include "vm/symbols.h"
@@ -31,10 +32,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(uint64_t,
-            trace_interpreter_after,
-            ULLONG_MAX,
-            "Trace interpreter execution after instruction count reached.");
 DEFINE_FLAG(charp,
             interpreter_trace_file,
             nullptr,
@@ -43,6 +40,12 @@ DEFINE_FLAG(uint64_t,
             interpreter_trace_file_max_bytes,
             100 * MB,
             "Maximum size in bytes of the interpreter trace file");
+#if defined(SUPPORT_TIMELINE)
+DEFINE_FLAG(bool,
+            trace_interpreter_threads,
+            false,
+            "Whether to print a thread ID when tracing instructions.");
+#endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 constexpr bool kDefaultCheckDynamicCalls = true;
@@ -388,15 +391,33 @@ Interpreter* Interpreter::Current() {
 }
 
 #if defined(DEBUG)
-// Returns true if tracing of executed instructions is enabled.
-DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
-  return icount_ > FLAG_trace_interpreter_after;
+DART_FORCE_INLINE void Interpreter::PrintTracePrefix() const {
+#if defined(SUPPORT_TIMELINE)
+  if (FLAG_trace_interpreter_threads) {
+    const intptr_t thread_id =
+        OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
+    THR_Print("%" Pu " ", thread_id);
+  }
+#endif
+  THR_Print("%" Pu64 " ", icount_);
+}
+
+void Interpreter::PrintInExecutionTrace(const char* format, ...) const {
+  if (IsTracingExecution()) {
+    LogBlock lb;
+    PrintTracePrefix();
+    va_list args;
+    va_start(args, format);
+    THR_VPrint(format, args);
+    va_end(args);
+  }
 }
 
 // Prints bytecode instruction at given pc for instruction tracing.
 DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc,
                                                  ObjectPtr* FP) const {
-  THR_Print("%" Pu64 " ", icount_);
+  LogBlock lb;
+  PrintTracePrefix();
   if (FLAG_support_disassembler) {
     auto const bytecode = Function::GetBytecode(FrameFunction(FP));
     auto const start = reinterpret_cast<uword>(pc);
@@ -527,7 +548,10 @@ void Interpreter::PrintStackFrames(const ObjectPtr* FP,
                                    const ObjectPtr* SP,
                                    const KBCInstr* pc,
                                    intptr_t depth) {
-  Zone* const zone = Thread::Current()->zone();
+  // The thread may not have a current zone, and allocations from
+  // debugging shouldn't be leaked there anyway.
+  StackZone stack_zone(Thread::Current());
+  Zone* const zone = stack_zone.GetZone();
   ZoneTextBuffer buffer(zone);
   buffer.AddString("Printing stack starting at:\n");
   buffer.Printf("  FP = %#" Px "\n", reinterpret_cast<uword>(FP));
@@ -639,7 +663,7 @@ void Interpreter::Exit(Thread* thread,
 
 #if defined(DEBUG)
   if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
+    PrintTracePrefix();
     THR_Print("Exiting interpreter 0x%" Px " at fp_ 0x%" Px "\n",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(exit_fp));
   }
@@ -699,6 +723,27 @@ static DART_NOINLINE bool InvokeNative(Thread* thread,
   }
 }
 
+#if defined(DEBUG)
+// If a zone is available, print the fully qualified name of the function,
+// else print the unqualified name.
+static void PrintTracedFunction(Thread* thread, FunctionPtr ptr) {
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  auto& function = thread->FunctionHandle();
+  function = ptr;
+  if (Zone* const zone = thread->zone()) {
+    THR_Print("%s", function.ToFullyQualifiedCString());
+    return;
+  }
+  // No zone, so fall back on mallocing and freeing an unqualified name.
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  auto& handle = thread->StringHandle();
+  handle = ptr->untag()->name();
+  char* str = handle.ToMallocCString();
+  THR_Print("%s", str);
+  free(str);
+}
+#endif
+
 extern "C" {
 // Note: The invocation stub follows the C ABI, so we cannot pass C++ struct
 // values like ObjectPtr. In some calling conventions (IA32), ObjectPtr is
@@ -727,8 +772,11 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
   // TODO(regis): Once we share the same stack, try to invoke directly.
 #if defined(DEBUG)
   if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    THR_Print("invoking compiled %s\n", Function::Handle(function).ToCString());
+    LogBlock lb;
+    PrintTracePrefix();
+    THR_Print("invoking compiled ");
+    PrintTracedFunction(thread, function);
+    THR_Print("\n");
   }
 #endif
   // On success, returns a RawInstance.  On failure, a RawError.
@@ -824,9 +872,11 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
   ASSERT(Function::IsInterpreted(function));
 #if defined(DEBUG)
   if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    THR_Print("invoking %s\n",
-              Function::Handle(function).ToFullyQualifiedCString());
+    LogBlock lb;
+    PrintTracePrefix();
+    THR_Print("invoking ");
+    PrintTracedFunction(thread, function);
+    THR_Print("\n");
   }
 #endif
   ObjectPtr* callee_fp = call_top + kKBCDartFrameFixedSize;
@@ -922,10 +972,11 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
       // Ensure the function can be called dynamically from a dynamic module.
       // TODO(b/448095881): don't perform this check repeatedly, consider
       // splitting the lookup-cache to separately track dynamic calls.
-      Zone* zone = thread->zone();
-      const Function& target_func = Function::Handle(zone, target);
-      if (!target_func.is_dynamically_callable() &&
-          !target_func.is_declared_in_bytecode()) {
+      REUSABLE_FUNCTION_HANDLESCOPE(thread);
+      auto& handle = thread->FunctionHandle();
+      handle = target;
+      if (!handle.is_dynamically_callable() &&
+          !handle.is_declared_in_bytecode()) {
         target = Function::null();
         top[4] = null_value;
       }
@@ -1008,7 +1059,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
       *temp = op;                                                              \
       memmove(temp + 1, pc + 1, KernelBytecode::kInstructionSize[op] - 1);     \
       if (IsTracingExecution()) {                                              \
-        THR_Print("%" Pu64 " ", icount_);                                      \
+        LogBlock lb;                                                           \
+        PrintTracePrefix();                                                    \
         THR_Print("dispatching to original instruction\n");                    \
         TraceInstruction(temp, FP);                                            \
       }                                                                        \
@@ -1211,12 +1263,26 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   } while (0)
 
 // Runtime call helpers: handle invocation and potential exception after return.
+#define INVOKE_RUNTIME_BODY(Func, Args)                                        \
+  do {                                                                         \
+    if (!InvokeRuntime(thread, this, Func, Args)) {                            \
+      HANDLE_EXCEPTION;                                                        \
+    } else {                                                                   \
+      HANDLE_RETURN;                                                           \
+    }                                                                          \
+  } while (0)
+#if defined(DEBUG)
 #define INVOKE_RUNTIME(Func, Args)                                             \
-  if (!InvokeRuntime(thread, this, Func, Args)) {                              \
-    HANDLE_EXCEPTION;                                                          \
-  } else {                                                                     \
-    HANDLE_RETURN;                                                             \
-  }
+  do {                                                                         \
+    if (IsTracingExecution()) {                                                \
+      PrintTracePrefix();                                                      \
+      THR_Print("invoking runtime entry %s\n", #Func);                         \
+    }                                                                          \
+    INVOKE_RUNTIME_BODY(Func, Args);                                           \
+  } while (0)
+#else
+#define INVOKE_RUNTIME(Func, Args) INVOKE_RUNTIME_BODY(Func, Args)
+#endif
 
 #define LOAD_CONSTANT(index) (pp_->untag()->data()[(index)].raw_obj_)
 #define LOAD_CONSTANT_RAW(index) (pp_->untag()->data()[(index)].raw_value_)
@@ -1871,12 +1937,13 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
                             Thread* thread) {
 #if defined(DEBUG)
   if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    THR_Print("Entering interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px
-              " %s\n",
+    LogBlock lb;
+    PrintTracePrefix();
+    THR_Print("Entering interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px " ",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
-              thread->top_exit_frame_info(),
-              Function::Handle(function).ToFullyQualifiedCString());
+              thread->top_exit_frame_info());
+    PrintTracedFunction(thread, function);
+    THR_Print("\n");
   }
 #endif
 
@@ -1948,12 +2015,13 @@ ObjectPtr Interpreter::Resume(Thread* thread,
 
 #if defined(DEBUG)
   if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
-    THR_Print("Resuming interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px
-              " %s\n",
+    LogBlock lb;
+    PrintTracePrefix();
+    THR_Print("Resuming interpreter 0x%" Px " at fp_ 0x%" Px " exit 0x%" Px " ",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
-              thread->top_exit_frame_info(),
-              Function::Handle(function).ToFullyQualifiedCString());
+              thread->top_exit_frame_info());
+    PrintTracedFunction(thread, function);
+    THR_Print("\n");
   }
 #endif
 
@@ -2581,10 +2649,52 @@ SwitchDispatchNoSingleStep:
       SP[1] = 0;  // Unused space for result.
       SP[2] = function;
       SP[3] = Smi::New(rD);
+      // Set up the new API scope _prior_ to making the runtime call so that
+      // it is not unwound within Dart_PropagateError due to being associated
+      // with that exit frame. Otherwise, there may not be an appropriate API
+      // scope in place for Dart_PropagateError to use for allocating a handle.
+      //
+      // This is done manually instead of via Api::Scope as an exception being
+      // thrown in native code will go through Exceptions::JumpToFrame, which
+      // unwinds all StackResources before calling Interpreter::JumpToFrame,
+      // including any Api::Scope objects.
+      thread->EnterApiScope();
       Exit(thread, FP, SP + 4, pc);
-      INVOKE_RUNTIME(DRT_FfiCall, NativeArguments(thread, 2, SP + 2, SP + 1));
+      const bool normal_exit =
+          InvokeRuntime(thread, this, DRT_FfiCall,
+                        NativeArguments(thread, 2, SP + 2, SP + 1));
+      thread->ExitApiScope();
+      if (!normal_exit) {
+        HANDLE_EXCEPTION;
+      } else {
+        HANDLE_RETURN;
+      }
       ++SP;
     }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(ResolveNativeFunction, D);
+    uword entry_point = LOAD_CONSTANT_RAW(rD);
+
+    if (entry_point == 0) {
+      FunctionPtr function = FrameFunction(FP);
+      // Call the runtime to resolve the function.
+      // SP[0] = annotated constant
+      SP[1] = function;
+      SP[2] = Smi::New(rD);  // Constant pool entry to update.
+      Exit(thread, FP, SP + 3, pc);
+      INVOKE_RUNTIME(DRT_ResolveNativeFunction,
+                     NativeArguments(thread, 3, SP, nullptr));
+
+      // Load the now-filled constant pool entry.
+      entry_point = LOAD_CONSTANT_RAW(rD);
+    }
+
+    ASSERT(entry_point != 0);
+    BOX_INT64_RESULT(static_cast<int64_t>(entry_point));
 
     DISPATCH();
   }
@@ -2613,7 +2723,7 @@ SwitchDispatchNoSingleStep:
       NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
 #if defined(DEBUG)
       if (IsTracingExecution()) {
-        THR_Print("%" Pu64 " ", icount_);
+        PrintTracePrefix();
         THR_Print("Returning from interpreter 0x%" Px " at fp_ 0x%" Px
                   " exit 0x%" Px "\n",
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
@@ -2638,10 +2748,11 @@ SwitchDispatchNoSingleStep:
     *SP = result;
 #if defined(DEBUG)
     if (IsTracingExecution()) {
-      THR_Print("%" Pu64 " ", icount_);
-      THR_Print("Returning to %s (argc %d)\n",
-                Function::Handle(FrameFunction(FP)).ToFullyQualifiedCString(),
-                static_cast<int>(argc));
+      LogBlock lb;
+      PrintTracePrefix();
+      THR_Print("Returning to ");
+      PrintTracedFunction(thread, FrameFunction(FP));
+      THR_Print(" (argc %d)\n", static_cast<int>(argc));
     }
 #endif
     DISPATCH();
@@ -3825,7 +3936,7 @@ SwitchDispatchNoSingleStep:
       SP[1] = 0;  // Unused result of invoking the initializer.
       SP[2] = field;
       Exit(thread, FP, SP + 3, pc);
-      INVOKE_RUNTIME(DRT_InitStaticField,
+      INVOKE_RUNTIME(DRT_InitializeSharedField,
                      NativeArguments(thread, 1, SP + 2, SP + 1));
 
       // Reload objects after the call which may trigger GC.
@@ -4689,7 +4800,7 @@ SwitchDispatchNoSingleStep:
       thread->set_vm_tag(vm_tag);
 #if defined(DEBUG)
       if (IsTracingExecution()) {
-        THR_Print("%" Pu64 " ", icount_);
+        PrintTracePrefix();
         THR_Print("Returning exception from interpreter 0x%" Px " at fp_ 0x%" Px
                   " exit 0x%" Px "\n",
                   reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
@@ -4752,7 +4863,8 @@ SwitchDispatchNoSingleStep:
     /* which inherits the source position of the method call, for example. */  \
     if (!KernelBytecode::IsStackManipulationOpcode(pc)) {                      \
       if (IsTracingExecution()) {                                              \
-        THR_Print("%" Pu64 " calling single step handler\n", icount_);         \
+        PrintTracePrefix();                                                    \
+        THR_Print("calling single step handler\n");                            \
       }                                                                        \
       SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                       \
     }                                                                          \
@@ -4818,7 +4930,7 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
 #if defined(DEBUG)
   if (IsTracingExecution()) {
-    THR_Print("%" Pu64 " ", icount_);
+    PrintTracePrefix();
     THR_Print("JumpToFrame interpreter 0x%" Px " at fp_ 0x%" Px " pc_ 0x%" Px
               "\n",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),

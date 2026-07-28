@@ -53,7 +53,7 @@ class FixesTest extends PubPackageAnalysisServerTest {
       await pumpEventQueue();
     }
 
-    // Except all to complete.
+    // Expect all to complete.
     await Future.wait(futures);
   }
 
@@ -241,9 +241,8 @@ dependencies:
 
   Future<void> _addOverlay(String name, String contents) async {
     await handleSuccessfulRequest(
-      AnalysisUpdateContentParams({
-        name: AddContentOverlay(contents),
-      }).toRequest('0', clientUriConverter: server.uriConverter),
+      AnalysisUpdateContentParams({name: AddContentOverlay(contents)})
+          .toRequest('0', clientUriConverter: server.uriConverter),
     );
   }
 

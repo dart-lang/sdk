@@ -7,3 +7,7 @@ class A extends core::Object {
   constructor •(positional-parameter y) → self::A
     ;
 }
+class B extends self::A {
+  constructor •(positional-parameter z) → self::B
+    ;
+}

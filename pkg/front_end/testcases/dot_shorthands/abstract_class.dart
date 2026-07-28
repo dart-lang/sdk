@@ -12,7 +12,8 @@ Function tearOff() {
 
 void main() async {
   var iter = [1, 2];
-  await for (var x in .fromIterable(iter)) { // No error.
+  await for (var x in .fromIterable(iter)) {
+    // No error.
     print(x);
   }
 }

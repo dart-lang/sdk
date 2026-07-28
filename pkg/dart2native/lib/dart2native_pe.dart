@@ -44,7 +44,9 @@ class CoffFileHeader extends BytesBacked {
     }
     final buffer = Uint8List(_fileHeaderSize);
     buffer.setAll(
-        0, Uint8List.sublistView(source, offset, offset + _fileHeaderSize));
+      0,
+      Uint8List.sublistView(source, offset, offset + _fileHeaderSize),
+    );
     return CoffFileHeader._(ByteData.sublistView(buffer));
   }
 
@@ -69,10 +71,14 @@ class CoffOptionalHeader extends BytesBacked {
   static const _headersSizeOffset = 60;
 
   static CoffOptionalHeader fromTypedData(
-      TypedData source, int offset, int size) {
+    TypedData source,
+    int offset,
+    int size,
+  ) {
     if (source.lengthInBytes < offset + size) {
       throw const FormatException(
-          'File is truncated within the COFF optional header');
+        'File is truncated within the COFF optional header',
+      );
     }
     final buffer = Uint8List(size);
     buffer.setAll(0, Uint8List.sublistView(source, offset, offset + size));
@@ -158,11 +164,15 @@ class CoffSectionTable extends BytesBacked {
   static const _entrySize = 40;
 
   static CoffSectionTable fromTypedData(
-      TypedData source, int offset, int sections) {
+    TypedData source,
+    int offset,
+    int sections,
+  ) {
     final size = sections * _entrySize;
     if (source.lengthInBytes < offset + size) {
       throw const FormatException(
-          'File is truncated within the COFF section table');
+        'File is truncated within the COFF section table',
+      );
     }
     final buffer = Uint8List(size);
     buffer.setAll(0, Uint8List.sublistView(source, offset, offset + size));
@@ -178,7 +188,9 @@ class CoffSectionTable extends BytesBacked {
   }
 
   int get addressEnd => entries.fold(
-      0, (i, entry) => max(i, entry.virtualAddress + entry.virtualSize));
+    0,
+    (i, entry) => max(i, entry.virtualAddress + entry.virtualSize),
+  );
   int get offsetEnd =>
       entries.fold(0, (i, entry) => max(i, entry.fileOffset + entry.fileSize));
 
@@ -187,7 +199,8 @@ class CoffSectionTable extends BytesBacked {
     newBuffer.setAll(0, Uint8List.sublistView(data));
     _data = ByteData.sublistView(newBuffer);
     return CoffSectionHeader._(
-        ByteData.sublistView(data, size - _entrySize, size));
+      ByteData.sublistView(data, size - _entrySize, size),
+    );
   }
 }
 
@@ -197,17 +210,25 @@ class CoffHeaders {
   final CoffOptionalHeader optionalHeader;
   final CoffSectionTable sectionTable;
 
-  CoffHeaders._(this._coffOffset, this.fileHeader, this.optionalHeader,
-      this.sectionTable);
+  CoffHeaders._(
+    this._coffOffset,
+    this.fileHeader,
+    this.optionalHeader,
+    this.sectionTable,
+  );
 
   static CoffHeaders fromTypedData(TypedData source, int offset) {
     final fileHeader = CoffFileHeader.fromTypedData(source, offset);
     final optionalHeader = CoffOptionalHeader.fromTypedData(
-        source, offset + fileHeader.size, fileHeader.optionalHeaderSize);
+      source,
+      offset + fileHeader.size,
+      fileHeader.optionalHeaderSize,
+    );
     final sectionTable = CoffSectionTable.fromTypedData(
-        source,
-        offset + fileHeader.size + optionalHeader.size,
-        fileHeader.sectionCount);
+      source,
+      offset + fileHeader.size + optionalHeader.size,
+      fileHeader.sectionCount,
+    );
     return CoffHeaders._(offset, fileHeader, optionalHeader, sectionTable);
   }
 
@@ -221,8 +242,10 @@ class CoffHeaders {
   // Returns the new section header.
   CoffSectionHeader addSnapshotSectionHeader(int length) {
     final oldHeadersSize = optionalHeader.headersSize;
-    final address =
-        align(sectionTable.addressEnd, optionalHeader.sectionAlignment);
+    final address = align(
+      sectionTable.addressEnd,
+      optionalHeader.sectionAlignment,
+    );
     final offset = align(sectionTable.offsetEnd, optionalHeader.fileAlignment);
 
     // Create and fill the new section header entry.
@@ -241,8 +264,9 @@ class CoffHeaders {
     // Adjust the header size stored in the optional header, which must be
     // a multiple of fileAlignment.
     optionalHeader.headersSize = align(
-        _coffOffset + fileHeader.size + optionalHeader.size + sectionTable.size,
-        optionalHeader.fileAlignment);
+      _coffOffset + fileHeader.size + optionalHeader.size + sectionTable.size,
+      optionalHeader.fileAlignment,
+    );
 
     // If the size of the headers changed, we'll need to adjust the section
     // offsets.
@@ -255,7 +279,8 @@ class CoffHeaders {
       if (size ~/ optionalHeader.sectionAlignment !=
           oldHeadersSize ~/ optionalHeader.sectionAlignment) {
         throw StateError(
-            'Adding the snapshot would require adjusting virtual addresses');
+          'Adding the snapshot would require adjusting virtual addresses',
+        );
       }
       assert(headersSizeDiff % optionalHeader.fileAlignment == 0);
       for (final entry in sectionTable.entries) {
@@ -266,8 +291,9 @@ class CoffHeaders {
     // Adjust the image size stored in the optional header, which must be a
     // multiple of section alignment (as it is the size in memory, not on disk).
     optionalHeader.imageSize = align(
-        newHeader.virtualAddress + newHeader.virtualSize,
-        optionalHeader.sectionAlignment);
+      newHeader.virtualAddress + newHeader.virtualSize,
+      optionalHeader.sectionAlignment,
+    );
 
     return newHeader;
   }
@@ -288,8 +314,12 @@ class PortableExecutable {
   final int sourceFileHeaderOffset;
   final int sourceSectionContentsOffset;
 
-  PortableExecutable._(this.source, this.headers, this.sourceFileHeaderOffset,
-      this.sourceSectionContentsOffset);
+  PortableExecutable._(
+    this.source,
+    this.headers,
+    this.sourceFileHeaderOffset,
+    this.sourceSectionContentsOffset,
+  );
 
   static const _expectedPESignature = <int>[80, 69, 0, 0];
   static const _offsetForPEOffset = 0x3c;
@@ -307,7 +337,11 @@ class PortableExecutable {
     final headers = CoffHeaders.fromTypedData(source, fileHeaderOffset);
     final sectionContentsOffset = headers.size;
     return PortableExecutable._(
-        source, headers, fileHeaderOffset, sectionContentsOffset);
+      source,
+      headers,
+      fileHeaderOffset,
+      sectionContentsOffset,
+    );
   }
 
   Future<void> appendSnapshotAndWrite(File output, File snapshot) async {
@@ -317,8 +351,9 @@ class PortableExecutable {
     // Write headers with additional snapshot section.
     final snapshotBytes = await snapshot.readAsBytes();
     final oldOffsetEnd = headers.sectionTable.offsetEnd;
-    final snapshotSectionHeader =
-        headers.addSnapshotSectionHeader(snapshotBytes.length);
+    final snapshotSectionHeader = headers.addSnapshotSectionHeader(
+      snapshotBytes.length,
+    );
     await headers.write(stream);
     // Write original section contents.
     await stream.writeFrom(source, sourceSectionContentsOffset, oldOffsetEnd);
@@ -333,13 +368,16 @@ class PortableExecutable {
     // Verify that snapshot section will start at the expected offset
     // and throw an error otherwise.
     if (expectedSnapshotOffset != currentOffset) {
-      throw StateError('Unexpected snapshot section offset: '
-          'expected $expectedSnapshotOffset, got $currentOffset');
+      throw StateError(
+        'Unexpected snapshot section offset: '
+        'expected $expectedSnapshotOffset, got $currentOffset',
+      );
     }
     // Write snapshot with alignment padding.
     await stream.writeFrom(snapshotBytes);
     currentOffset = await stream.position();
-    final padding = align(currentOffset, headers.optionalHeader.fileAlignment) -
+    final padding =
+        align(currentOffset, headers.optionalHeader.fileAlignment) -
         currentOffset;
     if (padding > 0) {
       await stream.writeFrom(Uint8List(padding));
@@ -354,7 +392,10 @@ class PortableExecutable {
 // WARNING: this method is used within google3, so don't try to refactor so
 // [dartaotruntimePath] is a constant inside this file.
 Future<void> writeAppendedPortableExecutable(
-    String dartaotruntimePath, String payloadPath, String outputPath) async {
+  String dartaotruntimePath,
+  String payloadPath,
+  String outputPath,
+) async {
   final originalExecutableFile = File(dartaotruntimePath);
   final newSegmentFile = File(payloadPath);
   final outputFile = File(outputPath);

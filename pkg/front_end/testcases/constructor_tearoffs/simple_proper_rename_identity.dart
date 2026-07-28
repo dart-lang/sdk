@@ -32,5 +32,4 @@ test3() => const StaticIdentityTest(A3.new, B3.new); // Ok.
 test4() => const StaticIdentityTest(A4.new, B4.new); // Error.
 test5() => const StaticIdentityTest(A5.new, B5.new); // Error.
 
-
 main() {}

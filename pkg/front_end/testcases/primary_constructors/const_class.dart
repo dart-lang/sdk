@@ -12,7 +12,7 @@ class const C1() {
 
 class const C2(int x) {
   final int x;
-  this: x = x {}
+  this : x = x {}
 }
 
 class const C3(final int x) {
@@ -40,6 +40,7 @@ extension type const ET2.someName(int v) {
 
 enum E0 {
   e0(0);
+
   final int v;
 
   const E0(this.v) {}
@@ -47,17 +48,20 @@ enum E0 {
 
 enum E1(final int v) {
   e0(0);
+
   this {}
 }
 
 enum const E2.someName(this.v) {
   e0.someName(0);
+
   final int v;
   this {}
 }
 
 enum const E3(int v) {
   e0(0);
+
   final int v;
-  this: v = v {}
+  this : v = v {}
 }

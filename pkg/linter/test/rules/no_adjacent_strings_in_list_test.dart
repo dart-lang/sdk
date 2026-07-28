@@ -18,7 +18,7 @@ class NoAdjacentStringsInListTest extends LintRuleTest {
   String get lintRule => LintNames.no_adjacent_strings_in_list;
 
   test_adjacentStrings_three() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var list = [
   [!'a'
   'b'
@@ -28,7 +28,7 @@ var list = [
   }
 
   test_forElement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var list = [
   for (var v in []) [!'a'
   'b'!]
@@ -37,7 +37,7 @@ var list = [
   }
 
   test_ifElement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var list = [
   if (1 == 2) [!'a'
   'b'!]
@@ -46,7 +46,7 @@ var list = [
   }
 
   test_ifElementWithElse_inElse() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var list = [
   if (1 == 2) 'a'
   else [!'b' 'c'!]
@@ -65,7 +65,7 @@ var list = [
   }
 
   test_listLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var list = [
   [!'a'
   'b'!],
@@ -85,7 +85,7 @@ var list = [
   }
 
   test_setLiteral() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 var set = {
   [!'a'
   'b'!],
@@ -105,7 +105,7 @@ var set = {
   }
 
   test_switchPattern() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 void f() {
   List<String?> row = [];
   switch (row) {

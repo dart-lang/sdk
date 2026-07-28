@@ -22,15 +22,10 @@ typedef _OffsetLength = ({int offset, int length});
 class DartUnitHoverComputer {
   final CompilationUnit _unit;
   final int _offset;
-  final DocumentationPreference documentationPreference;
   final DartDocumentationComputer _documentationComputer;
 
-  new(
-    DartdocDirectiveInfo dartdocInfo,
-    this._unit,
-    this._offset, {
-    this.documentationPreference = DocumentationPreference.full,
-  }) : _documentationComputer = DartDocumentationComputer(dartdocInfo);
+  new(DartdocDirectiveInfo dartdocInfo, this._unit, this._offset)
+    : _documentationComputer = DartDocumentationComputer(dartdocInfo);
 
   /// Returns the computed hover, maybe `null`.
   HoverInformation? compute() {
@@ -85,10 +80,7 @@ class DartUnitHoverComputer {
           hover.containingLibraryPath = libraryInfo?.libraryPath;
         }
         // documentation
-        hover.dartdoc = _documentationComputer.computePreferred(
-          element,
-          documentationPreference,
-        );
+        hover.dartdoc = _documentationComputer.compute(element)?.full;
       }
       // parameter
       hover.parameter = _parameterDisplayString(node);

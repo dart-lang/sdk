@@ -258,14 +258,12 @@ Future<TestResult<T>> runTestForConfig<T>(
   }
   options.packagesFileUri = config.packageConfigUri;
   dynamic customData = config.customizeCompilerOptions(options, testData);
-  InternalCompilerResult compilerResult =
-      await compileScript(
-            testData.memorySourceFiles,
-            options: options,
-            retainDataForTesting: true,
-            requireMain: false,
-          )
-          as InternalCompilerResult;
+  InternalCompilerResult compilerResult = await compileScript(
+    testData.memorySourceFiles,
+    options: options,
+    retainDataForTesting: true,
+    requireMain: false,
+  ) as InternalCompilerResult;
 
   CfeTestResultData testResultData = new CfeTestResultData(
     config,

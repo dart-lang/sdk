@@ -320,14 +320,14 @@ class FormalParameterBuilder extends NamedBuilderImpl
   /// [buildOutlineExpressions].
   Token? _defaultValueToken;
 
-  bool initializerWasInferred = false;
+  bool defaultValueWasInferred = false;
 
-  /// True if the initializer was declared by the programmer.
-  final bool hasImmediatelyDeclaredInitializer;
+  /// True if the default value was declared by the programmer.
+  final bool hasImmediatelyDeclaredDefaultValue;
 
   /// True if the initializer was declared by the programmer, either directly
   /// or inferred from a super parameter.
-  bool hasDeclaredInitializer;
+  bool hasDeclaredDefaultValue;
 
   final bool isExtensionThis;
 
@@ -350,13 +350,13 @@ class FormalParameterBuilder extends NamedBuilderImpl
     required this.fileUri,
     this.isExtensionThis = false,
     Token? defaultValueToken,
-    required this.hasImmediatelyDeclaredInitializer,
+    required this.hasImmediatelyDeclaredDefaultValue,
     int? wildcardIndex,
     this.publicName,
     required this.nameOffset,
     this.isPrimaryConstructorParameter = false,
     InternalFunctionParameter? variable,
-  }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
+  }) : this.hasDeclaredDefaultValue = hasImmediatelyDeclaredDefaultValue,
        this._defaultValueToken = defaultValueToken,
        this._wildcardIndex = wildcardIndex,
        this._variable = variable {
@@ -446,7 +446,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
             isInitializingFormal: isInitializingFormal,
             isSuperInitializingFormal: isSuperInitializingFormal,
             isFinal: modifiers.isFinal,
-            hasDeclaredDefaultValue: hasDeclaredInitializer,
+            hasDeclaredDefaultValue: hasDeclaredDefaultValue,
             isLowered: isExtensionThis,
             isSynthesized: name == noNameSentinel,
             isWildcard: isWildcard,
@@ -464,9 +464,10 @@ class FormalParameterBuilder extends NamedBuilderImpl
             isInitializingFormal: isInitializingFormal,
             isSuperInitializingFormal: isSuperInitializingFormal,
             isFinal: modifiers.isFinal,
-            hasDeclaredDefaultValue: hasDeclaredInitializer,
+            hasDeclaredDefaultValue: hasDeclaredDefaultValue,
             isSynthesized: name == noNameSentinel,
             isWildcard: isWildcard,
+            isRenamedPrivateNamedParameter: publicName != null,
             isImplicitlyTyped: isTypeOmitted,
             fileOffset: fileOffset,
           );
@@ -489,40 +490,39 @@ class FormalParameterBuilder extends NamedBuilderImpl
     takeMetadata();
     // For const constructors we need to include default parameter values
     // into the outline. For all other formals we need to call
-    // buildOutlineExpressions to clear initializerToken to prevent
+    // buildOutlineExpressions to clear defaultValueToken to prevent
     // consuming too much memory.
-    Token? initializerToken = _takeDefaultValueToken();
+    Token? defaultValueToken = _takeDefaultValueToken();
     if (_needsDefaultValuesBuiltAsOutlineExpressions(memberBuilder)) {
-      if (initializerToken != null) {
+      if (defaultValueToken != null) {
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
           libraryBuilder,
           declarationBuilder,
           this,
         );
-        assert(!initializerWasInferred);
+        assert(!defaultValueWasInferred);
         Resolver resolver = libraryBuilder.loader.createResolver();
-        Expression initializer = resolver.buildParameterInitializer(
+        Expression defaultValue = resolver.buildParameterDefaultValue(
           libraryBuilder: libraryBuilder,
           bodyBuilderContext: bodyBuilderContext,
           extensionScope: extensionScope,
           scope: scope,
           fileUri: fileUri,
-          initializerToken: initializerToken,
+          defaultValueToken: defaultValueToken,
           declaredType: variable.type,
-          hasDeclaredInitializer: hasDeclaredInitializer,
+          hasDeclaredDefaultValue: hasDeclaredDefaultValue,
         );
-        variable.astVariable.initializer = initializer
-          ..parent = variable.astVariable;
-        if (initializer is InvalidExpression) {
-          variable.isErroneouslyInitialized = true;
+        variable.setInferredDefaultValue(defaultValue);
+        if (defaultValue is InvalidExpression) {
+          variable.hasErroneousDefaultValue = true;
         }
-        initializerWasInferred = true;
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
-        variable.astVariable.initializer = extern.createNullLiteral(
-          fileOffset: fileOffset,
-        )..parent = variable.astVariable;
+        variable.setInferredDefaultValue(
+          extern.createNullLiteral(fileOffset: fileOffset),
+        );
       }
+      defaultValueWasInferred = true;
     }
   }
 
@@ -586,7 +586,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
       fileUri: fileUri,
       isExtensionThis: isExtensionThis,
       defaultValueToken: copyDefaultValueToken(),
-      hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+      hasImmediatelyDeclaredDefaultValue: hasImmediatelyDeclaredDefaultValue,
       publicName: publicName,
       wildcardIndex: _wildcardIndex,
       isPrimaryConstructorParameter: !isDeclaring,

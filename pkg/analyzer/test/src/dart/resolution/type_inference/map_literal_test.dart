@@ -54,7 +54,7 @@ Map<String, int> a = {f()};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MethodInvocation
       methodName: SimpleIdentifier
         token: f
@@ -86,7 +86,7 @@ Map<E, String> a = {.one};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
@@ -117,7 +117,7 @@ Map<E, String> a = {.};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
@@ -145,15 +145,15 @@ Map<String, int> a = {if (true) f()};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
         staticType: bool
       rightParenthesis: )
-      thenElement: MethodInvocation
+      thenElement2: MethodInvocation
         methodName: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::f
@@ -254,10 +254,10 @@ MethodInvocation
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       NullLiteral
         literal: null
-        correspondingParameter: ParameterMember
+        correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::f::@formalParameter::t
           substitution: {T: Map<int, double>?}
         staticType: Null
@@ -663,7 +663,7 @@ var a = <int, String>{1};
     assertType(result.findNode.setOrMapLiteral('{'), 'Map<int, String>');
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_noContext_typeArgs_expressions_conflictingTypeArgs() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var a = <int>{1 : 2, 3 : 4};

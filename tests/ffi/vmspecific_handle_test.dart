@@ -243,23 +243,33 @@ class SomeClassWithMethod {
 
 void testDeepRecursive() {
   // works on arm.
+  print("checking handleRecursion(123, recurseAbove0Pointer, 1) throws");
   Expect.throws(() {
     handleRecursion(123, recurseAbove0Pointer, 1);
-  });
+  }, (e) => e is! StackOverflowError);
 
+  print(
+    "checking handleRecursion(SomeClassWithMethod(), recurseAbove0Pointer, 1) throws",
+  );
   Expect.throws(() {
     handleRecursion(SomeClassWithMethod(), recurseAbove0Pointer, 1);
-  });
+  }, (e) => e is! StackOverflowError);
 
+  // Even depths throw. This depth currently works for the intepreter as well
+  // as compiled code.
+  int maxRecursiveDepth = 43;
+  print("checking recurseAbove0(${maxRecursiveDepth - 1}) throws");
   Expect.throws(() {
-    recurseAbove0(100);
-  });
+    recurseAbove0(maxRecursiveDepth - 1);
+  }, (e) => e is! StackOverflowError);
 
-  final result = recurseAbove0(101);
+  print("checking recurseAbove0($maxRecursiveDepth) does not throw");
+  final result = recurseAbove0(maxRecursiveDepth);
   Expect.isTrue(identical(someObject, result));
 }
 
 void testNoHandlePropagateError() {
+  print("testNoHandlePropagateError");
   bool throws = false;
   try {
     final result = propagateErrorWithoutHandle(exceptionHandleCallbackPointer);
@@ -274,6 +284,7 @@ void testNoHandlePropagateError() {
 }
 
 void testThrowOnReturnOfError() {
+  print("testThrowOnReturnOfError");
   bool throws = false;
   try {
     final result = autoPropagateErrorInHandle(exceptionHandleCallbackPointer);

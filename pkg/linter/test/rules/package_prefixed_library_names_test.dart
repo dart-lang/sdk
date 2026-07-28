@@ -19,7 +19,7 @@ class PackagePrefixedLibraryNamesTest extends LintRuleTest {
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3395')
   test_badName() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 library [!linter.not_where_it_should_be!];
 ''');
   }

@@ -14,7 +14,6 @@ class C4([e = 0]);
 
 class C5({f = true});
 
-
 test() {
   C0(''); // Error
   C1(0); // Error

@@ -24,6 +24,7 @@
 // Function(String)`.
 
 import 'package:expect/expect.dart';
+
 import '../static_type_helper.dart';
 
 class C {

@@ -22,7 +22,7 @@ class PreferConstConstructorsInImmutablesTest extends LintRuleTest {
   String get lintRule => LintNames.prefer_const_constructors_in_immutables;
 
   test_assertInitializer_canBeConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 
 @immutable
@@ -33,7 +33,7 @@ class C {
   }
 
   test_assertInitializer_canBeConst_enumComparison() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 
 enum E { a, b }
@@ -71,7 +71,7 @@ class B extends A {
   }
 
   test_extendsImmutable_nonConstConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
@@ -113,7 +113,7 @@ extension type const E(int i) { }
   }
 
   test_extensionType_nonConstConstructor_named() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 extension type const E(int i) {
@@ -123,7 +123,7 @@ extension type const E(int i) {
   }
 
   test_extensionType_nonConstConstructor_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 extension type [!E!](int i) { }
@@ -203,7 +203,7 @@ class C(final int i) {
   }
 
   test_immutable_constSuperCall_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 class C {
   const C();
@@ -216,7 +216,7 @@ class [!D!](final int i) extends C {
   }
 
   test_immutable_enumComparisonInInitializerList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 
 enum E { a, b }
@@ -230,7 +230,7 @@ class C {
   }
 
   test_immutable_factoryConstructor_toConstConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -275,7 +275,7 @@ class C with M {
   }
 
   test_immutable_implicitConstSuperCall_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 class C {
   const C();
@@ -295,7 +295,7 @@ class D(final int i) extends C;
   }
 
   test_immutable_nonConstConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
@@ -305,7 +305,7 @@ class A {
   }
 
   test_immutable_nonConstConstructor_newSyntax() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
@@ -315,7 +315,7 @@ class A {
   }
 
   test_immutable_nonConstConstructor_primary() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class [!C!](final int i);
@@ -323,7 +323,7 @@ class [!C!](final int i);
   }
 
   test_immutable_nonConstFactory() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -345,7 +345,7 @@ class C {
   }
 
   test_immutable_nonConstInInitializerList2() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -356,7 +356,7 @@ class C {
   }
 
   test_immutable_nonConstInInitializerList3() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -367,7 +367,7 @@ class C {
   }
 
   test_immutable_nonConstInInitializerList4() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -378,7 +378,7 @@ class C {
   }
 
   test_immutable_nonConstInInitializerList5() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -412,7 +412,7 @@ class D(final int i) extends C {
   }
 
   test_immutable_redirectingConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -423,7 +423,7 @@ class C {
   }
 
   test_immutable_redirectingConstructor_toConst() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @immutable
 class C {
@@ -434,7 +434,7 @@ class C {
   }
 
   test_immutableInstantiation_nonConstConstructor() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 import 'package:meta/meta.dart';
 @Immutable('')
 class A {

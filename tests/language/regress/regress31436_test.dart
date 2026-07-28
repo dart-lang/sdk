@@ -49,8 +49,7 @@ void arrow_test() {
     g().add("hello"); // runtime error
   });
   dynamic o = l;
-  g = () =>
-      o; // No implicit downcast on the assignment, implicit downcast on the return
+  g = () => o; // No implicit downcast on the assignment, implicit downcast on the return
   Expect.isTrue(g is List<Object> Function());
   Expect.isFalse(g is List<int> Function());
   Expect.isTrue(g is Object Function());

@@ -14,8 +14,6 @@ extension GenericExtension<T> on GenericClass<T> {
   method() {}
 }
 
-
-
 main() {
   String s = '';
 

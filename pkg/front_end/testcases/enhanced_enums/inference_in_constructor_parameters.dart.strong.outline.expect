@@ -40,6 +40,6 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inference_in_constru
 Evaluated: ListLiteral @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:7:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "bar"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:14:3 -> InstanceConstant(const E2<X% Function<X>(X%)>{_Enum.index: 0, _Enum._name: "bar"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:13:6 -> ListConstant(const <E2<dynamic>>[const E2<X% Function<X>(X%)>{_Enum.index: 0, _Enum._name: "bar"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:20:3 -> InstanceConstant(const E3<num, String, dynamic Function(num, String)>{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:19:70 -> InstanceConstant(const E3<num, String, dynamic Function(num, String)>{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:19:6 -> ListConstant(const <E3<num, String, dynamic Function(Never, Never)>>[const E3<num, String, dynamic Function(num, String)>{_Enum.index: 0, _Enum._name: "element"}])
 Extra constant evaluation: evaluated: 21, effectively constant: 6

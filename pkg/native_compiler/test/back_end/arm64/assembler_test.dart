@@ -13,6 +13,7 @@ import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:test/test.dart';
+
 import 'disassembler.dart' show Disassembler;
 
 void main() {
@@ -1283,6 +1284,48 @@ void main() {
       });
       expectThrows(() {
         asm.str(R0, RegOffsetAddress(R1, 0), .simd128);
+      });
+    });
+
+    test('ldar', () {
+      asm.ldar(R0, R1);
+      asm.ldar(R2, SP);
+      asm.ldar(R3, R4, .u32);
+      asm.ldar(R4, SP, .u16);
+      asm.ldar(R5, R0, .u8);
+      expectDisassembly(
+        'ldar r0, [r1]\n'
+        'ldar r2, [csp]\n'
+        'ldarw r3, [r4]\n'
+        'ldarh r4, [csp]\n'
+        'ldarb r5, [r0]\n',
+      );
+      expectThrows(() {
+        asm.ldar(R0, ZR);
+      });
+      expectThrows(() {
+        asm.ldar(R0, R1, .simd128);
+      });
+    });
+
+    test('stlr', () {
+      asm.stlr(R0, R1);
+      asm.stlr(R2, SP);
+      asm.stlr(R3, R4, .s32);
+      asm.stlr(R4, SP, .u16);
+      asm.stlr(R5, R0, .u8);
+      expectDisassembly(
+        'stlr r0, [r1]\n'
+        'stlr r2, [csp]\n'
+        'stlrw r3, [r4]\n'
+        'stlrh r4, [csp]\n'
+        'stlrb r5, [r0]\n',
+      );
+      expectThrows(() {
+        asm.stlr(R0, ZR);
+      });
+      expectThrows(() {
+        asm.stlr(R0, R1, .simd128);
       });
     });
 

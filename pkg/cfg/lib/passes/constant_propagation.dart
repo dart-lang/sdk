@@ -678,6 +678,7 @@ final class ConstantPropagation extends Pass
             phi.setInputAt(inputCount, phi.inputDefAt(i));
             phi.addInputToUseList(inputCount);
           }
+          block.predecessors[inputCount] = block.predecessors[i];
         }
         ++inputCount;
       } else {
@@ -692,6 +693,7 @@ final class ConstantPropagation extends Pass
       for (final phi in block.phis) {
         phi.truncateInputs(inputCount);
       }
+      block.predecessors.length = inputCount;
     }
   }
 

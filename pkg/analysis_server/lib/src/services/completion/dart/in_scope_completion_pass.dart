@@ -661,9 +661,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                     semicolon.type == TokenType.SEMICOLON &&
                     semicolon.next == dropped) {
                   collector.completionLocation = 'ClassDeclaration_member';
-                  identifierHelper(
-                    includePrivateIdentifiers: false,
-                  ).addSuggestionsFromTypeName(shouldBeTypeName.lexeme);
+                  identifierHelper(includePrivateIdentifiers: false)
+                      .addSuggestionsFromTypeName(shouldBeTypeName.lexeme);
                   return;
                 }
               }
@@ -689,9 +688,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       var hasSyntheticBody =
           body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
-      identifierHelper(
-        includePrivateIdentifiers: false,
-      ).addTopLevelName(includeBody: hasSyntheticBody);
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: hasSyntheticBody);
     } else if (offset <= body.leftBracket.offset) {
       keywordHelper.addClassDeclarationKeywords(node);
     } else if (offset >= body.leftBracket.end &&
@@ -800,9 +798,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         return;
       }
       var libraryElement = state.libraryElement;
-      declarationHelper(
-        mustBeConstant: constructorElement.isConst,
-      ).addPossibleRedirectionsInLibrary(constructorElement, libraryElement);
+      declarationHelper(mustBeConstant: constructorElement.isConst)
+          .addPossibleRedirectionsInLibrary(constructorElement, libraryElement);
     }
   }
 
@@ -844,9 +841,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.parent is ConstructorReference) {
       var element = node.type.element;
       if (element is InterfaceElement) {
-        declarationHelper(
-          preferNonInvocation: true,
-        ).addStaticMembersOfElement(element);
+        declarationHelper(preferNonInvocation: true)
+            .addStaticMembersOfElement(element);
       }
     } else {
       var type = node.type.type;
@@ -904,9 +900,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
 
     var enumElement = enumDeclaration.declaredFragment!.element;
-    declarationHelper(
-      suggestUnnamedAsNew: true,
-    ).addConstructorNamesForElement(element: enumElement);
+    declarationHelper(suggestUnnamedAsNew: true)
+        .addConstructorNamesForElement(element: enumElement);
   }
 
   @override
@@ -1195,9 +1190,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         if (function is SimpleIdentifier) {
           /// This might be the beginning of a local variable declatation
           /// consisting of a type name with type arguments.
-          identifierHelper(
-            includePrivateIdentifiers: false,
-          ).addSuggestionsFromTypeName(function.name);
+          identifierHelper(includePrivateIdentifiers: false)
+              .addSuggestionsFromTypeName(function.name);
         }
       }
     } else if (expression is MethodInvocation) {
@@ -1210,9 +1204,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       } else {
         /// This might be the beginning of a local variable declaration
         /// consisting of a type name.
-        identifierHelper(
-          includePrivateIdentifiers: false,
-        ).addSuggestionsFromTypeName(expression.type.name.lexeme);
+        identifierHelper(includePrivateIdentifiers: false)
+            .addSuggestionsFromTypeName(expression.type.name.lexeme);
       }
     } else if (expression is PrefixedIdentifier) {
       if (offset <= expression.prefix.end) {
@@ -1225,9 +1218,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       } else {
         /// This might be the beginning of a local variable declatation
         /// consisting of a prefixed type name.
-        identifierHelper(
-          includePrivateIdentifiers: false,
-        ).addSuggestionsFromTypeName(expression.identifier.name);
+        identifierHelper(includePrivateIdentifiers: false)
+            .addSuggestionsFromTypeName(expression.identifier.name);
       }
     } else if (expression is SimpleIdentifier) {
       if (offset <= expression.end) {
@@ -1235,9 +1227,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       } else {
         /// This might be the beginning of a local variable declatation
         /// consisting of a simple type name.
-        identifierHelper(
-          includePrivateIdentifiers: false,
-        ).addSuggestionsFromTypeName(expression.name);
+        identifierHelper(includePrivateIdentifiers: false)
+            .addSuggestionsFromTypeName(expression.name);
       }
     } else {
       _forExpression(node);
@@ -1279,16 +1270,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       // TODO(brianwilkerson): Consider adding both an `on` keyword and a body
       //  when none of them already exist.
-      identifierHelper(
-        includePrivateIdentifiers: false,
-      ).addTopLevelName(includeBody: false);
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: false);
       return;
     } else {
       // TODO(brianwilkerson): Consider adding both an `on` keyword and a body
       //  when none of them already exist.
-      identifierHelper(
-        includePrivateIdentifiers: false,
-      ).addTopLevelName(includeBody: false);
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: false);
     }
 
     if (node.body case BlockClassBody body) {
@@ -1344,9 +1333,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       var hasSyntheticBody =
           body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
-      identifierHelper(
-        includePrivateIdentifiers: false,
-      ).addTopLevelName(includeBody: hasSyntheticBody);
+      identifierHelper(includePrivateIdentifiers: false)
+          .addTopLevelName(includeBody: hasSyntheticBody);
     } else if (offset >= namePart.end &&
         (offset <= body.leftBracket.offset || body.leftBracket.isSynthetic)) {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
@@ -1516,9 +1504,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           // name for the parameter.
           var name = precedingParameter.name?.lexeme;
           if (name != null) {
-            identifierHelper(
-              includePrivateIdentifiers: false,
-            ).addSuggestionsFromTypeName(name);
+            identifierHelper(includePrivateIdentifiers: false)
+                .addSuggestionsFromTypeName(name);
           }
         }
       }
@@ -1810,9 +1797,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           if (pattern.expression case TypeLiteral typeLiteral) {
             var namedType = typeLiteral.type;
             if (namedType.end < offset) {
-              identifierHelper(
-                includePrivateIdentifiers: false,
-              ).addSuggestionsFromTypeName(namedType.name.lexeme);
+              identifierHelper(includePrivateIdentifiers: false)
+                  .addSuggestionsFromTypeName(namedType.name.lexeme);
               return;
             }
           }
@@ -1950,9 +1936,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.expression.isSynthetic &&
         node.type.isSynthetic &&
         isOperator.end == offset) {
-      declarationHelper(
-        mustBeStatic: node.inStaticContext,
-      ).addLexicalDeclarations(node);
+      declarationHelper(mustBeStatic: node.inStaticContext)
+          .addLexicalDeclarations(node);
       return;
     }
 
@@ -2158,9 +2143,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (offset <= node.name.end) {
         var hasSyntheticBody =
             body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
-        identifierHelper(
-          includePrivateIdentifiers: false,
-        ).addTopLevelName(includeBody: hasSyntheticBody);
+        identifierHelper(includePrivateIdentifiers: false)
+            .addTopLevelName(includeBody: hasSyntheticBody);
         return;
       }
 
@@ -2492,9 +2476,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           var mustBeAssignable =
               parent is AssignmentExpression && node == parent.leftHandSide;
           if (element is PrefixElement) {
-            declarationHelper(
-              mustBeAssignable: mustBeAssignable,
-            ).addDeclarationsThroughImportPrefix(element);
+            declarationHelper(mustBeAssignable: mustBeAssignable)
+                .addDeclarationsThroughImportPrefix(element);
           } else {
             var helper = declarationHelper(
               mustBeAssignable: mustBeAssignable,
@@ -2631,9 +2614,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       } else {
         collector.completionLocation =
             'PrimaryConstructorDeclaration_fieldName';
-        identifierHelper(
-          includePrivateIdentifiers: true,
-        ).addVariable(parameterType);
+        identifierHelper(includePrivateIdentifiers: true)
+            .addVariable(parameterType);
       }
     } else if (offsetIsAfterComma()) {
       // The user is adding a new parameter after [parameter].
@@ -2646,9 +2628,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forTypeAnnotation(node);
     } else {
       collector.completionLocation = 'PrimaryConstructorDeclaration_fieldName';
-      identifierHelper(
-        includePrivateIdentifiers: true,
-      ).addSuggestionsFromTypeName(nameToken.lexeme);
+      identifierHelper(includePrivateIdentifiers: true)
+          .addSuggestionsFromTypeName(nameToken.lexeme);
     }
   }
 
@@ -2878,9 +2859,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           var prefixElement = importPrefix.element;
           if (prefixElement is PrefixElement) {
             if (type.name.coversOffset(offset)) {
-              declarationHelper(
-                mustBeType: true,
-              ).addDeclarationsThroughImportPrefix(prefixElement);
+              declarationHelper(mustBeType: true)
+                  .addDeclarationsThroughImportPrefix(prefixElement);
             }
           }
         }
@@ -3024,9 +3004,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         _ => null,
       };
       if (superType != null) {
-        declarationHelper(
-          mustBeConstant: constructor.constKeyword != null,
-        ).addConstructorNamesForType(type: superType);
+        declarationHelper(mustBeConstant: constructor.constKeyword != null)
+            .addConstructorNamesForType(type: superType);
       }
     }
   }
@@ -3143,9 +3122,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         if (pattern.expression case TypeLiteral typeLiteral) {
           var namedType = typeLiteral.type;
           if (namedType.end < offset) {
-            identifierHelper(
-              includePrivateIdentifiers: false,
-            ).addSuggestionsFromTypeName(namedType.name.lexeme);
+            identifierHelper(includePrivateIdentifiers: false)
+                .addSuggestionsFromTypeName(namedType.name.lexeme);
             return;
           }
         }
@@ -3262,9 +3240,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (variableDeclarationList.type == null) {
         // The name might be a type and the user might be trying to type a name
         // for the variable.
-        identifierHelper(
-          includePrivateIdentifiers: true,
-        ).addSuggestionsFromTypeName(firstVariable.name.lexeme);
+        identifierHelper(includePrivateIdentifiers: true)
+            .addSuggestionsFromTypeName(firstVariable.name.lexeme);
       }
       return;
     }
@@ -3431,9 +3408,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         var canBePrivate =
             grandparent is FieldDeclaration ||
             grandparent is TopLevelVariableDeclaration;
-        identifierHelper(
-          includePrivateIdentifiers: canBePrivate,
-        ).addVariable(type);
+        identifierHelper(includePrivateIdentifiers: canBePrivate)
+            .addVariable(type);
       }
       if (grandparent is FieldDeclaration) {
         collector.completionLocation = 'FieldDeclaration_fields';
@@ -3750,9 +3726,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         .where((element) => element != excludedName)
         .map((element) => element.name)
         .toSet();
-    declarationHelper(
-      preferNonInvocation: true,
-    ).addFromLibrary(library, excludedNames);
+    declarationHelper(preferNonInvocation: true)
+        .addFromLibrary(library, excludedNames);
   }
 
   /// Adds the suggestions that are appropriate when the selection is at the
@@ -3991,9 +3966,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (!node.name.isSynthetic) {
         keywordHelper.addKeyword(Keyword.WHEN);
         if (node.type case NamedType namedType) {
-          identifierHelper(
-            includePrivateIdentifiers: false,
-          ).addSuggestionsFromTypeName(namedType.name.lexeme);
+          identifierHelper(includePrivateIdentifiers: false)
+              .addSuggestionsFromTypeName(namedType.name.lexeme);
         }
       }
     } else if (parent is PatternField) {
@@ -4150,9 +4124,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     };
     if (thisType != null) {
       var constructorName = constructor.name?.lexeme;
-      declarationHelper(
-        mustBeConstant: constructor.constKeyword != null,
-      ).addConstructorNamesForType(type: thisType, exclude: constructorName);
+      declarationHelper(mustBeConstant: constructor.constKeyword != null)
+          .addConstructorNamesForType(type: thisType, exclude: constructorName);
     }
   }
 
@@ -4552,9 +4525,9 @@ extension on AstNode {
     while (enclosingMember != null) {
       if (enclosingMember is MethodDeclaration) {
         return enclosingMember.isStatic;
-      } else if (enclosingMember.parent case ConstructorDeclaration(
-        :var factoryKeyword,
-      ) when enclosingMember is FunctionBody) {
+      } else if (enclosingMember.parent
+          case ConstructorDeclaration(:var factoryKeyword)
+          when enclosingMember is FunctionBody) {
         return factoryKeyword != null;
       } else if (enclosingMember is VariableDeclarationList &&
           enclosingMember.parent is FieldDeclaration) {

@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension type const E(int? n) {}
+
 const E e = null as E;

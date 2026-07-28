@@ -7,6 +7,7 @@
 // implemented (as interface).
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 
 class A extends FutureOr<String> {}

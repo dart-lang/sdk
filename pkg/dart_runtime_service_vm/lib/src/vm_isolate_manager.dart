@@ -76,14 +76,18 @@ final class VmIsolateManager extends IsolateManager {
       sendPort: sendPort,
       isSystemIsolate: isSystemIsolate,
     );
-    _logger.info('Isolate startup message received for $isolate');
+    if (_logger.isLoggable(Level.FINE)) {
+      _logger.fine('Isolate startup message received for $isolate');
+    }
     isolateStarted(isolate: isolate, isSystemIsolate: isSystemIsolate);
   }
 
   /// Reports that an isolate is shutting down based on a message over the
   /// service's control port.
   void onIsolateShutdownMessage({required int id}) {
-    _logger.info('Received isolate shutdown message for isolate $id');
+    if (_logger.isLoggable(Level.FINE)) {
+      _logger.fine('Received isolate shutdown message for isolate $id');
+    }
     isolateExited(id: id);
   }
 

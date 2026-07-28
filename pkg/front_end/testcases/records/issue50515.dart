@@ -5,7 +5,7 @@
 class A {
   const A();
 
-  bool operator==(Object other) => false;
+  bool operator ==(Object other) => false;
 }
 
-test() => const <(A,)>{ (A(),) };
+test() => const <(A,)>{(A(),)};

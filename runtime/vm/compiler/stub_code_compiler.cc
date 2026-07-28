@@ -1143,13 +1143,15 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime);
+  __ BranchIf(EQUAL, &call_runtime, Assembler::kFarJump);
 
   // Use the number of inputs used by the STC to determine which stub to call.
-  Label call_2, call_3, call_4, call_6;
+  Label call_1, call_2, call_3, call_4, call_6;
   __ Comment("Check number of STC inputs");
   __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
                   Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(TypeTestABI::kScratchReg, 1);
+  __ BranchIf(EQUAL, &call_1, Assembler::kFarJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 2);
   __ BranchIf(EQUAL, &call_2, Assembler::kNearJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 3);
@@ -1165,8 +1167,8 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
     __ Call(StubCodeSubtype7TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime, Assembler::kNearJump);
+    __ BranchIf(EQUAL, &done, Assembler::kFarJump);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kFarJump);
   }
 
   __ Bind(&call_6);
@@ -1175,7 +1177,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
     __ Call(StubCodeSubtype6TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ BranchIf(EQUAL, &done, Assembler::kFarJump);  // Cache said: yes.
     __ Jump(&call_runtime, Assembler::kNearJump);
   }
 
@@ -1203,6 +1205,16 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   {
     __ Comment("Call 2 input STC check");
     __ Call(StubCodeSubtype2TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_1);
+  {
+    __ Comment("Call 1 input STC check");
+    __ Call(StubCodeSubtype1TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.

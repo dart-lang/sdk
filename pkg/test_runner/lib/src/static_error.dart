@@ -608,8 +608,6 @@ class ParsedStaticErrorExpectations {
   int? numberOf(StaticError error) => _numbers[error];
 }
 
-
-
 String _resolveMarkerPath(String containingPath, String markerPath) {
   return p.normalize(p.join(p.dirname(containingPath), markerPath));
 }

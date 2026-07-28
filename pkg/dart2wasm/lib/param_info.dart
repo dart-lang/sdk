@@ -38,11 +38,11 @@ class ParameterInfo {
 
   int get paramCount => positional.length + named.length;
 
-  static Constant? _defaultValue(Variable param) {
-    Expression? initializer = param.initializer;
-    if (initializer is ConstantExpression) {
-      return initializer.constant;
-    } else if (initializer == null) {
+  static Constant? _defaultValue(FunctionParameter param) {
+    Expression? defaultValue = param.defaultValue;
+    if (defaultValue is ConstantExpression) {
+      return defaultValue.constant;
+    } else if (defaultValue == null) {
       return null;
     } else {
       throw "Non-constant default value";
@@ -90,11 +90,11 @@ class ParameterInfo {
       });
 
       final named = {
-        for (Variable param in function.namedParameters)
+        for (NamedParameter param in function.namedParameters)
           if (param.isRequired)
-            param.name!: null
+            param.parameterName: null
           else
-            param.name!: useDefaultValueSentinel
+            param.parameterName: useDefaultValueSentinel
                 ? defaultValueSentinel
                 : _defaultValue(param)!,
       };
@@ -120,8 +120,8 @@ class ParameterInfo {
       return _defaultValue(function.positionalParameters[i]);
     });
     final named = {
-      for (Variable param in function.namedParameters)
-        param.name!: _defaultValue(param),
+      for (NamedParameter param in function.namedParameters)
+        param.parameterName: _defaultValue(param),
     };
     return ParameterInfo._(true, typeParamCount, positional, named);
   }

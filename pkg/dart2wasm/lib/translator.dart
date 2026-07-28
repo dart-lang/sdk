@@ -22,13 +22,13 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
+import 'compiler_options.dart';
 import 'constants.dart';
 import 'constructor_info.dart';
 import 'dispatch_table.dart';
 import 'dynamic_dispatch_table.dart';
 import 'dynamic_dispatchers.dart';
 import 'functions.dart';
-import 'generate_wasm.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
 import 'modules.dart';
@@ -58,6 +58,7 @@ class TranslatorOptions {
   bool? omitImplicitTypeChecksOverride;
   bool omitExplicitTypeChecks = false;
   bool? omitBoundsChecksOverride;
+  bool? omitErrorDetailsOverride;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
@@ -78,6 +79,8 @@ class TranslatorOptions {
 
   bool get inlining => inliningOverride ?? optimizationLevel >= 1;
   bool get minify => minifyOverride ?? optimizationLevel >= 2;
+  bool get omitErrorDetails =>
+      omitErrorDetailsOverride ?? optimizationLevel >= 2;
   bool get omitImplicitTypeChecks =>
       omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
   bool get omitBoundsChecks =>
@@ -566,13 +569,24 @@ class Translator with KernelNodes {
     }
     _printFunction(mainModule.startFunction, "init");
 
+    final neededForLoadList = <ModuleMetadata>{
+      for (
+        int loadId = 0;
+        loadId < loadingMap.dominatingLoadIds.length;
+        ++loadId
+      )
+        if (loadingMap.dominatingLoadIds[loadId]?.isNotEmpty ?? false)
+          loadingMap.dedicatedModule[loadId]!,
+    };
+
     // Remove empty modules.
     _outputToBuilder.removeWhere((outputModule, moduleBuilder) {
       if (moduleBuilder == mainModule) {
         assert(!moduleBuilder.hasNoEffect);
         return false;
       }
-      return moduleBuilder.hasNoEffect;
+      return moduleBuilder.hasNoEffect &&
+          !neededForLoadList.contains(outputModule);
     });
 
     // Now that we know which modules we're going to emit, let's prune the
@@ -643,6 +657,7 @@ class Translator with KernelNodes {
     // Make a global containing the load id -> module id list table.
     final loadingMapGlobal = mainModule.globals.define(
       w.GlobalType(w.RefType(arrayOfNullableByteArray, nullable: false)),
+      'deferredLoadLists',
     );
     loadingMapGlobal.initializer
       ..i32_const(moduleMap.length)
@@ -655,43 +670,38 @@ class Translator with KernelNodes {
       ..end();
 
     // Emit code to initialize the load id -> module id list table.
-    final startFunction = mainModule.startFunction.body;
-    final encodedSegment = mainModule.dataSegments.define();
-    for (int i = 0; i < moduleMap.length; ++i) {
-      final moduleNames = moduleMap[i];
-      if (moduleNames.isEmpty) continue;
-
-      // We sort the module ids increasingly, thereby allowing us to encode them
-      // via delta to previous module id.
-      final moduleIds = <int>[];
-      for (int k = 0; k < moduleNames.length; ++k) {
-        final moduleId = WasmCompilerOptions.idFromDeferredModuleFilename(
-          moduleNames[k].moduleName,
-        );
-        moduleIds.add(moduleId);
+    final encodedSegments = <w.ModuleBuilder, w.DataSegmentBuilder>{};
+    for (int loadId = 0; loadId < moduleMap.length; ++loadId) {
+      final moduleList = moduleMap[loadId];
+      final domLoadId = loadingMap.dominatingLoadId[loadId];
+      if (domLoadId == null) {
+        assert(moduleList.isEmpty);
+        // This must be the root module. It has only one module and it's loaded
+        // by the application loader, so nothing to do here.
+        continue;
       }
-      moduleIds.sort();
 
-      // Make the encoded list of module ids.
-      final moduleIdsEncoded = BytesBuilder();
-      moduleIdsEncoded.writeULEB128(moduleNames.length);
-      int lastId = 0;
-      for (int i = 0; i < moduleIds.length; ++i) {
-        final moduleId = moduleIds[i];
-        final diff = moduleId - lastId;
-        moduleIdsEncoded.writeULEB128(diff);
-        lastId = moduleId;
-      }
+      if (moduleList.isEmpty) continue;
+
+      final moduleIdsEncoded = encodeLoadList(moduleList);
+
+      final dominatorModuleMetadata = loadingMap.dedicatedModule[domLoadId]!;
+      final dominatorModuleBuilder = _outputToBuilder[dominatorModuleMetadata]!;
+      final startFunction = dominatorModuleBuilder.startFunction.body;
+      final dataSegment = encodedSegments.putIfAbsent(
+        dominatorModuleBuilder,
+        () => dominatorModuleBuilder.dataSegments.define(),
+      );
 
       // Append the encoded module id list to the data segment & make start
       // function patch the runtime with the list.
-      startFunction.global_get(loadingMapGlobal);
-      startFunction.i32_const(i);
+      globals.readGlobal(startFunction, loadingMapGlobal);
+      startFunction.i32_const(loadId);
       {
-        startFunction.i32_const(encodedSegment.length);
+        startFunction.i32_const(dataSegment.length);
         startFunction.i32_const(moduleIdsEncoded.length);
-        startFunction.array_new_data(byteArrayType, encodedSegment);
-        encodedSegment.append(moduleIdsEncoded.takeBytes());
+        startFunction.array_new_data(byteArrayType, dataSegment);
+        dataSegment.append(moduleIdsEncoded);
       }
       startFunction.array_set(arrayOfNullableByteArray);
     }
@@ -708,6 +718,31 @@ class Translator with KernelNodes {
     _replaceBody(prefixGetter)
       ..global_get(getInternalizedStringGlobal(mainModule, prefix))
       ..end();
+  }
+
+  Uint8List encodeLoadList(List<ModuleMetadata> moduleList) {
+    // We sort the module ids increasingly, thereby allowing us to encode them
+    // via delta to previous module id.
+    final moduleIds = <int>[];
+    for (int k = 0; k < moduleList.length; ++k) {
+      final moduleId = WasmCompilerOptions.idFromDeferredModuleFilename(
+        moduleList[k].moduleName,
+      );
+      moduleIds.add(moduleId);
+    }
+    moduleIds.sort();
+
+    // Make the encoded list of module ids.
+    final moduleIdsEncoded = BytesBuilder();
+    moduleIdsEncoded.writeULEB128(moduleList.length);
+    int lastId = 0;
+    for (int idIndex = 0; idIndex < moduleIds.length; ++idIndex) {
+      final moduleId = moduleIds[idIndex];
+      final diff = moduleId - lastId;
+      moduleIdsEncoded.writeULEB128(diff);
+      lastId = moduleId;
+    }
+    return moduleIdsEncoded.takeBytes();
   }
 
   void _patchLoadingMapNamesGetter(w.FunctionBuilder function) {
@@ -1730,9 +1765,9 @@ class Translator with KernelNodes {
   ({
     List<TypeParameter> typeParameters,
     List<DartType> typeParametersToTypeCheck,
-    List<Variable> positional,
+    List<PositionalParameter> positional,
     List<DartType> positionalToTypeCheck,
-    List<Variable> named,
+    List<NamedParameter> named,
     List<DartType> namedToTypeCheck,
   })
   getParametersToCheck(Member member) {
@@ -1740,8 +1775,9 @@ class Translator with KernelNodes {
     final List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
-    final List<Variable> positional = memberFunction.positionalParameters;
-    final List<Variable> named = memberFunction.namedParameters;
+    final List<PositionalParameter> positional =
+        memberFunction.positionalParameters;
+    final List<NamedParameter> named = memberFunction.namedParameters;
 
     // If this is a CFE-inserted `forwarding-stub` then the types we have to
     // check against are those from the forwarding target.
@@ -1797,8 +1833,8 @@ class Translator with KernelNodes {
   }
 
   List<DartType> _typeFromNamedParameters(
-    List<Variable> namedOrder,
-    List<Variable> namedType,
+    List<NamedParameter> namedOrder,
+    List<NamedParameter> namedType,
   ) {
     if (namedOrder.isEmpty) return const [];
     final namedTypes = <DartType>[];
@@ -1808,7 +1844,7 @@ class Translator with KernelNodes {
 
       for (int j = 0; j < namedType.length; ++j) {
         final other = namedType[j];
-        if (named.name == other.name) {
+        if (named.parameterName == other.parameterName) {
           type = other.type;
           break;
         }
@@ -2091,12 +2127,22 @@ class Translator with KernelNodes {
     return _filterInferredType(node.type, inferredTypeMetadata[node]);
   }
 
-  DartType? _inferredTypeOfLocalVariable(Variable node) {
-    InferredType? inferredType = inferredTypeMetadata[node];
-    if (node.isFinal) {
-      inferredType ??= inferredTypeMetadata[node.initializer];
+  DartType? _inferredTypeOfLocalVariable(Variable variable) {
+    InferredType? inferredType = inferredTypeMetadata[variable];
+    if (variable.isFinal) {
+      if (variable.parent is Let && variable.type is VoidType) {
+        // This is most likely a CFE desugaring construct of index setters where
+        // the result of the `[]=` call is stored in a let variable of void type
+        // and never used. Since `[]=` calls don't have an actual return value we
+        // use top type for the (unused) variable for which we can synthesize a
+        // `null`.
+        //
+        // See also http://dartbug.com/63360
+        return null;
+      }
+      inferredType ??= inferredTypeMetadata[variable.initializer];
     }
-    return _filterInferredType(node.type, inferredType);
+    return _filterInferredType(variable.type, inferredType);
   }
 
   DartType? _filterInferredType(
@@ -2928,8 +2974,8 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     Expression? initializerForNamedParamInMember(String paramName) {
       for (int i = 0; i < functionNode.namedParameters.length; i += 1) {
-        if (functionNode.namedParameters[i].name == paramName) {
-          return functionNode.namedParameters[i].initializer;
+        if (functionNode.namedParameters[i].parameterName == paramName) {
+          return functionNode.namedParameters[i].defaultValue;
         }
       }
       return null;

@@ -380,8 +380,8 @@ class WeakTest {
   final Finalizer finalizer;
 
   WeakTest(this.object)
-    : weakList = List.filled(1, WeakReference(object)),
-      finalizer = Finalizer((_) {})..attach(object, Object(), detach: object);
+      : weakList = List.filled(1, WeakReference(object)),
+        finalizer = Finalizer((_) {})..attach(object, Object(), detach: object);
 
   String get use => '$object|$weakList|$finalizer';
 }

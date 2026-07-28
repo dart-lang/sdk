@@ -46,7 +46,7 @@ class A {
   }
 
   test_forEach_inferredList() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   for ([!var i!] in [1, 2, 'Hello'.length]) {
     print(i);
@@ -56,7 +56,7 @@ f() {
   }
 
   test_forEach_listWithNonObviousElement() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   int j = "Hello".length;
   for ([!var i!] in [j, 1, j + 1]) { }
@@ -90,7 +90,7 @@ f() {
   }
 
   test_genericInvocation_paramIsType() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 String f() {
   [!final h = bar('')!];
   return h;
@@ -112,7 +112,7 @@ T bar<T>(T d) => d;
   }
 
   test_genericInvocation_typeNeededForInference() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var h = bar('')!];
   return h;
@@ -134,7 +134,7 @@ T bar<T>(dynamic d) => d;
   }
 
   test_genericInvocation_typeParamProvided() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 String f() {
   [!var h = bar<String>('')!];
   return h;
@@ -156,7 +156,7 @@ T bar<T>(dynamic d) => d;
   }
 
   test_instanceCreation_generic() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   [!var a = A(1)!];
 }
@@ -272,7 +272,7 @@ f() {
   }
 
   test_local_multiple() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   var /*[0*/a = 'a' + 'a'/*0]*/, /*[1*/b = 'b' * 2/*1]*/;
 }
@@ -298,7 +298,7 @@ f() {
   }
 
   test_local_promotion() async {
-    await assertDiagnosticsFromMarkdown(r'''
+    await assertDiagnosticsFromMarkup(r'''
 f() {
   num local = 2;
   if (local is! int) return;
