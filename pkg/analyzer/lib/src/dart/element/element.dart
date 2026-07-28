@@ -2619,14 +2619,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   @trackedIncludedInId
-  bool get hasImplicitReturnType {
-    for (var fragment in _fragments) {
-      if (!fragment.hasImplicitReturnType) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool get hasImplicitReturnType => _firstFragment.hasImplicitReturnType;
 
   @generated
   @trackedIncludedInId

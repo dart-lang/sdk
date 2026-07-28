@@ -36405,6 +36405,188 @@ library
 ''');
   }
 
+  test_getter_augmentation_chain_inferredReturnType_augmentationHasExplicitReturnType_different() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  int get foo;
+}
+
+abstract class B implements A {
+  get foo;
+  augment String get foo;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isAbstract isOriginDeclaration foo (nameOffset:29) (firstTokenOffset:21) (offset:29)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F5 isAbstract class B (nameOffset:52) (firstTokenOffset:37) (offset:52)
+          element: <testLibrary>::@class::B
+          fields
+            #F6 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+              element: <testLibrary>::@class::B::@field::foo
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          getters
+            #F8 hasImplicitReturnType isAbstract isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:71) (offset:75)
+              element: <testLibrary>::@class::B::@getter::foo
+              nextFragment: #F9
+            #F9 isAbstract isAugmentation isOriginDeclaration foo (nameOffset:101) (firstTokenOffset:82) (offset:101)
+              element: <testLibrary>::@class::B::@getter::foo
+              previousFragment: #F8
+  classes
+    isAbstract isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+    isAbstract isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      interfaces
+        A
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F6
+          type: int
+          getter: <testLibrary>::@class::B::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F7
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F8
+          returnType: int
+          variable: <testLibrary>::@class::B::@field::foo
+''');
+  }
+
+  test_getter_augmentation_chain_inferredReturnType_augmentationHasExplicitReturnType_same() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  int get foo;
+}
+
+abstract class B implements A {
+  get foo;
+  augment int get foo;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isAbstract isOriginDeclaration foo (nameOffset:29) (firstTokenOffset:21) (offset:29)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F5 isAbstract class B (nameOffset:52) (firstTokenOffset:37) (offset:52)
+          element: <testLibrary>::@class::B
+          fields
+            #F6 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+              element: <testLibrary>::@class::B::@field::foo
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          getters
+            #F8 hasImplicitReturnType isAbstract isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:71) (offset:75)
+              element: <testLibrary>::@class::B::@getter::foo
+              nextFragment: #F9
+            #F9 isAbstract isAugmentation isOriginDeclaration foo (nameOffset:98) (firstTokenOffset:82) (offset:98)
+              element: <testLibrary>::@class::B::@getter::foo
+              previousFragment: #F8
+  classes
+    isAbstract isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+    isAbstract isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      interfaces
+        A
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F6
+          type: int
+          getter: <testLibrary>::@class::B::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F7
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F8
+          returnType: int
+          variable: <testLibrary>::@class::B::@field::foo
+''');
+  }
+
   test_getter_augmentation_chain_isComplete_instance() async {
     var library = await buildLibrary(r'''
 class A {
@@ -42329,6 +42511,148 @@ library
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F6
           returnType: T
+''');
+  }
+
+  test_method_augmentation_chain_inferredReturnType_augmentationHasExplicitReturnType_different() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B implements A {
+  foo();
+  augment String foo();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 isAbstract isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:21) (offset:25)
+              element: <testLibrary>::@class::A::@method::foo
+        #F4 isAbstract class B (nameOffset:50) (firstTokenOffset:35) (offset:50)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          methods
+            #F6 hasImplicitReturnType isAbstract isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:69) (offset:69)
+              element: <testLibrary>::@class::B::@method::foo
+              nextFragment: #F7
+            #F7 isAbstract isAugmentation isOriginDeclaration foo (nameOffset:93) (firstTokenOffset:78) (offset:93)
+              element: <testLibrary>::@class::B::@method::foo
+              previousFragment: #F6
+  classes
+    isAbstract isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          returnType: int
+    isAbstract isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      interfaces
+        A
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::B::@method::foo
+          firstFragment: #F6
+          returnType: int
+''');
+  }
+
+  test_method_augmentation_chain_inferredReturnType_augmentationHasExplicitReturnType_same() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B implements A {
+  foo();
+  augment int foo();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 isAbstract isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:21) (offset:25)
+              element: <testLibrary>::@class::A::@method::foo
+        #F4 isAbstract class B (nameOffset:50) (firstTokenOffset:35) (offset:50)
+          element: <testLibrary>::@class::B
+          constructors
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          methods
+            #F6 hasImplicitReturnType isAbstract isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:69) (offset:69)
+              element: <testLibrary>::@class::B::@method::foo
+              nextFragment: #F7
+            #F7 isAbstract isAugmentation isOriginDeclaration foo (nameOffset:90) (firstTokenOffset:78) (offset:90)
+              element: <testLibrary>::@class::B::@method::foo
+              previousFragment: #F6
+  classes
+    isAbstract isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          returnType: int
+    isAbstract isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      interfaces
+        A
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::B::@method::foo
+          firstFragment: #F6
+          returnType: int
 ''');
   }
 

@@ -69,6 +69,21 @@ augment class A {
 ''');
   }
 
+  test_class_instanceGetter_inferred_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  int get foo;
+}
+
+abstract class B implements A {
+  get foo;
+  augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
+}
+''');
+  }
+
   test_class_instanceGetter_instanceField_int_String() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -91,6 +106,21 @@ class A {
 
 augment class A {
   augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
+}
+''');
+  }
+
+  test_class_instanceMethod_inferred_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B implements A {
+  foo();
+  augment String foo();
 //        ^^^^^^
 // [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
 }
