@@ -1971,6 +1971,31 @@ class A {
 ''');
   }
 
+  test_searchReferences_class_method_in_objectPattern_otherFile() async {
+    String other = convertPath('$testPackageLibPath/other.dart');
+    String otherCode = '''
+import 'test.dart';
+
+void f(Object? x) {
+  if (x case A(foo: _)) {}
+  if (x case A(: var foo)) {}
+}
+''';
+    newFile(other, otherCode);
+
+    var result = await resolveTestCode('''
+class A {
+  void foo() {}
+}
+''');
+    var element = result.findElement.method('foo');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart f@26
+  56 4:16 |foo| REFERENCE qualified
+  83 5:16 || REFERENCE qualified
+''');
+  }
+
   test_searchReferences_ClassElement_enum() async {
     var result = await resolveTestCode('''
 enum MyEnum {a}
@@ -4995,6 +5020,31 @@ void useGetter(Object? x) {
 <testLibraryFragment> useGetter@38
   76 6:16 |foo| REFERENCE_IN_PATTERN_FIELD qualified
   103 7:16 || REFERENCE_IN_PATTERN_FIELD qualified
+''');
+  }
+
+  test_searchReferences_GetterElement_ofClass_objectPattern_otherFile() async {
+    String other = convertPath('$testPackageLibPath/other.dart');
+    String otherCode = '''
+import 'test.dart';
+
+void useGetter(Object? x) {
+  if (x case A(foo: 0)) {}
+  if (x case A(: var foo)) {}
+}
+''';
+    newFile(other, otherCode);
+
+    var result = await resolveTestCode('''
+class A {
+  int get foo => 0;
+}
+''');
+    var element = result.findElement.getter('foo');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useGetter@26
+  64 4:16 |foo| REFERENCE_IN_PATTERN_FIELD qualified
+  91 5:16 || REFERENCE_IN_PATTERN_FIELD qualified
 ''');
   }
 

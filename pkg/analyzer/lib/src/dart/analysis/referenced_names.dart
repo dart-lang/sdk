@@ -367,6 +367,15 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    if (node.effectiveName case var name?) {
+      names.add(name);
+    }
+
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore all declarations.
     if (node.inDeclarationContext()) {
