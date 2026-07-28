@@ -599,4 +599,7 @@ bool jsIdentical(Object? a, Object? b) => identical(a, b);
 
 @patch
 @pragma('dart2js:prefer-inline')
-Never jsThrow(JSAny error) => foreign_helper.JS('Never', 'throw #', error);
+Never jsThrow(JSAny error) {
+  foreign_helper.JS('', 'throw #', error);
+  throw 'unreachable';
+}
