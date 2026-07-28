@@ -48,6 +48,12 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   /// during [tearDown].
   final List<String> _temporaryFolders = [];
 
+  /// The file where the instrumentation log file will be written.
+  ///
+  /// Wrap a test with [printInstrumentationLogOnFailure] to print this log
+  /// if the test fails.
+  late File instrumentationLogFilePath;
+
   LspByteStreamServerChannel get channel => client!.channel!;
 
   @override
@@ -108,6 +114,44 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     return super.openFile(uri, content, version: version);
   }
 
+  /// A wrapper that executes a test, printing the instrumentation log if
+  /// the test fails (due to an exception, or timing out).
+  ///
+  /// To use it, either add an additional test that calls this method (the
+  /// original test will also still run normally):
+  ///
+  /// ```
+  /// Future<void> test_plugins_debugLog() => printInstrumentationLogOnFailure(test_plugins);
+  /// ```
+  ///
+  /// Or just wrap the implementation of the test:
+  ///
+  /// ```
+  /// Future<void> test_plugins() async {
+  ///   return await printInstrumentationLogOnFailure(() async {
+  ///     // test impl
+  ///   });
+  /// }
+  /// ```
+  Future<void> printInstrumentationLogOnFailure(
+    Future<void> Function() test,
+  ) async {
+    try {
+      // The normal test timeout is 30s but we can't catch that to print the log
+      // so instead add our own 28s timeout, assuming that if we hit 28s we
+      // would hit 30s.
+      await test().timeout(Duration(seconds: 28));
+    } catch (e) {
+      print('Test failed. Instrumentation log:');
+      try {
+        print(instrumentationLogFilePath.readAsStringSync());
+      } catch (e) {
+        print('Failed to read instrumentation log: $e');
+      }
+      rethrow;
+    }
+  }
+
   @override
   Future<void> replaceFile(int newVersion, Uri uri, String content) {
     _overlayContent[uri] = content;
@@ -145,9 +189,23 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     mainFilePath = path.join(projectFolderPath, 'lib', 'main.dart');
     analysisOptionsPath = path.join(projectFolderPath, 'analysis_options.yaml');
 
+    var instrumentationLogFolderPath = Directory.systemTemp
+        .createTempSync('analysisServer_test_integration_lspProject_log')
+        .resolveSymbolicLinksSync();
+    _temporaryFolders.add(instrumentationLogFolderPath);
+    instrumentationLogFilePath = File(
+      path.join(instrumentationLogFolderPath, 'log.txt'),
+    );
+
     var client = LspServerClient(instrumentationService);
     this.client = client;
-    await client.start(dartSdkPath: dartSdkPath, vmArgs: vmArgs);
+    await client.start(
+      dartSdkPath: dartSdkPath,
+      vmArgs: vmArgs,
+      additionalServerArgs: [
+        '--instrumentation-log-file=${instrumentationLogFilePath.path}',
+      ],
+    );
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
         var id = message.id;
@@ -162,11 +220,32 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     });
   }
 
-  void tearDown() {
-    // TODO(dantup): Graceful shutdown?
+  Future<void> tearDown() async {
     client?.close();
+    await client?.exitCode;
     for (var temporaryFolder in _temporaryFolders) {
-      Directory(temporaryFolder).deleteSync(recursive: true);
+      await _tryDelete(Directory(temporaryFolder));
+    }
+  }
+
+  /// Attempts to delete [directory] with retries/delays if it fails.
+  ///
+  /// On Windows, deleting can fail with "OS Error: The process cannot access
+  /// the file because it is being used by another process" for a short period
+  /// after the process that had it locked ends.
+  Future<void> _tryDelete(Directory directory) async {
+    const maxTries = 3;
+    for (var i = 1; i <= maxTries; i++) {
+      try {
+        directory.deleteSync(recursive: true);
+        return;
+      } catch (e) {
+        if (i == maxTries) {
+          print('Failed to delete ${directory.path} after $maxTries attempts');
+        } else {
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
+      }
     }
   }
 }
@@ -204,6 +283,7 @@ class LspServerClient {
   Future<void> start({
     required String dartSdkPath,
     List<String>? vmArgs,
+    List<String>? additionalServerArgs,
   }) async {
     if (_process != null) {
       throw Exception('Process already started');
@@ -212,7 +292,13 @@ class LspServerClient {
     var dartBinary = path.join(dartSdkPath, 'bin', 'dart');
     var serverPath = await getAnalysisServerPath(dartSdkPath);
 
-    var arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
+    var arguments = [
+      ...?vmArgs,
+      serverPath,
+      '--lsp',
+      '--suppress-analytics',
+      ...?additionalServerArgs,
+    ];
     var process = await Process.start(
       dartBinary,
       arguments,
