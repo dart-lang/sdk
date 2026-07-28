@@ -66,8 +66,8 @@ mixin PluginMixin on AbstractLspAnalysisServerIntegrationTest {
   }
 
   @override
-  void tearDown() {
-    super.tearDown();
+  Future<void> tearDown() async {
+    await super.tearDown();
     Directory(pluginsFolderPath).deleteSync(recursive: true);
   }
 
