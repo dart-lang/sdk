@@ -28,6 +28,7 @@ import 'package:test/test.dart';
 
 import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
+import '../../../util/language_feature_directive_lowering.dart';
 import '../../summary/resolved_ast_printer.dart';
 import '../analysis/result_printer.dart';
 import 'dart_object_printer.dart';
@@ -297,7 +298,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Create a new file with the [path] and [content], and resolve it.
   Future<TestResolvedUnitResult> resolveFileCode(String path, String content) {
-    var file = newFile(path, content);
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(content);
+    var file = newFile(path, featureDirectiveLowering.loweredCode);
     return resolveFile2(file);
   }
 
@@ -310,12 +312,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Future<Map<File, TestResolvedUnitResult>> resolveFilesWithDiagnostics(
     Map<File, String> filesToCode,
   ) async {
-    var files = <({File file, String code, String cleanCode})>[];
-
+    var files = <_DiagnosticTestFile>[];
     for (var entry in filesToCode.entries) {
-      var cleanCode = removeDiagnosticExpectations(entry.value);
-      modifyFile2(entry.key, cleanCode);
-      files.add((file: entry.key, code: entry.value, cleanCode: cleanCode));
+      var file = _DiagnosticTestFile(entry.key, entry.value);
+      modifyFile2(file.file, file.loweredCode);
+      files.add(file);
     }
 
     var results = <File, TestResolvedUnitResult>{};
@@ -328,7 +329,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
 
     var actualCodeByFile = updateExpectedDiagnosticsForFiles(
-      contentByFile: {for (var file in files) file.file: file.cleanCode},
+      contentByFile: {for (var file in files) file.file: file.loweredCode},
       actualDiagnosticsByFile: diagnosticsByFile,
     );
 
@@ -336,11 +337,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     for (var index = 0; index < files.length; index++) {
       var file = files[index];
       var actual = actualCodeByFile[file.file]!;
-      if (actual != file.code) {
+      actual = file.restoreDirective(actual);
+      if (actual != file.expectedCode) {
         NodeTextExpectationsCollector.add(actual, intraInvocationId: '$index');
         if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
           print('-------- ${file.file.path} --------');
-          printPrettyDiff(file.code, actual);
+          printPrettyDiff(file.expectedCode, actual);
         }
         hasMismatch = true;
       }
@@ -364,7 +366,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Put the [code] into the test file, and resolve it.
   Future<TestResolvedUnitResult> resolveTestCode(String code) {
-    addTestFile(code);
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(code);
+    addTestFile(featureDirectiveLowering.loweredCode);
     return resolveTestFile();
   }
 
@@ -429,18 +432,19 @@ mixin ResolutionTest implements ResourceProviderMixin {
     File file,
     String code,
   ) async {
-    var cleanCode = removeDiagnosticExpectations(code);
-    modifyFile2(file, cleanCode);
+    var testFile = _DiagnosticTestFile(file, code);
+    modifyFile2(file, testFile.loweredCode);
     var result = await resolveFile2(file);
 
     var actual = updateExpectedDiagnostics(
-      content: cleanCode,
+      content: testFile.loweredCode,
       actualDiagnostics: result.diagnostics,
     );
-    if (actual != code) {
+    actual = testFile.restoreDirective(actual);
+    if (actual != testFile.expectedCode) {
       NodeTextExpectationsCollector.add(actual);
       if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
-        printPrettyDiff(code, actual);
+        printPrettyDiff(testFile.expectedCode, actual);
       }
       fail('See the difference above.');
     }
@@ -494,6 +498,30 @@ final class TestResolvedUnitResult {
   Uri get uri => analysisResult.uri;
 
   String get uriStr => '$uri';
+}
+
+class _DiagnosticTestFile {
+  final File file;
+  final String expectedCode;
+  final LanguageFeatureDirectiveLowering _featureDirectiveLowering;
+
+  factory _DiagnosticTestFile(File file, String expectedCode) {
+    var cleanCode = removeDiagnosticExpectations(expectedCode);
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(cleanCode);
+    return _DiagnosticTestFile._(file, expectedCode, featureDirectiveLowering);
+  }
+
+  _DiagnosticTestFile._(
+    this.file,
+    this.expectedCode,
+    this._featureDirectiveLowering,
+  );
+
+  String get loweredCode => _featureDirectiveLowering.loweredCode;
+
+  String restoreDirective(String code) {
+    return _featureDirectiveLowering.restoreDirective(code);
+  }
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {

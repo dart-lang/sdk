@@ -35,9 +35,9 @@ TopLevelVariableDeclaration
 ''');
   }
 
-  test_abstract_language305() {
+  test_abstract_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 abstract int foo;
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
@@ -97,9 +97,9 @@ TopLevelVariableDeclaration
 ''');
   }
 
-  test_augment_abstract_language305() {
+  test_augment_abstract_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 augment abstract int foo;
 //      ^^^^^^^^
 // [diag.expectedToken] Expected to find ';'.
@@ -128,29 +128,9 @@ CompilationUnit
 ''');
   }
 
-  test_augment_external() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-augment external int foo;
-''');
-
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
-    assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
-  augmentKeyword: augment
-  externalKeyword: external
-  variables: VariableDeclarationList
-    type: NamedType
-      name: int
-    variables
-      VariableDeclaration
-        name: foo
-  semicolon: ;
-''');
-  }
-
-  test_augment_language305() {
+  test_augment_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.5
+// %before-language-feature: augmentations
 augment final foo = 0;
 // [diag.missingConstFinalVarOrType][column 1][length 7] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 // [diag.expectedToken][column 1][length 7] Expected to find ';'.
@@ -176,6 +156,26 @@ CompilationUnit
             initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
+''');
+  }
+
+  test_augment_external() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment external int foo;
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    assertParsedNodeText(node, r'''
+TopLevelVariableDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  variables: VariableDeclarationList
+    type: NamedType
+      name: int
+    variables
+      VariableDeclaration
+        name: foo
+  semicolon: ;
 ''');
   }
 

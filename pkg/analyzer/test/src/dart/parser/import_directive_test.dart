@@ -49,6 +49,42 @@ ImportDirective
 ''');
   }
 
+  test_afterPartOf_beforeEnhancedParts() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: enhanced-parts
+part of 'a.dart';
+import 'b.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 6] The part-of directive must be the only directive in a part.
+''');
+
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  semicolon: ;
+''');
+  }
+
+  test_beforePartOf_beforeEnhancedParts() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: enhanced-parts
+import 'b.dart';
+part of 'a.dart';
+// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
+''');
+
+    var node = parseResult.findNode.singleImportDirective;
+    assertParsedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'b.dart'
+  semicolon: ;
+''');
+  }
+
   test_configurableUri() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'foo.dart'
@@ -91,42 +127,6 @@ ImportDirective
   importKeyword: import
   uri: SimpleStringLiteral
     literal: 'a.dart'
-  semicolon: ;
-''');
-  }
-
-  test_language305_afterPartOf() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-part of 'a.dart';
-import 'b.dart';
-// [diag.nonPartOfDirectiveInPart][column 1][length 6] The part-of directive must be the only directive in a part.
-''');
-
-    var node = parseResult.findNode.singleImportDirective;
-    assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'b.dart'
-  semicolon: ;
-''');
-  }
-
-  test_language305_beforePartOf() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-import 'b.dart';
-part of 'a.dart';
-// [diag.nonPartOfDirectiveInPart][column 1][length 4] The part-of directive must be the only directive in a part.
-''');
-
-    var node = parseResult.findNode.singleImportDirective;
-    assertParsedNodeText(node, r'''
-ImportDirective
-  importKeyword: import
-  uri: SimpleStringLiteral
-    literal: 'b.dart'
   semicolon: ;
 ''');
   }

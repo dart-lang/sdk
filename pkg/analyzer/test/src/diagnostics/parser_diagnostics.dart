@@ -16,6 +16,7 @@ import 'package:test/test.dart';
 import '../../util/diff.dart';
 import '../../util/element_printer.dart';
 import '../../util/feature_sets.dart';
+import '../../util/language_feature_directive_lowering.dart';
 import '../dart/resolution/node_text_expectations.dart';
 import '../summary/resolved_ast_printer.dart';
 
@@ -52,8 +53,9 @@ class ParserDiagnosticsTest {
     String content, {
     FeatureSet? featureSet,
   }) {
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(content);
     return parseString(
-      content: content,
+      content: featureDirectiveLowering.loweredCode,
       featureSet: featureSet ?? testFeatureSet,
       throwIfDiagnostics: false,
     );
@@ -69,8 +71,11 @@ class ParserDiagnosticsTest {
     var cleanContent = expected_diagnostics.removeDiagnosticExpectations(
       content,
     );
-    var parseContent = expected_diagnostics.removeTrailingLineTerminator(
+    var featureDirectiveLowering = LanguageFeatureDirectiveLowering(
       cleanContent,
+    );
+    var parseContent = expected_diagnostics.removeTrailingLineTerminator(
+      featureDirectiveLowering.loweredCode,
     );
     var result = parseString(
       content: parseContent,
@@ -79,9 +84,10 @@ class ParserDiagnosticsTest {
     );
 
     var actual = expected_diagnostics.updateExpectedDiagnostics(
-      content: cleanContent,
+      content: featureDirectiveLowering.loweredCode,
       actualDiagnostics: result.errors,
     );
+    actual = featureDirectiveLowering.restoreDirective(actual);
     if (actual != content) {
       NodeTextExpectationsCollector.add(actual);
       if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {

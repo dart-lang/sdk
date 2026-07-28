@@ -1445,9 +1445,9 @@ class C {
 ''');
   }
 
-  void test_factoryWithoutBody_language305() {
+  void test_factoryWithoutBody_beforeAugmentations() {
     parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   factory C();
 //           ^

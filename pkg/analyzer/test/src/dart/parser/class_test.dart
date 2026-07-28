@@ -909,9 +909,9 @@ ConstructorDeclaration
 ''');
   }
 
-  test_constructor_typeName_factory_unnamed_noBody_language305() {
+  test_constructor_typeName_factory_unnamed_noBody_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   factory A();
 //           ^
@@ -1516,9 +1516,9 @@ ClassDeclaration
 ''');
   }
 
-  test_field_abstract_static_language305() {
+  test_field_abstract_static_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   abstract static int? foo;
 //^^^^^^^^
@@ -1734,9 +1734,9 @@ ClassDeclaration
 ''');
   }
 
-  test_field_static_abstract_language305() {
+  test_field_static_abstract_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static abstract int? foo;
 //       ^^^^^^^^
@@ -1869,9 +1869,9 @@ MethodDeclaration
 ''');
   }
 
-  test_getter_static_body_empty_language305() {
+  test_getter_static_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static int get foo;
 //                  ^
@@ -2059,9 +2059,9 @@ MethodDeclaration
 ''');
   }
 
-  test_method_static_body_empty_language305() {
+  test_method_static_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static int foo();
 //                ^
@@ -4464,9 +4464,9 @@ MethodDeclaration
 ''');
   }
 
-  test_setter_static_body_empty_language305() {
+  test_setter_static_body_empty_beforeAugmentations() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   static set foo(int _);
 //                     ^

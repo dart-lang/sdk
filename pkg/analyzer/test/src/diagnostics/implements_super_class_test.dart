@@ -14,6 +14,16 @@ main() {
 
 @reflectiveTest
 class ImplementsSuperClassTest extends PubPackageResolutionTest {
+  test_class_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+class A {}
+class B extends A implements A {}
+//                           ^
+// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
+''');
+  }
+
   test_class_extendsClass_implementsClass() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -99,25 +109,15 @@ augment class B extends A {}
     });
   }
 
-  test_class_language305() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
-class A {}
-class B extends A implements A {}
-//                           ^
-// [diag.implementsSuperClass] 'class A' can't be used in both the 'extends' and 'implements' clauses.
-''');
-  }
-
   test_class_Object() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A implements Object {}
 ''');
   }
 
-  test_class_Object_language305() async {
+  test_class_Object_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A implements Object {}
 //                 ^^^^^^
 // [diag.implementsSuperClass] 'class Object' can't be used in both the 'extends' and 'implements' clauses.
@@ -132,9 +132,9 @@ class C extends A implements B {}
 ''');
   }
 
-  test_class_viaTypeAlias_language305() async {
+  test_class_viaTypeAlias_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 typedef B = A;
 class C extends A implements B {}
@@ -151,9 +151,9 @@ class B = A with M implements A;
 ''');
   }
 
-  test_classAlias_language305() async {
+  test_classAlias_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 mixin M {}
 class B = A with M implements A;
@@ -169,9 +169,9 @@ class A = Object with M implements Object;
 ''');
   }
 
-  test_classAlias_Object_language305() async {
+  test_classAlias_Object_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 mixin M {}
 class A = Object with M implements Object;
 //                                 ^^^^^^
@@ -188,9 +188,9 @@ class C = A with M implements B;
 ''');
   }
 
-  test_classAlias_viaTypeAlias_language305() async {
+  test_classAlias_viaTypeAlias_beforeAugmentations() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {}
 mixin M {}
 typedef B = A;
