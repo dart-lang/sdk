@@ -1111,9 +1111,19 @@ class _DynamicCallValidator {
   final _DynamicModuleValidator validator;
   final Set<_Selector> _dynamicallyCallable = {};
   final Set<Class> classesExposedDynamically = {};
+  bool _allowAll = false;
   DynamicInterfaceSpecification get spec => validator.spec;
 
   new(this.validator, List<String> dynamicCallsSelectorAllowList) {
+    if (dynamicCallsSelectorAllowList.contains('*')) {
+      // Coverage-ignore-block(suite): Not run.
+      if (dynamicCallsSelectorAllowList.length > 1) {
+        throw "Unexpected selector descriptor '*': "
+            "wildcard '*' cannot be combined with other selectors.";
+      }
+      _allowAll = true;
+      return;
+    }
     for (final String descriptor in dynamicCallsSelectorAllowList) {
       List<String> split = descriptor.split(':');
       if (split.length == 1) {
@@ -1149,7 +1159,8 @@ class _DynamicCallValidator {
   }
 
   /// Whether [selectorName] should be allowed in a dynamic module.
-  bool isAllowed(_Selector selector) => _dynamicallyCallable.contains(selector);
+  bool isAllowed(_Selector selector) =>
+      _allowAll || _dynamicallyCallable.contains(selector);
 
   /// Registers exposed selectors based on [spec] and validates classes in
   /// [component] to ensure dynamically callable classes cannot directly or
