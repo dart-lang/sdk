@@ -239,22 +239,6 @@ class ClassInfo {
 
   w.RefType? _repr;
 
-  /// Wherther the class's Wasm struct is cyclic via non-nullable references.
-  ///
-  /// Cyclic classes cannot be instantiated.
-  ///
-  /// Cyclicness is calculated after closure infos are fully generated
-  /// (including fields), in [collect].
-  bool get isCyclic {
-    final cyclic = _cyclic;
-    if (cyclic == null) {
-      throw 'Cyclicness not calculated for $cls ($struct)';
-    }
-    return cyclic;
-  }
-
-  bool? _cyclic;
-
   /// Nullabe Wasm ref type for this class.
   final w.RefType nullableType;
 
@@ -299,28 +283,6 @@ class ClassInfo {
     for (int i = FieldIndex.objectFieldBase; i < struct.fields.length; i++) {
       f(i, struct.fields[i]);
     }
-  }
-
-  bool _calculateCyclicness(Translator translator) {
-    if (_cyclic != null) return _cyclic!;
-
-    _cyclic = true;
-
-    final structType = repr.heapType as w.StructType;
-    for (w.FieldType fieldType in structType.fields) {
-      final fieldTypeType = fieldType.type;
-      if (fieldTypeType is w.RefType && !fieldTypeType.nullable) {
-        final fieldClassInfo =
-            translator.classForHeapType[fieldTypeType.heapType];
-        if (fieldClassInfo != null) {
-          if (fieldClassInfo._calculateCyclicness(translator)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return _cyclic = false;
   }
 }
 
@@ -414,7 +376,6 @@ class ClassInfoCollector {
     );
     topInfo = ClassInfo(null, 0, 0, struct, null);
     topInfo._repr = w.RefType.def(struct, nullable: false);
-    translator.classForHeapType[struct] = topInfo;
   }
 
   void _createStructForClass(
@@ -501,7 +462,6 @@ class ClassInfoCollector {
     }
     translator.classesSupersFirst.add(info);
     translator.classInfo[cls] = info;
-    translator.classForHeapType.putIfAbsent(info.struct, () => info!);
     if (classId != anonymousMixinClassId) {
       translator.classes[classId] = info;
     }
@@ -533,7 +493,6 @@ class ClassInfoCollector {
     translator.classesSupersFirst.add(info);
     translator.classes[classId] = info;
     translator.classInfo[cls] = info;
-    translator.classForHeapType.putIfAbsent(info.struct, () => info);
   }
 
   void _generateFields(ClassInfo info) {
@@ -759,12 +718,6 @@ class ClassInfoCollector {
               superInfo.struct.fields.length < info.struct.fields.length,
         );
       }
-    }
-
-    // Use `classesSupersFirst` here instead of `classes` to visit anonymous
-    // mixin application classes as well.
-    for (final info in translator.classesSupersFirst) {
-      info._calculateCyclicness(translator);
     }
 
     // Validate that all internally used fields have the expected indices.

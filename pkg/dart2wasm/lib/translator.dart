@@ -190,7 +190,7 @@ class Translator with KernelNodes {
   final Map<(w.ModuleBuilder, String), w.Global> _internalizedStringGlobals =
       {};
 
-  final Map<w.HeapType, ClassInfo> classForHeapType = {};
+  final Map<w.HeapType, bool> _isCyclicHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
@@ -2098,10 +2098,10 @@ class Translator with KernelNodes {
   }
 
   w.ValueType translateTypeOfLocalVariable(Variable node) {
-    DartType dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
-    if (dartType is InterfaceType) {
-      final info = classInfo[dartType.classNode];
-      if (info != null && info.isCyclic) {
+    final dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
+    final wasmType = translateType(dartType);
+    if (wasmType case w.RefType(nullable: false, heapType: final heapType)) {
+      if (isCyclicHeapType(heapType)) {
         // Cyclic types can't be instantiated, so locals with cyclic types won't
         // be assigned and we can give them a more general type. Returning a
         // nullable type here makes dummy initialization of the variable
@@ -2109,7 +2109,7 @@ class Translator with KernelNodes {
         return topType;
       }
     }
-    return translateType(dartType);
+    return wasmType;
   }
 
   DartType? _inferredTypeOfParameterVariable(Variable node) {
@@ -2655,6 +2655,31 @@ class Translator with KernelNodes {
         return;
       }
     }
+  }
+
+  /// Whether we can have an instance of [klass] or any of its transitive
+  /// subclasses.
+  bool isAllocatable(Class klass) =>
+      !isCyclicHeapType(classInfo[klass]!.repr.heapType);
+
+  bool isCyclicHeapType(w.HeapType type) {
+    final alreadyCalculated = _isCyclicHeapType[type];
+    if (alreadyCalculated != null) return alreadyCalculated;
+
+    _isCyclicHeapType[type] = true;
+    if (type is w.StructType) {
+      for (final field in type.fields) {
+        if (field.type case w.RefType(
+          nullable: false,
+          heapType: final fieldHeapType,
+        )) {
+          if (isCyclicHeapType(fieldHeapType)) {
+            return _isCyclicHeapType[type] = true;
+          }
+        }
+      }
+    }
+    return _isCyclicHeapType[type] = false;
   }
 }
 
