@@ -71,8 +71,6 @@ class Linker {
   final Map<ast.FormalParameterImpl, DeclaringFormalParameterInfo>
   declaringFormalParameters = Map.identity();
 
-  late InheritanceManager3 inheritance; // TODO(scheglov): cache it
-
   Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
@@ -84,6 +82,10 @@ class Linker {
 
   DeclaredVariables get declaredVariables {
     return analysisContext.declaredVariables;
+  }
+
+  InheritanceManager3 get inheritance {
+    return elementFactory.analysisSession.inheritanceManager;
   }
 
   RootReference get rootReference => elementFactory.rootReference;
@@ -383,8 +385,6 @@ class Linker {
       elementFactory.dartCoreElement,
       elementFactory.dartAsyncElement,
     );
-
-    inheritance = InheritanceManager3();
   }
 
   /// To resolve macro annotations we need to access exported namespaces of
