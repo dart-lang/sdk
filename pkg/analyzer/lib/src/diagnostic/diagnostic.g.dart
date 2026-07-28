@@ -7919,7 +7919,6 @@ inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
       "The type argument(s) of the generic function type '{0}' can't be "
       "inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
-  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_generic_invocation',
   withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
@@ -7940,7 +7939,6 @@ inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
   problemMessage:
       "The type argument(s) of the constructor '{0}' can't be inferred.",
   correctionMessage: "Use explicit type argument(s) for '{0}'.",
-  hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'inference_failure_on_instance_creation',
   withArguments: _withArgumentsInferenceFailureOnInstanceCreation,

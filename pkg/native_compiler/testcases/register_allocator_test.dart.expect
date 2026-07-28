@@ -321,13 +321,17 @@ B0 = EntryBlock()
 
 --- setter AsBroadcastStream._controller
 B0 = EntryBlock()
-  v8 = Constant(null)
+  v6 = Constant(null)
   v1 = Parameter(this)   # RA: param[0] <- ()
   v2 = Parameter(#value)   # RA: param[1] <- ()
   ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
-  StoreInstanceField(AsBroadcastStream._controller, v1, v2)   # RA: (R0, R1) temps: [R2, R3] SAFEPT{live: [R2, R3], objects: []}
+  v13 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R0)
+  ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1)
+  v7 = TypeCast(v2, v13, v6, _AsBroadcastStreamController<AsBroadcastStream.T%>?)   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [R0, R1, R2], objects: [R0, R1, R2]}
+  ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
+  StoreInstanceField(AsBroadcastStream._controller, v1, v7)   # RA: (R3, R0) temps: [R1, R2] SAFEPT{live: [R1, R2], objects: []}
   ParallelMove input(NullConstant(null) -> R0)
-  Return(v8)   # RA: (R0)
+  Return(v6)   # RA: (R0)
 
 --- getter AsBroadcastStream._subscription
 B0 = EntryBlock()
@@ -339,13 +343,17 @@ B0 = EntryBlock()
 
 --- setter AsBroadcastStream._subscription
 B0 = EntryBlock()
-  v8 = Constant(null)
+  v6 = Constant(null)
   v1 = Parameter(this)   # RA: param[0] <- ()
   v2 = Parameter(#value)   # RA: param[1] <- ()
   ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
-  StoreInstanceField(AsBroadcastStream._subscription, v1, v2)   # RA: (R0, R1) temps: [R2, R3] SAFEPT{live: [R2, R3], objects: []}
+  v13 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R0)
+  ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1)
+  v7 = TypeCast(v2, v13, v6, StreamSubscription<AsBroadcastStream.T%>?)   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [R0, R1, R2], objects: [R0, R1, R2]}
+  ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
+  StoreInstanceField(AsBroadcastStream._subscription, v1, v7)   # RA: (R3, R0) temps: [R1, R2] SAFEPT{live: [R1, R2], objects: []}
   ParallelMove input(NullConstant(null) -> R0)
-  Return(v8)   # RA: (R0)
+  Return(v6)   # RA: (R0)
 
 --- _StreamControllerAddStreamState.
 B0 = EntryBlock()
@@ -1407,13 +1415,17 @@ B0 = EntryBlock()
 
 --- setter LinkedListEntry._next
 B0 = EntryBlock()
-  v8 = Constant(null)
+  v6 = Constant(null)
   v1 = Parameter(this)   # RA: param[0] <- ()
   v2 = Parameter(#value)   # RA: param[1] <- ()
   ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
-  StoreInstanceField(LinkedListEntry._next, v1, v2)   # RA: (R0, R1) temps: [R2, R3] SAFEPT{live: [R2, R3], objects: []}
+  v13 = LoadInstanceField(LinkedListEntry.#typeArguments, v1)   # RA: R2 <- (R0)
+  ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1)
+  v7 = TypeCast(v2, v13, v6, LinkedListEntry.E?)   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [R0, R1, R2], objects: [R0, R1, R2]}
+  ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
+  StoreInstanceField(LinkedListEntry._next, v1, v7)   # RA: (R3, R0) temps: [R1, R2] SAFEPT{live: [R1, R2], objects: []}
   ParallelMove input(NullConstant(null) -> R0)
-  Return(v8)   # RA: (R0)
+  Return(v6)   # RA: (R0)
 
 --- LinkedList.
 B0 = EntryBlock()
@@ -1548,13 +1560,17 @@ B0 = EntryBlock()
 
 --- setter LinkedList._first
 B0 = EntryBlock()
-  v8 = Constant(null)
+  v6 = Constant(null)
   v1 = Parameter(this)   # RA: param[0] <- ()
   v2 = Parameter(#value)   # RA: param[1] <- ()
   ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
-  StoreInstanceField(LinkedList._first, v1, v2)   # RA: (R0, R1) temps: [R2, R3] SAFEPT{live: [R2, R3], objects: []}
+  v13 = LoadInstanceField(LinkedList.#typeArguments, v1)   # RA: R2 <- (R0)
+  ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1)
+  v7 = TypeCast(v2, v13, v6, LinkedList.E?)   # RA: R0 <- (R0, R2, R1) temps: [R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [R0, R1, R2], objects: [R0, R1, R2]}
+  ParallelMove output(R0 -> vloc:R0, param[0] -> R3)
+  StoreInstanceField(LinkedList._first, v1, v7)   # RA: (R3, R0) temps: [R1, R2] SAFEPT{live: [R1, R2], objects: []}
   ParallelMove input(NullConstant(null) -> R0)
-  Return(v8)   # RA: (R0)
+  Return(v6)   # RA: (R0)
 
 --- combine
 B0 = EntryBlock()

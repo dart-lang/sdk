@@ -1,0 +1,120 @@
+--- A.
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)
+  TypeParameters(v1)
+  DirectCall Object.(v1)
+  Return(v6)
+
+--- D.
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)
+  TypeParameters(v1)
+  DirectCall A.(v1)
+  Return(v6)
+
+--- D.f
+B0 = EntryBlock()
+  v12 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(this)
+  v3 = Parameter(x)
+  v4 = Parameter(y)
+  v5 = Parameter(z)
+  v6 = Parameter(w)
+  v8 = TypeParameters(v1)
+  v10 = TypeParameters(v2)
+  v13 = TypeCast(v3, v10, v12, D.S%)
+  v16 = TypeCast(v4, v10, v12, D.S%)
+  v19 = TypeCast(v5, v12, v8, D.f.T%)
+  DirectCall print(v13)
+  DirectCall print(v16)
+  DirectCall print(v19)
+  DirectCall print(v6)
+  Return(v12)
+
+--- E.
+B0 = EntryBlock()
+  v3 = Constant(123)
+  v6 = Constant(456)
+  v10 = Constant(null)
+  v1 = Parameter(this)
+  StoreInstanceField(E.f, v1, v3)
+  StoreInstanceField(E.g, v1, v6)
+  DirectCall Object.(v1)
+  Return(v10)
+
+--- getter E.f
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(E.f, v1)
+  Return(v3)
+
+--- setter E.f
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(#value)
+  StoreInstanceField(E.f, v1, v2)
+  Return(v6)
+
+--- getter E.g
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(E.g, v1)
+  Return(v3)
+
+--- setter E.g
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(#value)
+  StoreInstanceField(E.g, v1, v2)
+  Return(v6)
+
+--- F.
+B0 = EntryBlock()
+  v3 = Constant(123)
+  v6 = Constant(789)
+  v10 = Constant(null)
+  v1 = Parameter(this)
+  StoreInstanceField(F.f, v1, v3)
+  StoreInstanceField(F.g, v1, v6)
+  DirectCall E.(v1)
+  Return(v10)
+
+--- getter F.f
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(F.f, v1)
+  Return(v3)
+
+--- setter F.f
+B0 = EntryBlock()
+  v9 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(#value)
+  v4 = TypeCast(v2, int)
+  StoreInstanceField(F.f, v1, v4)
+  Return(v9)
+
+--- getter F.g
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(F.g, v1)
+  Return(v3)
+
+--- setter F.g
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(#value)
+  StoreInstanceField(F.g, v1, v2)
+  Return(v6)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

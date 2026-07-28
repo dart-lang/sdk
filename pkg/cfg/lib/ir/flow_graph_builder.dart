@@ -299,13 +299,15 @@ class FlowGraphBuilder {
   LocalVariable declareLocalVariable(
     String name,
     ast.Variable? declaration,
-    CType type,
-  ) {
+    CType type, {
+    bool isCovariant = false,
+  }) {
     final v = LocalVariable(
       name,
       declaration,
       graph.localVariables.length,
       type,
+      isCovariant,
     );
     graph.localVariables.add(v);
     return v;

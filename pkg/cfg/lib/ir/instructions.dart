@@ -911,7 +911,9 @@ final class Parameter extends Definition with NoThrow, Pure {
   bool get isCatchParameter => block is CatchBlock;
 
   @override
-  CType get type => variable.type;
+  CType get type => (isFunctionParameter && variable.isCovariant)
+      ? const TopType()
+      : variable.type;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitParameter(this);
