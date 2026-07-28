@@ -927,6 +927,9 @@ class _ClassVerifier {
 
     for (var member in members) {
       if (member is MethodDeclaration) {
+        if (member.augmentKeyword != null) {
+          continue;
+        }
         var displayName = member.name.lexeme;
         var name = displayName;
         if (member.isSetter) {
@@ -934,6 +937,9 @@ class _ClassVerifier {
         }
         if (checkMemberNameCombo(member, name, displayName)) return true;
       } else if (member is FieldDeclaration) {
+        if (member.augmentKeyword != null) {
+          continue;
+        }
         if (classElement is EnumElement && member.abstractKeyword != null) {
           continue;
         }

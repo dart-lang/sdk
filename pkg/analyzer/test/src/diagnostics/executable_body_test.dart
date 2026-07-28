@@ -278,6 +278,17 @@ class A {
 ''');
   }
 
+  test_class_method_instance_augmentation_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo();
+//^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+  augment void foo();
+}
+''');
+  }
+
   test_class_method_instance_external_hasBody_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -902,6 +913,43 @@ enum E {
   static int get foo;
 //                  ^
 // [diag.missingFunctionBody] A function body must be provided.
+}
+''');
+  }
+
+  test_enum_instanceField_abstract_augmentation_instanceGetter_hasBody_instanceSetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract int foo;
+//             ^^^
+// [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
+  augment int get foo => 0;
+  augment void set foo(int _);
+}
+''');
+  }
+
+  test_enum_instanceField_abstractFinal_augmentation_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract final int foo;
+//                   ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment abstract final int foo;
+}
+''');
+  }
+
+  test_enum_instanceField_abstractFinal_augmentation_instanceGetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract final int foo;
+//                   ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment int get foo;
 }
 ''');
   }
